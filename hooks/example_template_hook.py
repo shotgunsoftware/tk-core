@@ -59,4 +59,3 @@ class ProceduralTemplateEvaluator(Hook):
         template_name = extra_params[0]
         return template_name
         
-            

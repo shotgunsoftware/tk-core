@@ -8,18 +8,33 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Path handling in Toolkit
-"""
-
 import os
 import sys
 import urlparse
 
 
-class PathManager(object):
+class LocalFileStorageManager(object):
     """
-    Class that encapsulates
+    Class that encapsulates logic for resolving local storage paths.
+
+    Toolkit needs to store cache data, logs and other items at runtime.
+    Some of this data is global, other is per site or per configuraiton.
+
+    This class provides a consistent and centralized interface for resolving
+    such paths and also handles compatibility across generations of path
+    standards if and when these change between releases.
+
+    .. note:: All paths returned by this class are local to the currently running
+              user and typically private or with limited access settings for other users.
+
+    :constant CORE_V17: Indicates compatibility with Core 0.17 or earlier
+    :constant CORE_V18: Indicates compatibility with Core 0.18 or later
+
+    :constant LOGGING: Indicates a path suitable for storing logs, useful for debugging
+    :constant LOGGING: Indicates a path suitable for storing cache data that can be deleted without
+                       any loss of functionality or state.
+    :constant PERSISTENT: Indicates a path suitable for storing settings and other data that is needs
+                          to be retained between sessions.
     """
     # generation of path structures
     (CORE_V17, CORE_V18) = range(2)
@@ -30,22 +45,26 @@ class PathManager(object):
     @classmethod
     def get_global_root(cls, path_type, generation=CORE_V18):
         """
-        Returns a generic Shotgun storage root. This is a path which is user specific,
-        where typically only the current user can read and write.
+        Returns a generic Shotgun storage root.
 
-        On the mac, paths will point into ~/Library, on windows it is %APPDATA%/Shotgun
-        and on Linux ~/.shotgun
+        The following paths will be used:
 
-        This method does not ensure that the folder exists.
+            - On the mac, paths will point into ``~/Library/PATH_TYPE/Shotgun``, where PATH_TYPE
+              is controlled by the path_type property.
+            - On Windows, paths will created below a ``%APPDATA%/Shotgun`` root point.
+            - On Linux, paths will be created below a ``~/.shotgun`` root point.
 
-        :param path_type: Type of path to return. One of LOGGING, CACHE, PERSISTENT, where
+        .. note:: This method does not ensure that the folder exists.
+
+        :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,
+                          ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where
                           logging is a path where log- and debug related data should be stored,
                           cache is a location intended for cache data, e.g. data that can be deleted
                           without affecting the state of execution, and persistent is a location intended
                           for data that is meant to be persist. This includes things like settings and
                           preferences.
-        :param generation: Path standard generation to use. Defaults to CORE_V18, which is the current
-                           generation of paths.
+        :param generation: Path standard generation to use. Defaults to ``LocalFileStorageManager.CORE_V18``,
+                           which is the current generation of paths.
         :return: Path as string
         """
         if generation == cls.CORE_V18:
@@ -83,7 +102,6 @@ class PathManager(object):
 
             else:
                 raise ValueError("Unknown platform: %s" % sys.platform)
-
 
         if generation == cls.CORE_V17:
 
@@ -126,20 +144,20 @@ class PathManager(object):
         """
         Returns a cache root where items can be stored on a per site basis.
 
-        This is a path which is user specific, where typically only the current
-        user can read and write.
+        For more details, see :meth:`LocalFileStorageManager.get_global_root`.
 
-        This method does not ensure that the folder exists.
+        .. note:: This method does not ensure that the folder exists.
 
         :param hostname: Shotgun hostname as string, e.g. 'https://foo.shotgunstudio.com'
-        :param path_type: Type of path to return. One of LOGGING, CACHE, PERSISTENT, where
+        :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,
+                          ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where
                           logging is a path where log- and debug related data should be stored,
                           cache is a location intended for cache data, e.g. data that can be deleted
                           without affecting the state of execution, and persistent is a location intended
                           for data that is meant to be persist. This includes things like settings and
                           preferences.
-        :param generation: Path standard generation to use. Defaults to CORE_V18, which is the current
-                           generation of paths.
+        :param generation: Path standard generation to use. Defaults to ``LocalFileStorageManager.CORE_V18``,
+                           which is the current generation of paths.
         :return: Path as string
         """
         # get site only; https://www.FOO.com:8080 -> www.foo.com
@@ -160,30 +178,27 @@ class PathManager(object):
             base_url
         )
 
-
     @classmethod
     def get_configuration_root(cls, hostname, project_id, pipeline_config_id, path_type, generation=CORE_V18):
         """
         Returns the storage root for any data that is project and config specific.
 
-        Returns a cache root where items can be stored on a per site basis.
+        For more details, see :meth:`LocalFileStorageManager.get_global_root`.
 
-        This is a path which is user specific, where typically only the current
-        user can read and write.
-
-        This method does not ensure that the folder exists.
+        .. note:: This method does not ensure that the folder exists.
 
         :param hostname: Shotgun hostname as string, e.g. 'https://foo.shotgunstudio.com'
         :param project_id: Shotgun project id as integer. For the site config, this should be None.
         :param pipeline_config_id: Shotgun pipeline config id.
-        :param path_type: Type of path to return. One of LOGGING, CACHE, PERSISTENT, where
+        :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,
+                          ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where
                           logging is a path where log- and debug related data should be stored,
                           cache is a location intended for cache data, e.g. data that can be deleted
                           without affecting the state of execution, and persistent is a location intended
                           for data that is meant to be persist. This includes things like settings and
                           preferences.
-        :param generation: Path standard generation to use. Defaults to CORE_V18, which is the current
-                           generation of paths.
+        :param generation: Path standard generation to use. Defaults to ``LocalFileStorageManager.CORE_V18``,
+                           which is the current generation of paths.
         :return: Path as string
         """
         if generation == cls.CORE_V17:
@@ -217,5 +232,3 @@ class PathManager(object):
                 cls.get_site_root(hostname, path_type, generation),
                 project_config_folder
             )
-
-

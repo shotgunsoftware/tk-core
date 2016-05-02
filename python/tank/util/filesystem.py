@@ -143,8 +143,9 @@ def copy_file(src, dst, permissions=0555):
 def safe_delete_file(path):
     """
     Deletes the given file if it exists.
-    Ignores any errors raised in the process.
-    If the user does not have sufficent permissions to
+
+    Ignores any errors raised in the process and logs them as warnings.
+    If the user does not have sufficient permissions to
     remove the file, nothing will happen, it will simply
     be skipped over.
 
@@ -166,10 +167,10 @@ def safe_delete_file(path):
 @with_cleared_umask
 def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
     """
-    Alternative implementation to shutil.copytree
+    Alternative implementation to ``shutil.copytree``
     Copies recursively and creates folders if they don't already exist.
     Skips a fixed list of system files such as .svn, .git, etc.
-    Files will the extension .sh, .bat or .exe will be given
+    Files will the extension ``.sh``, ``.bat`` or ``.exe`` will be given
     executable permissions.
 
     Returns a list of files that were copied.
@@ -224,10 +225,10 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
 @with_cleared_umask
 def move_folder(src, dst, folder_permissions=0775):
     """
-    Move a directory.
+    Moves a directory.
 
     First copies all content into target. Then deletes
-    all content from sources. Skip files that won't delete.
+    all content from sources. Skips files that won't delete.
 
     :param src: Source path to copy from
     :param dst: Destination to copy to

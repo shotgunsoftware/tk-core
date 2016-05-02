@@ -15,41 +15,43 @@ class ShotgunPath(object):
     Helper class that handles a path on multiple operating systems.
 
     Contains methods to easily cast multi-os path between shotgun and os representations
-    and mappings.
-
-    The ShotgunPath object automatically sanitizes any path that it is given.
+    and mappings. The ShotgunPath object automatically sanitizes any path that it is given.
+    When working with local storages in Shotgun, roots are keyed by the tokens
+    ``windows_path``, ``linux_path`` and ``mac_path``. When using ``sys.platform`` in python,
+    you get back ``win32``, ``darwin`` and ``linux2`` depending on platform. This class makes
+    it easy to perform operations and cast between representations and platforms.
 
     Usage example::
 
         >>> ShotgunPath.SHOTGUN_PATH_FIELDS
         ["windows_path", "linux_path", "mac_path"]
 
-        >>> p = ShotgunPath("C:\temp", "/tmp", "/tmp")
-
-        >>> p = ShotgunPath.from_shotgun_dict({ "windows_path": "C:\temp", "mac_path": None, "linux_path": "/tmp"})
-
-        >>> p = ShotgunPath.from_system_dict({ "win32": "C:\temp", "darwin": None, "linux2": "/tmp"})
-
+        # construction
+        >>> p = ShotgunPath("C:\\temp", "/tmp", "/tmp")
+        >>> p = ShotgunPath.from_shotgun_dict({ "windows_path": "C:\\temp", "mac_path": None, "linux_path": "/tmp"})
+        >>> p = ShotgunPath.from_system_dict({ "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"})
         >>> p = ShotgunPath.from_current_os_path("/tmp")
 
+        # access
         >>> p.macosx
-        '/tmp'
-
+        None
         >>> p.windows
         "C:\\temp"
-
         >>> p.linux
         '/tmp
-
         >>> p.current_os
         '/tmp'
 
+        # multi-platform access
         >>> p.as_shotgun_dict()
-        { "windows_path": "C:\temp", "mac_path": None, "linux_path": "/tmp"}
+        { "windows_path": "C:\\temp", "mac_path": None, "linux_path": "/tmp"}
+        >>> p.as_system_dict()
+        { "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"}
 
+        # path manipulation
         >>> p2 = p.join('foo')
         >>> p2
-        <Path win:'c:\temp\foo', linux:'/tmp/foo', macosx:'/tmp/foo'>
+        <Path win:'c:\\temp\\foo', linux:'/tmp/foo', macosx:'/tmp/foo'>
 
     """
 
@@ -61,17 +63,22 @@ class ShotgunPath(object):
     @staticmethod
     def get_shotgun_storage_key(platform=sys.platform):
         """
-        Given a sys.platform, resolve a Shotgun storage key
+        Given a ``sys.platform`` constant, resolve a Shotgun storage key
 
         Shotgun local storages handle operating systems using
         the three keys 'windows_path, 'mac_path' and 'linux_path',
-        also defined as ShotgunPath.SHOTGUN_PATH_FIELDS
+        also defined as ``ShotgunPath.SHOTGUN_PATH_FIELDS``
 
         This method resolves the right key given a std. python
         sys.platform::
 
-            get_shotgun_storage_key('win32') -> 'windows_path'
-            get_shotgun_storage_key() -> 'mac_path' # if on mac
+
+            >>> p.get_shotgun_storage_key('win32')
+            'windows_path'
+
+            # if running on a mac
+            >>> p.get_shotgun_storage_key()
+            'mac_path'
 
         :param platform: sys.platform style string, e.g 'linux2',
                          'win32' or 'darwin'.
@@ -89,7 +96,6 @@ class ShotgunPath(object):
                 "os platform '%s'" % platform
             )
 
-
     @classmethod
     def from_shotgun_dict(cls, sg_dict):
         """
@@ -98,7 +104,7 @@ class ShotgunPath(object):
 
         :param sg_dict: Shotgun query resultset with possible keys
                         windows_path, mac_path and linux_path.
-        :return: ShotgunPath instance
+        :return: :class:`ShotgunPath` instance
         """
         windows_path = sg_dict.get("windows_path")
         linux_path = sg_dict.get("linux_path")
@@ -113,7 +119,7 @@ class ShotgunPath(object):
 
         :param system_dict: Dictionary with possible keys
                         win32, darwin and linux2.
-        :return: ShotgunPath instance
+        :return: :class:`ShotgunPath` instance
         """
         windows_path = system_dict.get("win32")
         linux_path = system_dict.get("linux2")
@@ -127,7 +133,7 @@ class ShotgunPath(object):
         Creates a path object for a path on the current platform only.
 
         :param path: Path on the current os platform.
-        :return: ShotgunPath instance
+        :return: :class:`ShotgunPath` instance
         """
         windows_path = None
         linux_path = None
@@ -146,8 +152,6 @@ class ShotgunPath(object):
 
     def __init__(self, windows_path=None, linux_path=None, macosx_path=None):
         """
-        Constructor
-
         :param windows_path: Path on windows to associate with this path object
         :param linux_path: Path on linux to associate with this path object
         :param macosx_path: Path on macosx to associate with this path object
@@ -170,7 +174,6 @@ class ShotgunPath(object):
         :param other:   The other ShotgunPath instance to compare with
         :returns:       True if path is same is other, false otherwise
         """
-
         if not isinstance(other, ShotgunPath):
             return NotImplemented
 
@@ -289,11 +292,11 @@ class ShotgunPath(object):
 
     def as_shotgun_dict(self, include_empty=True):
         """
-        The path as a shotgun dictionary. With include_empty set to True:
+        The path as a shotgun dictionary. With ``include_empty`` set to True::
 
             { "windows_path": "C:\\temp", "mac_path": None, "linux_path": "/tmp"}
 
-        With include_empty set to False:
+        With ``include_empty`` set to False::
 
             { "windows_path": "C:\\temp", "linux_path": "/tmp"}
 
@@ -313,11 +316,11 @@ class ShotgunPath(object):
         """
         The path as a dictionary keyed by sys.platform.
 
-        With include_empty set to True:
+        With ``include_empty`` set to True::
 
             { "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"}
 
-        With include_empty set to False:
+        With ``include_empty`` set to False::
 
             { "win32": "C:\\temp", "linux2": "/tmp"}
 
@@ -335,10 +338,10 @@ class ShotgunPath(object):
 
     def join(self, folder):
         """
-        Appends a single folder to the path
+        Appends a single folder to the path.
 
         :param folder: folder name as sting
-        :returns: ShotgunPath object containing the new path
+        :returns: :class:`ShotgunPath` object containing the new path
         """
         # get rid of any slashes at the end
         # so value is "/foo/bar", "c:" or "\\hello"

@@ -19,7 +19,7 @@ from .util import shotgun
 from .util import ShotgunPath
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
-from .paths import PathManager
+from .util import LocalFileStorageManager
 
 log = logging.getLogger(__name__)
 
@@ -698,5 +698,5 @@ def _get_cache_location():
     # optimized version of creating an sg instance and then calling sg.base_url
     # this is to avoid connecting to shotgun if possible.
     sg_base_url = shotgun.get_associated_sg_base_url()
-    return PathManager.get_site_root(sg_base_url, PathManager.CACHE)
+    return LocalFileStorageManager.get_site_root(sg_base_url, LocalFileStorageManager.CACHE)
 

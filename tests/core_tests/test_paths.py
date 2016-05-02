@@ -14,18 +14,18 @@ import copy
 
 from tank_test.tank_test_base import *
 
-from tank import PathManager
+from tank.util import LocalFileStorageManager
 
-class TestBasePaths(TankTestBase):
+class TestLocalFileStorageManager(TankTestBase):
 
     def setUp(self):
-        super(TestBasePaths, self).setUp()
+        super(TestLocalFileStorageManager, self).setUp()
 
     def test_get_cache_root(self):
         """
         Tests get_cache_root
         """
-        p = PathManager.get_global_root(PathManager.CACHE)
+        p = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
         if sys.platform == "win32":
             self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun", "Caches"))
         if sys.platform == "darwin":
@@ -34,7 +34,7 @@ class TestBasePaths(TankTestBase):
             self.assertEqual(p, os.path.expanduser("~/.shotgun/caches"))
 
 
-        p = PathManager.get_global_root(PathManager.CACHE, PathManager.CORE_V17)
+        p = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE, LocalFileStorageManager.CORE_V17)
 
         if sys.platform == "win32":
             self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun"))
@@ -48,7 +48,7 @@ class TestBasePaths(TankTestBase):
         Tests get_cache_root
         """
 
-        p = PathManager.get_global_root(PathManager.PERSISTENT)
+        p = LocalFileStorageManager.get_global_root(LocalFileStorageManager.PERSISTENT)
 
         if sys.platform == "win32":
             self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun", "Data"))
@@ -58,7 +58,7 @@ class TestBasePaths(TankTestBase):
             self.assertEqual(p, os.path.expanduser("~/.shotgun/data"))
 
 
-        p = PathManager.get_global_root(PathManager.PERSISTENT, PathManager.CORE_V17)
+        p = LocalFileStorageManager.get_global_root(LocalFileStorageManager.PERSISTENT, LocalFileStorageManager.CORE_V17)
 
         if sys.platform == "win32":
             self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun"))
@@ -72,7 +72,7 @@ class TestBasePaths(TankTestBase):
         Tests get_cache_root
         """
 
-        p = PathManager.get_global_root(PathManager.LOGGING)
+        p = LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING)
 
         if sys.platform == "win32":
             self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun", "Log"))
@@ -82,7 +82,7 @@ class TestBasePaths(TankTestBase):
             self.assertEqual(p, os.path.expanduser("~/.shotgun/log"))
 
 
-        p = PathManager.get_global_root(PathManager.LOGGING, PathManager.CORE_V17)
+        p = LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING, LocalFileStorageManager.CORE_V17)
 
         if sys.platform == "win32":
             self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun"))
@@ -97,31 +97,39 @@ class TestBasePaths(TankTestBase):
         Tests site cache root
         """
 
-        for mode in [PathManager.CACHE, PathManager.PERSISTENT, PathManager.LOGGING]:
+        for mode in [LocalFileStorageManager.CACHE, LocalFileStorageManager.PERSISTENT, LocalFileStorageManager.LOGGING]:
 
 
-            site_path = PathManager.get_site_root("http://sg-internal", mode)
-            global_path = PathManager.get_global_root(mode)
+            site_path = LocalFileStorageManager.get_site_root("http://sg-internal", mode)
+            global_path = LocalFileStorageManager.get_global_root(mode)
             self.assertEqual(os.path.dirname(site_path), global_path)
             self.assertEqual(os.path.basename(site_path), "sg-internal")
 
-            site_path = PathManager.get_site_root("http://foo.int", mode)
+            site_path = LocalFileStorageManager.get_site_root("http://foo.int", mode)
             self.assertEqual(os.path.basename(site_path), "foo.int")
 
-            site_path = PathManager.get_site_root("https://my-site.shotgunstudio.com", mode)
+            site_path = LocalFileStorageManager.get_site_root("https://my-site.shotgunstudio.com", mode)
             self.assertEqual(os.path.basename(site_path), "my-site")
 
 
-            legacy_site_path = PathManager.get_site_root("http://sg-internal", mode, PathManager.CORE_V17)
-            legacy_global_path = PathManager.get_global_root(mode, PathManager.CORE_V17)
+            legacy_site_path = LocalFileStorageManager.get_site_root("http://sg-internal", mode, LocalFileStorageManager.CORE_V17)
+            legacy_global_path = LocalFileStorageManager.get_global_root(mode, LocalFileStorageManager.CORE_V17)
 
             self.assertEqual(os.path.dirname(legacy_site_path), legacy_global_path)
             self.assertEqual(os.path.basename(legacy_site_path), "sg-internal")
 
-            legacy_site_path = PathManager.get_site_root("http://foo.int", mode, PathManager.CORE_V17)
+            legacy_site_path = LocalFileStorageManager.get_site_root(
+                "http://foo.int",
+                mode,
+                LocalFileStorageManager.CORE_V17
+            )
             self.assertEqual(os.path.basename(legacy_site_path), "foo.int")
 
-            legacy_site_path = PathManager.get_site_root("https://my-site.shotgunstudio.com", mode, PathManager.CORE_V17)
+            legacy_site_path = LocalFileStorageManager.get_site_root(
+                "https://my-site.shotgunstudio.com",
+                mode,
+                LocalFileStorageManager.CORE_V17
+            )
             self.assertEqual(os.path.basename(legacy_site_path), "my-site.shotgunstudio.com")
 
 

@@ -254,12 +254,12 @@ def download_url(sg, url, location):
     This method will take into account any proxy settings which have
     been defined in the Shotgun connection parameters.
     
-    :param sg: sg API to get proxy connection settings from
+    :param sg: Shotgun API instance to get proxy connection settings from
     :param url: url to download
     :param location: path on disk where the payload should be written.
                      this path needs to exists and the current user needs
                      to have write permissions
-    :returns: nothing
+    :raises: :class:`TankError` on failure.
     """
     # grab proxy server settings from the shotgun API
     if sg.config.proxy_handler:
@@ -378,11 +378,13 @@ def get_entity_type_display_name(tk, entity_type_code):
     """
     Returns the display name for an entity type given its type name.
     For example, if a custom entity is named "Workspace" in the
-    Shotgun preferences, but is addressed as CustomEntity03 in the
-    Shotgun API, this method will resolve
-    CustomEntity03 -> Workspace.
+    Shotgun preferences, but is addressed as "CustomEntity03" in the
+    Shotgun API, this method will resolve the display name::
 
-    :param tk: tank handle
+        >>> get_entity_type_display_name(tk, "CustomEntity03")
+        'Workspace'
+
+    :param tk: :class:`~sgtk.Sgtk` instance
     :param entity_type_code: API entity type name
     :returns: display name
     """
@@ -420,17 +422,17 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     the fields parameter.
 
     The method will return a dictionary, keyed by path. The value will be
-    a standard shotgun query result dictionary, for example
+    a standard shotgun query result dictionary, for example::
 
-    {
-        "/foo/bar" : { "id": 234, "type": "TankPublishedFile", "code": "some data" },
-        "/foo/baz" : { "id": 23,  "type": "TankPublishedFile", "code": "some more data" }
-    }
+        {
+            "/foo/bar" : { "id": 234, "type": "TankPublishedFile", "code": "some data" },
+            "/foo/baz" : { "id": 23,  "type": "TankPublishedFile", "code": "some more data" }
+        }
 
     Fields that are not found, or filtered out by the filters parameter,
     are not returned in the dictionary.
 
-    :param tk: Sgtk API Instance
+    :param tk: :class:`~sgtk.Sgtk` instance
     :param list_of_paths: List of full paths for which information should be retrieved
     :param filters: Optional list of shotgun filters to apply.
     :param fields: Optional list of fields from the matched entities to
@@ -564,28 +566,26 @@ def _group_by_storage(tk, list_of_paths):
     Returns a dictionary, keyed by storage name. Each storage in the dict contains another dict,
     with an item for each path_cache entry.
 
+    Examples::
 
-    Examples:
+        ['/studio/project_code/foo/bar.0003.exr', '/secondary_storage/foo/bar']
 
-    ['/studio/project_code/foo/bar.0003.exr', '/secondary_storage/foo/bar']
+        {'Tank':
+            {'project_code/foo/bar.%04d.exr': ['/studio/project_code/foo/bar.0003.exr'] }
 
-    {'Tank':
-        {'project_code/foo/bar.%04d.exr': ['/studio/project_code/foo/bar.0003.exr'] }
-
-     'Secondary_Storage':
-        {'foo/bar': ['/secondary_storage/foo/bar'] }
-    }
+         'Secondary_Storage':
+            {'foo/bar': ['/secondary_storage/foo/bar'] }
+        }
 
 
-    ['c:\studio\project_code\foo\bar', '/secondary_storage/foo/bar']
+        ['c:\studio\project_code\foo\bar', '/secondary_storage/foo/bar']
 
-    {'Tank':
-        {'project_code/foo/bar': ['c:\studio\project_code\foo\bar'] }
+        {'Tank':
+            {'project_code/foo/bar': ['c:\studio\project_code\foo\bar'] }
 
-     'Secondary_Storage':
-        {'foo/bar': ['/secondary_storage/foo/bar'] }
-    }
-
+         'Secondary_Storage':
+            {'foo/bar': ['/secondary_storage/foo/bar'] }
+        }
     """
     storages_paths = {}
 
@@ -614,16 +614,15 @@ def create_event_log_entry(tk, context, event_type, description, metadata=None):
     Creates an event log entry inside of Shotgun.
     Event log entries can be handy if you want to track a process or a sequence of events.
 
-    :param tk: Sgtk API instance
-
-    :param context: Context which will be used to associate the event log entry
+    :param tk: :class:`~sgtk.Sgtk` instance
+    :param context: A :class:`~sgtk.Context` to associate with the event log entry.
 
     :param event_type: String which defines the event type. The Shotgun standard suggests
-                       that this should be on the form Company_Item_Action. Examples include:
+                       that this should be on the form Company_Item_Action. Examples include::
 
-                       Shotgun_Asset_New
-                       Shotgun_Asset_Change
-                       Shotgun_User_Login
+                           Shotgun_Asset_New
+                           Shotgun_Asset_Change
+                           Shotgun_User_Login
 
     :param description: A verbose description explaining the meaning of this event.
 
@@ -649,26 +648,59 @@ def create_event_log_entry(tk, context, event_type, description, metadata=None):
 
 def get_published_file_entity_type(tk):
     """
-    Return the Published File entity type
-    currently being used in Shotgun
+    Return the entity type that this toolkit uses for its Publishes.
+
+    .. note:: This is for backwards compatibility situations only.
+              Code targeting new installations can assume that
+              the published file type in Shotgun is always ``PublishedFile``.
+
+    :param tk: :class:`~sgtk.Sgtk` instance
+    :returns: "PublishedFile" or "TankPublishedFile"
+
     """
     return tk.pipeline_configuration.get_published_file_entity_type()
 
 def register_publish(tk, context, path, name, version_number, **kwargs):
     """
-    Creates a Tank Published File in Shotgun.
+    Creates a Published File in Shotgun.
 
-    Required parameters:
+    Example::
 
-        tk - a Sgtk API instance
+        >>> version_number = 1
+        >>> file_path = '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma'
+        >>> name = 'layout'
+        >>> sgtk.util.register_publish(tk, ctx, file_path, name, version_number)
+        {'code': 'layout.v001.ma',
+         'created_by': {'id': 40, 'name': 'John Smith', 'type': 'HumanUser'},
+         'description': None,
+         'entity': {'id': 2, 'name': 'shot_010', 'type': 'Shot'},
+         'id': 2,
+         'name': 'layout',
+         'path': {'content_type': None,
+          'link_type': 'local',
+          'local_path': '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma',
+          'local_path_linux': '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma',
+          'local_path_mac': '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma',
+          'local_path_windows': 'c:\\studio\\demo_project\\sequences\\Sequence-1\\shot_010\\Anm\\publish\\layout.v001.ma',
+          'local_storage': {'id': 1, 'name': 'primary', 'type': 'LocalStorage'},
+          'name': 'layout.v001.ma',
+          'url': 'file:///studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma'},
+         'path_cache': 'demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma',
+         'project': {'id': 4, 'name': 'Demo Project', 'type': 'Project'},
+         'task': None,
+         'type': 'PublishedFile',
+         'version_number': 1}
 
-        context - the context we want to associate with the publish
+    The above example shows a basic publish. In addition to the required parameters, it is
+    recommended to supply at least a description and a Publish Type.
 
-        path - the path to the file or sequence we want to publish. If the
-               path is a sequence path it will be abstracted so that
-               any sequence keys are replaced with their default values.
-
-        name - a name, without version number, which helps distinguish
+    :param tk: :class:`~sgtk.Sgtk` instance
+    :param context: A :class:`~sgtk.Context` to associate with the publish. This will
+                    populate the task and entity link in Shotgun.
+    :param path: The path to the file or sequence we want to publish. If the
+                 path is a sequence path it will be abstracted so that
+                 any sequence keys are replaced with their default values.
+    :param name: A name, without version number, which helps distinguish
                this publish from other publishes. This is typically
                used for grouping inside of Shotgun so that all the
                versions of the same "file" can be grouped into a cluster.
@@ -676,42 +708,42 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                the scene name, the name would simply be that: the scene
                name. For something like a render, it could be the scene
                name, the name of the AOV and the name of the render layer.
+    :param version_number: The version number of the item we are publishing.
 
-        version_number - the version numnber of the item we are publishing.
 
-    Optional arguments:
+    In addition to the above, the following optional arguments exist:
 
-        task - a shotgun entity dictionary with id and type (which should always be Task).
-               if no value is specified, the task will be grabbed from the context object.
+        - ``task`` - A shotgun entity dictionary with id and type (which should always be Task).
+          if no value is specified, the task will be grabbed from the context object.
 
-        comment - a string containing a description of the comment
+        - ``comment`` - A string containing a description of the comment
 
-        thumbnail_path - a path to a thumbnail (png or jpeg) which will be uploaded to shotgun
-                         and associated with the publish.
+        - ``thumbnail_path`` - A path to a thumbnail (png or jpeg) which will be uploaded to shotgun
+          and associated with the publish.
 
-        dependency_paths - a list of file system paths that should be attempted to be registered
-                           as dependencies. Files in this listing that do not appear as publishes
-                           in shotgun will be ignored.
+        - ``dependency_paths`` - A list of file system paths that should be attempted to be registered
+          as dependencies. Files in this listing that do not appear as publishes in shotgun will be ignored.
 
-        dependency_ids - a list of publish ids which should be registered as dependencies.
+        - ``dependency_ids`` - A list of publish ids which should be registered as dependencies.
 
-        published_file_type - a tank type in the form of a string which should match a tank type
-                            that is registered in Shotgun.
+        - ``published_file_type`` - A tank type in the form of a string which should match a tank type
+          that is registered in Shotgun.
 
-        update_entity_thumbnail - push thumbnail up to the attached entity
+        - ``update_entity_thumbnail`` - Push thumbnail up to the attached entity
 
-        update_task_thumbnail - push thumbnail up to the attached task
+        - ``update_task_thumbnail`` - Push thumbnail up to the attached task
 
-        created_by - override for the user that will be marked as creating the publish.  This should
-                    be in the form of shotgun entity, e.g. {"type":"HumanUser", "id":7}
+        - ``created_by`` - Override for the user that will be marked as creating the publish.  This should
+          be in the form of shotgun entity, e.g. {"type":"HumanUser", "id":7}
 
-        created_at - override for the date the publish is created at.  This should be a python
-                    datetime object
+        - ``created_at`` - Override for the date the publish is created at.  This should be a python
+          datetime object
                     
-        version_entity - the Shotgun version entity this published file should be linked to 
+        - ``version_entity`` - The Shotgun version entity this published file should be linked to
 
-        sg_fields - some additional Shotgun fields as a dict (e.g. {'tag_list': ['foo', 'bar']})
+        - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{'tag_list': ['foo', 'bar']}``)
 
+    :returns: The created entity dictionary
     """
     # get the task from the optional args, fall back on context task if not set
     task = kwargs.get("task")

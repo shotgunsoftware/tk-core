@@ -26,7 +26,7 @@ class ShotgunAuthenticatorTests(TankTestBase):
 
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank.authentication.session_cache.generate_session_token")
-    @patch("tank.PathManager.get_global_root")
+    @patch("tank.util.LocalFileStorageManager.get_global_root")
     def test_create_session_user(self, get_global_root, generate_session_token_mock, server_caps_mock):
         """
         Makes sure that create_session_user does correct input validation.
@@ -76,7 +76,7 @@ class ShotgunAuthenticatorTests(TankTestBase):
         self.assertEqual(connection.config.api_key, "api_key")
 
     @patch("tank.authentication.session_cache.generate_session_token")
-    @patch("tank.PathManager.get_global_root")
+    @patch("tank.util.LocalFileStorageManager.get_global_root")
     def test_get_default_user(self, get_global_root, generate_session_token_mock):
         """
         Makes sure get_default_user handles all the edge cases.

@@ -76,5 +76,4 @@ from .commands import list_commands, get_command, SgtkSystemCommand
 
 from .templatekey import TemplateKey, SequenceKey, IntegerKey, StringKey, TimestampKey
 
-from .paths import PathManager
-from .log import LogManager
+from .log import LogManager, log_timing

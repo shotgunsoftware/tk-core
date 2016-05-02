@@ -554,6 +554,10 @@ class TankBundle(object):
         Toolkit, Apps tend to need to create leaf-level folders such as publish folders
         and work areas. These are often created just in time of the operation.
 
+        .. note:: This method calls out to the ``ensure_folder_exists`` core hook, making
+                  the I/O operation user configurable. We recommend using this method
+                  over the methods provided in ``sgtk.util.filesystem``.
+
         :param path: path to create
         """        
         try:

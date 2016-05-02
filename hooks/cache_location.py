@@ -14,7 +14,7 @@ Hook to control the various cache locations in the system.
 
 import sgtk
 import os
-from sgtk.util import filesystem
+from sgtk.util import filesystem, LocalFileStorageManager
 
 HookBaseClass = sgtk.get_hook_baseclass()
 
@@ -47,11 +47,11 @@ class CacheLocation(HookBaseClass):
 
         tk = self.parent
 
-        cache_root = sgtk.PathManager.get_configuration_root(
+        cache_root = LocalFileStorageManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
             pipeline_configuration_id,
-            sgtk.PathManager.CACHE
+            LocalFileStorageManager.CACHE
         )
 
         target_path = os.path.join(cache_root, cache_filename)
@@ -65,12 +65,12 @@ class CacheLocation(HookBaseClass):
         # cache root directory structure has changed (such is the case with
         # v0.17.x -> v0.18.x). To account for this scenario, see if the target
         # exists in an old location first, and if so, return that path instead.
-        legacy_cache_root = sgtk.PathManager.get_configuration_root(
+        legacy_cache_root = LocalFileStorageManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
             pipeline_configuration_id,
-            sgtk.PathManager.CACHE,
-            generation=sgtk.PathManager.CORE_V17
+            LocalFileStorageManager.CACHE,
+            generation=LocalFileStorageManager.CORE_V17
         )
 
         legacy_target_path = os.path.join(legacy_cache_root, cache_filename)
@@ -109,11 +109,11 @@ class CacheLocation(HookBaseClass):
 
         """
         tk = self.parent
-        cache_root = sgtk.PathManager.get_configuration_root(
+        cache_root = LocalFileStorageManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
             pipeline_configuration_id,
-            sgtk.PathManager.CACHE
+            LocalFileStorageManager.CACHE
         )
 
         # in the interest of trying to minimize path lengths (to avoid
@@ -138,12 +138,12 @@ class CacheLocation(HookBaseClass):
         # cache root directory structure has changed (such is the case with
         # v0.17.x -> v0.18.x). To account for this scenario, see if the target
         # exists in an old location first, and if so, return that path instead.
-        legacy_cache_root = sgtk.PathManager.get_configuration_root(
+        legacy_cache_root = LocalFileStorageManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
             pipeline_configuration_id,
-            sgtk.PathManager.CACHE,
-            generation=sgtk.PathManager.CORE_V17
+            LocalFileStorageManager.CACHE,
+            generation=LocalFileStorageManager.CORE_V17
         )
         legacy_target_path = os.path.join(legacy_cache_root, bundle.name)
 

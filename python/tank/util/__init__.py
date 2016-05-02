@@ -29,3 +29,7 @@ from .metrics import log_user_attribute_metric
 
 from .shotgun_path import ShotgunPath
 
+from . import filesystem
+
+from .local_file_storage import LocalFileStorageManager
+

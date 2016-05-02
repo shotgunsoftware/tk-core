@@ -14,7 +14,7 @@ import copy
 from ..util import filesystem
 from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
-from ..paths import PathManager
+from ..util import LocalFileStorageManager
 
 def create_descriptor(
         sg_connection,
@@ -100,7 +100,7 @@ def _get_default_bundle_cache_root():
     :returns: path on disk
     """
     return os.path.join(
-        PathManager.get_global_root(PathManager.CACHE),
+        LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
         "bundle_cache"
     )
 
