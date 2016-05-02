@@ -15,10 +15,10 @@ Toolkit logging bla bla bla.
 .. currentmodule:: sgtk
 
 
-Path Management
+Path
 ============================================
 
-Tank Commands FTW!
+
 
 .. autoclass:: PathManager
     :members:
@@ -26,14 +26,6 @@ Tank Commands FTW!
 
 
 
-Tank Commands
-============================================
-
-Tank Commands FTW!
-
-
-.. note::
-    This is work in progress.
 
 
 Shotgun

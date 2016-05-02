@@ -423,8 +423,8 @@ class TankTestBase(unittest.TestCase):
         # new roots def file we just created
         self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
         # push this new pipeline config into the tk api
-        self.tk._Tank__pipeline_config = self.pipeline_configuration 
-        
+        self.tk._Sgtk__pipeline_config = self.pipeline_configuration
+
         # force reload templates
         self.tk.reload_templates()
         

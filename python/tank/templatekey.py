@@ -70,7 +70,7 @@ class TemplateKey(object):
         :param abstract: Boolean indicating if the value is abstract.
         :param length: If non-None, indicating that the value should be of a fixed length.
         """
-        self.name = name
+        self._name = name
         self._default = default
 
         # special handling for choices:
@@ -83,11 +83,11 @@ class TemplateKey(object):
         else:
             self._choices = {}
 
-        self.exclusions = exclusions or []
-        self.shotgun_entity_type = shotgun_entity_type
-        self.shotgun_field_name = shotgun_field_name
-        self.is_abstract = abstract
-        self.length = length
+        self._exclusions = exclusions or []
+        self._shotgun_entity_type = shotgun_entity_type
+        self._shotgun_field_name = shotgun_field_name
+        self._is_abstract = abstract
+        self._length = length
         self._last_error = ""
 
         # check that the key name doesn't contain invalid characters
@@ -110,7 +110,7 @@ class TemplateKey(object):
 
     def _get_default(self):
         """
-        Returns the default value for this key. If the default argument was specified
+        The default value for this key. If the default argument was specified
         as a callable in the constructor, it is invoked and assumed to take no parameters.
 
         :returns: The default value.
@@ -128,47 +128,43 @@ class TemplateKey(object):
         """
         self._default = value
 
+    # Python 2.5 doesn't support @default.setter so use old style property.
+    default = property(_get_default, _set_default)
+
     @property
     def name(self):
         """
         The name that the template will use to refer to the key.
         """
-        return self.name
-
-    @property
-    def default(self):
-        """
-        The value this key will use if no value is provided.
-        """
-        return self.default
+        return self._name
 
     @property
     def length(self):
         """
         Fixed length that needs to be used for this item or None if any length is valid.
         """
-        return self.length
+        return self._length
 
     @property
     def shotgun_entity_type(self):
         """
         Shotgun entity type associated with this item
         """
-        return self.shotgun_entity_type
+        return self._shotgun_entity_type
 
     @property
     def shotgun_field_name(self):
         """
         Shotgun field name associated with this item
         """
-        return self.shotgun_field_name
+        return self._shotgun_field_name
 
     @property
     def exclusions(self):
         """
         List of values which are not allowed for this item.
         """
-        return self.exclusions
+        return self._exclusions
 
     @property
     def is_abstract(self):
@@ -178,11 +174,7 @@ class TemplateKey(object):
         of files, for example when you want to represent a sequence of frames using a
         ``%04d`` syntax or a left and right eye using a ``%v`` syntax.
         """
-        return self.default
-
-
-    # Python 2.5 doesn't support @default.setter so use old style property.
-    default = property(_get_default, _set_default)
+        return self._is_abstract
 
     @property
     def choices(self):
@@ -316,7 +308,7 @@ class StringKey(TemplateKey):
         :param abstract: Bool, should this key be treated as abstract.
         :param length: int, should this key be fixed length
         """
-        self.filter_by = filter_by
+        self._filter_by = filter_by
 
         # Build regexes for alpha and alphanumeric filter_by clauses
         #
@@ -327,15 +319,15 @@ class StringKey(TemplateKey):
         self._filter_regex_u = None
         self._custom_regex_u = None
 
-        if self.filter_by == "alphanumeric":
+        if self._filter_by == "alphanumeric":
             self._filter_regex_u = re.compile(u"[\W_]", re.UNICODE)
         
-        elif self.filter_by == "alpha":
+        elif self._filter_by == "alpha":
             self._filter_regex_u = re.compile(u"[\W_0-9]", re.UNICODE)
         
-        elif self.filter_by is not None:
+        elif self._filter_by is not None:
             # filter_by is a regex
-            self._custom_regex_u = re.compile(self.filter_by, re.UNICODE)
+            self._custom_regex_u = re.compile(self._filter_by, re.UNICODE)
         
 
         super(StringKey, self).__init__(name,
@@ -346,6 +338,15 @@ class StringKey(TemplateKey):
                                         exclusions=exclusions,
                                         abstract=abstract,
                                         length=length)
+
+    @property
+    def filter_by(self):
+        """
+        Name of filter type to limit values for string.
+
+        returns: 'alphanumeric', 'alpha', None or a regex string.
+        """
+        return self._filter_by
 
     def validate(self, value):
 
@@ -410,7 +411,7 @@ class TimestampKey(TemplateKey):
         if isinstance(format_spec, basestring) is False:
             raise TankError("format_spec for <Sgtk TimestampKey %s> is not of type string: %s" %
                             (name, format_spec.__class__.__name__))
-        self.format_spec = format_spec
+        self._format_spec = format_spec
 
         if isinstance(default, basestring):
             # if the user passes in now or utc, we'll generate the current time as the default time.
@@ -435,6 +436,14 @@ class TimestampKey(TemplateKey):
             name,
             default=default
         )
+
+    @property
+    def format_spec(self):
+        """
+        Specification for formatting when casting to/from a string.
+        The format follows the convention of :meth:`time.strftime`.
+        """
+        return self._format_spec
 
     def __get_current_time(self):
         """
@@ -533,7 +542,7 @@ class IntegerKey(TemplateKey):
         :param name: Key's name.
         :param default: Default value for this key.
         :param choices: List of possible values for this key.
-        :param format_spec: Specification for formating when casting to a string.
+        :param format_spec: Specification for formatting when casting to a string.
                             The form is a zero followed the number of spaces to pad
                             the value.
         :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
@@ -547,8 +556,8 @@ class IntegerKey(TemplateKey):
         """
         self._zero_padded = None
         self._minimum_width = None
-        self.format_spec = None
-        self.strict_matching = None
+        self._format_spec = None
+        self._strict_matching = None
         # Validate and set up formatting details
         self._init_format_spec(name, format_spec)
         # Validate and set up strict matching defailts
@@ -561,6 +570,23 @@ class IntegerKey(TemplateKey):
                                          exclusions=exclusions,
                                          abstract=abstract,
                                          length=length)
+
+    @property
+    def format_spec(self):
+        """
+        Specification for formatting when casting to a string.
+        The form is a zero followed the number of spaces to pad
+        the value.
+        """
+        return self._format_spec
+
+    @property
+    def strict_matching(self):
+        """
+        Indicates if the padding should be matching exactly the
+        format_spec when parsing a string.
+        """
+        return self._strict_matching
 
     def _init_format_spec(self, name, format_spec):
         """
@@ -593,7 +619,7 @@ class IntegerKey(TemplateKey):
         self._zero_padded = groups[0] == "0"
         # groups[1] is the minimum width of the number.
         self._minimum_width = int(groups[1])
-        self.format_spec = format_spec
+        self._format_spec = format_spec
 
     def _init_strict_matching(self, name, strict_matching):
         """
@@ -611,7 +637,7 @@ class IntegerKey(TemplateKey):
 
         # If there is a format and strict_matching is set, there's an error, since there
         # is no format to enforce or not.
-        if self.format_spec is None and strict_matching is not None:
+        if self._format_spec is None and strict_matching is not None:
             raise TankError("strict_matching can't be set if there is no format_spec")
 
         # By default, if strict_matching is not set but there is a format spec, we'll
@@ -633,7 +659,7 @@ class IntegerKey(TemplateKey):
         else:
             self._strict_validation_re = None
 
-        self.strict_matching = strict_matching
+        self._strict_matching = strict_matching
 
     def validate(self, value):
         if value is not None:
@@ -800,7 +826,7 @@ class SequenceKey(IntegerKey):
 
         # determine the actual frame specs given the padding (format_spec)
         # and the allowed formats
-        self._frame_specs = [ self._resolve_frame_spec(x, format_spec) for x in self.VALID_FORMAT_STRINGS ]
+        self._frame_specs = [self._resolve_frame_spec(x, format_spec) for x in self.VALID_FORMAT_STRINGS ]
 
         # all sequences are abstract by default and have a default value of %0Xd
         abstract = True
