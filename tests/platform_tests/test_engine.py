@@ -251,7 +251,8 @@ class TestContextChange(TestEngineBase):
         TestEngineBase.setUp(self)
 
         # Create pass-through patches for methods that should be invoked
-        # when switching context.
+        # when switching context. We'll use them layer to count how many times
+        # they have been invoked and with what parameters.
         self._pre_patch = mock.patch(
             "sgtk.platform.engine._execute_pre_context_change_hook",
             wraps=engine._execute_pre_context_change_hook
@@ -266,7 +267,14 @@ class TestContextChange(TestEngineBase):
         """
         Asserts that the change context hooks have only been invoked once and with
         the right arguments. To be invoked with the 'with' statement.
+
+        :param old_context: Context to compare with the old context parameter in
+            the hooks.
+        :param new_context: Context to compare with the new context parameter in
+            the hooks.
         """
+        # Multi item "with"s are not supported in Python 2.5, so do one after
+        # the other.
         with self._pre_patch as pre_mock:
             with self._post_patch as post_mock:
                 # Invokes the code within the caller's 'with' statement. (that's really cool!)
