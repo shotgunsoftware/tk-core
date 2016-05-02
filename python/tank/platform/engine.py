@@ -27,6 +27,7 @@ from ..errors import TankError
 from .errors import TankEngineInitError, TankContextChangeNotSupportedError
 from ..util import log_user_activity_metric, log_user_attribute_metric
 from ..util.metrics import MetricsDispatcher
+from ..log import LogManager
 
 from . import application
 from . import constants
@@ -35,7 +36,7 @@ from . import qt
 from .bundle import TankBundle
 from .framework import setup_frameworks
 
-log = logging.getLogger(__name__)
+
 
 class Engine(TankBundle):
     """
@@ -66,6 +67,7 @@ class Engine(TankBundle):
         .. automethod:: _create_dialog_with_widget
         .. automethod:: _get_dialog_parent
         .. automethod:: _on_dialog_closed
+        .. automethod:: _emit_log_message
         """
         
         self.__env = env
@@ -101,6 +103,15 @@ class Engine(TankBundle):
         
         # init base class
         TankBundle.__init__(self, tk, context, settings, descriptor, env)
+
+        # create a log handler and attach it
+        self._log_handler = self.__create_log_handler()
+        LogManager.get_root_logger().addHandler(self._log_handler)
+
+        # create logger for this engine.
+        # log will be parented in a tank.session.environment_name.engine_instance_name hierarchy
+        self._log = LogManager.get_root_logger().getChild("session").getChild(env.name).getChild(engine_instance_name)
+        self._log.debug("Logging started for %s" % self)
 
         # check that the context contains all the info that the app needs
         validation.validate_context(descriptor, context)
@@ -206,7 +217,35 @@ class Engine(TankBundle):
 
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
-    
+
+    def __create_log_handler(self):
+        """
+        Creates a std python logging LogHandler
+        that dispatches all log messages to the
+        :meth:`Engine._emit_log_message()` method in a threadsafe manner.
+
+        :return: :class:`python.logging.LogHandler` object
+        """
+        # use a thin custom wrapper that dispatches to the callback
+
+        # alias 'self' so we can refer to the engine
+        # object from inside our wrapper class
+        engine_instance = self
+
+        # set up logging handler class
+        class _ToolkitEngineHandler(logging.Handler):
+            def emit(self, record):
+                # dispatch all messages to callback
+                # and make sure callback always executes
+                # in the main thread.
+                engine_instance.async_execute_in_main_thread(
+                    engine_instance._emit_log_message,
+                    record
+                )
+        handler = _ToolkitEngineHandler()
+        return handler
+
+
     def __show_busy(self, title, details):
         """
         Payload for the show_busy method.
@@ -410,7 +449,7 @@ class Engine(TankBundle):
     @property
     def commands(self):
         """
-        Returns a dictionary representing all the commands that have been registered
+        A dictionary representing all the commands that have been registered
         by apps in this engine via :meth:`register_command`.
         Each dictionary item contains the following keys:
         
@@ -425,7 +464,7 @@ class Engine(TankBundle):
     @property
     def panels(self):
         """
-        Returns all the panels which have been registered with the engine via the :meth:`register_panel()`
+        Panels which have been registered with the engine via the :meth:`register_panel()`
         method. Returns a dictionary keyed by panel unqiue ids. Each value is a dictionary with keys
         ``callback`` and ``properties``.
 
@@ -453,7 +492,7 @@ class Engine(TankBundle):
     @property
     def metrics_dispatch_allowed(self):
         """
-        Inidicates this engine will allow the metrics worker threads to forward
+        Indicates this engine will allow the metrics worker threads to forward
         the user metrics logged via core, this engine, or registered apps to
         SG.
 
@@ -465,11 +504,18 @@ class Engine(TankBundle):
     @property
     def created_qt_dialogs(self):
         """
-        Returns a list of dialog objects that have been created by the engine.
+        A list of dialog objects that have been created by the engine.
 
         :returns:   A list of TankQDialog objects.
         """
         return self.__created_qt_dialogs
+
+    @property
+    def log(self):
+        """
+        Standard python logger for this engine
+        """
+        return self._log
 
     ##########################################################################################
     # init and destroy
@@ -524,6 +570,9 @@ class Engine(TankBundle):
             self.log_debug("Stopping metrics dispatcher.")
             self._metrics_dispatcher.stop()
             self.log_debug("Metrics dispatcher stopped.")
+
+        # kill log handler
+        LogManager.get_root_logger().removeHandler(self._log_handler)
 
     def destroy_engine(self):
         """
@@ -935,75 +984,56 @@ class Engine(TankBundle):
         """
         Logs a debug message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.log` instead.
+
         :param msg: Message to log.
         """
-        log.debug(msg)
+        self._log.debug(msg)
     
     def log_info(self, msg):
         """
         Logs an info message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.log` instead.
+
         :param msg: Message to log.
         """
-        log.info(msg)
+        self._log.info(msg)
         
     def log_warning(self, msg):
         """
         Logs an warning message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.log` instead.
+
         :param msg: Message to log.
         """
-        log.warning(msg)
+        self._log.warning(msg)
     
     def log_error(self, msg):
         """
         Logs an error message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.log` instead.
+
         :param msg: Message to log.
         """        
-        log.error(msg)
+        self._log.error(msg)
 
     def log_exception(self, msg):
         """
-        Logs an exception.
+        Logs an exception message.
 
-        This will contain a full traceback and is typically called from
-        within an exception handler::
-
-            try:
-                do_stuff()
-            except Exception:
-                self.log_exception("A general error was raised")
-
-        The message will be emitted as an error message.
+        .. deprecated:: 0.18
+            Use :meth:`Engine.log` instead.
 
         :param msg: Message to log.
         """
-        (exc_type, exc_value, exc_traceback) = sys.exc_info()
-        
-        if exc_traceback is None:
-            # we are not inside an exception handler right now.
-            # someone is calling log_exception from the running code.
-            # in this case, present the current stack frame
-            # and a sensible message
-            stack_frame = traceback.extract_stack()
-            traceback_str = "".join(traceback.format_list(stack_frame))
-            exc_value = "No error details available."
-        
-        else:    
-            traceback_str = "".join( traceback.format_tb(exc_traceback))
-        
-        
-        message = []
-        message.append(msg)
-        message.append("")
-        message.append("%s" % exc_value)
-        message.append("The current environment is %s." % self.__env.name)
-        message.append("")
-        message.append("Code Traceback:")
-        message.extend(traceback_str.split("\n"))
-        
-        self.log_error("\n".join(message))
+        self._log.exception(msg)
 
 
     ##########################################################################################
@@ -1024,6 +1054,15 @@ class Engine(TankBundle):
         
     ##########################################################################################
     # private and protected methods
+
+    def _emit_log_message(self, record):
+        """
+        Called by the engine whenever a new log message is available.
+
+        :param record: Std python logging record
+        :type record: :class:`~python.logging.LogRecord`
+        """
+        # default implementation doesn't do anything
 
     def _get_dialog_parent(self):
         """

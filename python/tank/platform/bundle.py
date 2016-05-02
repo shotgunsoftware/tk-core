@@ -556,7 +556,7 @@ class TankBundle(object):
 
         .. note:: This method calls out to the ``ensure_folder_exists`` core hook, making
                   the I/O operation user configurable. We recommend using this method
-                  over the methods provided in ``sgtk.util.filesystem``.
+                  over the methods provided i
 
         :param path: path to create
         """        

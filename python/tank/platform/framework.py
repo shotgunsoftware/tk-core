@@ -42,12 +42,16 @@ class Framework(TankBundle):
         :param env: the environment that the framework belongs to
         """
 
+
         # init base class
         TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env)
         
         self.__engine = engine
 
-        self.log_debug("Framework init: Instantiating %s" % self)
+        # create logger for this app
+        # log will be parented in a tank.session.environment_name.engine_instance_name.framework_name hierarchy
+        self._log = self.__engine.log.getChild(self.name)
+        self._log.debug("Logging started for %s" % self)
                 
     def __repr__(self):        
         return "<Sgtk Framework 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
@@ -100,6 +104,13 @@ class Framework(TankBundle):
         return self.__engine                
 
     @property
+    def log(self):
+        """
+        Standard python logger for this framework
+        """
+        return self._log
+
+    @property
     def is_shared(self):
         """
         Boolean indicating whether this is a shared framework.
@@ -140,57 +151,62 @@ class Framework(TankBundle):
     
     
     ##########################################################################################
-    # logging methods, delegated to the current engine
+    # logging methods
 
     def log_debug(self, msg):
         """
         Logs a debug message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.log` instead.
+
         :param msg: Message to log.
         """
-        self.engine.log_debug(msg)
+        self._log.debug(msg)
 
     def log_info(self, msg):
         """
         Logs an info message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.log` instead.
+
         :param msg: Message to log.
         """
-        self.engine.log_info(msg)
+        self._log.info(msg)
 
     def log_warning(self, msg):
         """
-        Logs a warning message.
+        Logs an warning message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.log` instead.
 
         :param msg: Message to log.
         """
-        self.engine.log_warning(msg)
+        self._log.warning(msg)
 
     def log_error(self, msg):
         """
         Logs an error message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.log` instead.
+
         :param msg: Message to log.
         """
-        self.engine.log_error(msg)
+        self._log.error(msg)
 
     def log_exception(self, msg):
         """
-        Logs an exception.
+        Logs an exception message.
 
-        This will contain a full traceback and is typically called from
-        within an exception handler::
-
-            try:
-                do_stuff()
-            except Exception:
-                self.log_exception("A general error was raised")
-
-        The message will be emitted as an error message.
+        .. deprecated:: 0.18
+            Use :meth:`Engine.log` instead.
 
         :param msg: Message to log.
         """
-        self.engine.log_exception(msg)
+        self._log.exception(msg)
 
 
     ##########################################################################################
