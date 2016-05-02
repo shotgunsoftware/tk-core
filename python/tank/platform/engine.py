@@ -1840,7 +1840,12 @@ def start_engine(engine_name, tk, context):
 
 
 def _restart_engine(new_context):
+    """
+    Restarts an engine by destroying the previous one and creating a new one.
 
+    :param new_context: Context for the new engine. If None, previous context will
+        be reused.
+    """
     engine = current_engine()
     try:
         # Track some of the current state before restarting the engine.
@@ -1863,6 +1868,7 @@ def _execute_pre_context_change_hook(tk, current_context, next_context):
     """
     Executes the pre context change hook.
 
+    :param tk: Toolkit instance.
     :param current_context: Context before the context change.
     :param next_context: Context after the context change.
     """
@@ -1878,6 +1884,7 @@ def _execute_post_context_change_hook(tk, previous_context, current_context):
     """
     Executes the post context change hook.
 
+    :param tk: Toolkit instance.
     :param current_context: Context before the context change.
     :param next_context: Context after the context change.
     """
@@ -1890,7 +1897,16 @@ def _execute_post_context_change_hook(tk, previous_context, current_context):
 
 
 def _start_engine(engine_name, tk, old_context, new_context):
+    """
+    Starts an engine for a given Toolkit instance and context.
 
+    :param engine_name: Name of the engine to start.
+    :param tk: Toolkit instance.
+    :param old_context: Context before the engine starts. Can be None.
+    :param new_context: Context of the new engine.
+
+    :returns: A new sgtk.platform.Engine object.
+    """
     # first ensure that an engine is not currently running
     if current_engine():
         raise TankError("An engine (%s) is already running! Before you can start a new engine, "

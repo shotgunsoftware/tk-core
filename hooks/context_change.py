@@ -23,7 +23,7 @@ class ContextChangeHook(get_hook_baseclass()):
 
     def pre_context_change(self, current_context, next_context):
         """
-        Called before the context change happens.
+        Called before the context has changed.
 
         :param current_context: The current context.
         :param next_context: The context being switching to.
@@ -32,7 +32,7 @@ class ContextChangeHook(get_hook_baseclass()):
 
     def post_context_change(self, previous_context, current_context):
         """
-        Called after the context change happened.
+        Called after the context has changed.
 
         :param previous_context: The previous current context.
         :param current_context: The new current context.
