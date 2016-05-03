@@ -23,6 +23,7 @@ import urlparse
 from tank_vendor import shotgun_api3
 
 from ..errors import TankError
+from ..log import log_timing
 from .. import hook
 from . import constants
 from . import login
@@ -248,6 +249,7 @@ def __create_sg_connection(config_data=None, user=None):
     return sg
 
 
+@log_timing("util.download_url")
 def download_url(sg, url, location):
     """
     Convenience method that downloads a file from a given url.
@@ -406,6 +408,7 @@ def get_entity_type_display_name(tk, entity_type_code):
 
     return display_name
 
+@log_timing("util.find_publish")
 def find_publish(tk, list_of_paths, filters=None, fields=None):
     """
     Finds publishes in Shotgun given paths on disk.
@@ -608,7 +611,7 @@ def _group_by_storage(tk, list_of_paths):
 
     return storages_paths
 
-
+@log_timing("util.create_event_log_entry")
 def create_event_log_entry(tk, context, event_type, description, metadata=None):
     """
     Creates an event log entry inside of Shotgun.
@@ -660,6 +663,7 @@ def get_published_file_entity_type(tk):
     """
     return tk.pipeline_configuration.get_published_file_entity_type()
 
+@log_timing("util.register_publish")
 def register_publish(tk, context, path, name, version_number, **kwargs):
     """
     Creates a Published File in Shotgun.

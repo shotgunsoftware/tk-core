@@ -25,9 +25,6 @@ these log streams are also collected and organized under the
     :members:
 
 
-.. autofunction:: log_timing
-
-
 File System Utilities
 ============================================
 
