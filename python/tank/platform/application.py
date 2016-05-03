@@ -167,7 +167,10 @@ class Application(TankBundle):
 
         :param msg: Message to log.
         """
-        self._log.debug(msg)
+        if self.engine.supports_018_logging:
+            self.log.debug(msg)
+        else:
+            self.engine.log_debug(msg)
 
     def log_info(self, msg):
         """
@@ -178,7 +181,10 @@ class Application(TankBundle):
 
         :param msg: Message to log.
         """
-        self._log.info(msg)
+        if self.engine.supports_018_logging:
+            self.log.info(msg)
+        else:
+            self.engine.log_info(msg)
 
     def log_warning(self, msg):
         """
@@ -189,7 +195,10 @@ class Application(TankBundle):
 
         :param msg: Message to log.
         """
-        self._log.warning(msg)
+        if self.engine.supports_018_logging:
+            self.log.warning(msg)
+        else:
+            self.engine.log_warning(msg)
 
     def log_error(self, msg):
         """
@@ -200,7 +209,10 @@ class Application(TankBundle):
 
         :param msg: Message to log.
         """
-        self._log.error(msg)
+        if self.engine.supports_018_logging:
+            self.log.error(msg)
+        else:
+            self.engine.log_error(msg)
 
     def log_exception(self, msg):
         """
@@ -211,7 +223,10 @@ class Application(TankBundle):
 
         :param msg: Message to log.
         """
-        self._log.exception(msg)
+        if self.engine.supports_018_logging:
+            self.log.exception(msg)
+        else:
+            self.engine.log_exception(msg)
 
 
     ##########################################################################################

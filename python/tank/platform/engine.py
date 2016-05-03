@@ -104,6 +104,9 @@ class Engine(TankBundle):
         # init base class
         TankBundle.__init__(self, tk, context, settings, descriptor, env)
 
+        # probe if new logging is being used:
+        self._uses_new_logging = self._probe_018_logging_support()
+
         # create a log handler and attach it
         self._log_handler = self.__create_log_handler()
         LogManager.get_root_logger().addHandler(self._log_handler)
@@ -345,47 +348,50 @@ class Engine(TankBundle):
         """
         log_user_attribute_metric(attr_name, attr_value)
 
-    def show_busy(self, title, details):
+    def _probe_018_logging_support(self):
         """
-        Displays or updates a global "busy window" tied to this engine. The window
-        is a splash screen type window, floats on top and contains details of what
-        is currently being processed.
+        Determine if the engine supports the new logging implementation.
 
-        This is currently an internal method and not meant to be be used by anything
-        outside the core API. Later on, as things settle, we may consider exposing this.
+        This is done by introspecting the log_debug|info|error methods.
+        If these methods are implemented for this engine, it is assumed
+        to be using the old logging implementation. If they have not been
+        implemented by the engine, the engine is assumed to be using the new
+        logging implementation and this method will return True.
 
-        This method pops up a splash screen with a message and the idea is that
-        long running core processes can use this as a way to communicate their intent
-        to the user and keep the user informed as slow processes are executed. If the engine
-        has a UI present, this will be used to display the progress message. If the engine
-        does not have UI support, a message will be logged. The UI always appears in the
-        main thread for safety.
-
-        Only one global progress window can exist per engine at a time, so if you want to
-        push several updates one after the other, just keep calling this method.
-
-        When you want to remove the window, call :meth:`clear_busy()`.
-
-        Note! If you are calling this from the Core API you typically don't have
-        access to the current engine object. In this case you can use the
-        convenience method tank.platform.engine.show_global_busy() which will
-        attempt to broadcast the request to the currently active engine.
-
-        :params title: Short descriptive title of what is happening
-        :params details: Detailed message describing what is going on.
+        :return: True if new logging is used, False otherwise
         """
-        # make sure that the UI is always shown in the main thread
-        self.execute_in_main_thread(self.__show_busy, title, details)
+        engine_implements_new_logging = True
 
-    def clear_busy(self):
+        for logging_method_name in ("log_debug", "log_warning", "log_error"):
+
+            # grab active method and baseclass method
+            running_method = getattr(self, logging_method_name)
+            base_method = getattr(Engine, logging_method_name)
+
+            # now determine if the runtime implementation
+            # is the baseclass implementation or not
+            if sys.version_info < (2,6):
+                # older pythons use im_func rather than __func__
+                if running_method.im_func is not base_method.im_func:
+                    # this engine has subclassed the method
+                    engine_implements_new_logging = False
+                    break
+            else:
+                # pyton 2.6 and above use __func__
+                if running_method.__func__ is not base_method.__func__:
+                    # this engine has subclassed the method
+                    engine_implements_new_logging = False
+                    break
+
+        return engine_implements_new_logging
+
+    @property
+    def supports_018_logging(self):
         """
-        Closes any active busy window.
-
-        For more details, see the :meth:`show_busy()` documentation.
+        True if the engine supports the logging implementation introduced in 0.18.
+        note: This is an internal method that should not be used outside of tk-core
         """
-        if self.__global_progress_widget:
-            self.execute_in_main_thread(self.__clear_busy)
-
+        return self._uses_new_logging
 
     ##########################################################################################
     # properties
@@ -684,6 +690,45 @@ class Engine(TankBundle):
 
     ##########################################################################################
     # public methods
+
+    def show_busy(self, title, details):
+        """
+        Displays or updates a global "busy window" tied to this engine. The window
+        is a splash screen type window, floats on top and contains details of what
+        is currently being processed.
+
+        This method pops up a splash screen with a message and the idea is that
+        long running core processes can use this as a way to communicate their intent
+        to the user and keep the user informed as slow processes are executed. If the engine
+        has a UI present, this will be used to display the progress message. If the engine
+        does not have UI support, a message will be logged. The UI always appears in the
+        main thread for safety.
+
+        Only one global progress window can exist per engine at a time, so if you want to
+        push several updates one after the other, just keep calling this method.
+
+        When you want to remove the window, call :meth:`clear_busy()`.
+
+        Note! If you are calling this from the Core API you typically don't have
+        access to the current engine object. In this case you can use the
+        convenience method ``tank.platform.engine.show_global_busy()`` which will
+        attempt to broadcast the request to the currently active engine.
+
+        :param title: Short descriptive title of what is happening
+        :param details: Detailed message describing what is going on.
+        """
+        # make sure that the UI is always shown in the main thread
+        self.execute_in_main_thread(self.__show_busy, title, details)
+
+    def clear_busy(self):
+        """
+        Closes any active busy window.
+
+        For more details, see the :meth:`show_busy()` documentation.
+        """
+        if self.__global_progress_widget:
+            self.execute_in_main_thread(self.__clear_busy)
+
 
     def register_command(self, name, callback, properties=None):
         """
@@ -989,7 +1034,7 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
-        self._log.debug(msg)
+        self.log.debug(msg)
     
     def log_info(self, msg):
         """
@@ -1000,7 +1045,7 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
-        self._log.info(msg)
+        self.log.info(msg)
         
     def log_warning(self, msg):
         """
@@ -1011,7 +1056,7 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
-        self._log.warning(msg)
+        self.log.warning(msg)
     
     def log_error(self, msg):
         """
@@ -1022,7 +1067,7 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """        
-        self._log.error(msg)
+        self.log.error(msg)
 
     def log_exception(self, msg):
         """
@@ -1033,7 +1078,7 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
-        self._log.exception(msg)
+        self.log.exception(msg)
 
 
     ##########################################################################################
@@ -1058,6 +1103,9 @@ class Engine(TankBundle):
     def _emit_log_message(self, record):
         """
         Called by the engine whenever a new log message is available.
+
+        If you want your engine to implement display of log messages,
+        you can subclass this method. It is always executed in the main thread.
 
         :param record: Std python logging record
         :type record: :class:`~python.logging.LogRecord`

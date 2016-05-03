@@ -86,7 +86,7 @@ The typical things an engine needs to handle are:
 
 .. autoclass:: Engine
     :inherited-members:
-    :exclude-members: descriptor, settings, get_env, log_metric, init_engine
+    :exclude-members: descriptor, settings, get_env, log_metric, init_engine, log_user_attribute_metric, supports_018_logging
     :members:
 
 
