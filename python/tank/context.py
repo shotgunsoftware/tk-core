@@ -47,7 +47,7 @@ class Context(object):
     - The entity level defines which entity the context reflects. For example,
       this may be a Shot or an Asset. Note that in the case of a Shot, the context
       does not contain any direct information of which sequence the shot is linked to,
-      however the context can still resolve such relatioships implicitly if needed -
+      however the context can still resolve such relationships implicitly if needed -
       typically via the :meth:`Context.as_context_fields` method.
     - The step level defines the current pipeline step. This is often a reflection of a
       department or a general step in a workflow or pipeline (e.g. Modeling, Rigging).
@@ -305,7 +305,7 @@ class Context(object):
         A property which holds the user associated with this context.
         If the context is incomplete, it is possible that the property is None.
 
-        The user property is pecial - either it represents a user value that was baked
+        The user property is special - either it represents a user value that was baked
         into a template path upon folder creation, or it represents the current user::
 
             >>> import sgtk
@@ -484,7 +484,7 @@ class Context(object):
         The values are derived from existing paths on disk, or in the case of keys with
         shotgun_entity_type and shotgun_entity_field settings, direct queries to the Shotgun
         server. The validate parameter can be used to ensure that the method returns all
-        context fields required by the template and if it can't then a TankError will be raised.
+        context fields required by the template and if it can't then a :class:`TankError` will be raised.
         Example::
 
             >>> import sgtk
@@ -525,7 +525,7 @@ class Context(object):
 
         :param template:    :class:`Template` for which the fields will be used.
         :param validate:    If True then the fields found will be checked to ensure that all expected fields for
-                            the context were found.  If a field is missing then a TankError will be raised
+                            the context were found.  If a field is missing then a :class:`TankError` will be raised
         :returns:           A dictionary of template files representing the context. Handy to pass to for example
                             :meth:`Template.apply_fields`.
         :raises:            :class:`TankError` if the fields can't be resolved for some reason or if 'validate' is True

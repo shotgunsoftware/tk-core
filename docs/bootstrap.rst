@@ -9,7 +9,7 @@ configurations, starting up toolkit, deploying and managing configurations etc.
 
 The :class:`ToolkitManager` makes it possible to launch Toolkit without having to install anything
 via project setup or similar. The bootstrap process also won't require any configuration values to
-be written to Shotgun itself. The follwing example code can for example run inside maya in order
+be written to Shotgun itself. The following example code can for example run inside maya in order
 to launch toolkit's default config for a given Shotgun Asset::
 
     import sgtk

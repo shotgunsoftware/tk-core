@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 class ToolkitManager(object):
     """
-    This class allows for flexible and non-obstrusive management of toolkit configurations
+    This class allows for flexible and non-obtrusive management of toolkit configurations
     and installations.
     """
 

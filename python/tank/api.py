@@ -458,7 +458,7 @@ class Sgtk(object):
         """
         Returns an abstract path based on a template.
 
-        Similar to paths_from_template(), but optimized for abstract fields
+        Similar to :meth:`paths_from_template`, but optimized for abstract fields
         such as image sequences and stereo patterns.
 
         An *abstract field* is for example an image sequence pattern
@@ -638,15 +638,15 @@ class Sgtk(object):
 
     def context_from_entity_dictionary(self, entity_dictionary):
         """
-        Derives a context from a shotgun entity dictionary.  This will try to use any 
+        Derives a context from a shotgun entity dictionary. This will try to use any
         linked information available in the dictionary where possible but if it can't 
-        determine a valid context then it will fall back to 'context_from_entity' which 
+        determine a valid context then it will fall back to :meth:`context_from_entity` which
         may result in a Shotgun path cache query and be considerably slower.
 
-        The following values for 'entity_dictionary' will result in a context being
+        The following values for ``entity_dictionary`` will result in a context being
         created without falling back to a potential Shotgun query - each entity in the
         dictionary (including linked entities) must have the fields: 'type', 'id' and 
-        'name' (or the name equivelent for specific entity types, e.g. 'content' for 
+        'name' (or the name equivalent for specific entity types, e.g. 'content' for
         Step entities, 'code' for Shot entities, etc.)::
 
             {"type": "Project", "id": 123, "name": "My Project"}
@@ -661,8 +661,8 @@ class Sgtk(object):
              "step": {"type": "Step", "id": 101112, "name": "Anm"}
             }
 
-        The following values for 'entity_dictionary' don't contain enough information to
-        fully form a context so the code will fall back to 'context_from_entity()' which 
+        The following values for ``entity_dictionary`` don't contain enough information to
+        fully form a context so the code will fall back to :meth:`context_from_entity` which
         may then result in a Shotgun query to retrieve the missing information::
 
             # missing project name
@@ -786,16 +786,16 @@ def set_authenticated_user(user):
     Sets the currently authenticated Shotgun user for the current toolkit session.
 
     You instruct the Toolkit API which user the current session is associated with by executing
-    this command. Conversely, you can use :meth`get_authenticated_user` to retrieve the current user.
-    The user object above is created by the `sgtk.authentication` part of the API and wraps around the Shotgun
+    this command. Conversely, you can use :meth:`get_authenticated_user` to retrieve the current user.
+    The user object above is created by the ``sgtk.authentication`` part of the API and wraps around the Shotgun
     API to provide a continuous and configurable experience around user based Shotgun connections.
 
     Normally, Toolkit handles this transparently as part of setting up the `sgtk` instance and there is no need
     to call this method. However, if you are running a custom tool which has particular requirements
     around authentication, you can provide your own logic if desirable.
 
-    :params user: A :class:`~sgtk.authentication.ShotgunUser` derived object. Can
-                  be None to clear the authenticated user.
+    :param user: A :class:`~sgtk.authentication.ShotgunUser` derived object. Can
+                 be None to clear the authenticated user.
     """
     global _authenticated_user
     _authenticated_user = user

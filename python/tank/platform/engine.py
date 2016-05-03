@@ -312,9 +312,6 @@ class Engine(TankBundle):
         is a splash screen type window, floats on top and contains details of what
         is currently being processed.
 
-        This is currently an internal method and not meant to be be used by anything
-        outside the core API. Later on, as things settle, we may consider exposing this.
-
         This method pops up a splash screen with a message and the idea is that
         long running core processes can use this as a way to communicate their intent
         to the user and keep the user informed as slow processes are executed. If the engine
@@ -329,7 +326,7 @@ class Engine(TankBundle):
 
         Note! If you are calling this from the Core API you typically don't have
         access to the current engine object. In this case you can use the
-        convenience method tank.platform.engine.show_global_busy() which will
+        convenience method ``tank.platform.engine.show_global_busy()`` which will
         attempt to broadcast the request to the currently active engine.
 
         :params title: Short descriptive title of what is happening
@@ -355,7 +352,7 @@ class Engine(TankBundle):
     def shotgun(self):
         """
         Returns a Shotgun API handle associated with the currently running
-        environment. This method is a conveinece method that calls out
+        environment. This method is a convenience method that calls out
         to :meth:`~sgtk.Tank.shotgun`.
 
         :returns: Shotgun API handle
@@ -426,12 +423,12 @@ class Engine(TankBundle):
     def panels(self):
         """
         Returns all the panels which have been registered with the engine via the :meth:`register_panel()`
-        method. Returns a dictionary keyed by panel unqiue ids. Each value is a dictionary with keys
+        method. Returns a dictionary keyed by panel unique ids. Each value is a dictionary with keys
         ``callback`` and ``properties``.
 
         Returns all the panels which have been registered with the engine.
         
-        :returns: A dictionary keyed by panel unqiue ids. Each value is a dictionary
+        :returns: A dictionary keyed by panel unique ids. Each value is a dictionary
                   with keys 'callback' and 'properties'
         """
         return self.__panels
@@ -751,7 +748,7 @@ class Engine(TankBundle):
         Panels need to be registered if they should persist between DCC sessions (e.g. 
         for example 'saved layouts').
         
-        Just like with the register_command() method, panel registration should be executed 
+        Just like with the :meth:`register_command` method, panel registration should be executed
         from within the init phase of the app. Once a panel has been registered, it is possible
         for the engine to correctly restore panel UIs at startup and profile switches. 
         
@@ -759,7 +756,7 @@ class Engine(TankBundle):
         a saved layout. Apps wanting to be able to take advantage of the persistence given by
         these saved layouts will need to call register_panel as part of their init_app phase.
         
-        In order to show or focus on a panel, use the show_panel() method instead.
+        In order to show or focus on a panel, use the :meth:`show_panel` method instead.
         
         :param callback: Callback to a factory method that creates the panel and returns a panel widget.
         :param panel_name: A string to distinguish this panel from other panels created by 

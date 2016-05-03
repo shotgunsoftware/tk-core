@@ -71,7 +71,7 @@ def change_context(new_context):
     its "context_change_allowed" property. If that property returns True, then
     the context change will be allowed to proceed. If it returns False, then
     the engine's "change_context" method will raise
-    TankContextChangeNotSupportedError, which will then trigger a restart of
+    :class:`TankContextChangeNotSupportedError`, which will then trigger a restart of
     the engine and all of its apps.
 
     In the event that the engine does support context changes, any apps that
