@@ -46,9 +46,11 @@ def create_descriptor(
     :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain
                            the search for latest to only take part over a subset of versions.
                            This is a string that can be on the following form:
+
                                 - ``v0.1.2``, ``v0.12.3.2``, ``v0.1.3beta`` - a specific version
                                 - ``v0.12.x`` - get the highest v0.12 version
                                 - ``v1.x.x`` - get the highest v1 version
+
     :returns: Descriptor object
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor

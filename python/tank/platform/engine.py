@@ -883,16 +883,19 @@ class Engine(TankBundle):
 
         :param command_selectors: A list of command selectors, with each
                                   selector having the following structure::
-                                    {
-                                      name: command-name,
-                                      app_instance: instance-name
-                                    }
-                                  An empty name ('') will select all the
+
+                                      {
+                                        name: command-name,
+                                        app_instance: instance-name
+                                      }
+
+                                  An empty name ("") will select all the
                                   commands of the given instance-name.
 
         :returns:                 A list of tuples for all commands that match
                                   the selectors. Each tuple has the format::
-                                    (instance-name, command-name, callback)
+
+                                      (instance-name, command-name, callback)
         """
         # return a dictionary grouping all the commands by instance name
         commands_by_instance = {}

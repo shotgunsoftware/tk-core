@@ -92,7 +92,7 @@ class Sgtk(object):
         will be backwards compatible.
         
         :param hook_name: Name of hook to execute.
-        :param **kwargs:  Additional named parameters will be passed to the hook.
+        :param kwargs:  Additional named parameters will be passed to the hook.
         :returns:         Return value of the hook.
         """
         return self.pipeline_configuration.execute_core_hook_internal(hook_name, parent=self, **kwargs)
@@ -266,6 +266,7 @@ class Sgtk(object):
                  templates inside of for example Maya and want to reload them. You can
                  then access this method from the python console via the current engine
                  handle::
+
                     sgtk.platform.current_engine().sgtk.reload_templates()
 
         :raises: :class:`TankError`

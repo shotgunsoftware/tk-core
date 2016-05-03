@@ -164,7 +164,7 @@ def current_bundle():
         app = sgtk.platform.current_bundle()
         app.get_setting("frame_range")
 
-    :returns: app, engine or framework instance
+    :returns: :class:`Application`, :class:`Engine` or :class:`Framework` instance
     """ 
     return _get_current_bundle()
 

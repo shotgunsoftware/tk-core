@@ -36,7 +36,7 @@ example shows basic usage::
 When descriptors serialized, they can have two different forms:
 
 - A descriptor URI is a compact string representation, for example
- ``sgtk:descriptor:app_store?name=tk-config-default&version=v1.2.3``
+  ``sgtk:descriptor:app_store?name=tk-config-default&version=v1.2.3``
 
 - A descriptor dictionary contains the equivalent information in key-value pair form::
 

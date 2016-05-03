@@ -49,6 +49,7 @@ Toolkit Core API Reference
     :exclude-members: pipeline_configuration,
                       log_metric,
                       execute_core_hook,
+                      execute_hook,
                       execute_core_hook_method
 
 
