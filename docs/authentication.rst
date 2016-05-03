@@ -1,6 +1,6 @@
 .. currentmodule:: sgtk.authentication
 
-Shotgun Authentication
+Authentication
 ########################################
 
 When you run the Shotgun pipeline Toolkit, it will connect to Shotgun on a regular basis in order to carry out

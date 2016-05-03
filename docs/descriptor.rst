@@ -63,7 +63,7 @@ When a the payload of a descriptor is downloaded, it ends up by default in the *
 In addition to the location above, you can specify additional folders where the
 descriptor API will go and look for cached items. This is useful if you want to
 pre-cache an environment for your studio or distribute a set of app and engine
-verisons as an installable package that require no further retrieval in order
+versions as an installable package that require no further retrieval in order
 to function.
 
 Descriptor types

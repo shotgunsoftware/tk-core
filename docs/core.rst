@@ -1,9 +1,9 @@
 .. currentmodule:: sgtk
 
-Toolkit Foundation
+Foundation
 ########################################
 
-Toolkit foundation is the part of the Toolkit Core API
+The Toolkit Foundation is the part of the Toolkit Core API
 that contains lower level components and APIs. These include
 
 - Automatic folder creation
@@ -12,11 +12,12 @@ that contains lower level components and APIs. These include
 - The toolkit :class:`Context`
 - The :class:`Sgtk` Main API class
 
+
 For apps and engines, see the :ref:`sgtk_platform_docs` documentation.
+
 
 Constructing a Toolkit Core API instance
 ==============================================
-
 
 Each instance of the :class:`sgtk.Sgtk` class is associated with a specific set of configuration settings.
 This association is automatically resolved as the API instance is created and can be
@@ -31,6 +32,12 @@ The following factory methods are used to create a Toolkit API instance:
 .. autofunction:: sgtk_from_path
 .. autofunction:: sgtk_from_entity
 
+.. note:: If you are using the :class:`~sgtk.bootstrap.ToolkitManager`, initialization of :class:`sgtk.Sgtk`
+          happens behind the scenes. While it is still possible to access a setup managed by the
+          :class:`~sgtk.bootstrap.ToolkitManager` via the same methods that you would use to access a
+          traditionally set up project, is is usually much easier to let the bootstrap process
+          handle the initialization.
+
 **Authentication**
 
 Certain API operations require Shotgun data and hence require a way for the API
@@ -39,6 +46,8 @@ making sure that each API instance has an associated authenticated user:
 
 .. autofunction:: set_authenticated_user
 .. autofunction:: get_authenticated_user
+
+
 
 
 Toolkit Core API Reference
