@@ -124,7 +124,32 @@ class Application(TankBundle):
     @property
     def log(self):
         """
-        Standard python logger for this app
+        Standard python logger for this app.
+
+        Use this whenever you want to emit or process
+        log messages that are related to an app. If you are
+        developing an app::
+
+            # if you are in the app subclass
+            self.log.debug("Starting up main dialog")
+
+            # if you are in python code that runs
+            # as part of the app
+            app = sgtk.platform.current_bundle()
+            app.log.warning("Cannot find file.")
+
+        Logging will be dispatched to a logger parented under the
+        main toolkit logging namespace::
+
+            # pattern
+            tank.session.environment_name.engine_instance_name.app_instance_name
+
+            # for example
+            tank.session.asset.tk-maya.tk-multi-publish
+
+        .. note:: If you want to app log messages to be written to log file,
+                  you can attach a log handler here.
+
         """
         return self._log
 

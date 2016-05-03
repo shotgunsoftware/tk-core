@@ -30,29 +30,33 @@ class LogManager(object):
     _std_file_handler = None
 
     @classmethod
-    def initialize_std_handler(cls, handler=logging.StreamHandler()):
+    def initialize_custom_handler(cls, handler=logging.StreamHandler()):
         """
-        Convenience method that initializes a standard logger
+        Convenience method that initializes a log handler
         and attaches it to the toolkit logging root.
+
+        .. note:: If you want to display log messages inside a DCC,
+                  implement :meth:`~sgtk.platform.Engine._emit_log_message`.
+
 
         Calling this without parameters will generate a standard
         stream based logging handler that logs to stderr::
 
             # start logging to stderr
             import sgtk.LogManager
-            LogManager.initialize_std_handler()
+            LogManager.initialize_custom_handler()
 
         If you want to log to a file instead, create a log handler
         and pass that to the method::
 
             handler = logging.FileHandler("/tmp/toolkit.log)
-            LogManager.initialize_std_handler(handler)
+            LogManager.initialize_custom_handler(handler)
 
         If you want to only show warnings::
 
             # start logging to stderr
             import sgtk.LogManager
-            handler = LogManager.initialize_std_handler()
+            handler = LogManager.initialize_custom_handler()
             handler.setLevel(logging.WARNING)
 
         The log handler will be configured to output its messages
@@ -89,7 +93,7 @@ class LogManager(object):
         logs.
 
         .. note:: If you want to add a custom logging handler to the root logger,
-                  we recommend using the :meth:`LogManager.initialize_std_handler`
+                  we recommend using the :meth:`LogManager.initialize_custom_handler`
                   convenience method.
 
         .. warning:: The root logger logs down to a debug resolution by default.

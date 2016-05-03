@@ -519,7 +519,28 @@ class Engine(TankBundle):
     @property
     def log(self):
         """
-        Standard python logger for this engine
+        Standard python logger for this engine.
+
+        Use this whenever you want to emit or process
+        log messages that are related to an engine. If you are
+        developing an engine::
+
+            # if you are in the engine subclass
+            self.log.debug("Setting up extra menus")
+
+            # if you are in python code that runs
+            # as part of the engine
+            engine = sgtk.platform.current_bundle()
+            engine.log.warning("Cannot find file.")
+
+        Logging will be dispatched to a logger parented under the
+        main toolkit logging namespace::
+
+            # pattern
+            tank.session.environment_name.engine_instance_name
+
+            # for example
+            tank.session.asset.tk-maya
         """
         return self._log
 
@@ -1032,6 +1053,13 @@ class Engine(TankBundle):
         .. deprecated:: 0.18
             Use :meth:`Engine.log` instead.
 
+        .. note:: Toolkit will probe for this method and use it to determine if
+                  the current engine supports the new :meth:`Engine.log` based logging
+                  or not. If you are developing an engine and want to upgrade it to
+                  use the new logging capabilities, you should remove the
+                  implementation of ``log_debug|error|info|...()`` methods and
+                  instead sublcass :meth:`Engine._emit_log_message`.
+
         :param msg: Message to log.
         """
         self.log.debug(msg)
@@ -1103,9 +1131,16 @@ class Engine(TankBundle):
     def _emit_log_message(self, record):
         """
         Called by the engine whenever a new log message is available.
+        Always executes in the main thread, even if log messages
+        were emitted in other threads. All log messages from the
+        toolkit logging namespace will be passed to this method.
 
-        If you want your engine to implement display of log messages,
-        you can subclass this method. It is always executed in the main thread.
+        .. note:: To implement logging in your engine implementation, subclass
+                  this method and display the record in a suitable way - typically
+                  this means sending it to a built-in DCC console. In addition to this,
+                  ensure that your engine implementation *does not* sublcass
+                  the (old) :meth:`Engine.log_debug`, :meth:`Engine.log_info` family
+                  of logging methods.
 
         :param record: Std python logging record
         :type record: :class:`~python.logging.LogRecord`

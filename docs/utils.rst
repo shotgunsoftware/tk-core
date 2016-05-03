@@ -19,7 +19,13 @@ that has been already configured.
 
 Each app, engine and bundle provides access to logging and
 these log streams are also collected and organized under the
-``tank`` logging namespace.
+``tank`` logging namespace. This is done by calling
+the methods :meth:`sgtk.platform.Engine.log`, :meth:`sgtk.platform.Application.log`
+or :meth:`sgtk.platform.Framework.log`.
+
+Each Toolkit :class:`~sgtk.platform.Engine` contains a method :meth:`~sgtk.platform.Engine._emit_log_message`
+that can be subclassed if you want to the DCC to display
+log messages at runtime.
 
 .. autoclass:: LogManager
     :members:

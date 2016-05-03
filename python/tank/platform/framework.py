@@ -106,7 +106,31 @@ class Framework(TankBundle):
     @property
     def log(self):
         """
-        Standard python logger for this framework
+        Standard python logger for this framework.
+
+        Use this whenever you want to emit or process
+        log messages that are related to an framework. If you are
+        developing a framework::
+
+            # if you are in the framework subclass
+            self.log.debug("Reading settings")
+
+            # if you are in python code that runs
+            # as part of the framework
+            fw = sgtk.platform.current_bundle()
+            fw.log.warning("Cannot find file.")
+
+        Logging will be dispatched to a logger parented under the
+        main toolkit logging namespace::
+
+            # pattern
+            tank.session.environment_name.engine_instance_name.fw_instance_name
+
+            # for example
+            tank.session.asset.tk-maya.tk-framework-shotgunutils
+
+        .. note:: If you want to app log messages to be written to log file,
+                  you can attach a log handler here.
         """
         return self._log
 
