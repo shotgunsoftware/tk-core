@@ -156,7 +156,7 @@ def current_bundle():
     be used inside python modules that belong to apps, engines or frameworks.
     
     The calling code needs to have been imported using toolkit's standard import 
-    mechanism, import_module(), otherwise an exception will be raised.
+    mechanism, :meth:`Application.import_module()`, otherwise an exception will be raised.
     
     This special helper method can be useful when code deep inside an app needs
     to reach out to for example grab a configuration value. Then you can simply do::

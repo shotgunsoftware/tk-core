@@ -176,6 +176,9 @@ Import and access methods
 The following methods are useful when writing app, engine or framework code and you need to
 access and load other objects.
 
+.. note:: For examples of how the below methods are used in practice, check out
+          our starter app https://github.com/shotgunsoftware/tk-multi-starterapp.
+
 .. autofunction:: current_bundle
 
 .. autofunction:: get_framework
