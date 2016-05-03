@@ -235,7 +235,7 @@ class Sgtk(object):
         # read this from info.yml
         info_yml_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "info.yml"))
         try:
-            yaml_cache.g_yaml_cache.get(info_yml_path, deepcopy_data=False)
+            data = yaml_cache.g_yaml_cache.get(info_yml_path, deepcopy_data=False)
             data = str(data.get("documentation_url"))
             if data == "":
                 data = None
