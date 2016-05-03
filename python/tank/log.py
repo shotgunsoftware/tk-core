@@ -13,8 +13,6 @@ import logging.handlers
 import os
 import time
 from functools import wraps
-from .util import LocalFileStorageManager
-from .util import filesystem
 from . import constants
 
 log = logging.getLogger(__name__)
@@ -127,6 +125,10 @@ class LogManager(object):
         :param log_name: Name of logger to create. This will form the
                          filename of the log file.
         """
+        # avoid cyclic references
+        from .util import LocalFileStorageManager
+        from .util import filesystem
+
         if cls._std_file_handler:
             # there is already a log handler.
             # terminate previous one

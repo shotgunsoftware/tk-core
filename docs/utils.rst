@@ -69,10 +69,10 @@ and convenience methods:
 
 .. currentmodule:: sgtk.util
 
-.. autofunction:: register_publish
-.. autofunction:: find_publish
-.. autofunction:: download_url
-.. autofunction:: create_event_log_entry
+.. autofunction:: register_publish(tk, context, path, name, version_number, **kwargs)
+.. autofunction:: find_publish(tk, list_of_paths, f ilters=None, fields=None)
+.. autofunction:: download_url(sg, url, location)
+.. autofunction:: create_event_log_entry(tk, context, event_type, description, metadata=None)
 .. autofunction:: get_entity_type_display_name
 .. autofunction:: get_published_file_entity_type
 
