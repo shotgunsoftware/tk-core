@@ -129,8 +129,8 @@ class Framework(TankBundle):
             # for example
             tank.session.asset.tk-maya.tk-framework-shotgunutils
 
-        .. note:: If you want to app log messages to be written to log file,
-                  you can attach a log handler here.
+        .. note:: If you want framework log messages to be written to a log file,
+                  you can attach a file log handler here.
         """
         return self._log
 
