@@ -306,8 +306,8 @@ class Engine(TankBundle):
 
         For details, see the main show_busy documentation.
         
-        :params title: Short descriptive title of what is happening
-        :params details: Detailed message describing what is going on.
+        :param title: Short descriptive title of what is happening
+        :param details: Detailed message describing what is going on.
         """
         if self.has_ui:
             # we cannot import QT until here as non-ui engines don't have QT defined.
