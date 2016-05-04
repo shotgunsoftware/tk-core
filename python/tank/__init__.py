@@ -66,7 +66,7 @@ from .api import Sgtk, sgtk_from_path, sgtk_from_entity
 from .context import Context
 
 from .errors import TankError, TankErrorProjectIsSetup, TankHookMethodDoesNotExistError
-from .errors import TankNoDefaultValueError, TankFileDoesNotExistError, TankUnreadableFileError
+from .errors import TankFileDoesNotExistError, TankUnreadableFileError
 # note: TankEngineInitError used to reside in .errors but was moved into platform.errors
 from .platform.errors import TankEngineInitError
 from .template import Template, TemplatePath, TemplateString
