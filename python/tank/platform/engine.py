@@ -456,7 +456,7 @@ class Engine(TankBundle):
     def shotgun(self):
         """
         Returns a Shotgun API handle associated with the currently running
-        environment. This method is a conveinece method that calls out
+        environment. This method is a convenience method that calls out
         to :meth:`~sgtk.Tank.shotgun`.
 
         :returns: Shotgun API handle
@@ -527,12 +527,12 @@ class Engine(TankBundle):
     def panels(self):
         """
         Panels which have been registered with the engine via the :meth:`register_panel()`
-        method. Returns a dictionary keyed by panel unqiue ids. Each value is a dictionary with keys
+        method. Returns a dictionary keyed by panel unique ids. Each value is a dictionary with keys
         ``callback`` and ``properties``.
 
         Returns all the panels which have been registered with the engine.
         
-        :returns: A dictionary keyed by panel unqiue ids. Each value is a dictionary
+        :returns: A dictionary keyed by panel unique ids. Each value is a dictionary
                   with keys 'callback' and 'properties'
         """
         return self.__panels
@@ -791,8 +791,8 @@ class Engine(TankBundle):
         convenience method ``tank.platform.engine.show_global_busy()`` which will
         attempt to broadcast the request to the currently active engine.
 
-        :param title: Short descriptive title of what is happening
-        :param details: Detailed message describing what is going on.
+        :params title: Short descriptive title of what is happening
+        :params details: Detailed message describing what is going on.
         """
         # make sure that the UI is always shown in the main thread
         self.execute_in_main_thread(self.__show_busy, title, details)
@@ -922,7 +922,7 @@ class Engine(TankBundle):
         Panels need to be registered if they should persist between DCC sessions (e.g. 
         for example 'saved layouts').
         
-        Just like with the register_command() method, panel registration should be executed 
+        Just like with the :meth:`register_command` method, panel registration should be executed
         from within the init phase of the app. Once a panel has been registered, it is possible
         for the engine to correctly restore panel UIs at startup and profile switches. 
         
@@ -930,7 +930,7 @@ class Engine(TankBundle):
         a saved layout. Apps wanting to be able to take advantage of the persistence given by
         these saved layouts will need to call register_panel as part of their init_app phase.
         
-        In order to show or focus on a panel, use the show_panel() method instead.
+        In order to show or focus on a panel, use the :meth:`show_panel` method instead.
         
         :param callback: Callback to a factory method that creates the panel and returns a panel widget.
         :param panel_name: A string to distinguish this panel from other panels created by 
@@ -1054,16 +1054,19 @@ class Engine(TankBundle):
 
         :param command_selectors: A list of command selectors, with each
                                   selector having the following structure::
-                                    {
-                                      name: command-name,
-                                      app_instance: instance-name
-                                    }
-                                  An empty name ('') will select all the
+
+                                      {
+                                        name: command-name,
+                                        app_instance: instance-name
+                                      }
+
+                                  An empty name ("") will select all the
                                   commands of the given instance-name.
 
         :returns:                 A list of tuples for all commands that match
                                   the selectors. Each tuple has the format::
-                                    (instance-name, command-name, callback)
+
+                                      (instance-name, command-name, callback)
         """
         # return a dictionary grouping all the commands by instance name
         commands_by_instance = {}

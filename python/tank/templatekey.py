@@ -816,7 +816,7 @@ class SequenceKey(IntegerKey):
         :param name: Key's name.
         :param default: Default value for this key.
         :param choices: List of possible values for this key.
-        :param format_spec: Specification for formating when casting to a string.
+        :param format_spec: Specification for formatting when casting to a string.
                             The form is a zero followed the number of spaces to pad
                             the value.
         :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.

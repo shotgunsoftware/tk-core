@@ -71,7 +71,7 @@ def change_context(new_context):
     its "context_change_allowed" property. If that property returns True, then
     the context change will be allowed to proceed. If it returns False, then
     the engine's "change_context" method will raise
-    TankContextChangeNotSupportedError, which will then trigger a restart of
+    :class:`TankContextChangeNotSupportedError`, which will then trigger a restart of
     the engine and all of its apps.
 
     In the event that the engine does support context changes, any apps that
@@ -156,7 +156,7 @@ def current_bundle():
     be used inside python modules that belong to apps, engines or frameworks.
     
     The calling code needs to have been imported using toolkit's standard import 
-    mechanism, import_module(), otherwise an exception will be raised.
+    mechanism, :meth:`Application.import_module()`, otherwise an exception will be raised.
     
     This special helper method can be useful when code deep inside an app needs
     to reach out to for example grab a configuration value. Then you can simply do::
@@ -164,7 +164,7 @@ def current_bundle():
         app = sgtk.platform.current_bundle()
         app.get_setting("frame_range")
 
-    :returns: app, engine or framework instance
+    :returns: :class:`Application`, :class:`Engine` or :class:`Framework` instance
     """ 
     return _get_current_bundle()
 

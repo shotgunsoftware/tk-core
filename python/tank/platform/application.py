@@ -79,7 +79,7 @@ class Application(TankBundle):
     def shotgun(self):
         """
         Returns a Shotgun API handle associated with the currently running
-        environment. This method is a conveinece method that calls out
+        environment. This method is a convenience method that calls out
         to :meth:`~sgtk.Tank.shotgun`.
 
         :returns: Shotgun API handle

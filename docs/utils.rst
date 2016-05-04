@@ -49,13 +49,13 @@ fashion.
 .. autofunction:: with_cleared_umask
 .. autofunction:: touch_file(path, permissions=0666)
 .. autofunction:: ensure_folder_exists(path, permissions=0775, create_placeholder_file=False)
-.. autofunction:: copy_filecopy_file(src, dst, permissions=0555)
+.. autofunction:: copy_file(src, dst, permissions=0555)
 .. autofunction:: safe_delete_file
 .. autofunction:: copy_folder(src, dst, folder_permissions=0775, skip_list=None)
 .. autofunction:: move_folder(src, dst, folder_permissions=0775)
 .. autofunction:: create_valid_filename
 
-Cross Platform Path Managment
+Cross Platform Path Management
 ============================================
 
 .. autoclass:: sgtk.util.ShotgunPath

@@ -37,9 +37,6 @@ class TankFileDoesNotExistError(TankUnreadableFileError):
 class TankNoDefaultValueError(TankError):
     """
     Exception that can be raised when a default value is required but none is found.
-
-    Typically raised by `tank.platform.bundle.resolve_default_value()` when the
-    `raise_if_missing` flag is set to True.
     """
     pass
 

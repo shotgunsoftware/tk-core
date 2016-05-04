@@ -16,9 +16,9 @@ as information useful for developers and engineers.
 
 
     bootstrap
-    descriptor
-    authentication
     core
     platform
     utils
+    descriptor
+    authentication
 

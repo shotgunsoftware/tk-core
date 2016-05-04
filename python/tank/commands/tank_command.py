@@ -198,14 +198,14 @@ def get_command(command_name, tk=None):
     check for example the required parameters for the command, name, description etc.
     Lastly, you can execute the command by running the execute() method.
     
-    In order to get a list of the available commands, use the list_commands() method.
+    In order to get a list of the available commands, use the :meth:`list_commands` method.
     
     Certain commands require a project configuration context in order to operate. This
     needs to be passed on in the form of a toolkit API instance via the tk parameter.
     See the list_command() documentation for more details.
     
     :param command_name: Name of command to execute. Get a list of all available commands
-                         using the sgtk.list_commands() method.
+                         using the :meth:`list_commands` method.
     :param tk: Optional Toolkit API instance
     :type tk: :class:`Sgtk`
     :returns: :class:`SgtkSystemCommand`

@@ -237,10 +237,10 @@ class ShotgunAuthenticator(object):
         updated with these.
 
         :returns: A :class:`ShotgunUser` derived instance matching the credentials
-        provided.
+                  provided.
 
         :raises: :class:`AuthenticationCancelled` is raised
-                if the user cancelled the authentication.
+                 if the user cancelled the authentication.
         """
         # Make sure we don't already have a user logged in through single
         # sign-on or provided by a DefaultsManager-derived instance.

@@ -114,7 +114,7 @@ class LogManager(object):
         location and will capture all log messages passed through
         the log hierarchy.
 
-        .. info:: Files will be written into the logging location
+        .. note:: Files will be written into the logging location
                   defined by :meth:`LocalFileStorageManager.get_global_root`.
 
         If you launch toolkit via the :class:`sgtk.bootstrap.ToolkitManager`,
