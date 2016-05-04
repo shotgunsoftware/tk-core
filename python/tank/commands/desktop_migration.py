@@ -45,11 +45,15 @@ class DesktopMigration(Action):
         :param log: std python logger
         :param args: command line args        
         """
-
         log.info("Retrieving pipeline configuration from Shotgun...")
         log.info("")
 
         pc = self.tk.pipeline_configuration
+
+        if pc.is_unmanaged:
+            log.error("Cannot migrate a setup which does not have a pipeline configuration in Shotgun!")
+            return
+
 
         # Fetch the project id from the actual pipeline configuration.
         sg_pc = self.tk.shotgun.find_one(

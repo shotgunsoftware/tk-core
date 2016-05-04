@@ -45,6 +45,8 @@ from . import constants
 from ..platform.engine import start_engine, get_environment_from_context
 from ..errors import TankError
 
+log = logging.getLogger(__name__)
+
 ###############################################################################################
 # Built in actions (all in the tank_commands sub module)
 
@@ -269,15 +271,14 @@ class SgtkSystemCommand(object):
             self.__internal_action_obj.tk = tk
         
         # set up a default logger which can be overridden via the set_logger method
-        self.__log = logging.getLogger("sgtk.systemcommand")
-        self.__log.setLevel(logging.INFO)
+        self.__log = log
         # make sure that we have exactly one handler
         if len(self.__log.handlers) == 0:
             ch = logging.StreamHandler()
             formatter = logging.Formatter("%(levelname)s %(message)s")
             ch.setFormatter(formatter)
             self.__log.addHandler(ch)
-        
+
     @property
     def parameters(self):
         """

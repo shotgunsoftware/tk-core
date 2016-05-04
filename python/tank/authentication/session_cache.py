@@ -65,7 +65,7 @@ def _get_global_authentication_file_location():
     from ..util import LocalFileStorageManager
 
     return os.path.join(
-        LocalFileStorageManager.get_global_root(LocalFileStorageManager.PERSISTENT),
+        LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
         _SESSION_CACHE_FILE_NAME
     )
 
@@ -83,7 +83,7 @@ def _get_site_authentication_file_location(base_url):
     return os.path.join(
         LocalFileStorageManager.get_site_root(
             base_url,
-            LocalFileStorageManager.PERSISTENT
+            LocalFileStorageManager.CACHE
         ),
         _SESSION_CACHE_FILE_NAME
     )

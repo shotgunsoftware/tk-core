@@ -73,10 +73,12 @@ class CacheYamlAction(Action):
             for file_name in fnmatch.filter(file_names, "*.yml"):
                 matches.append(os.path.join(root, file_name))
         for path in matches:
+            log.debug("Caching %s..." % path)
             yaml_cache.g_yaml_cache.get(path)
 
         items = yaml_cache.g_yaml_cache.get_cached_items()
         pickle_path = os.path.join(root_dir, "yaml_cache.pickle")
+        log.debug("Writing cache to %s" % pickle_path)
 
         try:
             fh = open(pickle_path, "wb")
