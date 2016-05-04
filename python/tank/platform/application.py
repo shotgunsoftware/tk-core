@@ -147,8 +147,8 @@ class Application(TankBundle):
             # for example
             tank.session.asset.tk-maya.tk-multi-publish
 
-        .. note:: If you want to app log messages to be written to log file,
-                  you can attach a log handler here.
+        .. note:: If you want app log messages to be written to a log file,
+                  you can attach a std log handler here.
 
         """
         return self._log
