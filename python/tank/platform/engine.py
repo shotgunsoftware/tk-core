@@ -90,6 +90,8 @@ class Engine(TankBundle):
 
         self._metrics_dispatcher = None
 
+        self._display_debug = False
+
         # Initialize these early on so that methods implemented in the derived class and trying
         # to access the invoker don't trip on undefined variables.
         self._invoker = None
@@ -104,17 +106,17 @@ class Engine(TankBundle):
         # init base class
         TankBundle.__init__(self, tk, context, settings, descriptor, env)
 
-        # probe if new logging is being used:
-        self._uses_new_logging = self._probe_018_logging_support()
-
         # create a log handler and attach it
-        self._log_handler = self.__create_log_handler()
-        LogManager.get_root_logger().addHandler(self._log_handler)
+        self.__log_handler = self.__create_log_handler()
+        LogManager.get_root_logger().addHandler(self.__log_handler)
 
         # create logger for this engine.
         # log will be parented in a tank.session.environment_name.engine_instance_name hierarchy
         self._log = LogManager.get_root_logger().getChild("session").getChild(env.name).getChild(engine_instance_name)
         self._log.debug("Logging started for %s" % self)
+
+        # probe if new logging is being used:
+        self._uses_new_logging = self._probe_018_logging_support()
 
         # check that the context contains all the info that the app needs
         validation.validate_context(descriptor, context)
@@ -179,7 +181,21 @@ class Engine(TankBundle):
         # state of the apps - for example creates a menu, so at that 
         # point we want to try and have all app initialization complete.
         self.__run_post_engine_inits()
-        
+
+        # add menu item to toggle debug logging to screen on and off
+        if self.supports_018_logging:
+
+            # create a small callback
+            def _toggle_debug():
+                self._display_debug = not self._display_debug
+                self.log.info("Debug display now %s" % ("enabled" if self._display_debug else "disabled"))
+
+            # register it on the context menu
+            self.register_command(
+                "Toggle Debug Display",
+                _toggle_debug,
+                {"short_name": "toggle_debug", "type": "context_menu"})
+
         # Useful dev helpers: If there is one or more dev descriptors in the 
         # loaded environment, add a reload button to the menu!
         self.__register_reload_command()
@@ -237,15 +253,50 @@ class Engine(TankBundle):
 
         # set up logging handler class
         class _ToolkitEngineHandler(logging.Handler):
+            """
+            Thin log handling wrapper for dispatch back to the engine.
+            """
             def emit(self, record):
-                # dispatch all messages to callback
-                # and make sure callback always executes
-                # in the main thread.
-                engine_instance.async_execute_in_main_thread(
-                    engine_instance._emit_log_message,
-                    record
-                )
+                """
+                Emit a log message
+
+                :param record: std log record to handle logging for
+                """
+                # for verbosity, add a 'basename' property to the record to
+                # only contain the leaf part of the logging name
+                # tank.session.asset.tk-maya -> tk-maya
+                # tank.session.asset.tk-maya.tk-multi-publish -> tk-multi-publish
+                record.basename = record.name.split(".")[-1]
+
+                # dispatch all messages to callback and make sure callback always executes
+                # in the main thread. For whether to output debug logging, look at the
+                # menu-based toggle as well as an external environment variable
+                if record.levelno > logging.DEBUG or \
+                        constants.ENGINE_DEBUG_LOGGING_ENV_VAR in os.environ or \
+                        engine_instance.get_setting("debug_logging", False) or \
+                        engine_instance._display_debug:
+                    # emit log message from log handler to display implementation
+                    engine_instance.async_execute_in_main_thread(
+                        engine_instance._emit_log_message,
+                        self,
+                        record
+                    )
         handler = _ToolkitEngineHandler()
+
+        # make it easy for engines to implement a consistent log format
+        # by equipping the handler with a standard formatter:
+        # [DEBUG tk-maya] message message
+        #
+        # engines subclassing log output can call
+        # handler.format to access this formatter for
+        # a consistent output implementation
+        # (see _emit_log_message for details)
+        #
+        formatter = logging.Formatter(
+            "[%(levelname)s %(basename)s] %(message)s"
+        )
+        handler.setFormatter(formatter)
+
         return handler
 
 
@@ -382,6 +433,11 @@ class Engine(TankBundle):
                     # this engine has subclassed the method
                     engine_implements_new_logging = False
                     break
+
+        if engine_implements_new_logging:
+            self.log.debug("Engine implements 0.18 style logging.")
+        else:
+            self.log_debug("Engine uses pre-0.18 style logging.")
 
         return engine_implements_new_logging
 
@@ -599,7 +655,7 @@ class Engine(TankBundle):
             self.log_debug("Metrics dispatcher stopped.")
 
         # kill log handler
-        LogManager.get_root_logger().removeHandler(self._log_handler)
+        LogManager.get_root_logger().removeHandler(self.__log_handler)
 
     def destroy_engine(self):
         """
@@ -1128,7 +1184,7 @@ class Engine(TankBundle):
     ##########################################################################################
     # private and protected methods
 
-    def _emit_log_message(self, record):
+    def _emit_log_message(self, handler, record):
         """
         Called by the engine whenever a new log message is available.
         Always executes in the main thread, even if log messages
@@ -1138,14 +1194,34 @@ class Engine(TankBundle):
         .. note:: To implement logging in your engine implementation, subclass
                   this method and display the record in a suitable way - typically
                   this means sending it to a built-in DCC console. In addition to this,
-                  ensure that your engine implementation *does not* sublcass
+                  ensure that your engine implementation *does not* subclass
                   the (old) :meth:`Engine.log_debug`, :meth:`Engine.log_info` family
                   of logging methods.
 
+                  For a consistent output, use the formatter that is associated with
+                  the log handler that is passed in. A basic implementation of
+                  this method could look like this::
+
+                      # call out to handler to format message in a standard way
+                      msg_str = handler.format(record)
+
+                      # display message
+                      print msg_str
+
+        :param handler: Log handler that this message was dispatched from
+        :type handler: :class:`~python.logging.LogHandler`
         :param record: Std python logging record
         :type record: :class:`~python.logging.LogRecord`
         """
-        # default implementation doesn't do anything
+        # default implementation doesn't do anything.
+        # a minimal implementation could look like this:
+        #
+        # call out to handler to format message in a standard way
+        # msg_str = handler.format(record)
+        #
+        # display message
+        # print msg_str
+
 
     def _get_dialog_parent(self):
         """
@@ -1979,7 +2055,7 @@ class Engine(TankBundle):
         for app in self.__applications.values():
             if app.descriptor.is_dev():
                 self.log_debug("App %s is registered via a dev descriptor. Will add a reload "
-                               "button to the actions listings."  % app)
+                               "button to the actions listings." % app)
                 from . import restart
                 self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})
                 # only need one reload button, so don't keep iterating :)
