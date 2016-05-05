@@ -644,23 +644,12 @@ class TankQDialog(TankDialogBase):
         # launch one window for each location on disk        
         paths = self._bundle.context.filesystem_locations
         for disk_location in paths:
-                
-            # get the setting        
-            system = sys.platform
-            
-            # run the app
-            if system == "linux2":
-                cmd = 'xdg-open "%s"' % disk_location
-            elif system == "darwin":
-                cmd = 'open "%s"' % disk_location
-            elif system == "win32":
-                cmd = 'cmd.exe /C start "Folder" "%s"' % disk_location
-            else:
-                raise Exception("Platform '%s' is not supported." % system)
-            
-            exit_code = os.system(cmd)
-            if exit_code != 0:
-                self._engine.log_error("Failed to launch '%s'!" % cmd)
+
+            url = QtCore.QUrl.fromLocalFile(disk_location)
+            status = QtGui.QDesktopServices.openUrl(url)
+
+            if not status:
+                self._engine.log_error("Failed to open '%s'!" % disk_location)
         
 
     def _on_shotgun(self):
