@@ -266,7 +266,7 @@ class Engine(TankBundle):
                 # only contain the leaf part of the logging name
                 # tank.session.asset.tk-maya -> tk-maya
                 # tank.session.asset.tk-maya.tk-multi-publish -> tk-multi-publish
-                record.basename = record.name.split(".")[-1]
+                record.basename = record.name.rsplit(".", 1)[-1]
 
                 # dispatch all messages to callback and make sure callback always executes
                 # in the main thread. For whether to output debug logging, look at the
@@ -2161,6 +2161,9 @@ def start_engine(engine_name, tk, context):
         raise TankError("An engine (%s) is already running! Before you can start a new engine, "
                         "please shut down the previous one using the command "
                         "tank.platform.current_engine().destroy()." % current_engine())
+
+    # begin writing log to disk, associated with the engine
+    LogManager.initialize_base_file_logger(engine_name)
 
     # get environment and engine location
     (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, context)

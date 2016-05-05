@@ -29,6 +29,12 @@ class ToolkitManager(object):
         :param sg_user: Authenticated Shotgun User object
         :type sg_user: :class:`~sgtk.authentication.ShotgunUser`
         """
+        # Begin writing log to disk.
+        # Because this is a pre-launch state and we don't
+        # know yet what environment we are launching into,
+        # call the log 'bootstrap'.
+        LogManager.initialize_base_file_logger("bootstrap")
+
         self._sg_user = sg_user
         self._sg_connection = self._sg_user.create_sg_connection()
 
@@ -38,6 +44,7 @@ class ToolkitManager(object):
         self._base_config_descriptor = None
         self._resolve_latest_base_descriptor = False
         self._progress_cb = None
+
 
     def __repr__(self):
         repr  = "<TkManager "
@@ -184,10 +191,6 @@ class ToolkitManager(object):
         :param engine_name: name of engine to launch (e.g. ``tk-nuke``)
         :returns: :class:`sgtk.platform.Engine` instance
         """
-        # begin writing log to disk. Base the log file name
-        # on the current engine we are launching into
-        LogManager.initialize_base_file_logger(engine_name)
-
         log.debug("Bootstrapping into engine %s for entity %s." % (engine_name, entity))
 
         log.debug("Bootstrapping into environment.")
