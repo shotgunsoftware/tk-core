@@ -23,6 +23,7 @@ from ..errors import TankError
 from .bundle import TankBundle
 from . import validation
 from ..util import log_user_activity_metric
+from .. import LogManager
 
 
 class Framework(TankBundle):
@@ -50,7 +51,7 @@ class Framework(TankBundle):
 
         # create logger for this app
         # log will be parented in a tank.session.environment_name.engine_instance_name.framework_name hierarchy
-        self._log = self.__engine.log.getChild(self.name)
+        self._log = LogManager.get_child_logger(self.__engine.log, self.name)
         self._log.debug("Logging started for %s" % self)
                 
     def __repr__(self):        

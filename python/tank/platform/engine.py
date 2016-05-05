@@ -108,11 +108,14 @@ class Engine(TankBundle):
 
         # create a log handler and attach it
         self.__log_handler = self.__create_log_handler()
-        LogManager.get_root_logger().addHandler(self.__log_handler)
+        LogManager().root_logger.addHandler(self.__log_handler)
 
         # create logger for this engine.
         # log will be parented in a tank.session.environment_name.engine_instance_name hierarchy
-        self._log = LogManager.get_root_logger().getChild("session").getChild(env.name).getChild(engine_instance_name)
+        self._log = LogManager.get_child_logger(
+            LogManager().root_logger,
+            "session.%s.%s" % (env.name, engine_instance_name)
+        )
         self._log.debug("Logging started for %s" % self)
 
         # probe if new logging is being used:
@@ -196,7 +199,7 @@ class Engine(TankBundle):
                 _toggle_debug,
                 {"short_name": "toggle_debug", "type": "context_menu"})
 
-        # Useful dev helpers: If there is one or more dev descriptors in the 
+        # Useful dev helpers: If there is one or more dev descriptors in the
         # loaded environment, add a reload button to the menu!
         self.__register_reload_command()
         
@@ -262,25 +265,22 @@ class Engine(TankBundle):
 
                 :param record: std log record to handle logging for
                 """
-                # for verbosity, add a 'basename' property to the record to
+                # for simplicity, add a 'basename' property to the record to
                 # only contain the leaf part of the logging name
                 # tank.session.asset.tk-maya -> tk-maya
                 # tank.session.asset.tk-maya.tk-multi-publish -> tk-multi-publish
                 record.basename = record.name.rsplit(".", 1)[-1]
 
-                # dispatch all messages to callback and make sure callback always executes
-                # in the main thread. For whether to output debug logging, look at the
-                # menu-based toggle as well as an external environment variable
-                if record.levelno > logging.DEBUG or \
-                        constants.ENGINE_DEBUG_LOGGING_ENV_VAR in os.environ or \
-                        engine_instance.get_setting("debug_logging", False) or \
-                        engine_instance._display_debug:
-                    # emit log message from log handler to display implementation
-                    engine_instance.async_execute_in_main_thread(
-                        engine_instance._emit_log_message,
-                        self,
-                        record
-                    )
+                # emit log message from log handler to display
+                # implementation. Use the async qt signal based
+                # transport to ensure all logging happens in
+                # the main thread.
+                engine_instance.async_execute_in_main_thread(
+                    engine_instance._emit_log_message,
+                    self,
+                    record
+                )
+
         handler = _ToolkitEngineHandler()
 
         # make it easy for engines to implement a consistent log format
@@ -655,7 +655,7 @@ class Engine(TankBundle):
             self.log_debug("Metrics dispatcher stopped.")
 
         # kill log handler
-        LogManager.get_root_logger().removeHandler(self.__log_handler)
+        LogManager().root_logger.removeHandler(self.__log_handler)
 
     def destroy_engine(self):
         """
@@ -2163,7 +2163,7 @@ def start_engine(engine_name, tk, context):
                         "tank.platform.current_engine().destroy()." % current_engine())
 
     # begin writing log to disk, associated with the engine
-    LogManager.initialize_base_file_logger(engine_name)
+    LogManager().initialize_base_file_logger(engine_name)
 
     # get environment and engine location
     (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, context)

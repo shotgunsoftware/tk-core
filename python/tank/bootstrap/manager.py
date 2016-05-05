@@ -33,7 +33,7 @@ class ToolkitManager(object):
         # Because this is a pre-launch state and we don't
         # know yet what environment we are launching into,
         # call the log 'bootstrap'.
-        LogManager.initialize_base_file_logger("bootstrap")
+        LogManager().initialize_base_file_logger("bootstrap")
 
         self._sg_user = sg_user
         self._sg_connection = self._sg_user.create_sg_connection()

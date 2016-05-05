@@ -75,3 +75,6 @@ ROOT_LOGGER_NAME = "tank"
 
 # log channel to used for function timings
 PROFILING_LOG_CHANNEL = "tank.stopwatch"
+
+# environment variable that if set, enables debug logging in the engine
+DEBUG_LOGGING_ENV_VAR = "TK_DEBUG"

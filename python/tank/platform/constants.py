@@ -135,6 +135,3 @@ MULTI_INCLUDE_SECTION = "includes"
 
 # hook that is executed whenever a cache location should be determined
 CACHE_LOCATION_HOOK_NAME = "cache_location"
-
-# environment variable that if set, enables debug logging in the engine
-ENGINE_DEBUG_LOGGING_ENV_VAR = "TK_SHOW_ENGINE_DEBUG"
