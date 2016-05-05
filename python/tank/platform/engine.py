@@ -1270,10 +1270,7 @@ class Engine(TankBundle):
         # default to None
         base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
         try:
-            from PySide import QtCore, QtGui
-            base["qt_core"] = QtCore
-            base["qt_gui"] = QtGui
-            base["dialog_base"] = QtGui.QDialog
+            base = sgtk.platform.qt.shim.create_shim()
         except:
             self.log_debug("Default engine QT definition failed to find QT. "
                            "This may need to be subclassed.")
