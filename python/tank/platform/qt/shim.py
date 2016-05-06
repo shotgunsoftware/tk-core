@@ -9,68 +9,55 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Shims for different versions of PySide and PyQt
+Shims for different versions of PySide and PyQt that converts their api
+to be compatible with PySide1.
 """
 
-_core_to_qtgui = (
-    "QAbstractProxyModel",
-    "QItemSelection",
-    "QItemSelectionModel",
-    "QItemSelectionRange",
-    "QSortFilterProxyModel",
-    "QStringListModel"
-)
-_multimedia_to_qtgui = ("QSound",)
-_extras_to_qtgui = ("QX11Info",)
 
-def _create_shim_dict(core, gui, base_dialog):
+def _create_shim_dict(core, gui, base_dialog, module):
     """
     Creates a shim dictionary with keys named appropriately.
     """
     return {
-        "qt_core": core
-        "qt_gui": gui
-        "dialog_base": base_dialog
+        "qt_core": core,
+        "qt_gui": gui,
+        "dialog_base": base_dialog,
+        "wrapper": module
     }
 
-def _move_attributes(dst, src, names):
-    for name in names:
-        if not hasattr(dst, name):
-            setattr(dst, name, getattr(src, name))
 
-def create_shim():
+def _create_pyside_shim():
     """
-    Creates a shim with the version of the Qt library available.
+    Creates a shim for PySide
     """
-    try:
-        from PySide import QtCore, QtGui
-        return _create_shim_dict(QtCore, QtGui, QtGui.QDialog)
-    except ImportError:
-        pass
+    import PySide
+    from PySide import QtCore, QtGui
+    # Some old versions of PySide don't include version information
+    # so add something here so that we can use PySide.__version__ 
+    # later without having to check!
+    if not hasattr(PySide, "__version__"):
+        PySide.__version__ = "<unknown>"
 
-    try:
-        from PySide2 import QtCore, QtGui, QtWidgets, QtPrintSupport, QtMultimedia
+    return _create_shim_dict(QtCore, QtGui, QtGui.QDialog, PySide)
 
-        _move_attributes(QtGui, QtWidgets, dir(QtWidgets))
-        _move_attributes(QtGui, QtPrintSupport, dir(QtPrintSupport))
-        _move_attributes(QtGui, QtCore, _core_to_qtgui)
-        _move_attributes(QtGui, QtMultimedia, _multimedia_to_qtgui)
 
-        try:
-            from PySide2 import QtX11Extras
-        except ImportError:
-            pass
-        else:
-            _move_attributes(QtGui, QtX11Extras, _extras_to_qtgui)
+def _create_pyside2_shim():
+    """
+    Creates a shim for PySide2
+    """
+    import PySide2
+    from PySide2 import QtCore, QtGui, QtWidgets
+    from .pyside2_patcher import PySide2Patcher
 
-        # define UnicodeUTF8 to be compatible with the new signature to QApplication.translate
-        QtGui.QApplication.UnicodeUTF8 = -1
+    PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
 
-        return _create_shim_dict(QtCore, QtGui, QtGui.QDialog)
+    return _create_shim_dict(QtCore, QtGui, QtGui.QDialog, PySide2)
 
-    except ImportError:
-        pass
 
+def _create_pyqt4_shim():
+    """
+    Creates a shim for PyQt4
+    """
     from PyQt4 import QtCore, QtGui
     from blurdev.gui import Dialog
 
@@ -81,3 +68,20 @@ def create_shim():
 
     # dialog wrapper needs to be the blurdev dialog
     return _create_shim_dict(QtCore, QtGui, Dialog)
+
+
+def create_shim():
+    """
+    Creates a Qt shim compatible with PySide 1.
+    """
+    try:
+        return _create_pyside2_shim()
+    except ImportError:
+        pass
+
+    try:
+        return _create_pyside_shim()
+    except ImportError:
+        pass
+
+    return _create_pyqt4_shim()
