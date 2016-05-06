@@ -45,6 +45,8 @@ class ToolkitManager(object):
         self._resolve_latest_base_descriptor = False
         self._progress_cb = None
 
+        log.debug("%s instantiated" % self)
+
 
     def __repr__(self):
         repr  = "<TkManager "
@@ -191,7 +193,7 @@ class ToolkitManager(object):
         :param engine_name: name of engine to launch (e.g. ``tk-nuke``)
         :returns: :class:`sgtk.platform.Engine` instance
         """
-        log.debug("Bootstrapping into engine %s for entity %s." % (engine_name, entity))
+        log.info("Bootstrapping into engine %s for entity %s." % (engine_name, entity))
 
         log.debug("Bootstrapping into environment.")
         tk = self._bootstrap_sgtk(engine_name, entity)
@@ -380,7 +382,7 @@ class ToolkitManager(object):
                 descriptor.download_local()
 
             else:
-                log.info("Item %s is already locally installed." % descriptor)
+                log.debug("Item %s is already locally installed." % descriptor)
 
         # pass 3 - do post install
         if do_post_install:

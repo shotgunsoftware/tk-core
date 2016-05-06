@@ -18,8 +18,7 @@ import sys
 
 from ..util.loader import load_plugin
 from . import constants 
-
-from .. import LogManager
+from ..log import LogManager
 
 from .bundle import TankBundle
 from ..util import log_user_activity_metric, log_user_attribute_metric
@@ -194,10 +193,7 @@ class Application(TankBundle):
 
         :param msg: Message to log.
         """
-        if self.engine.supports_018_logging:
-            self.log.debug(msg)
-        else:
-            self.engine.log_debug(msg)
+        self.log.debug(msg)
 
     def log_info(self, msg):
         """
@@ -208,10 +204,7 @@ class Application(TankBundle):
 
         :param msg: Message to log.
         """
-        if self.engine.supports_018_logging:
-            self.log.info(msg)
-        else:
-            self.engine.log_info(msg)
+        self.log.info(msg)
 
     def log_warning(self, msg):
         """
@@ -222,10 +215,7 @@ class Application(TankBundle):
 
         :param msg: Message to log.
         """
-        if self.engine.supports_018_logging:
-            self.log.warning(msg)
-        else:
-            self.engine.log_warning(msg)
+        self.log.warning(msg)
 
     def log_error(self, msg):
         """
@@ -236,10 +226,7 @@ class Application(TankBundle):
 
         :param msg: Message to log.
         """
-        if self.engine.supports_018_logging:
-            self.log.error(msg)
-        else:
-            self.engine.log_error(msg)
+        self.log.error(msg)
 
     def log_exception(self, msg):
         """
@@ -250,10 +237,7 @@ class Application(TankBundle):
 
         :param msg: Message to log.
         """
-        if self.engine.supports_018_logging:
-            self.log.exception(msg)
-        else:
-            self.engine.log_exception(msg)
+        self.log.exception(msg)
 
 
     ##########################################################################################

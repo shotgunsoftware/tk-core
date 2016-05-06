@@ -46,14 +46,23 @@ class CoreImportHandler(object):
         # make sure handler is up
         handler = cls._initialize()
 
+        log.debug("%s: Begin swapping core to %s" % (handler, core_path))
+
+        # swapping core means our logging singleton will be reset.
+        # make sure that there are no log handlers registered
+        # and associated with the singleton as these will be lost
+        # use local imports to ensure a fresh cut of the code
+        from ..log import LogManager
+        prev_log_handler = LogManager().initialize_base_file_logger(None)
+        # logging to file is now disabled and will be renamed after the
+        # main tank import of the new code.
+
         # make sure that this entire operation runs inside the import thread lock
         # in order to not cause any type of cross-thread confusion during the swap
         imp.acquire_lock()
 
         try:
-            log.debug("Begin swapping %s to %s" % (handler, core_path))
             handler._swap_core(core_path)
-            log.debug("...core swap complete.")
 
             # because we are swapping out the code that we are currently running, Python is
             # generating a runtime warning:
@@ -74,6 +83,8 @@ class CoreImportHandler(object):
             # Ignore all warnings
             warnings.simplefilter("ignore")
 
+            log.debug("...core swap complete.")
+
             log.debug("running explicit 'import tank' to re-initialize new core...")
 
             try:
@@ -88,6 +99,10 @@ class CoreImportHandler(object):
 
         finally:
             imp.release_lock()
+
+        # and re-init our disk logging based on the new code
+        # access it from the new tank instance to ensure we get the new code
+        tank.LogManager().initialize_base_file_logger(prev_log_handler)
 
     @classmethod
     def _initialize(cls):

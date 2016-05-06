@@ -35,6 +35,7 @@ from . import validation
 from . import qt
 from .bundle import TankBundle
 from .framework import setup_frameworks
+from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
 
 
 
@@ -94,7 +95,7 @@ class Engine(TankBundle):
         # to access the invoker don't trip on undefined variables.
         self._invoker = None
         self._async_invoker = None
-        
+
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
         
@@ -104,10 +105,6 @@ class Engine(TankBundle):
         # init base class
         TankBundle.__init__(self, tk, context, settings, descriptor, env)
 
-        # create a log handler and attach it
-        self.__log_handler = self.__create_log_handler()
-        LogManager().root_logger.addHandler(self.__log_handler)
-
         # create logger for this engine.
         # log will be parented in a tank.session.environment_name.engine_instance_name hierarchy
         self._log = LogManager.get_child_logger(
@@ -116,8 +113,15 @@ class Engine(TankBundle):
         )
         self._log.debug("Logging started for %s" % self)
 
-        # probe if new logging is being used:
-        self._uses_new_logging = self._probe_018_logging_support()
+        # create a log handler to handle log dispatch from self.log
+        # (and the rest of the sgtk logging ) to the user
+        self.__log_handler = self.__initialize_logging()
+
+        # check general debug log setting and if this flag is turned on,
+        # adjust the global setting
+        if self.get_setting("debug_logging", False):
+            LogManager().global_debug = True
+            self.log.debug("Engine config flag 'debug_logging' detected, turning on debug output.")
 
         # check that the context contains all the info that the app needs
         validation.validate_context(descriptor, context)
@@ -127,7 +131,13 @@ class Engine(TankBundle):
 
         # Get the settings for the engine and then validate them
         engine_schema = descriptor.configuration_schema
-        validation.validate_settings(self.__engine_instance_name, tk, context, engine_schema, settings)
+        validation.validate_settings(
+            self.__engine_instance_name,
+            tk,
+            context,
+            engine_schema,
+            settings
+        )
         
         # set up any frameworks defined
         setup_frameworks(self, self, self.__env, descriptor)
@@ -161,7 +171,7 @@ class Engine(TankBundle):
 
         # Update the authentication module to use the engine's Qt.
         # @todo: can this import be untangled? Code references internal part of the auth module
-        from tank.authentication.ui import qt_abstraction
+        from ..authentication.ui import qt_abstraction
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
         
@@ -197,7 +207,7 @@ class Engine(TankBundle):
         )
 
         self.register_command(
-            "Open Log Folder",
+            "View Log Folder",
             self.__open_log_folder,
             {
                 "short_name": "open_log_folder",
@@ -271,48 +281,62 @@ class Engine(TankBundle):
             if not status:
                 self._engine.log_error("Failed to open folder!")
 
-    def __create_log_handler(self):
+    def __probe_018_logging_support(self):
+        """
+        Determine if the engine supports the new logging implementation.
+
+        This is done by introspecting the _emit_log_message method.
+        If this method is implemented for this engine, it is assumed
+        that we are using the new logging system.
+
+        :return: True if new logging is used, False otherwise
+        """
+        engine_implements_new_logging = False
+
+        # grab active method and baseclass method
+        running_method = getattr(self, "_emit_log_message")
+        base_method = getattr(Engine, "_emit_log_message")
+
+        # now determine if the runtime implementation
+        # is the base class implementation or not
+        if sys.version_info < (2,6):
+            # older pythons use im_func rather than __func__
+            if running_method.im_func is not base_method.im_func:
+                # this engine has subclassed the method
+                engine_implements_new_logging = True
+        else:
+            # pyton 2.6 and above use __func__
+            if running_method.__func__ is not base_method.__func__:
+                # this engine has subclassed the method
+                engine_implements_new_logging = True
+
+        if engine_implements_new_logging:
+            self.log.debug("Engine implements 0.18 style logging.")
+        else:
+            self.log_debug("Engine uses pre-0.18 style logging.")
+
+        return engine_implements_new_logging
+
+    def __initialize_logging(self):
         """
         Creates a std python logging LogHandler
         that dispatches all log messages to the
-        :meth:`Engine._emit_log_message()` method in a threadsafe manner.
+        :meth:`Engine._emit_log_message()` method
+        in a thread safe manner.
+
+        For engines that do not yet implement :meth:`_emit_log_message`,
+        a legacy log handler is used that dispatches messages
+        to the legacy output methods log_xxx.
 
         :return: :class:`python.logging.LogHandler` object
         """
-        # use a thin custom wrapper that dispatches to the callback
+        # probe if new logging is being used:
+        uses_new_logging = self.__probe_018_logging_support()
 
-        # alias 'self' so we can refer to the engine
-        # object from inside our wrapper class
-        engine_instance = self
-
-        # set up logging handler class
-        class _ToolkitEngineHandler(logging.Handler):
-            """
-            Thin log handling wrapper for dispatch back to the engine.
-            """
-            def emit(self, record):
-                """
-                Emit a log message
-
-                :param record: std log record to handle logging for
-                """
-                # for simplicity, add a 'basename' property to the record to
-                # only contain the leaf part of the logging name
-                # tank.session.asset.tk-maya -> tk-maya
-                # tank.session.asset.tk-maya.tk-multi-publish -> tk-multi-publish
-                record.basename = record.name.rsplit(".", 1)[-1]
-
-                # emit log message from log handler to display
-                # implementation. Use the async qt signal based
-                # transport to ensure all logging happens in
-                # the main thread.
-                engine_instance.async_execute_in_main_thread(
-                    engine_instance._emit_log_message,
-                    self,
-                    record
-                )
-
-        handler = _ToolkitEngineHandler()
+        if uses_new_logging:
+            handler = ToolkitEngineHandler(self)
+        else:
+            handler = ToolkitEngineLegacyHandler(self)
 
         # make it easy for engines to implement a consistent log format
         # by equipping the handler with a standard formatter:
@@ -328,8 +352,10 @@ class Engine(TankBundle):
         )
         handler.setFormatter(formatter)
 
-        return handler
+        # attach handler to main tk log stream
+        LogManager().root_logger.addHandler(handler)
 
+        return handler
 
     def __show_busy(self, title, details):
         """
@@ -429,56 +455,6 @@ class Engine(TankBundle):
 
         """
         log_user_attribute_metric(attr_name, attr_value)
-
-    def _probe_018_logging_support(self):
-        """
-        Determine if the engine supports the new logging implementation.
-
-        This is done by introspecting the log_debug|info|error methods.
-        If these methods are implemented for this engine, it is assumed
-        to be using the old logging implementation. If they have not been
-        implemented by the engine, the engine is assumed to be using the new
-        logging implementation and this method will return True.
-
-        :return: True if new logging is used, False otherwise
-        """
-        engine_implements_new_logging = True
-
-        for logging_method_name in ("log_debug", "log_warning", "log_error"):
-
-            # grab active method and baseclass method
-            running_method = getattr(self, logging_method_name)
-            base_method = getattr(Engine, logging_method_name)
-
-            # now determine if the runtime implementation
-            # is the baseclass implementation or not
-            if sys.version_info < (2,6):
-                # older pythons use im_func rather than __func__
-                if running_method.im_func is not base_method.im_func:
-                    # this engine has subclassed the method
-                    engine_implements_new_logging = False
-                    break
-            else:
-                # pyton 2.6 and above use __func__
-                if running_method.__func__ is not base_method.__func__:
-                    # this engine has subclassed the method
-                    engine_implements_new_logging = False
-                    break
-
-        if engine_implements_new_logging:
-            self.log.debug("Engine implements 0.18 style logging.")
-        else:
-            self.log_debug("Engine uses pre-0.18 style logging.")
-
-        return engine_implements_new_logging
-
-    @property
-    def supports_018_logging(self):
-        """
-        True if the engine supports the logging implementation introduced in 0.18.
-        note: This is an internal method that should not be used outside of tk-core
-        """
-        return self._uses_new_logging
 
     ##########################################################################################
     # properties

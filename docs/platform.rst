@@ -86,7 +86,7 @@ The typical things an engine needs to handle are:
 
 .. autoclass:: Engine
     :inherited-members:
-    :exclude-members: descriptor, settings, get_env, log_metric, init_engine, log_user_attribute_metric, supports_018_logging
+    :exclude-members: descriptor, settings, get_env, log_metric, init_engine, log_user_attribute_metric
     :members:
 
 
@@ -267,3 +267,4 @@ especially when the contained widget is quite small. To hide the title bar, just
 
         def __init__(self):
             ...
+

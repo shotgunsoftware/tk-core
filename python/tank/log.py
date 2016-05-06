@@ -45,18 +45,19 @@ class LogManager(object):
                 *args,
                 **kwargs
             )
+
+            # a global and standard rotating log file handler
+            # for writing generic toolkit logs to disk
+            instance._std_file_handler = None
+            instance._std_file_handler_log_name = None
+
+            # the root logger, created at code init
+            instance._root_logger = logging.getLogger(constants.ROOT_LOGGER_NAME)
+
             cls.__instance = instance
 
+
         return cls.__instance
-
-    def __init__(self):
-
-        # a global and standard rotating log file handler
-        # for writing generic toolkit logs to disk
-        self._std_file_handler = None
-
-        # the root logger, created at code init
-        self._root_logger = logging.getLogger(constants.ROOT_LOGGER_NAME)
 
     def _set_global_debug(self, state):
         """
@@ -212,47 +213,66 @@ class LogManager(object):
         files - only one file logger can exist per Toolkit session.
 
         :param log_name: Name of logger to create. This will form the
-                         filename of the log file.
+                         filename of the log file. If you pass None, you
+                         ensure that any existing base file handlers terminate
+                         their logging.
+        :returns: The name of the previous log_name that is being switched away from.
         """
-        # avoid cyclic references
-        from .util import filesystem
+
+        previous_log_name = self._std_file_handler_log_name
+        log.debug("Switching file based std logger from %s to %s" % (previous_log_name, log_name))
 
         if self._std_file_handler:
             # there is already a log handler.
             # terminate previous one
+            log.debug(
+                "Tearing down existing log handler '%s' (%s)" % (previous_log_name, self._std_file_handler)
+            )
             self._root_logger.removeHandler(self._std_file_handler)
             self._std_file_handler = None
 
-        # set up logging root folder
-        filesystem.ensure_folder_exists(self.log_folder)
+        # store new log name
+        self._std_file_handler_log_name = log_name
 
-        # generate log path
-        log_file = os.path.join(
-            self.log_folder,
-            "%s.log" % filesystem.create_valid_filename(log_name)
-        )
+        if log_name:
+            # set up a new handler
 
-        # create a rotating log file with a max size of 18mb -
-        # zendesk's current max attachment limit is 20mb so
-        # this should make all log files attachable to support tickets.
-        self._std_file_handler = logging.handlers.RotatingFileHandler(
-            log_file,
-            maxBytes=1024*1024*18,  # 18 MiB
-            backupCount=0
-        )
+            # avoid cyclic references
+            from .util import filesystem
 
-        # example:
-        # 2016-04-25 08:56:12,413 [44862 DEBUG tank.log] message message
-        formatter = logging.Formatter(
-            "%(asctime)s [%(process)d %(levelname)s %(name)s] %(message)s"
-        )
+            # set up logging root folder
+            filesystem.ensure_folder_exists(self.log_folder)
 
-        self._std_file_handler.setFormatter(formatter)
-        sgtk_root_logger.addHandler(self._std_file_handler)
+            # generate log path
+            log_file = os.path.join(
+                self.log_folder,
+                "%s.log" % filesystem.create_valid_filename(log_name)
+            )
 
-        # log the fact that we set up the log file :)
-        log.debug("Writing to log standard log file %s" % log_file)
 
+            # create a rotating log file with a max size of 18 megs -
+            # zendesk's current max attachment limit is 20mb so
+            # this should make all log files attachable to support tickets.
+            self._std_file_handler = logging.handlers.RotatingFileHandler(
+                log_file,
+                maxBytes=1024*1024*18,  # 18 MiB
+                backupCount=0
+            )
+
+            # example:
+            # 2016-04-25 08:56:12,413 [44862 DEBUG tank.log] message message
+            formatter = logging.Formatter(
+                "%(asctime)s [%(process)d %(levelname)s %(name)s] %(message)s"
+            )
+
+            self._std_file_handler.setFormatter(formatter)
+            self._root_logger.addHandler(self._std_file_handler)
+
+            # log the fact that we set up the log file :)
+            log.debug("Writing to log standard log file %s" % log_file)
+
+        # return previous log name
+        return previous_log_name
 
 def log_timing(name=None):
     """
@@ -319,4 +339,3 @@ class NullHandler(logging.Handler):
         pass
 # and add it to the logger
 sgtk_root_logger.addHandler(NullHandler())
-
