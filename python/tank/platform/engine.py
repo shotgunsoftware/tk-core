@@ -193,18 +193,26 @@ class Engine(TankBundle):
         # point we want to try and have all app initialization complete.
         self.__run_post_engine_inits()
 
-        # register logging related items on the context menu
-        self.register_command(
-            "Toggle Debug Logging",
-            self.__toggle_debug_logging,
-            {
-                "short_name": "toggle_debug",
-                "tooltip": ("Toggles toolkit debug logging on and off. "
-                            "This affects all debug logging, including log "
-                            "files that are being written to disk."),
-                "type": "context_menu"
-            }
-        )
+        if self.__has_018_logging_support():
+            # if engine supports new logging implementation,
+            #
+            # we cannot add the 'toggle debug logging' for
+            # an engine that has the old logging implementation
+            # because that typically contains overrides in log_debug
+            # which effectively renders the command below useless
+
+            # register logging related items on the context menu
+            self.register_command(
+                "Toggle Debug Logging",
+                self.__toggle_debug_logging,
+                {
+                    "short_name": "toggle_debug",
+                    "tooltip": ("Toggles toolkit debug logging on and off. "
+                                "This affects all debug logging, including log "
+                                "files that are being written to disk."),
+                    "type": "context_menu"
+                }
+            )
 
         self.register_command(
             "View Log Folder",
@@ -281,7 +289,35 @@ class Engine(TankBundle):
             if not status:
                 self._engine.log_error("Failed to open folder!")
 
-    def __probe_018_logging_support(self):
+    def __is_method_subclassed(self, method_name):
+        """
+        Helper that determines if the given method name
+        has been subclassed in the currently running
+        instance of the class or not.
+
+        :param method_name: Name of engine method to check, e.g. 'log_debug'.
+        :return: True if subclassed, false if not
+        """
+        # grab active method and baseclass method
+        running_method = getattr(self, method_name)
+        base_method = getattr(Engine, method_name)
+
+        # now determine if the runtime implementation
+        # is the base class implementation or not
+        subclassed = False
+
+        if sys.version_info < (2,6):
+            # older pythons use im_func rather than __func__
+            if running_method.im_func is not base_method.im_func:
+                subclassed = True
+        else:
+            # pyton 2.6 and above use __func__
+            if running_method.__func__ is not base_method.__func__:
+                subclassed = True
+
+        return subclassed
+
+    def __has_018_logging_support(self):
         """
         Determine if the engine supports the new logging implementation.
 
@@ -291,31 +327,7 @@ class Engine(TankBundle):
 
         :return: True if new logging is used, False otherwise
         """
-        engine_implements_new_logging = False
-
-        # grab active method and baseclass method
-        running_method = getattr(self, "_emit_log_message")
-        base_method = getattr(Engine, "_emit_log_message")
-
-        # now determine if the runtime implementation
-        # is the base class implementation or not
-        if sys.version_info < (2,6):
-            # older pythons use im_func rather than __func__
-            if running_method.im_func is not base_method.im_func:
-                # this engine has subclassed the method
-                engine_implements_new_logging = True
-        else:
-            # pyton 2.6 and above use __func__
-            if running_method.__func__ is not base_method.__func__:
-                # this engine has subclassed the method
-                engine_implements_new_logging = True
-
-        if engine_implements_new_logging:
-            self.log.debug("Engine implements 0.18 style logging.")
-        else:
-            self.log_debug("Engine uses pre-0.18 style logging.")
-
-        return engine_implements_new_logging
+        return self.__is_method_subclassed("_emit_log_message")
 
     def __initialize_logging(self):
         """
@@ -328,29 +340,32 @@ class Engine(TankBundle):
         a legacy log handler is used that dispatches messages
         to the legacy output methods log_xxx.
 
-        :return: :class:`python.logging.LogHandler` object
+        :return: :class:`python.logging.LogHandler`
         """
-        # probe if new logging is being used:
-        uses_new_logging = self.__probe_018_logging_support()
 
-        if uses_new_logging:
+        if self.__has_018_logging_support():
             handler = ToolkitEngineHandler(self)
+            # make it easy for engines to implement a consistent log format
+            # by equipping the handler with a standard formatter:
+            # [DEBUG tk-maya] message message
+            #
+            # engines subclassing log output can call
+            # handler.format to access this formatter for
+            # a consistent output implementation
+            # (see _emit_log_message for details)
+            #
+            formatter = logging.Formatter(
+                "[%(levelname)s %(basename)s] %(message)s"
+            )
+            handler.setFormatter(formatter)
+
         else:
             handler = ToolkitEngineLegacyHandler(self)
-
-        # make it easy for engines to implement a consistent log format
-        # by equipping the handler with a standard formatter:
-        # [DEBUG tk-maya] message message
-        #
-        # engines subclassing log output can call
-        # handler.format to access this formatter for
-        # a consistent output implementation
-        # (see _emit_log_message for details)
-        #
-        formatter = logging.Formatter(
-            "[%(levelname)s %(basename)s] %(message)s"
-        )
-        handler.setFormatter(formatter)
+            # create a minimalistic format suitable for
+            # existing output implementations of log_xxx
+            #
+            formatter = logging.Formatter("%(basename)s: %(message)s")
+            handler.setFormatter(formatter)
 
         # attach handler to main tk log stream
         LogManager().root_logger.addHandler(handler)
@@ -1128,6 +1143,19 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
+        if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
+            # special case: We are in legacy mode and all log messages are
+            # dispatched to the log_xxx methods because this engine does not have an
+            # _emit_log_message implementation. This is fine because typically old
+            # engine implementations subclass the log_xxx class, meaning that this call
+            # is never run, but instead the subclassed code in run. If however, this
+            # could *would* run in that case for whatever reason (either it wasn't
+            # subclassed or the subclassed code calls the baseclass), we need to be
+            # careful not to end up in an infinite loop. Therefore, the log handler
+            # sets a flag to indicate that this code is being called from the logger
+            # and not from somewhere else. In that case we just exit early to avoid
+            # the infinite recursion
+            return
         self.log.debug(msg)
     
     def log_info(self, msg):
@@ -1139,6 +1167,19 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
+        if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
+            # special case: We are in legacy mode and all log messages are
+            # dispatched to the log_xxx methods because this engine does not have an
+            # _emit_log_message implementation. This is fine because typically old
+            # engine implementations subclass the log_xxx class, meaning that this call
+            # is never run, but instead the subclassed code in run. If however, this
+            # could *would* run in that case for whatever reason (either it wasn't
+            # subclassed or the subclassed code calls the baseclass), we need to be
+            # careful not to end up in an infinite loop. Therefore, the log handler
+            # sets a flag to indicate that this code is being called from the logger
+            # and not from somewhere else. In that case we just exit early to avoid
+            # the infinite recursion
+            return
         self.log.info(msg)
         
     def log_warning(self, msg):
@@ -1150,6 +1191,19 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
+        if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
+            # special case: We are in legacy mode and all log messages are
+            # dispatched to the log_xxx methods because this engine does not have an
+            # _emit_log_message implementation. This is fine because typically old
+            # engine implementations subclass the log_xxx class, meaning that this call
+            # is never run, but instead the subclassed code in run. If however, this
+            # could *would* run in that case for whatever reason (either it wasn't
+            # subclassed or the subclassed code calls the baseclass), we need to be
+            # careful not to end up in an infinite loop. Therefore, the log handler
+            # sets a flag to indicate that this code is being called from the logger
+            # and not from somewhere else. In that case we just exit early to avoid
+            # the infinite recursion
+            return
         self.log.warning(msg)
     
     def log_error(self, msg):
@@ -1160,7 +1214,20 @@ class Engine(TankBundle):
             Use :meth:`Engine.log` instead.
 
         :param msg: Message to log.
-        """        
+        """
+        if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
+            # special case: We are in legacy mode and all log messages are
+            # dispatched to the log_xxx methods because this engine does not have an
+            # _emit_log_message implementation. This is fine because typically old
+            # engine implementations subclass the log_xxx class, meaning that this call
+            # is never run, but instead the subclassed code in run. If however, this
+            # could *would* run in that case for whatever reason (either it wasn't
+            # subclassed or the subclassed code calls the baseclass), we need to be
+            # careful not to end up in an infinite loop. Therefore, the log handler
+            # sets a flag to indicate that this code is being called from the logger
+            # and not from somewhere else. In that case we just exit early to avoid
+            # the infinite recursion
+            return
         self.log.error(msg)
 
     def log_exception(self, msg):
@@ -1172,6 +1239,19 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
+        if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
+            # special case: We are in legacy mode and all log messages are
+            # dispatched to the log_xxx methods because this engine does not have an
+            # _emit_log_message implementation. This is fine because typically old
+            # engine implementations subclass the log_xxx class, meaning that this call
+            # is never run, but instead the subclassed code in run. If however, this
+            # could *would* run in that case for whatever reason (either it wasn't
+            # subclassed or the subclassed code calls the baseclass), we need to be
+            # careful not to end up in an infinite loop. Therefore, the log handler
+            # sets a flag to indicate that this code is being called from the logger
+            # and not from somewhere else. In that case we just exit early to avoid
+            # the infinite recursion
+            return
         self.log.exception(msg)
 
 

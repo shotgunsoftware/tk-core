@@ -9,6 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import logging
+import Queue
+
 
 class ToolkitEngineHandler(logging.Handler):
     """
@@ -68,6 +70,15 @@ class ToolkitEngineLegacyHandler(logging.Handler):
         """
         super(ToolkitEngineLegacyHandler, self).__init__()
         self._engine = engine
+        self._inside_dispatch_stack = Queue.Queue()
+
+    @property
+    def inside_dispatch(self):
+        """
+        returns True if the handler is currently
+        issuing a log dispatch call, false if not.
+        """
+        return not self._inside_dispatch_stack.empty()
 
     def emit(self, record):
         """
@@ -84,12 +95,21 @@ class ToolkitEngineLegacyHandler(logging.Handler):
         # format the message
         msg_str = self.format(record)
 
-        # dispatch it to the appropriate legacy method
-        if record.levelno < logging.INFO:
-            self._engine.log_debug(msg_str)
-        elif record.levelno < logging.WARNING:
-            self._engine.log_info(msg_str)
-        elif record.levelno < logging.ERROR:
-            self._engine.log_warning(msg_str)
-        else:
-            self._engine.log_error(msg_str)
+        try:
+            # push our thread safe stack to indicate that we
+            # are inside the internal logging loop
+            self._inside_dispatch_stack.put(True)
+
+            if record.levelno < logging.INFO:
+                self._engine.log_debug(msg_str)
+            elif record.levelno < logging.WARNING:
+                self._engine.log_info(msg_str)
+            elif record.levelno < logging.ERROR:
+                self._engine.log_warning(msg_str)
+            else:
+                self._engine.log_error(msg_str)
+
+        finally:
+            # take one item out
+            self._inside_dispatch_stack.get()
+
