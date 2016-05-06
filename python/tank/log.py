@@ -64,7 +64,12 @@ class LogManager(object):
         """
         if state:
             self.root_logger.setLevel(logging.DEBUG)
+            log.debug(
+                "Debug logging was enabled. To permanently enable it, "
+                "set the %s environment variable." % constants.DEBUG_LOGGING_ENV_VAR
+            )
         else:
+            log.debug("Disabling debug logging.")
             self.root_logger.setLevel(logging.INFO)
 
     def _get_global_debug(self):

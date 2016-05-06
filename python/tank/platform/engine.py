@@ -90,8 +90,6 @@ class Engine(TankBundle):
 
         self._metrics_dispatcher = None
 
-        self._display_debug = False
-
         # Initialize these early on so that methods implemented in the derived class and trying
         # to access the invoker don't trip on undefined variables.
         self._invoker = None
@@ -185,19 +183,28 @@ class Engine(TankBundle):
         # point we want to try and have all app initialization complete.
         self.__run_post_engine_inits()
 
-        # add menu item to toggle debug logging to screen on and off
-        if self.supports_018_logging:
+        # register logging related items on the context menu
+        self.register_command(
+            "Toggle Debug Logging",
+            self.__toggle_debug_logging,
+            {
+                "short_name": "toggle_debug",
+                "tooltip": ("Toggles toolkit debug logging on and off. "
+                            "This affects all debug logging, including log "
+                            "files that are being written to disk."),
+                "type": "context_menu"
+            }
+        )
 
-            # create a small callback
-            def _toggle_debug():
-                self._display_debug = not self._display_debug
-                self.log.info("Debug display now %s" % ("enabled" if self._display_debug else "disabled"))
-
-            # register it on the context menu
-            self.register_command(
-                "Toggle Debug Display",
-                _toggle_debug,
-                {"short_name": "toggle_debug", "type": "context_menu"})
+        self.register_command(
+            "Open Log Folder",
+            self.__open_log_folder,
+            {
+                "short_name": "open_log_folder",
+                "tooltip": "Opens the folder where log files are being stored.",
+                "type": "context_menu"
+            }
+        )
 
         # Useful dev helpers: If there is one or more dev descriptors in the
         # loaded environment, add a reload button to the menu!
@@ -239,6 +246,30 @@ class Engine(TankBundle):
 
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
+
+    def __toggle_debug_logging(self):
+        """
+        Toggles global debug logging on and off in the log manager.
+        This will affect all logging across all of toolkit.
+        """
+        # flip debug logging
+        LogManager().global_debug = not LogManager().global_debug
+
+    def __open_log_folder(self):
+        """
+        Opens the file system folder where log files are being stored.
+        """
+        self.log.info("Log folder is located in '%s'" % LogManager().log_folder)
+
+        if self.has_ui:
+            # only import QT if we have a UI
+            from .qt import QtGui, QtCore
+            url = QtCore.QUrl.fromLocalFile(
+                LogManager().log_folder
+            )
+            status = QtGui.QDesktopServices.openUrl(url)
+            if not status:
+                self._engine.log_error("Failed to open folder!")
 
     def __create_log_handler(self):
         """
@@ -2060,7 +2091,11 @@ class Engine(TankBundle):
                 self.log_debug("App %s is registered via a dev descriptor. Will add a reload "
                                "button to the actions listings." % app)
                 from . import restart
-                self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})
+                self.register_command(
+                    "Reload and Restart",
+                    restart,
+                    {"short_name": "restart", "type": "context_menu"}
+                )
                 # only need one reload button, so don't keep iterating :)
                 break
 
