@@ -2251,8 +2251,9 @@ def start_engine(engine_name, tk, context):
                         "tank.platform.current_engine().destroy()." % current_engine())
 
     # begin writing log to disk, associated with the engine
-
-    LogManager().initialize_base_file_logger(engine_name)
+    # only do this if a logger hasn't been previously set up.
+    if LogManager().base_file_handler is None:
+        LogManager().initialize_base_file_handler(engine_name)
 
     # get environment and engine location
     (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, context)
@@ -2364,7 +2365,8 @@ def start_shotgun_engine(tk, entity_type, context):
     """
 
     # begin writing log to disk, associated with the engine
-    LogManager().initialize_base_file_logger("tk-shotgun")
+    if LogManager().base_file_handler is None:
+        LogManager().initialize_base_file_handler("tk-shotgun")
 
     # bypass the get_environment hook and use a fixed set of environments
     # for this shotgun engine. This is required because of the action caching.

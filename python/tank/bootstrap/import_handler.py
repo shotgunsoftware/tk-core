@@ -53,7 +53,7 @@ class CoreImportHandler(object):
         # and associated with the singleton as these will be lost
         # use local imports to ensure a fresh cut of the code
         from ..log import LogManager
-        prev_log_handler = LogManager().initialize_base_file_logger(None)
+        prev_log_handler = LogManager().initialize_base_file_handler(None)
         # logging to file is now disabled and will be renamed after the
         # main tank import of the new code.
 
@@ -102,7 +102,7 @@ class CoreImportHandler(object):
 
         # and re-init our disk logging based on the new code
         # access it from the new tank instance to ensure we get the new code
-        tank.LogManager().initialize_base_file_logger(prev_log_handler)
+        tank.LogManager().initialize_base_file_handler(prev_log_handler)
 
     @classmethod
     def _initialize(cls):
