@@ -54,6 +54,10 @@ class LogManager(object):
             # the root logger, created at code init
             instance._root_logger = logging.getLogger(constants.ROOT_LOGGER_NAME)
 
+            # check the TK_DEBUG flag at startup
+            if constants.DEBUG_LOGGING_ENV_VAR in os.environ:
+                instance.global_debug = True
+
             cls.__instance = instance
 
 
