@@ -2285,6 +2285,9 @@ def start_shotgun_engine(tk, entity_type, context):
                         context.
     """
 
+    # begin writing log to disk, associated with the engine
+    LogManager().initialize_base_file_logger("tk-shotgun")
+
     # bypass the get_environment hook and use a fixed set of environments
     # for this shotgun engine. This is required because of the action caching.
     env = tk.pipeline_configuration.get_environment("shotgun_%s" % entity_type.lower(), context)
