@@ -58,6 +58,30 @@ class LogManager(object):
         # the root logger, created at code init
         self._root_logger = logging.getLogger(constants.ROOT_LOGGER_NAME)
 
+    def _set_global_debug(self, state):
+        """
+        Sets the state of the global debug in toolkit.
+        """
+        if state:
+            self.root_logger.setLevel(logging.DEBUG)
+        else:
+            self.root_logger.setLevel(logging.INFO)
+
+    def _get_global_debug(self):
+        """
+        Returns whether the toolkit main logger has got
+        debug log turned on or not. Controlling this property
+        has a global impact and affects all services attached
+        to the logger.
+
+        .. note:: Debug logging is off by default.
+                  If you want to permanently enable debug logging,
+                  set the environment variable ``TK_DEBUG``.
+        """
+        return self.root_logger.isEnabledFor(logging.DEBUG)
+
+    global_debug = property(_get_global_debug, _set_global_debug)
+
     def initialize_custom_handler(self, handler=logging.StreamHandler()):
         """
         Convenience method that initializes a log handler
