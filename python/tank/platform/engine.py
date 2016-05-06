@@ -1277,9 +1277,7 @@ class Engine(TankBundle):
     def _emit_log_message(self, handler, record):
         """
         Called by the engine whenever a new log message is available.
-        Always executes in the main thread, even if log messages
-        were emitted in other threads. All log messages from the
-        toolkit logging namespace will be passed to this method.
+        All log messages from the toolkit logging namespace will be passed to this method.
 
         .. note:: To implement logging in your engine implementation, subclass
                   this method and display the record in a suitable way - typically
@@ -1298,19 +1296,18 @@ class Engine(TankBundle):
                       # display message
                       print msg_str
 
+        .. warning:: This method may be executing called from worker threads. In DCC
+                     environments, where it is important that the console/logging output
+                     always happens in the main thread, it is recommended that you
+                     use the :meth:`async_execute_in_main_thread` to ensure that your
+                     logging code is writing to the DCC console in the main thread.
+
         :param handler: Log handler that this message was dispatched from
         :type handler: :class:`~python.logging.LogHandler`
         :param record: Std python logging record
         :type record: :class:`~python.logging.LogRecord`
         """
         # default implementation doesn't do anything.
-        # a minimal implementation could look like this:
-        #
-        # call out to handler to format message in a standard way
-        # msg_str = handler.format(record)
-        #
-        # display message
-        # print msg_str
 
 
     def _get_dialog_parent(self):
@@ -2254,6 +2251,7 @@ def start_engine(engine_name, tk, context):
                         "tank.platform.current_engine().destroy()." % current_engine())
 
     # begin writing log to disk, associated with the engine
+
     LogManager().initialize_base_file_logger(engine_name)
 
     # get environment and engine location

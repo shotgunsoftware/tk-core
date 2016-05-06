@@ -41,15 +41,8 @@ class ToolkitEngineHandler(logging.Handler):
         # tank.session.asset.tk-maya.tk-multi-publish -> tk-multi-publish
         record.basename = record.name.rsplit(".", 1)[-1]
 
-        # emit log message from log handler to display
-        # implementation. Use the async qt signal based
-        # transport to ensure all logging happens in
-        # the main thread.
-        self._engine.async_execute_in_main_thread(
-            self._engine._emit_log_message,
-            self,
-            record
-        )
+        # emit log message from log handler to display implementation.
+        self._engine._emit_log_message(self, record)
 
 
 class ToolkitEngineLegacyHandler(logging.Handler):

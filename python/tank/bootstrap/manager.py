@@ -11,7 +11,6 @@
 import logging
 
 from . import constants
-from ..log import LogManager
 from .errors import TankBootstrapError
 from .configuration import Configuration
 from .resolver import BaseConfigurationResolver
@@ -29,12 +28,6 @@ class ToolkitManager(object):
         :param sg_user: Authenticated Shotgun User object
         :type sg_user: :class:`~sgtk.authentication.ShotgunUser`
         """
-        # Begin writing log to disk.
-        # Because this is a pre-launch state and we don't
-        # know yet what environment we are launching into,
-        # call the log 'bootstrap'.
-        LogManager().initialize_base_file_logger("bootstrap")
-
         self._sg_user = sg_user
         self._sg_connection = self._sg_user.create_sg_connection()
 
