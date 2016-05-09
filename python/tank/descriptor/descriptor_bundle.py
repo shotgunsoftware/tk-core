@@ -153,7 +153,7 @@ class BundleDescriptor(Descriptor):
     ###############################################################################################
     # helper methods
 
-    def ensure_shotgun_fields_exist(self, tk):
+    def ensure_shotgun_fields_exist(self, tk=None):
         """
         Ensures that any shotgun fields a particular descriptor requires
         exists in shotgun. In the metadata (``info.yml``) for an app or an engine,
@@ -170,8 +170,17 @@ class BundleDescriptor(Descriptor):
         .. warning::
             This feature may be deprecated in the future.
 
-        :param tk: Core API instance to use for post install execution
+        :param tk: Core API instance to use for post install execution. This value
+                   defaults to ``None`` for backwards compatibility reasons and in
+                   the case a None value is passed in, the hook will not execute.
         """
+        # if tk is None, exit early. This is to keep things backwards compatible
+        # with earlier versions of the desktop startup framework (which never used
+        # any post install functionality, so the fact that we don't execute anything
+        # in that case should't affect the behavior).
+        if tk is None:
+            return
+
         # first fetch metadata
         manifest = self._io_descriptor.get_manifest()
         sg_fields_def = manifest.get("requires_shotgun_fields")
@@ -204,7 +213,7 @@ class BundleDescriptor(Descriptor):
                             ui_field_name
                         )
 
-    def run_post_install(self, tk):
+    def run_post_install(self, tk=None):
         """
         If a post install hook exists in a descriptor, execute it. In the
         hooks directory for an app or engine, if a 'post_install.py' hook
@@ -213,8 +222,22 @@ class BundleDescriptor(Descriptor):
         Errors reported in the post install hook will be reported to the error
         log but execution will continue.
 
-        :param tk: Core API instance to use for post install execution
+        .. warning:: We longer recommend using post install hooks. Should you
+                     need to use one, take great care when designing it so that
+                     it can execute correctly for all users, regardless of
+                     their shotgun and system permissions.
+
+        :param tk: Core API instance to use for post install execution. This value
+                   defaults to ``None`` for backwards compatibility reasons and in
+                   the case a None value is passed in, the hook will not execute.
         """
+        # if tk is None, exit early. This is to keep things backwards compatible
+        # with earlier versions of the desktop startup framework (which never used
+        # any post install functionality, so the fact that we don't execute anything
+        # in that case should't affect the behavior).
+        if tk is None:
+            return
+
         try:
             tk.pipeline_configuration.execute_post_install_bundle_hook(self.get_path())
         except Exception, e:

@@ -51,7 +51,7 @@ def create_descriptor(
                                 - ``v0.12.x`` - get the highest v0.12 version
                                 - ``v1.x.x`` - get the highest v1 version
 
-    :returns: Descriptor object
+    :returns: :class:`Descriptor` object
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
     from .descriptor_config import ConfigDescriptor
