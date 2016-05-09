@@ -13,7 +13,6 @@ Various helper methods relating to user interaction via the shell.
 """
 
 import textwrap
-import os
 
 from .. import pipelineconfig_utils
 from ..platform import validation

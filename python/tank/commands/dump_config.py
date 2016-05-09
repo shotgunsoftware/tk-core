@@ -262,7 +262,11 @@ class DumpConfigAction(Action):
         valid_env_names = self.tk.pipeline_configuration.get_environments()
 
         if parameters["env"] not in valid_env_names:
-            raise TankError("Could not find a valid config named: '%s'" % (parameters["env"],))
+            if self._is_interactive:
+                print "\nUsage: %s\n" % (self._usage(),)
+
+            raise TankError(
+                "Could not find a valid config named: '%s'" % (parameters["env"],))
 
         return parameters
 

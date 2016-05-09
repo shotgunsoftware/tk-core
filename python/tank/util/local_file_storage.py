@@ -31,7 +31,7 @@ class LocalFileStorageManager(object):
     :constant CORE_V18: Indicates compatibility with Core 0.18 or later
 
     :constant LOGGING: Indicates a path suitable for storing logs, useful for debugging
-    :constant LOGGING: Indicates a path suitable for storing cache data that can be deleted without
+    :constant CACHE: Indicates a path suitable for storing cache data that can be deleted without
                        any loss of functionality or state.
     :constant PERSISTENT: Indicates a path suitable for storing settings and other data that is needs
                           to be retained between sessions.

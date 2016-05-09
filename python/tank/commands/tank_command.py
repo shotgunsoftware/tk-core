@@ -41,7 +41,6 @@ from . import desktop_migration
 from . import cache_yaml
 from . import get_entity_commands
 
-
 from . import constants
 from ..platform.engine import start_engine, get_environment_from_context
 from ..errors import TankError
@@ -281,7 +280,7 @@ class SgtkSystemCommand(object):
             formatter = logging.Formatter("%(levelname)s %(message)s")
             ch.setFormatter(formatter)
             self.__log.addHandler(ch)
-        
+
     @property
     def parameters(self):
         """

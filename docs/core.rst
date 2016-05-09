@@ -195,8 +195,6 @@ The following exceptions are raised by the Toolkit Core API classes:
 
 .. autoclass:: TankFileDoesNotExistError
 
-.. autoclass:: TankNoDefaultValueError
-
 .. autoclass:: TankErrorProjectIsSetup
 
 .. autoclass:: TankHookMethodDoesNotExistError
