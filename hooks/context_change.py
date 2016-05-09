@@ -17,8 +17,14 @@ from tank import get_hook_baseclass
 
 class ContextChangeHook(get_hook_baseclass()):
     """
-    Hook that gets executed every time there is a context change, once before
-    the change and once after.
+    Hook that gets executed every single time there is a context change in Toolkit,
+    e.g. when an engine starts or restarts and when sgtk.platform.change_context
+    is invoked.
+
+    .. note:
+        If the engine is restarted without changing context or sgtk.platform.change_context
+        is invoked with the same context, the hook will be executed. To detect
+        such situations, simple compare the two contexes.
     """
 
     def pre_context_change(self, current_context, next_context):
