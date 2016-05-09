@@ -46,7 +46,7 @@ class Application(TankBundle):
 
         # create logger for this app
         # log will be parented in a tank.session.environment_name.engine_instance_name.app_instance_name hierarchy
-        self._log = LogManager.get_child_logger(self.__engine.log, instance_name)
+        self._log = self.__engine.get_child_logger(self.name)
         self._log.debug("Logging started for %s" % self)
 
         # now if a folder named python is defined in the app, add it to the pythonpath

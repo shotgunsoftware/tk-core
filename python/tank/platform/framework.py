@@ -51,7 +51,7 @@ class Framework(TankBundle):
 
         # create logger for this app
         # log will be parented in a tank.session.environment_name.engine_instance_name.framework_name hierarchy
-        self._log = LogManager.get_child_logger(self.__engine.log, self.name)
+        self._log = self.__engine.get_child_logger(self.name)
         self._log.debug("Logging started for %s" % self)
                 
     def __repr__(self):        
@@ -338,24 +338,24 @@ def load_framework(engine_obj, env, fw_instance_name):
         raise TankError("Could not validate framework %s: %s" % (fw_instance_name, e))
 
     # load the framework
-    try:
-        # initialize fw class
-        fw = _create_framework_instance(engine_obj, descriptor, fw_settings, env)
+#    try:
+    # initialize fw class
+    fw = _create_framework_instance(engine_obj, descriptor, fw_settings, env)
 
-        # if it's a shared framework then add it to the engine so we can re-use it
-        # again in the future if needed:
-        if fw.is_shared:
-            # register this framework for reuse by other bundles
-            engine_obj._register_shared_framework(fw_instance_name, fw)
+    # if it's a shared framework then add it to the engine so we can re-use it
+    # again in the future if needed:
+    if fw.is_shared:
+        # register this framework for reuse by other bundles
+        engine_obj._register_shared_framework(fw_instance_name, fw)
 
-        # load any frameworks required by the framework :)
-        setup_frameworks(engine_obj, fw, env, descriptor)
+    # load any frameworks required by the framework :)
+    setup_frameworks(engine_obj, fw, env, descriptor)
 
-        # and run the init
-        fw.init_framework()
+    # and run the init
+    fw.init_framework()
 
-    except Exception, e:
-        raise TankError("Framework %s failed to initialize: %s" % (descriptor, e))
+#    except Exception, e:
+#        raise TankError("Framework %s failed to initialize: %s" % (descriptor, e))
 
     return fw
 

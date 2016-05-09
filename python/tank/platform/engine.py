@@ -253,6 +253,9 @@ class Engine(TankBundle):
                                                       self.name, 
                                                       self.__env.name)
 
+    ##########################################################################################
+    # properties used by internal classes, not part of the public interface
+
     def get_env(self):
         """
         Returns the environment object associated with this engine.
@@ -261,9 +264,6 @@ class Engine(TankBundle):
         and the object returned may also change. Do not use outside of the core api.
         """
         return self.__env
-
-    ##########################################################################################
-    # properties used by internal classes, not part of the public interface
 
     def __toggle_debug_logging(self):
         """
@@ -470,6 +470,15 @@ class Engine(TankBundle):
 
         """
         log_user_attribute_metric(attr_name, attr_value)
+
+    def get_child_logger(self, name):
+        """
+        Create a child logger for this engine.
+
+        :param name: Name of child logger, can contain periods for nesting
+        :return: :class:`logging.Logger` instance
+        """
+        return LogManager.get_child_logger(self._log, name)
 
     ##########################################################################################
     # properties
