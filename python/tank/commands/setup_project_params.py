@@ -25,6 +25,7 @@ from ..util.git import execute_git_command
 from .. import hook
 from ..errors import TankError, TankErrorProjectIsSetup
 from .. import pipelineconfig_utils
+from ..descriptor import create_descriptor, Descriptor
 
 from tank_vendor import yaml
 
@@ -56,22 +57,17 @@ class ProjectSetupParameters(object):
 
     """
 
-    def __init__(self, log, sg, sg_app_store, sg_app_store_script_user):
+    def __init__(self, log, sg):
         """
         Constructor
 
         :param log: python logger
         :param sg: shotgun connection
-        :param sg_app_store: shotgun app store connection
-        :param sg_app_store_script_user: sg-style link dict representing the script user used to
-                                         connect to the app store
         """
 
         # set up handles
         self._sg = sg
         self._log = log
-        self._sg_app_store = sg_app_store
-        self._sg_app_store_script_user = sg_app_store_script_user
 
         # initialize data members - config
         self._cached_config_templates = {}
@@ -180,8 +176,6 @@ class ProjectSetupParameters(object):
             # this call may mean downloading stuff from the internet.
             config_template = TemplateConfiguration(config_uri,
                                                     self._sg,
-                                                    self._sg_app_store,
-                                                    self._sg_app_store_script_user,
                                                     self._log)
             self._cached_config_templates[config_uri] = config_template
 
@@ -801,19 +795,15 @@ class TemplateConfiguration(object):
 
     _LOCAL = "local"
 
-    def __init__(self, config_uri, sg, sg_app_store, script_user, log):
+    def __init__(self, config_uri, sg, log):
         """
         Constructor
 
         :param config_uri: location of config (see constructor docs for details)
         :param sg: Shotgun site API instance
-        :param sg_app_store: Shotgun app store API instance
-        :param script_user: The app store script entity used to connect. Dictionary with type and id.
         :param log: Log channel
         """
         self._sg = sg
-        self._sg_app_store = sg_app_store
-        self._script_user = script_user
         self._log = log
 
         # now extract the cfg and validate
@@ -939,69 +929,6 @@ class TemplateConfiguration(object):
 
         return zip_unpack_tmp
 
-    def _process_config_app_store(self, config_name):
-        """
-        Downloads a config zip from the app store and unzips it.
-
-        :param config_name: App store config bundle name
-        :returns: tmp location on disk where config now resides
-        """
-
-        if self._sg_app_store is None:
-            raise TankError("Cannot download config - you are not connected to the app store!")
-
-        # try download from app store...
-        parent_entity = self._sg_app_store.find_one(constants.TANK_CONFIG_ENTITY,
-                                              [["sg_system_name", "is", config_name ]],
-                                              ["code"])
-        if parent_entity is None:
-            raise Exception("Cannot find a config in the app store named %s!" % config_name)
-
-        # get latest code
-        latest_cfg = self._sg_app_store.find_one(constants.TANK_CONFIG_VERSION_ENTITY,
-                                           filters = [["sg_tank_config", "is", parent_entity],
-                                                      ["sg_status_list", "is_not", "rev" ],
-                                                      ["sg_status_list", "is_not", "bad" ]],
-                                           fields=["code", constants.TANK_CODE_PAYLOAD_FIELD],
-                                           order=[{"field_name": "created_at", "direction": "desc"}])
-        if latest_cfg is None:
-            raise Exception("It looks like this configuration doesn't have any versions uploaded yet!")
-
-        # now have to get the attachment id from the data we obtained. This is a bit hacky.
-        # data example for the payload field, as returned by the query above:
-        # {'url': 'http://tank.shotgunstudio.com/file_serve/attachment/21', 'name': 'tank_core.zip',
-        #  'content_type': 'application/zip', 'link_type': 'upload'}
-        #
-        # grab the attachment id off the url field and pass that to the download_attachment()
-        # method below.
-        try:
-            attachment_id = int(latest_cfg[constants.TANK_CODE_PAYLOAD_FIELD]["url"].split("/")[-1])
-        except:
-            raise TankError("Could not extract attachment id from data %s" % latest_cfg)
-
-        self._log.debug("Downloading Config %s %s from the App Store..." % (config_name, latest_cfg["code"]))
-
-        zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_cfg.zip" % uuid.uuid4().hex)
-
-        bundle_content = self._sg_app_store.download_attachment(attachment_id)
-        fh = open(zip_tmp, "wb")
-        fh.write(bundle_content)
-        fh.close()
-
-        # and write a custom event to the shotgun event log to indicate that a download
-        # has happened.
-        data = {}
-        data["description"] = "Config %s %s was downloaded" % (config_name, latest_cfg["code"])
-        data["event_type"] = "TankAppStore_Config_Download"
-        data["entity"] = latest_cfg
-        data["user"] = self._script_user
-        data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
-        data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
-        self._sg_app_store.create("EventLogEntry", data)
-
-        # got a zip! Pass to zip extractor...
-        return self._process_config_zip(zip_tmp)
-
     def _process_config_dir(self, dir_path):
         """
         Validates that the directory contains a tank config
@@ -1013,27 +940,16 @@ class TemplateConfiguration(object):
         self._log.debug("Configuration looks valid!")
         return dir_path
 
-    def _process_config_git(self, git_repo_str):
-        """
-        Validate that a git repo is correct, download it to a temp location
-
-        :param git_repo_str: Git repository string
-        :returns: tmp location on disk where config now resides
-        """
-
-        self._log.debug("Attempting to clone git uri '%s' into a temp location "
-                        "for introspection..." % git_repo_str)
-
-        clone_tmp = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
-        self._log.info("Attempting to clone git repository '%s'..." % git_repo_str)
-        self._clone_git_repo(git_repo_str, clone_tmp)
-
-        return clone_tmp
-
     def _process_config(self, config_uri):
         """
         Looks at the starter config string and tries to convert it into a folder
         Returns a path to a config.
+
+        - toolkit app store syntax:    tk-config-default
+        - git syntax (ends with .git): git@github.com:shotgunsoftware/tk-config-default.git
+                                       https://github.com/shotgunsoftware/tk-config-default.git
+                                       /path/to/bare/repo.git
+        - file system location:        /path/to/config
 
         :param config_uri: config path of some kind (git/appstore/configured_project)
         :returns: tuple with (tmp_path_to_config, config_type) where config_type is configured_project/zip/git/app_store
@@ -1045,7 +961,16 @@ class TemplateConfiguration(object):
         if config_uri.endswith(".git"):
             # this is a git repository!
             self._log.info("Hang on, loading configuration from git...")
-            return (self._process_config_git(config_uri), "git")
+
+            descriptor = create_descriptor(
+                self._sg,
+                Descriptor.CONFIG,
+                {"type": "git", "path": config_uri},
+                resolve_latest=True
+            )
+            descriptor.ensure_local()
+
+            return (descriptor.get_path(), "git")
 
         elif os.path.sep in config_uri:
             # probably a file path!
@@ -1063,7 +988,16 @@ class TemplateConfiguration(object):
         elif config_uri.startswith("tk-"):
             # app store!
             self._log.info("Hang on, loading configuration from the app store...")
-            return (self._process_config_app_store(config_uri), "app_store")
+
+            descriptor = create_descriptor(
+                self._sg,
+                Descriptor.CONFIG,
+                {"type": "app_store", "name": config_uri},
+                resolve_latest=True
+            )
+            descriptor.ensure_local()
+
+            return (descriptor.get_path(), "app_store")
 
         else:
             raise TankError("Don't know how to handle config '%s'" % config_uri)
