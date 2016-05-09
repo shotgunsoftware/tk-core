@@ -124,8 +124,9 @@ class AltCustomFormatter(logging.Formatter):
                                                     record.msecs,
                                                     record.msg)
 
-            if "Code Traceback" not in record.msg:
-                # do not wrap exceptions
+            if not("Code Traceback" in record.msg or record.levelno < logging.INFO):
+                # do not wrap exceptions and debug
+                # wrap other log levels on an 80 char wide boundary
                 lines = []
                 for x in textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False):
                     lines.append(x)
@@ -1443,9 +1444,10 @@ if __name__ == "__main__":
     debug_mode = False
     if "--debug" in cmd_line:
         debug_mode = True
+        LogManager().global_debug = True
         log_handler.setLevel(logging.DEBUG)
         logger.debug("")
-        logger.debug("Running with debug output enabled.")
+        logger.debug("Running with debug output enabled. A log file can be found in %s" % LogManager().log_folder)
         logger.debug("")
     cmd_line = [arg for arg in cmd_line if arg != "--debug"]
 

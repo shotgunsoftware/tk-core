@@ -90,7 +90,7 @@ class SynchronizePathCache(Action):
                          "run this command with a --full flag.")
                 
                 
-            folder.synchronize_folders(self.tk, full_sync, log)
+            folder.synchronize_folders(self.tk, full_sync)
                 
             log.info("Local folder information has been synchronized.")
         
@@ -159,7 +159,7 @@ class PathCacheMigrationAction(Action):
         log.info("Phase 1/3: Pushing data from the current path cache to Shotgun...")
         curr_pc = path_cache.PathCache(self.tk)
         try:
-            curr_pc.ensure_all_entries_are_in_shotgun(log)
+            curr_pc.ensure_all_entries_are_in_shotgun()
         finally:
             curr_pc.close()        
 
@@ -174,7 +174,7 @@ class PathCacheMigrationAction(Action):
         log.info("Phase 3/3: Synchronizing your local machine with Shotgun...")
         pc = path_cache.PathCache(self.tk)
         try:
-            pc.synchronize(log, full_sync=True)
+            pc.synchronize(full_sync=True)
         finally:
             pc.close()
         

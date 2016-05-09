@@ -90,17 +90,16 @@ def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_i
         
 
 
-def synchronize_folders(tk, full_sync, log=None):
+def synchronize_folders(tk, full_sync):
     """
     Synchronizes any remote folders to ensure they are present both 
     in the file system and in any local folder caches
     
     :param tk: A tk API instance
     :param full_sync: Do a full sync
-    :param log: A python logger
     :returns: list of items processed
-    """ 
-    return FolderIOReceiver.sync_path_cache(tk, full_sync, log)
+    """
+    return FolderIOReceiver.sync_path_cache(tk, full_sync)
 
     
 def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):    
