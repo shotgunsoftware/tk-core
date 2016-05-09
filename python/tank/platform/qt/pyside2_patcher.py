@@ -82,14 +82,19 @@ class PySide2Patcher(object):
 
         :param QtGui: QtGui module.
         """
-        # qApp has been moved from QtGui to QtWidgets, make sure that
-        # when QApplication is instantiated than qApp is set on QtGui.
         QApplication = QtGui.QApplication
 
         class Wrapper(QApplication):
             def __init__(self, *args):
                 QApplication.__init__(self, *args)
+                # qApp has been moved from QtGui to QtWidgets, make sure that
+                # when QApplication is instantiated than qApp is set on QtGui.
                 QtGui.qApp = self
+
+            @staticmethod
+            def palette():
+                # Retrieve the application palette by passing no widget.
+                return QApplication.palette(None)
 
         QtGui.QApplication = Wrapper
 
