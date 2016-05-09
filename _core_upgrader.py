@@ -371,28 +371,14 @@ def upgrade_tank(sgtk_install_root, log):
 #######################################################################
 if __name__ == "__main__":
     
-    # for debugging purposes, can run this command with the following syntax
-    # > python _core_upgrader.py migrate /mnt/software/shotgun/studio/install
-    
-    if len(sys.argv) == 3 and sys.argv[1] == "migrate":
-        path = sys.argv[2]
-        migrate_log = logging.getLogger("tank.update")
-        migrate_log.setLevel(logging.DEBUG)
-        ch = logging.StreamHandler()
-        formatter = logging.Formatter("%(levelname)s %(message)s")
-        ch.setFormatter(formatter)
-        migrate_log.addHandler(ch)
-        upgrade_tank(path, migrate_log)
-        sys.exit(0)
-        
-    else:
-    
-        desc = """
+
+    desc = """
     This is a system script used by the upgrade process.
     
     If you want to upgrade the toolkit Core API, run the
     'tank core' command.
     
     """
-        print desc
-        sys.exit(1)
+    print desc
+    sys.exit(1)
+

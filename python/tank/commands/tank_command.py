@@ -41,9 +41,12 @@ from . import desktop_migration
 from . import cache_yaml
 from . import get_entity_commands
 
+
 from . import constants
 from ..platform.engine import start_engine, get_environment_from_context
 from ..errors import TankError
+
+log = logging.getLogger(__name__)
 
 ###############################################################################################
 # Built in actions (all in the tank_commands sub module)
@@ -269,11 +272,12 @@ class SgtkSystemCommand(object):
             self.__internal_action_obj.tk = tk
         
         # set up a default logger which can be overridden via the set_logger method
-        self.__log = logging.getLogger("sgtk.systemcommand")
-        self.__log.setLevel(logging.INFO)
+        # for the default logger, use the standard toolkit logging standard based on __name__
+        self.__log = log
         # make sure that we have exactly one handler
         if len(self.__log.handlers) == 0:
             ch = logging.StreamHandler()
+            ch.setLevel(logging.INFO)
             formatter = logging.Formatter("%(levelname)s %(message)s")
             ch.setFormatter(formatter)
             self.__log.addHandler(ch)
@@ -317,11 +321,24 @@ class SgtkSystemCommand(object):
         """
         return self.__internal_action_obj.category
 
+    @property
+    def log(self):
+        """
+        The python logger associated with this tank command
+        """
+        return self.__log
+
     def set_logger(self, log):
         """
         Specify a standard python log instance to send logging output to.
         If this is not specify, the standard output mechanism will be used.
-        
+
+        .. warning:: We strongly recommend using the :meth:`log` property
+                     to retrieve the default logger for the tank command
+                     and attaching a handler to this rather than passing in
+                     an explicit log object via this method. This method
+                     may be deprecated at some point in the future.
+
         :param log: Standard python logging instance
         """
         self.__log = log

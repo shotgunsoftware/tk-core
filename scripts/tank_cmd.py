@@ -33,6 +33,7 @@ from tank.authentication import IncompleteCredentials
 from tank_vendor import yaml
 from tank.platform import engine
 from tank import pipelineconfig_utils
+from tank import LogManager
 
 
 
@@ -1413,14 +1414,18 @@ def _extract_credentials(cmd_line):
 
 if __name__ == "__main__":
 
-    # set up logging channel for this script
-    logger = logging.getLogger("tank.setup_project")
-    logger.setLevel(logging.INFO)
+    # set up std toolkit logging to file
+    LogManager().initialize_base_file_handler("tk-shell")
 
-    ch = logging.StreamHandler(sys.stdout)
-    formatter = AltCustomFormatter()
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    # set up logger that we should write messages to
+    logger = LogManager().get_root_child_logger("tankcmd")
+
+    # set up output of all sgtk log messages to stdout
+    log_handler = LogManager().initialize_custom_handler(
+        logging.StreamHandler(sys.stdout)
+    )
+    log_handler.setLevel(logging.INFO)
+    log_handler.setFormatter(AltCustomFormatter())
 
     # the first argument is always the path to the code root
     # we are running from.
@@ -1438,7 +1443,7 @@ if __name__ == "__main__":
     debug_mode = False
     if "--debug" in cmd_line:
         debug_mode = True
-        logger.setLevel(logging.DEBUG)
+        log_handler.setLevel(logging.DEBUG)
         logger.debug("")
         logger.debug("Running with debug output enabled.")
         logger.debug("")

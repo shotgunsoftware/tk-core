@@ -79,6 +79,24 @@ class ToolkitEngineLegacyHandler(logging.Handler):
 
         :param record: std log record to handle logging for
         """
+        if self.inside_dispatch:
+            # the handler was triggered from a log emission which
+            # in turn was triggered from this handler. This can happen
+            # for example an log_xxx method writes to a logger rather than
+            # outputting data to a console UI. In that case, make sure we
+            # avoid an endless loop.
+            return
+
+        if hasattr(self._engine.sgtk, "log"):
+            # legacy implementations of the shell and shotgun engines
+            # handle their logging implementation by picking up a logger
+            # passed from the tank command in a sgtk.log property. The logging
+            # from these engines are then just writing to that logger.
+            # We detect this here in order to avoid any double emission of
+            # log messages, since the log_xxx methods that we would otherwise
+            # be calling would simply just duplicate the log message.
+            return
+
         # for simplicity, add a 'basename' property to the record to
         # only contain the leaf part of the logging name
         # tank.session.asset.tk-maya -> tk-maya
