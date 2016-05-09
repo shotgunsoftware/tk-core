@@ -158,7 +158,7 @@ class IODescriptorGitTag(IODescriptorGit):
         new_loc_dict["version"] = version_to_use
 
         # create new descriptor to represent this tag
-        desc = IODescriptorGitTag(new_loc_dict)
+        desc = IODescriptorGitTag(new_loc_dict, self._type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
 
@@ -202,7 +202,7 @@ class IODescriptorGitTag(IODescriptorGit):
         new_loc_dict["version"] = latest_version
 
         # create new descriptor to represent this tag
-        desc = IODescriptorGitTag(new_loc_dict)
+        desc = IODescriptorGitTag(new_loc_dict, self._type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
 

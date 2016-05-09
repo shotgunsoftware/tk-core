@@ -124,10 +124,10 @@ class SetupProjectAction(Action):
         computed_params = self._validate_parameters(parameters)
         
         # connect to shotgun
-        (sg, sg_app_store, sg_app_store_script_user) = self._shotgun_connect(log)
+        sg = self._shotgun_connect(log)
                         
         # create a parameters class
-        params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
+        params = ProjectSetupParameters(log, sg)
         
         # tell it which core to pick up. For the tank command, we just base it off the 
         # currently running API
@@ -154,7 +154,7 @@ class SetupProjectAction(Action):
         params.pre_setup_validation()
         
         # and finally carry out the setup
-        run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
+        run_project_setup(log, sg, params)
         
         # check if we should run the localization afterwards
         # if we are running a localized pc, the root path of the core
@@ -196,10 +196,10 @@ class SetupProjectAction(Action):
         
         
         # connect to shotgun
-        (sg, sg_app_store, sg_app_store_script_user) = self._shotgun_connect(log)
+        sg = self._shotgun_connect(log)
         
         # create a parameters class
-        params = ProjectSetupParameters(log, sg, sg_app_store, sg_app_store_script_user)
+        params = ProjectSetupParameters(log, sg)
         
         # tell it which core to pick up. For the tank command, we just base it off the 
         # currently running API
@@ -234,7 +234,7 @@ class SetupProjectAction(Action):
             raise TankError("Installation Aborted.")
         
         # and finally carry out the setup
-        run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, params)
+        run_project_setup(log, sg, params)
         
         # check if we should run the localization afterwards
         # if we are running a localized pc, the root path of the core
@@ -264,20 +264,10 @@ class SetupProjectAction(Action):
 
     def _shotgun_connect(self, log):
         """
-        Connects to the App store and to the associated shotgun site.
-        Logging in to the app store is optional and in the case this fails,
-        the app store parameters will return None. 
-        
-        The method returns a tuple with three parameters:
-        
-        - sg is an API handle associated with the associated site
-        - sg_app_store is an API handle associated with the app store.
-          Can be None if connection fails.
-        - sg_app_store_script_user is a sg dict (with name, id and type) 
-          representing the script user used to connect to the app store.
-          Can be None if connection fails.
-        
-        :returns: (sg, sg_app_store, sg_app_store_script_user) - see above.
+        Connects to Shotgun.
+
+        :returns: Shotgun API Instance.
+        :raises: TankError on failure.
         """
         
         # now connect to shotgun
@@ -289,20 +279,7 @@ class SetupProjectAction(Action):
         except Exception, e:
             raise TankError("Could not connect to Shotgun server: %s" % e)
     
-        try:
-            log.info("Connecting to the App Store...")
-            (sg_app_store, script_user) = shotgun.create_sg_app_store_connection()
-            sg_version = ".".join([ str(x) for x in sg_app_store.server_info["version"]])
-            log.debug("Connected to App Store! (v%s)" % sg_version)
-        except Exception, e:
-            log.warning("Could not establish a connection to the app store! You can "
-                        "still create new projects, but you have to base them on "
-                        "configurations that reside on your local disk.")
-            log.debug("The following error was raised: %s" % e)
-            sg_app_store = None
-            script_user = None
-        
-        return (sg, sg_app_store, script_user)
+        return sg
         
         
     def _confirm_continue(self, log):

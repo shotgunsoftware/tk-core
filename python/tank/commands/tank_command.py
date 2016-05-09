@@ -321,7 +321,7 @@ class SgtkSystemCommand(object):
         return self.__internal_action_obj.category
 
     @property
-    def log(self):
+    def logger(self):
         """
         The python logger associated with this tank command
         """
@@ -332,7 +332,7 @@ class SgtkSystemCommand(object):
         Specify a standard python log instance to send logging output to.
         If this is not specify, the standard output mechanism will be used.
 
-        .. warning:: We strongly recommend using the :meth:`log` property
+        .. warning:: We strongly recommend using the :meth:`logger` property
                      to retrieve the default logger for the tank command
                      and attaching a handler to this rather than passing in
                      an explicit log object via this method. This method

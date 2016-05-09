@@ -17,8 +17,7 @@ import os
 import sys
 
 from ..util.loader import load_plugin
-from . import constants 
-from ..log import LogManager
+from . import constants
 
 from .bundle import TankBundle
 from ..util import log_user_activity_metric, log_user_attribute_metric
@@ -123,7 +122,7 @@ class Application(TankBundle):
         return self.__engine
 
     @property
-    def log(self):
+    def logger(self):
         """
         Standard python logger for this app.
 
@@ -132,12 +131,12 @@ class Application(TankBundle):
         developing an app::
 
             # if you are in the app subclass
-            self.log.debug("Starting up main dialog")
+            self.logger.debug("Starting up main dialog")
 
             # if you are in python code that runs
             # as part of the app
             app = sgtk.platform.current_bundle()
-            app.log.warning("Cannot find file.")
+            app.logger.warning("Cannot find file.")
 
         Logging will be dispatched to a logger parented under the
         main toolkit logging namespace::
@@ -189,55 +188,55 @@ class Application(TankBundle):
         Logs a debug message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
-        self.log.debug(msg)
+        self.logger.debug(msg)
 
     def log_info(self, msg):
         """
         Logs an info message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
-        self.log.info(msg)
+        self.logger.info(msg)
 
     def log_warning(self, msg):
         """
         Logs an warning message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
-        self.log.warning(msg)
+        self.logger.warning(msg)
 
     def log_error(self, msg):
         """
         Logs an error message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
-        self.log.error(msg)
+        self.logger.error(msg)
 
     def log_exception(self, msg):
         """
         Logs an exception message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
-        self.log.exception(msg)
+        self.logger.exception(msg)
 
 
     ##########################################################################################

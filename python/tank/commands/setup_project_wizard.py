@@ -80,24 +80,16 @@ class SetupProjectFactoryAction(Action):
         :param parameters: dictionary with tank command parameters
         """
         # connect to shotgun
-        (sg, sg_app_store, sg_app_store_script_user) = self._shotgun_connect(log)
+        sg = self._shotgun_connect(log)
         # return a wizard object
-        return SetupProjectWizard(log, sg, sg_app_store, sg_app_store_script_user)
+        return SetupProjectWizard(log, sg)
 
     def _shotgun_connect(self, log):
         """
-        Connects to the App store and to the associated shotgun site.
-        Logging in to the app store is optional and in the case this fails,
-        the app store parameters will return None.
+        Connects to Shotgun.
 
-        The method returns a tuple with three parameters:
-
-        - sg is an API handle associated with the associated site
-        - sg_app_store is an API handle associated with the app store
-        - sg_app_store_script_user is a sg dict (with name, id and type)
-          representing the script user used to connect to the app store.
-
-        :returns: (sg, sg_app_store, sg_app_store_script_user) - see above.
+        :returns: Shotgun API handle.
+        :raises: TankError on failure
         """
 
         # now connect to shotgun
@@ -109,20 +101,7 @@ class SetupProjectFactoryAction(Action):
         except Exception, e:
             raise TankError("Could not connect to Shotgun server: %s" % e)
 
-        try:
-            log.info("Connecting to the App Store...")
-            (sg_app_store, script_user) = shotgun.create_sg_app_store_connection()
-            sg_version = ".".join([ str(x) for x in sg_app_store.server_info["version"]])
-            log.debug("Connected to App Store! (v%s)" % sg_version)
-        except Exception, e:
-            log.warning("Could not establish a connection to the app store! You can "
-                        "still create new projects, but you have to base them on "
-                        "configurations that reside on your local disk.")
-            log.debug("The following error was raised: %s" % e)
-            sg_app_store = None
-            script_user = None
-
-        return (sg, sg_app_store, script_user)
+        return sg
 
 
 
@@ -131,18 +110,13 @@ class SetupProjectWizard(object):
     A class which wraps around the project setup functionality in toolkit.
     """
 
-    def __init__(self, log, sg, sg_app_store, sg_app_store_script_user):
+    def __init__(self, log, sg):
         """
         Constructor.
         """
         self._log = log
         self._sg = sg
-        self._sg_app_store = sg_app_store
-        self._sg_app_store_script_user = sg_app_store_script_user
-        self._params = ProjectSetupParameters(self._log,
-                                              self._sg,
-                                              self._sg_app_store,
-                                              self._sg_app_store_script_user)
+        self._params = ProjectSetupParameters(self._log, self._sg)
 
     def set_progress_callback(self, cb):
         """
@@ -633,7 +607,7 @@ class SetupProjectWizard(object):
         self.pre_setup_validation()
 
         # and finally carry out the setup
-        run_project_setup(self._log, self._sg, self._sg_app_store, self._sg_app_store_script_user, self._params)
+        run_project_setup(self._log, self._sg, self._params)
 
         # check if we should run the localization afterwards
         # note - when running via the wizard, toolkit script credentials are stripped

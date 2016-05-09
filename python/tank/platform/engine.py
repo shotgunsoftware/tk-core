@@ -207,9 +207,9 @@ class Engine(TankBundle):
                 self.__toggle_debug_logging,
                 {
                     "short_name": "toggle_debug",
-                    "tooltip": ("Toggles toolkit debug logging on and off. "
-                                "This affects all debug logging, including log "
-                                "files that are being written to disk."),
+                    "description": ("Toggles toolkit debug logging on and off. "
+                                    "This affects all debug logging, including log "
+                                    "files that are being written to disk."),
                     "type": "context_menu"
                 }
             )
@@ -219,7 +219,7 @@ class Engine(TankBundle):
             self.__open_log_folder,
             {
                 "short_name": "open_log_folder",
-                "tooltip": "Opens the folder where log files are being stored.",
+                "description": "Opens the folder where log files are being stored.",
                 "type": "context_menu"
             }
         )
@@ -604,7 +604,7 @@ class Engine(TankBundle):
         return self.__created_qt_dialogs
 
     @property
-    def log(self):
+    def logger(self):
         """
         Standard python logger for this engine.
 
@@ -613,12 +613,12 @@ class Engine(TankBundle):
         developing an engine::
 
             # if you are in the engine subclass
-            self.log.debug("Setting up extra menus")
+            self.logger.debug("Setting up extra menus")
 
             # if you are in python code that runs
             # as part of the engine
             engine = sgtk.platform.current_bundle()
-            engine.log.warning("Cannot find file.")
+            engine.logger.warning("Cannot find file.")
 
         Logging will be dispatched to a logger parented under the
         main toolkit logging namespace::
@@ -1141,10 +1141,10 @@ class Engine(TankBundle):
         Logs a debug message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         .. note:: Toolkit will probe for this method and use it to determine if
-                  the current engine supports the new :meth:`Engine.log` based logging
+                  the current engine supports the new :meth:`Engine.logger` based logging
                   or not. If you are developing an engine and want to upgrade it to
                   use the new logging capabilities, you should remove the
                   implementation of ``log_debug|error|info|...()`` methods and
@@ -1172,7 +1172,7 @@ class Engine(TankBundle):
         Logs an info message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
@@ -1196,7 +1196,7 @@ class Engine(TankBundle):
         Logs an warning message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
@@ -1220,7 +1220,7 @@ class Engine(TankBundle):
         Logs an error message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
@@ -1244,7 +1244,7 @@ class Engine(TankBundle):
         Logs an exception message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """

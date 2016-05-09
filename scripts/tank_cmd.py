@@ -1425,7 +1425,10 @@ if __name__ == "__main__":
     log_handler = LogManager().initialize_custom_handler(
         logging.StreamHandler(sys.stdout)
     )
-    log_handler.setLevel(logging.INFO)
+    # Log handler accepts all levels,
+    # passing control over to the log manager
+    # to determine the state
+    log_handler.setLevel(logging.DEBUG)
     log_handler.setFormatter(AltCustomFormatter())
 
     # the first argument is always the path to the code root
@@ -1445,9 +1448,8 @@ if __name__ == "__main__":
     if "--debug" in cmd_line:
         debug_mode = True
         LogManager().global_debug = True
-        log_handler.setLevel(logging.DEBUG)
         logger.debug("")
-        logger.debug("Running with debug output enabled. A log file can be found in %s" % LogManager().log_folder)
+        logger.debug("A log file can be found in %s" % LogManager().log_folder)
         logger.debug("")
     cmd_line = [arg for arg in cmd_line if arg != "--debug"]
 
