@@ -147,6 +147,67 @@ class PySide2Patcher(object):
         QtGui.QStandardItemModel = Wrapper
 
     @classmethod
+    def _patch_QMessageBox(cls, QMessageBox):
+
+        # Map for all the button types
+        button_list = [
+            QMessageBox.Ok,
+            QMessageBox.Open,
+            QMessageBox.Save,
+            QMessageBox.Cancel,
+            QMessageBox.Close,
+            QMessageBox.Discard,
+            QMessageBox.Apply,
+            QMessageBox.Reset,
+            QMessageBox.RestoreDefaults,
+            QMessageBox.Help,
+            QMessageBox.SaveAll,
+            QMessageBox.Yes,
+            QMessageBox.YesAll,
+            QMessageBox.YesToAll,
+            QMessageBox.No,
+            QMessageBox.NoAll,
+            QMessageBox.NoToAll,
+            QMessageBox.Abort,
+            QMessageBox.Retry,
+            QMessageBox.Ignore
+        ]
+
+        # PySide2 is currently broken and doesn't accept union of values in, so
+        # we're building the UI ourselves as an interim solution.
+        def _patch_factory(icon):
+            """
+            Creates a patch for one of the static methods to pop a QMessageBox.
+            """
+            def patch(parent, title, text, buttons=QMessageBox.Ok, defaultButton=QMessageBox.NoButton):
+                """
+                Shows the dialog with, just like QMessageBox.{critical,question,warning,information} would do.
+
+                :param title: Title of the dialog.
+                :param text: Text inside the dialog.
+                :param buttons: Buttons to show.
+                :param defaultButton: Button selected by default.
+
+                :returns: Code of the button selected.
+                """
+                msg_box = QMessageBox(parent)
+                msg_box.setWindowTitle(title)
+                msg_box.setText(text)
+                msg_box.setIcon(icon)
+                for button in button_list:
+                    if button & buttons:
+                        msg_box.addButton(button)
+                msg_box.setDefaultButton(defaultButton)
+                msg_box.exec_()
+                return msg_box.standardButton(msg_box.clickedButton())
+            return staticmethod(patch)
+
+        QMessageBox.critical = _patch_factory(QMessageBox.Critical)
+        QMessageBox.information = _patch_factory(QMessageBox.Information)
+        QMessageBox.question = _patch_factory(QMessageBox.Question)
+        QMessageBox.warning = _patch_factory(QMessageBox.Warning)
+
+    @classmethod
     def patch(cls, QtCore, QtGui, QtWidgets, PySide2):
         """
         Patches QtCore, QtGui and QtWidgets
@@ -167,5 +228,6 @@ class PySide2Patcher(object):
         cls._patch_QApplication(QtGui)
         cls._patch_QAbstractItemView(QtGui)
         cls._patch_QStandardItemModel(QtGui)
+        cls._patch_QMessageBox(QtGui.QMessageBox)
 
         setattr(PySide2, cls._TOOLKIT_COMPATIBLE, True)
