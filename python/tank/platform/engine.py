@@ -121,7 +121,7 @@ class Engine(TankBundle):
         # adjust the global setting
         if self.get_setting("debug_logging", False):
             LogManager().global_debug = True
-            self.log.debug("Engine config flag 'debug_logging' detected, turning on debug output.")
+            self.log_debug("Engine config flag 'debug_logging' detected, turning on debug output.")
 
         # check that the context contains all the info that the app needs
         validation.validate_context(descriptor, context)
@@ -277,7 +277,7 @@ class Engine(TankBundle):
         """
         Opens the file system folder where log files are being stored.
         """
-        self.log.info("Log folder is located in '%s'" % LogManager().log_folder)
+        self.log_info("Log folder is located in '%s'" % LogManager().log_folder)
 
         if self.has_ui:
             # only import QT if we have a UI
@@ -1165,7 +1165,7 @@ class Engine(TankBundle):
             # and not from somewhere else. In that case we just exit early to avoid
             # the infinite recursion
             return
-        self.log.debug(msg)
+        self._log.debug(msg)
     
     def log_info(self, msg):
         """
@@ -1189,7 +1189,7 @@ class Engine(TankBundle):
             # and not from somewhere else. In that case we just exit early to avoid
             # the infinite recursion
             return
-        self.log.info(msg)
+        self._log.info(msg)
         
     def log_warning(self, msg):
         """
@@ -1213,7 +1213,7 @@ class Engine(TankBundle):
             # and not from somewhere else. In that case we just exit early to avoid
             # the infinite recursion
             return
-        self.log.warning(msg)
+        self._log.warning(msg)
     
     def log_error(self, msg):
         """
@@ -1237,7 +1237,7 @@ class Engine(TankBundle):
             # and not from somewhere else. In that case we just exit early to avoid
             # the infinite recursion
             return
-        self.log.error(msg)
+        self._log.error(msg)
 
     def log_exception(self, msg):
         """
@@ -1261,7 +1261,7 @@ class Engine(TankBundle):
             # and not from somewhere else. In that case we just exit early to avoid
             # the infinite recursion
             return
-        self.log.exception(msg)
+        self._log.exception(msg)
 
 
     ##########################################################################################
