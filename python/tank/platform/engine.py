@@ -604,7 +604,7 @@ class Engine(TankBundle):
         return self.__created_qt_dialogs
 
     @property
-    def log(self):
+    def logger(self):
         """
         Standard python logger for this engine.
 
@@ -613,12 +613,12 @@ class Engine(TankBundle):
         developing an engine::
 
             # if you are in the engine subclass
-            self.log.debug("Setting up extra menus")
+            self.logger.debug("Setting up extra menus")
 
             # if you are in python code that runs
             # as part of the engine
             engine = sgtk.platform.current_bundle()
-            engine.log.warning("Cannot find file.")
+            engine.logger.warning("Cannot find file.")
 
         Logging will be dispatched to a logger parented under the
         main toolkit logging namespace::
