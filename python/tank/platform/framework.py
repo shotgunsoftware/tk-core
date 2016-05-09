@@ -183,7 +183,7 @@ class Framework(TankBundle):
         Logs a debug message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
@@ -194,7 +194,7 @@ class Framework(TankBundle):
         Logs an info message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
@@ -205,7 +205,7 @@ class Framework(TankBundle):
         Logs an warning message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
@@ -216,7 +216,7 @@ class Framework(TankBundle):
         Logs an error message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
@@ -227,7 +227,7 @@ class Framework(TankBundle):
         Logs an exception message.
 
         .. deprecated:: 0.18
-            Use :meth:`Engine.log` instead.
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
