@@ -354,3 +354,16 @@ class Descriptor(object):
         latest._io_descriptor = self._io_descriptor.get_latest_version(constraint_pattern)
         return latest
 
+    # compatibility accessors to ensure that all systems
+    # calling this (previously internal!) parts of toolkit
+    # will still work.
+    def get_display_name(self): return self.display_name
+    def get_description(self): return self.description
+    def get_icon_256(self): return self.icon_256
+    def get_support_url(self): return self.support_url
+    def get_doc_url(self): return self.documentation_url
+    def get_deprecation_status(self): return self.deprecation_status
+    def get_system_name(self): return self.system_name
+    def get_version(self): return self.version
+    def get_changelog(self): return self.changelog
+

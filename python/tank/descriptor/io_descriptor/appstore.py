@@ -121,13 +121,21 @@ class IODescriptorAppStore(IODescriptorBase):
             self.ensure_local()
 
             # try to load from cache file
-            # cache is downloaded on app installation so expect it exists
+            # cache is typically downloaded on app installation but in some legacy cases
+            # this is not happening so don't assume file exists
             cache_file = os.path.join(self.get_path(), METADATA_FILE)
-            fp = open(cache_file, "rt")
-            try:
-                self.__cached_metadata = pickle.load(fp)
-            finally:
-                fp.close()
+            if os.path.exists(cache_file):
+                fp = open(cache_file, "rt")
+                try:
+                    self.__cached_metadata = pickle.load(fp)
+                finally:
+                    fp.close()
+            else:
+                log.warning(
+                    "%r Could not find cached metadata file %s - "
+                    "will proceed with empty app store metadata." % (self, cache_file)
+                )
+                self.__cached_metadata = {}
 
         # finally return the data!
         return self.__cached_metadata

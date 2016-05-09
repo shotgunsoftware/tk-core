@@ -118,6 +118,8 @@ class BundleDescriptor(Descriptor):
         manifest = self._io_descriptor.get_manifest()
         return manifest.get("supported_engines")
 
+
+
     @property
     def required_frameworks(self):
         """
@@ -137,6 +139,16 @@ class BundleDescriptor(Descriptor):
         if frameworks is None:
             frameworks = []
         return frameworks
+
+    # compatibility accessors to ensure that all systems
+    # calling this (previously internal!) parts of toolkit
+    # will still work.
+    def get_version_constraints(self): return self.version_constraints
+    def get_required_context(self): return self.required_context
+    def get_supported_platforms(self): return self.supported_platforms
+    def get_configuration_schema(self): return self.configuration_schema
+    def get_supported_engines(self): return self.supported_engines
+    def get_required_frameworks(self): return self.required_frameworks
 
     ###############################################################################################
     # helper methods
