@@ -131,7 +131,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 finally:
                     fp.close()
             else:
-                log.warning(
+                log.debug(
                     "%r Could not find cached metadata file %s - "
                     "will proceed with empty app store metadata." % (self, cache_file)
                 )

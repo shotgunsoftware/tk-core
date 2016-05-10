@@ -474,7 +474,6 @@ def _check_constraints(descriptor_obj, parent_engine_descriptor = None):
 
     :returns: a tuple: (can_upgrade, list_of_reasons)
     """
-
     constraints = descriptor_obj.version_constraints
 
     can_update = True
