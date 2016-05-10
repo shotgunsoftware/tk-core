@@ -220,7 +220,7 @@ class LogManager(object):
         """
         return self._std_file_handler
 
-    def     initialize_base_file_handler(self, log_name):
+    def initialize_base_file_handler(self, log_name):
         """
         Create a file handler and attach it to the stgk base logger.
         This will write a rotating log file to disk in a standard
