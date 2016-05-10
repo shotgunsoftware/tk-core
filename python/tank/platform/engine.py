@@ -120,7 +120,7 @@ class Engine(TankBundle):
         # check general debug log setting and if this flag is turned on,
         # adjust the global setting
         if self.get_setting("debug_logging", False):
-            LogManager().global_debug = True
+            self.__log_handler.setLevel(logging.DEBUG)
             self.log_debug("Engine config flag 'debug_logging' detected, turning on debug output.")
 
         # check that the context contains all the info that the app needs
@@ -271,7 +271,12 @@ class Engine(TankBundle):
         This will affect all logging across all of toolkit.
         """
         # flip debug logging
-        LogManager().global_debug = not LogManager().global_debug
+        if self.__log_handler.level == logging.DEBUG:
+            self.__log_handler.setLevel(logging.INFO)
+            self.logger.info("Debug logging disabled.")
+        else:
+            self.__log_handler.setLevel(logging.DEBUG)
+            self.logger.debug("Debug logging enabled.")
 
     def __open_log_folder(self):
         """
@@ -342,9 +347,10 @@ class Engine(TankBundle):
 
         :return: :class:`python.logging.LogHandler`
         """
-
         if self.__has_018_logging_support():
-            handler = ToolkitEngineHandler(self)
+            handler = LogManager().initialize_custom_handler(
+                ToolkitEngineHandler(self)
+            )
             # make it easy for engines to implement a consistent log format
             # by equipping the handler with a standard formatter:
             # [DEBUG tk-maya] message message
@@ -360,15 +366,16 @@ class Engine(TankBundle):
             handler.setFormatter(formatter)
 
         else:
-            handler = ToolkitEngineLegacyHandler(self)
+            # legacy engine that doesn't have
+            handler = LogManager().initialize_custom_handler(
+                ToolkitEngineLegacyHandler(self)
+            )
+
             # create a minimalistic format suitable for
             # existing output implementations of log_xxx
             #
             formatter = logging.Formatter("%(basename)s: %(message)s")
             handler.setFormatter(formatter)
-
-        # attach handler to main tk log stream
-        LogManager().root_logger.addHandler(handler)
 
         return handler
 

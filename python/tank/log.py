@@ -58,42 +58,29 @@ class LogManager(object):
             instance._root_logger = logging.getLogger(constants.ROOT_LOGGER_NAME)
 
             # check the TK_DEBUG flag at startup
+            # this controls the "global debug" state
+            # in the log manager
             if constants.DEBUG_LOGGING_ENV_VAR in os.environ:
-                instance.global_debug = True
+                instance._global_debug = True
+            else:
+                instance._global_debug = False
 
             cls.__instance = instance
 
 
         return cls.__instance
 
-    def _set_global_debug(self, state):
+    @property
+    def global_debug_flag(self):
         """
-        Sets the state of the global debug in toolkit.
-        """
-        if state:
-            self.root_logger.setLevel(logging.DEBUG)
-            log.debug(
-                "Debug logging was enabled. To permanently enable it, "
-                "set the %s environment variable." % constants.DEBUG_LOGGING_ENV_VAR
-            )
-        else:
-            log.debug("Disabling debug logging.")
-            self.root_logger.setLevel(logging.INFO)
+        Returns the state of the global debug flag.
 
-    def _get_global_debug(self):
-        """
-        Returns whether the toolkit main logger has got
-        debug log turned on or not. Controlling this property
-        has a global impact and affects all services attached
-        to the logger.
+        This flag expresses an intent that services should be
+        run with debug turned on.
 
-        .. note:: Debug logging is off by default.
-                  If you want to permanently enable debug logging,
-                  set the environment variable ``TK_DEBUG``.
+        .. note:: This is driven by the ``TK_DEBUG`` environment variable.
         """
-        return self.root_logger.isEnabledFor(logging.DEBUG)
-
-    global_debug = property(_get_global_debug, _set_global_debug)
+        return self._global_debug
 
     def initialize_custom_handler(self, handler=logging.StreamHandler()):
         """
@@ -103,6 +90,9 @@ class LogManager(object):
         .. note:: If you want to display log messages inside a DCC,
                   implement :meth:`~sgtk.platform.Engine._emit_log_message`.
 
+
+        .. note:: If the :meth:`global_debug_flag` is set to True, the handler created
+                  will be set to debug level, otherwise it will be set to info level.
 
         Calling this without parameters will generate a standard
         stream based logging handler that logs to stderr::
@@ -139,6 +129,11 @@ class LogManager(object):
 
         handler.setFormatter(formatter)
         self._root_logger.addHandler(handler)
+
+        if self.global_debug_flag:
+            handler.setLevel(logging.DEBUG)
+        else:
+            handler.setLevel(logging.INFO)
 
         return handler
 
@@ -225,7 +220,7 @@ class LogManager(object):
         """
         return self._std_file_handler
 
-    def initialize_base_file_handler(self, log_name):
+    def     initialize_base_file_handler(self, log_name):
         """
         Create a file handler and attach it to the stgk base logger.
         This will write a rotating log file to disk in a standard
@@ -289,6 +284,9 @@ class LogManager(object):
                 maxBytes=1024*1024*5,  # 5 MiB
                 backupCount=0
             )
+
+            # logging to file always happens at debug level
+            self._std_file_handler.setLevel(logging.DEBUG)
 
             # example:
             # 2016-04-25 08:56:12,413 [44862 DEBUG tank.log] message message
@@ -358,8 +356,10 @@ sgtk_root_logger = logging.getLogger(constants.ROOT_LOGGER_NAME)
 # logger (or any of its child loggers).
 sgtk_root_logger.propagate = False
 # The top level logger object has its message throughput
-# level set to INFO by default.
-sgtk_root_logger.setLevel(logging.INFO)
+# level set to DEBUG by default.
+# this should not be changed, but any filtering
+# should happen via log handlers
+sgtk_root_logger.setLevel(logging.DEBUG)
 #
 # create a 'nop' log handler to be attached.
 # this is to avoid warnings being reported that
