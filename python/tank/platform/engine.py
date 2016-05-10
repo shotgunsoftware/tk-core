@@ -215,7 +215,7 @@ class Engine(TankBundle):
             )
 
         self.register_command(
-            "View Log Folder",
+            "Open Log Folder",
             self.__open_log_folder,
             {
                 "short_name": "open_log_folder",

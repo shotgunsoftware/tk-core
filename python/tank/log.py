@@ -37,6 +37,9 @@ class LogManager(object):
         """
         Ensures only one instance of the log manager exists.
         """
+        #
+        # note - this init isn't currently threadsafe.
+        #
         # create the instance if it hasn't been created already
         if not cls.__instance:
             # remember the instance so that no more are created
@@ -279,12 +282,11 @@ class LogManager(object):
             )
 
 
-            # create a rotating log file with a max size of 18 megs -
-            # zendesk's current max attachment limit is 20mb so
-            # this should make all log files attachable to support tickets.
+            # create a rotating log file with a max size of 5 megs -
+            # this should make all log files easily attachable to support tickets.
             self._std_file_handler = logging.handlers.RotatingFileHandler(
                 log_file,
-                maxBytes=1024*1024*18,  # 18 MiB
+                maxBytes=1024*1024*5,  # 5 MiB
                 backupCount=0
             )
 
