@@ -78,7 +78,7 @@ except ImportError, e:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.0.30.dev"
+__version__ = "3.0.30"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -186,12 +186,6 @@ class ServerCapabilities(object):
             'label': 'project parameter'
         }, True)
 
-    def ensure_support_for_additional_filter_presets(self):
-        """Wrapper for ensure_support"""
-        return self._ensure_support({
-            'version': (6, 3, 13),
-            'label': 'additional_filter_presets parameter'
-        }, True)
 
     def __str__(self):
         return "ServerCapabilities: host %s, version %s, is_dev %s"\
@@ -572,7 +566,7 @@ class Shotgun(object):
 
     def find(self, entity_type, filters, fields=None, order=None,
             filter_operator=None, limit=0, retired_only=False, page=0,
-            include_archived_projects=True, additional_filter_presets=None):
+            include_archived_projects=True):
         """Find entities matching the given filters.
 
         :param entity_type: Required, entity type (string) to find.
@@ -601,17 +595,6 @@ class Shotgun(object):
         :param include_archived_projects: Optional, flag to include entities
         whose projects have been archived
 
-        :param additional_filter_presets: Optional list of presets to
-        further filter the result set, list has the form:
-        [ { preset_name: <preset_name>, <optional_preset parameters> } ],
-
-        Note that these filters are ANDed together and ANDed with the 'filter'
-        argument.
-
-        For details on supported presets and the format of this parameter,
-        please consult the API documentation:
-        https://github.com/shotgunsoftware/python-api/wiki
-
         :returns: list of the dicts for each entity with the requested fields,
         and their id and type.
         """
@@ -634,16 +617,13 @@ class Shotgun(object):
             # So we only need to check the server version if it is False
             self.server_caps.ensure_include_archived_projects()
 
-        if additional_filter_presets:
-            self.server_caps.ensure_support_for_additional_filter_presets()
 
         params = self._construct_read_parameters(entity_type,
                                                  fields,
                                                  filters,
                                                  retired_only,
                                                  order,
-                                                 include_archived_projects,
-                                                 additional_filter_presets)
+                                                 include_archived_projects)
 
         if limit and limit <= self.config.records_per_page:
             params["paging"]["entities_per_page"] = limit
@@ -687,8 +667,7 @@ class Shotgun(object):
                                    filters,
                                    retired_only,
                                    order,
-                                   include_archived_projects,
-                                   additional_filter_presets):
+                                   include_archived_projects):
         params = {}
         params["type"] = entity_type
         params["return_fields"] = fields or ["id"]
@@ -697,9 +676,6 @@ class Shotgun(object):
         params["return_paging_info"] = True
         params["paging"] = { "entities_per_page": self.config.records_per_page,
                              "current_page": 1 }
-
-        if additional_filter_presets:
-            params["additional_filter_presets"] = additional_filter_presets;
 
         if include_archived_projects is False:
             # Defaults to True on the server, so only pass it if it's False
@@ -718,6 +694,7 @@ class Shotgun(object):
                 })
             params['sorts'] = sort_list
         return params
+
 
     def _add_project_param(self, params, project_entity):
 
@@ -866,7 +843,7 @@ class Shotgun(object):
 
         return result
 
-    def update(self, entity_type, entity_id, data):
+    def update(self, entity_type, entity_id, data, multi_entity_update_modes=None):
         """Updates the specified entity with the supplied data.
 
         :param entity_type: Required, entity type (string) to update.
@@ -874,6 +851,16 @@ class Shotgun(object):
         :param entity_id: Required, id of the entity to update.
 
         :param data: Required, dict fields to update on the entity.
+
+        :param multi_entity_update_modes: Optional, dict of what update mode to
+        use when updating a multi-entity link field.  The keys in the dict are
+        the fields to set the mode for and the values from the dict are one
+        of "set", "add", or "remove". The default behavior if mode is not
+        specified for a field is 'set'. For example, on the 'Sequence' entity,
+        to append to the 'shots' field and remove from the 'assets' field, you
+        would specify:
+
+            multi_entity_update_modes={"shots":"add", "assets":"remove"}
 
         :returns: dict of the fields updated, with the entity_type and
         id added.
@@ -894,7 +881,10 @@ class Shotgun(object):
             params = {
                 "type" : entity_type,
                 "id" : entity_id,
-                "fields" : self._dict_to_list(data)
+                "fields" : self._dict_to_list(
+                    data,
+                    extra_data=self._dict_to_extra_data(
+                        multi_entity_update_modes, "multi_entity_update_mode"))
             }
             record = self._call_rpc("update", params)
             result = self._parse_records(record)[0]
@@ -964,7 +954,7 @@ class Shotgun(object):
         :param requests: A list of dict's of the form which have a
             request_type key and also specifies:
             - create: entity_type, data dict of fields to set
-            - update: entity_type, entity_id, data dict of fields to set
+            - update: entity_type, entity_id, data dict of fields to set, optionally multi_entity_update_modes
             - delete: entity_type and entity_id
 
         :returns: A list of values for each operation, create and update
@@ -1005,7 +995,12 @@ class Shotgun(object):
                                ['entity_id', 'data'],
                                req)
                 request_params['id'] = req['entity_id']
-                request_params['fields'] = self._dict_to_list(req["data"])
+                request_params['fields'] = self._dict_to_list(req["data"],
+                    extra_data=self._dict_to_extra_data(
+                        req.get("multi_entity_update_modes"),
+                        "multi_entity_update_mode"))
+                if "multi_entity_update_mode" in req:
+                    request_params['multi_entity_update_mode'] = req["multi_entity_update_mode"]
             elif req["request_type"] == "delete":
                 _required_keys("Batched delete request", ['entity_id'], req)
                 request_params['id'] = req['entity_id']
@@ -1635,6 +1630,8 @@ class Shotgun(object):
             raise ShotgunFileDownloadError(err)
         else:
             if file_path:
+                if not fp.closed:
+                    fp.close()
                 return file_path
             else:
                 return attachment
@@ -1912,7 +1909,8 @@ class Shotgun(object):
         
         api_entity_types = {}
         for (entity_type, filter_list) in entity_types.iteritems():
-
+            
+            
             if isinstance(filter_list, (list, tuple)):
                 resolved_filters = _translate_filters(filter_list, filter_operator=None)
                 api_entity_types[entity_type] = resolved_filters      
@@ -2593,18 +2591,30 @@ class Shotgun(object):
         # Comments in prev version said we can get this sometimes.
         raise RuntimeError("Unknown code %s %s" % (code, thumb_url))
 
-    def _dict_to_list(self, d, key_name="field_name", value_name="value"):
+    def _dict_to_list(self, d, key_name="field_name", value_name="value", extra_data=None):
         """Utility function to convert a dict into a list dicts using the
         key_name and value_name keys.
 
-        e.g. d {'foo' : 'bar'} changed to [{'field_name':'foo, 'value':'bar'}]
+        e.g. d {'foo' : 'bar'} changed to [{'field_name':'foo', 'value':'bar'}]
+
+        Any dictionary passed in via extra_data will be merged into the resulting dictionary.
+        e.g. d as above and extra_data of {'foo': {'thing1': 'value1'}} changes into
+        [{'field_name': 'foo', 'value': 'bar', 'thing1': 'value1'}]
         """
+        ret = []
+        for k, v in (d or {}).iteritems():
+            d = {key_name: k, value_name: v}
+            d.update((extra_data or {}).get(k, {}))
+            ret.append(d)
+        return ret
 
-        return [
-            {key_name : k, value_name : v }
-            for k, v in (d or {}).iteritems()
-        ]
+    def _dict_to_extra_data(self, d, key_name="value"):
+        """Utility function to convert a dict into a dict compatible with the extra_data arg
+        of _dict_to_list
 
+        e.g. d {'foo' : 'bar'} changed to {'foo': {"value": 'bar'}]
+        """
+        return dict([(k, {key_name: v}) for (k,v) in (d or {}).iteritems()])
 
 # Helpers from the previous API, left as is.
 
