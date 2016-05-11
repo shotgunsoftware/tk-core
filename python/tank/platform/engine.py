@@ -1256,28 +1256,34 @@ class Engine(TankBundle):
 
     def _define_qt_base(self):
         """
-        This will be called at initialisation time and will allow 
+        This will be called at initialisation time and will allow
         a user to control various aspects of how QT is being used
         by Tank. The method should return a dictionary with a number
-        of specific keys, outlined below. 
-        
+        of specific keys, outlined below.
+
         * qt_core - the QtCore module to use
         * qt_gui - the QtGui module to use
+        # wrapper - the Qt wrapper root module, e.g. PySide
         * dialog_base - base class for to use for Tank's dialog factory
-        
+
         :returns: dict
         """
-        # default to None
         base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
         try:
-            from .qt import shim
-            base = qt.shim.create_shim()
+            # Local import since Qt might not be available.
+            from .qt.qt_importer import QtImporter
+            importer = QtImporter()
+            base["qt_core"] = importer.QtCore
+            base["qt_gui"] = importer.QtGui
+            base["dialog_base"] = importer.QtGui.QDialog
+            base["wrapper"] = importer.wrapper
         except:
+
             self.log_exception("Default engine QT definition failed to find QT. "
                                "This may need to be subclassed.")
-        
+
         return base
-        
+
     def _initialize_dark_look_and_feel(self):
         """
         Initializes a standard toolkit look and feel using a combination of
