@@ -102,7 +102,15 @@ class CoreImportHandler(object):
 
         # and re-init our disk logging based on the new code
         # access it from the new tank instance to ensure we get the new code
-        tank.LogManager().initialize_base_file_handler(prev_log_handler)
+        try:
+            tank.LogManager().initialize_base_file_handler(prev_log_handler)
+        except AttributeError, e:
+            # older versions of the API may not have this defined.
+            log.warning(
+                "Switching to a version of the core API that doesn't "
+                "have a LogManager.initialize_base_file_handler method defined."
+            )
+
 
     @classmethod
     def _initialize(cls):
