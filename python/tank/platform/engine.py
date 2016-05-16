@@ -565,6 +565,8 @@ class Engine(TankBundle):
                 new_context
             )
         )
+        # Emit the core level event.
+        _execute_pre_context_change_hook(self.sgtk, self.context, new_context)
         self.pre_context_change(self.context, new_context)
         self.log_debug("Execution of pre_context_change for engine %r is complete." % self)
 
@@ -606,7 +608,9 @@ class Engine(TankBundle):
             )
         )
 
+        # Emit the core level event.
         self.post_context_change(old_context, new_context)
+        _execute_post_context_change_hook(self.sgtk, old_context, new_context)
         self.log_debug("Execution of post_context_change for engine %r is complete." % self)
 
         # Last, now that we're otherwise done, we can run the
@@ -1836,6 +1840,77 @@ def start_engine(engine_name, tk, context):
     Raises TankEngineInitError if an engine could not be started
     for the passed context.
     """
+    return _start_engine(engine_name, tk, None, context)
+
+
+def _restart_engine(new_context):
+    """
+    Restarts an engine by destroying the previous one and creating a new one.
+
+    :param new_context: Context for the new engine. If None, previous context will
+        be reused.
+    """
+    engine = current_engine()
+    try:
+        # Track some of the current state before restarting the engine.
+        old_context = engine.context
+
+        # Restart the engine. If we were given a new context to use,
+        # use it, otherwise restart using the same context as before.
+        new_context = new_context or engine.context
+        current_engine_name = engine.instance_name
+        engine.destroy()
+
+        _start_engine(current_engine_name, new_context.tank, old_context, new_context)
+    except TankError, e:
+        engine.log_error("Could not restart the engine: %s" % e)
+    except Exception:
+        engine.log_exception("Could not restart the engine!")
+
+
+def _execute_pre_context_change_hook(tk, current_context, next_context):
+    """
+    Executes the pre context change hook.
+
+    :param tk: Toolkit instance.
+    :param current_context: Context before the context change.
+    :param next_context: Context after the context change.
+    """
+    tk.execute_core_hook_method(
+        constants.CONTEXT_CHANGE_HOOK,
+        "pre_context_change",
+        current_context=current_context,
+        next_context=next_context
+    )
+
+
+def _execute_post_context_change_hook(tk, previous_context, current_context):
+    """
+    Executes the post context change hook.
+
+    :param tk: Toolkit instance.
+    :param current_context: Context before the context change.
+    :param next_context: Context after the context change.
+    """
+    tk.execute_core_hook_method(
+        constants.CONTEXT_CHANGE_HOOK,
+        "post_context_change",
+        previous_context=previous_context,
+        current_context=current_context
+    )
+
+
+def _start_engine(engine_name, tk, old_context, new_context):
+    """
+    Starts an engine for a given Toolkit instance and context.
+
+    :param engine_name: Name of the engine to start.
+    :param tk: Toolkit instance.
+    :param old_context: Context before the engine starts. Can be None.
+    :param new_context: Context of the new engine.
+
+    :returns: A new sgtk.platform.Engine object.
+    """
     # first ensure that an engine is not currently running
     if current_engine():
         raise TankError("An engine (%s) is already running! Before you can start a new engine, "
@@ -1843,7 +1918,7 @@ def start_engine(engine_name, tk, context):
                         "tank.platform.current_engine().destroy()." % current_engine())
 
     # get environment and engine location
-    (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, context)
+    (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, new_context)
 
     # make sure it exists locally
     if not engine_descriptor.exists_local():
@@ -1852,15 +1927,17 @@ def start_engine(engine_name, tk, context):
     # get path to engine code
     engine_path = engine_descriptor.get_path()
     plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
-
-    # Instantiate the engine
     class_obj = loader.load_plugin(plugin_file, Engine)
-    engine = class_obj(tk, context, engine_name, env)
 
+    # Notify the context change and start the engine.
+    _execute_pre_context_change_hook(tk, old_context, new_context)
+    # Instantiate the engine
+    engine = class_obj(tk, new_context, engine_name, env)
     # register this engine as the current engine
     set_current_engine(engine)
-
+    _execute_post_context_change_hook(tk, old_context, new_context)
     return engine
+
 
 def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=None):
     """
