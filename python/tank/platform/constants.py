@@ -84,6 +84,9 @@ TANK_ENGINE_INIT_HOOK_NAME = "engine_init"
 # hook that is executed whenever a bundle has initialized
 TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 
+# hook that is execute whenever a context change happens
+CONTEXT_CHANGE_HOOK = "context_change"
+
 # hook to log metrics
 TANK_LOG_METRICS_HOOK_NAME = "log_metrics"
 

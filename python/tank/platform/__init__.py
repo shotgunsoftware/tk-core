@@ -10,7 +10,7 @@
 
 
 # Engine management
-from .engine import start_engine, current_engine, get_engine_path, find_app_settings
+from .engine import start_engine, current_engine, get_engine_path, find_app_settings, _restart_engine
 
 # base classes to derive from
 from .application import Application
@@ -111,20 +111,22 @@ def change_context(new_context):
 
     try:
         engine.log_debug("Changing context to %r." % new_context)
+
         engine.change_context(new_context)
         engine.log_debug("Context changed successfully.")
     except TankContextChangeNotSupportedError:
         engine.log_debug("Context change not allowed by engine, restarting instead.")
         restart(new_context)
 
+
 def restart(new_context=None):
     """
     Running restart will shut down any currently running engine, then refresh the templates
     definitions and finally start up the engine again. 
-    
+
     The template configuration, environment configuration and the actual app and engine code
     will be reloaded.
-    
+
     Any open windows will remain open and will use the old code base and settings. In order to
     access any changes that have happened as part of a reload, you need to launch new app
     windows and these will use the fresh code and configs.
@@ -133,7 +135,7 @@ def restart(new_context=None):
                         is to restart the engine with its current context.
     """
     engine = current_engine()
-    
+
     if engine is None:
         raise TankError("No engine is currently running! Run start_engine instead.")
 
@@ -144,20 +146,9 @@ def restart(new_context=None):
     except TankError, e:
         engine.log_error(e)
 
-    try:
-        # Restart the engine. If we were given a new context to use,
-        # use it, otherwise restart using the same context as before.         
-        current_context = new_context or engine.context            
-        current_engine_name = engine.instance_name
-        engine.destroy()
-        start_engine(current_engine_name, current_context.tank, current_context)
-    except TankError, e:
-        engine.log_error("Could not restart the engine: %s" % e)
-    except Exception:
-        engine.log_exception("Could not restart the engine!")
-    
-    engine.log_info("Toolkit platform was restarted.")
+    _restart_engine(new_context or engine.context)
 
+    engine.log_info("Toolkit platform was restarted.")
 
 
 def current_bundle():

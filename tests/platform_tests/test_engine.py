@@ -8,20 +8,32 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+Engine-related unit tests.
+"""
+
+from __future__ import with_statement
+
 import os
 import sys
 import threading
 import random
 import time
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule, skip_if_pyside_missing
 
+import contextlib
 import tank
 import sgtk
+from sgtk.platform import engine
 from tank.errors import TankError
+import mock
 
 
 class TestEngineBase(TankTestBase):
+    """
+    Sets up and tears down engine-based unit tests.
+    """
 
     def setUp(self):
         """
@@ -83,8 +95,8 @@ class TestStartEngine(TestEngineBase):
         """
         Makes sure the engine that is started is actually an sgtk engine.
         """
-        engine = tank.platform.start_engine("test_engine", self.tk, self.context)
-        self.assertIsInstance(engine, tank.platform.engine.Engine)
+        cur_engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        self.assertIsInstance(cur_engine, tank.platform.engine.Engine)
 
     def test_engine_running(self):
         """
@@ -98,13 +110,13 @@ class TestStartEngine(TestEngineBase):
         """
         Test engine properties
         """
-        engine = tank.platform.start_engine("test_engine", self.tk, self.context)
-        self.assertEqual(engine.name, "test_engine")
-        self.assertEqual(engine.display_name, "test_engine")
-        self.assertEqual(engine.version, "Undefined")
-        self.assertEqual(engine.documentation_url, None)
-        self.assertEqual(engine.instance_name, "test_engine")
-        self.assertEqual(engine.context, self.context)
+        cur_engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        self.assertEqual(cur_engine.name, "test_engine")
+        self.assertEqual(cur_engine.display_name, "test_engine")
+        self.assertEqual(cur_engine.version, "Undefined")
+        self.assertEqual(cur_engine.documentation_url, None)
+        self.assertEqual(cur_engine.instance_name, "test_engine")
+        self.assertEqual(cur_engine.context, self.context)
 
 
 class TestExecuteInMainThread(TestEngineBase):
@@ -225,3 +237,123 @@ class TestExecuteInMainThread(TestEngineBase):
         t = threading.Thread(target=lambda: wait_for_threads_and_quit(threads))
         t.start()
         QtCore.QCoreApplication.instance().exec_()
+
+
+class TestContextChange(TestEngineBase):
+    """
+    Makes sure that pre and post context change events are always sent wen context changes.
+    """
+
+    def setUp(self):
+        """
+        Prepares a mocker that will count how many times a method is called with certain parameters.
+        """
+        TestEngineBase.setUp(self)
+
+        # Create pass-through patches for methods that should be invoked
+        # when switching context. We'll use them layer to count how many times
+        # they have been invoked and with what parameters.
+        self._pre_patch = mock.patch(
+            "sgtk.platform.engine._execute_pre_context_change_hook",
+            wraps=engine._execute_pre_context_change_hook
+        )
+        self._post_patch = mock.patch(
+            "sgtk.platform.engine._execute_post_context_change_hook",
+            wraps=engine._execute_post_context_change_hook
+        )
+
+    @contextlib.contextmanager
+    def _assert_hooks_invoked(self, old_context, new_context):
+        """
+        Asserts that the change context hooks have only been invoked once and with
+        the right arguments. To be invoked with the 'with' statement.
+
+        :param old_context: Context to compare with the old context parameter in
+            the hooks.
+        :param new_context: Context to compare with the new context parameter in
+            the hooks.
+        """
+        # Multi item "with"s are not supported in Python 2.5, so do one after
+        # the other.
+        with self._pre_patch as pre_mock:
+            with self._post_patch as post_mock:
+                # Invokes the code within the caller's 'with' statement. (that's really cool!)
+                yield
+                pre_mock.assert_called_once_with(self.tk, old_context, new_context)
+                post_mock.assert_called_once_with(self.tk, old_context, new_context)
+
+    def test_on_engine_start(self):
+        """
+        Checks if the context change hooks are invoked when an engine starts.
+        """
+        # Start the engine.
+        with self._assert_hooks_invoked(None, self.context):
+            sgtk.platform.start_engine("test_engine", self.tk, self.context),
+
+    def test_on_engine_restart(self):
+        """
+        Checks if the context change hooks are invoked when an engine restarts with
+        the same context.
+        """
+        sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+        # Restart toolkit
+        with self._assert_hooks_invoked(self.context, self.context):
+            tank.platform.restart()
+
+    def test_on_engine_restart_other_context(self):
+        """
+        Checks if the context change hooks are invoked when an engine restarts with
+        a different context.
+        """
+        sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+        new_context = self.tk.context_from_entity(
+            self.context.entity["type"], self.context.entity["id"]
+        )
+        # Restart toolkit with the a different context.
+        with self._assert_hooks_invoked(self.context, new_context):
+            tank.platform.restart(new_context)
+
+    def test_on_change_context_with_context_change_supporting_engine(self):
+        """
+        Checks that the context change event are sent when the context is changed.
+        """
+        # Start the engine.
+        cur_engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+        # Create another context we can switch to.
+        new_context = self.tk.context_from_entity(
+            self.context.entity["type"], self.context.entity["id"]
+        )
+
+        # Enables the test engine to support context change.
+        cur_engine.enable_context_change()
+
+        # Now trigger a context change.
+        with self._assert_hooks_invoked(self.context, new_context):
+            sgtk.platform.change_context(new_context)
+
+        # Make sure the engine wasn't destroyed and recreated.
+        self.assertEqual(id(cur_engine), id(sgtk.platform.current_engine()))
+
+    def test_on_change_context_without_context_change_supporting_engine(self):
+        """
+        Checks that the context change event are sent when the context is changed
+        even if the engine doesn't support context change.
+        """
+        # Start the engine.
+        cur_engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+        # Create another context we can switch to.
+        new_context = self.tk.context_from_entity(
+            self.context.entity["type"], self.context.entity["id"]
+        )
+
+        # Now trigger a context change.
+        with self._assert_hooks_invoked(self.context, new_context):
+            sgtk.platform.change_context(new_context)
+
+        # Make sure the engine was destroyed and recreated.
+        self.assertNotEqual(id(cur_engine), id(sgtk.platform.current_engine()))
+
