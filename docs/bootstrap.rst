@@ -71,12 +71,15 @@ command - the :class:`ToolkitManager` instead becomes the entry point into the s
 handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.
 
+ToolkitManager
+========================================
+
 .. autoclass:: ToolkitManager
     :members:
     :inherited-members:
 
 Exception Classes
-----------------------------------------
+========================================
 
 .. autoclass:: TankBootstrapError
 

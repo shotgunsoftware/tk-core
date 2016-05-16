@@ -27,6 +27,9 @@ Each Toolkit :class:`~sgtk.platform.Engine` contains a method :meth:`~sgtk.platf
 that can be subclassed if you want to the DCC to display
 log messages at runtime.
 
+LogManager
+-----------------------------------
+
 .. autoclass:: LogManager
     :members:
 
@@ -46,6 +49,10 @@ fashion.
 
 .. currentmodule:: sgtk.util.filesystem
 
+
+sgtk.util.filesystem
+-----------------------------------
+
 .. autofunction:: with_cleared_umask
 .. autofunction:: touch_file(path, permissions=0666)
 .. autofunction:: ensure_folder_exists(path, permissions=0775, create_placeholder_file=False)
@@ -55,20 +62,20 @@ fashion.
 .. autofunction:: move_folder(src, dst, folder_permissions=0775)
 .. autofunction:: create_valid_filename
 
-Cross Platform Path Management
-============================================
+ShotgunPath
+-----------------------------------
 
 .. autoclass:: sgtk.util.ShotgunPath
     :members:
 
-Temporary Data Storage
-============================================
+LocalFileStorageManager
+-----------------------------------
 
 .. autoclass:: sgtk.util.LocalFileStorageManager
     :members:
 
 Shotgun Related
-============================================
+=============================
 
 Below are a collection of shotgun related utility
 and convenience methods:
@@ -84,7 +91,7 @@ and convenience methods:
 
 
 Miscellaneous
-============================================
+=============================
 
 .. autofunction:: append_path_to_env_var
 .. autofunction:: prepend_path_to_env_var

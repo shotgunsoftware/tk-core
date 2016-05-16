@@ -14,17 +14,21 @@ from .errors import TankContextChangeNotSupportedError
 from .engine import current_engine, start_engine
 
 def _get_current_bundle():
+    """
+    The current import bundle is set by bundle.import_module() and
+    and is a way to defuse the chicken/egg situation which happens
+    when trying to do an import_framework inside a module that is being
+    loaded by import_module. The crux is that the module._tank_bundle reference
+    that import_module() sets is constructed at the end of the call,
+    meaning that the frameworks import cannot find this during the import
+    this variable is the fallback in this case and it contains a reference
+    to the current bundle.
+
+    :returns: :class:`Application`, :class:`Engine` or :class:`Framework` instance
+    """
 
     import sys
 
-    # The current import bundle is set by bundle.import_module() and
-    # and is a way to defuse the chicken/egg situtation which happens
-    # when trying to do an import_framework inside a module that is being
-    # loaded by import_module. The crux is that the module._tank_bundle reference
-    # that import_module() sets is constructed at the end of the call,
-    # meaning that the frameworks import cannot find this during the import
-    # this variable is the fallback in this case and it contains a reference
-    # to the current bundle.
     current_bundle = ImportStack.get_current_bundle()
 
     if not current_bundle:

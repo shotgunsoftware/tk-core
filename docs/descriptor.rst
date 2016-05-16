@@ -185,34 +185,55 @@ If you needed to point toolkit at a path, but intend to use the setup for non-de
 descriptor rather than a dev descriptor. These have identical syntax.
 
 
-Descriptor resolve and management
+
+API Reference
 ----------------------------------------
+
+Factory Methods
+================================================
 
 .. autofunction:: create_descriptor
 .. autofunction:: descriptor_dict_to_uri
 .. autofunction:: descriptor_uri_to_dict
 
 
-Descriptor Classes
-----------------------------------------
+AppDescriptor
+================================================
 
 .. autoclass:: AppDescriptor
+    :inherited-members:
     :members:
+
+EngineDescriptor
+================================================
 
 .. autoclass:: EngineDescriptor
+    :inherited-members:
     :members:
+
+FrameworkDescriptor
+================================================
 
 .. autoclass:: FrameworkDescriptor
+    :inherited-members:
     :members:
+
+ConfigDescriptor
+================================================
 
 .. autoclass:: ConfigDescriptor
+    :inherited-members:
     :members:
+
+CoreDescriptor
+================================================
 
 .. autoclass:: CoreDescriptor
+    :inherited-members:
     :members:
 
-Descriptor Exceptions
-----------------------------------------
+Exceptions
+================================================
 
 .. autoclass:: TankAppStoreConnectionError
 .. autoclass:: TankAppStoreError

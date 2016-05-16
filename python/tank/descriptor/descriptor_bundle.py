@@ -109,11 +109,11 @@ class BundleDescriptor(Descriptor):
     @property
     def supported_engines(self):
         """
-        The engines supported by this app or framework. May return None,
-        meaning that anything goes.
+        The engines supported by this app or framework. Examples
+        of return values:
 
-        return: None                   (all engines are fine!)
-        return: ["tk-maya", "tk-nuke"] (works with maya and nuke)
+            - ``None`` - Works in all engines.
+            - ``["tk-maya", "tk-nuke"]`` - Works in Maya and Nuke.
         """
         manifest = self._io_descriptor.get_manifest()
         return manifest.get("supported_engines")

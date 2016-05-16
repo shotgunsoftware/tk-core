@@ -1,4 +1,4 @@
-Shotgun Pipeline Toolkit Developer Guide
+Shotgun Pipeline Toolkit Core Reference, |release|
 ####################################################
 
 Welcome to the Shotgun pipeline Toolkit developer and reference documentation.
