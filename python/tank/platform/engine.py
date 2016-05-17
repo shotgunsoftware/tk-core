@@ -117,7 +117,6 @@ class Engine(TankBundle):
                 self.log_debug("Appending to PYTHONPATH: %s" % python_path)
                 sys.path.append(python_path)
 
-
         # Note, 'init_engine()' is now deprecated and all derived initialisation should be
         # done in either 'pre_app_init()' or 'post_app_init()'.  'init_engine()' is left
         # in here to provide backwards compatibility with any legacy code. 
@@ -127,12 +126,14 @@ class Engine(TankBundle):
         base_def = self._define_qt_base()
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
+        qt.QtWidgets = base_def.get("qt_widgets")
         qt.TankDialogBase = base_def.get("dialog_base")
 
         # Update the authentication module to use the engine's Qt.
         from tank_vendor.shotgun_authentication.ui import qt_abstraction
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
+        qt_abstraction.QtWidgets = qt.QtWidgets
         
         # create invoker to allow execution of functions on the
         # main thread:
@@ -1267,7 +1268,7 @@ class Engine(TankBundle):
 
         * qt_core - the QtCore module to use
         * qt_gui - the QtGui module to use
-        # wrapper - the Qt wrapper root module, e.g. PySide
+        * wrapper - the Qt wrapper root module, e.g. PySide
         * dialog_base - base class for to use for Tank's dialog factory
 
         :returns: dict
@@ -1279,6 +1280,7 @@ class Engine(TankBundle):
             importer = QtImporter()
             base["qt_core"] = importer.QtCore
             base["qt_gui"] = importer.QtGui
+            base["qt_widgets"] = importer.QtWidgets
             base["dialog_base"] = importer.QtGui.QDialog
             base["wrapper"] = importer.wrapper
         except:

@@ -9,15 +9,23 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Patches for different versions of Qt.
+PySide 2 backwards compatibility layer for use with PySide 1 code.
 """
 
 
 class PySide2Patcher(object):
     """
     Patches PySide 2 so it can be API compatible with PySide 1.
+
+    .. code-block:: python
+        from PySide2 import QtGui, QtCore, QtWidgets
+        import PySide2
+        PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
     """
 
+    # These classes have been moved from QtGui in Qt4 to QtCore in Qt5 and we're
+    # moving them back from QtCore to QtGui to preserve backward compability with
+    # PySide 1.
     _core_to_qtgui = (
         "QAbstractProxyModel",
         "QItemSelection",
@@ -27,10 +35,17 @@ class PySide2Patcher(object):
         "QStringListModel"
     )
 
+    # Flag that will be set at the module level so that if an engine is reloaded
+    # the PySide 2 API won't be monkey patched twice.
     _TOOLKIT_COMPATIBLE = "__toolkit_compatible"
 
     @classmethod
     def _move_attributes(cls, dst, src, names):
+        """
+        Moves a list of attributes from one package to another.
+
+        :param names: Names of the attributes to move.
+        """
         for name in names:
             if not hasattr(dst, name):
                 setattr(dst, name, getattr(src, name))
@@ -56,21 +71,22 @@ class PySide2Patcher(object):
 
         :param QCoreApplication: The QCoreApplication class.
         """
-        translate = QCoreApplication.translate
+        original_translate = QCoreApplication.translate
 
         @staticmethod
-        def wrapper(context, source_text, disambiguation=None, encoding=None, n=None):
+        def translate(context, source_text, disambiguation=None, encoding=None, n=None):
             # In PySide2, the encoding argument has been deprecated, so we don't
             # pass it down. n is still supported however, but has always been optional
             # in PySide. So if n has been set to something, let's pass it down,
             # otherwise Qt5 has a default value for it, so we'll use that instead.
             if n is not None:
-                return translate(context, source_text, disambiguation, n)
+                return original_translate(context, source_text, disambiguation, n)
             else:
-                return translate(context, source_text, disambiguation)
+                return original_translate(context, source_text, disambiguation)
 
-        QCoreApplication.translate = wrapper
+        QCoreApplication.translate = translate
 
+        # Enum values for QCoreApplication.translate's encode parameter.
         QCoreApplication.CodecForTr = 0
         QCoreApplication.UnicodeUTF8 = 1
         QCoreApplication.DefaultCodec = QCoreApplication.CodecForTr
@@ -82,21 +98,22 @@ class PySide2Patcher(object):
 
         :param QtGui: QtGui module.
         """
-        QApplication = QtGui.QApplication
+        original_QApplication = QtGui.QApplication
 
-        class Wrapper(QApplication):
+        class QApplication(original_QApplication):
             def __init__(self, *args):
-                QApplication.__init__(self, *args)
+                original_QApplication.__init__(self, *args)
                 # qApp has been moved from QtGui to QtWidgets, make sure that
                 # when QApplication is instantiated than qApp is set on QtGui.
                 QtGui.qApp = self
 
             @staticmethod
-            def palette():
+            def palette(widget=None):
+                # PySide 1 didn't take a parameter for this method.
                 # Retrieve the application palette by passing no widget.
-                return QApplication.palette(None)
+                return original_QApplication.palette(widget)
 
-        QtGui.QApplication = Wrapper
+        QtGui.QApplication = QApplication
 
     @classmethod
     def _patch_QAbstractItemView(cls, QtGui):
@@ -105,26 +122,31 @@ class PySide2Patcher(object):
 
         :param QtGui: QtGui module.
         """
-        QAbstractItemView = QtGui.QAbstractItemView
+        original_QAbstractItemView = QtGui.QAbstractItemView
 
-        class Wrapper(QAbstractItemView):
+        class QAbstractItemView(original_QAbstractItemView):
             def __init__(self, *args):
-                QAbstractItemView.__init__(self, *args)
-                # dataChanged's signature has an extra parameter in Qt5. Since this
-                # is a virtual method than is usually overriden, monkey patch
-                # this object's dataChanged if present to Qt can invoke the Python
+                original_QAbstractItemView.__init__(self, *args)
+                # dataChanged's is a virtual method whose signature has an extra
+                # parameter in Qt5. This method can be called from the C++ side
+                # and it expects to be able to pass in arguments. We'll monkey patch
+                # this object's dataChanged, if present, so Qt can invoke the Python
                 # version and then forward the call back to the derived class's
-                # implementation.
+                # implementation. Roles is allowed to be optional so that any
+                # PySide1 code can still invoke the dataChanged method.
                 if hasattr(self, "dataChanged"):
-                    dataChanged = self.dataChanged
+                    original_dataChanged = self.dataChanged
+
+                    def dataChanged(tl, br, roles=None):
+                        original_dataChanged(tl, br)
                     self.dataChanged = lambda tl, br, roles: dataChanged(tl, br)
 
-        QtGui.QAbstractItemView = Wrapper
+        QtGui.QAbstractItemView = QAbstractItemView
 
     @classmethod
     def _patch_QStandardItemModel(cls, QtGui):
 
-        QStandardItemModel = QtGui.QStandardItemModel
+        original_QStandardItemModel = QtGui.QStandardItemModel
 
         class SignalWrapper(object):
             def __init__(self, signal):
@@ -137,14 +159,14 @@ class PySide2Patcher(object):
                 # Forward to the wrapped object.
                 return getattr(self._signal, name)
 
-        class Wrapper(QStandardItemModel):
-            def __init__(self, *args):
+        class QStandardItemModel(original_QStandardItemModel):
+            def original_QStandardItemModel(self, *args):
                 QStandardItemModel.__init__(self, *args)
                 # Ideally we would only wrap the emit method but that attibute
                 # is read only so we end up wrapping the whole object.
                 self.dataChanged = SignalWrapper(self.dataChanged)
 
-        QtGui.QStandardItemModel = Wrapper
+        QtGui.QStandardItemModel = QStandardItemModel
 
     @classmethod
     def _patch_QMessageBox(cls, QMessageBox):
@@ -216,6 +238,7 @@ class PySide2Patcher(object):
         :param QtGui: The QtGui module.
         :param QtWidgets: The QtWidgets module.
         """
+        # Make sure the API hasn't already been patched.
         if hasattr(PySide2, cls._TOOLKIT_COMPATIBLE):
             return
 
@@ -230,4 +253,5 @@ class PySide2Patcher(object):
         cls._patch_QStandardItemModel(QtGui)
         cls._patch_QMessageBox(QtGui.QMessageBox)
 
+        # Indicate the API has been patched.
         setattr(PySide2, cls._TOOLKIT_COMPATIBLE, True)

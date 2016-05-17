@@ -16,6 +16,15 @@ Qt version abstraction layer.
 class QtImporter(object):
     """
     Imports different versions of Qt and makes their API compatible with PySide.
+
+    .. code-block:: python
+        try:
+            importer = QtImporter()
+        except Exception as e:
+            print "Couldn't import a Qt Wrapper: " % (e,)
+        else:
+            importer.QtGui.QApplication([])
+            ...
     """
 
     def __init__(self):
@@ -23,7 +32,7 @@ class QtImporter(object):
         Imports the Qt modules and sets the QtCore, QtGui and wrapper attributes
         on this object.
         """
-        self.QtCore, self.QtGui, self.wrapper = self._import_modules()
+        self.QtCore, self.QtGui, self.QtWidgets, self.wrapper = self._import_modules()
 
     def _import_pyside(self):
         """
@@ -39,7 +48,7 @@ class QtImporter(object):
         if not hasattr(PySide, "__version__"):
             PySide.__version__ = "<unknown>"
 
-        return QtCore, QtGui, PySide
+        return QtCore, QtGui, None, PySide
 
     def _import_pyside2(self):
         """
@@ -53,7 +62,7 @@ class QtImporter(object):
 
         PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
 
-        return QtCore, QtGui, PySide2
+        return QtCore, QtGui, QtWidgets, PySide2
 
     def _import_pyqt4(self):
         """
@@ -69,7 +78,7 @@ class QtImporter(object):
         QtCore.Slot = QtCore.pyqtSlot
         QtCore.Property = QtCore.pyqtProperty
 
-        return QtCore, QtGui, PyQt4
+        return QtCore, QtGui, None, PyQt4
 
     def _import_modules(self):
         """
