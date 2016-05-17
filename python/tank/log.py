@@ -303,44 +303,50 @@ class LogManager(object):
         # return previous log name
         return previous_log_name
 
-def log_timing(name=None):
-    """
-    Decorator that times and logs the execution of a method.
+    @staticmethod
+    def log_timing(func):
+        """
+        Decorator that times and logs the execution of a method.
 
-    Sometimes it is useful to log runtime statistics about
-    how long time a certain method takes to execute. In the
-    case of Toolkit, it is particularly helpful when debugging
-    issues to do with I/O or cloud connectivity.
+        Sometimes it is useful to log runtime statistics about
+        how long time a certain method takes to execute. In the
+        case of Toolkit, it is particularly helpful when debugging
+        issues to do with I/O or cloud connectivity.
 
-    If you have a method that for example connects to Shotgun to
-    retrieve data, you can decorate it::
+        If you have a method that for example connects to Shotgun to
+        retrieve data, you can decorate it::
 
-        @log_timing("Publishing to Shotgun")
-        def my_shotgun_publish_method():
-            '''
-            Publishes lots of files to Shotgun
-            '''
-            # shotgun code here
+            @sgtk.LogManager.log_timing
+            def my_shotgun_publish_method():
+                '''
+                Publishes lots of files to Shotgun
+                '''
+                # shotgun code here
 
-    In the debug logs, timings will be written to the
-    ``tank.stopwatch`` logger::
+        In the debug logs, timings will be written to the
+        ``sgtk.stopwatch`` logger::
 
-        [DEBUG tank.stopwatch] Publishing to Shotgun: 0.633s
+            [DEBUG sgtk.stopwatch.module] my_shotgun_publish_method: 0.633s
 
-    """
-    def _my_decorator(func):
-        def _decorator(*args, **kwargs):
+        """
+        @wraps(func)
+        def wrapper(*args, **kwargs):
             time_before = time.time()
             try:
                 response = func(*args, **kwargs)
             finally:
                 time_spent = time.time() - time_before
                 # log to special timing logger
-                timing_logger = logging.getLogger(constants.PROFILING_LOG_CHANNEL)
-                timing_logger.debug("%s: %fs" % (name, time_spent))
+                timing_logger = logging.getLogger(
+                    "%s.%s" % (constants.PROFILING_LOG_CHANNEL, func.__module__)
+                )
+                timing_logger.debug(
+                    "%s: %fs" % (func.__name__, time_spent)
+                )
             return response
-        return wraps(func)(_decorator)
-    return _my_decorator
+        return wrapper
+
+
 
 
 
