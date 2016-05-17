@@ -567,6 +567,7 @@ class Engine(TankBundle):
                 new_context
             )
         )
+
         with _CoreContextChangeHookGuard(self.sgtk, self.context, new_context):
             self.pre_context_change(self.context, new_context)
             self.log_debug("Execution of pre_context_change for engine %r is complete." % self)
@@ -1971,6 +1972,8 @@ def _start_engine(engine_name, tk, old_context, new_context):
     # get path to engine code
     engine_path = engine_descriptor.get_path()
     plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
+    class_obj = loader.load_plugin(plugin_file, Engine)
+
     # Notify the context change and start the engine.
     with _CoreContextChangeHookGuard(tk, old_context, new_context):
         # Instantiate the engine
