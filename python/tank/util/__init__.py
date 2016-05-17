@@ -18,8 +18,8 @@ from .shotgun import get_published_file_entity_type
 
 from .defaults_manager import CoreDefaultsManager
 
-from .path import append_path_to_env_var
-from .path import prepend_path_to_env_var
+from .environment import append_path_to_env_var
+from .environment import prepend_path_to_env_var
 
 from .login import get_shotgun_user
 from .login import get_current_user

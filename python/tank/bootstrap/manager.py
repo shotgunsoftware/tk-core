@@ -14,6 +14,7 @@ from . import constants
 from .errors import TankBootstrapError
 from .configuration import Configuration
 from .resolver import BaseConfigurationResolver
+from ..authentication import ShotgunAuthenticator
 
 log = logging.getLogger(__name__)
 
@@ -23,12 +24,23 @@ class ToolkitManager(object):
     and installations.
     """
 
-    def __init__(self, sg_user):
+    def __init__(self, sg_user=None):
         """
-        :param sg_user: Authenticated Shotgun User object
+        :param sg_user: Authenticated Shotgun User object. If you pass in None,
+                        the manager will provide a standard authentication for you
+                        via the shotgun authentication module and prompting the user
+                        if necessary. If you have special requirements around
+                        authentication, simply construct an explicit user object
+                        and pass it in.
         :type sg_user: :class:`~sgtk.authentication.ShotgunUser`
         """
-        self._sg_user = sg_user
+        if sg_user is None:
+            # request a user from the auth module
+            sg_auth = ShotgunAuthenticator()
+            self._sg_user = sg_auth.get_user()
+        else:
+            self._sg_user = sg_user
+
         self._sg_connection = self._sg_user.create_sg_connection()
 
         # defaults

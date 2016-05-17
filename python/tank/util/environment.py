@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Helper methods that do path management.
+Helper methods that do environment management
 """
 
 import os, sys

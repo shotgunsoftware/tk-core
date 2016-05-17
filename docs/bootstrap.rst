@@ -47,12 +47,8 @@ to launch toolkit's default config for a given Shotgun Asset::
 
     import sgtk
 
-    # let the user select a site and log in
-    sg_auth = sgtk.authentication.ShotgunAuthenticator()
-    user = sg_auth.get_user()
-
-    # start up a Toolkit Manager
-    mgr = sgtk.bootstrap.ToolkitManager(user)
+    # Start up a Toolkit Manager
+    mgr = sgtk.bootstrap.ToolkitManager()
 
     # set the base configuration to the default config
     mgr.base_configuration = "sgtk:descriptor:app_store?name=tk-config-default"
