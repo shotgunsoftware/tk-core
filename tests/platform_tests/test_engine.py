@@ -254,12 +254,12 @@ class TestContextChange(TestEngineBase):
         # when switching context. We'll use them layer to count how many times
         # they have been invoked and with what parameters.
         self._pre_patch = mock.patch(
-            "sgtk.platform.engine._execute_pre_context_change_hook",
-            wraps=engine._execute_pre_context_change_hook
+            "sgtk.platform.engine._CoreContextChangeHookGuard._execute_pre_context_change",
+            wraps=engine._CoreContextChangeHookGuard._execute_pre_context_change
         )
         self._post_patch = mock.patch(
-            "sgtk.platform.engine._execute_post_context_change_hook",
-            wraps=engine._execute_post_context_change_hook
+            "sgtk.platform.engine._CoreContextChangeHookGuard._execute_post_context_change",
+            wraps=engine._CoreContextChangeHookGuard._execute_post_context_change
         )
 
     @contextlib.contextmanager
@@ -288,7 +288,28 @@ class TestContextChange(TestEngineBase):
         """
         # Start the engine.
         with self._assert_hooks_invoked(None, self.context):
-            sgtk.platform.start_engine("test_engine", self.tk, self.context),
+            sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+    def test_on_engine_destroy(self):
+        """
+        Checks if the context change hooks are invoked when an engine is destroyed.
+        """
+        sgtk.platform.start_engine("test_engine", self.tk, self.context)
+        with self._assert_hooks_invoked(self.context, None):
+            sgtk.platform.current_engine().destroy()
+
+    def test_on_destroy_engine_and_start(self):
+        """
+        Checks if the way workfiles currently switches context will give the appropriate event
+        sequence.
+        """
+        sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+        with self._assert_hooks_invoked(self.context, None):
+            sgtk.platform.current_engine().destroy()
+
+        with self._assert_hooks_invoked(None, self.context):
+            sgtk.platform.start_engine("test_engine", self.tk, self.context)
 
     def test_on_engine_restart(self):
         """
