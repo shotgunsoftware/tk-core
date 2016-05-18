@@ -14,7 +14,6 @@ Defines the base class for all Tank Frameworks.
 """
 
 import os
-import sys
 
 from ..util.loader import load_plugin
 from . import constants 
@@ -23,7 +22,6 @@ from ..errors import TankError
 from .bundle import TankBundle
 from . import validation
 from ..util import log_user_activity_metric
-from ..log import LogManager
 
 
 class Framework(TankBundle):
@@ -42,18 +40,16 @@ class Framework(TankBundle):
         :param settings: a settings dictionary for this fw
         :param env: the environment that the framework belongs to
         """
-
-
-        # init base class
-        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env)
-        
         self.__engine = engine
 
         # create logger for this app
         # log will be parented in a tank.session.environment_name.engine_instance_name.framework_name hierarchy
-        self._log = self.__engine.get_child_logger(self.name)
-        self._log.debug("Logging started for %s" % self)
-                
+        logger = self.__engine.get_child_logger(descriptor.system_name)
+
+        # init base class
+        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env, logger)
+        
+
     def __repr__(self):        
         return "<Sgtk Framework 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
 
@@ -103,37 +99,6 @@ class Framework(TankBundle):
         The engine that this framework is connected to
         """
         return self.__engine                
-
-    @property
-    def logger(self):
-        """
-        Standard python logger for this framework.
-
-        Use this whenever you want to emit or process
-        log messages that are related to an framework. If you are
-        developing a framework::
-
-            # if you are in the framework subclass
-            self.logger.debug("Reading settings")
-
-            # if you are in python code that runs
-            # as part of the framework
-            fw = sgtk.platform.current_bundle()
-            fw.logger.warning("Cannot find file.")
-
-        Logging will be dispatched to a logger parented under the
-        main toolkit logging namespace::
-
-            # pattern
-            tank.session.environment_name.engine_instance_name.fw_instance_name
-
-            # for example
-            tank.session.asset.tk-maya.tk-framework-shotgunutils
-
-        .. note:: If you want framework log messages to be written to a log file,
-                  you can attach a file log handler here.
-        """
-        return self._log
 
     @property
     def is_shared(self):

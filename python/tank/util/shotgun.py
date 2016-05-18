@@ -16,7 +16,6 @@ Shotgun utilities
 import os
 import sys
 import urllib2
-import logging
 import urlparse
 
 # use api json to cover py 2.5
@@ -29,7 +28,7 @@ from . import constants
 from . import login
 from . import yaml_cache
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 
 def __get_api_core_config_location():

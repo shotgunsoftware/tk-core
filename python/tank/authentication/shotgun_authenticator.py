@@ -8,16 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import logging
-
 from . import interactive_authentication
 from . import user
 from . import user_impl
 from . import session_cache
 from .errors import IncompleteCredentials
 from .defaults_manager import DefaultsManager
+from .. import LogManager
 
-logger = logging.getLogger(__name__)
+logger = LogManager.get_logger(__name__)
 
 
 class ShotgunAuthenticator(object):

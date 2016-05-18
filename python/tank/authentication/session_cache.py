@@ -21,17 +21,15 @@ at any point.
 
 from __future__ import with_statement
 import os
-import sys
-import urlparse
 import socket
-import logging
 from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolError,
                                       MissingTwoFactorAuthenticationFault)
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
+from .. import LogManager
 
-logger = logging.getLogger(__name__)
+logger = LogManager.get_logger(__name__)
 
 _CURRENT_HOST = "current_host"
 _CURRENT_USER = "current_user"

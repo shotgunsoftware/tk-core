@@ -11,7 +11,6 @@ import os
 import copy
 import uuid
 import tempfile
-import logging
 
 from ...util.git import execute_git_command
 from ...util.process import subprocess_check_output
@@ -19,9 +18,10 @@ from ...util import filesystem
 from .git import IODescriptorGit
 from ...util.zip import unzip_file
 from ..errors import TankDescriptorError
+from ... import LogManager
 
+log = LogManager.get_logger(__name__)
 
-log = logging.getLogger(__name__)
 
 class IODescriptorGitTag(IODescriptorGit):
     """

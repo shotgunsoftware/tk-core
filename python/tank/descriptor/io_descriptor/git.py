@@ -8,12 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
-import logging
 
 from ...util.git import execute_git_command
 from .base import IODescriptorBase
+from ... import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
+
 
 class IODescriptorGit(IODescriptorBase):
     """

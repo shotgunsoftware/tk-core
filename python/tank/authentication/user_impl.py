@@ -25,12 +25,12 @@ from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
 
 from . import session_cache
 from .errors import IncompleteCredentials
+from .. import LogManager
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
 
-import logging
-logger = logging.getLogger(__name__)
+logger = LogManager.get_logger(__name__)
 
 
 class ShotgunUserImpl(object):

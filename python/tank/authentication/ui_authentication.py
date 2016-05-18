@@ -21,8 +21,9 @@ import logging
 
 from .errors import AuthenticationCancelled
 from . import invoker
+from .. import LogManager
 
-logger = logging.getLogger(__name__)
+logger = LogManager.get_logger(__name__)
 
 
 class UiAuthenticationHandler(object):

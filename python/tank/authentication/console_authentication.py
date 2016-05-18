@@ -18,15 +18,14 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-import logging
-
 from . import session_cache
+from .. import LogManager
 from .errors import AuthenticationError, AuthenticationCancelled
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 
 from getpass import getpass
 
-logger = logging.getLogger(__name__)
+logger = LogManager.get_logger(__name__)
 
 
 class ConsoleAuthenticationHandlerBase(object):

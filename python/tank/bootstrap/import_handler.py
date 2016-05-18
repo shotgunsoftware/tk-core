@@ -11,10 +11,10 @@
 import imp
 import os
 import sys
-import logging
 import warnings
+from .. import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 class CoreImportHandler(object):
     """
@@ -53,7 +53,7 @@ class CoreImportHandler(object):
         # and associated with the singleton as these will be lost
         # use local imports to ensure a fresh cut of the code
         from ..log import LogManager
-        prev_log_handler = LogManager().initialize_base_file_handler(None)
+        prev_log_name = LogManager().uninitialize_base_file_handler()
         # logging to file is now disabled and will be renamed after the
         # main tank import of the new code.
 
@@ -103,7 +103,8 @@ class CoreImportHandler(object):
         # and re-init our disk logging based on the new code
         # access it from the new tank instance to ensure we get the new code
         try:
-            tank.LogManager().initialize_base_file_handler(prev_log_handler)
+            if prev_log_name:
+                tank.LogManager().initialize_base_file_handler(prev_log_name)
         except AttributeError, e:
             # older versions of the API may not have this defined.
             log.warning(

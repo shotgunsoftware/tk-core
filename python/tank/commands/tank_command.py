@@ -40,12 +40,14 @@ from . import unregister_folders
 from . import desktop_migration
 from . import cache_yaml
 from . import get_entity_commands
-
 from . import constants
+
+from .. import LogManager
 from ..platform.engine import start_engine, get_environment_from_context
 from ..errors import TankError
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
+
 
 ###############################################################################################
 # Built in actions (all in the tank_commands sub module)

@@ -11,7 +11,6 @@
 import os
 import uuid
 import tempfile
-import logging
 import urllib
 import urllib2
 import httplib
@@ -25,6 +24,7 @@ from ..errors import TankAppStoreConnectionError
 from ..errors import TankAppStoreError
 from ..errors import TankDescriptorError
 
+from ... import LogManager
 from .. import constants
 from .base import IODescriptorBase
 
@@ -32,7 +32,8 @@ from .base import IODescriptorBase
 from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
+
 
 # file where we cache the app store metadata for an item
 METADATA_FILE = ".cached_metadata.pickle"

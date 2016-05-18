@@ -9,11 +9,12 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import logging
 import zipfile
 from . import filesystem
+from .. import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
+
 
 @filesystem.with_cleared_umask
 def unzip_file(src_zip_file, target_folder):

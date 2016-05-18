@@ -48,7 +48,10 @@ if "TANK_CURRENT_PC" not in os.environ:
         os.environ["TANK_CURRENT_PC"] = pipeline_config
 
 ########################################################################
-    
+
+# first import the log manager since a lot of modules require this.
+from .log import LogManager
+
 # make sure that all sub-modules are imported at the same as the main module
 from . import authentication
 from . import bootstrap
@@ -76,4 +79,4 @@ from .commands import list_commands, get_command, SgtkSystemCommand
 
 from .templatekey import TemplateKey, SequenceKey, IntegerKey, StringKey, TimestampKey
 
-from .log import LogManager
+

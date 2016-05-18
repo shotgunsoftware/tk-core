@@ -8,15 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import logging
-
 from . import constants
 from .errors import TankBootstrapError
 from .configuration import Configuration
 from .resolver import BaseConfigurationResolver
 from ..authentication import ShotgunAuthenticator
+from .. import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 class ToolkitManager(object):
     """

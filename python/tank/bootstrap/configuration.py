@@ -11,7 +11,6 @@
 from __future__ import with_statement
 
 import os
-import logging
 import datetime
 import inspect
 
@@ -26,8 +25,9 @@ from ..util import ShotgunPath
 
 from tank_vendor import yaml
 
-log = logging.getLogger(__name__)
+from .. import LogManager
 
+log = LogManager.get_logger(__name__)
 
 class Configuration(object):
     """

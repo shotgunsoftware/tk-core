@@ -198,7 +198,7 @@ access and load other objects.
 
 .. autofunction:: import_framework
 
-
+.. autofunction:: get_logger
 
 
 

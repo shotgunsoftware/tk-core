@@ -13,15 +13,17 @@ import re
 import cgi
 import sys
 import urlparse
-import logging
 
 from .. import constants
+from ... import LogManager
 from ...util import filesystem
 from ..errors import TankDescriptorError
 
 from tank_vendor import yaml
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
+
+
 
 class IODescriptorBase(object):
     """

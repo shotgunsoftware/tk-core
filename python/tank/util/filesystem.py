@@ -18,10 +18,11 @@ import sys
 import errno
 import stat
 import shutil
-import logging
 import functools
+from .. import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
+
 
 def with_cleared_umask(func):
     """

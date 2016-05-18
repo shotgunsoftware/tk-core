@@ -36,17 +36,15 @@ class Application(TankBundle):
         :param app_name: The short name of this app (e.g. tk-nukepublish)
         :param settings: a settings dictionary for this app
         """
-
-        # init base class
-        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env)
-        
         self.__engine = engine
         self.__instance_name = instance_name
 
         # create logger for this app
         # log will be parented in a tank.session.environment_name.engine_instance_name.app_instance_name hierarchy
-        self._log = self.__engine.get_child_logger(self.name)
-        self._log.debug("Logging started for %s" % self)
+        logger = self.__engine.get_child_logger(self.__instance_name)
+
+        # init base class
+        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env, logger)
 
         # now if a folder named python is defined in the app, add it to the pythonpath
         app_path = os.path.dirname(sys.modules[self.__module__].__file__)
@@ -120,39 +118,6 @@ class Application(TankBundle):
         The engine that this app is connected to.
         """
         return self.__engine
-
-    @property
-    def logger(self):
-        """
-        Standard python logger for this app.
-
-        Use this whenever you want to emit or process
-        log messages that are related to an app. If you are
-        developing an app::
-
-            # if you are in the app subclass
-            self.logger.debug("Starting up main dialog")
-
-            # if you are in python code that runs
-            # as part of the app
-            app = sgtk.platform.current_bundle()
-            app.logger.warning("Cannot find file.")
-
-        Logging will be dispatched to a logger parented under the
-        main toolkit logging namespace::
-
-            # pattern
-            tank.session.environment_name.engine_instance_name.app_instance_name
-
-            # for example
-            tank.session.asset.tk-maya.tk-multi-publish
-
-        .. note:: If you want app log messages to be written to a log file,
-                  you can attach a std log handler here.
-
-        """
-        return self._log
-
 
     ##########################################################################################
     # init, destroy, and context changing

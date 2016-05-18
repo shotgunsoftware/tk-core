@@ -8,12 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import logging
 from .descriptor import Descriptor
 from .errors import TankDescriptorError
 from . import constants
+from .. import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 class BundleDescriptor(Descriptor):
     """

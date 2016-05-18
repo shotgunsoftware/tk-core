@@ -16,7 +16,6 @@ all Tank items in the file system are kept.
 
 import collections
 import sqlite3
-import logging
 import sys
 import os
 
@@ -27,7 +26,8 @@ json = shotgun_api3.shotgun.json
 
 from .platform.engine import show_global_busy, clear_global_busy 
 from . import constants
-from .errors import TankError 
+from .errors import TankError
+from . import LogManager
 from .util.login import get_current_user
 
 # Shotgun field definitions to store the path cache data
@@ -41,7 +41,7 @@ SG_ENTITY_TYPE_FIELD = "linked_entity_type"
 SG_ENTITY_NAME_FIELD = "code"
 SG_PIPELINE_CONFIG_FIELD = "pipeline_configuration"
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 class PathCache(object):
     """

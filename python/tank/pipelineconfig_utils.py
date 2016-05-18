@@ -14,14 +14,14 @@ across storages, configurations etc.
 """
 import os
 import sys
-import logging
 
 from .errors import TankError
 from . import constants
+from . import LogManager
 from .util import yaml_cache
 from .util import ShotgunPath
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 
 def is_localized(pipeline_config_path):

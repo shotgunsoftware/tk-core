@@ -14,7 +14,6 @@ Classes for the main Sgtk API.
 
 import os
 import glob
-import logging
 import threading
 
 from . import folder
@@ -28,8 +27,9 @@ from .util import log_user_activity_metric
 from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
+from . import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 class Sgtk(object):
     """

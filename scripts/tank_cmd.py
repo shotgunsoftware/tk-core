@@ -36,6 +36,7 @@ from tank import pipelineconfig_utils
 from tank import LogManager
 
 
+logger = LogManager.get_logger("tankcmd")
 
 
 ###############################################################################################
@@ -1417,9 +1418,6 @@ if __name__ == "__main__":
 
     # set up std toolkit logging to file
     LogManager().initialize_base_file_handler("tk-shell")
-
-    # set up logger that we should write messages to
-    logger = LogManager().get_root_child_logger("tankcmd")
 
     # set up output of all sgtk log messages to stdout
     log_handler = LogManager().initialize_custom_handler(

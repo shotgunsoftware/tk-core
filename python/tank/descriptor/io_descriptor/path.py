@@ -9,13 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import logging
 
 from .base import IODescriptorBase
 from ..errors import TankDescriptorError
 from ...util import ShotgunPath
+from ... import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 class IODescriptorPath(IODescriptorBase):
     """

@@ -37,7 +37,8 @@ from .bundle import TankBundle
 from .framework import setup_frameworks
 from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
 
-
+# std core level logger
+core_logger = LogManager.get_logger(__name__)
 
 class Engine(TankBundle):
     """
@@ -101,17 +102,13 @@ class Engine(TankBundle):
         
         # get the descriptor representing the engine        
         descriptor = self.__env.get_engine_descriptor(self.__engine_instance_name)        
-        
-        # init base class
-        TankBundle.__init__(self, tk, context, settings, descriptor, env)
 
         # create logger for this engine.
         # log will be parented in a tank.session.environment_name.engine_instance_name hierarchy
-        self._log = LogManager.get_child_logger(
-            LogManager().root_logger,
-            "session.%s.%s" % (env.name, engine_instance_name)
-        )
-        self._log.debug("Logging started for %s" % self)
+        logger = LogManager.get_logger("session.%s.%s" % (env.name, engine_instance_name))
+
+        # init base class
+        TankBundle.__init__(self, tk, context, settings, descriptor, env, logger)
 
         # create a log handler to handle log dispatch from self.log
         # (and the rest of the sgtk logging ) to the user
@@ -119,8 +116,9 @@ class Engine(TankBundle):
 
         # check general debug log setting and if this flag is turned on,
         # adjust the global setting
+
         if self.get_setting("debug_logging", False):
-            self.__log_handler.setLevel(logging.DEBUG)
+            LogManager().global_debug = True
             self.log_debug("Engine config flag 'debug_logging' detected, turning on debug output.")
 
         # check that the context contains all the info that the app needs
@@ -271,12 +269,7 @@ class Engine(TankBundle):
         This will affect all logging across all of toolkit.
         """
         # flip debug logging
-        if self.__log_handler.level == logging.DEBUG:
-            self.__log_handler.setLevel(logging.INFO)
-            self.logger.info("Debug logging disabled.")
-        else:
-            self.__log_handler.setLevel(logging.DEBUG)
-            self.logger.debug("Debug logging enabled.")
+        LogManager().global_debug = not LogManager().global_debug
 
     def __open_log_folder(self):
         """
@@ -366,7 +359,7 @@ class Engine(TankBundle):
             handler.setFormatter(formatter)
 
         else:
-            # legacy engine that doesn't have
+            # legacy engine that doesn't have _emit_log_message implemented
             handler = LogManager().initialize_custom_handler(
                 ToolkitEngineLegacyHandler(self)
             )
@@ -485,7 +478,8 @@ class Engine(TankBundle):
         :param name: Name of child logger, can contain periods for nesting
         :return: :class:`logging.Logger` instance
         """
-        return LogManager.get_child_logger(self._log, name)
+        full_log_path = "%s.%s" % (self.logger.name, name)
+        return logging.getLogger(full_log_path)
 
     ##########################################################################################
     # properties
@@ -610,34 +604,6 @@ class Engine(TankBundle):
         """
         return self.__created_qt_dialogs
 
-    @property
-    def logger(self):
-        """
-        Standard python logger for this engine.
-
-        Use this whenever you want to emit or process
-        log messages that are related to an engine. If you are
-        developing an engine::
-
-            # if you are in the engine subclass
-            self.logger.debug("Setting up extra menus")
-
-            # if you are in python code that runs
-            # as part of the engine
-            engine = sgtk.platform.current_bundle()
-            engine.logger.warning("Cannot find file.")
-
-        Logging will be dispatched to a logger parented under the
-        main toolkit logging namespace::
-
-            # pattern
-            tank.session.environment_name.engine_instance_name
-
-            # for example
-            tank.session.asset.tk-maya
-        """
-        return self._log
-
     ##########################################################################################
     # init and destroy
     
@@ -694,6 +660,7 @@ class Engine(TankBundle):
 
         # kill log handler
         LogManager().root_logger.removeHandler(self.__log_handler)
+        self.__log_handler = None
 
     def destroy_engine(self):
         """
@@ -1172,7 +1139,7 @@ class Engine(TankBundle):
             # and not from somewhere else. In that case we just exit early to avoid
             # the infinite recursion
             return
-        self._log.debug(msg)
+        self.logger.debug(msg)
     
     def log_info(self, msg):
         """
@@ -1196,7 +1163,7 @@ class Engine(TankBundle):
             # and not from somewhere else. In that case we just exit early to avoid
             # the infinite recursion
             return
-        self._log.info(msg)
+        self.logger.info(msg)
         
     def log_warning(self, msg):
         """
@@ -1220,7 +1187,7 @@ class Engine(TankBundle):
             # and not from somewhere else. In that case we just exit early to avoid
             # the infinite recursion
             return
-        self._log.warning(msg)
+        self.logger.warning(msg)
     
     def log_error(self, msg):
         """
@@ -1244,7 +1211,7 @@ class Engine(TankBundle):
             # and not from somewhere else. In that case we just exit early to avoid
             # the infinite recursion
             return
-        self._log.error(msg)
+        self.logger.error(msg)
 
     def log_exception(self, msg):
         """
@@ -1268,7 +1235,7 @@ class Engine(TankBundle):
             # and not from somewhere else. In that case we just exit early to avoid
             # the infinite recursion
             return
-        self._log.exception(msg)
+        self.logger.exception(msg)
 
 
     ##########################################################################################
@@ -2260,34 +2227,41 @@ def start_engine(engine_name, tk, context):
     :raises: :class:`TankEngineInitError` if an engine could not be started
              for the passed context.
     """
-    # first ensure that an engine is not currently running
-    if current_engine():
-        raise TankError("An engine (%s) is already running! Before you can start a new engine, "
-                        "please shut down the previous one using the command "
-                        "tank.platform.current_engine().destroy()." % current_engine())
+    try:
+        # first ensure that an engine is not currently running
+        if current_engine():
+            raise TankError("An engine (%s) is already running! Before you can start a new engine, "
+                            "please shut down the previous one using the command "
+                            "tank.platform.current_engine().destroy()." % current_engine())
 
-    # begin writing log to disk, associated with the engine
-    # only do this if a logger hasn't been previously set up.
-    if LogManager().base_file_handler is None:
-        LogManager().initialize_base_file_handler(engine_name)
+        # begin writing log to disk, associated with the engine
+        # only do this if a logger hasn't been previously set up.
+        if LogManager().base_file_handler is None:
+            LogManager().initialize_base_file_handler(engine_name)
 
-    # get environment and engine location
-    (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, context)
+        # get environment and engine location
+        (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, context)
 
-    # make sure it exists locally
-    if not engine_descriptor.exists_local():
-        raise TankEngineInitError("Cannot start engine! %s does not exist on disk" % engine_descriptor)
+        # make sure it exists locally
+        if not engine_descriptor.exists_local():
+            raise TankEngineInitError("Cannot start engine! %s does not exist on disk" % engine_descriptor)
 
-    # get path to engine code
-    engine_path = engine_descriptor.get_path()
-    plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
+        # get path to engine code
+        engine_path = engine_descriptor.get_path()
+        plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
 
-    # Instantiate the engine
-    class_obj = load_plugin(plugin_file, Engine)
-    engine = class_obj(tk, context, engine_name, env)
+        # Instantiate the engine
+        class_obj = load_plugin(plugin_file, Engine)
+        engine = class_obj(tk, context, engine_name, env)
 
-    # register this engine as the current engine
-    set_current_engine(engine)
+        # register this engine as the current engine
+        set_current_engine(engine)
+
+    except:
+        # trap and log the exception and let it bubble in
+        # unchanged form
+        core_logger.exception("Exception raised in start_engine.")
+        raise
 
     return engine
 
@@ -2359,7 +2333,7 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
                 continue
 
             # settings are valid so add them to return list:
-            app_settings.append({"engine_instance":eng, "app_instance":app, "settings":settings})
+            app_settings.append({"engine_instance": eng, "app_instance": app, "settings": settings})
                     
     return app_settings
     

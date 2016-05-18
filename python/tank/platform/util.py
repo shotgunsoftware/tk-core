@@ -8,10 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import logging
+
 from .import_stack import ImportStack
 from ..errors import TankError
 from .errors import TankContextChangeNotSupportedError
 from .engine import current_engine, start_engine
+
 
 def _get_current_bundle():
     """
@@ -239,5 +242,30 @@ def import_framework(framework, module):
 
     return mod
 
+
+def get_logger(module_name):
+    """
+    Standard sgtk logging access for python code that runs inside apps.
+
+    We recommend that you use this method for all logging that takes place
+    inside of the ``python`` folder inside your app, engine or framework.
+
+    We recommend that the following pattern is used - at the top of your
+    python files, include the following code::
+
+        import sgtk
+        logger = sgtk.platform.get_logger(__name__)
+
+    All subsequent code in the file then simply calls this object for logging.
+
+    Following this pattern will generate a standard logger that is parented
+    under the correct bundle.
+
+    :param module_name: Pass ``__name__`` to this parameter
+    :return: Standard python logger
+    """
+    curr_bundle = _get_current_bundle()
+    full_log_path = "%s.%s" % (curr_bundle.logger.name, module_name)
+    return logging.getLogger(full_log_path)
 
 

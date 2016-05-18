@@ -15,7 +15,6 @@ across storages, configurations etc.
 import os
 import glob
 import cPickle
-import logging
 
 from tank_vendor import yaml
 
@@ -28,10 +27,11 @@ from .util import ShotgunPath
 from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
+from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 class PipelineConfiguration(object):
     """
