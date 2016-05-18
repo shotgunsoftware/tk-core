@@ -72,6 +72,9 @@ TANK_ENGINE_INIT_HOOK_NAME = "engine_init"
 # hook that is executed whenever a bundle has initialized
 TANK_BUNDLE_INIT_HOOK_NAME = "bundle_init"
 
+# hook that is execute whenever a context change happens
+CONTEXT_CHANGE_HOOK = "context_change"
+
 # flag to indicate that an app command is a legacy style
 # shotgun multi select action
 LEGACY_MULTI_SELECT_ACTION_FLAG = "shotgun_multi_select_action"

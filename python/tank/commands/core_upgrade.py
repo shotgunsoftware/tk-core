@@ -97,7 +97,7 @@ class CoreUpdateAction(Action):
         parser = TkOptParse()
         parser.set_usage(optparse.SUPPRESS_USAGE)
         parser.add_option("-v", "--version", type="string", default=None)
-        options, args = parser.parse_args()
+        options, args = parser.parse_args(parameters)
 
         if options.version is not None and not options.version.startswith("v"):
             parser.error("version string should always start with 'v'")

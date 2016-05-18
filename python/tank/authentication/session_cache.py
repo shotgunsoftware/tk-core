@@ -48,7 +48,7 @@ def _is_same_user(session_data, login):
 
     :returns: True if the session data is for the given login.
     """
-    return session_data.get(_LOGIN, "").lower() == login.lower()
+    return session_data.get(_LOGIN, "").lower().strip() == login.lower().strip()
 
 
 def _get_global_authentication_file_location():
@@ -134,7 +134,6 @@ def _ensure_folder_for_file(filepath):
 
     :returns: The path to the file.
     """
-
     folder, _ = os.path.split(filepath)
     if not os.path.exists(folder):
         old_umask = os.umask(0077)
@@ -154,7 +153,6 @@ def _try_load_yaml_file(file_path):
     :returns: The dictionary for this yaml file. If the file doesn't exist or is
               corrupted, returns an empty dictionary.
     """
-
     if not os.path.exists(file_path):
         logger.debug("Yaml file missing: %s" % file_path)
         return {}
@@ -310,7 +308,9 @@ def get_session_data(base_url, login):
             # Search for the user in the users dictionary.
             if _is_same_user(user, login):
                 return {
-                    _LOGIN: user[_LOGIN],
+                    # There used to be a time where we didn't strip whitepsaces
+                    # before writing the file, so do it now just in case.
+                    _LOGIN: user[_LOGIN].strip(),
                     _SESSION_TOKEN: user[_SESSION_TOKEN]
                 }
         logger.debug("No cached user found for %s" % login)
@@ -358,7 +358,7 @@ def get_current_user(host):
     document = _try_load_site_authentication_file(info_path)
     user = document[_CURRENT_USER]
     logger.debug("Current user is '%s'" % user)
-    return user
+    return user.strip() if user else user
 
 
 def set_current_user(host, login):
@@ -368,6 +368,8 @@ def set_current_user(host, login):
     :param host: Host to save the current user for.
     :param login: The current user login for specified host.
     """
+    host = host.strip()
+    login = login.strip()
 
     file_path = _get_site_authentication_file_location(host)
     _ensure_folder_for_file(file_path)
@@ -402,7 +404,7 @@ def set_current_host(host):
     _ensure_folder_for_file(file_path)
 
     current_host_file = _try_load_global_authentication_file(file_path)
-    current_host_file[_CURRENT_HOST] = host
+    current_host_file[_CURRENT_HOST] = host.strip()
     _write_yaml_file(file_path, current_host_file)
 
 
