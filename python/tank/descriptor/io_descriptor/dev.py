@@ -10,8 +10,9 @@
 
 from .path import IODescriptorPath
 
-import logging
-log = logging.getLogger(__name__)
+from ... import LogManager
+log = LogManager.get_logger(__name__)
+
 
 class IODescriptorDev(IODescriptorPath):
     """

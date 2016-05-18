@@ -21,17 +21,15 @@ at any point.
 
 from __future__ import with_statement
 import os
-import sys
-import urlparse
 import socket
-import logging
 from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolError,
                                       MissingTwoFactorAuthenticationFault)
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
+from .. import LogManager
 
-logger = logging.getLogger(__name__)
+logger = LogManager.get_logger(__name__)
 
 _CURRENT_HOST = "current_host"
 _CURRENT_USER = "current_user"
@@ -59,28 +57,49 @@ def _get_global_authentication_file_location():
     stores authentication related information for all sites. At this moment,
     the file stores only the current host.
 
+    Looks for the latest file naming convention first, if that doesn't exists
+    tries to fall back to previous path standards.
+
     :returns: Path to the login information.
     """
     # avoid cylic imports
     from ..util import LocalFileStorageManager
 
-    return os.path.join(
+    # try current generation path first
+    path = os.path.join(
         LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
         _SESSION_CACHE_FILE_NAME
     )
+    if not os.path.exists(path):
+
+        # see if there is a legacy path
+        old_path = os.path.join(
+            LocalFileStorageManager.get_global_root(
+                LocalFileStorageManager.CACHE,
+                generation=LocalFileStorageManager.CORE_V17),
+            _SESSION_CACHE_FILE_NAME
+        )
+
+        if os.path.exists(old_path):
+            logger.debug("Falling back on legacy path for auth: %s" % old_path)
+            path = old_path
+
+    return path
 
 def _get_site_authentication_file_location(base_url):
     """
     Returns the location of the users file on disk for a specific site.
 
-    :param base_url: The site we want the login information for.
+    Looks for the latest file naming convention first, if that doesn't exists
+    tries to fall back to previous path standards.
 
+    :param base_url: The site we want the login information for.
     :returns: Path to the login information.
     """
     # avoid cylic imports
     from ..util import LocalFileStorageManager
 
-    return os.path.join(
+    path = os.path.join(
         LocalFileStorageManager.get_site_root(
             base_url,
             LocalFileStorageManager.CACHE
@@ -88,6 +107,23 @@ def _get_site_authentication_file_location(base_url):
         _SESSION_CACHE_FILE_NAME
     )
 
+    if not os.path.exists(path):
+
+        # see if there is a legacy path
+        old_path = os.path.join(
+            LocalFileStorageManager.get_site_root(
+                base_url,
+                LocalFileStorageManager.CACHE,
+                generation=LocalFileStorageManager.CORE_V17
+            ),
+            _SESSION_CACHE_FILE_NAME
+        )
+
+        if os.path.exists(old_path):
+            logger.debug("Falling back on legacy path for auth: %s" % old_path)
+            path = old_path
+
+    return path
 
 def _ensure_folder_for_file(filepath):
     """

@@ -30,13 +30,14 @@ from .errors import AuthenticationCancelled
 from .console_authentication import ConsoleLoginHandler, ConsoleRenewSessionHandler
 from .ui_authentication import UiAuthenticationHandler
 
+from .. import LogManager
+
 import threading
-import logging
 import sys
 import os
 
 
-logger = logging.getLogger(__name__)
+logger = LogManager.get_logger(__name__)
 
 ###############################################################################################
 # internal classes and methods

@@ -16,8 +16,8 @@ that contains lower level components and APIs. These include
 For apps and engines, see the :ref:`sgtk_platform_docs` documentation.
 
 
-Constructing a Toolkit Core API instance
-==============================================
+The Toolkit Core API
+---------------------------------------------------------
 
 Each instance of the :class:`sgtk.Sgtk` class is associated with a specific set of configuration settings.
 This association is automatically resolved as the API instance is created and can be
@@ -26,6 +26,9 @@ specified in several ways:
 - As a path pointing directly at the desired pipeline configuration
 - As a shotgun entity for which the associated (primary) pipeline configuration is resolved via Shotgun
 - As a path to a project folder on disk from which the associated (primary) pipeline configuration is computed.
+
+Factory Methods
+===============================
 
 The following factory methods are used to create a Toolkit API instance:
 
@@ -38,7 +41,8 @@ The following factory methods are used to create a Toolkit API instance:
           traditionally set up project, is is usually much easier to let the bootstrap process
           handle the initialization.
 
-**Authentication**
+Authentication
+===============================
 
 Certain API operations require Shotgun data and hence require a way for the API
 to establish a connection to Shotgun. The easiest way to handle this is by
@@ -47,11 +51,8 @@ making sure that each API instance has an associated authenticated user:
 .. autofunction:: set_authenticated_user
 .. autofunction:: get_authenticated_user
 
-
-
-
-Toolkit Core API Reference
-=========================================
+Sgtk
+========================================
 
 .. autoclass:: Sgtk
     :members:
@@ -61,31 +62,40 @@ Toolkit Core API Reference
                       execute_hook,
                       execute_core_hook_method
 
-
-Toolkit Context
+Context
 =========================================
 
 .. autoclass:: Context
     :members:
     :exclude-members: tank
 
+
+
+
+
 Executing Tank Commands
-=========================================
+---------------------------------------------------------
 
 The ``tank`` command offers a variety of system utility commands to handle for example upgrades,
 administration and maintenance. These commands are also available to use via the API in order to
 make it easy to integrate toolkit maintenance workflows with other scriped workflows you may have
 in your studio. The following commands can be used to manage and execute these functions:
 
+API Access methods
+=========================================
+
 .. autofunction:: list_commands
 .. autofunction:: get_command
+
+SgtkSystemCommand
+=========================================
 
 .. autoclass:: SgtkSystemCommand
     :members:
 
 
 Hooks
-=========================================
+---------------------------------------------------------
 
 
 Hooks are snippets of code that can be customized as part of the configuration of a Toolkit app,
@@ -94,15 +104,20 @@ apps and engines. Hooks are a central concept in the configuration of Toolkit. W
 there is a need to expose code and allow it to be customized. Examples
 of when this is useful is Disk I/O, launching of applications, DCC-specific logic and permissions control.
 
+Hook
+=========================================
 .. autoclass:: Hook
     :members:
     :exclude-members: execute
+
+get_hook_baseclass
+=========================================
 
 .. autofunction:: get_hook_baseclass
 
 
 Template System
-=========================================
+-----------------------------------------
 
 The Toolkit template system is used to handle path and string token manipulations.
 
@@ -150,17 +165,27 @@ and a version field, since this is needed for all publishes, regardless of what 
 however, we would not have a Shot and a Step field. Instead, we may have an Asset and a Step field,
 where the asset field would be associated with an asset in Shotgun.
 
+Template
+=========================================
+
 .. autoclass:: Template
     :members:
 
+TemplatePath
+=========================================
+
 .. autoclass:: TemplatePath
     :members:
+
+TemplateString
+=========================================
 
 .. autoclass:: TemplateString
     :members:
     :exclude-members: get_fields
 
-Template System Tokens
+
+TemplateKey
 =========================================
 
 A template, e.g. ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma`` consists of several dynamic ``{tokens}``.
@@ -170,22 +195,34 @@ execute token specific logic.
 .. autoclass:: TemplateKey
     :members:
 
+StringKey
+=========================================
+
 .. autoclass:: StringKey
     :members:
+
+SequenceKey
+=========================================
 
 .. autoclass:: SequenceKey
     :members:
 
+IntegerKey
+=========================================
+
 .. autoclass:: IntegerKey
     :members:
+
+TimestampKey
+=========================================
 
 .. autoclass:: TimestampKey
     :members:
 
 
 
-Errors
-=========================================
+Exceptions
+------------------------------------------
 
 The following exceptions are raised by the Toolkit Core API classes:
 

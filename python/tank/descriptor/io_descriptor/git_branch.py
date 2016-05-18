@@ -9,17 +9,16 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import copy
-import logging
 
 from ...util.process import subprocess_check_output
 from ...util.git import execute_git_command
 from ...util import filesystem
 from .git import IODescriptorGit
 from ..errors import TankDescriptorError
+from ... import LogManager
 
+log = LogManager.get_logger(__name__)
 
-
-log = logging.getLogger(__name__)
 
 class IODescriptorGitBranch(IODescriptorGit):
     """

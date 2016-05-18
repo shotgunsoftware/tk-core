@@ -8,23 +8,30 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import logging
+
 from .import_stack import ImportStack
 from ..errors import TankError
 from .errors import TankContextChangeNotSupportedError
 from .engine import current_engine, start_engine
 
+
 def _get_current_bundle():
+    """
+    The current import bundle is set by bundle.import_module() and
+    and is a way to defuse the chicken/egg situation which happens
+    when trying to do an import_framework inside a module that is being
+    loaded by import_module. The crux is that the module._tank_bundle reference
+    that import_module() sets is constructed at the end of the call,
+    meaning that the frameworks import cannot find this during the import
+    this variable is the fallback in this case and it contains a reference
+    to the current bundle.
+
+    :returns: :class:`Application`, :class:`Engine` or :class:`Framework` instance
+    """
 
     import sys
 
-    # The current import bundle is set by bundle.import_module() and
-    # and is a way to defuse the chicken/egg situtation which happens
-    # when trying to do an import_framework inside a module that is being
-    # loaded by import_module. The crux is that the module._tank_bundle reference
-    # that import_module() sets is constructed at the end of the call,
-    # meaning that the frameworks import cannot find this during the import
-    # this variable is the fallback in this case and it contains a reference
-    # to the current bundle.
     current_bundle = ImportStack.get_current_bundle()
 
     if not current_bundle:
@@ -235,5 +242,30 @@ def import_framework(framework, module):
 
     return mod
 
+
+def get_logger(module_name):
+    """
+    Standard sgtk logging access for python code that runs inside apps.
+
+    We recommend that you use this method for all logging that takes place
+    inside of the ``python`` folder inside your app, engine or framework.
+
+    We recommend that the following pattern is used - at the top of your
+    python files, include the following code::
+
+        import sgtk
+        logger = sgtk.platform.get_logger(__name__)
+
+    All subsequent code in the file then simply calls this object for logging.
+
+    Following this pattern will generate a standard logger that is parented
+    under the correct bundle.
+
+    :param module_name: Pass ``__name__`` to this parameter
+    :return: Standard python logger
+    """
+    curr_bundle = _get_current_bundle()
+    full_log_path = "%s.%s" % (curr_bundle.logger.name, module_name)
+    return logging.getLogger(full_log_path)
 
 

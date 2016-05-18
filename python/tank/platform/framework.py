@@ -14,7 +14,6 @@ Defines the base class for all Tank Frameworks.
 """
 
 import os
-import sys
 
 from ..util.loader import load_plugin
 from . import constants 
@@ -41,14 +40,16 @@ class Framework(TankBundle):
         :param settings: a settings dictionary for this fw
         :param env: the environment that the framework belongs to
         """
-
-        # init base class
-        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env)
-        
         self.__engine = engine
 
-        self.log_debug("Framework init: Instantiating %s" % self)
-                
+        # create logger for this app
+        # log will be parented in a tank.session.environment_name.engine_instance_name.framework_name hierarchy
+        logger = self.__engine.get_child_logger(descriptor.system_name)
+
+        # init base class
+        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env, logger)
+        
+
     def __repr__(self):        
         return "<Sgtk Framework 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
 
@@ -140,57 +141,62 @@ class Framework(TankBundle):
     
     
     ##########################################################################################
-    # logging methods, delegated to the current engine
+    # logging methods
 
     def log_debug(self, msg):
         """
         Logs a debug message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
         :param msg: Message to log.
         """
-        self.engine.log_debug(msg)
+        self.logger.debug(msg)
 
     def log_info(self, msg):
         """
         Logs an info message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
         :param msg: Message to log.
         """
-        self.engine.log_info(msg)
+        self.logger.info(msg)
 
     def log_warning(self, msg):
         """
-        Logs a warning message.
+        Logs an warning message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
-        self.engine.log_warning(msg)
+        self.logger.warning(msg)
 
     def log_error(self, msg):
         """
         Logs an error message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
         :param msg: Message to log.
         """
-        self.engine.log_error(msg)
+        self.logger.error(msg)
 
     def log_exception(self, msg):
         """
-        Logs an exception.
+        Logs an exception message.
 
-        This will contain a full traceback and is typically called from
-        within an exception handler::
-
-            try:
-                do_stuff()
-            except Exception:
-                self.log_exception("A general error was raised")
-
-        The message will be emitted as an error message.
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
-        self.engine.log_exception(msg)
+        self.logger.exception(msg)
 
 
     ##########################################################################################
@@ -297,24 +303,24 @@ def load_framework(engine_obj, env, fw_instance_name):
         raise TankError("Could not validate framework %s: %s" % (fw_instance_name, e))
 
     # load the framework
-    try:
-        # initialize fw class
-        fw = _create_framework_instance(engine_obj, descriptor, fw_settings, env)
+#    try:
+    # initialize fw class
+    fw = _create_framework_instance(engine_obj, descriptor, fw_settings, env)
 
-        # if it's a shared framework then add it to the engine so we can re-use it
-        # again in the future if needed:
-        if fw.is_shared:
-            # register this framework for reuse by other bundles
-            engine_obj._register_shared_framework(fw_instance_name, fw)
+    # if it's a shared framework then add it to the engine so we can re-use it
+    # again in the future if needed:
+    if fw.is_shared:
+        # register this framework for reuse by other bundles
+        engine_obj._register_shared_framework(fw_instance_name, fw)
 
-        # load any frameworks required by the framework :)
-        setup_frameworks(engine_obj, fw, env, descriptor)
+    # load any frameworks required by the framework :)
+    setup_frameworks(engine_obj, fw, env, descriptor)
 
-        # and run the init
-        fw.init_framework()
+    # and run the init
+    fw.init_framework()
 
-    except Exception, e:
-        raise TankError("Framework %s failed to initialize: %s" % (descriptor, e))
+#    except Exception, e:
+#        raise TankError("Framework %s failed to initialize: %s" % (descriptor, e))
 
     return fw
 

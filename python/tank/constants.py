@@ -69,9 +69,10 @@ TEMPLATE_STRING_SECTION = "strings"
 VALID_TEMPLATE_KEY_NAME_DESC = "letters, numbers, underscore, space and period"
 
 # root logger for all of tk. This needs to match the top level
-# module name since we follow the log = logging.getLogger(__name__)
-# pattern recommended in python
-ROOT_LOGGER_NAME = "tank"
+ROOT_LOGGER_NAME = "sgtk"
 
 # log channel to used for function timings
-PROFILING_LOG_CHANNEL = "tank.stopwatch"
+PROFILING_LOG_CHANNEL = "sgtk.stopwatch"
+
+# environment variable that if set, enables debug logging in the engine
+DEBUG_LOGGING_ENV_VAR = "TK_DEBUG"

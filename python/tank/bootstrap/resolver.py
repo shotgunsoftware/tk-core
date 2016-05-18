@@ -14,7 +14,6 @@ on disk.
 """
 
 import os
-import logging
 
 from ..descriptor import Descriptor, create_descriptor
 from .errors import TankBootstrapError
@@ -22,8 +21,9 @@ from .configuration import Configuration
 from ..util import filesystem
 from ..util import ShotgunPath
 from ..util import LocalFileStorageManager
+from .. import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 class ConfigurationResolver(object):
     """

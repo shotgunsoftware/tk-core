@@ -9,15 +9,16 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import logging
 
 from tank_vendor import yaml
 
 from . import constants
 from .errors import TankDescriptorError
 from .descriptor import Descriptor
+from .. import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
+
 
 class ConfigDescriptor(Descriptor):
     """

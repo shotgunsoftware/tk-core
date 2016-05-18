@@ -29,7 +29,7 @@ class TankBundle(object):
     Abstract Base class for any engine, framework app etc in tank
     """
 
-    def __init__(self, tk, context, settings, descriptor, env):
+    def __init__(self, tk, context, settings, descriptor, env, log):
         """
         Constructor.
 
@@ -38,7 +38,8 @@ class TankBundle(object):
         :type context: :class:`~sgtk.Context`
         :param settings: dictionary of settings to associate with this object
         :param descriptor: Descriptor pointing at associated code.
-        :param env: An Environment object to associate with this engine.
+        :param env: An Environment object to associate with this bundle.
+        :param log: A python logger to associate with this bundle
         """
         self.__tk = tk
         self.__context = context
@@ -49,6 +50,7 @@ class TankBundle(object):
         self.__descriptor = descriptor    
         self.__frameworks = {}
         self.__environment = env
+        self.__log = log
 
         # emit an engine started event
         tk.execute_core_hook(constants.TANK_BUNDLE_INIT_HOOK_NAME, bundle=self)
@@ -288,7 +290,35 @@ class TankBundle(object):
         :returns: List of framework objects
         """
         return self.__frameworks
-    
+
+    @property
+    def logger(self):
+        """
+        Standard python logger for this engine, app or framework.
+
+        Use this whenever you want to emit or process
+        log messages. If you are developing an app,
+        engine or framework, call this method for generic logging.
+
+        .. note:: Inside the ``python`` area of your app, engine or framework,
+                  we recommend that you use :meth:`sgtk.platform.get_logger`
+                  for your logging.
+
+        Logging will be dispatched to a logger parented under the
+        main toolkit logging namespace::
+
+            # pattern
+            sgtk.session.environment_name.engine_instance_name
+
+            # for example
+            sgtk.session.asset.tk-maya
+
+        .. note:: If you want all log messages that you are emitting in your
+                  app, engine or framework to be written to a log file or
+                  to a logging console, you can attach a std log handler here.
+        """
+        return self.__log
+
     ##########################################################################################
     # public methods
 
@@ -376,7 +406,7 @@ class TankBundle(object):
             if self.__module_uid is None:
                 self.log_debug("Importing python modules in %s..." % python_folder)
                 # alias the python folder with a UID to ensure it is unique every time it is imported
-                self.__module_uid = uuid.uuid4().hex
+                self.__module_uid = "tkimp%s" % uuid.uuid4().hex
                 imp.load_module(self.__module_uid, None, python_folder, ("", "", imp.PKG_DIRECTORY) )
             
             # we can now find our actual module in sys.modules as GUID.module_name

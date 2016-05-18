@@ -27,8 +27,11 @@ from .util import ShotgunPath
 from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
+from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
+
+log = LogManager.get_logger(__name__)
 
 class PipelineConfiguration(object):
     """
@@ -207,18 +210,24 @@ class PipelineConfiguration(object):
         the global YamlCache.
         """
         cache_file = os.path.join(self._pc_root, "yaml_cache.pickle")
+        if not os.path.exists(cache_file):
+            return
+
         try:
             fh = open(cache_file, 'rb')
-        except Exception:
+        except Exception, e:
+            log.warning("Could not read yaml cache %s: %s" % (cache_file, e))
             return
 
         try:
             cache_items = cPickle.load(fh)
             yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
-        except Exception:
-            return
+        except Exception, e:
+            log.warning("Could not merge yaml cache %s: %s" % (cache_file, e))
         finally:
             fh.close()
+
+        log.debug("Read %s items from yaml cache %s" % (len(cache_items), cache_file))
 
 
     ########################################################################################

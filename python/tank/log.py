@@ -12,10 +12,9 @@ import logging
 import logging.handlers
 import os
 import time
+import weakref
 from functools import wraps
 from . import constants
-
-log = logging.getLogger(__name__)
 
 class LogManager(object):
     """
@@ -24,73 +23,195 @@ class LogManager(object):
     This class contains a series of methods to help standardize log output
     and access. Since Toolkit uses the standard python logging interface,
     you can manually configure and associate your logging if you like.
+
+    .. note:: This is a singleton class, so every time you instantiate it,
+              the same object is returned.
     """
-    # a global and standard rotating log file handler
-    # for writing generic toolkit logs to disk
-    _std_file_handler = None
 
-    @classmethod
-    def initialize_std_handler(cls, handler=logging.StreamHandler()):
+    # keeps track of the single instance of the class
+    __instance = None
+
+    def __new__(cls, *args, **kwargs):
+        #
+        # note - this init isn't currently threadsafe.
+        #
+        # create the instance if it hasn't been created already
+        if not cls.__instance:
+            # remember the instance so that no more are created
+            instance = super(LogManager, cls).__new__(
+                cls,
+                *args,
+                **kwargs
+            )
+
+            # a global and standard rotating log file handler
+            # for writing generic toolkit logs to disk
+            instance._std_file_handler = None
+            instance._std_file_handler_log_name = None
+
+            # collection of weak references to handlers
+            # that were created via the log manager.
+            instance._handlers = []
+
+            # the root logger, created at code init
+            instance._root_logger = logging.getLogger(constants.ROOT_LOGGER_NAME)
+
+            # check the TK_DEBUG flag at startup
+            # this controls the "global debug" state
+            # in the log manager
+            if constants.DEBUG_LOGGING_ENV_VAR in os.environ:
+                log.debug(
+                    "%s environment variable detected. Enabling debug logging." % constants.DEBUG_LOGGING_ENV_VAR
+                )
+                instance._global_debug = True
+            else:
+                instance._global_debug = False
+
+            cls.__instance = instance
+
+        return cls.__instance
+
+    @staticmethod
+    def get_logger(log_name):
         """
-        Convenience method that initializes a standard logger
-        and attaches it to the toolkit logging root.
+        Generates standard logger objects for Toolkit.
 
-        Calling this without parameters will generate a standard
-        stream based logging handler that logs to stderr::
+        If you want to add standard toolkit logging to your code,
+        the easiest way is to include the following at the top of
+        your python file::
 
-            # start logging to stderr
-            import sgtk.LogManager
-            LogManager.initialize_std_handler()
+            import sgtk
+            logger = sgtk.LogManager.get_logger(__name__)
 
-        If you want to log to a file instead, create a log handler
-        and pass that to the method::
+        This will pick up the module hierarchy of your code and
+        parent it under the standard Toolkit logger.
 
-            handler = logging.FileHandler("/tmp/toolkit.log)
-            LogManager.initialize_std_handler(handler)
+        .. note:: This method is useful if you are writing scripts, tools or wrappers.
+                  If you are developing a Toolkit app, framework or engine,
+                  you typically want to use :meth:`sgtk.platform.get_logger`
+                  for your logging.
 
-        If you want to only show warnings::
+        .. note:: To output logging to screen or to a console,
+                  we recommend using the :meth:`initialize_custom_handler`
+                  convenience method.
 
-            # start logging to stderr
-            import sgtk.LogManager
-            handler = LogManager.initialize_std_handler()
-            handler.setLevel(logging.WARNING)
-
-        The log handler will be configured to output its messages
-        in a standard fashion.
-
-        :param handler: Logging handler to connect with the toolkit logger.
-                        If not passed, a standard stream logger will be created.
-        :return: The configured log handler.
+        :param log_name: Name of logger to create. This name will be parented under
+                         the sgtk namespace. If the name begins with ``tank.``, it will
+                         be automatically replaced with ``sgtk.``.
+        :returns: Standard python logger.
         """
-        # example:
-        # [DEBUG tank.log] message message
-        formatter = logging.Formatter(
-            "[%(levelname)s %(name)s] %(message)s"
-        )
+        if log_name.startswith("tank."):
+            # replace tank
+            log_name = "%s.%s" % (constants.ROOT_LOGGER_NAME, log_name[5:])
+        else:
+            # parent under root logger
+            log_name = "%s.%s" % (constants.ROOT_LOGGER_NAME, log_name)
 
-        handler.setFormatter(formatter)
-        sgtk_root_logger.addHandler(handler)
+        return logging.getLogger(log_name)
 
-        return handler
+    @staticmethod
+    def log_timing(func):
+        """
+        Decorator that times and logs the execution of a method.
+
+        Sometimes it is useful to log runtime statistics about
+        how long time a certain method takes to execute. In the
+        case of Toolkit, it is particularly helpful when debugging
+        issues to do with I/O or cloud connectivity.
+
+        If you have a method that for example connects to Shotgun to
+        retrieve data, you can decorate it::
+
+            @sgtk.LogManager.log_timing
+            def my_shotgun_publish_method():
+                '''
+                Publishes lots of files to Shotgun
+                '''
+                # shotgun code here
+
+        In the debug logs, timings will be written to the
+        ``sgtk.stopwatch`` logger::
+
+            [DEBUG sgtk.stopwatch.module] my_shotgun_publish_method: 0.633s
+
+        """
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            time_before = time.time()
+            try:
+                response = func(*args, **kwargs)
+            finally:
+                time_spent = time.time() - time_before
+                # log to special timing logger
+                timing_logger = logging.getLogger(
+                    "%s.%s" % (constants.PROFILING_LOG_CHANNEL, func.__module__)
+                )
+                timing_logger.debug(
+                    "%s: %fs" % (func.__name__, time_spent)
+                )
+            return response
+        return wrapper
 
 
-    @classmethod
-    def get_root_logger(cls):
+
+    def _set_global_debug(self, state):
+        """
+        Sets the state of the global debug in toolkit.
+        """
+        self._global_debug = state
+        if self._global_debug:
+            new_log_level = logging.DEBUG
+        else:
+            log.debug("Disabling debug logging.")
+            new_log_level = logging.INFO
+
+        # process handlers
+        for handler_weak_ref in self._handlers:
+            handler = handler_weak_ref()
+            if handler:
+                handler.setLevel(new_log_level)
+
+        # process backdoor logger
+        if self.base_file_handler:
+            self.base_file_handler.setLevel(new_log_level)
+
+        # log notifications
+        if self._global_debug:
+            log.debug(
+                "Debug logging enabled. To permanently enable it, "
+                "set the %s environment variable." % constants.DEBUG_LOGGING_ENV_VAR
+            )
+
+    def _get_global_debug(self):
+        """
+        Controls the global debug flag in toolkit. Toggling this
+        flag will affect all log handlers that have been created
+        though :meth:`initialize_custom_handler`.
+
+        .. note:: Debug logging is off by default.
+                  If you want to permanently enable debug logging,
+                  set the environment variable ``TK_DEBUG``.
+        """
+        return self._global_debug
+
+    global_debug = property(_get_global_debug, _set_global_debug)
+
+    @property
+    def log_folder(self):
+        """
+        The folder where log files generated by :meth:`initialize_base_file_handler` are stored.
+        """
+        # avoid cyclic references
+        from .util import LocalFileStorageManager
+        return LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING)
+
+    @property
+    def root_logger(self):
         """
         Returns the root logger for Toolkit.
 
-        If you want to add your own logger underneath the toolkit
-        logger, you can use this method to easily do so::
-
-            log = get_root_logger().getChild("my_logger")
-
-        This will create a ``my_logger`` under the root logger and
-        log information from this will appear in all standard toolkit
-        logs.
-
         .. note:: If you want to add a custom logging handler to the root logger,
-                  we recommend using the :meth:`LogManager.initialize_std_handler`
-                  convenience method.
+                  we recommend using the :meth:`initialize_custom_handler` method.
 
         .. warning:: The root logger logs down to a debug resolution by default.
                      Do not change the output level of logger as this will have
@@ -100,110 +221,174 @@ class LogManager(object):
 
         :return: log object
         """
-        return logging.getLogger(constants.ROOT_LOGGER_NAME)
+        return self._root_logger
 
-    @classmethod
-    def initialize_base_file_logger(cls, log_name):
+    @property
+    def base_file_handler(self):
         """
-        Create a file writer and attach it to the stgk base logger.
+        The base file handler that is used to write log files to disk
+        in a default location, or None if not defined.
+        """
+        return self._std_file_handler
+
+    def initialize_custom_handler(self, handler=logging.StreamHandler()):
+        """
+        Convenience method that initializes a log handler
+        and attaches it to the toolkit logging root.
+
+        .. note:: If you want to display log messages inside a DCC,
+                  implement :meth:`~sgtk.platform.Engine._emit_log_message`.
+
+        .. note:: If :meth:`global_debug` is set to True, the handler created
+                  will be set to debug level, otherwise it will be set to info level.
+
+        Calling this without parameters will generate a standard
+        stream based logging handler that logs to stderr::
+
+            # start logging to stderr
+            import sgtk.LogManager
+            LogManager().initialize_custom_handler()
+
+        If you want to log to a file instead, create a log handler
+        and pass that to the method::
+
+            handler = logging.FileHandler("/tmp/toolkit.log)
+            LogManager().initialize_custom_handler(handler)
+
+        If you want to only show warnings::
+
+            # start logging to stderr
+            import sgtk.LogManager
+            handler = LogManager().initialize_custom_handler()
+            handler.setLevel(logging.WARNING)
+
+        The log handler will be configured to output its messages
+        in a standard fashion.
+
+        :param handler: Logging handler to connect with the toolkit logger.
+                        If not passed, a standard stream logger will be created.
+        :return: The configured log handler.
+        """
+        # example: [DEBUG tank.log] message message
+        formatter = logging.Formatter(
+            "[%(levelname)s %(name)s] %(message)s"
+        )
+
+        handler.setFormatter(formatter)
+        self._root_logger.addHandler(handler)
+
+        if self.global_debug:
+            handler.setLevel(logging.DEBUG)
+        else:
+            handler.setLevel(logging.INFO)
+
+        # add it to our list of handlers, but as a
+        # weak reference so that it can be destroyed
+        # elsewhere (e.g. at engine shutdown)
+        self._handlers.append(weakref.ref(handler))
+
+        return handler
+
+    def uninitialize_base_file_handler(self):
+        """
+        Uninitialize base file handler created with :meth:`initialize_base_file_handler`.
+
+        :returns: The name of the previous log_name that is being switched away from,
+                  None if no base logger was previously active.
+        """
+        if self._std_file_handler is None:
+            base_log_name = None
+
+        else:
+            base_log_name = self._std_file_handler_log_name
+
+            # there is a log handler, so terminate it
+            log.debug(
+                "Tearing down existing log handler '%s' (%s)" % (base_log_name, self._std_file_handler)
+            )
+            self._root_logger.removeHandler(self._std_file_handler)
+            self._std_file_handler = None
+            self._std_file_handler_log_name = None
+
+        # return the previous base log name
+        return base_log_name
+
+    def initialize_base_file_handler(self, log_name):
+        """
+        Create a file handler and attach it to the stgk base logger.
         This will write a rotating log file to disk in a standard
         location and will capture all log messages passed through
         the log hierarchy.
 
-        .. note:: Files will be written into the logging location
-                  defined by :meth:`LocalFileStorageManager.get_global_root`.
+        .. note:: Files will be written into the a location on disk
+                  defined by :meth:`log_folder`.
 
-        If you launch toolkit via the :class:`sgtk.bootstrap.ToolkitManager`,
-        this logger will be automatically set up and logging information
-        that can be used for diagnostics or troubleshooting.
+        When you start an engine via the :meth:`sgtk.platform.start_engine` method,
+        a file handler will automatically be created if one doesn't already exist.
 
         If you are manually launching toolkit, we recommend that you call
-        this method to initialize logging to file. Calling it multiple times
-        will not result in the information being written to multiple different
-        files - only one file logger can exist per Toolkit session.
+        this method to initialize logging to file early on in your setup.
+        Calling it multiple times will not result in the information being
+        written to multiple different files - only one file logger can
+        exist per session.
 
         :param log_name: Name of logger to create. This will form the
                          filename of the log file.
+        :returns: The name of the previous log_name that is being switched away from,
+                  None if no base logger was previously active.
         """
+        # shut down any previous logger
+        previous_log_name = self.uninitialize_base_file_handler()
+
+        log.debug("Switching file based std logger from %s to %s" % (previous_log_name, log_name))
+
+        # store new log name
+        self._std_file_handler_log_name = log_name
+
         # avoid cyclic references
-        from .util import LocalFileStorageManager
         from .util import filesystem
 
-        if cls._std_file_handler:
-            # there is already a log handler.
-            # terminate previous one
-            sgtk_root_logger.removeHandler(cls._std_file_handler)
-            cls._std_file_handler = None
-
         # set up logging root folder
-        log_folder = LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING)
-        filesystem.ensure_folder_exists(log_folder)
+        filesystem.ensure_folder_exists(self.log_folder)
 
         # generate log path
         log_file = os.path.join(
-            log_folder,
+            self.log_folder,
             "%s.log" % filesystem.create_valid_filename(log_name)
         )
 
-        cls._std_file_handler = logging.handlers.RotatingFileHandler(
+        # create a rotating log file with a max size of 5 megs -
+        # this should make all log files easily attachable to support tickets.
+        self._std_file_handler = logging.handlers.RotatingFileHandler(
             log_file,
-            maxBytes=4096*1024,
-            backupCount=5
+            maxBytes=1024*1024*5,  # 5 MiB
+            backupCount=0
         )
 
-        # example:
+        # set the level based on global debug flag
+        if self.global_debug:
+            self._std_file_handler.setLevel(logging.DEBUG)
+        else:
+            self._std_file_handler.setLevel(logging.INFO)
+
+        # Set up formatter. Example:
         # 2016-04-25 08:56:12,413 [44862 DEBUG tank.log] message message
         formatter = logging.Formatter(
             "%(asctime)s [%(process)d %(levelname)s %(name)s] %(message)s"
         )
 
-        cls._std_file_handler.setFormatter(formatter)
-        sgtk_root_logger.addHandler(cls._std_file_handler)
+        self._std_file_handler.setFormatter(formatter)
+        self._root_logger.addHandler(self._std_file_handler)
 
         # log the fact that we set up the log file :)
         log.debug("Writing to log standard log file %s" % log_file)
 
-
-def log_timing(name=None):
-    """
-    Decorator that times and logs the execution of a method.
-
-    Sometimes it is useful to log runtime statistics about
-    how long time a certain method takes to execute. In the
-    case of Toolkit, it is particularly helpful when debugging
-    issues to do with I/O or cloud connectivity.
-
-    If you have a method that for example connects to Shotgun to
-    retrieve data, you can decorate it::
-
-        @log_timing("Publishing to Shotgun")
-        def my_shotgun_publish_method():
-            '''
-            Publishes lots of files to Shotgun
-            '''
-            # shotgun code here
-
-    In the debug logs, timings will be written to the
-    ``tank.stopwatch`` logger::
-
-        [DEBUG tank.stopwatch] Publishing to Shotgun: 0.633s
-
-    """
-    def _my_decorator(func):
-        def _decorator(*args, **kwargs):
-            time_before = time.time()
-            try:
-                response = func(*args, **kwargs)
-            finally:
-                time_spent = time.time() - time_before
-                # log to special timing logger
-                timing_logger = logging.getLogger(constants.PROFILING_LOG_CHANNEL)
-                timing_logger.debug("%s: %fs" % (name, time_spent))
-            return response
-        return wraps(func)(_decorator)
-    return _my_decorator
+        # return previous log name
+        return previous_log_name
 
 
+# the logger for logging messages from this file :)
+log = LogManager.get_logger(__name__)
 
 # initialize toolkit logging
 #
@@ -217,9 +402,9 @@ sgtk_root_logger = logging.getLogger(constants.ROOT_LOGGER_NAME)
 # logger (or any of its child loggers).
 sgtk_root_logger.propagate = False
 # The top level logger object has its message throughput
-# level set to DEBUG. Individual handlers attaching
-# to this logger should then individually adjust
-# their preferred display level.
+# level set to DEBUG by default.
+# this should not be changed, but any filtering
+# should happen via log handlers
 sgtk_root_logger.setLevel(logging.DEBUG)
 #
 # create a 'nop' log handler to be attached.
@@ -231,4 +416,3 @@ class NullHandler(logging.Handler):
         pass
 # and add it to the logger
 sgtk_root_logger.addHandler(NullHandler())
-

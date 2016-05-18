@@ -266,7 +266,8 @@ class DumpConfigAction(Action):
                 print "\nUsage: %s\n" % (self._usage(),)
 
             raise TankError(
-                "Could not find a valid config named: '%s'" % (parameters["env"],))
+                "Could not find an environment named: '%s'. "
+                "Available environments are: %s." % (parameters["env"], ", ".join(valid_env_names)))
 
         return parameters
 

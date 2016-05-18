@@ -8,12 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import logging
 from .descriptor import Descriptor
 from .errors import TankDescriptorError
 from . import constants
+from .. import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 class BundleDescriptor(Descriptor):
     """
@@ -43,7 +43,7 @@ class BundleDescriptor(Descriptor):
 
         manifest = self._io_descriptor.get_manifest()
 
-        constraints["min_sg"] = manifest.get("requires_shotgun_version", constants.LOWEST_SHOTGUN_VERSION)
+        constraints["min_sg"] = manifest.get("requires_shotgun_version") or constants.LOWEST_SHOTGUN_VERSION
 
         if manifest.get("requires_core_version") is not None:
             constraints["min_core"] = manifest.get("requires_core_version")
@@ -109,14 +109,16 @@ class BundleDescriptor(Descriptor):
     @property
     def supported_engines(self):
         """
-        The engines supported by this app or framework. May return None,
-        meaning that anything goes.
+        The engines supported by this app or framework. Examples
+        of return values:
 
-        return: None                   (all engines are fine!)
-        return: ["tk-maya", "tk-nuke"] (works with maya and nuke)
+            - ``None`` - Works in all engines.
+            - ``["tk-maya", "tk-nuke"]`` - Works in Maya and Nuke.
         """
         manifest = self._io_descriptor.get_manifest()
         return manifest.get("supported_engines")
+
+
 
     @property
     def required_frameworks(self):
@@ -138,10 +140,20 @@ class BundleDescriptor(Descriptor):
             frameworks = []
         return frameworks
 
+    # compatibility accessors to ensure that all systems
+    # calling this (previously internal!) parts of toolkit
+    # will still work.
+    def get_version_constraints(self): return self.version_constraints
+    def get_required_context(self): return self.required_context
+    def get_supported_platforms(self): return self.supported_platforms
+    def get_configuration_schema(self): return self.configuration_schema
+    def get_supported_engines(self): return self.supported_engines
+    def get_required_frameworks(self): return self.required_frameworks
+
     ###############################################################################################
     # helper methods
 
-    def ensure_shotgun_fields_exist(self, tk):
+    def ensure_shotgun_fields_exist(self, tk=None):
         """
         Ensures that any shotgun fields a particular descriptor requires
         exists in shotgun. In the metadata (``info.yml``) for an app or an engine,
@@ -158,8 +170,17 @@ class BundleDescriptor(Descriptor):
         .. warning::
             This feature may be deprecated in the future.
 
-        :param tk: Core API instance to use for post install execution
+        :param tk: Core API instance to use for post install execution. This value
+                   defaults to ``None`` for backwards compatibility reasons and in
+                   the case a None value is passed in, the hook will not execute.
         """
+        # if tk is None, exit early. This is to keep things backwards compatible
+        # with earlier versions of the desktop startup framework (which never used
+        # any post install functionality, so the fact that we don't execute anything
+        # in that case should't affect the behavior).
+        if tk is None:
+            return
+
         # first fetch metadata
         manifest = self._io_descriptor.get_manifest()
         sg_fields_def = manifest.get("requires_shotgun_fields")
@@ -192,7 +213,7 @@ class BundleDescriptor(Descriptor):
                             ui_field_name
                         )
 
-    def run_post_install(self, tk):
+    def run_post_install(self, tk=None):
         """
         If a post install hook exists in a descriptor, execute it. In the
         hooks directory for an app or engine, if a 'post_install.py' hook
@@ -201,8 +222,22 @@ class BundleDescriptor(Descriptor):
         Errors reported in the post install hook will be reported to the error
         log but execution will continue.
 
-        :param tk: Core API instance to use for post install execution
+        .. warning:: We longer recommend using post install hooks. Should you
+                     need to use one, take great care when designing it so that
+                     it can execute correctly for all users, regardless of
+                     their shotgun and system permissions.
+
+        :param tk: Core API instance to use for post install execution. This value
+                   defaults to ``None`` for backwards compatibility reasons and in
+                   the case a None value is passed in, the hook will not execute.
         """
+        # if tk is None, exit early. This is to keep things backwards compatible
+        # with earlier versions of the desktop startup framework (which never used
+        # any post install functionality, so the fact that we don't execute anything
+        # in that case should't affect the behavior).
+        if tk is None:
+            return
+
         try:
             tk.pipeline_configuration.execute_post_install_bundle_hook(self.get_path())
         except Exception, e:

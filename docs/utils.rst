@@ -11,7 +11,7 @@ log management. The :class:`LogManager` class below
 acts as an interface that helps make it easy to access
 and manage toolkit logging.
 
-All toolkit logging is written into a ``tank.*`` logging
+All toolkit logging is written into a ``sgtk.*`` logging
 namespace. This has been "sealed" so that log messages
 from Toolkit do not propagate up to the root logger. This
 is to ensure that Toolkit doesn't interfear with other logging
@@ -19,7 +19,16 @@ that has been already configured.
 
 Each app, engine and bundle provides access to logging and
 these log streams are also collected and organized under the
-``tank`` logging namespace.
+``sgtk`` logging namespace. This is done by calling
+the methods :meth:`sgtk.platform.Engine.logger`, :meth:`sgtk.platform.Application.logger`
+or :meth:`sgtk.platform.Framework.logger`.
+
+Each Toolkit :class:`~sgtk.platform.Engine` contains a method :meth:`~sgtk.platform.Engine._emit_log_message`
+that can be subclassed if you want to the DCC to display
+log messages at runtime.
+
+LogManager
+-----------------------------------
 
 .. autoclass:: LogManager
     :members:
@@ -40,6 +49,10 @@ fashion.
 
 .. currentmodule:: sgtk.util.filesystem
 
+
+sgtk.util.filesystem
+-----------------------------------
+
 .. autofunction:: with_cleared_umask
 .. autofunction:: touch_file(path, permissions=0666)
 .. autofunction:: ensure_folder_exists(path, permissions=0775, create_placeholder_file=False)
@@ -49,20 +62,20 @@ fashion.
 .. autofunction:: move_folder(src, dst, folder_permissions=0775)
 .. autofunction:: create_valid_filename
 
-Cross Platform Path Management
-============================================
+ShotgunPath
+-----------------------------------
 
 .. autoclass:: sgtk.util.ShotgunPath
     :members:
 
-Temporary Data Storage
-============================================
+LocalFileStorageManager
+-----------------------------------
 
 .. autoclass:: sgtk.util.LocalFileStorageManager
     :members:
 
 Shotgun Related
-============================================
+=============================
 
 Below are a collection of shotgun related utility
 and convenience methods:
@@ -78,7 +91,7 @@ and convenience methods:
 
 
 Miscellaneous
-============================================
+=============================
 
 .. autofunction:: append_path_to_env_var
 .. autofunction:: prepend_path_to_env_var

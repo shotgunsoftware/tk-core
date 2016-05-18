@@ -27,6 +27,7 @@ from ..errors import TankError
 from .errors import TankEngineInitError, TankContextChangeNotSupportedError
 from ..util import log_user_activity_metric, log_user_attribute_metric
 from ..util.metrics import MetricsDispatcher
+from ..log import LogManager
 
 from . import application
 from . import constants
@@ -34,8 +35,10 @@ from . import validation
 from . import qt
 from .bundle import TankBundle
 from .framework import setup_frameworks
+from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
 
-log = logging.getLogger(__name__)
+# std core level logger
+core_logger = LogManager.get_logger(__name__)
 
 class Engine(TankBundle):
     """
@@ -66,6 +69,7 @@ class Engine(TankBundle):
         .. automethod:: _create_dialog_with_widget
         .. automethod:: _get_dialog_parent
         .. automethod:: _on_dialog_closed
+        .. automethod:: _emit_log_message
         """
         
         self.__env = env
@@ -92,15 +96,30 @@ class Engine(TankBundle):
         # to access the invoker don't trip on undefined variables.
         self._invoker = None
         self._async_invoker = None
-        
+
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
         
         # get the descriptor representing the engine        
         descriptor = self.__env.get_engine_descriptor(self.__engine_instance_name)        
-        
+
+        # create logger for this engine.
+        # log will be parented in a tank.session.environment_name.engine_instance_name hierarchy
+        logger = LogManager.get_logger("session.%s.%s" % (env.name, engine_instance_name))
+
         # init base class
-        TankBundle.__init__(self, tk, context, settings, descriptor, env)
+        TankBundle.__init__(self, tk, context, settings, descriptor, env, logger)
+
+        # create a log handler to handle log dispatch from self.log
+        # (and the rest of the sgtk logging ) to the user
+        self.__log_handler = self.__initialize_logging()
+
+        # check general debug log setting and if this flag is turned on,
+        # adjust the global setting
+
+        if self.get_setting("debug_logging", False):
+            LogManager().global_debug = True
+            self.log_debug("Engine config flag 'debug_logging' detected, turning on debug output.")
 
         # check that the context contains all the info that the app needs
         validation.validate_context(descriptor, context)
@@ -110,7 +129,13 @@ class Engine(TankBundle):
 
         # Get the settings for the engine and then validate them
         engine_schema = descriptor.configuration_schema
-        validation.validate_settings(self.__engine_instance_name, tk, context, engine_schema, settings)
+        validation.validate_settings(
+            self.__engine_instance_name,
+            tk,
+            context,
+            engine_schema,
+            settings
+        )
         
         # set up any frameworks defined
         setup_frameworks(self, self, self.__env, descriptor)
@@ -144,7 +169,7 @@ class Engine(TankBundle):
 
         # Update the authentication module to use the engine's Qt.
         # @todo: can this import be untangled? Code references internal part of the auth module
-        from tank.authentication.ui import qt_abstraction
+        from ..authentication.ui import qt_abstraction
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
         
@@ -165,8 +190,39 @@ class Engine(TankBundle):
         # state of the apps - for example creates a menu, so at that 
         # point we want to try and have all app initialization complete.
         self.__run_post_engine_inits()
-        
-        # Useful dev helpers: If there is one or more dev descriptors in the 
+
+        if self.__has_018_logging_support():
+            # if engine supports new logging implementation,
+            #
+            # we cannot add the 'toggle debug logging' for
+            # an engine that has the old logging implementation
+            # because that typically contains overrides in log_debug
+            # which effectively renders the command below useless
+
+            # register logging related items on the context menu
+            self.register_command(
+                "Toggle Debug Logging",
+                self.__toggle_debug_logging,
+                {
+                    "short_name": "toggle_debug",
+                    "description": ("Toggles toolkit debug logging on and off. "
+                                    "This affects all debug logging, including log "
+                                    "files that are being written to disk."),
+                    "type": "context_menu"
+                }
+            )
+
+        self.register_command(
+            "Open Log Folder",
+            self.__open_log_folder,
+            {
+                "short_name": "open_log_folder",
+                "description": "Opens the folder where log files are being stored.",
+                "type": "context_menu"
+            }
+        )
+
+        # Useful dev helpers: If there is one or more dev descriptors in the
         # loaded environment, add a reload button to the menu!
         self.__register_reload_command()
         
@@ -195,6 +251,9 @@ class Engine(TankBundle):
                                                       self.name, 
                                                       self.__env.name)
 
+    ##########################################################################################
+    # properties used by internal classes, not part of the public interface
+
     def get_env(self):
         """
         Returns the environment object associated with this engine.
@@ -204,17 +263,123 @@ class Engine(TankBundle):
         """
         return self.__env
 
-    ##########################################################################################
-    # properties used by internal classes, not part of the public interface
-    
+    def __toggle_debug_logging(self):
+        """
+        Toggles global debug logging on and off in the log manager.
+        This will affect all logging across all of toolkit.
+        """
+        # flip debug logging
+        LogManager().global_debug = not LogManager().global_debug
+
+    def __open_log_folder(self):
+        """
+        Opens the file system folder where log files are being stored.
+        """
+        self.log_info("Log folder is located in '%s'" % LogManager().log_folder)
+
+        if self.has_ui:
+            # only import QT if we have a UI
+            from .qt import QtGui, QtCore
+            url = QtCore.QUrl.fromLocalFile(
+                LogManager().log_folder
+            )
+            status = QtGui.QDesktopServices.openUrl(url)
+            if not status:
+                self._engine.log_error("Failed to open folder!")
+
+    def __is_method_subclassed(self, method_name):
+        """
+        Helper that determines if the given method name
+        has been subclassed in the currently running
+        instance of the class or not.
+
+        :param method_name: Name of engine method to check, e.g. 'log_debug'.
+        :return: True if subclassed, false if not
+        """
+        # grab active method and baseclass method
+        running_method = getattr(self, method_name)
+        base_method = getattr(Engine, method_name)
+
+        # now determine if the runtime implementation
+        # is the base class implementation or not
+        subclassed = False
+
+        if sys.version_info < (2,6):
+            # older pythons use im_func rather than __func__
+            if running_method.im_func is not base_method.im_func:
+                subclassed = True
+        else:
+            # pyton 2.6 and above use __func__
+            if running_method.__func__ is not base_method.__func__:
+                subclassed = True
+
+        return subclassed
+
+    def __has_018_logging_support(self):
+        """
+        Determine if the engine supports the new logging implementation.
+
+        This is done by introspecting the _emit_log_message method.
+        If this method is implemented for this engine, it is assumed
+        that we are using the new logging system.
+
+        :return: True if new logging is used, False otherwise
+        """
+        return self.__is_method_subclassed("_emit_log_message")
+
+    def __initialize_logging(self):
+        """
+        Creates a std python logging LogHandler
+        that dispatches all log messages to the
+        :meth:`Engine._emit_log_message()` method
+        in a thread safe manner.
+
+        For engines that do not yet implement :meth:`_emit_log_message`,
+        a legacy log handler is used that dispatches messages
+        to the legacy output methods log_xxx.
+
+        :return: :class:`python.logging.LogHandler`
+        """
+        if self.__has_018_logging_support():
+            handler = LogManager().initialize_custom_handler(
+                ToolkitEngineHandler(self)
+            )
+            # make it easy for engines to implement a consistent log format
+            # by equipping the handler with a standard formatter:
+            # [DEBUG tk-maya] message message
+            #
+            # engines subclassing log output can call
+            # handler.format to access this formatter for
+            # a consistent output implementation
+            # (see _emit_log_message for details)
+            #
+            formatter = logging.Formatter(
+                "[%(levelname)s %(basename)s] %(message)s"
+            )
+            handler.setFormatter(formatter)
+
+        else:
+            # legacy engine that doesn't have _emit_log_message implemented
+            handler = LogManager().initialize_custom_handler(
+                ToolkitEngineLegacyHandler(self)
+            )
+
+            # create a minimalistic format suitable for
+            # existing output implementations of log_xxx
+            #
+            formatter = logging.Formatter("%(basename)s: %(message)s")
+            handler.setFormatter(formatter)
+
+        return handler
+
     def __show_busy(self, title, details):
         """
         Payload for the show_busy method.
 
         For details, see the main show_busy documentation.
         
-        :params title: Short descriptive title of what is happening
-        :params details: Detailed message describing what is going on.
+        :param title: Short descriptive title of what is happening
+        :param details: Detailed message describing what is going on.
         """
         if self.has_ui:
             # we cannot import QT until here as non-ui engines don't have QT defined.
@@ -306,44 +471,15 @@ class Engine(TankBundle):
         """
         log_user_attribute_metric(attr_name, attr_value)
 
-    def show_busy(self, title, details):
+    def get_child_logger(self, name):
         """
-        Displays or updates a global "busy window" tied to this engine. The window
-        is a splash screen type window, floats on top and contains details of what
-        is currently being processed.
+        Create a child logger for this engine.
 
-        This method pops up a splash screen with a message and the idea is that
-        long running core processes can use this as a way to communicate their intent
-        to the user and keep the user informed as slow processes are executed. If the engine
-        has a UI present, this will be used to display the progress message. If the engine
-        does not have UI support, a message will be logged. The UI always appears in the
-        main thread for safety.
-
-        Only one global progress window can exist per engine at a time, so if you want to
-        push several updates one after the other, just keep calling this method.
-
-        When you want to remove the window, call :meth:`clear_busy()`.
-
-        Note! If you are calling this from the Core API you typically don't have
-        access to the current engine object. In this case you can use the
-        convenience method ``tank.platform.engine.show_global_busy()`` which will
-        attempt to broadcast the request to the currently active engine.
-
-        :params title: Short descriptive title of what is happening
-        :params details: Detailed message describing what is going on.
+        :param name: Name of child logger, can contain periods for nesting
+        :return: :class:`logging.Logger` instance
         """
-        # make sure that the UI is always shown in the main thread
-        self.execute_in_main_thread(self.__show_busy, title, details)
-
-    def clear_busy(self):
-        """
-        Closes any active busy window.
-
-        For more details, see the :meth:`show_busy()` documentation.
-        """
-        if self.__global_progress_widget:
-            self.execute_in_main_thread(self.__clear_busy)
-
+        full_log_path = "%s.%s" % (self.logger.name, name)
+        return logging.getLogger(full_log_path)
 
     ##########################################################################################
     # properties
@@ -407,7 +543,7 @@ class Engine(TankBundle):
     @property
     def commands(self):
         """
-        Returns a dictionary representing all the commands that have been registered
+        A dictionary representing all the commands that have been registered
         by apps in this engine via :meth:`register_command`.
         Each dictionary item contains the following keys:
         
@@ -422,7 +558,7 @@ class Engine(TankBundle):
     @property
     def panels(self):
         """
-        Returns all the panels which have been registered with the engine via the :meth:`register_panel()`
+        Panels which have been registered with the engine via the :meth:`register_panel()`
         method. Returns a dictionary keyed by panel unique ids. Each value is a dictionary with keys
         ``callback`` and ``properties``.
 
@@ -450,7 +586,7 @@ class Engine(TankBundle):
     @property
     def metrics_dispatch_allowed(self):
         """
-        Inidicates this engine will allow the metrics worker threads to forward
+        Indicates this engine will allow the metrics worker threads to forward
         the user metrics logged via core, this engine, or registered apps to
         SG.
 
@@ -462,7 +598,7 @@ class Engine(TankBundle):
     @property
     def created_qt_dialogs(self):
         """
-        Returns a list of dialog objects that have been created by the engine.
+        A list of dialog objects that have been created by the engine.
 
         :returns:   A list of TankQDialog objects.
         """
@@ -521,6 +657,10 @@ class Engine(TankBundle):
             self.log_debug("Stopping metrics dispatcher.")
             self._metrics_dispatcher.stop()
             self.log_debug("Metrics dispatcher stopped.")
+
+        # kill log handler
+        LogManager().root_logger.removeHandler(self.__log_handler)
+        self.__log_handler = None
 
     def destroy_engine(self):
         """
@@ -632,6 +772,45 @@ class Engine(TankBundle):
 
     ##########################################################################################
     # public methods
+
+    def show_busy(self, title, details):
+        """
+        Displays or updates a global "busy window" tied to this engine. The window
+        is a splash screen type window, floats on top and contains details of what
+        is currently being processed.
+
+        This method pops up a splash screen with a message and the idea is that
+        long running core processes can use this as a way to communicate their intent
+        to the user and keep the user informed as slow processes are executed. If the engine
+        has a UI present, this will be used to display the progress message. If the engine
+        does not have UI support, a message will be logged. The UI always appears in the
+        main thread for safety.
+
+        Only one global progress window can exist per engine at a time, so if you want to
+        push several updates one after the other, just keep calling this method.
+
+        When you want to remove the window, call :meth:`clear_busy()`.
+
+        Note! If you are calling this from the Core API you typically don't have
+        access to the current engine object. In this case you can use the
+        convenience method ``tank.platform.engine.show_global_busy()`` which will
+        attempt to broadcast the request to the currently active engine.
+
+        :params title: Short descriptive title of what is happening
+        :params details: Detailed message describing what is going on.
+        """
+        # make sure that the UI is always shown in the main thread
+        self.execute_in_main_thread(self.__show_busy, title, details)
+
+    def clear_busy(self):
+        """
+        Closes any active busy window.
+
+        For more details, see the :meth:`show_busy()` documentation.
+        """
+        if self.__global_progress_widget:
+            self.execute_in_main_thread(self.__clear_busy)
+
 
     def register_command(self, name, callback, properties=None):
         """
@@ -935,75 +1114,128 @@ class Engine(TankBundle):
         """
         Logs a debug message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
+        .. note:: Toolkit will probe for this method and use it to determine if
+                  the current engine supports the new :meth:`Engine.logger` based logging
+                  or not. If you are developing an engine and want to upgrade it to
+                  use the new logging capabilities, you should remove the
+                  implementation of ``log_debug|error|info|...()`` methods and
+                  instead sublcass :meth:`Engine._emit_log_message`.
+
         :param msg: Message to log.
         """
-        log.debug(msg)
+        if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
+            # special case: We are in legacy mode and all log messages are
+            # dispatched to the log_xxx methods because this engine does not have an
+            # _emit_log_message implementation. This is fine because typically old
+            # engine implementations subclass the log_xxx class, meaning that this call
+            # is never run, but instead the subclassed code in run. If however, this
+            # could *would* run in that case for whatever reason (either it wasn't
+            # subclassed or the subclassed code calls the baseclass), we need to be
+            # careful not to end up in an infinite loop. Therefore, the log handler
+            # sets a flag to indicate that this code is being called from the logger
+            # and not from somewhere else. In that case we just exit early to avoid
+            # the infinite recursion
+            return
+        self.logger.debug(msg)
     
     def log_info(self, msg):
         """
         Logs an info message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
         :param msg: Message to log.
         """
-        log.info(msg)
+        if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
+            # special case: We are in legacy mode and all log messages are
+            # dispatched to the log_xxx methods because this engine does not have an
+            # _emit_log_message implementation. This is fine because typically old
+            # engine implementations subclass the log_xxx class, meaning that this call
+            # is never run, but instead the subclassed code in run. If however, this
+            # could *would* run in that case for whatever reason (either it wasn't
+            # subclassed or the subclassed code calls the baseclass), we need to be
+            # careful not to end up in an infinite loop. Therefore, the log handler
+            # sets a flag to indicate that this code is being called from the logger
+            # and not from somewhere else. In that case we just exit early to avoid
+            # the infinite recursion
+            return
+        self.logger.info(msg)
         
     def log_warning(self, msg):
         """
         Logs an warning message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
         :param msg: Message to log.
         """
-        log.warning(msg)
+        if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
+            # special case: We are in legacy mode and all log messages are
+            # dispatched to the log_xxx methods because this engine does not have an
+            # _emit_log_message implementation. This is fine because typically old
+            # engine implementations subclass the log_xxx class, meaning that this call
+            # is never run, but instead the subclassed code in run. If however, this
+            # could *would* run in that case for whatever reason (either it wasn't
+            # subclassed or the subclassed code calls the baseclass), we need to be
+            # careful not to end up in an infinite loop. Therefore, the log handler
+            # sets a flag to indicate that this code is being called from the logger
+            # and not from somewhere else. In that case we just exit early to avoid
+            # the infinite recursion
+            return
+        self.logger.warning(msg)
     
     def log_error(self, msg):
         """
         Logs an error message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
         :param msg: Message to log.
-        """        
-        log.error(msg)
+        """
+        if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
+            # special case: We are in legacy mode and all log messages are
+            # dispatched to the log_xxx methods because this engine does not have an
+            # _emit_log_message implementation. This is fine because typically old
+            # engine implementations subclass the log_xxx class, meaning that this call
+            # is never run, but instead the subclassed code in run. If however, this
+            # could *would* run in that case for whatever reason (either it wasn't
+            # subclassed or the subclassed code calls the baseclass), we need to be
+            # careful not to end up in an infinite loop. Therefore, the log handler
+            # sets a flag to indicate that this code is being called from the logger
+            # and not from somewhere else. In that case we just exit early to avoid
+            # the infinite recursion
+            return
+        self.logger.error(msg)
 
     def log_exception(self, msg):
         """
-        Logs an exception.
+        Logs an exception message.
 
-        This will contain a full traceback and is typically called from
-        within an exception handler::
-
-            try:
-                do_stuff()
-            except Exception:
-                self.log_exception("A general error was raised")
-
-        The message will be emitted as an error message.
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
-        (exc_type, exc_value, exc_traceback) = sys.exc_info()
-        
-        if exc_traceback is None:
-            # we are not inside an exception handler right now.
-            # someone is calling log_exception from the running code.
-            # in this case, present the current stack frame
-            # and a sensible message
-            stack_frame = traceback.extract_stack()
-            traceback_str = "".join(traceback.format_list(stack_frame))
-            exc_value = "No error details available."
-        
-        else:    
-            traceback_str = "".join( traceback.format_tb(exc_traceback))
-        
-        
-        message = []
-        message.append(msg)
-        message.append("")
-        message.append("%s" % exc_value)
-        message.append("The current environment is %s." % self.__env.name)
-        message.append("")
-        message.append("Code Traceback:")
-        message.extend(traceback_str.split("\n"))
-        
-        self.log_error("\n".join(message))
+        if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
+            # special case: We are in legacy mode and all log messages are
+            # dispatched to the log_xxx methods because this engine does not have an
+            # _emit_log_message implementation. This is fine because typically old
+            # engine implementations subclass the log_xxx class, meaning that this call
+            # is never run, but instead the subclassed code in run. If however, this
+            # could *would* run in that case for whatever reason (either it wasn't
+            # subclassed or the subclassed code calls the baseclass), we need to be
+            # careful not to end up in an infinite loop. Therefore, the log handler
+            # sets a flag to indicate that this code is being called from the logger
+            # and not from somewhere else. In that case we just exit early to avoid
+            # the infinite recursion
+            return
+        self.logger.exception(msg)
 
 
     ##########################################################################################
@@ -1024,6 +1256,42 @@ class Engine(TankBundle):
         
     ##########################################################################################
     # private and protected methods
+
+    def _emit_log_message(self, handler, record):
+        """
+        Called by the engine whenever a new log message is available.
+        All log messages from the toolkit logging namespace will be passed to this method.
+
+        .. note:: To implement logging in your engine implementation, subclass
+                  this method and display the record in a suitable way - typically
+                  this means sending it to a built-in DCC console. In addition to this,
+                  ensure that your engine implementation *does not* subclass
+                  the (old) :meth:`Engine.log_debug`, :meth:`Engine.log_info` family
+                  of logging methods.
+
+                  For a consistent output, use the formatter that is associated with
+                  the log handler that is passed in. A basic implementation of
+                  this method could look like this::
+
+                      # call out to handler to format message in a standard way
+                      msg_str = handler.format(record)
+
+                      # display message
+                      print msg_str
+
+        .. warning:: This method may be executing called from worker threads. In DCC
+                     environments, where it is important that the console/logging output
+                     always happens in the main thread, it is recommended that you
+                     use the :meth:`async_execute_in_main_thread` to ensure that your
+                     logging code is writing to the DCC console in the main thread.
+
+        :param handler: Log handler that this message was dispatched from
+        :type handler: :class:`~python.logging.LogHandler`
+        :param record: Std python logging record
+        :type record: :class:`~python.logging.LogRecord`
+        """
+        # default implementation doesn't do anything.
+
 
     def _get_dialog_parent(self):
         """
@@ -1857,9 +2125,13 @@ class Engine(TankBundle):
         for app in self.__applications.values():
             if app.descriptor.is_dev():
                 self.log_debug("App %s is registered via a dev descriptor. Will add a reload "
-                               "button to the actions listings."  % app)
+                               "button to the actions listings." % app)
                 from . import restart
-                self.register_command("Reload and Restart", restart, {"short_name": "restart", "type": "context_menu"})
+                self.register_command(
+                    "Reload and Restart",
+                    restart,
+                    {"short_name": "restart", "type": "context_menu"}
+                )
                 # only need one reload button, so don't keep iterating :)
                 break
 
@@ -1955,29 +2227,41 @@ def start_engine(engine_name, tk, context):
     :raises: :class:`TankEngineInitError` if an engine could not be started
              for the passed context.
     """
-    # first ensure that an engine is not currently running
-    if current_engine():
-        raise TankError("An engine (%s) is already running! Before you can start a new engine, "
-                        "please shut down the previous one using the command "
-                        "tank.platform.current_engine().destroy()." % current_engine())
+    try:
+        # first ensure that an engine is not currently running
+        if current_engine():
+            raise TankError("An engine (%s) is already running! Before you can start a new engine, "
+                            "please shut down the previous one using the command "
+                            "tank.platform.current_engine().destroy()." % current_engine())
 
-    # get environment and engine location
-    (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, context)
+        # begin writing log to disk, associated with the engine
+        # only do this if a logger hasn't been previously set up.
+        if LogManager().base_file_handler is None:
+            LogManager().initialize_base_file_handler(engine_name)
 
-    # make sure it exists locally
-    if not engine_descriptor.exists_local():
-        raise TankEngineInitError("Cannot start engine! %s does not exist on disk" % engine_descriptor)
+        # get environment and engine location
+        (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, context)
 
-    # get path to engine code
-    engine_path = engine_descriptor.get_path()
-    plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
+        # make sure it exists locally
+        if not engine_descriptor.exists_local():
+            raise TankEngineInitError("Cannot start engine! %s does not exist on disk" % engine_descriptor)
 
-    # Instantiate the engine
-    class_obj = load_plugin(plugin_file, Engine)
-    engine = class_obj(tk, context, engine_name, env)
+        # get path to engine code
+        engine_path = engine_descriptor.get_path()
+        plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
 
-    # register this engine as the current engine
-    set_current_engine(engine)
+        # Instantiate the engine
+        class_obj = load_plugin(plugin_file, Engine)
+        engine = class_obj(tk, context, engine_name, env)
+
+        # register this engine as the current engine
+        set_current_engine(engine)
+
+    except:
+        # trap and log the exception and let it bubble in
+        # unchanged form
+        core_logger.exception("Exception raised in start_engine.")
+        raise
 
     return engine
 
@@ -2049,7 +2333,7 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
                 continue
 
             # settings are valid so add them to return list:
-            app_settings.append({"engine_instance":eng, "app_instance":app, "settings":settings})
+            app_settings.append({"engine_instance": eng, "app_instance": app, "settings": settings})
                     
     return app_settings
     
@@ -2069,6 +2353,10 @@ def start_shotgun_engine(tk, entity_type, context):
                         should be set to something other than the empty
                         context.
     """
+
+    # begin writing log to disk, associated with the engine
+    if LogManager().base_file_handler is None:
+        LogManager().initialize_base_file_handler("tk-shotgun")
 
     # bypass the get_environment hook and use a fixed set of environments
     # for this shotgun engine. This is required because of the action caching.

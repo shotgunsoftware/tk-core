@@ -33,8 +33,10 @@ from tank.authentication import IncompleteCredentials
 from tank_vendor import yaml
 from tank.platform import engine
 from tank import pipelineconfig_utils
+from tank import LogManager
 
 
+logger = LogManager.get_logger("tankcmd")
 
 
 ###############################################################################################
@@ -123,8 +125,9 @@ class AltCustomFormatter(logging.Formatter):
                                                     record.msecs,
                                                     record.msg)
 
-            if "Code Traceback" not in record.msg:
-                # do not wrap exceptions
+            if not("Code Traceback" in record.msg or record.levelno < logging.INFO):
+                # do not wrap exceptions and debug
+                # wrap other log levels on an 80 char wide boundary
                 lines = []
                 for x in textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False):
                     lines.append(x)
@@ -1413,14 +1416,14 @@ def _extract_credentials(cmd_line):
 
 if __name__ == "__main__":
 
-    # set up logging channel for this script
-    logger = logging.getLogger("tank.setup_project")
-    logger.setLevel(logging.INFO)
+    # set up std toolkit logging to file
+    LogManager().initialize_base_file_handler("tk-shell")
 
-    ch = logging.StreamHandler(sys.stdout)
-    formatter = AltCustomFormatter()
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    # set up output of all sgtk log messages to stdout
+    log_handler = LogManager().initialize_custom_handler(
+        logging.StreamHandler(sys.stdout)
+    )
+    log_handler.setFormatter(AltCustomFormatter())
 
     # the first argument is always the path to the code root
     # we are running from.
@@ -1438,9 +1441,10 @@ if __name__ == "__main__":
     debug_mode = False
     if "--debug" in cmd_line:
         debug_mode = True
-        logger.setLevel(logging.DEBUG)
+        log_handler.setLevel(logging.DEBUG)
         logger.debug("")
-        logger.debug("Running with debug output enabled.")
+        logger.debug("A log file can be found in %s" % LogManager().log_folder)
+        logger.debug("To permanently set debug, define a TK_DEBUG environment variable.")
         logger.debug("")
     cmd_line = [arg for arg in cmd_line if arg != "--debug"]
 

@@ -15,13 +15,14 @@ import cPickle as pickle
 
 from .errors import TankError
 from . import constants
+from . import LogManager
 from .util import shotgun
 from .util import ShotgunPath
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
 from .util import LocalFileStorageManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 def from_entity(entity_type, entity_id):
     """

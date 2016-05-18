@@ -9,9 +9,9 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ..errors import TankDescriptorError
-import logging
 
-log = logging.getLogger(__name__)
+from ... import LogManager
+log = LogManager.get_logger(__name__)
 
 # for performance, we keep cached instances of
 # descriptors in a cache.

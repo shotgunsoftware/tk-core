@@ -83,10 +83,18 @@ The typical things an engine needs to handle are:
   engine to implement these methods so that they work nicely inside the host application.
 
 
+Engine
+============================
 
 .. autoclass:: Engine
     :inherited-members:
-    :exclude-members: descriptor, settings, get_env, log_metric, init_engine
+    :exclude-members: descriptor,
+                      settings,
+                      get_env,
+                      log_metric,
+                      init_engine,
+                      log_user_attribute_metric,
+                      get_child_logger
     :members:
 
 
@@ -100,6 +108,9 @@ Toolkit Apps are tools that can execute in multiple DCC environments.
 A good way to get started with App development is to clone our starter github repository
 https://github.com/shotgunsoftware/tk-multi-starterapp. Please note that there are different branches
 demonstrating different types of apps with a varying degree of complexity.
+
+Application
+============================
 
 .. autoclass:: Application
     :inherited-members:
@@ -154,6 +165,8 @@ each app will import its own instance of the framework. This is to ensure stabil
 A framework works just like an app or an engine - it has an info.yml manifest, a framework.py file which
 typically contains a class which derives from the Framework base class, etc.
 
+Framework
+============================
 
 .. autoclass:: Framework
     :inherited-members:
@@ -185,7 +198,7 @@ access and load other objects.
 
 .. autofunction:: import_framework
 
-
+.. autofunction:: get_logger
 
 
 
@@ -267,3 +280,4 @@ especially when the contained widget is quite small. To hide the title bar, just
 
         def __init__(self):
             ...
+

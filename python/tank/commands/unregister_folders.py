@@ -209,7 +209,7 @@ class UnregisterFoldersAction(Action):
         try:
             
             # first of all, make sure we are up to date
-            pc.synchronize(log)
+            pc.synchronize()
 
             # now get a unique list of filesystemlocation ids for the paths
             fs_location_ids = set()
@@ -274,7 +274,7 @@ class UnregisterFoldersAction(Action):
         # first of all, make sure we are up to date.
         pc = path_cache.PathCache(self.tk)
         try:
-            pc.synchronize(log)
+            pc.synchronize()
         finally:
             pc.close()
         
@@ -374,7 +374,7 @@ class UnregisterFoldersAction(Action):
         # lastly, another sync
         pc = path_cache.PathCache(self.tk)
         try:
-            pc.synchronize(log)
+            pc.synchronize()
         finally:
             pc.close()
 

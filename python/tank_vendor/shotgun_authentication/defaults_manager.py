@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Shotgun Software Inc.
+# Copyright (c) 2016 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -15,10 +15,11 @@ Please use the authentication module found in sgtk.authentication for
 new code. This compatibility wrapper will be removed at some point in the future.
 """
 
-# map the official API
-from tank.authentication import DefaultsManager, ShotgunAuthenticator
-from tank.authentication import ShotgunAuthenticationError, AuthenticationError, IncompleteCredentials, AuthenticationCancelled
-from tank.authentication import ShotgunUser, deserialize_user, serialize_user
-
+# this is to support code that imports private parts of the API,
+# like this:
+#
+# from tank_vendor.shotgun_authentication.user import ShotgunUser
+#
+from tank.authentication.defaults_manager import *
 
 

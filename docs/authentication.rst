@@ -3,6 +3,10 @@
 Authentication
 ########################################
 
+Introduction
+----------------------------------------
+
+
 When you run the Shotgun pipeline Toolkit, it will connect to Shotgun on a regular basis in order to carry out
 certain operations. It may be when you publish a new render or when you browse for an item that you want to load into
 your scene. At this point, Toolkit will need to log in to Shotgun, either to read or write data, meaning that it will
@@ -72,27 +76,35 @@ API Reference
 ----------------------------------------
 
 
+ShotgunAuthenticator
+==================================
 .. autoclass:: ShotgunAuthenticator
     :members:
     :inherited-members:
+
+ShotgunUser
+==================================
 
 .. autoclass:: ShotgunUser
     :members:
     :exclude-members: impl
     :inherited-members:
 
+DefaultsManager
+==================================
+
 .. autoclass:: DefaultsManager
     :members:
     :inherited-members:
 
+Utilities
+==================================
+
 .. autofunction:: deserialize_user
 .. autofunction:: serialize_user
 
-
-
-
 Exception Classes
-----------------------------------------
+==================================
 
 .. autoclass:: ShotgunAuthenticationError
 

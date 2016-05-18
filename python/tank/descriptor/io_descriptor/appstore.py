@@ -11,7 +11,6 @@
 import os
 import uuid
 import tempfile
-import logging
 import urllib
 import urllib2
 import httplib
@@ -25,6 +24,7 @@ from ..errors import TankAppStoreConnectionError
 from ..errors import TankAppStoreError
 from ..errors import TankDescriptorError
 
+from ... import LogManager
 from .. import constants
 from .base import IODescriptorBase
 
@@ -32,7 +32,8 @@ from .base import IODescriptorBase
 from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
+
 
 # file where we cache the app store metadata for an item
 METADATA_FILE = ".cached_metadata.pickle"
@@ -121,13 +122,21 @@ class IODescriptorAppStore(IODescriptorBase):
             self.ensure_local()
 
             # try to load from cache file
-            # cache is downloaded on app installation so expect it exists
+            # cache is typically downloaded on app installation but in some legacy cases
+            # this is not happening so don't assume file exists
             cache_file = os.path.join(self.get_path(), METADATA_FILE)
-            fp = open(cache_file, "rt")
-            try:
-                self.__cached_metadata = pickle.load(fp)
-            finally:
-                fp.close()
+            if os.path.exists(cache_file):
+                fp = open(cache_file, "rt")
+                try:
+                    self.__cached_metadata = pickle.load(fp)
+                finally:
+                    fp.close()
+            else:
+                log.debug(
+                    "%r Could not find cached metadata file %s - "
+                    "will proceed with empty app store metadata." % (self, cache_file)
+                )
+                self.__cached_metadata = {}
 
         # finally return the data!
         return self.__cached_metadata

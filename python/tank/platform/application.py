@@ -17,7 +17,7 @@ import os
 import sys
 
 from ..util.loader import load_plugin
-from . import constants 
+from . import constants
 
 from .bundle import TankBundle
 from ..util import log_user_activity_metric, log_user_attribute_metric
@@ -36,15 +36,16 @@ class Application(TankBundle):
         :param app_name: The short name of this app (e.g. tk-nukepublish)
         :param settings: a settings dictionary for this app
         """
-
-        # init base class
-        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env)
-        
         self.__engine = engine
         self.__instance_name = instance_name
 
-        self.log_debug("App init: Instantiating %s" % self)
-                
+        # create logger for this app
+        # log will be parented in a tank.session.environment_name.engine_instance_name.app_instance_name hierarchy
+        logger = self.__engine.get_child_logger(self.__instance_name)
+
+        # init base class
+        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env, logger)
+
         # now if a folder named python is defined in the app, add it to the pythonpath
         app_path = os.path.dirname(sys.modules[self.__module__].__file__)
         python_path = os.path.join(app_path, constants.BUNDLE_PYTHON_FOLDER)
@@ -117,7 +118,7 @@ class Application(TankBundle):
         The engine that this app is connected to.
         """
         return self.__engine
-        
+
     ##########################################################################################
     # init, destroy, and context changing
         
@@ -145,57 +146,62 @@ class Application(TankBundle):
         pass
     
     ##########################################################################################
-    # logging methods, delegated to the current engine
+    # logging methods
 
     def log_debug(self, msg):
         """
         Logs a debug message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
         :param msg: Message to log.
         """
-        self.engine.log_debug(msg)
+        self.logger.debug(msg)
 
     def log_info(self, msg):
         """
         Logs an info message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
         :param msg: Message to log.
         """
-        self.engine.log_info(msg)
+        self.logger.info(msg)
 
     def log_warning(self, msg):
         """
-        Logs a warning message.
+        Logs an warning message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
-        self.engine.log_warning(msg)
+        self.logger.warning(msg)
 
     def log_error(self, msg):
         """
         Logs an error message.
 
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
         :param msg: Message to log.
         """
-        self.engine.log_error(msg)
+        self.logger.error(msg)
 
     def log_exception(self, msg):
         """
-        Logs an exception.
+        Logs an exception message.
 
-        This will contain a full traceback and is typically called from
-        within an exception handler::
-
-            try:
-                do_stuff()
-            except Exception:
-                self.log_exception("A general error was raised")
-
-        The message will be emitted as an error message.
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
 
         :param msg: Message to log.
         """
-        self.engine.log_exception(msg)
+        self.logger.exception(msg)
 
 
     ##########################################################################################

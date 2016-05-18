@@ -20,7 +20,7 @@ from ..api import sgtk_from_path
 from tank_vendor import yaml
 
 @filesystem.with_cleared_umask
-def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_params):
+def run_project_setup(log, sg, setup_params):
     """
     Execute the project setup.
     No validation is happening at this point - ensure that you have run the necessary validation
@@ -28,8 +28,6 @@ def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_par
 
     :param log: python logger object
     :param sg: shotgun api connection to the associated site
-    :param sg_app_store: toolkit app store sg connection
-    :param sg_app_store_script_user: The script user used to connect to the app store, as a shotgun link-dict
     :param setup_params: Parameters object which holds gathered project settings
     """
     log.info("")
@@ -101,7 +99,7 @@ def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_par
     # copy the tank binaries to the top of the config
     setup_params.report_progress_from_installer("Copying binaries and API proxies...")
     log.debug("Copying Toolkit binaries...")
-    core_api_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
+    core_api_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
     root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
     for file_name in os.listdir(root_binaries_folder):
         src_file = os.path.join(root_binaries_folder, file_name)
@@ -321,17 +319,6 @@ def run_project_setup(log, sg, sg_app_store, sg_app_store_script_user, setup_par
     except Exception, exp:
         raise TankError("Could not write to pipeline configuration cache file %s. "
                         "Error reported: %s" % (pipe_config_sg_id_path, exp))
-
-    if sg_app_store:
-        # we have an app store connection
-        # write a custom event to the shotgun event log
-        log.debug("Writing app store stats...")
-        data = {}
-        data["description"] = "%s: An Toolkit Project was created" % sg.base_url
-        data["event_type"] = "TankAppStore_Project_Created"
-        data["user"] = sg_app_store_script_user
-        data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
-        sg_app_store.create("EventLogEntry", data)
 
 
     ##########################################################################################

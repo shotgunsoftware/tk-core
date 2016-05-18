@@ -11,15 +11,14 @@
 import os
 import uuid
 import tempfile
-import logging
 
 from .base import IODescriptorBase
 from ...util.zip import unzip_file
 from ...util import filesystem
 from ..errors import TankDescriptorError
+from ... import LogManager
 
-
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 class IODescriptorShotgunEntity(IODescriptorBase):
     """

@@ -18,8 +18,8 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-import logging
-logger = logging.getLogger(__name__)
+from .. import LogManager
+logger = LogManager.get_logger(__name__)
 
 
 def create():

@@ -18,10 +18,11 @@ import sys
 import errno
 import stat
 import shutil
-import logging
 import functools
+from .. import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
+
 
 def with_cleared_umask(func):
     """
@@ -264,15 +265,22 @@ def create_valid_filename(value):
     :param value: String value to sanitize
     :returns: sanitized string
     """
-    # regex to find non-word characters - in ascii land, that is [^A-Za-z0-9_]
+    # regex to find non-word characters - in ascii land, that is [^A-Za-z0-9_-.]
     # note that we use a unicode expression, meaning that it will include other
     # "word" characters, not just A-Z.
-    exp = re.compile(u"\W", re.UNICODE)
+    exp = re.compile(u"[^\w\.-]", re.UNICODE)
 
     # strip trailing whitespace
     value = value.strip()
 
-    # assume string is utf-8 encoded. decode, replace
-    # and re-encode the returned result
-    u_src = value.decode("utf-8")
-    return exp.sub("_", u_src).encode("utf-8")
+    if isinstance(value, unicode):
+        # src is unicode, so return unicode
+        return exp.sub("_", value)
+    else:
+        # source is non-unicode.
+        # assume utf-8 encoding so decode, replace
+        # and re-encode the returned result
+        # so that we return a string
+        u_src = value.decode("utf-8")
+        return exp.sub("_", u_src).encode("utf-8")
+

@@ -29,9 +29,6 @@ TANK_CONFIG_VERSION_ENTITY = "CustomNonProjectEntity08"
 # app store: the field containing the zip payload
 TANK_CODE_PAYLOAD_FIELD = "sg_payload"
 
-# app store: dummy project required when writing event data to the system
-TANK_APP_STORE_DUMMY_PROJECT = {"type": "Project", "id": 64}
-
 # Configuration file containing setup and path details
 PIPELINECONFIG_FILE = "pipeline_configuration.yml"
 

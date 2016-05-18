@@ -8,14 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+Legacy handling of descriptors for Shotgun Desktop.
 
-# Engine management
-from .engine import start_engine, current_engine, get_engine_path, find_app_settings
-from .errors import TankEngineInitError, TankContextChangeNotSupportedError
+This code may be removed at some point in the future.
+"""
 
-# base classes to derive from
-from .application import Application
-from .engine import Engine
-from .framework import Framework
-from .util import change_context, get_framework, import_framework, current_bundle, restart, get_logger
+# import methods to ensure that older version of the desktop engine
+# will function correctly - the code calls these internal methods
+from ..util.version import is_version_newer, is_version_older
 

@@ -8,15 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import logging
-
 from . import constants
-from ..log import LogManager
 from .errors import TankBootstrapError
 from .configuration import Configuration
 from .resolver import BaseConfigurationResolver
+from ..authentication import ShotgunAuthenticator
+from .. import LogManager
 
-log = logging.getLogger(__name__)
+log = LogManager.get_logger(__name__)
 
 class ToolkitManager(object):
     """
@@ -24,12 +23,23 @@ class ToolkitManager(object):
     and installations.
     """
 
-    def __init__(self, sg_user):
+    def __init__(self, sg_user=None):
         """
-        :param sg_user: Authenticated Shotgun User object
+        :param sg_user: Authenticated Shotgun User object. If you pass in None,
+                        the manager will provide a standard authentication for you
+                        via the shotgun authentication module and prompting the user
+                        if necessary. If you have special requirements around
+                        authentication, simply construct an explicit user object
+                        and pass it in.
         :type sg_user: :class:`~sgtk.authentication.ShotgunUser`
         """
-        self._sg_user = sg_user
+        if sg_user is None:
+            # request a user from the auth module
+            sg_auth = ShotgunAuthenticator()
+            self._sg_user = sg_auth.get_user()
+        else:
+            self._sg_user = sg_user
+
         self._sg_connection = self._sg_user.create_sg_connection()
 
         # defaults
@@ -38,6 +48,9 @@ class ToolkitManager(object):
         self._base_config_descriptor = None
         self._resolve_latest_base_descriptor = False
         self._progress_cb = None
+
+        log.debug("%s instantiated" % self)
+
 
     def __repr__(self):
         repr  = "<TkManager "
@@ -184,11 +197,7 @@ class ToolkitManager(object):
         :param engine_name: name of engine to launch (e.g. ``tk-nuke``)
         :returns: :class:`sgtk.platform.Engine` instance
         """
-        # begin writing log to disk. Base the log file name
-        # on the current engine we are launching into
-        LogManager.initialize_base_file_logger(engine_name)
-
-        log.debug("Bootstrapping into engine %s for entity %s." % (engine_name, entity))
+        log.info("Bootstrapping into engine %s for entity %s." % (engine_name, entity))
 
         log.debug("Bootstrapping into environment.")
         tk = self._bootstrap_sgtk(engine_name, entity)
@@ -377,7 +386,7 @@ class ToolkitManager(object):
                 descriptor.download_local()
 
             else:
-                log.info("Item %s is already locally installed." % descriptor)
+                log.debug("Item %s is already locally installed." % descriptor)
 
         # pass 3 - do post install
         if do_post_install:
