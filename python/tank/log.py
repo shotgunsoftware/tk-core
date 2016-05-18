@@ -32,9 +32,6 @@ class LogManager(object):
     __instance = None
 
     def __new__(cls, *args, **kwargs):
-        """
-        Ensures only one instance of the log manager exists.
-        """
         #
         # note - this init isn't currently threadsafe.
         #
@@ -95,7 +92,7 @@ class LogManager(object):
                   for your logging.
 
         .. note:: To output logging to screen or to a console,
-                  we recommend using the :meth:`LogManager().initialize_custom_handler`
+                  we recommend using the :meth:`initialize_custom_handler`
                   convenience method.
 
         :param log_name: Name of logger to create. This name will be parented under

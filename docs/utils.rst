@@ -11,7 +11,7 @@ log management. The :class:`LogManager` class below
 acts as an interface that helps make it easy to access
 and manage toolkit logging.
 
-All toolkit logging is written into a ``tank.*`` logging
+All toolkit logging is written into a ``sgtk.*`` logging
 namespace. This has been "sealed" so that log messages
 from Toolkit do not propagate up to the root logger. This
 is to ensure that Toolkit doesn't interfear with other logging
@@ -19,7 +19,7 @@ that has been already configured.
 
 Each app, engine and bundle provides access to logging and
 these log streams are also collected and organized under the
-``tank`` logging namespace. This is done by calling
+``sgtk`` logging namespace. This is done by calling
 the methods :meth:`sgtk.platform.Engine.logger`, :meth:`sgtk.platform.Application.logger`
 or :meth:`sgtk.platform.Framework.logger`.
 
