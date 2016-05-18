@@ -69,13 +69,13 @@ class TestEnvironment(TankTestBase):
     def test_engine_meta(self):
         
         self.assertRaises(TankError, self.env.get_engine_descriptor, "bad_engine")
-        self.assertEqual(self.env.get_engine_descriptor("test_engine").get_configuration_schema(), 
+        self.assertEqual(self.env.get_engine_descriptor("test_engine").configuration_schema,
                          self.raw_engine_metadata["configuration"])
         
     def test_app_meta(self):
         
         self.assertRaises(TankError, self.env.get_app_descriptor, "test_engine", "bad_engine")
-        self.assertEqual(self.env.get_app_descriptor("test_engine", "test_app").get_configuration_schema(), 
+        self.assertEqual(self.env.get_app_descriptor("test_engine", "test_app").configuration_schema,
                          self.raw_app_metadata["configuration"])
 
 

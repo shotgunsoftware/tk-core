@@ -962,7 +962,7 @@ class WritableEnvironment(Environment):
             # get information about the engine in order to process the
             # settings.
             engine_descriptor = self.get_engine_descriptor(engine_name)
-            engine_schema = engine_descriptor.get_configuration_schema()
+            engine_schema = engine_descriptor.configuration_schema
             engine_manifest_file = os.path.join(
                 engine_descriptor.get_path(),
                 constants.BUNDLE_METADATA_FILE
@@ -991,7 +991,7 @@ class WritableEnvironment(Environment):
                 # get information about the app in order to process the
                 # settings.
                 app_descriptor = self.get_app_descriptor(engine_name, app_name)
-                app_schema = app_descriptor.get_configuration_schema()
+                app_schema = app_descriptor.configuration_schema
                 app_manifest_file = os.path.join(app_descriptor.get_path(),
                                                  constants.BUNDLE_METADATA_FILE)
 
@@ -1017,7 +1017,7 @@ class WritableEnvironment(Environment):
             # get information about the framework in order to process the
             # settings.
             fw_descriptor = self.get_framework_descriptor(fw_name)
-            fw_schema = fw_descriptor.get_configuration_schema()
+            fw_schema = fw_descriptor.configuration_schema
             fw_manifest_file = os.path.join(fw_descriptor.get_path(),
                                             constants.BUNDLE_METADATA_FILE)
 

@@ -18,7 +18,7 @@ from tank_test.tank_test_base import *
 
 from tank import path_cache
 from tank import folder
-from tank.platform import constants
+from tank import constants
 
 def add_item_to_cache(path_cache, entity, path, primary = True):
     
@@ -37,13 +37,13 @@ def sync_path_cache(tk, force_full_sync=False):
     # capture sync log to string
     stream = StringIO.StringIO()
     handler = logging.StreamHandler(stream)
-    log = logging.getLogger("synclogger")
+    log = logging.getLogger("sgtk.path_cache")
     log.setLevel(logging.DEBUG)
-    log.addHandler(handler)    
+    log.addHandler(handler)
     
     # Use the path cache to look up all paths associated with this entity
     pc = path_cache.PathCache(tk)
-    pc.synchronize(log=log, full_sync=force_full_sync)
+    pc.synchronize(force_full_sync)
     pc.close()
 
     log_contents = stream.getvalue()
@@ -551,10 +551,14 @@ class TestShotgunSync(TankTestBase):
         
         # construct an invalid roots.yml that is out of sync with the records coming from
         current_roots = self.pipeline_configuration._roots
-        invalid_roots = {"primary": 
-                         {"linux_path": "/invalid",
-                          "mac_path": "/invalid",
-                          "windows_path": "X:\\invalid"}}
+        invalid_roots = {
+            "primary": tank.util.ShotgunPath.from_shotgun_dict(
+                {"linux_path": "/invalid",
+                 "mac_path": "/invalid",
+                 "windows_path": "X:\\invalid"
+                 }
+            )
+        }
         
         self.pipeline_configuration._roots = invalid_roots
         

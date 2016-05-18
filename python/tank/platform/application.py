@@ -16,36 +16,36 @@ Defines the base class for all Tank Apps.
 import os
 import sys
 
-from .. import loader
-from . import constants 
+from ..util.loader import load_plugin
+from . import constants
 
-from ..errors import TankError
 from .bundle import TankBundle
 from ..util import log_user_activity_metric, log_user_attribute_metric
 
 class Application(TankBundle):
     """
-    Base class for an app in Tank.
+    Base class for all Applications (Apps) running in Toolkit.
     """
     
     def __init__(self, engine, descriptor, settings, instance_name, env):
         """
-        Called by the app loader framework. The constructor
-        is not supposed to be overridden by deriving classes.
+        Application instances are constructed by the toolkit launch process
+        and various factory methods such as :meth:`start_engine`.
         
         :param engine: The engine instance to connect this app to
         :param app_name: The short name of this app (e.g. tk-nukepublish)
         :param settings: a settings dictionary for this app
         """
-
-        # init base class
-        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env)
-        
         self.__engine = engine
         self.__instance_name = instance_name
 
-        self.log_debug("App init: Instantiating %s" % self)
-                
+        # create logger for this app
+        # log will be parented in a tank.session.environment_name.engine_instance_name.app_instance_name hierarchy
+        logger = self.__engine.get_child_logger(self.__instance_name)
+
+        # init base class
+        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env, logger)
+
         # now if a folder named python is defined in the app, add it to the pythonpath
         app_path = os.path.dirname(sys.modules[self.__module__].__file__)
         python_path = os.path.join(app_path, constants.BUNDLE_PYTHON_FOLDER)
@@ -76,9 +76,10 @@ class Application(TankBundle):
     @property
     def shotgun(self):
         """
-        Delegates to the Sgtk API instance's shotgun connection, which is lazily
-        created the first time it is requested.
-        
+        Returns a Shotgun API handle associated with the currently running
+        environment. This method is a convenience method that calls out
+        to :meth:`~sgtk.Tank.shotgun`.
+
         :returns: Shotgun API handle
         """
         # pass on information to the user agent manager which bundle is returning
@@ -117,7 +118,7 @@ class Application(TankBundle):
         The engine that this app is connected to.
         """
         return self.__engine
-        
+
     ##########################################################################################
     # init, destroy, and context changing
         
@@ -132,7 +133,7 @@ class Application(TankBundle):
         """
         Implemented by deriving classes in order to run code after the engine
         has completely finished initializing itself and all its apps.
-        At this point, the engine has a fully populaed apps dictionary and
+        At this point, the engine has a fully populated apps dictionary and
         all loaded apps have been fully initialized and validated.
         """
         pass
@@ -145,22 +146,62 @@ class Application(TankBundle):
         pass
     
     ##########################################################################################
-    # logging methods, delegated to the current engine
+    # logging methods
 
     def log_debug(self, msg):
-        self.engine.log_debug(msg)
+        """
+        Logs a debug message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
+        :param msg: Message to log.
+        """
+        self.logger.debug(msg)
 
     def log_info(self, msg):
-        self.engine.log_info(msg)
+        """
+        Logs an info message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
+        :param msg: Message to log.
+        """
+        self.logger.info(msg)
 
     def log_warning(self, msg):
-        self.engine.log_warning(msg)
+        """
+        Logs an warning message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
+        :param msg: Message to log.
+        """
+        self.logger.warning(msg)
 
     def log_error(self, msg):
-        self.engine.log_error(msg)
+        """
+        Logs an error message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
+        :param msg: Message to log.
+        """
+        self.logger.error(msg)
 
     def log_exception(self, msg):
-        self.engine.log_exception(msg)
+        """
+        Logs an exception message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
+        :param msg: Message to log.
+        """
+        self.logger.exception(msg)
 
 
     ##########################################################################################
@@ -208,7 +249,7 @@ def get_application(engine, app_folder, descriptor, settings, instance_name, env
     plugin_file = os.path.join(app_folder, constants.APP_FILE)
         
     # Instantiate the app
-    class_obj = loader.load_plugin(plugin_file, Application)
+    class_obj = load_plugin(plugin_file, Application)
     obj = class_obj(engine, descriptor, settings, instance_name, env)
     return obj
 

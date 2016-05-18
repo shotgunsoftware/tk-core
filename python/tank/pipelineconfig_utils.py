@@ -15,11 +15,14 @@ across storages, configurations etc.
 import os
 import sys
 
-from .errors import TankError, TankFileDoesNotExistError
-from .platform import constants
+from .errors import TankError
+from . import constants
+from . import LogManager
 from .util import yaml_cache
+from .util import ShotgunPath
 
-from tank_vendor.shotgun_base import sanitize_path
+log = LogManager.get_logger(__name__)
+
 
 def is_localized(pipeline_config_path):
     """
@@ -91,21 +94,22 @@ def get_roots_metadata(pipeline_config_path):
     :returns: A dictionary structure with an entry for each storage defined. Each
               storage will have three keys mac_path, windows_path and linux_path, 
               for example
-              { "primary"  : { "mac_path": "/tmp/foo", 
-                               "linux_path": None, 
-                               "windows_path": "z:\tmp\foo" },
-                "textures" : { "mac_path": "/tmp/textures", 
-                               "linux_path": None, 
-                               "windows_path": "z:\tmp\textures" },
+              { "primary"  : <ShotgunPath>,
+                "textures" : <ShotgunPath>
               }
     """
     # now read in the roots.yml file
     # this will contain something like
     # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
-    roots_yml = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
+    roots_yml = os.path.join(
+        pipeline_config_path,
+        "config",
+        "core",
+        constants.STORAGE_ROOTS_FILE
+    )
 
     try:
-        # if file is empty, initializae with empty dict...
+        # if file is empty, initialize with empty dict...
         data = yaml_cache.g_yaml_cache.get(roots_yml, deepcopy_data=False) or {}
     except Exception, e:
         raise TankError("Looks like the roots file is corrupt. Please contact "
@@ -116,13 +120,12 @@ def get_roots_metadata(pipeline_config_path):
         raise TankError("Could not find a primary storage in roots file "
                         "for configuration %s!" % pipeline_config_path)
 
-    # now use our helper function to process the paths    
-    for s in data:
-        data[s]["mac_path"] = sanitize_path(data[s]["mac_path"], "/")
-        data[s]["linux_path"] = sanitize_path(data[s]["linux_path"], "/")
-        data[s]["windows_path"] = sanitize_path(data[s]["windows_path"], "\\")
+    # sanitize path data by passing it through the ShotgunPath
+    shotgun_paths = {}
+    for storage_name in data:
+        shotgun_paths[storage_name] = ShotgunPath.from_shotgun_dict(data[storage_name])
 
-    return data
+    return shotgun_paths
 
 
 
@@ -199,17 +202,18 @@ def resolve_all_os_paths_to_core(core_path):
     Given a core path on the current os platform, 
     return paths for all platforms, 
     as cached in the install_locations system file
-    
+
     :returns: dictionary with keys linux2, darwin and win32
     """
-    return _get_install_locations(core_path)
+    # @todo - refactor this to return a ShotgunPath
+    return _get_install_locations(core_path).as_system_dict()
 
 def resolve_all_os_paths_to_config(pc_path):
     """
     Given a pipeline configuration path on the current os platform, 
     return paths for all platforms, as cached in the install_locations system file
-    
-    :returns: dictionary with keys linux2, darwin and win32
+
+    :returns: ShotgunPath object
     """
     return _get_install_locations(pc_path)
 
@@ -232,17 +236,14 @@ def get_config_install_location(path):
     :param path: Path to a pipeline configuration on disk.
     :returns: registered path, may be None.
     """
-    # resolve
-    locations = _get_install_locations(path)
-    # do a bit of cleanup of the input data
-    return sanitize_path(locations[sys.platform])
+    return _get_install_locations(path).current_os
 
 def _get_install_locations(path):
     """
     Given a pipeline configuration OR core location, return paths on all platforms.
     
     :param path: Path to a pipeline configuration on disk.
-    :returns: dictionary with keys linux2, darwin and win32
+    :returns: ShotgunPath object
     """
     # basic sanity check
     if not os.path.exists(path):
@@ -280,9 +281,9 @@ def _get_install_locations(path):
     if not win_path or not (win_path.startswith("\\") or win_path[1] == ":"):
         win_path = None
 
-    # return data
-    return {"win32": win_path, "darwin": macosx_path, "linux2": linux_path }
-        
+    # sanitize data into a ShotgunPath and return data
+    return ShotgunPath(win_path, linux_path, macosx_path)
+
 
 
 
@@ -331,4 +332,5 @@ def _get_version_from_manifest(info_yml_path):
         data = "unknown"
 
     return data
-    
+
+

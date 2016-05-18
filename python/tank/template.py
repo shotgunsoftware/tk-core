@@ -19,12 +19,13 @@ import sys
 
 from . import templatekey
 from .errors import TankError
-from .platform import constants
+from . import constants
 from .template_path_parser import TemplatePathParser
 
 class Template(object):
     """
-    Object which manages the translation between paths and file templates
+    Represents an expression containing several dynamic tokens
+    in the form of :class:`TemplateKey` objects.
     """
        
     @classmethod
@@ -60,13 +61,18 @@ class Template(object):
         
     def __init__(self, definition, keys, name=None):
         """
+        This class is not designed to be used directly but
+        should be subclassed by any Template implementations.
+
+        Current implementations can be found in
+        the :class:`TemplatePath` and :class:`TemplateString` classes.
+
         :param definition: Template definition.
-        :type definition: String.
+        :type definition: String
         :param keys: Mapping of key names to keys
         :type keys: Dictionary 
         :param name: (Optional) name for this template.
-        :type name: String.
-
+        :type name: String
         """
         self.name = name
         # version for __repr__
@@ -108,7 +114,7 @@ class Template(object):
     @property
     def definition(self):
         """
-        Property to access Template definition.
+        The template as a string, e.g ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma``
         """
         # Use first definition as it should be most inclusive in case of variations
         return self._definitions[0]
@@ -117,10 +123,11 @@ class Template(object):
     @property
     def keys(self):
         """
-        Returns keys for this template.
+        The keys that this template is using. For a template
+        ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma``, the keys are ``{Shot}``,
+        ``{Step}`` and ``{name}``.
         
-        :returns: a dictionary of TemplateKey objects, keyed by TemplateKey name.
-        :rtype: dictionary 
+        :returns: a dictionary of class:`TemplateKey` objects, keyed by token name.
         """
         # First keys should be most inclusive
         return self._keys[0].copy()
@@ -128,10 +135,13 @@ class Template(object):
     def is_optional(self, key_name):
         """
         Returns true if the given key name is optional for this template.
-        
-        Example: template: {Shot}[_{name}]
-        is_optional("Shot") --> Returns False
-        is_optional("name") --> Returns True
+
+        For the template ``{Shot}[_{name}]``,
+        ``is_optional("Shot")`` would return ``False`` and ``is_optional("name")``
+        would return ``True``
+
+        :param key_name: Name of template key for which the check should be carried out
+        :returns: True if key is optional, False if not.
         """
         # the key is required if it's in the 
         # minimum set of keys for this template
@@ -146,16 +156,19 @@ class Template(object):
         Determines keys required for use of template which do not exist
         in a given fields.
         
-        Example:
+        Example::
         
             >>> tk.templates["max_asset_work"].missing_keys({})
             ['Step', 'sg_asset_type', 'Asset', 'version', 'name']
         
-        
+            >>> tk.templates["max_asset_work"].missing_keys({"name": "foo"})
+            ['Step', 'sg_asset_type', 'Asset', 'version']
+
+
         :param fields: fields to test
         :type fields: mapping (dictionary or other)
         :param skip_defaults: If true, do not treat keys with default values as missing.
-        :type skip_defalts: Bool.
+        :type skip_defaults: Bool
         
         :returns: Fields needed by template which are not in inputs keys or which have
                   values of None.
@@ -168,6 +181,12 @@ class Template(object):
     def _missing_keys(self, fields, keys, skip_defaults):
         """
         Compares two dictionaries to determine keys in second missing in first.
+
+        :param fields: fields to test
+        :param keys: Dictionary of template keys to test
+        :param skip_defaults: If true, do not treat keys with default values as missing.
+        :returns: Fields needed by template which are not in inputs keys or which have
+                  values of None.
         """
         if skip_defaults:
             required_keys = [key.name for key in keys.values() if key.default is None]
@@ -179,16 +198,44 @@ class Template(object):
     def apply_fields(self, fields, platform=None):
         """
         Creates path using fields. Certain fields may be processed in special ways, for
-        example Sequence fields, which can take a "FORMAT" string which will intelligently
-        format a image sequence specifier based on the type of data is being handled.
-        For more information about special cases, see the main documentation.
+        example :class:`SequenceKey` fields, which can take a `FORMAT` string which will intelligently
+        format a image sequence specifier based on the type of data is being handled. Example::
+
+            # get a template object from the API
+            >>> template_obj = sgtk.templates["maya_shot_publish"]
+            <Sgtk Template maya_asset_project: shots/{Shot}/{Step}/pub/{name}.v{version}.ma>
+
+            >>> fields = {'Shot': '001_002',
+                          'Step': 'comp',
+                          'name': 'main_scene',
+                          'version': 3
+                          }
+
+            >>> template_obj.apply_fields(fields)
+            '/projects/bbb/shots/001_002/comp/pub/main_scene.v003.ma'
+
+        .. note:: For formatting of special values, see :class:`SequenceKey` and :class:`TimestampKey`.
+
+        Example::
+
+            >>> fields = {"Sequence":"seq_1", "Shot":"shot_2", "Step":"comp", "name":"henry", "version":3}
+
+            >>> template_path.apply_fields(fields)
+            '/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma'
+
+            >>> template_path.apply_fields(fields, platform='win32')
+            'z:\studio_root\sgtk\demo_project_1\sequences\seq_1\shot_2\comp\publish\henry.v003.ma'
+
+            >>> template_str.apply_fields(fields)
+            'Maya Scene henry, v003'
+
 
         :param fields: Mapping of keys to fields. Keys must match those in template 
                        definition.
         :param platform: Optional operating system platform. If you leave it at the 
                          default value of None, paths will be created to match the 
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to 
+                         (e.g. ``win32``, ``linux2`` or ``darwin``), paths will be generated to
                          match that platform.
 
         :returns: Full path, matching the template with the given fields inserted.
@@ -242,10 +289,10 @@ class Template(object):
         """
         Determines all possible definition based on combinations of optional sectionals.
         
-        "{manne}"               ==> ['{manne}']
-        "{manne}_{ludde}"       ==> ['{manne}_{ludde}']
-        "{manne}[_{ludde}]"     ==> ['{manne}', '{manne}_{ludde}']
-        "{manne}_[{foo}_{bar}]" ==> ['{manne}_', '{manne}_{foo}_{bar}']
+        "{foo}"               ==> ['{foo}']
+        "{foo}_{bar}"         ==> ['{foo}_{bar}']
+        "{foo}[_{bar}]"       ==> ['{foo}', '{foo}_{bar}']
+        "{foo}_[{bar}_{baz}]" ==> ['{foo}_', '{foo}_{bar}_{baz}']
         
         """
         # split definition by optional sections
@@ -316,14 +363,30 @@ class Template(object):
     @property
     def parent(self):
         """
-        Returns Template representing the current Template's parent.
+        Returns Template representing the parent of this object.
+
+        :returns: :class:`Template`
         """
         raise NotImplementedError
 
     def validate_and_get_fields(self, path, required_fields=None, skip_keys=None):
         """
-        Validates that a path fits with a template and returns the resolved dictionary of fields if it does.
-        
+        Takes an input string and determines whether it can be mapped to the template pattern.
+        If it can then the list of matching fields is returned. Example::
+
+            >>> good_path = '/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma'
+            >>> template_path.validate_and_get_fields(good_path)
+            {'Sequence': 'seq_1',
+             'Shot': 'shot_2',
+             'Step': 'comp',
+             'name': 'henry',
+             'version': 3}
+
+            >>> bad_path = '/studio_root/sgtk/demo_project_1/shot_2/comp/publish/henry.v003.ma'
+            >>> template_path.validate_and_get_fields(bad_path)
+            None
+
+
         :param path:            Path to validate
         :param required_fields: An optional dictionary of key names to key values. If supplied these values must 
                                 be present in the input path and found by the template.
@@ -350,7 +413,15 @@ class Template(object):
 
     def validate(self, path, fields=None, skip_keys=None):
         """
-        Validates that a path fits with a template.
+        Validates that a path can be mapped to the pattern given by the template. Example::
+
+            >>> good_path = '/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma'
+            >>> template_path.validate(good_path)
+            True
+
+            >>> bad_path = '/studio_root/sgtk/demo_project_1/shot_2/comp/publish/henry.v003.ma'
+            >>> template_path.validate(bad_path)
+            False
                             
         :param path:        Path to validate
         :type path:         String
@@ -359,7 +430,6 @@ class Template(object):
         :type fields:       Dictionary
         :param skip_keys:   Field names whose values should be ignored
         :type skip_keys:    List
-
         :returns:           True if the path is valid for this template
         :rtype:             Bool
         """
@@ -367,7 +437,16 @@ class Template(object):
         
     def get_fields(self, input_path, skip_keys=None):
         """
-        Extracts key name, value pairs from a string.
+        Extracts key name, value pairs from a string. Example::
+
+            >>> input_path = '/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma'
+            >>> template_path.get_fields(input_path)
+
+            {'Sequence': 'seq_1',
+             'Shot': 'shot_2',
+             'Step': 'comp',
+             'name': 'henry',
+             'version': 3}
         
         :param input_path: Source path for values
         :type input_path: String
@@ -394,10 +473,14 @@ class Template(object):
 
 class TemplatePath(Template):
     """
-    Class for templates for paths.
+    :class:`Template` representing a complete path on disk. The template definition is multi-platform
+    and you can pass it per-os roots given by a separate :meth:`root_path`.
     """
     def __init__(self, definition, keys, root_path, name=None, per_platform_roots=None):
         """
+        TemplatePath objects are typically created automatically by toolkit reading
+        the template configuration.
+
         :param definition: Template definition string.
         :param keys: Mapping of key names to keys (dict)
         :param root_path: Path to project root for this template.
@@ -425,15 +508,19 @@ class TemplatePath(Template):
 
     @property
     def root_path(self):
+        """
+        Returns the root path associated with this template.
+        """
         return self._prefix
 
     @property
     def parent(self):
         """
-        Creates Template instance for parent directory of current Template. 
-        
-        :returns: Parent's template
-        :rtype: Template instance
+        Returns Template representing the parent of this object.
+
+        For paths, this means the parent folder.
+
+        :returns: :class:`Template`
         """
         parent_definition = os.path.dirname(self.definition)
         if parent_definition:
@@ -501,9 +588,22 @@ class TemplatePath(Template):
 
 class TemplateString(Template):
     """
-    Template class for templates not representing paths.
+    :class:`Template` class for templates representing strings.
+
+    Templated strings are useful if you want to write code where you can configure
+    the formatting of strings, for example how a name or other string field should
+    be configured in Shotgun, given a series of key values.
     """
     def __init__(self, definition, keys, name=None, validate_with=None):
+        """
+        TemplatePath objects are typically created automatically by toolkit reading
+        the template configuration.
+
+        :param definition: Template definition string.
+        :param keys: Mapping of key names to keys (dict)
+        :param name: Optional name for this template.
+        :param validate_with: Optional :class:`Template` to use for validation
+        """
         super(TemplateString, self).__init__(definition, keys, name=name)
         self.validate_with = validate_with
         self._prefix = "@"
@@ -516,15 +616,20 @@ class TemplateString(Template):
     @property
     def parent(self):
         """
-        Strings have no parents
+        Strings don't have a concept of parent so this always returns ``None``.
         """
         return None
 
-
     def get_fields(self, input_path, skip_keys=None):
         """
-        Given a path, return mapping of key values based on template.
-        
+        Extracts key name, value pairs from a string. Example::
+
+            >>> input = 'filename.v003.ma'
+            >>> template_string.get_fields(input)
+
+            {'name': 'henry',
+             'version': 3}
+
         :param input_path: Source path for values
         :type input_path: String
         :param skip_keys: Optional keys to skip
@@ -533,7 +638,7 @@ class TemplateString(Template):
         :returns: Values found in the path based on keys in template
         :rtype: Dictionary
         """
-        # add path prefix as origonal design was to require project root
+        # add path prefix as original design was to require project root
         adj_path = os.path.join(self._prefix, input_path)
         return super(TemplateString, self).get_fields(adj_path, skip_keys=skip_keys)
 

@@ -15,7 +15,7 @@ Utilities relating to shotgun entities
 import copy
 import re
 
-from ..platform import constants
+from . import constants
 from ..errors import TankError
 
 

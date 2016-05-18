@@ -9,18 +9,20 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
-import urlparse
 import collections
+import logging
 import cPickle as pickle
 
 from .errors import TankError
-from .platform import constants
+from . import constants
+from . import LogManager
 from .util import shotgun
+from .util import ShotgunPath
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
+from .util import LocalFileStorageManager
 
-from tank_vendor.shotgun_base import get_site_cache_root, get_shotgun_storage_key, sanitize_path
+log = LogManager.get_logger(__name__)
 
 def from_entity(entity_type, entity_id):
     """
@@ -338,16 +340,18 @@ def _get_pipeline_configuration_data(sg_pipeline_configs):
 
     for pc in sg_pipeline_configs:
 
-        # prepare return data
-        raw_pc_path = pc.get(get_shotgun_storage_key())
-        curr_os_path = sanitize_path(raw_pc_path, os.path.sep)
+        # extract path from shotgun, sanitize and get curr os path
+        pc_path = ShotgunPath.from_shotgun_dict(pc)
+        curr_os_path = pc_path.current_os
 
-        if pc.get("project"):  # project is None for site config else dict
-            project_id = pc["project"]["id"]
-        else:
-            project_id = None
+        # project is None for site config else dict
+        project_id = pc["project"]["id"] if pc.get("project") else None
 
-        pc_entry = {"path": curr_os_path, "id": pc["id"], "project_id": project_id}
+        pc_entry = {
+            "path": curr_os_path,
+            "id": pc["id"],
+            "project_id": project_id
+        }
 
         # and append to our return data structures
         pc_data.append(pc_entry)
@@ -418,7 +422,7 @@ def _get_pipeline_configs_for_path(path, data):
     # step 1 - extract all storages for the current os
     storages = []
     for s in data["local_storages"]:
-        storage_path = s[get_shotgun_storage_key()]
+        storage_path = ShotgunPath.from_shotgun_dict(s).current_os
         if storage_path:
             storages.append(storage_path)
 
@@ -695,6 +699,5 @@ def _get_cache_location():
     # optimized version of creating an sg instance and then calling sg.base_url
     # this is to avoid connecting to shotgun if possible.
     sg_base_url = shotgun.get_associated_sg_base_url()
-
-    return get_site_cache_root(sg_base_url)
+    return LocalFileStorageManager.get_site_root(sg_base_url, LocalFileStorageManager.CACHE)
 

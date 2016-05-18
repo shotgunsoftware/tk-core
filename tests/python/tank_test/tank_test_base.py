@@ -26,23 +26,12 @@ import unittest2 as unittest
 
 import sgtk
 import tank
-from tank_vendor import shotgun_base
 from tank import path_cache
 from tank_vendor import yaml
 
 TANK_TEMP = None
 
 __all__ = ['setUpModule', 'TankTestBase', 'tank', 'interactive', 'skip_if_pyside_missing']
-
-# mute the sgtk logging by default to avoid the 'no handlers defined' message
-from tank_vendor.shotgun_base import get_sgtk_logger
-
-# built-in logging nullhandler is py2.6+ so recreate it here for 2.5
-class NullHandler(logging.Handler):
-    def emit(self, record):
-        pass
-
-get_sgtk_logger().addHandler(NullHandler())
 
 
 def interactive(func):
@@ -191,7 +180,7 @@ class TankTestBase(unittest.TestCase):
         self.tank_temp = TANK_TEMP
         self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache")
 
-        shotgun_base.paths.get_cache_root = lambda: os.path.join(self.tank_temp, "cache_root")
+
         self.cache_root = os.path.join(self.tank_temp, "cache_root")
 
         def _get_cache_location_mock():
@@ -265,13 +254,16 @@ class TankTestBase(unittest.TestCase):
         roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
         roots_file = open(roots_path, "w") 
         roots_file.write(yaml.dump(roots))
-        roots_file.close()        
+        roots_file.close()
                 
         self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
         self.tk = tank.Tank(self.pipeline_configuration)
         
         # set up mockgun and make sure shotgun connection calls route via mockgun
         self.mockgun = mockgun.Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
+        # fake a version response from the server
+        self.mockgun.server_info = {"version": (7, 0, 0)}
+
         
         def get_associated_sg_base_url_mocker():
             return "http://unit_test_mock_sg"
@@ -431,8 +423,8 @@ class TankTestBase(unittest.TestCase):
         # new roots def file we just created
         self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
         # push this new pipeline config into the tk api
-        self.tk._Tank__pipeline_config = self.pipeline_configuration 
-        
+        self.tk._Sgtk__pipeline_config = self.pipeline_configuration
+
         # force reload templates
         self.tk.reload_templates()
         

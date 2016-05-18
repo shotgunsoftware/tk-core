@@ -31,9 +31,7 @@ relative paths are always required and context based paths are always optional.
 import os
 import re
 import sys
-import copy 
-
-from tank_vendor import yaml
+import copy
 
 from ..errors import TankError
 from ..template import TemplatePath
@@ -52,11 +50,11 @@ def _resolve_includes(file_name, data, context):
     
     if constants.SINGLE_INCLUDE_SECTION in data:
         # single include section
-        includes.append( data[constants.SINGLE_INCLUDE_SECTION] )
+        includes.append( data[constants.SINGLE_INCLUDE_SECTION])
             
     if constants.MULTI_INCLUDE_SECTION in data:
         # multi include section
-        includes.extend( data[constants.MULTI_INCLUDE_SECTION] )
+        includes.extend( data[constants.MULTI_INCLUDE_SECTION])
 
     for include in includes:
         
@@ -315,5 +313,4 @@ def find_reference(file_name, context, token):
         
     return found_file
     
-    
-    
+

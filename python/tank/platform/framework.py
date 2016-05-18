@@ -14,9 +14,8 @@ Defines the base class for all Tank Frameworks.
 """
 
 import os
-import sys
 
-from .. import loader
+from ..util.loader import load_plugin
 from . import constants 
 
 from ..errors import TankError
@@ -27,27 +26,30 @@ from ..util import log_user_activity_metric
 
 class Framework(TankBundle):
     """
-    Base class for an app in Tank.
+    Base class for a Toolkit Framework
     """
     
     def __init__(self, engine, descriptor, settings, env):
         """
-        Called by the app loader framework. The constructor
-        is not supposed to be overridden by deriving classes.
+        Called by the bundle loading framework. The constructor
+        is not meant to be overridden by deriving classes.
         
         :param engine: The engine instance to connect this fw to
+        :type engine: :class:`Engine`
         :param app_name: The short name of this framework (e.g. tk-framework-widget)
         :param settings: a settings dictionary for this fw
         :param env: the environment that the framework belongs to
         """
-
-        # init base class
-        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env)
-        
         self.__engine = engine
 
-        self.log_debug("Framework init: Instantiating %s" % self)
-                
+        # create logger for this app
+        # log will be parented in a tank.session.environment_name.engine_instance_name.framework_name hierarchy
+        logger = self.__engine.get_child_logger(descriptor.system_name)
+
+        # init base class
+        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env, logger)
+        
+
     def __repr__(self):        
         return "<Sgtk Framework 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
 
@@ -69,9 +71,10 @@ class Framework(TankBundle):
     @property
     def shotgun(self):
         """
-        Delegates to the Sgtk API instance's shotgun connection, which is lazily
-        created the first time it is requested.
-        
+        Returns a Shotgun API handle associated with the currently running
+        environment. This method is a convenience method that calls out
+        to :meth:`~sgtk.Tank.shotgun`.
+
         :returns: Shotgun API handle
         """
         # pass on information to the user agent manager which bundle is returning
@@ -101,6 +104,21 @@ class Framework(TankBundle):
     def is_shared(self):
         """
         Boolean indicating whether this is a shared framework.
+
+        Frameworks are shared by default and this is a setting that can be
+        controlled by the bundle manifest.
+
+        When a framework is shared, a single copy of the code is shared
+        across all apps that use it. All apps will cut their framework
+        instances from the same code. Any global state within the framework
+        will be shared across all framework instances, and hence across all
+        different apps.
+
+        If your framework manages complex global state that you want to control
+        precisely, it may be useful to set the framework to be not shared in
+        the ``info.yml`` manifest file. This will ensure that each bundle that
+        uses the framework will maintain it's own private version of the
+        framework code.
         """
         return self.descriptor.is_shared_framework()
         
@@ -109,34 +127,76 @@ class Framework(TankBundle):
         
     def init_framework(self):
         """
-        Implemented by deriving classes in order to initialize the framework
+        Implemented by deriving classes in order to initialize the app.
+        Called by the engine as it loads the framework.
         """
         pass
 
     def destroy_framework(self):
         """
-        Implemented by deriving classes in order to tear down the framework
+        Implemented by deriving classes in order to tear down the framework.
+        Called by the engine as it is being destroyed.
         """
         pass
     
     
     ##########################################################################################
-    # logging methods, delegated to the current engine
+    # logging methods
 
     def log_debug(self, msg):
-        self.engine.log_debug(msg)
+        """
+        Logs a debug message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
+        :param msg: Message to log.
+        """
+        self.logger.debug(msg)
 
     def log_info(self, msg):
-        self.engine.log_info(msg)
+        """
+        Logs an info message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
+        :param msg: Message to log.
+        """
+        self.logger.info(msg)
 
     def log_warning(self, msg):
-        self.engine.log_warning(msg)
+        """
+        Logs an warning message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
+        :param msg: Message to log.
+        """
+        self.logger.warning(msg)
 
     def log_error(self, msg):
-        self.engine.log_error(msg)
+        """
+        Logs an error message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
+        :param msg: Message to log.
+        """
+        self.logger.error(msg)
 
     def log_exception(self, msg):
-        self.engine.log_exception(msg)
+        """
+        Logs an exception message.
+
+        .. deprecated:: 0.18
+            Use :meth:`Engine.logger` instead.
+
+        :param msg: Message to log.
+        """
+        self.logger.exception(msg)
 
 
     ##########################################################################################
@@ -225,7 +285,7 @@ def load_framework(engine_obj, env, fw_instance_name):
         validation.validate_platform(descriptor)
 
         # get the app settings data and validate it.
-        fw_schema = descriptor.get_configuration_schema()
+        fw_schema = descriptor.configuration_schema
 
         fw_settings = env.get_framework_settings(fw_instance_name)
         validation.validate_settings(fw_instance_name, 
@@ -238,29 +298,29 @@ def load_framework(engine_obj, env, fw_instance_name):
         # validation error - probably some issue with the settings!
         raise TankError("Framework configuration Error for %s: %s" % (fw_instance_name, e))
 
-    except Exception:
+    except Exception, e:
         # code execution error in the validation. 
         raise TankError("Could not validate framework %s: %s" % (fw_instance_name, e))
 
     # load the framework
-    try:
-        # initialize fw class
-        fw = _create_framework_instance(engine_obj, descriptor, fw_settings, env)
+#    try:
+    # initialize fw class
+    fw = _create_framework_instance(engine_obj, descriptor, fw_settings, env)
 
-        # if it's a shared framework then add it to the engine so we can re-use it
-        # again in the future if needed:
-        if fw.is_shared:
-            # register this framework for reuse by other bundles
-            engine_obj._register_shared_framework(fw_instance_name, fw)
+    # if it's a shared framework then add it to the engine so we can re-use it
+    # again in the future if needed:
+    if fw.is_shared:
+        # register this framework for reuse by other bundles
+        engine_obj._register_shared_framework(fw_instance_name, fw)
 
-        # load any frameworks required by the framework :)
-        setup_frameworks(engine_obj, fw, env, descriptor)
+    # load any frameworks required by the framework :)
+    setup_frameworks(engine_obj, fw, env, descriptor)
 
-        # and run the init
-        fw.init_framework()
+    # and run the init
+    fw.init_framework()
 
-    except Exception, e:
-        raise TankError("Framework %s failed to initialize: %s" % (descriptor, e))
+#    except Exception, e:
+#        raise TankError("Framework %s failed to initialize: %s" % (descriptor, e))
 
     return fw
 
@@ -278,6 +338,6 @@ def _create_framework_instance(engine, descriptor, settings, env):
     plugin_file = os.path.join(fw_folder, constants.FRAMEWORK_FILE)
         
     # Instantiate the app
-    class_obj = loader.load_plugin(plugin_file, Framework)
+    class_obj = load_plugin(plugin_file, Framework)
     obj = class_obj(engine, descriptor, settings, env)
     return obj

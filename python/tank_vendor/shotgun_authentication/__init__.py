@@ -9,17 +9,16 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-The Shotgun Authentication module.
+This class is for backwards compatibility only!
 
-This module provides the user with a dialog or console prompts
-to retrieve the login and password from a user in order to authenticate. A session is then
-created and stored on disk. Whenever a connection to the Shotgun site is required, those
-credentials are reused. If a Toolkit-enabled process is launched a second time, the stored
-credentials are reused if available.
+Please use the authentication module found in sgtk.authentication for
+new code. This compatibility wrapper will be removed at some point in the future.
 """
 
-from .errors import ShotgunAuthenticationError, AuthenticationError, IncompleteCredentials, AuthenticationCancelled
-from .shotgun_authenticator import ShotgunAuthenticator
-from .defaults_manager import DefaultsManager
-from .user import deserialize_user, serialize_user
-from .sg_auth_logging import get_logger
+# map the official API
+from tank.authentication import DefaultsManager, ShotgunAuthenticator
+from tank.authentication import ShotgunAuthenticationError, AuthenticationError, IncompleteCredentials, AuthenticationCancelled
+from tank.authentication import ShotgunUser, deserialize_user, serialize_user
+
+
+

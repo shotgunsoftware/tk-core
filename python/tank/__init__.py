@@ -28,7 +28,7 @@
 # itself with the primary config rather than with the config where the code is located. 
 
 import os
-from .platform import constants
+import sys
 
 if "TANK_CURRENT_PC" not in os.environ:
     # find the pipeline configuration root, probe for a key file
@@ -40,23 +40,43 @@ if "TANK_CURRENT_PC" not in os.environ:
     # it is intentionally left here in the init method to highlight that  
     # is unique and special.
     #
+    from . import constants
     current_folder = os.path.abspath(os.path.dirname(__file__))
     pipeline_config = os.path.abspath(os.path.join(current_folder, "..", "..", "..", ".."))
     roots_file = os.path.join(pipeline_config, "config", "core", constants.STORAGE_ROOTS_FILE)
     if os.path.exists(roots_file):
         os.environ["TANK_CURRENT_PC"] = pipeline_config
-    
+
 ########################################################################
-    
+
+# first import the log manager since a lot of modules require this.
+from .log import LogManager
+
 # make sure that all sub-modules are imported at the same as the main module
+from . import authentication
+from . import bootstrap
+from . import commands
+from . import deploy
+from . import descriptor
+from . import folder
 from . import platform
 from . import util
 
 # core functionality
 from .api import Tank, tank_from_path, tank_from_entity, set_authenticated_user, get_authenticated_user
 from .api import Sgtk, sgtk_from_path, sgtk_from_entity
-from .errors import TankError, TankEngineInitError, TankErrorProjectIsSetup
-from .template import TemplatePath, TemplateString
+
+from .context import Context
+
+from .errors import TankError, TankErrorProjectIsSetup, TankHookMethodDoesNotExistError
+from .errors import TankFileDoesNotExistError, TankUnreadableFileError
+# note: TankEngineInitError used to reside in .errors but was moved into platform.errors
+from .platform.errors import TankEngineInitError
+from .template import Template, TemplatePath, TemplateString
 from .hook import Hook, get_hook_baseclass
 
-from .deploy.tank_command import list_commands, get_command
+from .commands import list_commands, get_command, SgtkSystemCommand
+
+from .templatekey import TemplateKey, SequenceKey, IntegerKey, StringKey, TimestampKey
+
+

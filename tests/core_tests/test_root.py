@@ -161,30 +161,3 @@ class TestGetPrimaryRoot(TankTestBase):
         non_project_path = os.path.join(os.path.dirname(self.project_root), "xxxyyyzzzz")
         self.assertRaises(TankError, tank.pipelineconfig_factory.from_path, non_project_path)
         
-    def test_path_sanitation_logic(self):
-        """
-        Tests that the pre-load cleanup logic for roots.yml is sound
-        """
-        
-        sp = tank.pipelineconfig_utils.sanitize_path
-        
-        self.assertEqual( sp("/foo/bar/baz", "/"), "/foo/bar/baz")
-        self.assertEqual( sp("/foo/bar/baz/", "/"), "/foo/bar/baz")
-        self.assertEqual( sp("//foo//bar//baz", "/"), "/foo/bar/baz")
-        self.assertEqual( sp("/foo/bar//baz", "/"), "/foo/bar/baz")
-        self.assertEqual( sp("/foo\\bar//baz/////", "/"), "/foo/bar/baz")
-        
-        
-        self.assertEqual( sp("/foo/bar/baz", "\\"), "\\foo\\bar\\baz")
-        self.assertEqual( sp("c:/foo/bar/baz", "\\"), "c:\\foo\\bar\\baz")
-        self.assertEqual( sp("c:/foo///bar\\\\baz//", "\\"), "c:\\foo\\bar\\baz")
-        self.assertEqual( sp("/foo///bar\\\\baz//", "\\"), "\\foo\\bar\\baz")
-        
-        self.assertEqual( sp("\\\\server\\share\\foo\\bar", "\\"), "\\\\server\\share\\foo\\bar")
-        self.assertEqual( sp("\\\\server\\share\\foo\\bar\\", "\\"), "\\\\server\\share\\foo\\bar")
-        self.assertEqual( sp("//server/share/foo//bar", "\\"), "\\\\server\\share\\foo\\bar")
-        
-        self.assertEqual( sp("z:/", "\\"), "z:\\")
-        self.assertEqual( sp("z:\\", "\\"), "z:\\")
-
-        self.assertEqual( sp(None, "/"), None)

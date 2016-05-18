@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2016 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -9,41 +9,17 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-All custom exceptions that this module emits are defined here.
+This class is for backwards compatibility only!
+
+Please use the authentication module found in sgtk.authentication for
+new code. This compatibility wrapper will be removed at some point in the future.
 """
 
-from ..shotgun_base import ShotgunBaseError
+# this is to support code that imports private parts of the API,
+# like this:
+#
+# from tank_vendor.shotgun_authentication.user import ShotgunUser
+#
+from tank.authentication.errors import *
 
 
-class ShotgunAuthenticationError(ShotgunBaseError):
-    """
-    Base class for all exceptions coming out from this module.
-    """
-    pass
-
-
-class AuthenticationError(ShotgunAuthenticationError):
-    """
-    Thrown when credentials are rejected by the server.
-    """
-    pass
-
-
-class IncompleteCredentials(ShotgunAuthenticationError):
-    """
-    Thrown when credentials are provided but are incomplete.
-    """
-    def __init__(self, msg):
-        ShotgunAuthenticationError.__init__(
-            self, "Incomplete credentials: %s" % msg
-        )
-
-
-class AuthenticationCancelled(ShotgunAuthenticationError):
-    """
-    Thrown when the user cancels authentication or session renewal.
-    """
-    def __init__(self):
-        ShotgunAuthenticationError.__init__(
-            self, "Authentication was cancelled by the user."
-        )

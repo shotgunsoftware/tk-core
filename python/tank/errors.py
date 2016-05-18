@@ -13,21 +13,9 @@ All custom exceptions that Tank emits are defined here.
 
 """
 
-from tank_vendor.shotgun_base import ShotgunBaseError
-
-# we alias this with TankError since this is what is commonly
-# considered the top level exception in the toolkit world.
-#
-# 'tank' is a deprecated name and should be gracefully phased out
-# over time.
-
-TankError = ShotgunBaseError
-
-
-class TankContextChangeNotSupportedError(TankError):
+class TankError(Exception):
     """
-    Exception that indicates that a requested context change is not allowed
-    based on a check of the current engine and all of its active apps.
+    Top level exception for all toolkit-core level runtime errors
     """
     pass
 
@@ -46,17 +34,19 @@ class TankFileDoesNotExistError(TankUnreadableFileError):
     pass
 
 
-class TankEngineInitError(TankError):
+class TankNoDefaultValueError(TankError):
     """
-    Exception that indicates that an engine could not start up.
+    Exception that can be raised when a default value is required but none is found.
     """
     pass
+
 
 class TankHookMethodDoesNotExistError(TankError):
     """
     Exception that indicates that a called method does not exist in the hook.
     """
     pass
+
 
 class TankErrorProjectIsSetup(TankError):
     """
@@ -70,11 +60,7 @@ class TankErrorProjectIsSetup(TankError):
         super(TankErrorProjectIsSetup, self).__init__("You are trying to set up a project which has already been set up. "
                                                       "If you want to do this, make sure to set the force parameter.")
 
-class TankNoDefaultValueError(TankError):
-    """
-    Exception that can be raised when a default value is required but none is found.
+# backwards compatibility to ensure code that was calling internal
+# parts of the API will still work.
+from .platform.errors import TankEngineInitError
 
-    Typically raised by `tank.platform.bundle.resolve_default_value()` when the
-    `raise_if_missing` flag is set to True.
-    """
-    pass

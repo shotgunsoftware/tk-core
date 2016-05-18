@@ -19,23 +19,24 @@ import tank
 import textwrap
 import datetime
 from tank import TankError
-from tank.deploy.tank_commands.clone_configuration import clone_pipeline_configuration_html
-from tank.deploy import tank_command
-from tank.deploy.tank_commands.core_upgrade import TankCoreUpdater
-from tank.deploy.tank_commands.action_base import Action
+from tank.commands.tank_command import get_actions, run_action
+from tank.commands.clone_configuration import clone_pipeline_configuration_html
+from tank.commands.core_upgrade import TankCoreUpdater
+from tank.commands.action_base import Action
 from tank.util import shotgun, CoreDefaultsManager
 from tank.platform import constants
-from tank_vendor.shotgun_authentication import ShotgunAuthenticator
-from tank_vendor.shotgun_authentication import AuthenticationError
-from tank_vendor.shotgun_authentication import ShotgunAuthenticationError
-from tank_vendor.shotgun_authentication import AuthenticationCancelled
-from tank_vendor.shotgun_authentication import IncompleteCredentials
+from tank.authentication import ShotgunAuthenticator
+from tank.authentication import AuthenticationError
+from tank.authentication import ShotgunAuthenticationError
+from tank.authentication import AuthenticationCancelled
+from tank.authentication import IncompleteCredentials
 from tank_vendor import yaml
 from tank.platform import engine
 from tank import pipelineconfig_utils
-from tank import context
+from tank import LogManager
 
 
+logger = LogManager.get_logger("tankcmd")
 
 
 ###############################################################################################
@@ -124,8 +125,9 @@ class AltCustomFormatter(logging.Formatter):
                                                     record.msecs,
                                                     record.msg)
 
-            if "Code Traceback" not in record.msg:
-                # do not wrap exceptions
+            if not("Code Traceback" in record.msg or record.levelno < logging.INFO):
+                # do not wrap exceptions and debug
+                # wrap other log levels on an 80 char wide boundary
                 lines = []
                 for x in textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False):
                     lines.append(x)
@@ -768,7 +770,7 @@ def _list_commands(log, tk, ctx):
     Output a list of commands given the current context etc
     """
     # get all the action objets (commands) suitable for the current context
-    (aa, engine) = tank_command.get_actions(log, tk, ctx)
+    (aa, engine) = get_actions(log, tk, ctx)
 
     log.info("")
     log.info("The following commands are available:")
@@ -1270,7 +1272,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
     else:
         # pass over to the tank commands api - this will take over command execution,
         # setup the objects accordingly etc.
-        return tank_command.run_action(log, tk, ctx, command, args)
+        return run_action(log, tk, ctx, command, args)
 
 
 def _extract_args(cmd_line, args):
@@ -1414,14 +1416,14 @@ def _extract_credentials(cmd_line):
 
 if __name__ == "__main__":
 
-    # set up logging channel for this script
-    logger = logging.getLogger("tank.setup_project")
-    logger.setLevel(logging.INFO)
+    # set up std toolkit logging to file
+    LogManager().initialize_base_file_handler("tk-shell")
 
-    ch = logging.StreamHandler(sys.stdout)
-    formatter = AltCustomFormatter()
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    # set up output of all sgtk log messages to stdout
+    log_handler = LogManager().initialize_custom_handler(
+        logging.StreamHandler(sys.stdout)
+    )
+    log_handler.setFormatter(AltCustomFormatter())
 
     # the first argument is always the path to the code root
     # we are running from.
@@ -1439,9 +1441,10 @@ if __name__ == "__main__":
     debug_mode = False
     if "--debug" in cmd_line:
         debug_mode = True
-        logger.setLevel(logging.DEBUG)
+        log_handler.setLevel(logging.DEBUG)
         logger.debug("")
-        logger.debug("Running with debug output enabled.")
+        logger.debug("A log file can be found in %s" % LogManager().log_folder)
+        logger.debug("To permanently set debug, define a TK_DEBUG environment variable.")
         logger.debug("")
     cmd_line = [arg for arg in cmd_line if arg != "--debug"]
 

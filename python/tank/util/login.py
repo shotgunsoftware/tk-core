@@ -16,7 +16,7 @@ Helper methods that extracts information about the current user.
 import os
 import sys
 
-from ..platform import constants
+from . import constants
 
 
 def get_login_name():
@@ -81,15 +81,7 @@ def get_current_user(tk):
     session. This is usually based on the currently logged in user.
 
     :returns: None if the user is not found in Shotgun. Otherwise, it returns a dictionary
-              with the following fields:
-                 * id
-                 * type
-                 * email
-                 * login
-                 * name
-                 * firstname
-                 * lastname
-                 * image url (thumbnail)
+              with the following fields: id, type, email, login, name, image, firstname, lastname
     """
     global g_shotgun_current_user_cache
     if g_shotgun_current_user_cache != "unknown":

@@ -20,9 +20,8 @@ from tank import context, errors
 from tank_test.tank_test_base import TankTestBase, setUpModule
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
-from tank_vendor.shotgun_authentication import ShotgunAuthenticator, DefaultsManager
-from tank_vendor.shotgun_authentication.user import ShotgunUser
-from tank_vendor.shotgun_authentication.user_impl import SessionUser
+from tank.authentication.user import ShotgunUser
+from tank.authentication.user_impl import SessionUser
 
 
 class TestShotgunFindPublish(TankTestBase):
@@ -474,7 +473,7 @@ class ConnectionSettingsTestCases:
 
             # Mocks app store script user credentials retrieval
             self._get_app_store_key_from_shotgun_mock = patch(
-                "tank_vendor.shotgun_deploy.io_descriptor.appstore.IODescriptorAppStore._IODescriptorAppStore__get_app_store_key_from_shotgun",
+                "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore._IODescriptorAppStore__get_app_store_key_from_shotgun",
                 return_value=("abc", "123")
             )
             self._get_app_store_key_from_shotgun_mock.start()
@@ -555,7 +554,8 @@ class ConnectionSettingsTestCases:
             self.assertEqual(sg.base_url, self._SITE)
             self.assertEqual(sg.config.raw_http_proxy, source_proxy)
 
-            self.assertEqual(config["http_proxy"], expected_store_proxy)
+            # NEED TO FIX FOR APP STORE CHANGES
+            self.assertEqual(sg.config["http_proxy"], expected_store_proxy)
 
 
 class LegacyAuthConnectionSettings(ConnectionSettingsTestCases.Impl):
