@@ -13,7 +13,7 @@ import logging
 from .import_stack import ImportStack
 from ..errors import TankError
 from .errors import TankContextChangeNotSupportedError
-from .engine import current_engine, start_engine
+from .engine import current_engine, _restart_engine
 
 
 def _get_current_bundle():
@@ -33,7 +33,6 @@ def _get_current_bundle():
     import sys
 
     current_bundle = ImportStack.get_current_bundle()
-
     if not current_bundle:
         # try to figure out the associated bundle using module trickery,
         # looking for the module which called this command and looking for
@@ -106,11 +105,13 @@ def change_context(new_context):
 
     try:
         engine.log_debug("Changing context to %r." % new_context)
+
         engine.change_context(new_context)
         engine.log_debug("Context changed successfully.")
     except TankContextChangeNotSupportedError:
         engine.log_debug("Context change not allowed by engine, restarting instead.")
         restart(new_context)
+
 
 def restart(new_context=None):
     """
@@ -129,7 +130,7 @@ def restart(new_context=None):
     :type new_context: :class:`~sgtk.Context`
     """
     engine = current_engine()
-    
+
     if engine is None:
         raise TankError("No engine is currently running! Run start_engine instead.")
 
@@ -140,104 +141,95 @@ def restart(new_context=None):
     except TankError, e:
         engine.log_error(e)
 
-    try:
-        # Restart the engine. If we were given a new context to use,
-        # use it, otherwise restart using the same context as before.         
-        current_context = new_context or engine.context            
-        current_engine_name = engine.instance_name
-        engine.destroy()
-        start_engine(current_engine_name, current_context.tank, current_context)
-    except TankError, e:
-        engine.log_error("Could not restart the engine: %s" % e)
-    except Exception:
-        engine.log_exception("Could not restart the engine!")
-    
-    engine.log_info("Toolkit platform was restarted.")
+    _restart_engine(new_context or engine.context)
 
+    engine.log_info("Toolkit platform was restarted.")
 
 
 def current_bundle():
     """
     Returns the bundle (app, engine or framework) instance for the
-    app that the calling code is associated with. This is a special method, designed to 
+    app that the calling code is associated with. This is a special method, designed to
     be used inside python modules that belong to apps, engines or frameworks.
-    
-    The calling code needs to have been imported using toolkit's standard import 
+
+    The calling code needs to have been imported using toolkit's standard import
     mechanism, :meth:`Application.import_module()`, otherwise an exception will be raised.
-    
+
     This special helper method can be useful when code deep inside an app needs
     to reach out to for example grab a configuration value. Then you can simply do::
-    
-        app = sgtk.platform.current_bundle()
-        app.get_setting("frame_range")
+
+    app = sgtk.platform.current_bundle()
+    app.get_setting("frame_range")
 
     :returns: :class:`Application`, :class:`Engine` or :class:`Framework` instance
-    """ 
+    """
     return _get_current_bundle()
 
 
 def get_framework(framework):
     """
     Convenience method that returns a framework instance given a framework name.
-    
-    This is a special method, designed to 
+
+    This is a special method, designed to
     be used inside python modules that belong to apps, engines or frameworks.
-    
-    The calling code needs to have been imported using toolkit's standard import 
-    mechanism, import_module(), otherwise an exception will be raised.    
-    
+
+    The calling code needs to have been imported using toolkit's standard import
+    mechanism, import_module(), otherwise an exception will be raised.
+
     For example, if your app code requires the tk-framework-helpers framework, and you
-    need to retrieve a configuration setting from this framework, then you can 
+    need to retrieve a configuration setting from this framework, then you can
     simply do::
-    
-        fw = sgtk.platform.get_framework("tk-framework-helpers")
-        fw.get_setting("frame_range")
+
+    fw = sgtk.platform.get_framework("tk-framework-helpers")
+    fw.get_setting("frame_range")
 
     :param framework: name of the framework object to access, as defined in the app's
                       info.yml manifest.
     :returns: framework instance
     :type: :class:`Framework`
     """
+
     current_bundle = _get_current_bundle()
-    
+
     if framework not in current_bundle.frameworks:
         raise Exception("import_framework: %s does not have a framework %s associated!" % (current_bundle, framework))
 
     fw = current_bundle.frameworks[framework]
-    
+
     return fw
 
 
 def import_framework(framework, module):
     """
     Convenience method for using frameworks code inside of apps, engines and other frameworks.
-    
+
     This method is intended to replace an import statement.
     Instead of typing::
-    
+
         from . import foo_bar
-    
+
     You use the following syntax to load a framework module::
-    
+
         foo_bar = tank.platform.import_framework("tk-framework-mystuff", "foo_bar")
-    
-    This is a special method, designed to 
+
+    This is a special method, designed to
     be used inside python modules that belong to apps, engines or frameworks.
-    
-    The calling code needs to have been imported using toolkit's standard import 
+
+    The calling code needs to have been imported using toolkit's standard import
     mechanism, :meth:`Bundle.import_module()`, otherwise an exception will be raised.
 
     :param framework: name of the framework object to access, as defined in the app's
                       info.yml manifest.
     :param module: module to load from framework
     """
+
     current_bundle = _get_current_bundle()
 
     if framework not in current_bundle.frameworks:
         raise Exception("import_framework: %s does not have a framework %s associated!" % (current_bundle, framework))
 
-    fw = current_bundle.frameworks[framework]    
-    
+    fw = current_bundle.frameworks[framework]
+
     mod = fw.import_module(module)
 
     return mod

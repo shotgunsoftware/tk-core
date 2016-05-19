@@ -18,9 +18,8 @@ import sys
 
 from tank_test.tank_test_base import setUpModule, TankTestBase, skip_if_pyside_missing, interactive
 from mock import patch
-import tank_vendor
-from tank_vendor.shotgun_authentication import user_impl, console_authentication, interactive_authentication, invoker
-
+from tank.authentication import user_impl, console_authentication, interactive_authentication, invoker
+import tank
 
 class InteractiveTests(TankTestBase):
     """
@@ -265,7 +264,7 @@ class InteractiveTests(TankTestBase):
         side_effect=["  https://test.shotgunstudio.com ", "  username   ", " 2fa code "]
     )
     @patch(
-        "tank_vendor.shotgun_authentication.console_authentication.ConsoleLoginHandler._get_password",
+        "tank.authentication.console_authentication.ConsoleLoginHandler._get_password",
         return_value=" password "
     )
     def test_console_auth_with_whitespace(self, *mocks):
@@ -288,7 +287,7 @@ class InteractiveTests(TankTestBase):
         Makes sure that the ui strips out whitespaces.
         """
         # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from tank_vendor.shotgun_authentication.login_dialog import LoginDialog
+        from tank.authentication.login_dialog import LoginDialog
         ld = LoginDialog(is_session_renewal=False)
         self._prepare_window(ld)
         # For each widget in the ui, make sure that the text is properly cleaned
