@@ -254,11 +254,11 @@ class TestContextChange(TestEngineBase):
         # when switching context. We'll use them layer to count how many times
         # they have been invoked and with what parameters.
         self._pre_patch = mock.patch(
-            "sgtk.platform.engine._execute_pre_context_change_hook",
+            "tank.platform.engine._execute_pre_context_change_hook",
             wraps=engine._execute_pre_context_change_hook
         )
         self._post_patch = mock.patch(
-            "sgtk.platform.engine._execute_post_context_change_hook",
+            "tank.platform.engine._execute_post_context_change_hook",
             wraps=engine._execute_post_context_change_hook
         )
 
