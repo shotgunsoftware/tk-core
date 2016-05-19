@@ -1855,11 +1855,10 @@ def _restart_engine(new_context):
 
         # Restart the engine. If we were given a new context to use,
         # use it, otherwise restart using the same context as before.
-        with _CoreContextChangeHookGuard(engine.sgtk, old_context, new_context):
-            current_engine_name = engine.instance_name
-            engine.destroy()
+        current_engine_name = engine.instance_name
+        engine.destroy()
 
-            _start_engine(current_engine_name, new_context.tank, old_context, new_context)
+        _start_engine(current_engine_name, new_context.tank, old_context, new_context)
     except TankError, e:
         engine.log_error("Could not restart the engine: %s" % e)
     except Exception:
@@ -1914,13 +1913,11 @@ class _CoreContextChangeHookGuard(object):
             next_context=new_context
         )
 
-    def __exit__(self, ex_type, *args):
+    def __exit__(self, ex_type, *_):
         """
         Executes the post context change hook if we're the last guard instance.
 
-        :param tk: Toolkit instance.
-        :param current_context: Context before the context change.
-        :param next_context: Context after the context change.
+        :param ex_type: Type of the exception raised, if any.
         """
         # If we are the last instance of the guard and there's no exception, notify
         if self.__class__._depth == 1 and not ex_type:
