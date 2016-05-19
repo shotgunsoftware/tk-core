@@ -10,9 +10,28 @@
 
 import logging
 import Queue
+import sys
 
 
-class ToolkitEngineHandler(logging.Handler):
+# logging.Handler is not a new-style class in Python 2.5, so we have to call the base class
+# correctly.
+class LoggingBase(logging.Handler):
+    """
+    Wrapper around logging.Handler to abstract out how to derive from it regardless
+    of your Python version.
+    """
+
+    def __init__(self):
+        """
+        Constructor. Calls the base class in a correct manner depending on the version of Python.
+        """
+        if sys.version_info[0] == 2 and sys.version_info[1] <= 5:
+            logging.Handler.__init__(self)
+        else:
+            super(LoggingBase, self).__init__()
+
+
+class ToolkitEngineHandler(LoggingBase):
     """
     Log handling for engines that are using the
     new logging system introduced in 0.18. This will
@@ -26,7 +45,7 @@ class ToolkitEngineHandler(logging.Handler):
         :param engine: Engine to which log messages should be forwarded.
         :type engine: :class:`Engine`
         """
-        super(ToolkitEngineHandler, self).__init__()
+        LoggingBase.__init__(self)
         self._engine = engine
 
     def emit(self, record):
@@ -45,7 +64,7 @@ class ToolkitEngineHandler(logging.Handler):
         self._engine._emit_log_message(self, record)
 
 
-class ToolkitEngineLegacyHandler(logging.Handler):
+class ToolkitEngineLegacyHandler(LoggingBase):
     """
     Legacy handling of logging for engines which have not
     implemented :meth:`Engine._emit_log_message` but are
@@ -61,7 +80,7 @@ class ToolkitEngineLegacyHandler(logging.Handler):
         :param engine: Engine to which log messages should be forwarded.
         :type engine: :class:`Engine`
         """
-        super(ToolkitEngineLegacyHandler, self).__init__()
+        LoggingBase.__init__(self)
         self._engine = engine
         self._inside_dispatch_stack = Queue.Queue()
 
