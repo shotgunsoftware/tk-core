@@ -1,12 +1,16 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+
+"""
+Toolkit App Store Descriptor.
+"""
 
 import os
 import uuid
@@ -37,6 +41,7 @@ log = LogManager.get_logger(__name__)
 
 # file where we cache the app store metadata for an item
 METADATA_FILE = ".cached_metadata.pickle"
+
 
 class IODescriptorAppStore(IODescriptorBase):
     """
@@ -85,7 +90,6 @@ class IODescriptorAppStore(IODescriptorBase):
         Descriptor.CORE: "TankAppStore_Core_Download",
     }
 
-
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
@@ -109,7 +113,6 @@ class IODescriptorAppStore(IODescriptorBase):
         self._version = descriptor_dict.get("version")
         # cached metadata - loaded on demand
         self.__cached_metadata = None
-
 
     def _get_app_store_metadata(self):
         """
@@ -185,7 +188,6 @@ class IODescriptorAppStore(IODescriptorBase):
                 raise TankDescriptorError(
                     "The App store does not have a version '%s' of Core!" % self._version
                 )
-            
         else:
             # engines, apps etc have a 'bundle level entity' in the app store,
             # e.g. something representing the app or engine.
@@ -200,7 +202,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 raise TankDescriptorError(
                     "The App store does not contain an item named '%s'!" % self._name
                 )
-    
+
             # now get the version
             sg_version_data = sg.find_one(
                 version_entity_type,
@@ -397,10 +399,10 @@ class IODescriptorAppStore(IODescriptorBase):
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
-        
+
         :param constraint_pattern: If this is specified, the query will be constrained
                by the given pattern. Version patterns are on the following forms:
-        
+
                 - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
@@ -432,10 +434,10 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # get latest get the filter logic for what to exclude
         if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
-            latest_filter = [["sg_status_list", "is_not", "bad" ]]
+            latest_filter = [["sg_status_list", "is_not", "bad"]]
         else:
-            latest_filter = [["sg_status_list", "is_not", "rev" ],
-                             ["sg_status_list", "is_not", "bad" ]]
+            latest_filter = [["sg_status_list", "is_not", "rev"],
+                             ["sg_status_list", "is_not", "bad"]]
 
         is_deprecated = False
         if self._type != self.CORE:
@@ -482,14 +484,14 @@ class IODescriptorAppStore(IODescriptorBase):
         # and return a descriptor instance
         desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
-        
+
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
         # all this info the next time it is being requested. So we force clear the metadata
         # cache.
         if is_deprecated:
             self.__refresh_app_store_metadata()
-        
+
         return desc
 
     def _find_latest(self):
@@ -500,24 +502,23 @@ class IODescriptorAppStore(IODescriptorBase):
 
         :returns: IODescriptorAppStore instance
         """
-
         # connect to the app store
         (sg, _) = self.__create_sg_app_store_connection()
 
         # get latest
         # get the filter logic for what to exclude
         if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
-            latest_filter = [["sg_status_list", "is_not", "bad" ]]
+            latest_filter = [["sg_status_list", "is_not", "bad"]]
         else:
-            latest_filter = [["sg_status_list", "is_not", "rev" ],
-                             ["sg_status_list", "is_not", "bad" ]]
+            latest_filter = [["sg_status_list", "is_not", "rev"],
+                             ["sg_status_list", "is_not", "bad"]]
 
         is_deprecated = False
-        
+
         if self._type != self.CORE:
             # items other than core have a main entity that represents
             # app/engine/etc.
-            
+
             # find the main entry
             sg_bundle_data = sg.find_one(
                 self._APP_STORE_OBJECT[self._type],
@@ -527,9 +528,9 @@ class IODescriptorAppStore(IODescriptorBase):
 
             if sg_bundle_data is None:
                 raise TankDescriptorError("App store does not contain an item named '%s'!" % self._name)
-    
+
             # check if this has been deprecated in the app store
-            # in that case we should ensure that the cache is cleared later    
+            # in that case we should ensure that the cache is cleared later
             if sg_bundle_data["sg_status_list"] == "dep":
                 is_deprecated = True
 
@@ -542,7 +543,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 fields=["code"],
                 order=[{"field_name": "created_at", "direction": "desc"}]
             )
-            
+
         else:
             # core API
             sg_version_data = sg.find_one(
@@ -551,7 +552,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 fields=["code"],
                 order=[{"field_name": "created_at", "direction": "desc"}]
             )
-        
+
         if sg_version_data is None:
             raise TankDescriptorError("Cannot find any versions for %s in the App store!" % self._name)
 
@@ -561,13 +562,13 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # make a descriptor dict
         descriptor_dict = {"type": "app_store",
-                         "name": self._name, 
-                         "version": version_str}
+                           "name": self._name,
+                           "version": version_str}
 
         # and return a descriptor instance
         desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
-        
+
         # now if this item has been deprecated, meaning that someone has gone in to the app
         # store and updated the record's deprecation status, we want to make sure we download
         # all this info the next time it is being requested. So we force clear the metadata
@@ -614,7 +615,6 @@ class IODescriptorAppStore(IODescriptorBase):
                 else:
                     raise
 
-
             # Connect to the app store and resolve the script user id we are connecting with.
             # Set the timeout explicitly so we ensure the connection won't hang in cases where
             # a response is not returned in a reasonable amount of time.
@@ -636,14 +636,14 @@ class IODescriptorAppStore(IODescriptorBase):
                     filters=[["firstname", "is", script_name]],
                     fields=["type", "id"]
                 )
-            # Connection errors can occur for a variety of reasons. For example, there is no 
+            # Connection errors can occur for a variety of reasons. For example, there is no
             # internet access or there is a proxy server blocking access to the Toolkit app store.
             except (httplib2.HttpLib2Error, httplib2.socks.HTTPError, httplib.HTTPException), e:
                 raise TankAppStoreConnectionError(e)
-            # In cases where there is a firewall/proxy blocking access to the app store, sometimes 
-            # the firewall will drop the connection instead of rejecting it. The API request will 
-            # timeout which unfortunately results in a generic SSLError with only the message text 
-            # to give us a clue why the request failed. 
+            # In cases where there is a firewall/proxy blocking access to the app store, sometimes
+            # the firewall will drop the connection instead of rejecting it. The API request will
+            # timeout which unfortunately results in a generic SSLError with only the message text
+            # to give us a clue why the request failed.
             # The exception raised in this case is "ssl.SSLError: The read operation timed out"
             except httplib2.ssl.SSLError, e:
                 if "timed" in e.message:
@@ -661,7 +661,6 @@ class IODescriptorAppStore(IODescriptorBase):
             self._app_store_connections[sg_url] = (app_store_sg, script_user)
 
         return self._app_store_connections[sg_url]
-
 
     def __get_app_store_key_from_shotgun(self):
         """
@@ -686,5 +685,3 @@ class IODescriptorAppStore(IODescriptorBase):
         data = json.loads(html)
 
         return data["script_name"], data["script_key"]
-
-
