@@ -22,7 +22,7 @@ from tank_vendor.shotgun_api3.lib import httplib2
 import cPickle as pickle
 
 from ...util.zip import unzip_file
-from ...util import filesystem
+from ...util import filesystem, shotgun
 from ..descriptor import Descriptor
 from ..errors import TankAppStoreConnectionError
 from ..errors import TankAppStoreError
@@ -96,7 +96,7 @@ class IODescriptorAppStore(IODescriptorBase):
 
         :param descriptor_dict: descriptor dictionary describing the bundle
         :param sg_connection: Shotgun connection to associated site
-        :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK
+        :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK or CONFIG
         :return: Descriptor instance
         """
         super(IODescriptorAppStore, self).__init__(descriptor_dict)
@@ -622,7 +622,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 constants.SGTK_APP_STORE,
                 script_name=script_name,
                 api_key=script_key,
-                http_proxy=self._sg_connection.config.raw_http_proxy,
+                http_proxy=self.__get_app_store_proxy_setting(),
                 connect=False
             )
             # set the default timeout for app store connections
@@ -661,6 +661,24 @@ class IODescriptorAppStore(IODescriptorBase):
             self._app_store_connections[sg_url] = (app_store_sg, script_user)
 
         return self._app_store_connections[sg_url]
+
+    def __get_app_store_proxy_setting(self):
+        """
+        Retrieve the app store proxy settings. If the key app_store_http_proxy is not found in the
+        ``shotgun.yml`` file, the proxy settings from the client site connection will be used. If the key
+        is found, than its value will be used. Note that if the ``app_store_http_proxy`` setting is set
+        to ``null`` in the configuration file, it means that the app store proxy is being forced to ``None``
+        and therefore won't be inherited from the http proxy setting.
+
+        :returns: The http proxy connection string.
+        """
+        config_data = shotgun.get_associated_sg_config_data()
+        if config_data and constants.APP_STORE_HTTP_PROXY in config_data:
+            return config_data[constants.APP_STORE_HTTP_PROXY]
+        else:
+            # Use the http proxy from the connection so we don't have to run
+            # the connection hook again.
+            return self._sg_connection.config.raw_http_proxy
 
     def __get_app_store_key_from_shotgun(self):
         """
