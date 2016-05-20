@@ -141,9 +141,6 @@ class BaseConfigurationResolver(ConfigurationResolver):
 
         log.debug("Configuration resolved to %r." % cfg_descriptor)
 
-        # now determine the location of the configuration
-        config_root = {"win32": None, "linux2": None, "darwin": None}
-
         # first get the cache root
         cache_root = LocalFileStorageManager.get_configuration_root(
             self._sg_connection.base_url,

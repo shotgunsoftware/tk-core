@@ -114,7 +114,9 @@ class IODescriptorPath(IODescriptorBase):
         """
         Retrieves this version to local repo
         """
-        # do nothing!
+        # ensure that this exists on disk
+        if not self.exists_local():
+            raise TankDescriptorError("%s does not point at a valid bundle on disk!" % self)
 
     def is_immutable(self):
         """

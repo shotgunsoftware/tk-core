@@ -231,7 +231,7 @@ class LogManager(object):
         """
         return self._std_file_handler
 
-    def initialize_custom_handler(self, handler=logging.StreamHandler()):
+    def initialize_custom_handler(self, handler=None):
         """
         Convenience method that initializes a log handler
         and attaches it to the toolkit logging root.
@@ -266,15 +266,19 @@ class LogManager(object):
         in a standard fashion.
 
         :param handler: Logging handler to connect with the toolkit logger.
-                        If not passed, a standard stream logger will be created.
+                        If not passed, a standard stream handler will be created.
         :return: The configured log handler.
         """
-        # example: [DEBUG tank.log] message message
-        formatter = logging.Formatter(
-            "[%(levelname)s %(name)s] %(message)s"
-        )
+        if handler is None:
+            handler = logging.StreamHandler()
 
-        handler.setFormatter(formatter)
+            # example: [DEBUG tank.log] message message
+            formatter = logging.Formatter(
+                "[%(levelname)s %(name)s] %(message)s"
+            )
+
+            handler.setFormatter(formatter)
+
         self._root_logger.addHandler(handler)
 
         if self.global_debug:

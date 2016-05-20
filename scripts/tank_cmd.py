@@ -24,12 +24,13 @@ from tank.commands.clone_configuration import clone_pipeline_configuration_html
 from tank.commands.core_upgrade import TankCoreUpdater
 from tank.commands.action_base import Action
 from tank.util import shotgun, CoreDefaultsManager
-from tank.platform import constants
+from tank.platform import constants as platform_constants
 from tank.authentication import ShotgunAuthenticator
 from tank.authentication import AuthenticationError
 from tank.authentication import ShotgunAuthenticationError
 from tank.authentication import AuthenticationCancelled
 from tank.authentication import IncompleteCredentials
+from tank.commands import constants as command_constants
 from tank_vendor import yaml
 from tank.platform import engine
 from tank import pipelineconfig_utils
@@ -279,7 +280,7 @@ def _run_shotgun_command(log, tk, action_name, entity_type, entity_ids):
             # shotgun (legacy) multi select callbacks
             # this is detected by register_command and a special
             # flag is set for the multi select ones
-            if constants.LEGACY_MULTI_SELECT_ACTION_FLAG in cmd["properties"]:
+            if platform_constants.LEGACY_MULTI_SELECT_ACTION_FLAG in cmd["properties"]:
                 # old style shotgun app launch - takes entity_type and ids as args
                 e.execute_old_style_command(action_name, entity_type, entity_ids)
             else:
@@ -859,7 +860,7 @@ def _list_commands(log, tk, ctx):
                          "questions." % ctx)
 
 
-            elif tank.platform.constants.SHELL_ENGINE not in env.get_engines():
+            elif command_constants.SHELL_ENGINE not in env.get_engines():
                 # no shell engine installed
                 log.info("Looks like the environment configuration '%s', which is associated "
                          "with the current context (%s), does not have a shell engine "

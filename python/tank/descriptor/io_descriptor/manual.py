@@ -10,6 +10,7 @@
 import os
 from .base import IODescriptorBase
 from ... import LogManager
+from ..errors import TankDescriptorError
 
 log = LogManager.get_logger(__name__)
 
@@ -103,7 +104,9 @@ class IODescriptorManual(IODescriptorBase):
         """
         Retrieves this version to local repo
         """
-        # do nothing!
+        # ensure that this exists on disk
+        if not self.exists_local():
+            raise TankDescriptorError("%s does not exist on disk!")
 
     def get_latest_version(self, constraint_pattern=None):
         """
