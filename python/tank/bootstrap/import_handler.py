@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import imp
+import uuid
 import os
 import sys
 import warnings
@@ -178,6 +179,9 @@ class CoreImportHandler(object):
                 reverse=True
             )
 
+            # unique prefix for stashing this session
+            stash_prefix = "core_swap_%s" % uuid.uuid4().hex
+
             for module_name in module_names:
 
                 # just to be safe, don't re-import this module.
@@ -191,7 +195,31 @@ class CoreImportHandler(object):
                 if pkg_name in self.NAMESPACES_TO_TRACK:
                     # the package name is in one of the new core namespaces. we
                     # delete it from sys.modules so that the custom import can run.
-                    del sys.modules[module_name]
+                    module = sys.modules[module_name]
+                    # note: module entries that are None can safely be left in sys.modules -
+                    # these are optimizations used by the importer. Read more here:
+                    # http://stackoverflow.com/questions/1958417/why-are-there-dummy-modules-in-sys-modules
+                    if module:
+                        # make sure we don't lose any references to it - for example
+                        # via instances that have been inherited from base classes
+                        # to make sure a reference is kept, keep the module object
+                        # but move it out of the way in sys.modules to allow for
+                        # a new version of the module to be imported alongside.
+                        stashed_module_name = "%s_%s" % (stash_prefix, module_name)
+
+                        # uncomment for copious amounts of debug
+                        # log.debug(
+                        #     "Relocating module %s from sys.modules[%s] "
+                        #     "to sys.modules[%s]" % (module, module_name, stashed_module_name)
+                        # )
+
+                        sys.modules[stashed_module_name] = module
+
+                        # and remove the official entry
+                        # log.debug("Removing sys.modules[%s]" % module_name)
+                        del sys.modules[module_name]
+
+
 
             # reset importer to point at new core for future imports
             self._module_info = {}
