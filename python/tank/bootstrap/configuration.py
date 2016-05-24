@@ -174,6 +174,7 @@ class Configuration(object):
         try:
             self._descriptor.copy(os.path.join(self._path.current_os, "config"))
 
+
             # write out config files
             self._write_install_location_file()
             self._write_config_info_file()
@@ -186,24 +187,35 @@ class Configuration(object):
             # and lastly install core
             self._install_core()
 
-        except Exception:
+        except Exception, e:
             log.exception("Failed to update configuration. Attempting Rollback. Error Traceback:")
             # step 1 - clear core and config locations
             log.debug("Cleaning out faulty config location...")
             self._move_to_backup()
             # step 2 - recover previous core and backup
-            if config_backup_path:
-                log.debug("Restoring previous config...")
+            if config_backup_path is None or core_backup_path is None:
+                # there is nothing to restore!
+                log.error(
+                    "Irrecoverable error - failed to update config but no previous config to "
+                    "fall back on. Raising TankBootstrapError to abort bootstrap."
+                    )
+                raise TankBootstrapError("Configuration could not be installed: %s." % e)
+
+            else:
+                # ok to restore
+                log.debug("Restoring previous config %s" % config_backup_path)
                 filesystem.copy_folder(
                     config_backup_path,
                     os.path.join(self._path.current_os, "config")
                 )
-            if core_backup_path:
-                log.debug("Restoring previous core...")
+                log.debug("Previous config restore complete...")
+
+                log.debug("Restoring previous core %s" % core_backup_path)
                 filesystem.copy_folder(
                     core_backup_path,
                     os.path.join(self._path.current_os, "install", "core")
                 )
+                log.debug("Previous core restore complete...")
 
         # @todo - prime caches (yaml, path cache)
 
