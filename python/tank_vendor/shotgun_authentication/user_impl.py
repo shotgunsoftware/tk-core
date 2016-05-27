@@ -135,7 +135,7 @@ class SessionUser(ShotgunUserImpl):
     """
     A user that authenticates to the Shotgun server using a session token.
     """
-    def __init__(self, host, login, session_token, http_proxy, password=None):
+    def __init__(self, host, login, session_token, http_proxy, password=None, cache_session_token=True):
         """
         Constructor.
 
@@ -168,6 +168,8 @@ class SessionUser(ShotgunUserImpl):
             # If session data was cached, load it.
             if session_data:
                 session_token = session_data["session_token"]
+            # No need to rewrite the session token back to disk.
+            cache_session_token = False
 
         # We've exhausted our avenues to get a valid session token, throw.
         if not session_token:
@@ -176,7 +178,8 @@ class SessionUser(ShotgunUserImpl):
         self._login = login
         self._session_token = session_token
 
-        self._try_save()
+        if cache_session_token:
+            self._try_save()
 
     def get_login(self):
         """
@@ -259,7 +262,7 @@ class SessionUser(ShotgunUserImpl):
 
         :returns: A SessionUser instance.
         """
-        return SessionUser(**payload)
+        return SessionUser(cache_session_token=False, **payload)
 
     def to_dict(self):
         """
