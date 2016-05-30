@@ -30,7 +30,7 @@ class ShotgunUser(object):
     methods. This is particularly useful if you need to pass a user object from one
     process to another, for example when launching a DCC such as Maya or Nuke.
     """
-    
+
     def __init__(self, impl):
         """
         :param impl: Internal user implementation class this class proxies.
@@ -59,7 +59,7 @@ class ShotgunUser(object):
     def login(self):
         """
         The login for this current user. For Shotgun user types that don't have a concept
-        of a login (like API scripts), None is returned. 
+        of a login (like API scripts), None is returned.
 
         :returns: The login string or None.
         """
@@ -104,9 +104,9 @@ class ShotgunUser(object):
 
     def __repr__(self):
         """
-        Returns a string reprensentation of the user.
+        Returns a string representation of the user.
 
-        :returns: A string reprensentation of the user.
+        :returns: A string representation of the user.
         """
         return repr(self.impl)
 
@@ -140,7 +140,7 @@ def deserialize_user(payload):
     Converts a payload produced by serialize into any of the ShotgunUser
     derived instance.
 
-    :params payload: Pickled dictionary of values
+    :param payload: Pickled dictionary of values
 
     :returns: A ShotgunUser derived instance.
     """
