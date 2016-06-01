@@ -17,7 +17,9 @@ import os
 import sys
 import urllib
 import urllib2
+import httplib
 import urlparse
+import time
 
 from tank_vendor import yaml
 
@@ -776,6 +778,31 @@ def get_published_file_entity_type(tk):
     """
     return tk.pipeline_configuration.get_published_file_entity_type()
 
+
+def upload_thumbnail(tk, entity_type, entity_id, thumbnail_path):
+    """
+    Upload a thumbnail to Shotgun, with a few retries.
+    """
+    retries = 5
+    index = 1
+    while True:
+        try:
+            tk.shotgun.upload_thumbnail(entity_type,
+                                        entity_id,
+                                        thumbnail_path)
+        except Exception as e:
+            # usually, we would send an error report at this point
+            # indicating the response from the server store in
+            # tk.shotgun._last_url_open_info
+            # retry after 1s
+            index += 1
+            if index == retries:
+                return False
+            time.sleep(1)
+        else:
+            return True
+
+
 def register_publish(tk, context, path, name, version_number, **kwargs):
     """
     Creates a Tank Published File in Shotgun.
@@ -899,23 +926,25 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     if thumbnail_path and os.path.exists(thumbnail_path):
 
         # publish
-        tk.shotgun.upload_thumbnail(published_file_entity_type, entity["id"], thumbnail_path)
+        upload_thumbnail(tk, published_file_entity_type, entity["id"], thumbnail_path)
+        # tk.shotgun.upload_thumbnail(published_file_entity_type, entity["id"], thumbnail_path)
 
         # entity
         if update_entity_thumbnail == True and context.entity is not None:
-            tk.shotgun.upload_thumbnail(context.entity["type"],
-                                        context.entity["id"],
-                                        thumbnail_path)
+            upload_thumbnail(tk,
+                             context.entity["type"],
+                             context.entity["id"],
+                             thumbnail_path)
 
         # task
         if update_task_thumbnail == True and task is not None:
-            tk.shotgun.upload_thumbnail("Task", task["id"], thumbnail_path)
+            upload_thumbnail(tk, "Task", task["id"], thumbnail_path)
 
     else:
         # no thumbnail found - instead use the default one
         this_folder = os.path.abspath(os.path.dirname(__file__))
         no_thumb = os.path.join(this_folder, "no_preview.jpg")
-        tk.shotgun.upload_thumbnail(published_file_entity_type, entity.get("id"), no_thumb)
+        upload_thumbnail(tk, published_file_entity_type, entity.get("id"), no_thumb)
 
 
     # register dependencies

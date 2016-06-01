@@ -417,6 +417,9 @@ class Shotgun(object):
         else:
             self.__ca_certs = os.environ.get('SHOTGUN_API_CACERTS')
 
+        # for logging
+        self._last_url_open_info = None
+
         self.base_url = (base_url or "").lower()
         self.config.scheme, self.config.server, api_base, _, _ = \
             urlparse.urlsplit(self.base_url)
@@ -1451,6 +1454,7 @@ class Shotgun(object):
         try:
             resp = opener.open(url, params)
             result = resp.read()
+            self._last_url_open_info = str(resp.info()).splitlines()
             # response headers are in str(resp.info()).splitlines()
         except urllib2.HTTPError, e:
             if e.code == 500:
@@ -1564,7 +1568,10 @@ class Shotgun(object):
 
         # Perform the request
         try:
-            result = opener.open(url, params).read()
+            response = opener.open(url, params)
+            result = response.read()
+            self._last_url_open_info = str(response.info()).splitlines()
+            
         except urllib2.HTTPError, e:
             if e.code == 500:
                 raise ShotgunError("Server encountered an internal error. "
