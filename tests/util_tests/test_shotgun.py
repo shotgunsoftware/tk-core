@@ -22,6 +22,8 @@ from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
 from tank.authentication.user import ShotgunUser
 from tank.authentication.user_impl import SessionUser
+from tank.descriptor import Descriptor
+from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
 
 
 class TestShotgunFindPublish(TankTestBase):
@@ -554,8 +556,12 @@ class ConnectionSettingsTestCases:
             self.assertEqual(sg.base_url, self._SITE)
             self.assertEqual(sg.config.raw_http_proxy, source_proxy)
 
-            # NEED TO FIX FOR APP STORE CHANGES
-            self.assertEqual(sg.config["http_proxy"], expected_store_proxy)
+            descriptor = IODescriptorAppStore(
+                {"name": "tk-multi-app", "version": "v0.0.1", "type": "app_store"},
+                sg, Descriptor.CORE
+            )
+            http_proxy = descriptor._IODescriptorAppStore__get_app_store_proxy_setting()
+            self.assertEqual(http_proxy, expected_store_proxy)
 
 
 class LegacyAuthConnectionSettings(ConnectionSettingsTestCases.Impl):
