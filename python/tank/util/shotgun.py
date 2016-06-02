@@ -377,10 +377,16 @@ def create_sg_connection(user="default"):
     # the authenticated user concept. In that case, we'll do what we've always been doing in the
     # past, which is read shotgun.yml and expect there to be a script user.
     if sg_user is None:
+        log.debug(
+            "This tk session has no associated authenticated user. Falling back to "
+            "creating a shotgun API instance based on script based credentials in the "
+            "shotgun.yml configuration file."
+        )
         config_data = __get_sg_config_data_with_script_user(__get_sg_config(), user)
         api_handle = __create_sg_connection(config_data)
     else:
         # Otherwise use the authenticated user to create the connection.
+        log.debug("Creating shotgun connection from %r" % sg_user)
         api_handle = __create_sg_connection(None, sg_user)
     return api_handle
 
