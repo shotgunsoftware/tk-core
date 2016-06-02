@@ -40,9 +40,10 @@ setup(
     package_data={
         "tank.descriptor": ["resources/*"],
         "tank.util": ["resources/*"],
-        "tank.platform.qt" : [
+        "tank.platform.qt": [
             "*.png", "*.sh", "*.ui", "*.qrc", "*.css", "*.qpalette",
         ],
+        "tank_vendor.shotgun_api3.lib.httplib2": ["cacerts.txt"],
     },
     # Everything can be found under the python folder
     package_dir = {"": "python"}
