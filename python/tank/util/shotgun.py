@@ -69,12 +69,6 @@ def __get_sg_config():
     """
     core_cfg = __get_api_core_config_location()
     path = os.path.join(core_cfg, "shotgun.yml")
-
-    log.debug(
-        "Resolving shotgun.yml location to '%s' by looking "
-        "at the location of the currently executing code." % path
-    )
-
     return path
 
 def get_project_name_studio_hook_location():
@@ -94,12 +88,6 @@ def get_project_name_studio_hook_location():
     
     core_cfg = __get_api_core_config_location()
     path = os.path.join(core_cfg, constants.STUDIO_HOOK_PROJECT_NAME)
-
-    log.debug(
-        "Resolving studio hook location to '%s' by looking "
-        "at the location of the currently executing code." % path
-    )
-
     return path
 
 def __get_sg_config_data(shotgun_cfg_path, user="default"):
@@ -313,7 +301,7 @@ def get_associated_sg_config_data():
     cfg = __get_sg_config()
     return __get_sg_config_data(cfg)
 
-    
+
 g_sg_cached_connection = None
 def get_sg_connection():
     """
