@@ -1249,7 +1249,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
             # use normal string based parse methods
             # we are now left with the following cases to resolve
             # tank Entitytype name_expression
-            entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, project_id)
+            entity_id = _resolve_shotgun_entity(entity_type, entity_search_token, project_id)
 
         # now initialize toolkit and set up the context.
         tk = tank.tank_from_entity(entity_type, entity_id)
