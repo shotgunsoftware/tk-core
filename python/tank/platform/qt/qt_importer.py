@@ -64,6 +64,28 @@ class QtImporter(object):
 
         return QtCore, QtGui, QtWidgets, PySide2
 
+    def _import_pyqt5(self):
+        """
+        Imports PyQt5.
+
+        :returns: The (QtCore, QtGui, PyQt5) tuple.
+        """
+        import PyQt5
+        from PyQt5 import QtCore, QtGui, QtWidgets
+
+        # hot patch the library to make it work with pyside code
+        QtCore.Signal = QtCore.pyqtSignal
+        QtCore.Slot = QtCore.pyqtSlot
+        QtCore.Property = QtCore.pyqtProperty
+
+        from .pyside2_patcher import PySide2Patcher
+        PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PyQt5)
+
+        from PyQt5.Qt import PYQT_VERSION_STR
+        PyQt5.__version__ = PYQT_VERSION_STR
+
+        return QtCore, QtGui, QtWidgets, PyQt5
+
     def _import_pyqt4(self):
         """
         Imports PyQt4.
@@ -77,6 +99,11 @@ class QtImporter(object):
         QtCore.Signal = QtCore.pyqtSignal
         QtCore.Slot = QtCore.pyqtSlot
         QtCore.Property = QtCore.pyqtProperty
+
+        from PyQt4.Qt import PYQT_VERSION_STR
+        PyQt4.__version__ = PYQT_VERSION_STR
+
+        PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PyQt4)
 
         return QtCore, QtGui, None, PyQt4
 
@@ -96,6 +123,11 @@ class QtImporter(object):
 
         try:
             return self._import_pyside()
+        except ImportError:
+            pass
+
+        try:
+            return self._import_pyqt5()
         except ImportError:
             pass
 
