@@ -94,7 +94,7 @@ class TestShotgunFindPublish(TankTestBase):
         self.assertEqual(sg_data["id"], self.pub_2["id"])
         self.assertEqual(sg_data["type"], "TankPublishedFile")
         # make sure we are only getting the ID back.
-        self.assertEqual(sg_data.keys(), ["type", "id"])
+        self.assertEqual(sorted(sg_data.keys()), ["id", "type"])
 
     def test_most_recent_path(self):
         # check that dupes return the more recent record        
@@ -146,7 +146,7 @@ class TestShotgunFindPublish(TankTestBase):
         self.assertEqual(sg_data["id"], self.pub_5["id"])
         
         # make sure we are only getting the ID back.
-        self.assertEqual(sg_data.keys(), ["type", "id"])
+        self.assertEqual(sorted(sg_data.keys()), ["id", "type"])
         
     def test_ignore_missing(self):  
         """
@@ -228,7 +228,7 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
         self.assertEqual(sg_data["id"], self.pub_2["id"])
         self.assertEqual(sg_data["type"], "TankPublishedFile")
         # make sure we are only getting the ID back.
-        self.assertEqual(sg_data.keys(), ["type", "id"])
+        self.assertEqual(sorted(sg_data.keys()), ["id", "type"])
 
     def test_most_recent_path(self):
         # check that dupes return the more recent record        
@@ -280,7 +280,7 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
         self.assertEqual(sg_data["id"], self.pub_5["id"])
         
         # make sure we are only getting the ID back.
-        self.assertEqual(sg_data.keys(), ["type", "id"])
+        self.assertEqual(sorted(sg_data.keys()), ["id", "type"])
 
 
 

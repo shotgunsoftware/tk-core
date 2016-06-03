@@ -529,8 +529,8 @@ class TestSimpleUpdates(TankTestBase):
         self.assertListEqual(env.get_engines(), ["tk-test"])
         self.assertListEqual(env.get_apps("tk-test"), ["tk-multi-nodep"])
         self.assertListEqual(
-            env.get_frameworks(),
-            ["tk-framework-test_v1.0.0", "tk-framework-test_v1.0.x", "tk-framework-test_v1.x.x"]
+            sorted(env.get_frameworks()),
+            sorted(["tk-framework-test_v1.0.0", "tk-framework-test_v1.0.x", "tk-framework-test_v1.x.x"])
         )
 
         desc = env.get_framework_descriptor("tk-framework-test_v1.0.0")

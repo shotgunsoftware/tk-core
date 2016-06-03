@@ -623,8 +623,8 @@ class TestAsTemplateFields(TestContext):
         result = test_ctx.as_template_fields(self.template)
 
         # check the result:
-        expected_result = {"Step": "step_short_name"}
-        self.assertEquals(result, expected_result)
+        expected_result = ({"Step": "step_short_name"}, {"Shot": "bad"})
+        self.assertIn(result, expected_result)
 
     def test_validate_parameter(self):
         """

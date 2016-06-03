@@ -26,6 +26,7 @@ if entity_type == "Shot" and str_value.startswith("AA"):
 from tank import Hook
 from tank import TankError
 import re
+import six
 
 class ProcessFolderName(Hook):
 
@@ -105,7 +106,7 @@ class ProcessFolderName(Hook):
             # "word" characters, not just A-Z.  
             exp = re.compile(u"\W", re.UNICODE)
         
-        if isinstance(src, unicode):
+        if not isinstance(src, str) or six.PY3:
             # src is unicode so we don't need to convert!
             return exp.sub("-", src)
         else:

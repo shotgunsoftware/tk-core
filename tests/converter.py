@@ -3,7 +3,7 @@ from __future__ import print_function
 import os
 import sys
 import subprocess
-
+import shutil
 
 
 def _needs_conversion(src, dst):
@@ -16,16 +16,18 @@ def _skip_folder(src, ignored):
             return True
     return False
 
+def _convert(dst):
+    subprocess.check_call(["2to3", "-w", dst])
+
 
 def _copy_file(src, dst):
-    os.link(src, dst)
+    if "fixtures" in dst:
+        os.link(src, dst)
+    else:
+        shutil.copyfile(src, dst)
     # Since this is a newly file, convert it.
     if os.path.splitext(src)[1] == ".py":
-        _convert(src, dst)
-
-
-def _convert(src, dst):
-    subprocess.check_call(["2to3", "-w", dst])
+        _convert(dst)
 
 def main():
     """

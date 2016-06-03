@@ -23,12 +23,25 @@ from .errors import TankError
 from . import constants
 from .template_path_parser import TemplatePathParser
 
+
+import six
+if six.PY3:
+    def cmp(x, y):
+        res = x - y
+        if res < 0:
+            return -1
+        elif res == 0:
+            return 0
+        else:
+            return 1
+
+
 class Template(object):
     """
     Represents an expression containing several dynamic tokens
     in the form of :class:`TemplateKey` objects.
     """
-       
+
     @classmethod
     def _keys_from_definition(cls, definition, template_name, keys):
         """Extracts Template Keys from a definition.
@@ -133,6 +146,35 @@ class Template(object):
         # First keys should be most inclusive
         return self._keys[0].copy()
 
+    def _min_key_cmp(self, a, b):
+        if len(a) < len(b):
+            return -1
+        elif len(a) > len(b):
+            return 1
+        else:
+            a = min(a.keys())
+            b = min(b.keys())
+            if a < b:
+                return -1
+            elif a > b:
+                return 1
+            else:
+                return 0
+
+
+
+    def _min_keys(self):
+        try:
+            return min(self._keys)
+        except TypeError:
+            if six.PY3:
+                return min(self._keys, key=functools.cmp_to_key(self._min_key_cmp))
+            else:
+                raise
+
+
+        
+
     def is_optional(self, key_name):
         """
         Returns true if the given key name is optional for this template.
@@ -146,7 +188,7 @@ class Template(object):
         """
         # the key is required if it's in the 
         # minimum set of keys for this template
-        if key_name in min(self._keys):
+        if key_name in self._min_keys():
             # this key is required
             return False
         else:
@@ -176,7 +218,7 @@ class Template(object):
         :rtype: list
         """
         # find shortest keys dictionary
-        keys = min(self._keys)
+        keys = self._min_keys()
         return self._missing_keys(fields, keys, skip_defaults)
 
     def _missing_keys(self, fields, keys, skip_defaults):
@@ -765,7 +807,7 @@ def make_template_strings(data, keys, template_paths):
 def _conform_template_data(template_data, template_name):
     """
     Takes data for single template and conforms it expected data structure.
-    """
+    """   
     if isinstance(template_data, basestring):
         template_data = {"definition": template_data}
     elif not isinstance(template_data, dict):

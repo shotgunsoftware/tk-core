@@ -64,7 +64,7 @@ class TestStringKey(TankTestBase):
     def test_choices(self):
         choices_value = ["a", "b"]
         template_field = StringKey("field_name", choices=choices_value)
-        self.assertEquals(choices_value, template_field.choices)
+        self.assertEquals(choices_value, sorted(template_field.choices))
 
     def test_exclusions(self):
         exclusions = ["a", "b"]
@@ -754,7 +754,7 @@ class TestSequenceKey(TankTestBase):
     def test_choices_frame_spec(self):
         frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
         seq_frame = SequenceKey("field_name", choices=frame_specs)
-        self.assertEquals(list(frame_specs), seq_frame.choices)
+        self.assertEquals(sorted(frame_specs), sorted(seq_frame.choices))
 
 
 class TestMakeKeys(TankTestBase):
@@ -787,7 +787,7 @@ class TestMakeKeys(TankTestBase):
 
         self.assertEquals("complex", complex_key.name)
         self.assertEquals("a", complex_key.default)
-        self.assertEquals(["a", "b"], complex_key.choices)
+        self.assertEquals(["a", "b"], sorted(complex_key.choices))
 
     def test_int(self):
         data = {"simple": {"type": "int"},

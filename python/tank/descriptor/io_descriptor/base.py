@@ -448,7 +448,7 @@ class IODescriptorBase(object):
         uri = constants.DESCRIPTOR_URI_SEPARATOR.join(uri_chunks)
 
         qs_chunks = []
-        for (param, value) in descriptor_dict.iteritems():
+        for (param, value) in sorted(descriptor_dict.items()):
             if param == "type":
                 continue
             qs_chunks.append("%s=%s" % (param, value))

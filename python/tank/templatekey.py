@@ -16,6 +16,7 @@ import re
 import datetime
 from . import constants
 from .errors import TankError
+import six
 
 class TemplateKey(object):
     """
@@ -258,7 +259,7 @@ class TemplateKey(object):
 
         if value is not None and self.choices:
             if str_value.lower() not in [str(x).lower() for x in self.choices]:
-                self._last_error = "%s Illegal value: '%s' not in choices: %s" % (self, value, str(self.choices))
+                self._last_error = "%s Illegal value: '%s' not in choices: %s" % (self, value, str(sorted(self.choices)))
                 return False
         
         if self.length is not None and len(str_value) != self.length:
@@ -351,10 +352,12 @@ class StringKey(TemplateKey):
     def validate(self, value):
 
         u_value = value
-        if not isinstance(u_value, unicode):
-            # handle non-ascii characters correctly by
-            # decoding to unicode assuming utf-8 encoding
-            u_value = value.decode("utf-8")
+
+        if six.PY2:
+            if isinstance(u_value, str):
+                # handle non-ascii characters correctly by
+                # decoding to unicode assuming utf-8 encoding
+                u_value = value.decode("utf-8")
 
         if self._filter_regex_u:                
             # first check our std filters. These filters are negated
@@ -485,7 +488,7 @@ class TimestampKey(TemplateKey):
                 return True
             except ValueError, e:
                 # Bad value, report the error to the client code.
-                self._last_error = "Invalid string: %s" % e.message
+                self._last_error = "Invalid string: %s" % str(e)
                 return False
         elif isinstance(value, datetime.datetime):
             return True

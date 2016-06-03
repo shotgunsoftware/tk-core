@@ -101,7 +101,7 @@ class TestApi(TankTestBase):
         """
         Test dict/uri syntax and conversion
         """
-        uri = "sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle"
+        uri = "sgtk:descriptor:app_store?name=tk-bundle&version=v0.1.2"
         dict = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
         self._test_uri(uri, dict)
 

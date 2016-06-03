@@ -19,6 +19,17 @@ import functools
 from . import constants
 from ..errors import TankError
 
+import six
+if six.PY3:
+    def cmp(x, y):
+        res = x - y
+        if res < 0:
+            return -1
+        elif res == 0:
+            return 0
+        else:
+            return 1
+
 
 def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     """

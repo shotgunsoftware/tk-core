@@ -19,6 +19,7 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
+import six
 from six.moves import cPickle
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
@@ -52,9 +53,11 @@ class ShotgunUserImpl(object):
         # we don't end up infecting API instances with unicode strings
         # that would then cause some string data to be unicoded during
         # concatenation operations.
+
+        # On Python 2, this will test be true only of unicode strings. In Python
+        # 3, no need to encode, everything is utf-8
         if http_proxy and not isinstance(http_proxy, str):
             http_proxy = http_proxy.encode("utf-8")
-
         if host and not isinstance(host, str):
             host = host.encode("utf-8")
 
