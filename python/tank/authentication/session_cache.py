@@ -162,7 +162,7 @@ def _try_load_yaml_file(file_path):
     try:
         config_file = None
         # Open the file and read it.
-        config_file = open(file_path, "r")
+        config_file = open(file_path, "rt")
         result = yaml.load(config_file)
         # Make sure we got a dictionary back.
         if isinstance(result, dict):

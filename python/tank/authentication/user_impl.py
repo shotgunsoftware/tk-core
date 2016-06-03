@@ -52,10 +52,10 @@ class ShotgunUserImpl(object):
         # we don't end up infecting API instances with unicode strings
         # that would then cause some string data to be unicoded during
         # concatenation operations.
-        if isinstance(http_proxy, unicode):
+        if http_proxy and not isinstance(http_proxy, str):
             http_proxy = http_proxy.encode("utf-8")
 
-        if isinstance(host, unicode):
+        if host and not isinstance(host, str):
             host = host.encode("utf-8")
 
         self._host = host
