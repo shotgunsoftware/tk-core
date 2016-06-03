@@ -154,12 +154,12 @@ def generate_schema(shotgun, schema_file_path, schema_entity_file_path):
     """
     
     schema = shotgun.schema_read()
-    fh = open(schema_file_path, "w")
+    fh = open(schema_file_path, "wb")
     pickle.dump(schema, fh)
     fh.close()
         
     schema_entity = shotgun.schema_entity_read()
-    fh = open(schema_entity_file_path, "w")
+    fh = open(schema_entity_file_path, "wb")
     pickle.dump(schema_entity, fh)
     fh.close()
     

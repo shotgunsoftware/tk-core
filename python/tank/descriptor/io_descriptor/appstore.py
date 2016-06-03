@@ -16,8 +16,10 @@ import os
 import uuid
 import tempfile
 
+import six
 import six.moves.urllib.request as urllib_request
 import six.moves.urllib.error as urllib_error
+import six.moves.urllib.parse as urllib_parse
 import six.moves.http_client as httplib
 
 from tank_vendor.shotgun_api3.lib import httplib2
@@ -225,7 +227,7 @@ class IODescriptorAppStore(IODescriptorBase):
             "sg_version_data": sg_version_data
         }
 
-        fp = open(path, "wt")
+        fp = open(path, "wb")
         try:
             pickle.dump(metadata, fp)
             log.debug("Wrote app store cache file '%s'" % path)
@@ -699,9 +701,13 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # now connect to our site and use a special url to retrieve the app store script key
         session_token = sg.get_session_token()
-        post_data = {"session_token": session_token}
-        response = urllib_request.urlopen("%s/api3/sgtk_install_script" % sg.base_url, urllib.urlencode(post_data))
+        post_data = urllib_parse.urlencode({"session_token": session_token})
+        if six.PY3:
+            post_data = bytes(post_data, "utf-8")
+        response = urllib_request.urlopen("%s/api3/sgtk_install_script" % sg.base_url, post_data)
         html = response.read()
+        if six.PY3:
+            html = html.decode("utf-8")
         data = json.loads(html)
 
         return data["script_name"], data["script_key"]
