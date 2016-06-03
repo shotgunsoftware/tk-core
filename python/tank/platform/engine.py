@@ -1647,7 +1647,10 @@ class Engine(TankBundle):
             base["qt_core"] = importer.QtCore
             base["qt_gui"] = importer.QtGui
             base["qt_widgets"] = importer.QtWidgets
-            base["dialog_base"] = importer.QtGui.QDialog
+            if importer.QtGui:
+                base["dialog_base"] = importer.QtGui.QDialog
+            else:
+                base["dialog_base"] = None
             base["wrapper"] = importer.wrapper
         except:
 

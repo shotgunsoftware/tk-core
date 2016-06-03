@@ -99,4 +99,7 @@ class QtImporter(object):
         except ImportError:
             pass
 
-        return self._import_pyqt4()
+        try:
+            return self._import_pyqt4()
+        except ImportError:
+            return (None, None, None, None)
