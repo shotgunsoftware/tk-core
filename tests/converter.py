@@ -25,6 +25,7 @@ def _copy_file(src, dst):
         os.link(src, dst)
     else:
         shutil.copyfile(src, dst)
+        shutil.copymode(src, dst)
     # Since this is a newly file, convert it.
     if os.path.splitext(src)[1] == ".py":
         _convert(dst)

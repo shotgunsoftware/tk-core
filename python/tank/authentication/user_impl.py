@@ -60,7 +60,7 @@ class ShotgunUserImpl(object):
             http_proxy = http_proxy.encode("utf-8")
         if host and not isinstance(host, str):
             host = host.encode("utf-8")
-
+        print "HOST", host
         self._host = host
         self._http_proxy = http_proxy
 
