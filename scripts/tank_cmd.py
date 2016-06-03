@@ -37,7 +37,7 @@ from tank import pipelineconfig_utils
 from tank import LogManager
 
 
-logger = LogManager.get_logger("tankcmd")
+logger = LogManager.get_logger("tk-shell")
 
 # custom log formatter for the tank command
 formatter = None

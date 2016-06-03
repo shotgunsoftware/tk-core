@@ -186,7 +186,7 @@ class LogManager(object):
         """
         Controls the global debug flag in toolkit. Toggling this
         flag will affect all log handlers that have been created
-        though :meth:`initialize_custom_handler`.
+        via :meth:`initialize_custom_handler`.
 
         .. note:: Debug logging is off by default.
                   If you want to permanently enable debug logging,

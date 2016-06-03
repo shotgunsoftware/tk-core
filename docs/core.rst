@@ -9,7 +9,7 @@ that contains lower level components and APIs. These include
 - Automatic folder creation
 - :class:`Template` system and path resolution APIs
 - Execution of Tank Admin commands
-- The toolkit :class:`Context`
+- The Toolkit :class:`Context`
 - The :class:`Sgtk` Main API class
 
 
@@ -24,10 +24,10 @@ This association is automatically resolved as the API instance is created and ca
 specified in several ways:
 
 - As a path pointing directly at the desired pipeline configuration
-- As a shotgun entity for which the associated (primary) pipeline configuration is resolved via Shotgun
+- As a Shotgun entity for which the associated (primary) pipeline configuration is resolved via Shotgun
 - As a path to a project folder on disk from which the associated (primary) pipeline configuration is computed.
 
-Factory Methods
+Factory methods
 ===============================
 
 The following factory methods are used to create a Toolkit API instance:
@@ -73,15 +73,15 @@ Context
 
 
 
-Executing Tank Commands
+Executing Tank commands
 ---------------------------------------------------------
 
 The ``tank`` command offers a variety of system utility commands to handle for example upgrades,
 administration and maintenance. These commands are also available to use via the API in order to
-make it easy to integrate toolkit maintenance workflows with other scriped workflows you may have
+make it easy to integrate Toolkit maintenance workflows with other scriped workflows you may have
 in your studio. The following commands can be used to manage and execute these functions:
 
-API Access methods
+API access methods
 =========================================
 
 .. autofunction:: list_commands
@@ -116,7 +116,7 @@ get_hook_baseclass
 .. autofunction:: get_hook_baseclass
 
 
-Template System
+Template system
 -----------------------------------------
 
 The Toolkit template system is used to handle path and string token manipulations.

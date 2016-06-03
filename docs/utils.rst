@@ -9,9 +9,9 @@ Logging
 Toolkit uses the standard python logging for its
 log management. The :class:`LogManager` class below
 acts as an interface that helps make it easy to access
-and manage toolkit logging.
+and manage Toolkit logging.
 
-All toolkit logging is written into a ``sgtk.*`` logging
+All Toolkit logging is written into a ``sgtk.*`` logging
 namespace. This has been "sealed" so that log messages
 from Toolkit do not propagate up to the root logger. This
 is to ensure that Toolkit doesn't interfear with other logging
@@ -77,7 +77,7 @@ LocalFileStorageManager
 Shotgun Related
 =============================
 
-Below are a collection of shotgun related utility
+Below are a collection of Shotgun related utility
 and convenience methods:
 
 .. currentmodule:: sgtk.util
