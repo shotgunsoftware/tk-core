@@ -298,7 +298,7 @@ class Engine(TankBundle):
         :return: True if subclassed, false if not
         """
         # grab active method and baseclass method
-        running_method = getattr(self, method_name)
+        running_method = getattr(self.__class__, method_name)
         base_method = getattr(Engine, method_name)
 
         # now determine if the runtime implementation
@@ -310,8 +310,7 @@ class Engine(TankBundle):
             if running_method.im_func is not base_method.im_func:
                 subclassed = True
         else:
-            # pyton 2.6 and above use __func__
-            if running_method.__func__ is not base_method.__func__:
+            if running_method != base_method:
                 subclassed = True
 
         return subclassed

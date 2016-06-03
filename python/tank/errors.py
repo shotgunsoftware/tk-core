@@ -10,15 +10,17 @@
 
 """
 All custom exceptions that Tank emits are defined here.
-
 """
+
+import six
 
 class TankError(Exception):
     """
     Top level exception for all toolkit-core level runtime errors
     """
-    pass
-
+    if six.PY3:
+        def __init__(self, message=None):
+            self.message = message or str(self.__class__.__name__)
 
 class TankUnreadableFileError(TankError):
     """

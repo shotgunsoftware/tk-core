@@ -16,6 +16,7 @@ Management of file and directory templates.
 import os
 import re
 import sys
+import functools
 
 from . import templatekey
 from .errors import TankError
@@ -80,7 +81,7 @@ class Template(object):
 
         variations = self._definition_variations(definition)
         # We want them most inclusive(longest) version first
-        variations.sort(cmp=lambda x, y: cmp(len(x), len(y)), reverse=True)
+        variations.sort(key=functools.cmp_to_key(lambda x, y: cmp(len(x), len(y))), reverse=True)
 
         # get format keys and types
         self._keys = []

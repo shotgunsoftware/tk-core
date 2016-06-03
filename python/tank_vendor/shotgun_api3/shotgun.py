@@ -69,11 +69,11 @@ import shutil       # used for attachment download
 
 # use relative import for versions >=2.5 and package import for python versions <2.5
 if (sys.version_info[0] > 2) or (sys.version_info[0] == 2 and sys.version_info[1] >= 6):
-    from .sg_26 import *
+    from .sg_26 import Http, ProxyInfo, socks, SSLHandshakeError, SgTimezone, Error, ProtocolError, ResponseError, mimetypes, json
 elif (sys.version_info[0] > 2) or (sys.version_info[0] == 2 and sys.version_info[1] >= 5):
-    from .sg_25 import *
+    from .sg_25 import Http, ProxyInfo, socks, SSLHandshakeError, SgTimezone, Error, ProtocolError, ResponseError, mimetypes, json
 else:
-    from .sg_24 import *
+    from .sg_24 import Http, ProxyInfo, socks, SSLHandshakeError, SgTimezone, Error, ProtocolError, ResponseError, mimetypes, json
 
 # mimetypes imported in version specific imports
 mimetypes.add_type('video/webm','.webm') # webm and mp4 seem to be missing

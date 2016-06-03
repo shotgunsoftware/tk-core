@@ -25,11 +25,7 @@ import socket
 from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolError,
                                       MissingTwoFactorAuthenticationFault)
 
-import six
-if six.PY2:
-    from tank_vendor.shotgun_api3.lib import httplib2
-else:
-    import httplib2
+from tank_vendor.shotgun_api3.lib import httplib2
 
 
 from tank_vendor import yaml
