@@ -65,6 +65,9 @@ import six.moves.urllib.request as urllib_request
 import six.moves.urllib.parse as urllib_parse
 import six.moves.urllib.error as urllib_error
 
+def is_py2_unicode(value):
+    return value.__class__.__name__ == "unicode"
+
 import shutil       # used for attachment download
 
 # use relative import for versions >=2.5 and package import for python versions <2.5
@@ -2248,7 +2251,7 @@ class Shotgun(object):
         """
 
         wire = json.dumps(payload, ensure_ascii=False)
-        if isinstance(wire, unicode):
+        if is_py2_unicode(wire):
             return wire.encode("utf-8")
         return wire
 
@@ -2385,7 +2388,7 @@ class Shotgun(object):
         def _decode_list(lst):
             newlist = []
             for i in lst:
-                if isinstance(i, unicode):
+                if is_py2_unicode(i):
                     i = i.encode('utf-8')
                 elif isinstance(i, list):
                     i = _decode_list(i)
@@ -2395,15 +2398,18 @@ class Shotgun(object):
         def _decode_dict(dct):
             newdict = {}
             for k, v in dct.iteritems():
-                if isinstance(k, unicode):
+                if is_py2_unicode(k):
                     k = k.encode('utf-8')
-                if isinstance(v, unicode):
+                if is_py2_unicode(v):
                     v = v.encode('utf-8')
                 elif isinstance(v, list):
                     v = _decode_list(v)
                 newdict[k] = v
             return newdict
-        return json.loads(body, object_hook=_decode_dict)
+        if six.PY3:
+            return json.loads(body.decode("utf-8"), object_hook=_decode_dict)
+        else:
+            return json.loads(body, object_hook=_decode_dict)
 
 
     def _response_errors(self, sg_response):
@@ -2484,7 +2490,7 @@ class Shotgun(object):
                     value = _change_tz(value)
                 return value.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-            if isinstance(value, str):
+            if isinstance(value, str) and six.PY2:
                 # Convert strings to unicode
                 return value.decode("utf-8")
 
