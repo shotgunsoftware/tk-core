@@ -10,4 +10,5 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 find . -name "*.pyc" -delete
+PYTHONPATH=../python:$PYTHONPATH
 python  `dirname $0`/run_tests.py $*
