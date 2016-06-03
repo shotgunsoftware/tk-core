@@ -65,7 +65,5 @@ def main():
                 _copy_file(src_file, dst_file)
 
 
-
-
 if __name__ == '__main__':
     main()

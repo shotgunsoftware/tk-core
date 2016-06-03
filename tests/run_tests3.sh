@@ -13,7 +13,7 @@
 find . -name "*.pyc" -delete
 
 # Define an output folder for files converted to be parsable with Python 3.
-_PYTHON3_COMPATIBLE_CORE=${TMPDIR}tk-core
+_PYTHON3_COMPATIBLE_CORE=/Users/jfboismenu/gitlocal/tk-core-3k
 
 echo Tests will be run from "$_PYTHON3_COMPATIBLE_CORE"
 
