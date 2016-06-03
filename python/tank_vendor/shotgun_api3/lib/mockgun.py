@@ -243,13 +243,13 @@ class Shotgun(object):
         if not os.path.exists(schema_entity_path):
             raise MockgunError("Cannot locate Mockgun schema file '%s'!" % schema_entity_path)
 
-        fh = open(schema_path, "r")
+        fh = open(schema_path, "rb")
         try:
             self._schema = pickle.load(fh)
         finally:
             fh.close()
             
-        fh = open(schema_entity_path, "r")
+        fh = open(schema_entity_path, "rb")
         try:
             self._schema_entity = pickle.load(fh)
         finally:

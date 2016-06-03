@@ -48,11 +48,15 @@ rm -rf ${_PYTHON3_COMPATIBLE_CORE}/python/tank_vendor/shotgun_api3/lib/httplib2
 rm -rf ${_PYTHON3_COMPATIBLE_CORE}/python/tank_vendor/yaml
 echo import yaml > ${_PYTHON3_COMPATIBLE_CORE}/python/tank_vendor/__init__.py
 
-# Convert the sources to be parsable in Python 3.
+# Converts the sources to be parsable in Python 3.
 # We'll only convert except and print statements. Print statements could actually be done
 # in code with __future__ but it's going to cost us time converting these and we're short on
 # time for this hackathon.
-2to3 -w -f except -f print -f numliterals -f raise $_PYTHON3_COMPATIBLE_CORE
+# 2to3 -w -f except -f print -f numliterals -f raise $_PYTHON3_COMPATIBLE_CORE
+
+# For now, make all the changes because we want to fix the logic of our code first, then we'll 
+# pull back fixes and introduce six.
+2to3 -w -f except -f print -f numliterals -f raise -f basestring $_PYTHON3_COMPATIBLE_CORE
 if [ ! $? == 0 ] ; then
     exit
 fi

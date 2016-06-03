@@ -131,7 +131,7 @@ class IODescriptorAppStore(IODescriptorBase):
             # this is not happening so don't assume file exists
             cache_file = os.path.join(self.get_path(), METADATA_FILE)
             if os.path.exists(cache_file):
-                fp = open(cache_file, "rt")
+                fp = open(cache_file, "rb")
                 try:
                     self.__cached_metadata = pickle.load(fp)
                 finally:
