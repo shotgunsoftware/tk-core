@@ -19,7 +19,7 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-import cPickle
+from six.moves import cPickle
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
 

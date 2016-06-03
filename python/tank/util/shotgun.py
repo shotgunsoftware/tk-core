@@ -15,8 +15,8 @@ Shotgun utilities
 
 import os
 import sys
-import urllib2
-import urlparse
+import six.moves.urllib.request as urllib_request
+import six.moves.urllib.parse as urllib_parse
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -264,8 +264,8 @@ def download_url(sg, url, location):
     """
     # grab proxy server settings from the shotgun API
     if sg.config.proxy_handler:
-        opener = urllib2.build_opener(sg.config.proxy_handler)
-        urllib2.install_opener(opener)
+        opener = urllib_request.build_opener(sg.config.proxy_handler)
+        urllib_request.install_opener(opener)
     
     # inherit the timeout value from the sg API    
     timeout = sg.config.timeout_secs
@@ -274,10 +274,10 @@ def download_url(sg, url, location):
     try:
         if timeout and sys.version_info >= (2,6):
             # timeout parameter only available in python 2.6+
-            response = urllib2.urlopen(url, timeout=timeout)
+            response = urllib_request.urlopen(url, timeout=timeout)
         else:
             # use system default
-            response = urllib2.urlopen(url)
+            response = urllib.request.urlopen(url)
             
         f = open(location, "wb")
         try:
@@ -944,7 +944,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     #     scheme://netloc/path
     #
     path_is_url = False
-    res = urlparse.urlparse(path)
+    res = urllib_parse.urlparse(path)
     if res.scheme:
         # handle windows drive letters - note this adds a limitation
         # but one that is not likely to be a problem as single-character

@@ -22,7 +22,9 @@ are not part of the public Sgtk API.
 
 from collections import deque
 from threading import Event, Thread, Lock
-import urllib2
+
+import six.moves.urllib.request as urllib_request
+import six.moves.urllib.error as urllib_error
  
 from . import constants
 
@@ -273,8 +275,8 @@ class MetricsDispatchWorkerThread(Thread):
         # handle proxy setup by pulling the proxy details from the main
         # shotgun connection
         if sg_connection.config.proxy_handler:
-            opener = urllib2.build_opener(sg_connection.config.proxy_handler)
-            urllib2.install_opener(opener)
+            opener = urllib_request.build_opener(sg_connection.config.proxy_handler)
+            urllib_request.install_opener(opener)
 
         # build the full endpoint url with the shotgun site url
         url = "%s/%s" % (sg_connection.base_url, self.API_ENDPOINT)
@@ -290,9 +292,9 @@ class MetricsDispatchWorkerThread(Thread):
 
         header = {'Content-Type': 'application/json'}
         try:
-            request = urllib2.Request(url, payload_json, header)
-            response = urllib2.urlopen(request)
-        except urllib2.HTTPError, e:
+            request = urllib_request.Request(url, payload_json, header)
+            response = urllib_request.urlopen(request)
+        except urllib_error.HTTPError, e:
             # fire and forget, so if there's an error, ignore it.
             pass
 
