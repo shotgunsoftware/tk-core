@@ -33,13 +33,18 @@ dst=${_PYTHON3_COMPATIBLE_CORE}/tests
 src=.
 absolute_dst=$(umask 077 && mkdir -p -- "$dst" && cd -P -- "$dst" && pwd -P) && (cd -P -- "$src" && pax -rwlpe . "$absolute_dst")
 
+#
+pip install six
+pip install unittest2
+pip install httplib2
 rm -rf ${_PYTHON3_COMPATIBLE_CORE}/tests/python/unittest2
+rm -rf ${_PYTHON3_COMPATIBLE_CORE}/python/tank_vendor/shotgun_api3/lib/httplib2
 
 # Convert the sources to be parsable in Python 3.
 # We'll only convert except and print statements. Print statements could actually be done
 # in code with __future__ but it's going to cost us time converting these and we're short on
 # time for this hackathon.
-2to3 -w -f except -f print -f numliterals $_PYTHON3_COMPATIBLE_CORE
+2to3 -w -f except -f print -f numliterals -f raise $_PYTHON3_COMPATIBLE_CORE
 
 PYTHONPATH=${_PYTHON3_COMPATIBLE_CORE}/python:$PYTHONPATH
 cd ${_PYTHON3_COMPATIBLE_CORE}/tests

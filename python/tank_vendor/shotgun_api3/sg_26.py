@@ -2,9 +2,18 @@ import sys
 import os
 import logging
 
-from .lib.httplib2 import Http, ProxyInfo, socks, SSLHandshakeError
+import six
+if six.PY3:
+    from httplib2 import Http, ProxyInfo, socks
+    from ssl import SSLError as SSLHandshakeError
+else:
+    from .lib.httplib2 import Http, ProxyInfo, socks, SSLHandshakeError
+
 from .lib.sgtimezone import SgTimezone
-from .lib.xmlrpclib import Error, ProtocolError, ResponseError
+if six.PY3:
+    from xmlrpc.client import Error, ProtocolError, ResponseError
+else:
+    from .lib.xmlrpclib import Error, ProtocolError, ResponseError
 
 
 LOG = logging.getLogger("shotgun_api3")

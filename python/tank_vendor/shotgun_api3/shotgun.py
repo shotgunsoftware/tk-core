@@ -31,11 +31,25 @@
 
 
 import base64
-import cookielib    # used for attachment upload
-import cStringIO    # used for attachment upload
+# import cookielib    # used for attachment upload
+from six.moves import http_cookiejar as cookielib
+#import cStringIO    # used for attachment upload
+from six.moves import cStringIO
 import datetime
 import logging
-import mimetools    # used for attachment upload
+import sys
+
+import six
+# This is gone in Python 3.
+if six.PY2:
+    import mimetools    # used for attachment upload
+    choose_boundary = mimetools.choose_boundary
+else:
+    def choose_boundary():
+        import uuid
+        return uuid.uuid4()
+
+
 import os
 import re
 import copy
@@ -43,18 +57,23 @@ import stat         # used for attachment upload
 import sys
 import time
 import types
-import urllib
-import urllib2      # used for image upload
-import urlparse
+#import urllib
+#import urllib2      # used for image upload
+#import urlparse
+import six.moves.urllib.parse as urllib_parse
+import six.moves.urllib.request as urllib_request
+import six.moves.urllib.parse as urllib_parse
+import six.moves.urllib.error as urllib_error
+
 import shutil       # used for attachment download
 
 # use relative import for versions >=2.5 and package import for python versions <2.5
 if (sys.version_info[0] > 2) or (sys.version_info[0] == 2 and sys.version_info[1] >= 6):
-    from sg_26 import *
+    from .sg_26 import *
 elif (sys.version_info[0] > 2) or (sys.version_info[0] == 2 and sys.version_info[1] >= 5):
-    from sg_25 import *
+    from .sg_25 import *
 else:
-    from sg_24 import *
+    from .sg_24 import *
 
 # mimetypes imported in version specific imports
 mimetypes.add_type('video/webm','.webm') # webm and mp4 seem to be missing
@@ -419,20 +438,20 @@ class Shotgun(object):
 
         self.base_url = (base_url or "").lower()
         self.config.scheme, self.config.server, api_base, _, _ = \
-            urlparse.urlsplit(self.base_url)
+            urllib_parse.urlsplit(self.base_url)
         if self.config.scheme not in ("http", "https"):
             raise ValueError("base_url must use http or https got '%s'" %
                 self.base_url)
-        self.config.api_path = urlparse.urljoin(urlparse.urljoin(
+        self.config.api_path = urllib_parse.urljoin(urllib_parse.urljoin(
             api_base or "/", self.config.api_ver + "/"), "json")
 
 
         # if the service contains user information strip it out
         # copied from the xmlrpclib which turned the user:password into
         # and auth header
-        auth, self.config.server = urllib.splituser(urlparse.urlsplit(base_url).netloc)
+        auth, self.config.server = urllib_parse.splituser(urllib_parse.urlsplit(base_url).netloc)
         if auth:
-            auth = base64.encodestring(urllib.unquote(auth))
+            auth = base64.encodestring(urllib_parse.unquote(auth))
             self.config.authorization = "Basic " + auth.strip()
 
         # foo:bar@123.456.789.012:3456
@@ -463,7 +482,7 @@ class Shotgun(object):
             else:
                 auth_string = ""
             proxy_addr = "http://%s%s:%d" % (auth_string, self.config.proxy_server, self.config.proxy_port)
-            self.config.proxy_handler = urllib2.ProxyHandler({self.config.scheme : proxy_addr})
+            self.config.proxy_handler = urllib_request.ProxyHandler({self.config.scheme : proxy_addr})
 
         if ensure_ascii:
             self._json_loads = self._json_loads_ascii
@@ -1444,7 +1463,7 @@ class Shotgun(object):
 
         # Create opener with extended form post support
         opener = self._build_opener(FormPostHandler)
-        url = urlparse.urlunparse((self.config.scheme, self.config.server,
+        url = urllib_parse.urlunparse((self.config.scheme, self.config.server,
             "/upload/share_thumbnail", None, None, None))
 
         # Perform the request
@@ -1538,14 +1557,14 @@ class Shotgun(object):
         params.update(self._auth_params())
 
         if is_thumbnail:
-            url = urlparse.urlunparse((self.config.scheme, self.config.server,
+            url = urllib_parse.urlunparse((self.config.scheme, self.config.server,
                 "/upload/publish_thumbnail", None, None, None))
             params["thumb_image"] = open(path, "rb")
             if field_name == "filmstrip_thumb_image" or field_name == "filmstrip_image":
                 params["filmstrip"] = True
 
         else:
-            url = urlparse.urlunparse((self.config.scheme, self.config.server,
+            url = urllib_parse.urlunparse((self.config.scheme, self.config.server,
                 "/upload/upload_file", None, None, None))
             if display_name is None:
                 display_name = os.path.basename(path)
@@ -1565,7 +1584,7 @@ class Shotgun(object):
         # Perform the request
         try:
             result = opener.open(url, params).read()
-        except urllib2.HTTPError, e:
+        except urllib_error.HTTPError, e:
             if e.code == 500:
                 raise ShotgunError("Server encountered an internal error. "
                     "\n%s\n(%s)\n%s\n\n" % (url, self._sanitize_auth_params(params), e))
@@ -1635,16 +1654,16 @@ class Shotgun(object):
             self.set_up_auth_cookie()
    
         try:
-            request = urllib2.Request(url)
+            request = urllib_request.Request(url)
             request.add_header('user-agent', "; ".join(self._user_agents))
-            req = urllib2.urlopen(request)
+            req = urllib_request.urlopen(request)
             if file_path:
                 shutil.copyfileobj(req, fp)
             else:
                 attachment = req.read()
         # 400 [sg] Attachment id doesn't exist or is a local file
         # 403 [s3] link is invalid
-        except urllib2.URLError, e:
+        except urllib_error.URLError, e:
             if file_path:
                 fp.close()
             err = "Failed to open %s\n%s" % (url, e)
@@ -1682,9 +1701,9 @@ class Shotgun(object):
             self.config.server, False, False, "/", True, False, None, True,
             None, None, {})
         cj.set_cookie(c)
-        cookie_handler = urllib2.HTTPCookieProcessor(cj)
+        cookie_handler = urllib_request.HTTPCookieProcessor(cj)
         opener = self._build_opener(cookie_handler)
-        urllib2.install_opener(opener)
+        urllib_request.install_opener(opener)
 
     def get_attachment_download_url(self, attachment):
         """Returns the URL for downloading provided Attachment.
@@ -1722,8 +1741,8 @@ class Shotgun(object):
                 "dict, int, or NoneType. Instead got %s" % type(attachment))
 
         if attachment_id: 
-            url = urlparse.urlunparse((self.config.scheme, self.config.server,
-                "/file_serve/attachment/%s" % urllib.quote(str(attachment_id)),
+            url = urllib_parse.urlunparse((self.config.scheme, self.config.server,
+                "/file_serve/attachment/%s" % urllib_parse.quote(str(attachment_id)),
                 None, None, None))
         return url
 
@@ -2071,9 +2090,9 @@ class Shotgun(object):
     def _build_opener(self, handler):
         """Build urllib2 opener with appropriate proxy handler."""
         if self.config.proxy_handler:
-            opener = urllib2.build_opener(self.config.proxy_handler, handler)
+            opener = urllib_request.build_opener(self.config.proxy_handler, handler)
         else:
-            opener = urllib2.build_opener(handler)
+            opener = urllib_request.build_opener(handler)
         return opener
 
     def _turn_off_ssl_validation(self):
@@ -2293,7 +2312,7 @@ class Shotgun(object):
     def _http_request(self, verb, path, body, headers):
         """Makes the actual HTTP request.
         """
-        url = urlparse.urlunparse((self.config.scheme, self.config.server,
+        url = urllib_parse.urlunparse((self.config.scheme, self.config.server,
             path, None, None, None))
         LOG.debug("Request is %s:%s" % (verb, url))
         LOG.debug("Request headers are %s" % headers)
@@ -2605,8 +2624,8 @@ class Shotgun(object):
         # curl "https://foo.com/upload/get_thumbnail_url?entity_type=Version&entity_id=1"
         # 1
         # /files/0000/0000/0012/232/shot_thumb.jpg.jpg
-        entity_info = {'e_type':urllib.quote(entity_type),
-                       'e_id':urllib.quote(str(entity_id))}
+        entity_info = {'e_type':urllib_parse.quote(entity_type),
+                       'e_id':urllib_parse.quote(str(entity_id))}
         url = ("/upload/get_thumbnail_url?" +
                 "entity_type=%(e_type)s&entity_id=%(e_id)s" % entity_info)
 
@@ -2620,7 +2639,7 @@ class Shotgun(object):
             raise ShotgunError(thumb_url)
 
         if code == 1:
-            return urlparse.urlunparse((self.config.scheme,
+            return urllib_parse.urlunparse((self.config.scheme,
                 self.config.server, thumb_url.strip(), None, None, None))
 
         # Comments in prev version said we can get this sometimes.
@@ -2654,11 +2673,11 @@ class Shotgun(object):
 # Helpers from the previous API, left as is.
 
 # Based on http://code.activestate.com/recipes/146306/
-class FormPostHandler(urllib2.BaseHandler):
+class FormPostHandler(urllib_request.BaseHandler):
     """
     Handler for multipart form data
     """
-    handler_order = urllib2.HTTPHandler.handler_order - 10 # needs to run first
+    handler_order = urllib_request.HTTPHandler.handler_order - 10 # needs to run first
 
     def http_request(self, request):
         data = request.get_data()
@@ -2671,7 +2690,7 @@ class FormPostHandler(urllib2.BaseHandler):
                 else:
                     params.append((key, value))
             if not files:
-                data = urllib.urlencode(params, True) # sequencing on
+                data = urllib_parse.urlencode(params, True) # sequencing on
             else:
                 boundary, data = self.encode(params, files)
                 content_type = 'multipart/form-data; boundary=%s' % boundary
@@ -2681,9 +2700,9 @@ class FormPostHandler(urllib2.BaseHandler):
 
     def encode(self, params, files, boundary=None, buffer=None):
         if boundary is None:
-            boundary = mimetools.choose_boundary()
+            boundary = choose_boundary()
         if buffer is None:
-            buffer = cStringIO.StringIO()
+            buffer = cStringIO()
         for (key, value) in params:
             buffer.write('--%s\r\n' % boundary)
             buffer.write('Content-Disposition: form-data; name="%s"' % key)
