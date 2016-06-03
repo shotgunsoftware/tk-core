@@ -82,7 +82,7 @@ class LocalFileStorageManager(object):
 
             elif sys.platform == "win32":
                 if path_type == cls.CACHE:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun", "Cache")
+                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
                 elif path_type == cls.PERSISTENT:
                     return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun", "Data")
                 elif path_type == cls.LOGGING:
@@ -92,7 +92,7 @@ class LocalFileStorageManager(object):
 
             elif sys.platform.startswith("linux"):
                 if path_type == cls.CACHE:
-                    return os.path.expanduser("~/.shotgun/caches")
+                    return os.path.expanduser("~/.shotgun")
                 elif path_type == cls.PERSISTENT:
                     return os.path.expanduser("~/.shotgun/data")
                 elif path_type == cls.LOGGING:
