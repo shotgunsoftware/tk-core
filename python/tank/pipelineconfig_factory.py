@@ -17,6 +17,7 @@ from .errors import TankError
 from . import constants
 from . import LogManager
 from .util import shotgun
+from .util import filesystem
 from .util import ShotgunPath
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
@@ -642,12 +643,15 @@ def _load_lookup_cache():
             cache_data = pickle.load(fh)
         finally:
             fh.close()
-    except Exception:
+    except Exception, e:
         # failed to load cache from file. Continue silently.
-        pass
+        log.debug(
+            "Failed to load lookup cache %s. Proceeding without cache. Error: %s" % (cache_file, e)
+        )
 
     return cache_data
 
+@filesystem.with_cleared_umask
 def _add_to_lookup_cache(key, data):
     """
     Add a key to the lookup cache. This method will silently
@@ -664,29 +668,24 @@ def _add_to_lookup_cache(key, data):
     # and write out the cache
     cache_file = _get_cache_location()
 
-    old_umask = os.umask(0)
     try:
-
-        # try to create the cache folder with as open permissions as possible
-        cache_dir = os.path.dirname(cache_file)
-        if not os.path.exists(cache_dir):
-            os.makedirs(cache_dir, 0777)
+        filesystem.ensure_folder_exists(os.path.dirname(cache_file))
 
         # write cache file
         fh = open(cache_file, "wb")
         try:
-            cache_data = pickle.dump(cache_data, fh)
+            pickle.dump(cache_data, fh)
         finally:
             fh.close()
         # and ensure the cache file has got open permissions
         os.chmod(cache_file, 0666)
 
-    except Exception:
+    except Exception, e:
         # silently continue in case exceptions are raised
-        pass
+        log.debug(
+            "Failed to add to lookup cache %s. Error: %s" % (cache_file, e)
+        )
 
-    finally:
-        os.umask(old_umask)
 
 
 def _get_cache_location():
@@ -699,5 +698,6 @@ def _get_cache_location():
     # optimized version of creating an sg instance and then calling sg.base_url
     # this is to avoid connecting to shotgun if possible.
     sg_base_url = shotgun.get_associated_sg_base_url()
-    return LocalFileStorageManager.get_site_root(sg_base_url, LocalFileStorageManager.CACHE)
+    root_path = LocalFileStorageManager.get_site_root(sg_base_url, LocalFileStorageManager.CACHE)
+    return os.path.join(root_path, constants.TOOLKIT_INIT_CACHE_FILE)
 

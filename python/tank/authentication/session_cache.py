@@ -81,7 +81,6 @@ def _get_global_authentication_file_location():
         )
 
         if os.path.exists(old_path):
-            logger.debug("Falling back on legacy path for auth: %s" % old_path)
             path = old_path
 
     return path
@@ -120,7 +119,6 @@ def _get_site_authentication_file_location(base_url):
         )
 
         if os.path.exists(old_path):
-            logger.debug("Falling back on legacy path for auth: %s" % old_path)
             path = old_path
 
     return path
@@ -153,6 +151,7 @@ def _try_load_yaml_file(file_path):
     :returns: The dictionary for this yaml file. If the file doesn't exist or is
               corrupted, returns an empty dictionary.
     """
+    logger.debug("Loading '%s'" % file_path)
     if not os.path.exists(file_path):
         logger.debug("Yaml file missing: %s" % file_path)
         return {}
@@ -354,7 +353,6 @@ def get_current_user(host):
     """
     # Retrieve the cached info file location from the host
     info_path = _get_site_authentication_file_location(host)
-    logger.debug("Looking for the current user at '%s'" % info_path)
     document = _try_load_site_authentication_file(info_path)
     user = document[_CURRENT_USER]
     logger.debug("Current user is '%s'" % user)
@@ -387,7 +385,6 @@ def get_current_host():
     """
     # Retrieve the cached info file location from the host
     info_path = _get_global_authentication_file_location()
-    logger.debug("Looking for the current host at '%s'" % info_path)
     document = _try_load_global_authentication_file(info_path)
     host = document[_CURRENT_HOST]
     logger.debug("Current host is '%s'" % host)

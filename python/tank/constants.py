@@ -76,3 +76,6 @@ PROFILING_LOG_CHANNEL = "sgtk.stopwatch"
 
 # environment variable that if set, enables debug logging in the engine
 DEBUG_LOGGING_ENV_VAR = "TK_DEBUG"
+
+# cache data for toolkit init
+TOOLKIT_INIT_CACHE_FILE = "toolkit_init.cache"

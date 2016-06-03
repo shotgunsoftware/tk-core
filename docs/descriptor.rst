@@ -4,8 +4,8 @@ Descriptor API
 ########################################
 
 Descriptors are used to describe a location of code or configuration.
-They are used extensively by toolkit and allow a user to configure and drive
-toolkit in a flexible fashion. Descriptors usually point at a remote location
+They are used extensively by Toolkit and allow a user to configure and drive
+Toolkit in a flexible fashion. Descriptors usually point at a remote location
 and makes it easy to handle code transport from that location into a local cache.
 Descriptors form the backbone for Shotgun deployment and installation. The following
 example shows basic usage::
@@ -72,8 +72,8 @@ Descriptor types
 Several different descriptor types are supported by Toolkit:
 
 
-- An **App Store** descriptor represents an item in the Toolkit App Store
-- A **Shotgun** descriptor represents an item stored in Shotgun
+- An **app_store** descriptor represents an item in the Toolkit App Store
+- A **shotgun** descriptor represents an item stored in Shotgun
 - A **git** descriptor represents a tag in a git repo sitory
 - A **git_branch** descriptor represents a commit in a git branch
 - A **path** descriptor represents a location on disk
@@ -83,7 +83,7 @@ The descriptor API knows how to access and locally cache each of the types above
 You can control the location where the API caches items and supply additional lookup
 locations if you want to pre-bake your own collection of caches.
 
-App Store
+App store
 ============
 
 The Toolkit app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
@@ -99,7 +99,7 @@ are on the following form::
 Shotgun
 ============
 
-Represents a shotgun entity to which a payload has been attached.
+Represents a Shotgun entity to which a payload has been attached.
 This can be an attachment field on any entity. Typically it will be
 a pipeline configuration. In that configuration, the descriptor represents
 a 'cloud based configuration'. It could also be a custom entity or non-project
@@ -118,7 +118,7 @@ that can be easily accessed from any project::
 When the attachment field is updated, the attachment id (e.g. version field in the descriptor) changes, resulting in
 a new descriptor. This can be used to determine the latest version for a Shotgun attachment descriptor.
 
-Git and Git Branch
+Git and Git branch
 =======================
 
 The ``git`` descriptor type is used to track git tags and typically used when you are tracking released
@@ -181,12 +181,12 @@ development. This is when you use the ``dev`` descriptor::
 
 .. note:: The path and dev descriptors support environment variable resolution.
 
-If you needed to point toolkit at a path, but intend to use the setup for non-dev purposes, use a ``path``
+If you needed to point Toolkit at a path, but intend to use the setup for non-dev purposes, use a ``path``
 descriptor rather than a dev descriptor. These have identical syntax.
 
 
 
-API Reference
+API reference
 ----------------------------------------
 
 Factory Methods

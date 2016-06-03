@@ -206,6 +206,7 @@ class Engine(TankBundle):
                 self.__toggle_debug_logging,
                 {
                     "short_name": "toggle_debug",
+                    "icon": self.__get_platform_resource_file("book_256.png"),
                     "description": ("Toggles toolkit debug logging on and off. "
                                     "This affects all debug logging, including log "
                                     "files that are being written to disk."),
@@ -218,6 +219,7 @@ class Engine(TankBundle):
             self.__open_log_folder,
             {
                 "short_name": "open_log_folder",
+                "icon": self.__get_platform_resource_file("folder_256.png"),
                 "description": "Opens the folder where log files are being stored.",
                 "type": "context_menu"
             }
@@ -1682,8 +1684,6 @@ class Engine(TankBundle):
         """
         from .qt import QtGui, QtCore
         
-        this_folder = os.path.abspath(os.path.dirname(__file__))
-        
         # initialize our style
         QtGui.QApplication.setStyle("plastique")
         
@@ -1705,7 +1705,7 @@ class Engine(TankBundle):
 
         try:
             # open palette file
-            palette_file = os.path.join(this_folder, "qt", "dark_palette.qpalette")
+            palette_file = self.__get_platform_resource_file("dark_palette.qpalette")
             fh = QtCore.QFile(palette_file)
             fh.open(QtCore.QIODevice.ReadOnly);
             file_in = QtCore.QDataStream(fh)
@@ -1736,7 +1736,7 @@ class Engine(TankBundle):
             
         try:
             # read css
-            css_file = os.path.join(this_folder, "qt", "dark_palette.css")
+            css_file = self.__get_platform_resource_file("dark_palette.css")
             f = open(css_file)
             css_data = f.read()
             f.close()
@@ -1769,8 +1769,7 @@ class Engine(TankBundle):
         
         :returns: The style sheet data, as a string.
         """
-        this_folder = os.path.abspath(os.path.dirname(__file__))
-        css_file = os.path.join(this_folder, "qt", "toolkit_std_dark.css")
+        css_file = self.__get_platform_resource_file("toolkit_std_dark.css")
         f = open(css_file)
         css_data = f.read()
         f.close()
@@ -2143,10 +2142,22 @@ class Engine(TankBundle):
                 self.register_command(
                     "Reload and Restart",
                     restart,
-                    {"short_name": "restart", "type": "context_menu"}
+                    {"short_name": "restart",
+                     "icon": self.__get_platform_resource_file("reload_256.png"),
+                     "type": "context_menu"}
                 )
                 # only need one reload button, so don't keep iterating :)
                 break
+
+    def __get_platform_resource_file(self, filename):
+        """
+        Returns the full path to the given platform resource file.
+        Resource files reside in the core/platform/qt folder.
+
+        :return: full path
+        """
+        this_folder = os.path.abspath(os.path.dirname(__file__))
+        return os.path.join(this_folder, "qt", filename)
 
     def __run_post_engine_inits(self):
         """

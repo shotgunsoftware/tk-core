@@ -550,16 +550,14 @@ class TestGetConfigInstallLocationPathSlashes(TankTestBase):
         # only run this test on windows
         if sys.platform == "win32":
 
-            get_install_locations_mock.return_value = {
-                # This path has multiple issues we've encountered in the wild
-                # It without any escaping sequence, it reads as
-                # "   C:/configs\\site//project   "
-                # 1. it has whitespace at the begging and end.
-                # 2. Uses double slashes instead of single backslash
-                # 3. Uses slash instead of backslash
-                # 4. Uses double backslashes as a folder separator.
-                "win32": "   C:/configs\\\\site//project   "
-            }
+            # This path has multiple issues we've encountered in the wild
+            # It without any escaping sequence, it reads as
+            # "   C:/configs\\site//project   "
+            # 1. it has whitespace at the begging and end.
+            # 2. Uses double slashes instead of single backslash
+            # 3. Uses slash instead of backslash
+            # 4. Uses double backslashes as a folder separator.
+            get_install_locations_mock.return_value = sgtk.util.ShotgunPath("   C:/configs\\\\site//project   ", None, None)
 
             self.assertEqual(
                 # We don't need to pass an actual path since _get_install_location is mocked.

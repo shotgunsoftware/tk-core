@@ -37,8 +37,10 @@ from tank import pipelineconfig_utils
 from tank import LogManager
 
 
-logger = LogManager.get_logger("tankcmd")
+logger = LogManager.get_logger("tk-shell")
 
+# custom log formatter for the tank command
+formatter = None
 
 ###############################################################################################
 # Constants
@@ -77,21 +79,38 @@ SHOTGUN_ENTITY_TYPES.extend(["CustomThreadedEntity%02d"%x for x in range(1, 6)])
 
 class AltCustomFormatter(logging.Formatter):
     """
-    Custom logging output
+    Custom logging formatter for the tank command.
+
+    This logger handles html-style outputting, intended for
+    messages that are sent back to the Shotgun UI (via the sg engine).
+
+    Non-html output is formatted to be cut at 80 chars
+    in order to make it easily readable.
     """
     def __init__(self, *args, **kwargs):
-        # passthrough so we can init stuff
+        """
+        Constructor
+        """
         self._html = False
-        self._num_items = 0
+        self._num_errors = 0
         logging.Formatter.__init__(self, *args, **kwargs)
 
     def enable_html_mode(self):
+        """
+        Turns on html output
+        """
         self._html = True
 
-    def get_num_items(self):
-        return self._num_items
+    def get_num_errors(self):
+        """
+        Returns the number of items that have been logged so far.
+        """
+        return self._num_errors
 
     def format(self, record):
+
+        if record.levelno > logging.WARNING:
+            self._num_errors += 1
 
         if self._html:
             # html logging for shotgun.
@@ -134,11 +153,13 @@ class AltCustomFormatter(logging.Formatter):
                     lines.append(x)
                 record.msg = "\n".join(lines)
 
-        self._num_items += 1
         return logging.Formatter.format(self, record)
 
 
-def show_help(log):
+def show_help():
+    """
+    Prints main help text to logger.
+    """
 
     info = """
 Welcome to the Shotgun pipeline toolkit!
@@ -159,7 +180,7 @@ General options and info
   command line. The credentials file should be in the YAML format with keys
   script-name and script-key set. For example:
   script-name: Toolkit
-  script-key: cb412dbf815bf9d4c257f648d9ec996722b4b452fc4c54dfbd0684d56fa65956
+  script-key: cb412dbf815bf9d4c257f648d9ec99
 
 
 Executing Commands
@@ -207,7 +228,7 @@ Log out of the current user (no context required):
 
 """
     for x in info.split("\n"):
-        log.info(x)
+        logger.info(x)
 
 
 def ensure_authenticated(script_name, script_key):
@@ -247,13 +268,15 @@ def ensure_authenticated(script_name, script_key):
 ###############################################################################################
 # Shotgun Actions Management
 
-
-
-
-def _run_shotgun_command(log, tk, action_name, entity_type, entity_ids):
+def _run_shotgun_command(tk, action_name, entity_type, entity_ids):
     """
     Helper method. Starts the shotgun engine and
     executes a command.
+
+    :param tk:              toolkit API instance
+    :param action_name:     name of action to execute
+    :param entity_type:     shotgun entity type to execute the command on
+    :param entity_ids:      entity ids to execute the command on
     """
 
     # add some smarts about context management here
@@ -266,6 +289,9 @@ def _run_shotgun_command(log, tk, action_name, entity_type, entity_ids):
 
     # start the shotgun engine, load the apps
     e = engine.start_shotgun_engine(tk, entity_type, ctx)
+
+    logger.debug("Launched engine %s" % e)
+    logger.debug("Registered commands: %s" % e.commands.keys())
 
     cmd = e.commands.get(action_name)
     if cmd:
@@ -383,23 +409,19 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         raise TankError("Could not write to cache file %s: %s" % (cache_path, e))
 
 
-def shotgun_cache_actions(log, pipeline_config_root, args):
+def shotgun_cache_actions(pipeline_config_root, args):
     """
     Executes the special shotgun cache actions command
     """
-
-    # we are talking to shotgun! First of all, make sure we switch on our html style logging
-    log.handlers[0].formatter.enable_html_mode()
-
-    log.debug("Running shotgun_cache_actions command")
-    log.debug("Arguments passed: %s" % args)
+    logger.debug("Running shotgun_cache_actions command")
+    logger.debug("Arguments passed: %s" % args)
 
     try:
         tk = tank.tank_from_path(pipeline_config_root)
         # attach our logger to the tank instance
         # this will be detected by the shotgun and shell engines
         # and used.
-        tk.log = log
+        tk.log = logger
     except TankError, e:
         raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
 
@@ -410,32 +432,32 @@ def shotgun_cache_actions(log, pipeline_config_root, args):
     entity_type = args[0]
     cache_file_name = args[1]
 
-    num_log_messages_before = log.handlers[0].formatter.get_num_items()
+    num_log_messages_before = formatter.get_num_errors()
     try:
         _write_shotgun_cache(tk, entity_type, cache_file_name)
     except TankError, e:
-        log.error("Error writing shotgun cache file: %s" % e)
+        logger.error("Error writing shotgun cache file: %s" % e)
     except Exception, e:
-        log.exception("A general error occurred.")
-    num_log_messages_after = log.handlers[0].formatter.get_num_items()
+        logger.exception("A general error occurred.")
+    num_log_messages_after = formatter.get_num_errors()
 
     # check if there were any log output. This is an indication that something
     # weird and unexpected has happened...
     if (num_log_messages_after - num_log_messages_before) > 0:
-        log.info("")
-        log.warning("Generating the cache file for this environment may have resulted in some "
+        logger.info("")
+        logger.warning("Generating the cache file for this environment may have resulted in some "
                     "actions being omitted because of configuration errors. You may need to "
                     "clear the cache by running the following command:")
 
         code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
 
-        log.info("")
+        logger.info("")
         if sys.platform == "win32":
             tank_cmd = os.path.join(pipeline_config_root, "tank.bat")
         else:
             tank_cmd = os.path.join(pipeline_config_root, "tank")
-        log.info("<code style='%s'>%s clear_shotgun_menu_cache</code>" % (code_css_block, tank_cmd))
-        log.info("")
+        logger.info("<code style='%s'>%s clear_shotgun_menu_cache</code>" % (code_css_block, tank_cmd))
+        logger.info("")
         
         # return with an error code to indicate a failure to the caller
         return 1
@@ -443,7 +465,7 @@ def shotgun_cache_actions(log, pipeline_config_root, args):
     # return success error code
     return 0
 
-def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localized, args):
+def shotgun_run_action_auth(install_root, pipeline_config_root, is_localized, args):
     """
     Executes the special shotgun run action command from inside of shotgun.
     Authenticated version.
@@ -459,16 +481,12 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
     args[5:]: reserved for future use. This method will *not* error
               if unexpected args are passed to it.
 
-    :param log: Python logger
     :param install_root: Root of the toolkit core installation
     :param pipeline_config_root: Root of the pipeline configuration
     :param is_localized: True if the pipeline configuration has been localized
     :param args: list of arguments passed from Shotgun.
     """
-    # we are talking to shotgun! First of all, make sure we switch on our html style logging
-    log.handlers[0].formatter.enable_html_mode()
-
-    log.debug("Running shotgun_run_action_auth command")
+    logger.debug("Running shotgun_run_action_auth command")
 
     action_name = args[0]
     entity_type = args[1]
@@ -507,7 +525,7 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
                 # prompt the user for a password and run this method
                 # again, this time with an actual password rather
                 # than an empty string.
-                log.error("Cannot authenticate user '%s'" % login)
+                logger.error("Cannot authenticate user '%s'" % login)
                 return
 
         else:
@@ -521,22 +539,21 @@ def shotgun_run_action_auth(log, install_root, pipeline_config_root, is_localize
             except AuthenticationError:
                 # this message will be sent back to the user via the
                 # javascript integration
-                log.error("Invalid password! Please try again.")
+                logger.error("Invalid password! Please try again.")
                 return
 
         # tell tk about our current user!
         tank.set_authenticated_user(user)
 
     # and fire off the action
-    return _shotgun_run_action(log,
-                               install_root,
+    return _shotgun_run_action(install_root,
                                pipeline_config_root,
                                is_localized,
                                action_name,
                                entity_type,
                                entity_ids)
 
-def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, args):
+def shotgun_run_action(install_root, pipeline_config_root, is_localized, args):
     """
     Executes the special shotgun run action command from inside of shotgun.
     Legacy - unauthenticated version.
@@ -551,17 +568,13 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
     args[2]: list of entity ids as a string, e.g. '1,2,3'
     args[3]: shotgun user login requesting this command
 
-    :param log: Python logger
     :param install_root: Root of the toolkit core installation
     :param pipeline_config_root: Root of the pipeline configuration
     :param is_localized: True if the pipeline configuration has been localized
     :param args: list of arguments passed from Shotgun.
     """
-    # we are talking to shotgun. First of all, make sure we switch on our html style logging
-    log.handlers[0].formatter.enable_html_mode()
-
-    log.debug("Running shotgun_run_action command")
-    log.debug("Arguments passed: %s" % args)
+    logger.debug("Running shotgun_run_action command")
+    logger.debug("Arguments passed: %s" % args)
 
     # params: action_name, entity_type, entity_ids
     if len(args) != 3:
@@ -585,19 +598,17 @@ def shotgun_run_action(log, install_root, pipeline_config_root, is_localized, ar
     entity_ids_str = args[2].split(",")
     entity_ids = [int(x) for x in entity_ids_str]
 
-    return _shotgun_run_action(log,
-                               install_root,
+    return _shotgun_run_action(install_root,
                                pipeline_config_root,
                                is_localized,
                                action_name,
                                entity_type,
                                entity_ids)
 
-def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, action_name, entity_type, entity_ids):
+def _shotgun_run_action(install_root, pipeline_config_root, is_localized, action_name, entity_type, entity_ids):
     """
     Executes a Shotgun action.
 
-    :param log: Python logger
     :param install_root: Root of the toolkit core installation
     :param pipeline_config_root: Root of the pipeline configuration
     :param is_localized: True if the pipeline configuration has been localized
@@ -610,7 +621,7 @@ def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, a
         # attach our logger to the tank instance
         # this will be detected by the shotgun and shell engines
         # and used.
-        tk.log = log
+        tk.log = logger
     except TankError, e:
         raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
 
@@ -624,7 +635,7 @@ def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, a
         # past the 4th chunk in the command is part of the windows path...
         new_path_windows = ":".join(entity_type.split(":")[4:])
         pc_entity_id = entity_ids[0]
-        clone_pipeline_configuration_html(log,
+        clone_pipeline_configuration_html(logger,
                                           tk,
                                           pc_entity_id,
                                           user_id,
@@ -639,49 +650,49 @@ def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, a
         code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
 
         # create an upgrader instance that we can query if the install is up to date
-        installer = TankCoreUpdater(install_root, log)
+        installer = TankCoreUpdater(install_root, logger)
 
         cv = installer.get_current_version_number()
         lv = installer.get_update_version_number()
-        log.info("You are currently running version %s of the Shotgun Pipeline Toolkit." % cv)
+        logger.info("You are currently running version %s of the Shotgun Pipeline Toolkit." % cv)
 
         if not is_localized:
-            log.info("")
-            log.info("Your core API is located in <code>%s</code> and is shared with other "
+            logger.info("")
+            logger.info("Your core API is located in <code>%s</code> and is shared with other "
                      "projects." % install_root)
 
-        log.info("")
+        logger.info("")
 
         status = installer.get_update_status()
 
         if status == TankCoreUpdater.UP_TO_DATE:
-            log.info("<b>You are up to date! There is no need to update the Toolkit Core API at this time!</b>")
+            logger.info("<b>You are up to date! There is no need to update the Toolkit Core API at this time!</b>")
 
         elif status == TankCoreUpdater.UPDATE_BLOCKED_BY_SG:
             req_sg = installer.get_required_sg_version_for_update()
-            log.warning("<b>A new version (%s) of the core API is available however "
+            logger.warning("<b>A new version (%s) of the core API is available however "
                         "it requires a more recent version (%s) of Shotgun!</b>" % (lv, req_sg))
 
         elif status == TankCoreUpdater.UPDATE_POSSIBLE:
 
             (summary, url) = installer.get_release_notes()
 
-            log.info("<b>A new version of the Toolkit API (%s) is available!</b>" % lv)
-            log.info("")
-            log.info("<b>Change Summary:</b> %s <a href='%s' target=_new>"
+            logger.info("<b>A new version of the Toolkit API (%s) is available!</b>" % lv)
+            logger.info("")
+            logger.info("<b>Change Summary:</b> %s <a href='%s' target=_new>"
                      "Click for detailed Release Notes</a>" % (summary, url))
-            log.info("")
-            log.info("In order to upgrade, execute the following command in a shell:")
-            log.info("")
+            logger.info("")
+            logger.info("In order to upgrade, execute the following command in a shell:")
+            logger.info("")
 
             if sys.platform == "win32":
                 tank_cmd = os.path.join(install_root, "tank.bat")
             else:
                 tank_cmd = os.path.join(install_root, "tank")
 
-            log.info("<code style='%s'>%s core</code>" % (code_css_block, tank_cmd))
+            logger.info("<code style='%s'>%s core</code>" % (code_css_block, tank_cmd))
 
-            log.info("")
+            logger.info("")
 
         else:
             raise TankError("Unknown Upgrade state!")
@@ -693,26 +704,22 @@ def _shotgun_run_action(log, install_root, pipeline_config_root, is_localized, a
 
         code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
 
-        log.info("In order to check if your installed apps and engines are up to date, "
+        logger.info("In order to check if your installed apps and engines are up to date, "
                  "you can run the following command in a console:")
 
-        log.info("")
+        logger.info("")
 
         if sys.platform == "win32":
             tank_cmd = os.path.join(pipeline_config_root, "tank.bat")
         else:
             tank_cmd = os.path.join(pipeline_config_root, "tank")
 
-        log.info("<code style='%s'>%s updates</code>" % (code_css_block, tank_cmd))
+        logger.info("<code style='%s'>%s updates</code>" % (code_css_block, tank_cmd))
 
-        log.info("")
+        logger.info("")
 
     else:
-        _run_shotgun_command(log, tk, action_name, entity_type, entity_ids)
-
-
-
-
+        _run_shotgun_command(tk, action_name, entity_type, entity_ids)
 
 
 ###############################################################################################
@@ -734,7 +741,7 @@ def _get_sg_name_field(entity_type):
         name_field = "login"
     return name_field
 
-def _resolve_shotgun_pattern(log, entity_type, name_pattern):
+def _resolve_shotgun_pattern(entity_type, name_pattern):
     """
     Resolve a pattern given an entity. Search the 'name' field
     for an entity. For most types, this is the code field.
@@ -749,9 +756,9 @@ def _resolve_shotgun_pattern(log, entity_type, name_pattern):
 
     sg = shotgun.get_sg_connection()
 
-    log.debug("Shotgun: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern) )
+    logger.debug("Shotgun: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern) )
     data = sg.find(entity_type, [[name_field, "contains", name_pattern]], [name_field])
-    log.debug("Got data: %r" % data)
+    logger.debug("Got data: %r" % data)
 
     if len(data) == 0:
         raise TankError("No Shotgun %s matching the pattern '%s'!" % (entity_type, name_pattern))
@@ -766,15 +773,15 @@ def _resolve_shotgun_pattern(log, entity_type, name_pattern):
 
 
 
-def _list_commands(log, tk, ctx):
+def _list_commands(tk, ctx):
     """
-    Output a list of commands given the current context etc
+    Outputs a list of commands to the logger given the current context.
     """
     # get all the action objets (commands) suitable for the current context
-    (aa, engine) = get_actions(log, tk, ctx)
+    (aa, engine) = get_actions(logger, tk, ctx)
 
-    log.info("")
-    log.info("The following commands are available:")
+    logger.info("")
+    logger.info("The following commands are available:")
 
     # group by category
     by_category = {}
@@ -792,16 +799,16 @@ def _list_commands(log, tk, ctx):
 
     num_engine_commands = 0
     for cat in sorted(by_category.keys()):
-        log.info("")
-        log.info("=" * 50)
-        log.info("%s Commands" % cat)
-        log.info("=" * 50)
-        log.info("")
+        logger.info("")
+        logger.info("=" * 50)
+        logger.info("%s Commands" % cat)
+        logger.info("=" * 50)
+        logger.info("")
         for cmd in by_category[cat]:
-            log.info(cmd.name)
-            log.info("-" * len(cmd.name))
-            log.info(cmd.description)
-            log.info("")
+            logger.info(cmd.name)
+            logger.info("-" * len(cmd.name))
+            logger.info(cmd.description)
+            logger.info("")
             # keep track of number of engine commands
             if cmd.mode == Action.ENGINE:
                 num_engine_commands += 1
@@ -810,36 +817,36 @@ def _list_commands(log, tk, ctx):
 
     if num_engine_commands == 0:
         # not a fully populated setup - so display some interactive help!
-        log.info("")
-        log.info("=" * 50)
-        log.info("Didn't find what you were looking for?")
-        log.info("=" * 50)
-        log.info("")
+        logger.info("")
+        logger.info("=" * 50)
+        logger.info("Didn't find what you were looking for?")
+        logger.info("=" * 50)
+        logger.info("")
 
         if tk is None:
             # we have nothing.
-            log.info("You have launched the Tank command without a Project. This means that you "
+            logger.info("You have launched the Tank command without a Project. This means that you "
                      "are only getting a small number of global system commands in the list of "
                      "commands. Try pointing the tank command to a project location, for example: ")
-            log.info("")
-            log.info("> tank Project XYZ")
-            log.info("> tank Shot ABC123")
-            log.info("> tank Asset ALL")
-            log.info("> tank /mnt/projects/my_project/shots/ABC123")
-            log.info("")
+            logger.info("")
+            logger.info("> tank Project XYZ")
+            logger.info("> tank Shot ABC123")
+            logger.info("> tank Asset ALL")
+            logger.info("> tank /mnt/projects/my_project/shots/ABC123")
+            logger.info("")
 
         elif ctx is None:
             # we have a project but no context.
-            log.info("You have launched the Tank command but not pointed it at a specific "
+            logger.info("You have launched the Tank command but not pointed it at a specific "
                      "work area. You are running tank from the configuration found in "
                      "'%s' but no specific asset or shot was selected so only a generic list "
                      "of commands will be displayed. Try pointing the tank command to a more "
                      "specific location, for example: " % tk.pipeline_configuration.get_path())
-            log.info("")
-            log.info("> tank Shot ABC123")
-            log.info("> tank Asset ALL")
-            log.info("> tank /mnt/projects/my_project/shots/ABC123")
-            log.info("")
+            logger.info("")
+            logger.info("> tank Shot ABC123")
+            logger.info("> tank Asset ALL")
+            logger.info("> tank /mnt/projects/my_project/shots/ABC123")
+            logger.info("")
 
         else:
             # we have a context but no engine!
@@ -851,7 +858,7 @@ def _list_commands(log, tk, ctx):
             env = tank.platform.engine.get_environment_from_context(tk, ctx)
             if env is None:
                 # no environment for context
-                log.info("Your current context ('%s') does not have a matching Sgtk Environment. "
+                logger.info("Your current context ('%s') does not have a matching Sgtk Environment. "
                          "An environment is a part of the configuration and is used to define what "
                          "tools are available in a certain part of the pipeline. For example, you "
                          "may have a Shot and and Asset environment, defining the different tools "
@@ -862,7 +869,7 @@ def _list_commands(log, tk, ctx):
 
             elif command_constants.SHELL_ENGINE not in env.get_engines():
                 # no shell engine installed
-                log.info("Looks like the environment configuration '%s', which is associated "
+                logger.info("Looks like the environment configuration '%s', which is associated "
                          "with the current context (%s), does not have a shell engine "
                          "installed. The shell engine is necessary if you want to run apps using "
                          "the tank command. You can install it by running the install_engine "
@@ -870,22 +877,17 @@ def _list_commands(log, tk, ctx):
 
             else:
                 # number engine commands is zero
-                log.info("Looks like you don't have any apps installed that can run in the shell "
+                logger.info("Looks like you don't have any apps installed that can run in the shell "
                          "engine! Try installing apps using the install_app command or start a new "
                          "project based on the latest Sgtk default starter configuration if you want "
                          "to get a working example of how the shell engine can be configured.")
 
 
-    log.info("")
-    log.info("")
+    logger.info("")
+    logger.info("")
 
 
-
-
-
-
-
-def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_project_id):
+def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_project_id):
     """
     Resolves a Shotgun context when someone specifies tank Shot ABC.
     Will display multiple matches to the logger if there isn't a unique match.
@@ -911,19 +913,19 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
             # append project constraint
             shotgun_filters.append(["project", "is" , {"type": "Project", "id": constrain_by_project_id}])
 
-        log.debug("Shotgun: find(%s, %s)" % (entity_type, shotgun_filters))
+        logger.debug("Shotgun: find(%s, %s)" % (entity_type, shotgun_filters))
         entities = sg.find(entity_type,
                            shotgun_filters,
                            [name_field, "description", "entity", "link", "project"])
-        log.debug("Got data: %r" % entities)
+        logger.debug("Got data: %r" % entities)
     except Exception, e:
         raise TankError("An error occurred when searching in Shotgun: %s" % e)
 
     selected_entity = None
 
     if len(entities) == 0:
-        log.info("")
-        log.info("Could not find a %s with a name containing '%s' in Shotgun!" % (entity_type, entity_search_token))
+        logger.info("")
+        logger.info("Could not find a %s with a name containing '%s' in Shotgun!" % (entity_type, entity_search_token))
         raise TankError("Try searching for something else. "
                         "Alternatively, specify ALL in order to see all %ss." % entity_type)
 
@@ -952,9 +954,9 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
         #       Camera starts with a wide view of Paris then cranes down to see...
 
 
-        log.info("")
-        log.info("More than one item matching your input:" )
-        log.info("")
+        logger.info("")
+        logger.info("More than one item matching your input:" )
+        logger.info("")
         for x in entities:
 
             chunks = []
@@ -975,7 +977,7 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
                 chunks.append( " (%s %s)" % (x.get("link").get("type"),
                                              x.get("link").get("name")))
 
-            log.info("".join(chunks))
+            logger.info("".join(chunks))
 
 
             # display description and chop it off so that is never longer than a single line
@@ -993,14 +995,14 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
             if len(chopped_desc) < len(desc):
                 chopped_desc += "..."
 
-            log.info(chopped_desc)
+            logger.info(chopped_desc)
 
-            log.info("")
+            logger.info("")
 
 
         if entity_search_token != "ALL":
             # don't display this helpful hint if they have used the special ALL keyword
-            log.info("More than one item matched your search phrase '%s'! "
+            logger.info("More than one item matched your search phrase '%s'! "
                      "Please enter a more specific search phrase in order to narrow it down "
                      "to a single match. If there are several items with the same name, "
                      "you can use the @id field displayed to specify a particular "
@@ -1008,13 +1010,13 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
 
         if constrain_by_project_id is None:
             # not using any project filters
-            log.info("")
-            log.info("If you want to search on items from a particular project, you can either "
+            logger.info("")
+            logger.info("If you want to search on items from a particular project, you can either "
                      "run the tank command from that particular project or prefix your search "
                      "string with a project name. For example, if you want to only see matches "
                      "from a project named VFX, search for '%s VFX:%s'" % (entity_type, entity_search_token))
 
-        log.info("")
+        logger.info("")
         raise TankError("Please try again with a more specific search!")
 
 
@@ -1026,23 +1028,22 @@ def _resolve_shotgun_entity(log, entity_type, entity_search_token, constrain_by_
             raise TankError("Found %s %s however this item is not associated with "
                             "a Project!" % (entity_type, selected_entity[name_field]))
 
-        log.info("- Found %s %s (Project '%s')" % (entity_type,
+        logger.info("- Found %s %s (Project '%s')" % (entity_type,
                                                  selected_entity[name_field],
                                                  selected_entity["project"]["name"]))
 
     else:
         # project case
-        log.info("- Found %s %s" % (entity_type, selected_entity[name_field]))
+        logger.info("- Found %s %s" % (entity_type, selected_entity[name_field]))
 
 
     return selected_entity["id"]
 
 
-def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd, args):
+def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args):
     """
     Launches an engine and potentially executes a command.
 
-    :param log: logger
     :param pipeline_config_root: pipeline config location
     :param context_items: list of strings to describe context. Either ["path"],
                                ["entity_type", "entity_id"] or ["entity_type", "entity_name"]
@@ -1051,17 +1052,17 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
     :param command: command to run - None will display a list of commands
     :param using_cwd: Was the context passed based on the current work folder?
     """
-    log.debug("")
-    log.debug("Context items: %s" % str(context_items))
-    log.debug("Command: %s" % command)
-    log.debug("Command Arguments: %s" % args)
-    log.debug("Sgtk Pipeline Config Location: %s" % pipeline_config_root)
-    log.debug("Location of this script (__file__): %s" % os.path.abspath(__file__))
+    logger.debug("")
+    logger.debug("Context items: %s" % str(context_items))
+    logger.debug("Command: %s" % command)
+    logger.debug("Command Arguments: %s" % args)
+    logger.debug("Sgtk Pipeline Config Location: %s" % pipeline_config_root)
+    logger.debug("Location of this script (__file__): %s" % os.path.abspath(__file__))
 
-    log.info("")
+    logger.info("")
 
-    log.info("Welcome to the Shotgun Pipeline Toolkit!")
-    log.info("For documentation, see https://support.shotgunsoftware.com")
+    logger.info("Welcome to the Shotgun Pipeline Toolkit!")
+    logger.info("For documentation, see https://support.shotgunsoftware.com")
 
     # Now create a tk instance and a context if possible
     ctx = None
@@ -1074,9 +1075,9 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
         ctx_path = context_items[0]
 
         if using_cwd:
-            log.info("Starting Toolkit for your current path '%s'" % ctx_path)
+            logger.info("Starting Toolkit for your current path '%s'" % ctx_path)
         else:
-            log.info("Starting toolkit for path '%s'" % ctx_path)
+            logger.info("Starting toolkit for path '%s'" % ctx_path)
 
         # context str is a path
         if pipeline_config_root is not None:
@@ -1091,7 +1092,7 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                 # this path was not valid. That's ok - we just wont have a tank instance
                 # when we run our commands later. This may be if we for example have
                 # just run tank setup_project from any random folder
-                log.debug("Instantiating Sgtk raised: %s" % e)
+                logger.debug("Instantiating Sgtk raised: %s" % e)
 
         if tk is not None:
             #
@@ -1111,8 +1112,8 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             if ctx.project is None:
                 # context could not be determined based on the path
                 # revert back to the project context
-                log.info("- The path is not associated with any Shotgun object.")
-                log.info("- Falling back on default project settings.")
+                logger.info("- The path is not associated with any Shotgun object.")
+                logger.info("- Falling back on default project settings.")
 
                 if tk.pipeline_configuration.is_site_configuration():
                     # Site config doesn't have a project, so the context is empty.
@@ -1166,8 +1167,10 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
 
         # first output some info if we are running the project command
         if not studio_command_mode:
-            log.info("- You are running a project specific tank command. Only items that are part "
-                     "of this project will be considered.")
+            logger.info(
+                "- You are running a project specific tank command. Only items that are part "
+                "of this project will be considered."
+            )
 
         # work out the project prefix logic
         if ":" in entity_search_token:
@@ -1193,8 +1196,8 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                 entity_search_token = ":".join(entity_search_token.split(":")[1:])
 
                 # now try to resolve this project
-                (project_id, project_name) = _resolve_shotgun_pattern(log, "Project", proj_token)
-                log.info("- Searching in project '%s' only" % project_name)
+                (project_id, project_name) = _resolve_shotgun_pattern("Project", proj_token)
+                logger.info("- Searching in project '%s' only" % project_name)
 
 
         # now project prefix token has been removed from the path
@@ -1219,13 +1222,13 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
                 # filter out all other items in other projects.
                 filters.append( ["project", "is", {"type": "Project", "id": project_id} ])
 
-            log.debug("Shotgun: find(%s, %s)" % (entity_type, filters))
+            logger.debug("Shotgun: find(%s, %s)" % (entity_type, filters))
             data = sg.find(entity_type, filters, ["id", name_field])
-            log.debug("Got data: %r" % data)
+            logger.debug("Got data: %r" % data)
 
             if len(data) == 0:
                 # no exact match. Assume the string is an id
-                log.info("- Did not find a %s named '%s', will look for a %s with id %s "
+                logger.info("- Did not find a %s named '%s', will look for a %s with id %s "
                          "instead." % (entity_type, entity_search_token, entity_type, entity_search_token))
                 entity_id = int(entity_search_token)
 
@@ -1237,43 +1240,42 @@ def run_engine_cmd(log, pipeline_config_root, context_items, command, using_cwd,
             # 'tank Shot @123' means that you specifically refer to a Shot with id 123,
             # not a shot named "123". This syntax is explicit and is also faster to evaluate
             entity_id = int(entity_search_token[1:])
-            log.info("- Looking for a %s with id %d." % (entity_type, entity_id))
-            log.debug("Direct @id syntax - will resolve entity id %d" % entity_id)
+            logger.info("- Looking for a %s with id %d." % (entity_type, entity_id))
+            logger.debug("Direct @id syntax - will resolve entity id %d" % entity_id)
             # now we have our entity id, make sure we don't search for this as an expression
             run_expression_search = False
-
 
         if run_expression_search:
             # use normal string based parse methods
             # we are now left with the following cases to resolve
             # tank Entitytype name_expression
-            entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, project_id)
+            entity_id = _resolve_shotgun_entity(entity_type, entity_search_token, project_id)
 
         # now initialize toolkit and set up the context.
         tk = tank.tank_from_entity(entity_type, entity_id)
         ctx = tk.context_from_entity(entity_type, entity_id)
 
-    log.debug("Sgtk API and Context resolve complete.")
-    log.debug("Sgtk API: %s" % tk)
-    log.debug("Context: %s" % ctx)
+    logger.debug("Sgtk API and Context resolve complete.")
+    logger.debug("Sgtk API: %s" % tk)
+    logger.debug("Context: %s" % ctx)
 
-    log.info("- Running as user '%s'" % tank.get_authenticated_user() )
+    logger.info("- Running as user '%s'" % tank.get_authenticated_user() )
 
     if tk is not None:
-        log.info("- Using configuration '%s' and Core %s" % (tk.pipeline_configuration.get_name(), tk.version))
+        logger.info("- Using configuration '%s' and Core %s" % (tk.pipeline_configuration.get_name(), tk.version))
         # attach our logger to the tank instance
         # this will be detected by the shotgun and shell engines and used.
-        tk.log = log
+        tk.log = logger
 
     if ctx is not None:
-        log.info("- Setting the Context to %s." % ctx)
+        logger.info("- Setting the Context to %s." % ctx)
 
     if command is None:
-        return _list_commands(log, tk, ctx)
+        return _list_commands(tk, ctx)
     else:
         # pass over to the tank commands api - this will take over command execution,
         # setup the objects accordingly etc.
-        return run_action(log, tk, ctx, command, args)
+        return run_action(logger, tk, ctx, command, args)
 
 
 def _extract_args(cmd_line, args):
@@ -1424,7 +1426,10 @@ if __name__ == "__main__":
     log_handler = LogManager().initialize_custom_handler(
         logging.StreamHandler(sys.stdout)
     )
-    log_handler.setFormatter(AltCustomFormatter())
+
+    # set up the custom html formatter
+    formatter = AltCustomFormatter()
+    log_handler.setFormatter(formatter)
 
     # the first argument is always the path to the code root
     # we are running from.
@@ -1452,7 +1457,7 @@ if __name__ == "__main__":
     # help requested?
     for x in cmd_line:
         if x == "--help" or x == "-h":
-            exit_code = show_help(logger)
+            exit_code = show_help()
             sys.exit(exit_code)
 
     # determine if we are running a localized core API.
@@ -1488,6 +1493,10 @@ if __name__ == "__main__":
 
         cmd_line, credentials = _extract_credentials(cmd_line)
 
+        if len(cmd_line) > 0 and cmd_line[0].startswith("shotgun_"):
+            # we are talking to shotgun, enable html log formatting
+            formatter.enable_html_mode()
+
         if len(cmd_line) == 0:
             # > tank, no arguments
             # engine mode, using CWD
@@ -1499,7 +1508,7 @@ if __name__ == "__main__":
             )
 
             # now run the command
-            exit_code = run_engine_cmd(logger, pipeline_config_root, [os.getcwd()], None, True, [])
+            exit_code = run_engine_cmd(pipeline_config_root, [os.getcwd()], None, True, [])
 
         elif cmd_line[0] == "logout":
             core_dm = CoreDefaultsManager()
@@ -1515,8 +1524,7 @@ if __name__ == "__main__":
         elif cmd_line[0] == "shotgun_run_action":
             # note - this pathway is not authenticated from shotgun
             # this is there for backwards compatibility
-            exit_code = shotgun_run_action(logger,
-                                           install_root,
+            exit_code = shotgun_run_action(install_root,
                                            pipeline_config_root,
                                            is_localized,
                                            cmd_line[1:])
@@ -1524,8 +1532,7 @@ if __name__ == "__main__":
         # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_run_action_auth":
             # note: this pathway retrieves authentication via shotgun
-            exit_code = shotgun_run_action_auth(logger,
-                                                install_root,
+            exit_code = shotgun_run_action_auth(install_root,
                                                 pipeline_config_root,
                                                 is_localized,
                                                 cmd_line[1:])
@@ -1533,7 +1540,7 @@ if __name__ == "__main__":
         # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_cache_actions":
             # note: this pathway does not require authentication
-            exit_code = shotgun_cache_actions(logger, pipeline_config_root, cmd_line[1:])
+            exit_code = shotgun_cache_actions(pipeline_config_root, cmd_line[1:])
 
         else:
             # these choices remain:
@@ -1611,7 +1618,7 @@ if __name__ == "__main__":
             )
 
             # now run the command
-            exit_code = run_engine_cmd(logger, pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
+            exit_code = run_engine_cmd(pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
 
     except AuthenticationCancelled:
         logger.info("")
