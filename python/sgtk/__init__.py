@@ -17,7 +17,10 @@ import tank
 
 # now go through and duplicate all entries in sys.modules 
 import sys
-for x in sys.modules.keys():
+
+# Makes sure we're iterating over a list and not an iterator in Python 3 so
+# changes to size in the collection won't break the iteration
+for x in list(sys.modules.keys()):
     
     if x.startswith("%s." % ALT_API_NAME):
         # this is a submodule inside the alternative API

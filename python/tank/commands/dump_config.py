@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import StringIO
+from six import StringIO
 
 from ..errors import TankError
 from .action_base import Action
@@ -235,7 +235,7 @@ class DumpConfigAction(Action):
                 )
         else:
             # get an in-memory file handle
-            fh = StringIO.StringIO()
+            fh = StringIO()
 
         return fh
 

@@ -15,11 +15,13 @@ Toolkit App Store Descriptor.
 import os
 import uuid
 import tempfile
-import urllib
-import urllib2
-import httplib
+
+import six.moves.urllib.request as urllib_request
+import six.moves.urllib.error as urllib_error
+import six.moves.http_client as httplib
+
 from tank_vendor.shotgun_api3.lib import httplib2
-import cPickle as pickle
+from six.moves import cPickle as pickle
 
 from ...util.zip import unzip_file
 from ...util import filesystem, shotgun
@@ -599,7 +601,7 @@ class IODescriptorAppStore(IODescriptorBase):
             # connect to the app store site
             try:
                 (script_name, script_key) = self.__get_app_store_key_from_shotgun()
-            except urllib2.HTTPError, e:
+            except urllib_error.HTTPError, e:
                 if e.code == 403:
                     # edge case alert!
                     # this is likely because our session token in shotgun has expired.
@@ -692,13 +694,13 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # handle proxy setup by pulling the proxy details from the main shotgun connection
         if sg.config.proxy_handler:
-            opener = urllib2.build_opener(sg.config.proxy_handler)
-            urllib2.install_opener(opener)
+            opener = urllib_request.build_opener(sg.config.proxy_handler)
+            urllib_request.install_opener(opener)
 
         # now connect to our site and use a special url to retrieve the app store script key
         session_token = sg.get_session_token()
         post_data = {"session_token": session_token}
-        response = urllib2.urlopen("%s/api3/sgtk_install_script" % sg.base_url, urllib.urlencode(post_data))
+        response = urllib_request.urlopen("%s/api3/sgtk_install_script" % sg.base_url, urllib.urlencode(post_data))
         html = response.read()
         data = json.loads(html)
 

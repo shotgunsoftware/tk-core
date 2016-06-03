@@ -57,8 +57,6 @@ if [ ! $? == 0 ] ; then
     exit
 fi
 
-2to3 -w -f import $_PYTHON3_COMPATIBLE_CORE/python/tank_vendor/yaml
-
 PYTHONPATH=${_PYTHON3_COMPATIBLE_CORE}/python:$PYTHONPATH
 cd ${_PYTHON3_COMPATIBLE_CORE}/tests
 python3  ./run_tests.py $*

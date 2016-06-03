@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import StringIO
+from six import StringIO
 import sqlite3
 import shutil
 import logging
@@ -35,7 +35,7 @@ def sync_path_cache(tk, force_full_sync=False):
     """
     
     # capture sync log to string
-    stream = StringIO.StringIO()
+    stream = StringIO()
     handler = logging.StreamHandler(stream)
     log = logging.getLogger("sgtk.path_cache")
     log.setLevel(logging.DEBUG)

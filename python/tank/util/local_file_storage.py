@@ -10,7 +10,7 @@
 
 import os
 import sys
-import urlparse
+import six.moves.urllib.parse as urllib_parse
 
 
 class LocalFileStorageManager(object):
@@ -161,7 +161,7 @@ class LocalFileStorageManager(object):
         :return: Path as string
         """
         # get site only; https://www.FOO.com:8080 -> www.foo.com
-        base_url = urlparse.urlparse(hostname).netloc.split(":")[0].lower()
+        base_url = urllib_parse.urlparse(hostname).netloc.split(":")[0].lower()
 
         if generation > cls.CORE_V17:
             # for 0.18, in order to apply further shortcuts to avoid hitting
