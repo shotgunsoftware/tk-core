@@ -351,6 +351,7 @@ class TestContextChange(TestEngineBase):
         # Enables the test engine to support context change.
         cur_engine.enable_context_change()
 
+
         # Now trigger a context change.
         with self._assert_hooks_invoked(self.context, new_context):
             sgtk.platform.change_context(new_context)

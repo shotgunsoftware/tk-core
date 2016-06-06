@@ -1856,9 +1856,10 @@ def _restart_engine(new_context):
         # Restart the engine. If we were given a new context to use,
         # use it, otherwise restart using the same context as before.
         current_engine_name = engine.instance_name
-        engine.destroy()
+        with _CoreContextChangeHookGuard(engine.sgtk, old_context, new_context):
+            engine.destroy()
 
-        _start_engine(current_engine_name, new_context.tank, old_context, new_context)
+            _start_engine(current_engine_name, new_context.tank, old_context, new_context)
     except TankError, e:
         engine.log_error("Could not restart the engine: %s" % e)
     except Exception:
