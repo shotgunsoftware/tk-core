@@ -12,6 +12,8 @@
 Defines the base class for all Tank Engines.
 """
 
+from __future__ import with_statement
+
 import os
 import re
 import sys
@@ -645,29 +647,30 @@ class Engine(TankBundle):
         .. note:: This method should not be subclassed. Instead, implement :meth:`destroy_engine()`.
 
         """
-        self.__destroy_frameworks()
-        self.__destroy_apps()
+        with _CoreContextChangeHookGuard(self.sgtk, self.context, None):
+            self.__destroy_frameworks()
+            self.__destroy_apps()
 
-        self.log_debug("Destroying %s" % self)
-        self.destroy_engine()
+            self.log_debug("Destroying %s" % self)
+            self.destroy_engine()
 
-        # finally remove the current engine reference
-        set_current_engine(None)
+            # finally remove the current engine reference
+            set_current_engine(None)
 
-        # now clear the hooks cache to make sure fresh hooks are loaded the 
-        # next time an engine is initialized
-        hook.clear_hooks_cache()
+            # now clear the hooks cache to make sure fresh hooks are loaded the
+            # next time an engine is initialized
+            hook.clear_hooks_cache()
 
-        # clean up the main thread invoker - it's a QObject so it's important we
-        # explicitly set the value to None!
-        self._invoker = None
-        self._async_invoker = None
+            # clean up the main thread invoker - it's a QObject so it's important we
+            # explicitly set the value to None!
+            self._invoker = None
+            self._async_invoker = None
 
-        # halt metrics dispatching
-        if self._metrics_dispatcher and self._metrics_dispatcher.dispatching:
-            self.log_debug("Stopping metrics dispatcher.")
-            self._metrics_dispatcher.stop()
-            self.log_debug("Metrics dispatcher stopped.")
+            # halt metrics dispatching
+            if self._metrics_dispatcher and self._metrics_dispatcher.dispatching:
+                self.log_debug("Stopping metrics dispatcher.")
+                self._metrics_dispatcher.stop()
+                self.log_debug("Metrics dispatcher stopped.")
 
         # kill log handler
         LogManager().root_logger.removeHandler(self.__log_handler)
@@ -733,52 +736,51 @@ class Engine(TankBundle):
                 new_context
             )
         )
-        # Emit the core level event.
-        _execute_pre_context_change_hook(self.sgtk, self.context, new_context)
-        self.pre_context_change(self.context, new_context)
-        self.log_debug("Execution of pre_context_change for engine %r is complete." % self)
 
-        # Check to see if all of our apps are capable of accepting
-        # a context change. If one of them is not, then we remove it
-        # from the persistent app pool, which will force it to be
-        # rebuilt when apps are loaded later on.
-        non_compliant_app_paths = []
-        for install_path, app_instances in self.__application_pool.iteritems():
-            for instance_name, app in app_instances.iteritems():
-                self.log_debug(
-                    "Executing pre_context_change for %r, changing from %r to %r." % (
-                        app,
-                        self.context,
-                        new_context
+        with _CoreContextChangeHookGuard(self.sgtk, self.context, new_context):
+            self.pre_context_change(self.context, new_context)
+            self.log_debug("Execution of pre_context_change for engine %r is complete." % self)
+
+            # Check to see if all of our apps are capable of accepting
+            # a context change. If one of them is not, then we remove it
+            # from the persistent app pool, which will force it to be
+            # rebuilt when apps are loaded later on.
+            non_compliant_app_paths = []
+            for install_path, app_instances in self.__application_pool.iteritems():
+                for instance_name, app in app_instances.iteritems():
+                    self.log_debug(
+                        "Executing pre_context_change for %r, changing from %r to %r." % (
+                            app,
+                            self.context,
+                            new_context
+                        )
                     )
+                    app.pre_context_change(self.context, new_context)
+                    self.log_debug("Execution of pre_context_change for app %r is complete." % app)
+
+            # Now that we're certain we can perform a context change,
+            # we can tell the environment what the new context is, update
+            # our own context property, and load the apps. The app load
+            # will repopulate the __applications dict to contain the appropriate
+            # apps for the new context, and will pull apps that have already
+            # been loaded from the __application_pool, which is persistent.
+            old_context = self.context
+            self.__env = new_env
+            self._set_context(new_context)
+            self.__load_apps(reuse_existing_apps=True, old_context=old_context)
+
+            # Call the post_context_change method to allow for any engine
+            # specific post-change logic to be run.
+            self.log_debug(
+                "Executing post_context_change for %r, changing from %r to %r." % (
+                    self,
+                    self.context,
+                    new_context
                 )
-                app.pre_context_change(self.context, new_context)
-                self.log_debug("Execution of pre_context_change for app %r is complete." % app)
-
-        # Now that we're certain we can perform a context change,
-        # we can tell the environment what the new context is, update
-        # our own context property, and load the apps. The app load
-        # will repopulate the __applications dict to contain the appropriate
-        # apps for the new context, and will pull apps that have already
-        # been loaded from the __application_pool, which is persistent.
-        old_context = self.context
-        self.__env = new_env
-        self._set_context(new_context)
-        self.__load_apps(reuse_existing_apps=True, old_context=old_context)
-
-        # Call the post_context_change method to allow for any engine
-        # specific post-change logic to be run.
-        self.log_debug(
-            "Executing post_context_change for %r, changing from %r to %r." % (
-                self,
-                self.context,
-                new_context
             )
-        )
 
-        # Emit the core level event.
-        self.post_context_change(old_context, new_context)
-        _execute_post_context_change_hook(self.sgtk, old_context, new_context)
+            # Emit the core level event.
+            self.post_context_change(old_context, new_context)
         self.log_debug("Execution of post_context_change for engine %r is complete." % self)
 
         # Last, now that we're otherwise done, we can run the
@@ -1683,7 +1685,7 @@ class Engine(TankBundle):
         has been instantiated.
         """
         from .qt import QtGui, QtCore
-        
+
         # initialize our style
         QtGui.QApplication.setStyle("plastique")
         
@@ -2266,57 +2268,97 @@ def _restart_engine(new_context):
     try:
         # Track some of the current state before restarting the engine.
         old_context = engine.context
+        new_context = new_context or engine.context
 
         # Restart the engine. If we were given a new context to use,
         # use it, otherwise restart using the same context as before.
-        new_context = new_context or engine.context
         current_engine_name = engine.instance_name
-        engine.destroy()
+        with _CoreContextChangeHookGuard(engine.sgtk, old_context, new_context):
+            engine.destroy()
 
-        _start_engine(current_engine_name, new_context.tank, old_context, new_context)
+            _start_engine(current_engine_name, new_context.tank, old_context, new_context)
     except TankError, e:
         engine.log_error("Could not restart the engine: %s" % e)
     except Exception:
         engine.log_exception("Could not restart the engine!")
 
 
-def _execute_pre_context_change_hook(tk, current_context, next_context):
+class _CoreContextChangeHookGuard(object):
     """
-    Executes the pre context change hook.
-
-    :param tk: Toolkit instance.
-    :type tk: :class:`~sgtk.Sgtk`
-    :param current_context: Context before the context change.
-    :type current_context: :class:`~sgtk.Context`
-    :param next_context: Context after the context change.
-    :type next_context: :class:`~sgtk.Context`
+    Used with the ``with`` statement, this guard will notify the context_change
+    core hook with the pre_context_change event on entering and
+    post_context_change even on exit if and only if the scope exits without
+    an exception being raised.
     """
-    tk.execute_core_hook_method(
-        constants.CONTEXT_CHANGE_HOOK,
-        "pre_context_change",
-        current_context=current_context,
-        next_context=next_context
-    )
 
+    _depth = 0
 
-def _execute_post_context_change_hook(tk, previous_context, current_context):
-    """
-    Executes the post context change hook.
+    def __init__(self, tk, old_context, new_context):
+        """
+        Constructor.
 
-    :param tk: Toolkit instance.
-    :type tk: :class:`~sgtk.Sgtk`
-    :param current_context: Context before the context change.
-    :type current_context: :class:`~sgtk.Context`
-    :param next_context: Context after the context change.
-    :type next_context: :class:`~sgtk.Context`
-    """
-    tk.execute_core_hook_method(
-        constants.CONTEXT_CHANGE_HOOK,
-        "post_context_change",
-        previous_context=previous_context,
-        current_context=current_context
-    )
+        :param tk: Toolkit instance.
+        :param old_context: Current context.
+        :param new_context: Context we're switching to.
+        """
+        self._tk = tk
+        self._old_context = old_context
+        self._new_context = new_context
 
+    def __enter__(self):
+        """
+        Executes the pre context change hook if we're the first guard instance.
+        """
+        self.__class__._depth += 1
+        # If we're the first instance of the guard, notify.
+        if self._depth == 1:
+            self._execute_pre_context_change(self._tk, self._old_context, self._new_context)
+
+    # Made static so we can introspec the content of the guard during unit testing.
+    @staticmethod
+    def _execute_pre_context_change(tk, old_context, new_context):
+        """
+        Executes the pre context change hook.
+
+        :param tk: Toolkit instance.
+        :param old_context: Current context.
+        :param new_context: Context we're switching to.
+        """
+        tk.execute_core_hook_method(
+            constants.CONTEXT_CHANGE_HOOK,
+            "pre_context_change",
+            current_context=old_context,
+            next_context=new_context
+        )
+
+    def __exit__(self, ex_type, *_):
+        """
+        Executes the post context change hook if we're the last guard instance.
+
+        :param ex_type: Type of the exception raised, if any.
+        """
+        # If we are the last instance of the guard and there's no exception, notify
+        if self.__class__._depth == 1 and not ex_type:
+            self._execute_post_context_change(self._tk, self._old_context, self._new_context)
+
+        self.__class__._depth -= 1
+
+    # Made static so we can introspec the content of the guard during unit testing.
+    @staticmethod
+    def _execute_post_context_change(tk, old_context, new_context):
+        """
+        Executes the post context change hook.
+
+        :param tk: Toolkit instance.
+        :param old_context: Current context.
+        :param new_context: Context we're switching to.
+        """
+        tk.execute_core_hook_method(
+            constants.CONTEXT_CHANGE_HOOK,
+            "post_context_change",
+            previous_context=old_context,
+            current_context=new_context
+        )
 
 def _start_engine(engine_name, tk, old_context, new_context):
     """
@@ -2356,20 +2398,12 @@ def _start_engine(engine_name, tk, old_context, new_context):
         plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
         class_obj = load_plugin(plugin_file, Engine)
 
-        # Notify the context change and start the engine.
-        _execute_pre_context_change_hook(tk, old_context, new_context)
+    # Notify the context change and start the engine.
+    with _CoreContextChangeHookGuard(tk, old_context, new_context):
         # Instantiate the engine
         engine = class_obj(tk, new_context, engine_name, env)
         # register this engine as the current engine
         set_current_engine(engine)
-        _execute_post_context_change_hook(tk, old_context, new_context)
-
-    except:
-        # trap and log the exception and let it bubble in
-        # unchanged form
-        core_logger.exception("Exception raised in start_engine.")
-        raise
-
     return engine
 
 
