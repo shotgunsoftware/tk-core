@@ -16,7 +16,7 @@ Management of file and directory templates.
 import os
 import re
 import sys
-import functools
+
 
 from . import templatekey
 from .errors import TankError
@@ -34,6 +34,31 @@ if six.PY3:
             return 0
         else:
             return 1
+
+try:
+    from functools import cmp_to_key as _cmp_to_key
+except:
+    def _cmp_to_key(mycmp):
+        """Convert a cmp= function into a key= function"""
+        class K(object):
+            __slots__ = ['obj']
+            def __init__(self, obj, *args):
+                self.obj = obj
+            def __lt__(self, other):
+                return mycmp(self.obj, other.obj) < 0
+            def __gt__(self, other):
+                return mycmp(self.obj, other.obj) > 0
+            def __eq__(self, other):
+                return mycmp(self.obj, other.obj) == 0
+            def __le__(self, other):
+                return mycmp(self.obj, other.obj) <= 0
+            def __ge__(self, other):
+                return mycmp(self.obj, other.obj) >= 0
+            def __ne__(self, other):
+                return mycmp(self.obj, other.obj) != 0
+            def __hash__(self):
+                raise TypeError('hash not implemented')
+        return K
 
 
 class Template(object):
@@ -94,7 +119,7 @@ class Template(object):
 
         variations = self._definition_variations(definition)
         # We want them most inclusive(longest) version first
-        variations.sort(key=functools.cmp_to_key(lambda x, y: cmp(len(x), len(y))), reverse=True)
+        variations.sort(key=lambda x: len(x), reverse=True)
 
         # get format keys and types
         self._keys = []
@@ -168,7 +193,7 @@ class Template(object):
             return min(self._keys)
         except TypeError:
             if six.PY3:
-                return min(self._keys, key=functools.cmp_to_key(self._min_key_cmp))
+                return min(self._keys, key=_cmp_to_key(self._min_key_cmp))
             else:
                 raise
 

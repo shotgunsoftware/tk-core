@@ -97,7 +97,7 @@ class EntityExpression(object):
         expr_variations = self._get_expression_variations(field_name_expr)
 
         # We want them most inclusive(longest) version first
-        self._sorted_exprs = sorted(expr_variations, key=functools.cmp_to_key(lambda x, y: cmp(len(x), len(y))), reverse=True)
+        self._sorted_exprs = sorted(expr_variations, key=lambda x: len(x), reverse=True)
 
         # now extract and store a bunch of data for each variation.
         self._variations = {}
