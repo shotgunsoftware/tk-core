@@ -36,8 +36,8 @@ from tank.platform import engine
 from tank import pipelineconfig_utils
 from tank import LogManager
 
-
-logger = LogManager.get_logger("tk-shell")
+# the logger used by this file is sgtk.tank_cmd
+logger = LogManager.get_logger("tank_cmd")
 
 # custom log formatter for the tank command
 formatter = None
@@ -1420,7 +1420,7 @@ def _extract_credentials(cmd_line):
 if __name__ == "__main__":
 
     # set up std toolkit logging to file
-    LogManager().initialize_base_file_handler("tk-shell")
+    LogManager().initialize_base_file_handler(command_constants.SHELL_ENGINE)
 
     # set up output of all sgtk log messages to stdout
     log_handler = LogManager().initialize_custom_handler(
