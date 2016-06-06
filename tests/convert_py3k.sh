@@ -7,7 +7,7 @@ pip install unittest2
 pip install httplib2
 
 # links file to the destination folder.
-python converter.py $1 unittest2 httplib2 /yaml/ .git
+python converter.py ~/gitlocal/tk-core $1 unittest2 httplib2 /yaml/ .git
 # import yaml from the python's site-packages
 echo import yaml > $1/python/tank_vendor/__init__.py
 echo import httplib2 > $1/python/tank_vendor/shotgun_api3/lib/__init__.py

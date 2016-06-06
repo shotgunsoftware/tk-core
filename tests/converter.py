@@ -28,15 +28,19 @@ def _copy_file(src, dst):
         shutil.copymode(src, dst)
     # Since this is a newly file, convert it.
     if os.path.splitext(src)[1] == ".py":
-        _convert(dst)
+        try:
+            _convert(dst)
+        except:
+            os.remove(dst)
+            raise
 
 def main():
     """
     Copies and converts Toolkit source code to the specified destination.
     """
-    destination = sys.argv[1]
-    ignored_folders = sys.argv[2:]
-    source = os.path.abspath("..")
+    source = os.path.expanduser(sys.argv[1])
+    destination = os.path.expanduser(sys.argv[2])
+    ignored_folders = sys.argv[3:]
 
     for src_path, dirs, files in os.walk(source):
         # extract the path relative to the root of the repo

@@ -277,7 +277,7 @@ def download_url(sg, url, location):
             response = urllib_request.urlopen(url, timeout=timeout)
         else:
             # use system default
-            response = urllib.request.urlopen(url)
+            response = urllib_request.urlopen(url)
             
         f = open(location, "wb")
         try:
