@@ -127,6 +127,9 @@ UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"
 
+# the shell engine is assumed to always have this name
+SHELL_ENGINE_NAME = "tk-shell"
+
 # the menu favourites key for an engine
 MENU_FAVOURITES_KEY = "menu_favourites"
 

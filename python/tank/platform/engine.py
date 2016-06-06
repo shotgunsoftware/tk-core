@@ -191,7 +191,9 @@ class Engine(TankBundle):
         # point we want to try and have all app initialization complete.
         self.__run_post_engine_inits()
 
-        if self.__has_018_logging_support():
+        if self.name not in [constants.SHELL_ENGINE_NAME, constants.SHOTGUN_ENGINE_NAME] \
+                and self.__has_018_logging_support():
+
             # if engine supports new logging implementation,
             #
             # we cannot add the 'toggle debug logging' for
@@ -199,7 +201,9 @@ class Engine(TankBundle):
             # because that typically contains overrides in log_debug
             # which effectively renders the command below useless
 
-            # register logging related items on the context menu
+            # note that we omit this action in the special built-in
+            # engines tk-shell and tk-shotgun
+
             self.register_command(
                 "Toggle Debug Logging",
                 self.__toggle_debug_logging,
@@ -213,16 +217,21 @@ class Engine(TankBundle):
                 }
             )
 
-        self.register_command(
-            "Open Log Folder",
-            self.__open_log_folder,
-            {
-                "short_name": "open_log_folder",
-                "icon": self.__get_platform_resource_file("folder_256.png"),
-                "description": "Opens the folder where log files are being stored.",
-                "type": "context_menu"
-            }
-        )
+        # add a 'open log folder' command to the engine's context menu
+        # note: we make an exception for the shotgun engine which is a
+        # special case.
+        if self.name != constants.SHOTGUN_ENGINE_NAME:
+
+            self.register_command(
+                "Open Log Folder",
+                self.__open_log_folder,
+                {
+                    "short_name": "open_log_folder",
+                    "icon": self.__get_platform_resource_file("folder_256.png"),
+                    "description": "Opens the folder where log files are being stored.",
+                    "type": "context_menu"
+                }
+            )
 
         # Useful dev helpers: If there is one or more dev descriptors in the
         # loaded environment, add a reload button to the menu!
@@ -2455,7 +2464,7 @@ def start_shotgun_engine(tk, entity_type, context):
 
     # begin writing log to disk, associated with the engine
     if LogManager().base_file_handler is None:
-        LogManager().initialize_base_file_handler("tk-shotgun")
+        LogManager().initialize_base_file_handler(constants.SHOTGUN_ENGINE_NAME)
 
     # bypass the get_environment hook and use a fixed set of environments
     # for this shotgun engine. This is required because of the action caching.
