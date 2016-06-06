@@ -781,6 +781,7 @@ class Engine(TankBundle):
 
             # Emit the core level event.
             self.post_context_change(old_context, new_context)
+
         self.log_debug("Execution of post_context_change for engine %r is complete." % self)
 
         # Last, now that we're otherwise done, we can run the
@@ -2398,12 +2399,19 @@ def _start_engine(engine_name, tk, old_context, new_context):
         plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
         class_obj = load_plugin(plugin_file, Engine)
 
-    # Notify the context change and start the engine.
-    with _CoreContextChangeHookGuard(tk, old_context, new_context):
-        # Instantiate the engine
-        engine = class_obj(tk, new_context, engine_name, env)
-        # register this engine as the current engine
-        set_current_engine(engine)
+        # Notify the context change and start the engine.
+        with _CoreContextChangeHookGuard(tk, old_context, new_context):
+            # Instantiate the engine
+            engine = class_obj(tk, new_context, engine_name, env)
+            # register this engine as the current engine
+            set_current_engine(engine)
+
+    except:
+        # trap and log the exception and let it bubble in
+        # unchanged form
+        core_logger.exception("Exception raised in start_engine.")
+        raise
+
     return engine
 
 
