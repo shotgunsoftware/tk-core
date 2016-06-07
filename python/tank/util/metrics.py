@@ -148,12 +148,9 @@ class MetricsDispatcher(object):
             return
 
         # Now check that we have a valid authenticated user, which is
-        # required for metrics dispatch. Note that this means that no
-        # metrics are broadcast from setups that use script based auth.
-        #
-        # note: this also handles the case where an authenticated user
-        # has not yet been defined, for example for the
-        # shotgun_cache_actions method in the tank command
+        # required for metrics dispatch. This is to ensure certain legacy
+        # and edge case scenarios work, for example the 
+        # shotgun_cache_actions tank command which runs un-authenticated.
         from ..api import get_authenticated_user
         if not get_authenticated_user():
             return
