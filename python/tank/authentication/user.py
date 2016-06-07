@@ -72,6 +72,10 @@ class ShotgunUser(object):
         """
         Creates a Shotgun connection using the credentials for this user.
 
+        .. note:: The shotgun connection will be created straight away. This means
+                  that the time it takes to execute this method may vay depending
+                  on internet connection, latency etc.
+
         :returns: A Shotgun connection.
         """
         return self._impl.create_sg_connection()
