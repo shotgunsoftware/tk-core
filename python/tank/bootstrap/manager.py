@@ -48,7 +48,8 @@ class ToolkitManager(object):
         self._base_config_descriptor = None
         self._resolve_latest_base_descriptor = False
         self._progress_cb = None
-        self._shotgun_config_lookup = True
+        self._do_shotgun_config_lookup = True
+        self._entry_point = None
 
         log.debug("%s instantiated" % self)
 
@@ -61,13 +62,6 @@ class ToolkitManager(object):
         repr += " Base %s >" % self._base_config_descriptor
         return repr
 
-    def _set_pipeline_configuration(self, name):
-        """
-        The pipeline configuration that is being operated on.
-        By default, the primary pipeline config will be used.
-        """
-        self._pipeline_configuration_name = name
-
     def _get_pipeline_configuration(self):
         """
         The pipeline configuration that is being operated on.
@@ -75,16 +69,33 @@ class ToolkitManager(object):
         """
         return self._pipeline_configuration_name
 
+    def _set_pipeline_configuration(self, name):
+        """
+        The pipeline configuration that is being operated on.
+        By default, the primary pipeline config will be used.
+        """
+        self._pipeline_configuration_name = name
+
     pipeline_configuration = property(_get_pipeline_configuration, _set_pipeline_configuration)
 
-    def _set_shotgun_config_lookup(self, status):
+
+    def _get_do_shotgun_config_lookup(self):
         """
         Flag to indicate if the bootstrap process should connect to
         Shotgun and attempt to resolve a config. Defaults to True.
-        """
-        self._shotgun_config_lookup = status
 
-    def _get_shotgun_config_lookup(self):
+        If ``True``, the bootstrap process will connect to Shotgun as part
+        of the startup, look for a pipeline configuration and attempt
+        to resolve a toolkit environment to bootstrap into via the
+        Pipeline configuration data. Failing this, it will fall back on
+        the :meth:`base_configuration`.
+
+        If ``False``, no Shotgun lookup will happen. Instead, whatever config
+        is defined via :meth:`base_configuration` will always be used.
+        """
+        return self._do_shotgun_config_lookup
+
+    def _set_do_shotgun_config_lookup(self, status):
         """
         Flag to indicate if the bootstrap process should connect to
         Shotgun and attempt to resolve a config. Defaults to True.
@@ -98,9 +109,62 @@ class ToolkitManager(object):
         If False, no Shotgun lookup will happen. Instead, whatever config
         is defined via :meth:`base_configuration` will always be used.
         """
-        return self._shotgun_config_lookup
+        self._do_shotgun_config_lookup = status
 
-    shotgun_config_lookup = property(_get_shotgun_config_lookup, _set_shotgun_config_lookup)
+    do_shotgun_config_lookup = property(_get_do_shotgun_config_lookup, _set_do_shotgun_config_lookup)
+
+
+    def _get_entry_point(self):
+        """
+        The entry point defines the scope of the bootstrap operation.
+
+        If you are bootstrapping into an entire Toolkit pipeline, e.g
+        a traditional Toolkit setup, this should be left blank.
+
+        If you are writing a plugin that is intended to run side by
+        side with other plugins in your target environment, the entry
+        point will be used to define a scope and sandbox in which your
+        plugin will execute. For example, if your plugin is packaging up
+        review tools for RV, name your entry point "RV Review". If your plugin
+        embeds the shotgun panel in a Maya Plugin, name it "Maya Panel".
+
+        The entry point value can be used to customize the behavior of a
+        plugin via Shotgun. At bootstrap, toolkit will look for a pipeline
+        configuration with a matching name and entry point. If found, this
+        will be used instead of the one defined by the :meth:`base_configuration`
+        property.
+
+            .. note:: If you want to force the :meth:`base_configuration` to always
+                      be used, set :meth:`do_shotgun_config_lookup` to False.
+        """
+        return self._entry_point
+
+    def _set_entry_point(self, entry_point):
+        """
+        The entry point defines the scope of the bootstrap operation.
+
+        If you are bootstrapping into an entire Toolkit pipeline, e.g
+        a traditional Toolkit setup, this should be left blank.
+
+        If you are writing a plugin that is intended to run side by
+        side with other plugins in your target environment, the entry
+        point will be used to define a scope and sandbox in which your
+        plugin will execute. For example, if your plugin is packaging up
+        review tools for RV, name your entry point "RV Review". If your plugin
+        embeds the shotgun panel in a Maya Plugin, name it "Maya Panel".
+
+        The entry point value can be used to customize the behavior of a
+        plugin via Shotgun. At bootstrap, toolkit will look for a pipeline
+        configuration with a matching name and entry point. If found, this
+        will be used instead of the one defined by the :meth:`base_configuration`
+        property.
+
+            .. note:: If you want to force the :meth:`base_configuration` to always
+                      be used, set :meth:`do_shotgun_config_lookup` to False.
+        """
+        self._entry_point = entry_point
+
+    entry_point = property(_get_entry_point, _set_entry_point)
 
     def _get_base_configuration(self):
         """
@@ -122,27 +186,22 @@ class ToolkitManager(object):
 
     base_configuration = property(_get_base_configuration, _set_base_configuration)
 
-    def _get_resolve_latest(self):
-        """
-        Controls if Toolkit should attempt to resolve the latest version
-        of the base configuration. If set to True, the descriptor set via
-        the base configuration property does not need to contain a version
-        directive. If the property does contain a version directive, it
-        will be ignored.
-        """
-        return self._resolve_latest_base_descriptor
 
-    def _set_resolve_latest(self, status):
+    def _get_bundle_cache_fallback_paths(self):
         """
-        Controls if Toolkit should attempt to resolve the latest version
-        of the base configuration. If set to True, the descriptor set via
-        the base configuration property does not need to contain a version
-        directive. If the property does contain a version directive, it
-        will be ignored.
-        """
-        self._resolve_latest_base_descriptor = status
+        Specifies a list of fallback paths where toolkit will go
+        look for cached bundles in case a bundle isn't found in
+        the primary app cache.
 
-    resolve_latest_base_configuration = property(_get_resolve_latest, _set_resolve_latest)
+        This is useful if you want to distribute a pre-baked
+        package, containing all the app version that a user needs.
+        This avoids downloading anything from the app store or other
+        sources.
+
+        Any missing bundles will be downloaded and cached into
+        the *primary* bundle cache.
+        """
+        return self._bundle_cache_fallback_paths
 
     def _set_bundle_cache_fallback_paths(self, paths):
         """
@@ -163,26 +222,11 @@ class ToolkitManager(object):
         #         locations for performance or to save space.
         self._bundle_cache_fallback_paths = paths
 
-    def _get_bundle_cache_fallback_paths(self):
-        """
-        Specifies a list of fallback paths where toolkit will go
-        look for cached bundles in case a bundle isn't found in
-        the primary app cache.
-
-        This is useful if you want to distribute a pre-baked
-        package, containing all the app version that a user needs.
-        This avoids downloading anything from the app store or other
-        sources.
-
-        Any missing bundles will be downloaded and cached into
-        the *primary* bundle cache.
-        """
-        return self._bundle_cache_fallback_paths
-
     bundle_cache_fallback_paths = property(
         _get_bundle_cache_fallback_paths,
         _set_bundle_cache_fallback_paths
     )
+
 
     def set_progress_callback(self, callback):
         """
