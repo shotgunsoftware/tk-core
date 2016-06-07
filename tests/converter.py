@@ -17,12 +17,18 @@ def _skip_folder(src, ignored):
     return False
 
 def _convert(dst):
-    subprocess.check_call(["2to3", "-w", dst])
+    sixer_options = ["iteritems", "itervalues", "iterkeys", "itertools", "basestring"]
+    args = ["sixer", "-w", ",".join(sixer_options), dst]
+    subprocess.check_call(args)
+
+    two_to_three_options = " -f ".join(["-f import", "print", "numliterals", "except", "raise", "dict", "has_key", "types"]).split(" ")
+    subprocess.check_call(["2to3", "-w"] + two_to_three_options + [dst])
 
 
 def _copy_file(src, dst):
     if "fixtures" in dst:
         os.link(src, dst)
+        return
     else:
         shutil.copyfile(src, dst)
         shutil.copymode(src, dst)
@@ -31,8 +37,13 @@ def _copy_file(src, dst):
         try:
             _convert(dst)
         except:
+            bak = dst + ".bak"
+            if os.path.exists(bak):
+                os.remove(bak)
+            shutil.copyfile(dst, bak)
             os.remove(dst)
             raise
+
 
 def main():
     """

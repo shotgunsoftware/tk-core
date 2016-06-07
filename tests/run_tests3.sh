@@ -21,9 +21,10 @@ if [ ! $? == 0 ] ; then
     exit
 fi
 
+# Somehow the unit tests update this file???
+git checkout fixtures
+
 pushd ${_PYTHON3_COMPATIBLE_CORE}/tests
 PYTHONPATH=${_PYTHON3_COMPATIBLE_CORE}/python:$PYTHONPATH
 python3  ./run_tests.py $*
 popd > /dev/null
-# Somehow the unit tests update this file???
-git checkout fixtures

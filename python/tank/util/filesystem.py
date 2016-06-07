@@ -22,6 +22,7 @@ import functools
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
+import six
 
 
 def with_cleared_umask(func):
@@ -273,7 +274,7 @@ def create_valid_filename(value):
     # strip trailing whitespace
     value = value.strip()
 
-    if isinstance(value, unicode):
+    if isinstance(value, six.text_type):
         # src is unicode, so return unicode
         return exp.sub("_", value)
     else:

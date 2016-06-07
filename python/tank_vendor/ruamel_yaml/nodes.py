@@ -1,5 +1,5 @@
 from __future__ import print_function
-
+import os
 
 class Node(object):
     def __init__(self, tag, value, start_mark, end_mark, comment=None):

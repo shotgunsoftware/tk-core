@@ -20,16 +20,6 @@ from . import constants
 from ..errors import TankError
 
 import six
-if six.PY3:
-    def cmp(x, y):
-        res = x - y
-        if res < 0:
-            return -1
-        elif res == 0:
-            return 0
-        else:
-            return 1
-
 
 def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     """
@@ -290,7 +280,7 @@ class EntityExpression(object):
         else:
             exp = re.compile(constants.VALID_SG_ENTITY_NAME_REGEX, re.UNICODE)    
         
-        if isinstance(name, unicode):
+        if isinstance(name, six.text_type):
             return bool(exp.match(name))
         else:
             # try decoding from utf-8:

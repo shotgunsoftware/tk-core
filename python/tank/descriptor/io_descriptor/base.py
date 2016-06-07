@@ -12,7 +12,8 @@ import os
 import re
 import cgi
 import sys
-import urlparse
+
+from six.moves.urllib import parse
 
 from .. import constants
 from ... import LogManager
@@ -197,7 +198,7 @@ class IODescriptorBase(object):
         versions = {}
         for version_num in version_numbers:
             try:
-                version_split = map(int, version_num[1:].split("."))
+                version_split = list(map(int, version_num[1:].split(".")))
             except Exception, e:
                 # this git tag is not on the expected form vX.Y.Z where X Y and Z are ints. skip.
                 continue
@@ -357,7 +358,7 @@ class IODescriptorBase(object):
                  in the item_keys parameter matched up by items in the
                  uri string.
         """
-        parsed_uri = urlparse.urlparse(uri)
+        parsed_uri = parse.urlparse(uri)
 
         # example:
         #

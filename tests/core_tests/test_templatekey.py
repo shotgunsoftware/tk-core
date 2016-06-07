@@ -20,6 +20,7 @@ import datetime
 from mock import patch
 from tank_test.tank_test_base import *
 from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
+import six
 
 
 class TestTemplateKey(TankTestBase):
@@ -978,7 +979,7 @@ class TestTimestampKey(TankTestBase):
             self._datetime
         )
         self.assertEqual(
-            key.value_from_str(unicode(self._datetime_string)),
+            key.value_from_str(six.text_type(self._datetime_string)),
             self._datetime
         )
 
