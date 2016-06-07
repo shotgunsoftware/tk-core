@@ -15,15 +15,11 @@ Toolkit App Store Descriptor.
 import os
 import uuid
 import tempfile
-
-import six
-import six.moves.urllib.request as urllib_request
-import six.moves.urllib.error as urllib_error
-import six.moves.urllib.parse as urllib_parse
-import six.moves.http_client as httplib
-
+import urllib
+import urllib2
+import httplib
 from tank_vendor.shotgun_api3.lib import httplib2
-from six.moves import cPickle as pickle
+import cPickle as pickle
 
 from ...util.zip import unzip_file
 from ...util import filesystem, shotgun
@@ -603,7 +599,7 @@ class IODescriptorAppStore(IODescriptorBase):
             # connect to the app store site
             try:
                 (script_name, script_key) = self.__get_app_store_key_from_shotgun()
-            except urllib_error.HTTPError, e:
+            except urllib2.HTTPError, e:
                 if e.code == 403:
                     # edge case alert!
                     # this is likely because our session token in shotgun has expired.
@@ -696,15 +692,15 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # handle proxy setup by pulling the proxy details from the main shotgun connection
         if sg.config.proxy_handler:
-            opener = urllib_request.build_opener(sg.config.proxy_handler)
-            urllib_request.install_opener(opener)
+            opener = urllib2.build_opener(sg.config.proxy_handler)
+            urllib2.install_opener(opener)
 
         # now connect to our site and use a special url to retrieve the app store script key
         session_token = sg.get_session_token()
-        post_data = urllib_parse.urlencode({"session_token": session_token})
+        post_data = urllib.urlencode({"session_token": session_token})
         if six.PY3:
             post_data = bytes(post_data, "utf-8")
-        response = urllib_request.urlopen("%s/api3/sgtk_install_script" % sg.base_url, post_data)
+        response = urllib2.urlopen("%s/api3/sgtk_install_script" % sg.base_url, post_data)
         html = response.read()
         if six.PY3:
             html = html.decode("utf-8")

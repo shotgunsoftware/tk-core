@@ -14,7 +14,7 @@ across storages, configurations etc.
 """
 import os
 import glob
-from six.moves import cPickle
+import cPickle
 
 from tank_vendor import yaml
 

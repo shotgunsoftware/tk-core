@@ -17,7 +17,7 @@ def _skip_folder(src, ignored):
     return False
 
 def _convert(dst):
-    sixer_options = ["iteritems", "itervalues", "iterkeys", "itertools", "basestring", "six_moves", "urllib"]
+    sixer_options = ["iteritems", "itervalues", "iterkeys", "itertools", "basestring", "six_moves", "urllib", "stringio"]
     args = ["sixer", "-w", ",".join(sixer_options), dst]
     subprocess.check_call(args)
 

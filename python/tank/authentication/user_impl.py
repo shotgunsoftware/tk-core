@@ -20,7 +20,7 @@ at any point.
 """
 
 import six
-from six.moves import cPickle
+import cPickle
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
 

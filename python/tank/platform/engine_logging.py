@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import logging
-from six.moves import queue as Queue
+import Queue
 import sys
 
 class ToolkitEngineHandler(logging.Handler):

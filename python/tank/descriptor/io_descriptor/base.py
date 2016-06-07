@@ -13,7 +13,7 @@ import re
 import cgi
 import sys
 
-from six.moves.urllib import parse
+import urlparse
 
 from .. import constants
 from ... import LogManager
@@ -358,11 +358,11 @@ class IODescriptorBase(object):
                  in the item_keys parameter matched up by items in the
                  uri string.
         """
-        parsed_uri = parse.urlparse(uri)
+        parsed_uri = urlparse.urlparse(uri)
 
         # example:
         #
-        # >>> urlparse.urlparse("sgtk:descriptor:app_store?foo=bar&baz=buz")
+        # >>> urlurlparse.urlparse("sgtk:descriptor:app_store?foo=bar&baz=buz")
         #
         # ParseResult(scheme='sgtk', netloc='', path='descriptor:app_store',
         #             params='', query='foo=bar&baz=buz', fragment='')

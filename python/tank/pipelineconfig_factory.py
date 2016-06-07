@@ -11,7 +11,7 @@
 import os
 import collections
 import logging
-from six.moves import cPickle as pickle
+import cPickle as pickle
 
 from .errors import TankError
 from . import constants

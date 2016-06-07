@@ -10,7 +10,7 @@
 
 import os
 import fnmatch
-from six.moves import cPickle
+import cPickle
 
 from .action_base import Action
 from ..errors import TankError

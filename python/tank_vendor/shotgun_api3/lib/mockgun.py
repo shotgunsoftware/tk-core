@@ -115,7 +115,7 @@ Below is a non-exhaustive list of things that we still need to implement:
 """
 
 import os, datetime
-import six.moves.cPickle as pickle
+import cPickle as pickle
 
 from .. import sg_timezone, ShotgunError
 from ..shotgun import _Config
