@@ -48,6 +48,7 @@ class ToolkitManager(object):
         self._base_config_descriptor = None
         self._resolve_latest_base_descriptor = False
         self._progress_cb = None
+        self._shotgun_config_lookup = True
 
         log.debug("%s instantiated" % self)
 
@@ -75,6 +76,31 @@ class ToolkitManager(object):
         return self._pipeline_configuration_name
 
     pipeline_configuration = property(_get_pipeline_configuration, _set_pipeline_configuration)
+
+    def _set_shotgun_config_lookup(self, status):
+        """
+        Flag to indicate if the bootstrap process should connect to
+        Shotgun and attempt to resolve a config. Defaults to True.
+        """
+        self._shotgun_config_lookup = status
+
+    def _get_shotgun_config_lookup(self):
+        """
+        Flag to indicate if the bootstrap process should connect to
+        Shotgun and attempt to resolve a config. Defaults to True.
+
+        If True, the bootstrap process will connect to Shotgun as part
+        of the startup, look for a pipeline configuration and attempt
+        to resolve a toolkit environment to bootstrap into via the
+        Pipeline configuration data. Failing this, it will fall back on
+        the :meth:`base_configuration`.
+
+        If False, no Shotgun lookup will happen. Instead, whatever config
+        is defined via :meth:`base_configuration` will always be used.
+        """
+        return self._shotgun_config_lookup
+
+    shotgun_config_lookup = property(_get_shotgun_config_lookup, _set_shotgun_config_lookup)
 
     def _get_base_configuration(self):
         """
