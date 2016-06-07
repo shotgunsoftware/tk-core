@@ -386,8 +386,9 @@ def create_sg_connection(user="default"):
         api_handle = __create_sg_connection(config_data)
     else:
         # Otherwise use the authenticated user to create the connection.
-        log.debug("Creating shotgun connection from %r" % sg_user)
+        log.debug("Creating shotgun connection from %r..." % sg_user)
         api_handle = __create_sg_connection(None, sg_user)
+        log.debug("...connected")
     return api_handle
 
 
