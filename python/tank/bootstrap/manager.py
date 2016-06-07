@@ -46,7 +46,6 @@ class ToolkitManager(object):
         self._bundle_cache_fallback_paths = []
         self._pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
         self._base_config_descriptor = None
-        self._resolve_latest_base_descriptor = False
         self._progress_cb = None
         self._do_shotgun_config_lookup = True
         self._entry_point = None
@@ -356,7 +355,6 @@ class ToolkitManager(object):
             self._pipeline_configuration_name,
             engine_name,
             self._base_config_descriptor,
-            self._resolve_latest_base_descriptor
         )
 
         # see what we have locally

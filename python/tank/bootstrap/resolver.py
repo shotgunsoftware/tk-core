@@ -92,8 +92,7 @@ class BaseConfigurationResolver(ConfigurationResolver):
         project_id,
         pipeline_config_name,
         engine_name,
-        base_config_descriptor,
-        get_latest_config
+        base_config_descriptor
     ):
         """
         Given a Shotgun project (or None for site mode), return a configuration
@@ -110,8 +109,6 @@ class BaseConfigurationResolver(ConfigurationResolver):
         :param pipeline_config_name: Name of configuration branch (e.g Primary)
         :param engine_name: Engine name for which we are resolving the configuration.
         :param base_config_descriptor: descriptor dict or string for fallback config.
-        :param get_latest_config: Flag to indicate that latest version of the fallback config
-                                  should be resolved and used.
         :return: Configuration instance
         """
         log.debug(
@@ -131,12 +128,21 @@ class BaseConfigurationResolver(ConfigurationResolver):
                 "configuration exists in Shotgun for the given project. "
                 "Cannot create a configuration object.")
 
+        # note how we currently always prefer latest as part of the resolve.
+        # later on, it will be possible to specify an update policy as part of
+        # the descriptor system, allowing a user to specify what latest means -
+        # does it actually mean that the version is frozen to a particular version,
+        # the latest release on a conservative release track, the latest alpha etc.
+        #
+        # for installations bundled with manual descriptors, latest currently
+        # means the same version that the descriptor is pointing at, so for
+        # these installations, version numbers are effectively fixed.
         cfg_descriptor = create_descriptor(
             self._sg_connection,
             Descriptor.CONFIG,
             base_config_descriptor,
             fallback_roots=self._bundle_cache_fallback_paths,
-            resolve_latest=get_latest_config
+            resolve_latest=True
         )
 
         log.debug("Configuration resolved to %r." % cfg_descriptor)
