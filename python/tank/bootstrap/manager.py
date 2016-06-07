@@ -17,6 +17,8 @@ from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
+
+
 class ToolkitManager(object):
     """
     This class allows for flexible and non-obtrusive management of toolkit configurations
@@ -40,7 +42,7 @@ class ToolkitManager(object):
         else:
             self._sg_user = sg_user
 
-        self._sg_connection = self._sg_user.create_sg_connection()
+        self._sg_connection = self._sg_user.create_deferred_sg_connection()
 
         # defaults
         self._bundle_cache_fallback_paths = []

@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from . import user_impl
+from .deferred_shotgun_wrapper import DeferredShotgun
 
 
 class ShotgunUser(object):
@@ -79,6 +80,14 @@ class ShotgunUser(object):
         :returns: A Shotgun connection.
         """
         return self._impl.create_sg_connection()
+
+    def create_deferred_sg_connection(self):
+        """
+        Creates a shotgun API instance that will connect to the server JIT
+
+        :return:
+        """
+        return DeferredShotgun(self)
 
     def are_credentials_expired(self):
         """
