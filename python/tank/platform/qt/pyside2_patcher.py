@@ -160,8 +160,8 @@ class PySide2Patcher(object):
                 return getattr(self._signal, name)
 
         class QStandardItemModel(original_QStandardItemModel):
-            def original_QStandardItemModel(self, *args):
-                QStandardItemModel.__init__(self, *args)
+            def __init__(self, *args):
+                original_QStandardItemModel.__init__(self, *args)
                 # Ideally we would only wrap the emit method but that attibute
                 # is read only so we end up wrapping the whole object.
                 self.dataChanged = SignalWrapper(self.dataChanged)
