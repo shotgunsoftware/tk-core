@@ -78,6 +78,9 @@ class QtImporter(object):
         QtCore.Slot = QtCore.pyqtSlot
         QtCore.Property = QtCore.pyqtProperty
 
+        from PyQt4.Qt import PYQT_VERSION_STR
+        PyQt4.__version__ = PYQT_VERSION_STR
+
         return QtCore, QtGui, None, PyQt4
 
     def _import_modules(self):
