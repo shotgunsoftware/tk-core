@@ -101,6 +101,10 @@ class ConfigurationResolver(object):
             LocalFileStorageManager.CACHE
         )
 
+        # resolve the config location both based on entry point and current engine.
+        #
+        # Example: ~/Library/Caches/Shotgun/mysitename/site/cfg.tk-rv.review
+        #
         config_folder = "cfg.%s" % filesystem.create_valid_filename(self._engine_name)
 
         if self._entry_point:
