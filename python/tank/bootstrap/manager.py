@@ -11,7 +11,7 @@
 from . import constants
 from .errors import TankBootstrapError
 from .configuration import Configuration
-from .resolver import BaseConfigurationResolver
+from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator
 from .. import LogManager
 
@@ -334,15 +334,12 @@ class ToolkitManager(object):
 
         # get an object to represent the business logic for
         # how a configuration location is being determined
-        #
-        # @todo - in the future, there may be more and/or other
-        # resolvers to implement different workflows.
-        # For now, this logic is just separated out in a
-        # separate file.
         self._report_progress("Resolving configuration...")
 
-        resolver = BaseConfigurationResolver(
-            self._sg_connection,
+        resolver = ConfigurationResolver(
+            project_id,
+            self._entry_point,
+            engine_name,
             self._bundle_cache_fallback_paths
         )
 
@@ -350,12 +347,22 @@ class ToolkitManager(object):
         # this object represents a configuration that may or may not
         # exist on disk. We can use the config object to check if the
         # object needs installation, updating etc.
-        config = resolver.resolve_configuration(
-            project_id,
-            self._pipeline_configuration_name,
-            engine_name,
-            self._base_config_descriptor,
-        )
+
+        if self._do_shotgun_config_lookup:
+            # do the full resolve where we connect to shotgun etc.
+            config = resolver.resolve_shotgun_configuration(
+                self._pipeline_configuration_name,
+                self._base_config_descriptor,
+                self._sg_connection
+            )
+
+        else:
+            # fixed resolve based on the base config alone
+            # do the full resolve where we connect to shotgun etc.
+            config = resolver.resolve_configuration(
+                self._base_config_descriptor,
+                self._sg_connection,
+            )
 
         # see what we have locally
         self._report_progress("Checking if config is out of date...")
