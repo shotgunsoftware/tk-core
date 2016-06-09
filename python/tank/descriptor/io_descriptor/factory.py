@@ -89,13 +89,18 @@ def create_io_descriptor(
     # at this point we didn't have a cache hit,
     # so construct the object manually
 
-    # check latest versions
-    descriptors_using_version = ["app_store", "shotgun", "manual", "git", "git_branch"]
-    if resolve_latest and descriptor_dict.get("type") in descriptors_using_version:
-        # for the case of latest version, make sure we attach a version
-        # key as part of the descriptor dictionary so that the descriptor
-        # is valid
-        descriptor_dict["version"] = "latest"
+    if resolve_latest:
+        # if someone is requesting a latest descriptor and not providing a version token
+        # make sure to add an artificial one so that we can resolve it.
+        #
+        # We only do this for descriptor types that supports a version number concept
+        descriptors_using_version = ["app_store", "shotgun", "manual", "git", "git_branch"]
+
+        if "version" not in descriptor_dict and descriptor_dict.get("type") in descriptors_using_version:
+            # for the case of latest version, make sure we attach a version
+            # key as part of the descriptor dictionary so that the descriptor
+            # is valid
+            descriptor_dict["version"] = "latest"
 
     # factory logic
     if descriptor_dict.get("type") == "app_store":
