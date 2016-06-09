@@ -95,19 +95,7 @@ class ToolkitManager(object):
         return self._do_shotgun_config_lookup
 
     def _set_do_shotgun_config_lookup(self, status):
-        """
-        Flag to indicate if the bootstrap process should connect to
-        Shotgun and attempt to resolve a config. Defaults to True.
-
-        If True, the bootstrap process will connect to Shotgun as part
-        of the startup, look for a pipeline configuration and attempt
-        to resolve a toolkit environment to bootstrap into via the
-        Pipeline configuration data. Failing this, it will fall back on
-        the :meth:`base_configuration`.
-
-        If False, no Shotgun lookup will happen. Instead, whatever config
-        is defined via :meth:`base_configuration` will always be used.
-        """
+        # setter for do_shotgun_config_lookup
         self._do_shotgun_config_lookup = status
 
     do_shotgun_config_lookup = property(_get_do_shotgun_config_lookup, _set_do_shotgun_config_lookup)
@@ -139,28 +127,7 @@ class ToolkitManager(object):
         return self._entry_point
 
     def _set_entry_point(self, entry_point):
-        """
-        The entry point defines the scope of the bootstrap operation.
-
-        If you are bootstrapping into an entire Toolkit pipeline, e.g
-        a traditional Toolkit setup, this should be left blank.
-
-        If you are writing a plugin that is intended to run side by
-        side with other plugins in your target environment, the entry
-        point will be used to define a scope and sandbox in which your
-        plugin will execute. For example, if your plugin is packaging up
-        review tools for RV, name your entry point "RV Review". If your plugin
-        embeds the shotgun panel in a Maya Plugin, name it "Maya Panel".
-
-        The entry point value can be used to customize the behavior of a
-        plugin via Shotgun. At bootstrap, toolkit will look for a pipeline
-        configuration with a matching name and entry point. If found, this
-        will be used instead of the one defined by the :meth:`base_configuration`
-        property.
-
-            .. note:: If you want to force the :meth:`base_configuration` to always
-                      be used, set :meth:`do_shotgun_config_lookup` to False.
-        """
+        # setter for entry_point
         self._entry_point = entry_point
 
     entry_point = property(_get_entry_point, _set_entry_point)
@@ -175,12 +142,7 @@ class ToolkitManager(object):
         return self._base_config_descriptor
 
     def _set_base_configuration(self, descriptor):
-        """
-        The descriptor (string or dict) for the
-        configuration that should be used as a base fallback
-        to be used whenever runtime and shotgun configuration
-        resolution doesn't resolve an override configuration to use.
-        """
+        # setter for base_configuration
         self._base_config_descriptor = descriptor
 
     base_configuration = property(_get_base_configuration, _set_base_configuration)
@@ -203,19 +165,8 @@ class ToolkitManager(object):
         return self._bundle_cache_fallback_paths
 
     def _set_bundle_cache_fallback_paths(self, paths):
-        """
-        Specifies a list of fallback paths where toolkit will go
-        look for cached bundles in case a bundle isn't found in
-        the primary app cache.
+        # setter for bundle_cache_fallback_paths
 
-        This is useful if you want to distribute a pre-baked
-        package, containing all the app version that a user needs.
-        This avoids downloading anything from the app store or other
-        sources.
-
-        Any missing bundles will be downloaded and cached into
-        the *primary* bundle cache.
-        """
         # @todo - maybe here we can add support for environment variables in the
         #         future so that studios can easily add their own 'primed cache'
         #         locations for performance or to save space.
