@@ -189,7 +189,7 @@ class LocalFileStorageManager(object):
 
         :param hostname: Shotgun hostname as string, e.g. 'https://foo.shotgunstudio.com'
         :param project_id: Shotgun project id as integer. For the site config, this should be None.
-        :param pipeline_config_id: Shotgun pipeline config id.
+        :param pipeline_config_id: Shotgun pipeline config id. None for bootstraped configs.
         :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,
                           ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where
                           logging is a path where log- and debug related data should be stored,
