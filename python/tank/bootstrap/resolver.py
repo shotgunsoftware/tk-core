@@ -147,6 +147,10 @@ class ConfigurationResolver(object):
         in Shotgun. If no suitable configuration is found, return a configuration
         for the given fallback config.
 
+            .. note:: The current implementation for this is a pass-through
+                      to the base configuration resolver. In the future, business
+                      logic will be added to handle this.
+
         :param pipeline_config_name: Name of configuration branch (e.g Primary)
         :param fallback_config_descriptor: descriptor dict or string for fallback config.
         :param sg_connection: Shotgun API instance
