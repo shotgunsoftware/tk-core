@@ -43,7 +43,7 @@ class Framework(TankBundle):
         self.__engine = engine
 
         # create logger for this app
-        # log will be parented in a tank.session.environment_name.engine_instance_name.framework_name hierarchy
+        # log will be parented in a sgtk.env.environment_name.engine_instance_name.framework_name hierarchy
         logger = self.__engine.get_child_logger(descriptor.system_name)
 
         # init base class

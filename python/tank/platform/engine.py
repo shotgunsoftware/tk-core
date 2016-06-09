@@ -106,8 +106,8 @@ class Engine(TankBundle):
         descriptor = self.__env.get_engine_descriptor(self.__engine_instance_name)        
 
         # create logger for this engine.
-        # log will be parented in a tank.session.environment_name.engine_instance_name hierarchy
-        logger = LogManager.get_logger("session.%s.%s" % (env.name, engine_instance_name))
+        # log will be parented in a sgtk.env.environment_name.engine_instance_name hierarchy
+        logger = LogManager.get_logger("env.%s.%s" % (env.name, engine_instance_name))
 
         # init base class
         TankBundle.__init__(self, tk, context, settings, descriptor, env, logger)
