@@ -115,7 +115,8 @@ class ToolkitManager(object):
         review tools for RV, name your entry point "RV Review". If your plugin
         embeds the shotgun panel in a Maya Plugin, name it "Maya Panel".
 
-        The entry point value can be used to customize the behavior of a
+        In the future, it will be possible to use the entry point value
+        to customize the behavior of a
         plugin via Shotgun. At bootstrap, toolkit will look for a pipeline
         configuration with a matching name and entry point. If found, this
         will be used instead of the one defined by the :meth:`base_configuration`
