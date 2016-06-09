@@ -111,9 +111,7 @@ class ToolkitManager(object):
         If you are writing a plugin that is intended to run side by
         side with other plugins in your target environment, the entry
         point will be used to define a scope and sandbox in which your
-        plugin will execute. For example, if your plugin is packaging up
-        review tools for RV, name your entry point "RV Review". If your plugin
-        embeds the shotgun panel in a Maya Plugin, name it "Maya Panel".
+        plugin will execute.
 
         In the future, it will be possible to use the entry point value
         to customize the behavior of a
@@ -121,6 +119,22 @@ class ToolkitManager(object):
         configuration with a matching name and entry point. If found, this
         will be used instead of the one defined by the :meth:`base_configuration`
         property.
+
+        It is possible for multiple plugins running in different DCCs
+        to share the same entry point - in this case, they would all
+        get their settings and setup from a shared configuration. If you
+        were to override the base configuration in Shotgun, your override
+        would affect the entire suite of plugins. This kind of setup allows
+        for the development of several plugins in different DCCs that together
+        form a curated workflow.
+
+        Consider the following when deciding how to name your entry point:
+
+        - The entry point needs to be unique
+        - It should be clear and concise
+        - We recommend that you use the following naming convention:
+          ``provider_service``, for example ``rv_review`` for an entry point
+          maintained by the rv group which hosts review functionality.
 
             .. note:: If you want to force the :meth:`base_configuration` to always
                       be used, set :meth:`do_shotgun_config_lookup` to False.
