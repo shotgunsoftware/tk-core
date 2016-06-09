@@ -289,9 +289,9 @@ class ToolkitManager(object):
         self._report_progress("Resolving configuration...")
 
         resolver = ConfigurationResolver(
-            project_id,
             self._entry_point,
             engine_name,
+            project_id,
             self._bundle_cache_fallback_paths
         )
 

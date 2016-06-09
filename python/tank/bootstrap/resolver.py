@@ -34,17 +34,17 @@ class ConfigurationResolver(object):
 
     def __init__(
             self,
-            project_id,
             entry_point,
             engine_name,
+            project_id=None,
             bundle_cache_fallback_paths=None
     ):
         """
         Constructor
 
-        :param project_id: Project id to create a config object for, None for the site config.
         :param entry_point: The entry point name of the system that is being bootstrapped.
         :param engine_name: Name of the engine that is about to be launched.
+        :param project_id: Project id to create a config object for, None for the site config.
         :param bundle_cache_fallback_paths: Optional list of additional paths where apps are cached.
         """
         self._project_id = project_id
