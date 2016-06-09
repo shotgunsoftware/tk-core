@@ -308,10 +308,10 @@ class TankBundle(object):
         main toolkit logging namespace::
 
             # pattern
-            sgtk.session.environment_name.engine_instance_name
+            sgtk.env.environment_name.engine_instance_name
 
             # for example
-            sgtk.session.asset.tk-maya
+            sgtk.env.asset.tk-maya
 
         .. note:: If you want all log messages that you are emitting in your
                   app, engine or framework to be written to a log file or

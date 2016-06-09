@@ -40,7 +40,7 @@ class Application(TankBundle):
         self.__instance_name = instance_name
 
         # create logger for this app
-        # log will be parented in a tank.session.environment_name.engine_instance_name.app_instance_name hierarchy
+        # log will be parented in a sgtk.env.environment_name.engine_instance_name.app_instance_name hierarchy
         logger = self.__engine.get_child_logger(self.__instance_name)
 
         # init base class

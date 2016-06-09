@@ -38,8 +38,8 @@ class ToolkitEngineHandler(logging.Handler):
         """
         # for simplicity, add a 'basename' property to the record to
         # only contain the leaf part of the logging name
-        # tank.session.asset.tk-maya -> tk-maya
-        # tank.session.asset.tk-maya.tk-multi-publish -> tk-multi-publish
+        # sgtk.env.asset.tk-maya -> tk-maya
+        # sgtk.env.asset.tk-maya.tk-multi-publish -> tk-multi-publish
         record.basename = record.name.rsplit(".", 1)[-1]
 
         # emit log message from log handler to display implementation.
@@ -101,8 +101,8 @@ class ToolkitEngineLegacyHandler(logging.Handler):
 
         # for simplicity, add a 'basename' property to the record to
         # only contain the leaf part of the logging name
-        # tank.session.asset.tk-maya -> tk-maya
-        # tank.session.asset.tk-maya.tk-multi-publish -> tk-multi-publish
+        # sgtk.env.asset.tk-maya -> tk-maya
+        # sgtk.env.asset.tk-maya.tk-multi-publish -> tk-multi-publish
         record.basename = record.name.rsplit(".", 1)[-1]
 
         # format the message

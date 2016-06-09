@@ -6,32 +6,14 @@ Utilities
 Logging
 ============================================
 
-Toolkit uses the standard python logging for its
-log management. The :class:`LogManager` class below
-acts as an interface that helps make it easy to access
-and manage Toolkit logging.
-
-All Toolkit logging is written into a ``sgtk.*`` logging
-namespace. This has been "sealed" so that log messages
-from Toolkit do not propagate up to the root logger. This
-is to ensure that Toolkit doesn't interfear with other logging
-that has been already configured.
-
-Each app, engine and bundle provides access to logging and
-these log streams are also collected and organized under the
-``sgtk`` logging namespace. This is done by calling
-the methods :meth:`sgtk.platform.Engine.logger`, :meth:`sgtk.platform.Application.logger`
-or :meth:`sgtk.platform.Framework.logger`.
-
-Each Toolkit :class:`~sgtk.platform.Engine` contains a method :meth:`~sgtk.platform.Engine._emit_log_message`
-that can be subclassed if you want to the DCC to display
-log messages at runtime.
+.. automodule:: sgtk.log
 
 LogManager
 -----------------------------------
 
 .. autoclass:: LogManager
     :members:
+
 
 
 File System Utilities
