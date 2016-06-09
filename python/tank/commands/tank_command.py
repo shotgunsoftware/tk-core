@@ -42,6 +42,7 @@ from . import cache_yaml
 from . import get_entity_commands
 from . import constants
 
+from .. import constants as constants_global
 from .. import LogManager
 from ..platform.engine import start_engine, get_environment_from_context
 from ..errors import TankError
@@ -260,7 +261,7 @@ class SgtkSystemCommand(object):
         # only commands of type GLOBAL, TK_INSTANCE are currently supported
         if self.__internal_action_obj.mode not in (Action.GLOBAL, Action.TK_INSTANCE):
             raise TankError("The command %r is not of a type which is supported by Toolkit. "
-                            "Please contact support on support@shotgunsoftware.com" % self.__internal_action_obj)
+                            "Please contact %s." % (self.__internal_action_obj, constants_global.SUPPORT_EMAIL))
         
         # make sure we pass a tk api for actions that require it
         if self.__internal_action_obj.mode == Action.TK_INSTANCE and tk is None:

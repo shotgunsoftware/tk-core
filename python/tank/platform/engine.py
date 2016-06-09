@@ -1660,7 +1660,6 @@ class Engine(TankBundle):
             importer = QtImporter()
             base["qt_core"] = importer.QtCore
             base["qt_gui"] = importer.QtGui
-            base["qt_widgets"] = importer.QtWidgets
             if importer.QtGui:
                 base["dialog_base"] = importer.QtGui.QDialog
             else:
