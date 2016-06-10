@@ -56,7 +56,7 @@
                 margin: 2px;
                 border-radius: 0px; 
                 padding: 0px;' 
-            src='../../../_static/logo@2x.png'/>
+            src='./_static/logo@2x.png'/>
     
     </a>
     
@@ -316,7 +316,7 @@
     <span class="n">engine</span><span class="o">.</span><span class="n">log_info</span><span class="p">(</span><span class="s2">&quot;Toolkit platform was restarted.&quot;</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">current_bundle</span><span class="p">():</span>
+<div class="viewcode-block" id="current_bundle"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.current_bundle">[docs]</a><span class="k">def</span> <span class="nf">current_bundle</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the bundle (app, engine or framework) instance for the</span>
 <span class="sd">    app that the calling code is associated with. This is a special method, designed to</span>
@@ -333,7 +333,7 @@
 
 <span class="sd">    :returns: :class:`Application`, :class:`Engine` or :class:`Framework` instance</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_get_current_bundle</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_get_current_bundle</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="get_framework"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.get_framework">[docs]</a><span class="k">def</span> <span class="nf">get_framework</span><span class="p">(</span><span class="n">framework</span><span class="p">):</span>
@@ -369,7 +369,7 @@
     <span class="k">return</span> <span class="n">fw</span></div>
 
 
-<span class="k">def</span> <span class="nf">import_framework</span><span class="p">(</span><span class="n">framework</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
+<div class="viewcode-block" id="import_framework"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.import_framework">[docs]</a><span class="k">def</span> <span class="nf">import_framework</span><span class="p">(</span><span class="n">framework</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience method for using frameworks code inside of apps, engines and other frameworks.</span>
 
@@ -402,7 +402,7 @@
 
     <span class="n">mod</span> <span class="o">=</span> <span class="n">fw</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">mod</span>
+    <span class="k">return</span> <span class="n">mod</span></div>
 
 
 <div class="viewcode-block" id="get_logger"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.get_logger">[docs]</a><span class="k">def</span> <span class="nf">get_logger</span><span class="p">(</span><span class="n">module_name</span><span class="p">):</span>

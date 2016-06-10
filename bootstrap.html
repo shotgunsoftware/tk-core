@@ -57,7 +57,7 @@
                 margin: 2px;
                 border-radius: 0px; 
                 padding: 0px;' 
-            src='_static/logo@2x.png'/>
+            src='./_static/logo@2x.png'/>
     
     </a>
     
@@ -252,10 +252,56 @@ and pass it in.</td>
 </tbody>
 </table>
 <dl class="attribute">
-<dt id="sgtk.bootstrap.ToolkitManager.pipeline_configuration">
-<code class="descname">pipeline_configuration</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="Permalink to this definition">¶</a></dt>
-<dd><p>The pipeline configuration that is being operated on.
-By default, the primary pipeline config will be used.</p>
+<dt id="sgtk.bootstrap.ToolkitManager.base_configuration">
+<code class="descname">base_configuration</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>The descriptor (string or dict) for the
+configuration that should be used as a base fallback
+to be used whenever runtime and shotgun configuration
+resolution doesn&#8217;t resolve an override configuration to use.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.bootstrap.ToolkitManager.bootstrap_engine">
+<code class="descname">bootstrap_engine</code><span class="sig-paren">(</span><em>engine_name</em>, <em>entity=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.bootstrap_engine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an sgtk instance for the given project or site,
+then launch into the given engine.</p>
+<p>If entity is None, the method will bootstrap into the site
+config. This method will attempt to resolve the config according
+to business logic set in the associated resolver class and based
+on this launch a configuration. This may involve downloading new
+apps from the toolkit app store and installing files on disk.</p>
+<p>Please note that the API version of the tk instance that hosts
+the engine may not be the same as the API version that was
+executed during the bootstrap.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>entity</strong> (<em>Dictionary with keys type and id</em>) &#8211; Shotgun entity to launch engine for</li>
+<li><strong>engine_name</strong> &#8211; name of engine to launch (e.g. <code class="docutils literal"><span class="pre">tk-nuke</span></code>)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">sgtk.platform.Engine</span></code></a> instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths">
+<code class="descname">bundle_cache_fallback_paths</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specifies a list of fallback paths where toolkit will go
+look for cached bundles in case a bundle isn&#8217;t found in
+the primary app cache.</p>
+<p>This is useful if you want to distribute a pre-baked
+package, containing all the app version that a user needs.
+This avoids downloading anything from the app store or other
+sources.</p>
+<p>Any missing bundles will be downloaded and cached into
+the <em>primary</em> bundle cache.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -316,26 +362,10 @@ be used, set <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.
 </dd></dl>
 
 <dl class="attribute">
-<dt id="sgtk.bootstrap.ToolkitManager.base_configuration">
-<code class="descname">base_configuration</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="Permalink to this definition">¶</a></dt>
-<dd><p>The descriptor (string or dict) for the
-configuration that should be used as a base fallback
-to be used whenever runtime and shotgun configuration
-resolution doesn&#8217;t resolve an override configuration to use.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths">
-<code class="descname">bundle_cache_fallback_paths</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths" title="Permalink to this definition">¶</a></dt>
-<dd><p>Specifies a list of fallback paths where toolkit will go
-look for cached bundles in case a bundle isn&#8217;t found in
-the primary app cache.</p>
-<p>This is useful if you want to distribute a pre-baked
-package, containing all the app version that a user needs.
-This avoids downloading anything from the app store or other
-sources.</p>
-<p>Any missing bundles will be downloaded and cached into
-the <em>primary</em> bundle cache.</p>
+<dt id="sgtk.bootstrap.ToolkitManager.pipeline_configuration">
+<code class="descname">pipeline_configuration</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>The pipeline configuration that is being operated on.
+By default, the primary pipeline config will be used.</p>
 </dd></dl>
 
 <dl class="method">
@@ -357,36 +387,6 @@ to be fixed.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>callback</strong> &#8211; Callback fn. See above for details.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.bootstrap.ToolkitManager.bootstrap_engine">
-<code class="descname">bootstrap_engine</code><span class="sig-paren">(</span><em>engine_name</em>, <em>entity=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.bootstrap_engine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an sgtk instance for the given project or site,
-then launch into the given engine.</p>
-<p>If entity is None, the method will bootstrap into the site
-config. This method will attempt to resolve the config according
-to business logic set in the associated resolver class and based
-on this launch a configuration. This may involve downloading new
-apps from the toolkit app store and installing files on disk.</p>
-<p>Please note that the API version of the tk instance that hosts
-the engine may not be the same as the API version that was
-executed during the bootstrap.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>entity</strong> (<em>Dictionary with keys type and id</em>) &#8211; Shotgun entity to launch engine for</li>
-<li><strong>engine_name</strong> &#8211; name of engine to launch (e.g. <code class="docutils literal"><span class="pre">tk-nuke</span></code>)</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">sgtk.platform.Engine</span></code></a> instance</p>
-</td>
 </tr>
 </tbody>
 </table>
