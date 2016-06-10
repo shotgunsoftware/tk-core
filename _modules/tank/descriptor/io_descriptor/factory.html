@@ -1,0 +1,395 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../../../index.html"/>
+        <link rel="up" title="Module code" href="../../../index.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.descriptor.io_descriptor.factory</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.descriptor.io_descriptor.factory</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2016 Shotgun Software Inc.</span>
+<span class="c1">#</span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span>
+
+<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="c1"># for performance, we keep cached instances of</span>
+<span class="c1"># descriptors in a cache.</span>
+<span class="n">g_cached_instances</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<span class="k">def</span> <span class="nf">create_io_descriptor</span><span class="p">(</span>
+        <span class="n">sg</span><span class="p">,</span>
+        <span class="n">descriptor_type</span><span class="p">,</span>
+        <span class="n">dict_or_uri</span><span class="p">,</span>
+        <span class="n">bundle_cache_root</span><span class="p">,</span>
+        <span class="n">fallback_roots</span><span class="p">,</span>
+        <span class="n">resolve_latest</span><span class="p">,</span>
+        <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Factory method. Use this method to construct all DescriptorIO instances.</span>
+
+<span class="sd">    A descriptor is immutable in the sense that it always points at the same code -</span>
+<span class="sd">    this may be a particular frozen version out of that toolkit app store that</span>
+<span class="sd">    will not change or it may be a dev area where the code can change. Given this,</span>
+<span class="sd">    descriptors are cached and only constructed once for a given descriptor URL.</span>
+
+<span class="sd">    :param sg: Shotgun connection to associated site</span>
+<span class="sd">    :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK</span>
+<span class="sd">    :param dict_or_uri: A std descriptor dictionary dictionary or string</span>
+<span class="sd">    :param bundle_cache_root: Root path to where downloaded apps are cached</span>
+<span class="sd">    :param fallback_roots: List of immutable fallback cache locations where</span>
+<span class="sd">                           apps will be searched for. Note that when descriptors</span>
+<span class="sd">                           download new content, it always ends up in the</span>
+<span class="sd">                           bundle_cache_root.</span>
+<span class="sd">    :param resolve_latest: If true, the latest version will be determined and returned.</span>
+<span class="sd">                           If set to True, no version information need to be supplied with</span>
+<span class="sd">                           the descriptor dictionary/uri. Please note that setting this flag</span>
+<span class="sd">                           to true will typically affect performance - an external connection</span>
+<span class="sd">                           is often required in order to establish what the latest version is.</span>
+<span class="sd">    :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain</span>
+<span class="sd">                           the search for latest to only take part over a subset of versions.</span>
+<span class="sd">                           This is a string that can be on the following form:</span>
+<span class="sd">                                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</span>
+<span class="sd">                                - v0.12.x - get the highest v0.12 version</span>
+<span class="sd">                                - v1.x.x - get the highest v1 version</span>
+<span class="sd">    :returns: Descriptor object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">IODescriptorBase</span>
+    <span class="kn">from</span> <span class="nn">.appstore</span> <span class="kn">import</span> <span class="n">IODescriptorAppStore</span>
+    <span class="kn">from</span> <span class="nn">.dev</span> <span class="kn">import</span> <span class="n">IODescriptorDev</span>
+    <span class="kn">from</span> <span class="nn">.path</span> <span class="kn">import</span> <span class="n">IODescriptorPath</span>
+    <span class="kn">from</span> <span class="nn">.shotgun_entity</span> <span class="kn">import</span> <span class="n">IODescriptorShotgunEntity</span>
+    <span class="kn">from</span> <span class="nn">.git_tag</span> <span class="kn">import</span> <span class="n">IODescriptorGitTag</span>
+    <span class="kn">from</span> <span class="nn">.git_branch</span> <span class="kn">import</span> <span class="n">IODescriptorGitBranch</span>
+    <span class="kn">from</span> <span class="nn">.manual</span> <span class="kn">import</span> <span class="n">IODescriptorManual</span>
+
+    <span class="c1"># resolve into both dict and uri form</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+        <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">dict_from_uri</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
+        <span class="n">descriptor_uri</span> <span class="o">=</span> <span class="n">dict_or_uri</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">dict_or_uri</span>
+        <span class="n">descriptor_uri</span> <span class="o">=</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">uri_from_dict</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
+
+    <span class="c1"># first check if we already have this in our cache</span>
+    <span class="c1"># Since all our normal descriptors are immutable - they represent a specific,</span>
+    <span class="c1"># read only and cached version of an app, engine or framework on disk, we can</span>
+    <span class="c1"># also cache their wrapper objects.</span>
+    <span class="c1"># NOTE! We are not keying the cache based on bundle_cache_root or</span>
+    <span class="c1"># fallback_roots -- the assumption here is that if you find for example</span>
+    <span class="c1"># &lt;core appstore v1.2.3&gt; this represents that particular version of some code</span>
+    <span class="c1"># and it doesn&#39;t matter where we are fetching it from. If &lt;core appstore v1.2.3&gt;</span>
+    <span class="c1"># is available in multiple different locations on disk, the content of each location</span>
+    <span class="c1"># should be identical</span>
+    <span class="k">if</span> <span class="n">descriptor_uri</span> <span class="ow">in</span> <span class="n">g_cached_instances</span><span class="p">:</span>
+        <span class="c1"># cache hit</span>
+        <span class="k">return</span> <span class="n">g_cached_instances</span><span class="p">[</span><span class="n">descriptor_uri</span><span class="p">]</span>
+
+    <span class="c1"># at this point we didn&#39;t have a cache hit,</span>
+    <span class="c1"># so construct the object manually</span>
+
+    <span class="k">if</span> <span class="n">resolve_latest</span><span class="p">:</span>
+        <span class="c1"># if someone is requesting a latest descriptor and not providing a version token</span>
+        <span class="c1"># make sure to add an artificial one so that we can resolve it.</span>
+        <span class="c1">#</span>
+        <span class="c1"># We only do this for descriptor types that supports a version number concept</span>
+        <span class="n">descriptors_using_version</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;app_store&quot;</span><span class="p">,</span> <span class="s2">&quot;shotgun&quot;</span><span class="p">,</span> <span class="s2">&quot;manual&quot;</span><span class="p">,</span> <span class="s2">&quot;git&quot;</span><span class="p">,</span> <span class="s2">&quot;git_branch&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;version&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">descriptor_dict</span> <span class="ow">and</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">descriptors_using_version</span><span class="p">:</span>
+            <span class="c1"># for the case of latest version, make sure we attach a version</span>
+            <span class="c1"># key as part of the descriptor dictionary so that the descriptor</span>
+            <span class="c1"># is valid</span>
+            <span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;latest&quot;</span>
+
+    <span class="c1"># factory logic</span>
+    <span class="k">if</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;app_store&quot;</span><span class="p">:</span>
+        <span class="n">descriptor</span> <span class="o">=</span> <span class="n">IODescriptorAppStore</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">,</span> <span class="n">sg</span><span class="p">,</span> <span class="n">descriptor_type</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;shotgun&quot;</span><span class="p">:</span>
+        <span class="n">descriptor</span> <span class="o">=</span> <span class="n">IODescriptorShotgunEntity</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">,</span> <span class="n">sg</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;manual&quot;</span><span class="p">:</span>
+        <span class="n">descriptor</span> <span class="o">=</span> <span class="n">IODescriptorManual</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">,</span> <span class="n">descriptor_type</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;git&quot;</span><span class="p">:</span>
+        <span class="n">descriptor</span> <span class="o">=</span> <span class="n">IODescriptorGitTag</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">,</span> <span class="n">descriptor_type</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;git_branch&quot;</span><span class="p">:</span>
+        <span class="n">descriptor</span> <span class="o">=</span> <span class="n">IODescriptorGitBranch</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;dev&quot;</span><span class="p">:</span>
+        <span class="n">descriptor</span> <span class="o">=</span> <span class="n">IODescriptorDev</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span>
+        <span class="n">descriptor</span> <span class="o">=</span> <span class="n">IODescriptorPath</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span><span class="s2">&quot;Unknown descriptor type for &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">descriptor_dict</span><span class="p">)</span>
+
+    <span class="c1"># specify where to go look for caches</span>
+    <span class="n">descriptor</span><span class="o">.</span><span class="n">set_cache_roots</span><span class="p">(</span><span class="n">bundle_cache_root</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">resolve_latest</span><span class="p">:</span>
+        <span class="c1">#@todo - in the future, attempt to get &quot;remote&quot; latest first</span>
+        <span class="c1">#        and if that fails, fall back on the latest item</span>
+        <span class="c1">#        available in the local cache.</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Searching for latest version...&quot;</span><span class="p">)</span>
+        <span class="n">descriptor</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_latest_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Resolved latest to be </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
+
+    <span class="c1"># Now see if we should cache it. Only cache descriptors that represent immutable</span>
+    <span class="k">if</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">is_immutable</span><span class="p">():</span>
+        <span class="n">g_cached_instances</span><span class="p">[</span><span class="n">descriptor_uri</span><span class="p">]</span> <span class="o">=</span> <span class="n">descriptor</span>
+
+    <span class="k">return</span> <span class="n">descriptor</span>
+
+<div class="viewcode-block" id="descriptor_uri_to_dict"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.descriptor_uri_to_dict">[docs]</a><span class="k">def</span> <span class="nf">descriptor_uri_to_dict</span><span class="p">(</span><span class="n">uri</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Translates a descriptor uri into a dictionary.</span>
+
+<span class="sd">    :param uri: descriptor string uri</span>
+<span class="sd">    :returns: descriptor dictionary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">IODescriptorBase</span>
+    <span class="k">return</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">dict_from_uri</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="descriptor_dict_to_uri"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.descriptor_dict_to_uri">[docs]</a><span class="k">def</span> <span class="nf">descriptor_dict_to_uri</span><span class="p">(</span><span class="n">ddict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Translates a descriptor dictionary into a uri.</span>
+
+<span class="sd">    :param ddict: descriptor dictionary</span>
+<span class="sd">    :returns: descriptor uri</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">IODescriptorBase</span>
+    <span class="k">return</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">uri_from_dict</span><span class="p">(</span><span class="n">ddict</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

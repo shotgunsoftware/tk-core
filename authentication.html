@@ -1,0 +1,856 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Authentication &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="index.html"/>
+        <link rel="prev" title="Descriptor API" href="descriptor.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Authentication</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-reference">API Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#shotgunauthenticator">ShotgunAuthenticator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shotgunuser">ShotgunUser</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#defaultsmanager">DefaultsManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#exception-classes">Exception Classes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Authentication</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="authentication">
+<h1>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>When you run the Shotgun pipeline Toolkit, it will connect to Shotgun on a regular basis in order to carry out
+certain operations. For example, you publish a new render or you browse for an item that you want to load into
+your scene. In order to do that, Toolkit will need to log in to Shotgun, either to read or write data, which means that it will
+need to make sure the current user is authenticated so that a connection with the Shotgun server can be established.</p>
+<p>Toolkit uses session tokens for authentication. These are unique identifiers which are generated by the Shotgun server.
+Whenever a Shotgun API request comes in from Toolkit, this session token is passed along so that the server can
+validate it and grant access to the request. These session tokens time out after a certain period of inactivity,
+usually 24 hours, and whenever this happens, the user is typically prompted to enter their password again in order
+for Toolkit to retrieve a new session token.</p>
+<p>This <code class="docutils literal"><span class="pre">sgtk.authentication</span></code> API handles the notion of the current user and wraps around the Shotgun API to ensure that
+if a session times out, the user is prompted to re-enter their credentials. The API and process for
+authentication can be summarized as follows:</p>
+<ul class="simple">
+<li>A <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> class is used to handle the actual authentication process. This can be called
+in various ways and also wraps around storing authenticated sessions so that the user doesn&#8217;t have to keep
+typing their password in.</li>
+<li>After a successful authentication operation, the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> returns a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> object.
+This object represents the user and can be used to generate a Shotgun API instance which belongs to the user. The
+generated API instance is subclassed from the normal Shotgun API and gracefully traps when the user credentials are
+no longer valid (which usually happens after a certain period of inactivity). In this case it will automatically
+present the user with a password prompt.</li>
+<li><a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> objects can be serialized via the <a class="reference internal" href="#sgtk.authentication.serialize_user" title="sgtk.authentication.serialize_user"><code class="xref py py-meth docutils literal"><span class="pre">serialize_user()</span></code></a> and <a class="reference internal" href="#sgtk.authentication.deserialize_user" title="sgtk.authentication.deserialize_user"><code class="xref py py-meth docutils literal"><span class="pre">deserialize_user()</span></code></a> methods
+and can be passed between multiple sessions, say for example when a DCC is launched or when a job
+is sent to the render farm.</li>
+<li>Toolkit core does not have a built-in notion of the current user so this needs to be explicitly set via the
+<a class="reference internal" href="core.html#sgtk.set_authenticated_user" title="sgtk.set_authenticated_user"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.set_authenticated_user()</span></code></a> method. If you are using the Bootstrap process to start up Toolkit, you
+pass a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> directly to the <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> constructor.</li>
+<li>If you want to control how the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> creates a user object and caches session data
+inbetween invocations, you can subclass the <a class="reference internal" href="#sgtk.authentication.DefaultsManager" title="sgtk.authentication.DefaultsManager"><code class="xref py py-class docutils literal"><span class="pre">DefaultsManager</span></code></a>.</li>
+</ul>
+<p>Normally, the tk session is created automatically as part of the DCC launch process, <code class="docutils literal"><span class="pre">tank</span></code> command or Shotgun
+Desktop, so there is little to worry about. There are some use cases where controlling the authentication directly
+may be useful:</p>
+<ul>
+<li><p class="first">If you are dispatching jobs to the render farm, you can serialize and deserialize the user object from the
+dispatching DCC. Use the <a class="reference internal" href="core.html#sgtk.get_authenticated_user" title="sgtk.get_authenticated_user"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.get_authenticated_user()</span></code></a> to extract the user object from your current
+session and <a class="reference internal" href="core.html#sgtk.set_authenticated_user" title="sgtk.set_authenticated_user"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.set_authenticated_user()</span></code></a> to set it on your remote session.</p>
+</li>
+<li><p class="first">If you want to use an explicit script user, use <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator.create_script_user" title="sgtk.authentication.ShotgunAuthenticator.create_script_user"><code class="xref py py-meth docutils literal"><span class="pre">ShotgunAuthenticator.create_script_user()</span></code></a> to create
+a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> object representing a script. This may look like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+
+<span class="c1"># create an authenticator object. This is the main object which</span>
+<span class="c1"># handles all authentication</span>
+<span class="n">sa</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">authentication</span><span class="o">.</span><span class="n">ShotgunAuthenticator</span><span class="p">()</span>
+
+<span class="c1"># Use the authenticator to create a user object. This object</span>
+<span class="c1"># identifies a Shotgun user or script and also wraps around</span>
+<span class="c1"># a Shotgun API instance which is associated with that user.</span>
+<span class="n">user</span> <span class="o">=</span> <span class="n">sa</span><span class="o">.</span><span class="n">create_script_user</span><span class="p">(</span><span class="n">api_script</span><span class="o">=</span><span class="s2">&quot;myscript&quot;</span><span class="p">,</span>
+                             <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;xxxxx&quot;</span><span class="p">,</span>
+                             <span class="n">host</span><span class="o">=</span><span class="s2">&quot;https://myhost.shotgunstudio.com&quot;</span><span class="p">)</span>
+
+<span class="c1"># tell the Toolkit Core API which user to use</span>
+<span class="n">sgtk</span><span class="o">.</span><span class="n">set_authenticated_user</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">If you want to use a standard UI to prompt a user for a host, username and password.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="shotgunauthenticator">
+<h3>ShotgunAuthenticator<a class="headerlink" href="#shotgunauthenticator" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.authentication.ShotgunAuthenticator">
+<em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">ShotgunAuthenticator</code><span class="sig-paren">(</span><em>defaults_manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ShotgunAuthenticator is the central object in the Shotgun authentication
+module. It helps you with authentication and login and makes it easy to
+create and maintain a shotgun connection so that it belongs to a given user.
+It also helps store who the current user is, so that users don&#8217;t have to log
+in over and over again, but only when needed.</p>
+<p>A simple use case scenario would look something like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create an authenticator</span>
+<span class="n">sa</span> <span class="o">=</span> <span class="n">ShotgunAuthenticator</span><span class="p">()</span>
+
+<span class="c1"># Get a user object. If the authenticator system has already</span>
+<span class="c1"># stored a default user belonging to a default shotgun site,</span>
+<span class="c1"># it will simply return this. Otherwise, it will pop up a UI</span>
+<span class="c1"># asking the user to log in.</span>
+<span class="n">user</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">get_user</span><span class="p">()</span>
+
+<span class="c1"># now the user object can be used to generate an authenticated</span>
+<span class="c1"># Shotgun connection.</span>
+<span class="n">sg</span> <span class="o">=</span>  <span class="n">user</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span>
+
+<span class="c1"># This connection will automatically monitor itself and in the</span>
+<span class="c1"># case the user credentials (session token) that the user object</span>
+<span class="c1"># encapsulates expires or become invalid, the shotgun connection</span>
+<span class="c1"># instance will automatically pop up a UI, asking the user</span>
+<span class="c1"># to type in their password. This typically happens after</span>
+<span class="c1"># 24 hours of inactivity.</span>
+</pre></div>
+</div>
+<p>In addition to the simple code sample, there are a few more concepts:</p>
+<ul class="simple">
+<li>User objects are serializable, meaning that you can pass one from
+one process to another, allowing you to maintain an experience where
+a user is authenticated across multiple applications. This is useful
+if you for example want to launch RV from Maya or Maya from the
+Shotgun Desktop</li>
+<li>The authenticator maintains the concept of a default user - which
+can be used in order to present good defaults in UIs as well as
+headless script based authentication flows.</li>
+<li>The API provides methods for authentication where client code
+can request that the user is prompted to log in.</li>
+<li>On the backend, a defaults manager can be specified which implements
+the logic for how various settings are to be stored. This makes
+it possible to easily customize the behavior of the authenticator
+to work in different scenarios.</li>
+</ul>
+<p>For more information, please see the individual methods below.</p>
+<p>Constructor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>defaults_manager</strong> &#8211; A DefaultsManager object that defines the basic
+behavior of this authenticator. If omitted,
+the default, built-in DefaultsManager will be
+used.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunAuthenticator.clear_default_user">
+<code class="descname">clear_default_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.clear_default_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.clear_default_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the default user&#8217;s credentials from disk for the default host. The
+next time the ShotgunAuthenticator.get_default_user() method is called,
+None will be returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">If a user was cleared, the user object is returned, None otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunAuthenticator.get_user_from_prompt">
+<code class="descname">get_user_from_prompt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.get_user_from_prompt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.get_user_from_prompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display a UI prompt (QT based UI if possible but may fall back on console)</p>
+<p>The DefaultsManager is called to pre-fill the host and login name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>AuthenticationCancelled</strong> &#8211; If the user cancels the authentication process,
+an AuthenticationCancelled is thrown.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The SessionUser based on the login information provided.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunAuthenticator.create_session_user">
+<code class="descname">create_session_user</code><span class="sig-paren">(</span><em>login</em>, <em>session_token=None</em>, <em>password=None</em>, <em>host=None</em>, <em>http_proxy=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.create_session_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.create_session_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an AuthenticatedUser given a set of human user credentials.
+Either a password or session token must be supplied. If a password is supplied,
+a session token will be generated for security reasons.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>login</strong> &#8211; Shotgun user login</li>
+<li><strong>session_token</strong> &#8211; Shotgun session token</li>
+<li><strong>password</strong> &#8211; Shotgun password</li>
+<li><strong>host</strong> &#8211; Shotgun host to log in to. If None, the default host will be used.</li>
+<li><strong>http_proxy</strong> &#8211; Shotgun proxy to use. If None, the default http proxy will be used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> instance.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunAuthenticator.create_script_user">
+<code class="descname">create_script_user</code><span class="sig-paren">(</span><em>api_script</em>, <em>api_key</em>, <em>host=None</em>, <em>http_proxy=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.create_script_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.create_script_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an AuthenticatedUser given a set of script credentials.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>script_user</strong> &#8211; Shotgun script user</li>
+<li><strong>script_key</strong> &#8211; Shotgun script key</li>
+<li><strong>host</strong> &#8211; Shotgun host to log in to. If None, the default host will
+be used.</li>
+<li><strong>http_proxy</strong> &#8211; Shotgun proxy to use. If None, the default http proxy
+will be used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived instance.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunAuthenticator.get_default_host">
+<code class="descname">get_default_host</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.get_default_host"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.get_default_host" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the host from the defaults manager.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The default host string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunAuthenticator.get_default_http_proxy">
+<code class="descname">get_default_http_proxy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.get_default_http_proxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.get_default_http_proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the HTTP proxy from the defaults manager.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The default http proxy string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunAuthenticator.get_default_user">
+<code class="descname">get_default_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.get_default_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.get_default_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the default user from the defaults manager.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived instance if available, None otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunAuthenticator.get_user">
+<code class="descname">get_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.get_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.get_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method will always return a valid user. It will first ask for the
+default user to the defaults manager. If none is found, the user will
+be prompted on the command line or from a dialog for their credentials.
+Once the user has entered valid credentials, the default user will be
+updated with these.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived instance matching the credentials
+provided.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#sgtk.authentication.AuthenticationCancelled" title="sgtk.authentication.AuthenticationCancelled"><code class="xref py py-class docutils literal"><span class="pre">AuthenticationCancelled</span></code></a> is raised
+if the user cancelled the authentication.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="shotgunuser">
+<h3>ShotgunUser<a class="headerlink" href="#shotgunuser" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.authentication.ShotgunUser">
+<em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">ShotgunUser</code><span class="sig-paren">(</span><em>impl</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a Shotgun user, either a script or a person and provides an entry point
+into the authentication system.</p>
+<p>User objects are created via the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> object, which will handle
+caching user objects on disk, prompting the user for their credentials etc.</p>
+<p>Once you have retrieved one of the user objects below, this can be used to access
+Shotgun in a seamless way. The <a class="reference internal" href="#sgtk.authentication.ShotgunUser.create_sg_connection" title="sgtk.authentication.ShotgunUser.create_sg_connection"><code class="xref py py-meth docutils literal"><span class="pre">create_sg_connection()</span></code></a> will return a Shotgun API handle
+which is associated with the current user. This API handle is also monitored for
+authentication timeouts, so if the user&#8217;s session times out (typically due to periods
+of inactivity), the user may be prompted (via a QT UI or stdin/stdout if only
+console is accessible) to refresh their Shotgun session by typing in their password.</p>
+<p>If you need to persist the user object, this is possible via the serialization
+methods. This is particularly useful if you need to pass a user object from one
+process to another, for example when launching a DCC such as Maya or Nuke.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>impl</strong> &#8211; Internal user implementation class this class proxies.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.authentication.ShotgunUser.host">
+<code class="descname">host</code><a class="headerlink" href="#sgtk.authentication.ShotgunUser.host" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the host for this user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The host string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.authentication.ShotgunUser.http_proxy">
+<code class="descname">http_proxy</code><a class="headerlink" href="#sgtk.authentication.ShotgunUser.http_proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the HTTP proxy for this user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The HTTP proxy string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.authentication.ShotgunUser.login">
+<code class="descname">login</code><a class="headerlink" href="#sgtk.authentication.ShotgunUser.login" title="Permalink to this definition">¶</a></dt>
+<dd><p>The login for this current user. For Shotgun user types that don&#8217;t have a concept
+of a login (like API scripts), None is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The login string or None.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunUser.create_sg_connection">
+<code class="descname">create_sg_connection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser.create_sg_connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser.create_sg_connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Shotgun connection using the credentials for this user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A Shotgun connection.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunUser.are_credentials_expired">
+<code class="descname">are_credentials_expired</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser.are_credentials_expired"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser.are_credentials_expired" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if the credentials for the user are expired.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the credentials are expired, False otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunUser.refresh_credentials">
+<code class="descname">refresh_credentials</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser.refresh_credentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser.refresh_credentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the credentials of this user so that they don&#8217;t expire.
+If they are expired, you will be prompted for the user&#8217;s password.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="defaultsmanager">
+<h3>DefaultsManager<a class="headerlink" href="#defaultsmanager" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.authentication.DefaultsManager">
+<em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">DefaultsManager</code><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>The defaults manager allows a client of the Shotgun Authenticator class
+to customize various behaviors around data storage and settings.</p>
+<p>By default, when you construct a <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> object, it will be
+instantiated with a standard defaults manager implementation. This will 
+work for most cases - user session credentials will be stored in a file
+on disk and the system maintains a concept of a current user and a current 
+host.</p>
+<p>If, however, you want to implement a custom behavior around how defaults
+are managed, simply derive from this class and pass your custom instance 
+to the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> object when you construct it.</p>
+<dl class="method">
+<dt id="sgtk.authentication.DefaultsManager.is_host_fixed">
+<code class="descname">is_host_fixed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.is_host_fixed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.is_host_fixed" title="Permalink to this definition">¶</a></dt>
+<dd><p>When doing an interactive login, this indicates if the user can decide
+the host to connect to. In its default implementation, the <a class="reference internal" href="#sgtk.authentication.DefaultsManager" title="sgtk.authentication.DefaultsManager"><code class="xref py py-class docutils literal"><span class="pre">DefaultsManager</span></code></a>
+will indicate that the host is not fixed, meaning that the user will be
+presented with an option to pick a site at login time.</p>
+<p>With something like Toolkit, where each project already have a specific
+site association, you typically want to override this to return True,
+indicating to the authenticator not to ask the user which site they want 
+to log in to.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">False if the user should be given an option to decide which host
+to log in to, True if the host is already predetermined and cannot
+be changed by the user.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.DefaultsManager.get_host">
+<code class="descname">get_host</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.get_host"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.get_host" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default host is used as a useful starting point when doing
+interactive authentication. When the host is not fixed (see the 
+<a class="reference internal" href="#sgtk.authentication.DefaultsManager.is_host_fixed" title="sgtk.authentication.DefaultsManager.is_host_fixed"><code class="xref py py-meth docutils literal"><span class="pre">is_host_fixed()</span></code></a> method), the return value of get_host is what is
+used to implement single sign-on between all Toolkit desktop 
+applications (at the moment, tank and Shotgun Desktop).</p>
+<p>The default implementation maintains a concept of a &#8220;current host&#8221;
+which will be presented as a default to users when they are 
+logging in.</p>
+<p>When the host is fixed, this must return a value and this value will
+be used as an absolute rather than a default suggested to the user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A string containing the default host name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.DefaultsManager.set_host">
+<code class="descname">set_host</code><span class="sig-paren">(</span><em>host</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.set_host"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.set_host" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by the authentication system when a new host has been defined.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>host</strong> &#8211; The new default host.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.DefaultsManager.get_http_proxy">
+<code class="descname">get_http_proxy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.get_http_proxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.get_http_proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by the authentication system when it needs to retrieve the 
+proxy settings to use for a Shotgun connection.</p>
+<p>The format should be the same as is being used in the Shotgun API.
+For more information, see the Shotgun API documentation:
+<a class="reference external" href="https://github.com/shotgunsoftware/python-api/wiki/Reference%3A-Methods#shotgun">https://github.com/shotgunsoftware/python-api/wiki/Reference%3A-Methods#shotgun</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String containing the default http proxy, None by default.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.DefaultsManager.get_login">
+<code class="descname">get_login</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.get_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.get_login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by the authentication system when it needs to get a
+value for the login. Typically this is used to populate UI
+fields with defaults.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Default implementation returns the login for the 
+currently stored user.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.DefaultsManager.get_user_credentials">
+<code class="descname">get_user_credentials</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.get_user_credentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.get_user_credentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by the authentication system when it requests a default or current user.</p>
+<p>A dictionary with a login and a session token should be returned, which will
+allow the authentication system to authenticate the user.</p>
+<p>The default implementation maintains a concept where it stores the currently 
+authenticated user and its session token and tries to return this if possible, 
+effectively meaning that the user will be automatically logged in without having
+to be prompted.</p>
+<p>This is typically subclassed if you want to track the notion of a current
+user in an alternative way or maintain a separate notion of the &#8220;current&#8221; user,
+separate from the default user maintained by the default implementation.</p>
+<p>Toolkit uses the default implementation and will therefore remember the user&#8217;s
+credentials across all DCCs and tools.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dictionary either with keys login and session_token in the case
+of a normal Shotgun User, keys api_script and api_key in the case of a Script
+User or None in case no credentials could be established.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.DefaultsManager.set_login">
+<code class="descname">set_login</code><span class="sig-paren">(</span><em>login</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.set_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.set_login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by the authentication system when a new user is being logged in.</p>
+<p>The default implementation maintains a concept of a default user 
+(returned via the get_user_credentials) and whenever the login is set
+via this method, the default user will change to be this login instead.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>login</strong> &#8211; login as string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="utilities">
+<h3>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="sgtk.authentication.deserialize_user">
+<code class="descclassname">sgtk.authentication.</code><code class="descname">deserialize_user</code><span class="sig-paren">(</span><em>payload</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#deserialize_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.deserialize_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a payload produced by serialize into any of the ShotgunUser
+derived instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params payload:</th><td class="field-body">Pickled dictionary of values</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A ShotgunUser derived instance.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.authentication.serialize_user">
+<code class="descclassname">sgtk.authentication.</code><code class="descname">serialize_user</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#serialize_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.serialize_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serializes a user. Meant to be consumed by deserialize.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user</strong> &#8211; User object that needs to be serialized.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The payload representing the user.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="exception-classes">
+<h3>Exception Classes<a class="headerlink" href="#exception-classes" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.authentication.ShotgunAuthenticationError">
+<em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">ShotgunAuthenticationError</code><a class="reference internal" href="_modules/tank/authentication/errors.html#ShotgunAuthenticationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for all exceptions coming out from this module.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.authentication.AuthenticationError">
+<em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">AuthenticationError</code><a class="reference internal" href="_modules/tank/authentication/errors.html#AuthenticationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.AuthenticationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thrown when credentials are rejected by the server.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.authentication.IncompleteCredentials">
+<em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">IncompleteCredentials</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/errors.html#IncompleteCredentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.IncompleteCredentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thrown when credentials are provided but are incomplete.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.authentication.AuthenticationCancelled">
+<em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">AuthenticationCancelled</code><a class="reference internal" href="_modules/tank/authentication/errors.html#AuthenticationCancelled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.AuthenticationCancelled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thrown when the user cancels authentication or session renewal.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="descriptor.html" class="btn btn-neutral" title="Descriptor API" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

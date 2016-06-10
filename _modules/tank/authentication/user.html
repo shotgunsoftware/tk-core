@@ -1,0 +1,377 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.authentication.user &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.authentication.user</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.authentication.user</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2015 Shotgun Software Inc.</span>
+<span class="c1">#</span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">user_impl</span>
+
+
+<div class="viewcode-block" id="ShotgunUser"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunUser">[docs]</a><span class="k">class</span> <span class="nc">ShotgunUser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a Shotgun user, either a script or a person and provides an entry point</span>
+<span class="sd">    into the authentication system.</span>
+
+<span class="sd">    User objects are created via the :class:`ShotgunAuthenticator` object, which will handle</span>
+<span class="sd">    caching user objects on disk, prompting the user for their credentials etc.</span>
+
+<span class="sd">    Once you have retrieved one of the user objects below, this can be used to access</span>
+<span class="sd">    Shotgun in a seamless way. The :meth:`create_sg_connection()` will return a Shotgun API handle</span>
+<span class="sd">    which is associated with the current user. This API handle is also monitored for</span>
+<span class="sd">    authentication timeouts, so if the user&#39;s session times out (typically due to periods</span>
+<span class="sd">    of inactivity), the user may be prompted (via a QT UI or stdin/stdout if only</span>
+<span class="sd">    console is accessible) to refresh their Shotgun session by typing in their password.</span>
+
+<span class="sd">    If you need to persist the user object, this is possible via the serialization</span>
+<span class="sd">    methods. This is particularly useful if you need to pass a user object from one</span>
+<span class="sd">    process to another, for example when launching a DCC such as Maya or Nuke.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">impl</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param impl: Internal user implementation class this class proxies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span> <span class="o">=</span> <span class="n">impl</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">host</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the host for this user.</span>
+
+<span class="sd">        :returns: The host string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">get_host</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">http_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the HTTP proxy for this user.</span>
+
+<span class="sd">        :returns: The HTTP proxy string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">get_host</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The login for this current user. For Shotgun user types that don&#39;t have a concept</span>
+<span class="sd">        of a login (like API scripts), None is returned. </span>
+
+<span class="sd">        :returns: The login string or None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="p">,</span> <span class="n">user_impl</span><span class="o">.</span><span class="n">SessionUser</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">get_login</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="ShotgunUser.create_sg_connection"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunUser.create_sg_connection">[docs]</a>    <span class="k">def</span> <span class="nf">create_sg_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a Shotgun connection using the credentials for this user.</span>
+
+<span class="sd">        :returns: A Shotgun connection.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ShotgunUser.are_credentials_expired"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunUser.are_credentials_expired">[docs]</a>    <span class="k">def</span> <span class="nf">are_credentials_expired</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if the credentials for the user are expired.</span>
+
+<span class="sd">        :returns: True if the credentials are expired, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">are_credentials_expired</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ShotgunUser.refresh_credentials"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunUser.refresh_credentials">[docs]</a>    <span class="k">def</span> <span class="nf">refresh_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Refreshes the credentials of this user so that they don&#39;t expire.</span>
+<span class="sd">        If they are expired, you will be prompted for the user&#39;s password.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Make a very simple authenticated request that returns as little information as possible.</span>
+        <span class="c1"># If the session token was expired, the ShotgunWrapper returned by create_sg_connection</span>
+        <span class="c1"># will take care of the session renewal.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s2">&quot;HumanUser&quot;</span><span class="p">,</span> <span class="p">[])</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the name of the user.</span>
+
+<span class="sd">        :returns: The user&#39;s name string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">impl</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a string reprensentation of the user.</span>
+
+<span class="sd">        :returns: A string reprensentation of the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">impl</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">impl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the user implementation object. Note: Retrieving the implementation</span>
+<span class="sd">        object is unsupported and should not be attempted. It is there to expose</span>
+<span class="sd">        functionality to the internals of the authentication module. We</span>
+<span class="sd">        reserve the right to alter the interface of the implementation object</span>
+<span class="sd">        as it needs to.</span>
+
+<span class="sd">        :returns: The ShotgunUserImpl derived object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span></div>
+
+
+<div class="viewcode-block" id="serialize_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.serialize_user">[docs]</a><span class="k">def</span> <span class="nf">serialize_user</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Serializes a user. Meant to be consumed by deserialize.</span>
+
+<span class="sd">    :param user: User object that needs to be serialized.</span>
+
+<span class="sd">    :returns: The payload representing the user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">user_impl</span><span class="o">.</span><span class="n">serialize_user</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">impl</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="deserialize_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.deserialize_user">[docs]</a><span class="k">def</span> <span class="nf">deserialize_user</span><span class="p">(</span><span class="n">payload</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts a payload produced by serialize into any of the ShotgunUser</span>
+<span class="sd">    derived instance.</span>
+
+<span class="sd">    :params payload: Pickled dictionary of values</span>
+
+<span class="sd">    :returns: A ShotgunUser derived instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ShotgunUser</span><span class="p">(</span><span class="n">user_impl</span><span class="o">.</span><span class="n">deserialize_user</span><span class="p">(</span><span class="n">payload</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

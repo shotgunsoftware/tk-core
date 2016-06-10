@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.api &mdash; tk-core 31455_sphinx_api_docs documentation</title>
+  <title>tank.api &mdash; tk-core v0.18.0RC1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core 31455_sphinx_api_docs documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -49,11 +49,16 @@
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search">
           
-    <img style='width: 191px; 
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
                 height: 60px; 
+                margin: 2px;
                 border-radius: 0px; 
                 padding: 0px;' 
-         src='./_static/logo@2x.png'/>
+            src='../../_static/logo@2x.png'/>
+    
+    </a>
     
 
           
@@ -84,10 +89,12 @@
             
             
                 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../core_api.html">Toolkit Core API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../platform_api.html">Toolkit Platform API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../filesystem_configuration.html">Configuring the file system</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../environment_configuration.html">Configuration the Environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authentication.html">Authentication</a></li>
 </ul>
 
             
@@ -109,9 +116,11 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> 31455_sphinx_api_docs.<br>
-    This documentation is part of the Shotgun Pipeline Toolkit. 
-    For more information, please visit 
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
     <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
     The code associated with this documentation can be found 
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
@@ -159,55 +168,62 @@
            <div itemprop="articleBody">
             
   <h1>Source code for tank.api</h1><div class="highlight"><pre>
-<span class="c"># Copyright (c) 2013 Shotgun Software Inc.</span>
-<span class="c"># </span>
-<span class="c"># CONFIDENTIAL AND PROPRIETARY</span>
-<span class="c"># </span>
-<span class="c"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
-<span class="c"># Source Code License included in this distribution package. See LICENSE.</span>
-<span class="c"># By accessing, using, copying or modifying this work you indicate your </span>
-<span class="c"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
-<span class="c"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+<span></span><span class="c1"># Copyright (c) 2013 Shotgun Software Inc.</span>
+<span class="c1"># </span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1"># </span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Classes for the main Sgtk API.</span>
-
 <span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">glob</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 
-<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">yaml</span>
-
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">folder</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">context</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">shotgun</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">shotgun</span><span class="p">,</span> <span class="n">yaml_cache</span>
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span>
 <span class="kn">from</span> <span class="nn">.path_cache</span> <span class="kn">import</span> <span class="n">PathCache</span>
 <span class="kn">from</span> <span class="nn">.template</span> <span class="kn">import</span> <span class="n">read_templates</span>
-<span class="kn">from</span> <span class="nn">.platform</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">platform_constants</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">log_user_activity_metric</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">pipelineconfig</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">pipelineconfig_utils</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">pipelineconfig_factory</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">LogManager</span>
 
-<span class="k">class</span> <span class="nc">Tank</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Sgtk"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk">[docs]</a><span class="k">class</span> <span class="nc">Sgtk</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Object with presenting interface to tank.</span>
+<span class="sd">    The Toolkit Core API class. Instances of this class are associated with a particular</span>
+<span class="sd">    configuration and contain access methods for a number of low level</span>
+<span class="sd">    Toolkit services such as filesystem creation, hooks, context</span>
+<span class="sd">    manipulation and the Toolkit template system.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :param project_path: Any path inside one of the data locations</span>
+<span class="sd">        Instances of this class should be created via the factory methods</span>
+<span class="sd">        :meth:`sgtk_from_path` and :meth:`sgtk_from_entity`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">__threadlocal_storage</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
 
-        <span class="c"># special stuff to make sure we maintain backwards compatibility in the constructor</span>
-        <span class="c"># if the &#39;project_path&#39; parameter contains a pipeline config object,</span>
-        <span class="c"># just use this straight away. If the param contains a string, assume</span>
-        <span class="c"># this is a path and try to construct a pc from the path</span>
+        <span class="c1"># special stuff to make sure we maintain backwards compatibility in the constructor</span>
+        <span class="c1"># if the &#39;project_path&#39; parameter contains a pipeline config object,</span>
+        <span class="c1"># just use this straight away. If the param contains a string, assume</span>
+        <span class="c1"># this is a path and try to construct a pipeline config from the path</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">project_path</span><span class="p">,</span> <span class="n">pipelineconfig</span><span class="o">.</span><span class="n">PipelineConfiguration</span><span class="p">):</span>
-            <span class="c"># this is actually a pc object</span>
+            <span class="c1"># this is actually a pipeline config object</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span> <span class="o">=</span> <span class="n">project_path</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span> <span class="o">=</span> <span class="n">pipelineconfig_factory</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">project_path</span><span class="p">)</span>
@@ -215,19 +231,19 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">templates</span> <span class="o">=</span> <span class="n">read_templates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s">&quot;Could not read templates configuration: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Could not read templates configuration: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
 
-        <span class="c"># execute a tank_init hook for developers to use.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span><span class="n">platform_constants</span><span class="o">.</span><span class="n">TANK_INIT_HOOK_NAME</span><span class="p">)</span>
+        <span class="c1"># execute a tank_init hook for developers to use.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">TANK_INIT_HOOK_NAME</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&quot;&lt;Sgtk Core </span><span class="si">%s</span><span class="s">@0x</span><span class="si">%08x</span><span class="s"> Config </span><span class="si">%s</span><span class="s">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="o">.</span><span class="n">get_path</span><span class="p">())</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk Core </span><span class="si">%s</span><span class="s2">@0x</span><span class="si">%08x</span><span class="s2"> Config </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="o">.</span><span class="n">get_path</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&quot;Sgtk Core </span><span class="si">%s</span><span class="s">, config </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="o">.</span><span class="n">get_path</span><span class="p">())</span>
+        <span class="k">return</span> <span class="s2">&quot;Sgtk Core </span><span class="si">%s</span><span class="s2">, config </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="o">.</span><span class="n">get_path</span><span class="p">())</span>
 
-    <span class="c">################################################################################################</span>
-    <span class="c"># internal API</span>
+    <span class="c1">################################################################################################</span>
+    <span class="c1"># internal API</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pipeline_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -238,19 +254,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span>
 
-    <span class="k">def</span> <span class="nf">reload_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Reloads the template definitions. If reload fails, the previous </span>
-<span class="sd">        template definitions will be preserved.</span>
-<span class="sd">        </span>
-<span class="sd">        Internal Use Only - We provide no guarantees that this method</span>
-<span class="sd">        will be backwards compatible.        </span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">templates</span> <span class="o">=</span> <span class="n">read_templates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s">&quot;Templates could not be reloaded: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
-
     <span class="k">def</span> <span class="nf">execute_core_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes a core level hook, passing it any keyword arguments supplied.</span>
@@ -259,14 +262,14 @@
 <span class="sd">        will be backwards compatible.</span>
 <span class="sd">        </span>
 <span class="sd">        :param hook_name: Name of hook to execute.</span>
-<span class="sd">        :param **kwargs:  Additional named parameters will be passed to the hook.</span>
+<span class="sd">        :param kwargs:  Additional named parameters will be passed to the hook.</span>
 <span class="sd">        :returns:         Return value of the hook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">execute_core_hook_internal</span><span class="p">(</span><span class="n">hook_name</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="c"># compatibility alias - previously the name of this *internal method* was named execute_hook.</span>
-    <span class="c"># in order to try to avoid breaking client code that uses these *internal methods*, let&#39;s</span>
-    <span class="c"># provide a backwards compatibility alias.</span>
+    <span class="c1"># compatibility alias - previously the name of this *internal method* was named execute_hook.</span>
+    <span class="c1"># in order to try to avoid breaking client code that uses these *internal methods*, let&#39;s</span>
+    <span class="c1"># provide a backwards compatibility alias.</span>
     <span class="n">execute_hook</span> <span class="o">=</span> <span class="n">execute_core_hook</span>
 
     <span class="k">def</span> <span class="nf">execute_core_hook_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_name</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -287,59 +290,101 @@
                                                                              <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> 
                                                                              <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="c">################################################################################################</span>
-    <span class="c"># properties</span>
+    <span class="k">def</span> <span class="nf">log_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Log a core metric.</span>
+
+<span class="sd">        :param action: Action string to log, e.g. &#39;Init&#39;</span>
+
+<span class="sd">        Logs a user activity metric as performed within core. This is</span>
+<span class="sd">        a convenience method that auto-populates the module portion of</span>
+<span class="sd">        `tank.util.log_user_activity_metric()`</span>
+
+<span class="sd">        Internal Use Only - We provide no guarantees that this method</span>
+<span class="sd">        will be backwards compatible.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">full_action</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;tk-core&#39;</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+        <span class="n">log_user_activity_metric</span><span class="p">(</span><span class="s1">&#39;tk-core&#39;</span><span class="p">,</span> <span class="n">full_action</span><span class="p">)</span>
+
+
+    <span class="c1">################################################################################################</span>
+    <span class="c1"># properties</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">project_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Path to the primary root directory for a project.</span>
-<span class="sd">        If no primary root directory exists, an exception is raised.</span>
+<span class="sd">        Path to the primary data directory for a project.</span>
+
+<span class="sd">        Toolkit Projects that utilize the template system to read and write data</span>
+<span class="sd">        to disk will use a number of Shotgun local storages as part of their setup</span>
+<span class="sd">        to define where data should be stored on disk. One of these storages</span>
+<span class="sd">        are identified as the &#39;primary&#39; storage root and this is the value</span>
+<span class="sd">        returned by this property.</span>
+
+<span class="sd">        :raises: :class:`TankError` if the configuration doesn&#39;t use storages.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="o">.</span><span class="n">get_primary_data_root</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">roots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a dictionary of root names to root paths. </span>
-<span class="sd">        In the case of a single project root, there will only be one entry. </span>
+<span class="sd">        Returns a dictionary of root names to root paths.</span>
+
+<span class="sd">        Toolkit Projects that utilize the template system to read and write data</span>
+<span class="sd">        to disk will use a number of Shotgun local storages as part of their setup</span>
+<span class="sd">        to define where data should be stored on disk. This method returns a dictionary</span>
+<span class="sd">        keyed by storage root name with the value being the path on the current</span>
+<span class="sd">        operating system platform::</span>
+
+<span class="sd">            {&quot;primary&quot;: &quot;/studio/my_project&quot;, &quot;textures&quot;: &quot;/textures/my_project&quot;}</span>
+
+<span class="sd">        These items reflect the Local Storages that you have set up in Shotgun.</span>
+<span class="sd">        Each project in the Pipeline Toolkit is connected to a number of these</span>
+<span class="sd">        storages - these storages define the root points for all the different</span>
+<span class="sd">        data locations for your project. So for example, if you have a mount</span>
+<span class="sd">        point for textures, one for renders and one for production data such</span>
+<span class="sd">        as scene files, you can set up a multi root configuration which uses</span>
+<span class="sd">        three Local Storages in Shotgun. This method returns the project</span>
+<span class="sd">        storage locations for the current project. The key is the name of the local</span>
+<span class="sd">        storage, the way it is defined in Shotgun. The value is the path which is defined in the</span>
+<span class="sd">        Shotgun Local storage definition for the current operating system,</span>
+<span class="sd">        concatenated with the project folder name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="o">.</span><span class="n">get_data_roots</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">shotgun_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The shotgun url associated with this API session.</span>
-<span class="sd">        </span>
-<span class="sd">        :returns: url as string, for example &#39;https://mysite.shotgunstudio.com&#39;</span>
+<span class="sd">        The associated shotgun url, e.g. ``https://mysite.shotgunstudio.com``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">shotgun</span><span class="o">.</span><span class="n">get_associated_sg_base_url</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Lazily create a Shotgun API handle.</span>
+<span class="sd">        Just-in-time access to a per-thread Shotgun API instance.</span>
+
 <span class="sd">        This Shotgun API is threadlocal, meaning that each thread will get</span>
 <span class="sd">        a separate instance of the Shotgun API. This is in order to prevent</span>
 <span class="sd">        concurrency issues and add a layer of basic protection around the </span>
 <span class="sd">        Shotgun API, which isn&#39;t threadsafe.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="n">sg</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__threadlocal_storage</span><span class="p">,</span> <span class="s">&quot;sg&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">sg</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__threadlocal_storage</span><span class="p">,</span> <span class="s2">&quot;sg&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">sg</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">sg</span> <span class="o">=</span> <span class="n">shotgun</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__threadlocal_storage</span><span class="o">.</span><span class="n">sg</span> <span class="o">=</span> <span class="n">sg</span>
 
-        <span class="c"># pass on information to the user agent manager which core version is returning</span>
-        <span class="c"># this sg handle. This information will be passed to the web server logs</span>
-        <span class="c"># in the shotgun data centre and makes it easy to track which core versions</span>
-        <span class="c"># are being used by clients</span>
+        <span class="c1"># pass on information to the user agent manager which core version is returning</span>
+        <span class="c1"># this sg handle. This information will be passed to the web server logs</span>
+        <span class="c1"># in the shotgun data centre and makes it easy to track which core versions</span>
+        <span class="c1"># are being used by clients</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">sg</span><span class="o">.</span><span class="n">tk_user_agent_handler</span><span class="o">.</span><span class="n">set_current_core</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-            <span class="c"># looks like this sg instance for some reason does not have a</span>
-            <span class="c"># tk user agent handler associated.</span>
+            <span class="c1"># looks like this sg instance for some reason does not have a</span>
+            <span class="c1"># tk user agent handler associated.</span>
             <span class="k">pass</span>
 
         <span class="k">return</span> <span class="n">sg</span>
@@ -348,30 +393,23 @@
     <span class="k">def</span> <span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The version of the tank Core API (e.g. v0.2.3)</span>
-
-<span class="sd">        :returns: string representing the version</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pipelineconfig_utils</span><span class="o">.</span><span class="n">get_currently_running_api_version</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">documentation_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the relevant documentation url for this app.</span>
-
-<span class="sd">        :returns: url string, None if no documentation was found</span>
+<span class="sd">        A url pointing at relevant documentation for this version of the Toolkit Core</span>
+<span class="sd">        or None if no documentation is associated.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># read this from info.yml</span>
-        <span class="n">info_yml_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s">&quot;..&quot;</span><span class="p">,</span> <span class="s">&quot;..&quot;</span><span class="p">,</span> <span class="s">&quot;info.yml&quot;</span><span class="p">))</span>
+        <span class="c1"># read this from info.yml</span>
+        <span class="n">info_yml_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;info.yml&quot;</span><span class="p">))</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">info_fh</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">info_fh</span><span class="p">)</span>
-            <span class="k">finally</span><span class="p">:</span>
-                <span class="n">info_fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;documentation_url&quot;</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">data</span> <span class="o">==</span> <span class="s">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;documentation_url&quot;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">data</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span>
 
         <span class="k">return</span> <span class="n">data</span>
@@ -379,16 +417,36 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">configuration_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the name of the currently running pipeline configuration</span>
+<span class="sd">        The name of the currently running pipeline configuration</span>
 <span class="sd">        </span>
 <span class="sd">        :returns: pipeline configuration name as string, e.g. &#39;primary&#39;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
 
-    <span class="c">##########################################################################################</span>
-    <span class="c"># public methods</span>
+    <span class="c1">##########################################################################################</span>
+    <span class="c1"># public methods</span>
 
-    <span class="k">def</span> <span class="nf">list_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Sgtk.reload_templates"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.reload_templates">[docs]</a>    <span class="k">def</span> <span class="nf">reload_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reloads the template definitions from disk. If the reload fails a</span>
+<span class="sd">        :class:`TankError` will be raised and the previous template definitions</span>
+<span class="sd">        will be preserved.</span>
+
+<span class="sd">        .. note:: This method can be helpful if you are tweaking</span>
+<span class="sd">                 templates inside of for example Maya and want to reload them. You can</span>
+<span class="sd">                 then access this method from the python console via the current engine</span>
+<span class="sd">                 handle::</span>
+
+<span class="sd">                    sgtk.platform.current_engine().sgtk.reload_templates()</span>
+
+<span class="sd">        :raises: :class:`TankError`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">templates</span> <span class="o">=</span> <span class="n">read_templates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Templates could not be reloaded: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Sgtk.list_commands"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.list_commands">[docs]</a>    <span class="k">def</span> <span class="nf">list_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Lists the system commands registered with the system.</span>
 <span class="sd">        </span>
@@ -398,14 +456,16 @@
 <span class="sd">        anything app or engine related and validation and overview functionality.</span>
 <span class="sd">        In addition to these commands, the global commands such as project setup</span>
 <span class="sd">        and core API check commands will also be returned.</span>
-<span class="sd">    </span>
+
+<span class="sd">        For more information, see :meth:`sgtk.list_commands`</span>
+
 <span class="sd">        :returns: list of command names</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># avoid cyclic dependencies</span>
-        <span class="kn">from</span> <span class="nn">.deploy</span> <span class="kn">import</span> <span class="n">tank_command</span>
-        <span class="k">return</span> <span class="n">tank_command</span><span class="o">.</span><span class="n">list_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> 
+        <span class="c1"># avoid cyclic dependencies</span>
+        <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">commands</span>
+        <span class="k">return</span> <span class="n">commands</span><span class="o">.</span><span class="n">list_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">get_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command_name</span><span class="p">):</span>
+<div class="viewcode-block" id="Sgtk.get_command"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.get_command">[docs]</a>    <span class="k">def</span> <span class="nf">get_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns an instance of a command object that can be used to execute a command.</span>
 <span class="sd">        </span>
@@ -414,24 +474,30 @@
 <span class="sd">        Lastly, you can execute the command by running the execute() method.</span>
 <span class="sd">        </span>
 <span class="sd">        In order to get a list of the available commands, use the list_commands() method.</span>
-<span class="sd">                </span>
+
+<span class="sd">        For more information, see :meth:`sgtk.get_command`</span>
+
 <span class="sd">        :param command_name: Name of command to execute. Get a list of all available commands</span>
-<span class="sd">                             using the tk.list_commands() method.</span>
+<span class="sd">                             using the :meth:`list_commands` method.</span>
 <span class="sd">        </span>
-<span class="sd">        :returns: SgtkSystemCommand object instance</span>
+<span class="sd">        :returns: :class:`~sgtk.SgtkSystemCommand` object instance</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># avoid cyclic dependencies</span>
-        <span class="kn">from</span> <span class="nn">.deploy</span> <span class="kn">import</span> <span class="n">tank_command</span>
-        <span class="k">return</span> <span class="n">tank_command</span><span class="o">.</span><span class="n">get_command</span><span class="p">(</span><span class="n">command_name</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span> 
+        <span class="c1"># avoid cyclic dependencies</span>
+        <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">commands</span>
+        <span class="k">return</span> <span class="n">commands</span><span class="o">.</span><span class="n">get_command</span><span class="p">(</span><span class="n">command_name</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
         
-    <span class="k">def</span> <span class="nf">template_from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Finds a template that matches the input path.</span>
+<div class="viewcode-block" id="Sgtk.template_from_path"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.template_from_path">[docs]</a>    <span class="k">def</span> <span class="nf">template_from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds a template that matches the given path::</span>
 
-<span class="sd">        :param input_path: path against which to match a template.</span>
-<span class="sd">        :type  input_path: string representation of a path</span>
+<span class="sd">            &gt;&gt;&gt; import sgtk</span>
+<span class="sd">            &gt;&gt;&gt; tk = sgtk.sgtk_from_path(&quot;/studio/project_root&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; tk.template_from_path(&quot;/studio/my_proj/assets/Car/Anim/work&quot;)</span>
+<span class="sd">            &lt;Sgtk Template maya_asset_project: assets/%(Asset)s/%(Step)s/work&gt;</span>
 
-<span class="sd">        :returns: Template matching this path</span>
-<span class="sd">        :rtype: Template instance or None</span>
+
+<span class="sd">        :param path: Path to match against a template</span>
+<span class="sd">        :returns: :class:`TemplatePath` or None if no match could be found.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">matched_templates</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">template</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -443,46 +509,64 @@
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">matched_templates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">matched_templates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c"># ambiguity!</span>
-            <span class="c"># We&#39;re erroring out anyway, take the time to create helpful debug info!</span>
+            <span class="c1"># ambiguity!</span>
+            <span class="c1"># We&#39;re erroring out anyway, take the time to create helpful debug info!</span>
             <span class="n">matched_fields</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="n">matched_templates</span><span class="p">:</span>
                 <span class="n">matched_fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
 
-            <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%d</span><span class="s"> templates are matching the path &#39;</span><span class="si">%s</span><span class="s">&#39;.</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">matched_templates</span><span class="p">),</span> <span class="n">path</span><span class="p">)</span>
-            <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;The overlapping templates are:</span><span class="se">\n</span><span class="s">&quot;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> templates are matching the path &#39;</span><span class="si">%s</span><span class="s2">&#39;.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">matched_templates</span><span class="p">),</span> <span class="n">path</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;The overlapping templates are:</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="k">for</span> <span class="n">fields</span><span class="p">,</span> <span class="n">template</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">matched_fields</span><span class="p">,</span> <span class="n">matched_templates</span><span class="p">):</span>
-                <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">paths_from_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skip_missing_optional_keys</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Sgtk.paths_from_template"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.paths_from_template">[docs]</a>    <span class="k">def</span> <span class="nf">paths_from_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skip_missing_optional_keys</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Finds paths that match a template using field values passed.</span>
 
-<span class="sd">        By omitting fields, you are effectively adding wild cards to the search.</span>
-<span class="sd">        So if a template requires Shot, Sequence, Name and Version, and you</span>
-<span class="sd">        omit the version fields from the fields dictionary, the method</span>
-<span class="sd">        will return paths to all the different versions you can find.</span>
-<span class="sd">        </span>
-<span class="sd">        If an optional key is specified in skip_keys then all paths that</span>
-<span class="sd">        contain a match for that key as well as paths that don&#39;t contain</span>
-<span class="sd">        a value for the key will be returned.</span>
-<span class="sd">        </span>
-<span class="sd">        If skip_missing_optional_keys is True then all optional keys not</span>
-<span class="sd">        included in the fields dictionary will be considered as skip keys.</span>
+<span class="sd">        This is useful if you want to get a list of files matching a particular</span>
+<span class="sd">        template and set of fields. One common pattern is when you are dealing</span>
+<span class="sd">        with versions, and you want to retrieve all the different versions for a</span>
+<span class="sd">        file. In that case just resolve all the fields for the file you want to operate</span>
+<span class="sd">        on, then pass those in to the paths_from_template() method. By passing version to</span>
+<span class="sd">        the ``skip_keys`` parameter, the method will return all the versions associated</span>
+<span class="sd">        with your original file.</span>
 
-<span class="sd">        For more information and examples, see the API documentation.</span>
+<span class="sd">        Any keys that are required by the template but aren&#39;t included in the fields</span>
+<span class="sd">        dictionary are always skipped. Any optional keys that aren&#39;t included are only</span>
+<span class="sd">        skipped if the ``skip_missing_optional_keys`` parameter is set to True.</span>
+
+<span class="sd">        If an optional key is to be skipped, all matching paths that contain a value for</span>
+<span class="sd">        that key as well as those that don&#39;t will be included in the result.</span>
+
+<span class="sd">        .. note:: The result is not ordered in any particular way.</span>
+
+<span class="sd">        Imagine you have a template ``maya_work: sequences/{Sequence}/{Shot}/work/{name}.v{version}.ma``::</span>
+
+<span class="sd">            &gt;&gt;&gt; import sgtk</span>
+<span class="sd">            &gt;&gt;&gt; tk = sgtk.sgtk_from_path(&quot;/studio/my_proj&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; maya_work = tk.templates[&quot;maya_work&quot;]</span>
+
+<span class="sd">        All fields that you don&#39;t specify will be searched for. So if we want to search for all</span>
+<span class="sd">        names and versions for a particular sequence and shot, we can do::</span>
+
+<span class="sd">            &gt;&gt;&gt; tk.paths_from_template(maya_work, {&quot;Sequence&quot;: &quot;AAA&quot;, &quot;Shot&quot;: &quot;001&quot;})</span>
+<span class="sd">            /studio/my_proj/sequences/AAA/001/work/background.v001.ma</span>
+<span class="sd">            /studio/my_proj/sequences/AAA/001/work/background.v002.ma</span>
+<span class="sd">            /studio/my_proj/sequences/AAA/001/work/background.v003.ma</span>
+<span class="sd">            /studio/my_proj/sequences/AAA/001/work/mainscene.v001.ma</span>
+<span class="sd">            /studio/my_proj/sequences/AAA/001/work/mainscene.v002.ma</span>
+<span class="sd">            /studio/my_proj/sequences/AAA/001/work/mainscene.v003.ma</span>
 
 <span class="sd">        :param template: Template against whom to match.</span>
-<span class="sd">        :type  template: Tank.Template instance.</span>
+<span class="sd">        :type  template: :class:`TemplatePath`</span>
 <span class="sd">        :param fields: Fields and values to use.</span>
-<span class="sd">        :type  fields: Dictionary.</span>
+<span class="sd">        :type  fields: Dictionary</span>
 <span class="sd">        :param skip_keys: Keys whose values should be ignored from the fields parameter.</span>
-<span class="sd">        :type  skip_keys: List of key names.</span>
+<span class="sd">        :type  skip_keys: List of key names</span>
 <span class="sd">        :param skip_missing_optional_keys: Specify if optional keys should be skipped if they </span>
 <span class="sd">                                        aren&#39;t found in the fields collection</span>
-<span class="sd">        :type skip_missing_optional_keys: Boolean</span>
-<span class="sd">        </span>
 <span class="sd">        :returns: Matching file paths</span>
 <span class="sd">        :rtype: List of strings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -490,88 +574,112 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">skip_keys</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
             <span class="n">skip_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">skip_keys</span><span class="p">]</span>
         
-        <span class="c"># construct local fields dictionary that doesn&#39;t include any skip keys:</span>
+        <span class="c1"># construct local fields dictionary that doesn&#39;t include any skip keys:</span>
         <span class="n">local_fields</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span> <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">skip_keys</span><span class="p">)</span>
         
-        <span class="c"># we always want to automatically skip &#39;required&#39; keys that weren&#39;t</span>
-        <span class="c"># specified so add wildcards for them to the local fields</span>
+        <span class="c1"># we always want to automatically skip &#39;required&#39; keys that weren&#39;t</span>
+        <span class="c1"># specified so add wildcards for them to the local fields</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">template</span><span class="o">.</span><span class="n">missing_keys</span><span class="p">(</span><span class="n">local_fields</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">skip_keys</span><span class="p">:</span>
                 <span class="n">skip_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-            <span class="n">local_fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;*&quot;</span>
+            <span class="n">local_fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
             
-        <span class="c"># iterate for each set of keys in the template:</span>
+        <span class="c1"># iterate for each set of keys in the template:</span>
         <span class="n">found_files</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="n">globs_searched</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">keys</span> <span class="ow">in</span> <span class="n">template</span><span class="o">.</span><span class="n">_keys</span><span class="p">:</span>
-            <span class="c"># create fields and skip keys with those that </span>
-            <span class="c"># are relevant for this key set:</span>
+            <span class="c1"># create fields and skip keys with those that </span>
+            <span class="c1"># are relevant for this key set:</span>
             <span class="n">current_local_fields</span> <span class="o">=</span> <span class="n">local_fields</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="n">current_skip_keys</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">skip_keys</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
                     <span class="n">current_skip_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-                    <span class="n">current_local_fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;*&quot;</span>
+                    <span class="n">current_local_fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
             
-            <span class="c"># find remaining missing keys - these will all be optional keys:</span>
+            <span class="c1"># find remaining missing keys - these will all be optional keys:</span>
             <span class="n">missing_optional_keys</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">_missing_keys</span><span class="p">(</span><span class="n">current_local_fields</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">missing_optional_keys</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">skip_missing_optional_keys</span><span class="p">:</span>
-                    <span class="c"># Add wildcard for each optional key missing from the input fields</span>
+                    <span class="c1"># Add wildcard for each optional key missing from the input fields</span>
                     <span class="k">for</span> <span class="n">missing_key</span> <span class="ow">in</span> <span class="n">missing_optional_keys</span><span class="p">:</span>
-                        <span class="n">current_local_fields</span><span class="p">[</span><span class="n">missing_key</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;*&quot;</span>
+                        <span class="n">current_local_fields</span><span class="p">[</span><span class="n">missing_key</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
                         <span class="n">current_skip_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">missing_key</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="c"># if there are missing fields then we won&#39;t be able to</span>
-                    <span class="c"># form a valid path from them so skip this key set</span>
+                    <span class="c1"># if there are missing fields then we won&#39;t be able to</span>
+                    <span class="c1"># form a valid path from them so skip this key set</span>
                     <span class="k">continue</span>
             
-            <span class="c"># Apply the fields to build the glob string to search with:</span>
+            <span class="c1"># Apply the fields to build the glob string to search with:</span>
             <span class="n">glob_str</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">_apply_fields</span><span class="p">(</span><span class="n">current_local_fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="n">current_skip_keys</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">glob_str</span> <span class="ow">in</span> <span class="n">globs_searched</span><span class="p">:</span>
-                <span class="c"># it&#39;s possible that multiple key sets return the same search</span>
-                <span class="c"># string depending on the fields and skip-keys passed in</span>
+                <span class="c1"># it&#39;s possible that multiple key sets return the same search</span>
+                <span class="c1"># string depending on the fields and skip-keys passed in</span>
                 <span class="k">continue</span>
             <span class="n">globs_searched</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">glob_str</span><span class="p">)</span>
             
-            <span class="c"># Find all files which are valid for this key set</span>
+            <span class="c1"># Find all files which are valid for this key set</span>
             <span class="n">found_files</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">found_file</span> <span class="k">for</span> <span class="n">found_file</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span><span class="n">glob_str</span><span class="p">)</span> <span class="k">if</span> <span class="n">template</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">found_file</span><span class="p">)])</span>
                     
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">found_files</span><span class="p">)</span> 
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">found_files</span><span class="p">)</span> </div>
 
 
-    <span class="k">def</span> <span class="nf">abstract_paths_from_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">fields</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns an abstract path based on a template.</span>
+<div class="viewcode-block" id="Sgtk.abstract_paths_from_template"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.abstract_paths_from_template">[docs]</a>    <span class="k">def</span> <span class="nf">abstract_paths_from_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">fields</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns an abstract path based on a template.</span>
 
-<span class="sd">        This method is similar to paths_from_template with the addition that</span>
-<span class="sd">        abstract fields (such as sequence fields and any other field that is</span>
-<span class="sd">        marked as being abstract) is returned as their abstract value by default.</span>
+<span class="sd">        Similar to :meth:`paths_from_template`, but optimized for abstract fields</span>
+<span class="sd">        such as image sequences and stereo patterns.</span>
 
-<span class="sd">        So rather than returning a value for every single frame in an image sequence,</span>
-<span class="sd">        this method will return a single path representing all the frames and using the</span>
-<span class="sd">        abstract value &#39;%04d&#39; for the sequence key. Similarly, it may be useful to return</span>
-<span class="sd">        %V to represent an eye (assuming an eye template has been defined and marked as abstract)</span>
+<span class="sd">        An *abstract field* is for example an image sequence pattern</span>
+<span class="sd">        token, such as ``%04d``, ``%V`` or ``@@@@@``. This token represents</span>
+<span class="sd">        a large collection of files. This method will return abstract fields whenever</span>
+<span class="sd">        it can, and it will attempt to optimize the calls based on abstract</span>
+<span class="sd">        pattern matching, trying to avoid doing a thousand file lookups for a</span>
+<span class="sd">        thousand frames in a sequence.</span>
 
-<span class="sd">        For more information and examples, see the API documentation.</span>
+<span class="sd">        It works exactly like :meth:`paths_from_template` with the difference</span>
+<span class="sd">        that any field marked as abstract in the configuration will use its</span>
+<span class="sd">        default value rather than any matched file values. Sequence</span>
+<span class="sd">        fields are abstract by default.</span>
 
-<span class="sd">        :param template: Template with which to search.</span>
+<span class="sd">        .. note:: The result is not ordered in any particular way.</span>
+
+<span class="sd">        Imagine you have a template ``render: sequences/{Sequence}/{Shot}/images/{eye}/{name}.{SEQ}.exr``::</span>
+
+<span class="sd">            &gt;&gt;&gt; import sgtk</span>
+<span class="sd">            &gt;&gt;&gt; tk = sgtk.sgtk_from_path(&quot;/studio/my_proj&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; render = tk.templates[&quot;render&quot;]</span>
+
+<span class="sd">        All fields that you don&#39;t specify will be searched for. So if we want to search for all</span>
+<span class="sd">        names and versions for a particular sequence and shot, we can do::</span>
+
+<span class="sd">            &gt;&gt;&gt; tk.abstract_paths_from_template(maya_work, {&quot;Sequence&quot;: &quot;AAA&quot;, &quot;Shot&quot;: &quot;001&quot;})</span>
+<span class="sd">            /studio/my_proj/sequences/AAA/001/images/%V/render_1.%04d.exr</span>
+<span class="sd">            /studio/my_proj/sequences/AAA/001/images/%V/render_2.%04d.exr</span>
+<span class="sd">            /studio/my_proj/sequences/AAA/001/images/%V/render_3.%04d.exr</span>
+
+
+<span class="sd">        :param template: Template with which to search</span>
+<span class="sd">        :type  template: :class:`TemplatePath`</span>
 <span class="sd">        :param fields: Mapping of keys to values with which to assemble the abstract path.</span>
+<span class="sd">        :type fields: dictionary</span>
 
 <span class="sd">        :returns: A list of paths whose abstract keys use their abstract(default) value unless</span>
 <span class="sd">                  a value is specified for them in the fields parameter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">search_template</span> <span class="o">=</span> <span class="n">template</span>
 
-        <span class="c"># the logic is as follows:</span>
-        <span class="c"># do a glob and collapse abstract fields down into their abstract patterns</span>
-        <span class="c"># unless they are specified with values in the fields dictionary</span>
-        <span class="c">#</span>
-        <span class="c"># if the leaf level can be avoided, do so.</span>
-        <span class="c"># the leaf level can be avoided if it contains</span>
-        <span class="c"># a combination of non-abstract templates with values in the fields dict</span>
-        <span class="c"># and abstract templates.</span>
+        <span class="c1"># the logic is as follows:</span>
+        <span class="c1"># do a glob and collapse abstract fields down into their abstract patterns</span>
+        <span class="c1"># unless they are specified with values in the fields dictionary</span>
+        <span class="c1">#</span>
+        <span class="c1"># if the leaf level can be avoided, do so.</span>
+        <span class="c1"># the leaf level can be avoided if it contains</span>
+        <span class="c1"># a combination of non-abstract templates with values in the fields dict</span>
+        <span class="c1"># and abstract templates.</span>
 
-        <span class="c"># can we avoid the leaf level?</span>
+        <span class="c1"># can we avoid the leaf level?</span>
         <span class="n">leaf_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">keys</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">keys</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
         <span class="n">abstract_key_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">template</span><span class="o">.</span><span class="n">keys</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">is_abstract</span><span class="p">]</span>
@@ -579,207 +687,212 @@
         <span class="n">skip_leaf_level</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">leaf_keys</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">abstract_key_names</span><span class="p">:</span>
-                <span class="c"># a non-abstract key</span>
+                <span class="c1"># a non-abstract key</span>
                 <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
-                    <span class="c"># with no value</span>
+                    <span class="c1"># with no value</span>
                     <span class="n">skip_leaf_level</span> <span class="o">=</span> <span class="bp">False</span>
                     <span class="k">break</span>
 
         <span class="k">if</span> <span class="n">skip_leaf_level</span><span class="p">:</span>
             <span class="n">search_template</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">parent</span>
 
-        <span class="c"># now carry out a regular search based on the template</span>
+        <span class="c1"># now carry out a regular search based on the template</span>
         <span class="n">found_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">paths_from_template</span><span class="p">(</span><span class="n">search_template</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
 
         <span class="n">st_abstract_key_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">search_template</span><span class="o">.</span><span class="n">keys</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">is_abstract</span><span class="p">]</span>
 
-        <span class="c"># now collapse down the search matches for any abstract fields,</span>
-        <span class="c"># and add the leaf level if necessary</span>
+        <span class="c1"># now collapse down the search matches for any abstract fields,</span>
+        <span class="c1"># and add the leaf level if necessary</span>
         <span class="n">abstract_paths</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">found_file</span> <span class="ow">in</span> <span class="n">found_files</span><span class="p">:</span>
 
             <span class="n">cur_fields</span> <span class="o">=</span> <span class="n">search_template</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">found_file</span><span class="p">)</span>
 
-            <span class="c"># pass 1 - go through the fields for this file and</span>
-            <span class="c"># zero out the abstract fields - this way, apply</span>
-            <span class="c"># fields will pick up defaults for those fields</span>
-            <span class="c">#</span>
-            <span class="c"># if the system found matches for eye=left and eye=right,</span>
-            <span class="c"># by deleting all eye values they will be replaced by %V</span>
-            <span class="c"># as the template is applied.</span>
-            <span class="c">#</span>
+            <span class="c1"># pass 1 - go through the fields for this file and</span>
+            <span class="c1"># zero out the abstract fields - this way, apply</span>
+            <span class="c1"># fields will pick up defaults for those fields</span>
+            <span class="c1">#</span>
+            <span class="c1"># if the system found matches for eye=left and eye=right,</span>
+            <span class="c1"># by deleting all eye values they will be replaced by %V</span>
+            <span class="c1"># as the template is applied.</span>
+            <span class="c1">#</span>
             <span class="k">for</span> <span class="n">abstract_key_name</span> <span class="ow">in</span> <span class="n">st_abstract_key_names</span><span class="p">:</span>
                 <span class="k">del</span> <span class="n">cur_fields</span><span class="p">[</span><span class="n">abstract_key_name</span><span class="p">]</span>
 
-            <span class="c"># pass 2 - if we ignored the leaf level, add those fields back</span>
-            <span class="c"># note that there is no risk that we add abstract fields at this point</span>
-            <span class="c"># since the fields dictionary should only ever contain &quot;real&quot; values.</span>
-            <span class="c"># also, we may have deleted actual fields in the pass above and now we</span>
-            <span class="c"># want to put them back again.</span>
+            <span class="c1"># pass 2 - if we ignored the leaf level, add those fields back</span>
+            <span class="c1"># note that there is no risk that we add abstract fields at this point</span>
+            <span class="c1"># since the fields dictionary should only ever contain &quot;real&quot; values.</span>
+            <span class="c1"># also, we may have deleted actual fields in the pass above and now we</span>
+            <span class="c1"># want to put them back again.</span>
             <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cur_fields</span><span class="p">:</span>
                     <span class="n">cur_fields</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">]</span>
 
-            <span class="c"># now we have all the fields we need to compose the full template</span>
+            <span class="c1"># now we have all the fields we need to compose the full template</span>
             <span class="n">abstract_path</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">cur_fields</span><span class="p">)</span>
             <span class="n">abstract_paths</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">abstract_path</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">abstract_paths</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">abstract_paths</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">paths_from_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
+<div class="viewcode-block" id="Sgtk.paths_from_entity"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.paths_from_entity">[docs]</a>    <span class="k">def</span> <span class="nf">paths_from_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Finds paths associated with an entity.</span>
+<span class="sd">        Finds paths associated with a Shotgun entity.</span>
+
+<span class="sd">        .. note:: Only paths that have been generated by :meth:`create_filesystem_structure` will</span>
+<span class="sd">                 be returned. Such paths are stored in Shotgun as ``FilesystemLocation`` entities.</span>
 
 <span class="sd">        :param entity_type: a Shotgun entity type</span>
-<span class="sd">        :params entity_id: a Shotgun entity id</span>
-
+<span class="sd">        :param entity_id: a Shotgun entity id</span>
 <span class="sd">        :returns: Matching file paths</span>
 <span class="sd">        :rtype: List of strings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="c"># Use the path cache to look up all paths associated with this entity</span>
+        <span class="c1"># Use the path cache to look up all paths associated with this entity</span>
         <span class="n">path_cache</span> <span class="o">=</span> <span class="n">PathCache</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">paths</span> <span class="o">=</span> <span class="n">path_cache</span><span class="o">.</span><span class="n">get_paths</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">primary_only</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">path_cache</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">paths</span>
+        <span class="k">return</span> <span class="n">paths</span></div>
 
-    <span class="k">def</span> <span class="nf">entity_from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<div class="viewcode-block" id="Sgtk.entity_from_path"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.entity_from_path">[docs]</a>    <span class="k">def</span> <span class="nf">entity_from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the shotgun entity associated with a path</span>
+<span class="sd">        Returns the shotgun entity associated with a path.</span>
+
+<span class="sd">        .. note:: Only paths that have been generated by :meth:`create_filesystem_structure` will</span>
+<span class="sd">                 be returned. Such paths are stored in Shotgun as ``FilesystemLocation`` entities.</span>
 
 <span class="sd">        :param path: A path to a folder or file</span>
-
 <span class="sd">        :returns: Shotgun dictionary containing name, type and id or None</span>
 <span class="sd">                  if no path was associated.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># Use the path cache to look up all paths associated with this entity</span>
+        <span class="c1"># Use the path cache to look up all paths associated with this entity</span>
         <span class="n">path_cache</span> <span class="o">=</span> <span class="n">PathCache</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">entity</span> <span class="o">=</span> <span class="n">path_cache</span><span class="o">.</span><span class="n">get_entity</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="n">path_cache</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">entity</span>
+        <span class="k">return</span> <span class="n">entity</span></div>
 
-    <span class="k">def</span> <span class="nf">context_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Sgtk.context_empty"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.context_empty">[docs]</a>    <span class="k">def</span> <span class="nf">context_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates an empty context.</span>
+<span class="sd">        Factory method that constructs an empty Context object.</span>
 
-<span class="sd">        :returns: Context object.</span>
+<span class="sd">        :returns: :class:`Context`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">create_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">create_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
         
-    <span class="k">def</span> <span class="nf">context_from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">previous_context</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Sgtk.context_from_path"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.context_from_path">[docs]</a>    <span class="k">def</span> <span class="nf">context_from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">previous_context</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Derive a context from a path.</span>
+<span class="sd">        Factory method that constructs a context object from a path on disk.</span>
 
 <span class="sd">        :param path: a file system path</span>
-<span class="sd">        :param previous_context: a context object to use to try to automatically extend the generated</span>
+<span class="sd">        :param previous_context: A context object to use to try to automatically extend the generated</span>
 <span class="sd">                                 context if it is incomplete when extracted from the path. For example,</span>
 <span class="sd">                                 the Task may be carried across from the previous context if it is</span>
 <span class="sd">                                 suitable and if the task wasn&#39;t already expressed in the file system</span>
 <span class="sd">                                 path passed in via the path argument.</span>
-<span class="sd">        :returns: Context object.</span>
+<span class="sd">        :type previous_context: :class:`Context`</span>
+<span class="sd">        :returns: :class:`Context`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">previous_context</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">previous_context</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">context_from_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
+<div class="viewcode-block" id="Sgtk.context_from_entity"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.context_from_entity">[docs]</a>    <span class="k">def</span> <span class="nf">context_from_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Derives a context from a Shotgun entity.</span>
+<span class="sd">        Factory method that constructs a context object from a Shotgun entity.</span>
 
 <span class="sd">        :param entity_type: The name of the entity type.</span>
-<span class="sd">        :type  entity_type: String.</span>
 <span class="sd">        :param entity_id: Shotgun id of the entity upon which to base the context.</span>
-<span class="sd">        :type  entity_id: Integer.</span>
-
-<span class="sd">        :returns: Context object.</span>
+<span class="sd">        :returns: :class:`Context`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">from_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">from_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">context_from_entity_dictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">):</span>
+<div class="viewcode-block" id="Sgtk.context_from_entity_dictionary"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.context_from_entity_dictionary">[docs]</a>    <span class="k">def</span> <span class="nf">context_from_entity_dictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Derives a context from a shotgun entity dictionary.  This will try to use any </span>
+<span class="sd">        Derives a context from a shotgun entity dictionary. This will try to use any</span>
 <span class="sd">        linked information available in the dictionary where possible but if it can&#39;t </span>
-<span class="sd">        determine a valid context then it will fall back to &#39;context_from_entity&#39; which </span>
+<span class="sd">        determine a valid context then it will fall back to :meth:`context_from_entity` which</span>
 <span class="sd">        may result in a Shotgun path cache query and be considerably slower.</span>
 
-<span class="sd">        The following values for &#39;entity_dictionary&#39; will result in a context being</span>
+<span class="sd">        The following values for ``entity_dictionary`` will result in a context being</span>
 <span class="sd">        created without falling back to a potential Shotgun query - each entity in the</span>
 <span class="sd">        dictionary (including linked entities) must have the fields: &#39;type&#39;, &#39;id&#39; and </span>
-<span class="sd">        &#39;name&#39; (or the name equivelent for specific entity types, e.g. &#39;content&#39; for </span>
-<span class="sd">        Step entities, &#39;code&#39; for Shot entities, etc.):</span>
+<span class="sd">        &#39;name&#39; (or the name equivalent for specific entity types, e.g. &#39;content&#39; for</span>
+<span class="sd">        Step entities, &#39;code&#39; for Shot entities, etc.)::</span>
 
-<span class="sd">            - {&quot;type&quot;:&quot;Project&quot;, &quot;id&quot;:123, &quot;name&quot;:&quot;My Project&quot;}</span>
+<span class="sd">            {&quot;type&quot;: &quot;Project&quot;, &quot;id&quot;: 123, &quot;name&quot;: &quot;My Project&quot;}</span>
 
-<span class="sd">            - {&quot;type&quot;:&quot;Shot&quot;, &quot;id&quot;:456, &quot;code&quot;:&quot;Shot 001&quot;, </span>
-<span class="sd">                &quot;project&quot;:{&quot;type&quot;:&quot;Project&quot;, &quot;id&quot;:123, &quot;name&quot;:&quot;My Project&quot;}</span>
-<span class="sd">                }</span>
+<span class="sd">            {&quot;type&quot;: &quot;Shot&quot;, &quot;id&quot;: 456, &quot;code&quot;: &quot;Shot 001&quot;,</span>
+<span class="sd">             &quot;project&quot;: {&quot;type&quot;: &quot;Project&quot;, &quot;id&quot;: 123, &quot;name&quot;: &quot;My Project&quot;}</span>
+<span class="sd">            }</span>
 
-<span class="sd">            - {&quot;type&quot;:&quot;Task&quot;, &quot;id&quot;:789, &quot;name&quot;:&quot;Animation&quot;,</span>
-<span class="sd">                &quot;project&quot;:{&quot;type&quot;:&quot;Project&quot;, &quot;id&quot;:123, &quot;name&quot;:&quot;My Project&quot;}} </span>
-<span class="sd">                &quot;entity&quot;:{&quot;type&quot;:&quot;Shot&quot;, &quot;id&quot;:456, &quot;name&quot;:&quot;Shot 001&quot;}</span>
-<span class="sd">                &quot;step&quot;:{&quot;type&quot;:&quot;Step&quot;, &quot;id&quot;:101112, &quot;name&quot;:&quot;Anm&quot;}</span>
-<span class="sd">                }</span>
+<span class="sd">            {&quot;type&quot;: &quot;Task&quot;, &quot;id&quot;: 789, &quot;name&quot;: &quot;Animation&quot;,</span>
+<span class="sd">             &quot;project&quot;: {&quot;type&quot;: &quot;Project&quot;, &quot;id&quot;: 123, &quot;name&quot;: &quot;My Project&quot;}</span>
+<span class="sd">             &quot;entity&quot;: {&quot;type&quot;: &quot;Shot&quot;, &quot;id&quot;: 456, &quot;name&quot;: &quot;Shot 001&quot;}</span>
+<span class="sd">             &quot;step&quot;: {&quot;type&quot;: &quot;Step&quot;, &quot;id&quot;: 101112, &quot;name&quot;: &quot;Anm&quot;}</span>
+<span class="sd">            }</span>
 
-<span class="sd">        The following values for &#39;entity_dictionary&#39; don&#39;t contain enough information to</span>
-<span class="sd">        fully form a context so the code will fall back to &#39;context_from_entity()&#39; which </span>
-<span class="sd">        may then result in a Shotgun query to retrieve the missing information:</span>
+<span class="sd">        The following values for ``entity_dictionary`` don&#39;t contain enough information to</span>
+<span class="sd">        fully form a context so the code will fall back to :meth:`context_from_entity` which</span>
+<span class="sd">        may then result in a Shotgun query to retrieve the missing information::</span>
 
-<span class="sd">            - # missing project name</span>
-<span class="sd">              {&quot;type&quot;:&quot;Project&quot;, &quot;id&quot;:123}</span>
+<span class="sd">            # missing project name</span>
+<span class="sd">            {&quot;type&quot;: &quot;Project&quot;, &quot;id&quot;: 123}</span>
 
-<span class="sd">            - # missing linked project</span>
-<span class="sd">              {&quot;type&quot;:&quot;Shot&quot;, &quot;id&quot;:456, &quot;code&quot;:&quot;Shot 001&quot;}</span>
+<span class="sd">            # missing linked project</span>
+<span class="sd">            {&quot;type&quot;: &quot;Shot&quot;, &quot;id&quot;: 456, &quot;code&quot;: &quot;Shot 001&quot;}</span>
 
-<span class="sd">            - # missing linked project name and linked step</span>
-<span class="sd">              {&quot;type&quot;:&quot;Task&quot;, &quot;id&quot;:789, &quot;name&quot;:&quot;Animation&quot;,</span>
-<span class="sd">                &quot;project&quot;:{&quot;type&quot;:&quot;Project&quot;, &quot;id&quot;:123}} </span>
-<span class="sd">                &quot;entity&quot;:{&quot;type&quot;:&quot;Shot&quot;, &quot;id&quot;:456, &quot;name&quot;:&quot;Shot 001&quot;}</span>
-<span class="sd">                }</span>
+<span class="sd">            # missing linked project name and linked step</span>
+<span class="sd">            {&quot;type&quot;: &quot;Task&quot;, &quot;id&quot;: 789, &quot;name&quot;: &quot;Animation&quot;,</span>
+<span class="sd">             &quot;project&quot;: {&quot;type&quot;: &quot;Project&quot;, &quot;id&quot;: 123}}</span>
+<span class="sd">             &quot;entity&quot;: {&quot;type&quot;: &quot;Shot&quot;, &quot;id&quot;: 456, &quot;name&quot;: &quot;Shot 001&quot;}</span>
+<span class="sd">            }</span>
 
 <span class="sd">        :param entity_dictionary:   A Shotgun entity dictionary containing at least &#39;type&#39;</span>
-<span class="sd">                                    and &#39;id&#39;</span>
-<span class="sd">        :type  entity_dictionary:   dict.</span>
-
-<span class="sd">        :returns: Context object.</span>
+<span class="sd">                                    and &#39;id&#39;. See examples above.</span>
+<span class="sd">        :returns: :class:`Context`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">from_entity_dictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">from_entity_dictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">synchronize_filesystem_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_sync</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Sgtk.synchronize_filesystem_structure"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.synchronize_filesystem_structure">[docs]</a>    <span class="k">def</span> <span class="nf">synchronize_filesystem_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_sync</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Ensures that the filesystem structure on this machine is in sync</span>
 <span class="sd">        with Shotgun. This synchronization is implicitly carried out as part of the </span>
 <span class="sd">        normal folder creation process, however sometimes it is useful to</span>
 <span class="sd">        be able to call it on its own.</span>
 <span class="sd">        </span>
-<span class="sd">        Note that this method is equivalent to the synchronize_folders tank command.</span>
+<span class="sd">        .. note:: That this method is equivalent to the **synchronize_folders** tank command.</span>
 <span class="sd">        </span>
 <span class="sd">        :param full_sync: If set to true, a complete sync will be carried out.</span>
 <span class="sd">                          By default, the sync is incremental.</span>
 <span class="sd">        :returns: List of folders that were synchronized.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">folder</span><span class="o">.</span><span class="n">synchronize_folders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_sync</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">folder</span><span class="o">.</span><span class="n">synchronize_folders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_sync</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">create_filesystem_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Sgtk.create_filesystem_structure"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.create_filesystem_structure">[docs]</a>    <span class="k">def</span> <span class="nf">create_filesystem_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create folders and associated data on disk to reflect branches in the project tree</span>
-<span class="sd">        related to a specific entity.</span>
+<span class="sd">        Create folders and associated data on disk to reflect branches in the project</span>
+<span class="sd">        tree related to a specific entity.</span>
 
-<span class="sd">        :param entity_type: The name of the entity type.</span>
-<span class="sd">        :type  entity_type: String.</span>
-<span class="sd">        :param entity_id: Shotgun id of the entity or list of ids if more than one.</span>
-<span class="sd">        :type  entity_id: Integer or list of integers.</span>
+<span class="sd">        It is possible to set up folder creation so that it happens in two passes -</span>
+<span class="sd">        a primary pass and a deferred pass. Typically, the primary pass is used to</span>
+<span class="sd">        create the high level folder structure and the deferred is executed just before</span>
+<span class="sd">        launching an application environment. It can be used to create application specific</span>
+<span class="sd">        folders or to create a user workspace based on the user launching the application. By</span>
+<span class="sd">        setting the optional engine parameter to a string value (typically the engine name, for</span>
+<span class="sd">        example ``tk-maya``) you can indicate to the system that it should trigger the deferred</span>
+<span class="sd">        pass and recurse down in the part of the configuration that has been marked as being</span>
+<span class="sd">        deferred in the configuration.</span>
+
+<span class="sd">        Note that this is just a string following a convention - typically, we recommend</span>
+<span class="sd">        that an engine name (e.g. &#39;tk-nuke&#39;) is passed in, however all this method is doing</span>
+<span class="sd">        is to relay this string on to the folder creation (schema) setup so that it is</span>
+<span class="sd">        compared with any deferred entries there. In case of a match, the folder creation</span>
+<span class="sd">        will recurse down into the subtree marked as deferred.</span>
+
+<span class="sd">        :param entity_type: Shotgun entity type</span>
+<span class="sd">        :param entity_id: Shotgun id</span>
 <span class="sd">        :param engine: Optional engine name to indicate that a second, engine specific</span>
 <span class="sd">                       folder creation pass should be executed for a particular engine.</span>
-<span class="sd">                       Folders marked as deferred will be processed. Note that this is </span>
-<span class="sd">                       just a string following a convention - typically, we recommend that</span>
-<span class="sd">                       the engine name (e.g. &#39;tk-nuke&#39;) is passed in, however all this metod</span>
-<span class="sd">                       is doing is to relay this string on to the folder creation (schema)</span>
-<span class="sd">                       setup so that it is compared with any deferred entries there. In case</span>
-<span class="sd">                       of a match, the folder creation will recurse down into the subtree </span>
-<span class="sd">                       marked as deferred.</span>
-<span class="sd">        :type engine: String.</span>
-
 <span class="sd">        :returns: The number of folders processed</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">folders</span> <span class="o">=</span> <span class="n">folder</span><span class="o">.</span><span class="n">process_filesystem_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -787,82 +900,106 @@
                                                       <span class="n">entity_id</span><span class="p">,</span>
                                                       <span class="bp">False</span><span class="p">,</span>
                                                       <span class="n">engine</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">folders</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">folders</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">preview_filesystem_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Sgtk.preview_filesystem_structure"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.preview_filesystem_structure">[docs]</a>    <span class="k">def</span> <span class="nf">preview_filesystem_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Previews folders that would be created by create_filesystem_structure.</span>
+<span class="sd">        Previews folders that would be created by :meth:`create_filesystem_structure`.</span>
 
-<span class="sd">        :param entity_type: The name of the entity type.</span>
-<span class="sd">        :type  entity_type: String.</span>
-<span class="sd">        :param entity_id: Shotgun id of the entity or list of ids if more than one.</span>
-<span class="sd">        :type  entity_id: Integer or list of integers.</span>
+<span class="sd">        :param entity_type: Shotgun entity type</span>
+<span class="sd">        :param entity_id: Shotgun id</span>
 <span class="sd">        :param engine: Optional engine name to indicate that a second, engine specific</span>
 <span class="sd">                       folder creation pass should be executed for a particular engine.</span>
-<span class="sd">                       Folders marked as deferred will be processed. Note that this is </span>
-<span class="sd">                       just a string following a convention - typically, we recommend that</span>
-<span class="sd">                       the engine name (e.g. &#39;tk-nuke&#39;) is passed in, however all this metod</span>
-<span class="sd">                       is doing is to relay this string on to the folder creation (schema)</span>
-<span class="sd">                       setup so that it is compared with any deferred entries there. In case</span>
-<span class="sd">                       of a match, the folder creation will recurse down into the subtree </span>
-<span class="sd">                       marked as deferred.</span>
 <span class="sd">        :type engine: String.</span>
-
-<span class="sd">        :returns: List of items processed.</span>
+<span class="sd">        :returns: List of paths that would be created</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">folders</span> <span class="o">=</span> <span class="n">folder</span><span class="o">.</span><span class="n">process_filesystem_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                                       <span class="n">entity_type</span><span class="p">,</span>
                                                       <span class="n">entity_id</span><span class="p">,</span>
                                                       <span class="bp">True</span><span class="p">,</span>
                                                       <span class="n">engine</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">folders</span>
+        <span class="k">return</span> <span class="n">folders</span></div></div>
 
 
-<span class="c">##########################################################################################</span>
-<span class="c"># module methods</span>
+<span class="c1">##########################################################################################</span>
+<span class="c1"># module methods</span>
 
-<span class="k">def</span> <span class="nf">tank_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<div class="viewcode-block" id="sgtk_from_path"><a class="viewcode-back" href="../../core.html#sgtk.sgtk_from_path">[docs]</a><span class="k">def</span> <span class="nf">sgtk_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Create an Sgtk API instance based on a path inside a project.</span>
+<span class="sd">    Creates a Toolkit Core API instance based on a path inside a project</span>
+<span class="sd">    or path pointing directly at a pipeline configuration.</span>
+
+<span class="sd">    :param path: Path to pipeline configuration or to a folder associated with a project.</span>
+<span class="sd">    :returns: :class:`Sgtk` instance</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">Tank</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Tank</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
-<span class="k">def</span> <span class="nf">tank_from_entity</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
+<div class="viewcode-block" id="sgtk_from_entity"><a class="viewcode-back" href="../../core.html#sgtk.sgtk_from_entity">[docs]</a><span class="k">def</span> <span class="nf">sgtk_from_entity</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Create a Sgtk API instance based on a path inside a project.</span>
+<span class="sd">    Creates a Toolkit Core API instance given an entity in Shotgun.</span>
+<span class="sd">    The given object will be looked up in Shotgun and an</span>
+<span class="sd">    associated pipeline configuration will be determined and loaded.</span>
+
+<span class="sd">    :param entity_type: Shotgun entity type, e.g. ``Shot``</span>
+<span class="sd">    :param entity_id: Shotgun entity id</span>
+<span class="sd">    :returns: :class:`Sgtk` instance</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">pc</span> <span class="o">=</span> <span class="n">pipelineconfig_factory</span><span class="o">.</span><span class="n">from_entity</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">Tank</span><span class="p">(</span><span class="n">pc</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Tank</span><span class="p">(</span><span class="n">pc</span><span class="p">)</span></div>
 
 
 <span class="n">_authenticated_user</span> <span class="o">=</span> <span class="bp">None</span>
 
 
-<span class="k">def</span> <span class="nf">set_authenticated_user</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+<div class="viewcode-block" id="set_authenticated_user"><a class="viewcode-back" href="../../core.html#sgtk.set_authenticated_user">[docs]</a><span class="k">def</span> <span class="nf">set_authenticated_user</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Sets the currently authenticated Shotgun user.</span>
-<span class="sd">    :params user: A shotgun_authentication.user.ShotgunUser derived object. Can</span>
-<span class="sd">    be None to clear the authenticated user.</span>
+<span class="sd">    Sets the currently authenticated Shotgun user for the current toolkit session.</span>
+
+<span class="sd">    You instruct the Toolkit API which user the current session is associated with by executing</span>
+<span class="sd">    this command. Conversely, you can use :meth:`get_authenticated_user` to retrieve the current user.</span>
+<span class="sd">    The user object above is created by the ``sgtk.authentication`` part of the API and wraps around the Shotgun</span>
+<span class="sd">    API to provide a continuous and configurable experience around user based Shotgun connections.</span>
+
+<span class="sd">    Normally, Toolkit handles this transparently as part of setting up the `sgtk` instance and there is no need</span>
+<span class="sd">    to call this method. However, if you are running a custom tool which has particular requirements</span>
+<span class="sd">    around authentication, you can provide your own logic if desirable.</span>
+
+<span class="sd">    :param user: A :class:`~sgtk.authentication.ShotgunUser` derived object. Can</span>
+<span class="sd">                 be None to clear the authenticated user.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">_authenticated_user</span>
-    <span class="n">_authenticated_user</span> <span class="o">=</span> <span class="n">user</span>
+    <span class="n">_authenticated_user</span> <span class="o">=</span> <span class="n">user</span></div>
 
 
-<span class="k">def</span> <span class="nf">get_authenticated_user</span><span class="p">():</span>
+<div class="viewcode-block" id="get_authenticated_user"><a class="viewcode-back" href="../../core.html#sgtk.get_authenticated_user">[docs]</a><span class="k">def</span> <span class="nf">get_authenticated_user</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the currently authenticated Shotgun user.</span>
-<span class="sd">    :returns: A shotgun_authentication.user.ShotgunUser derived object if set,</span>
+<span class="sd">    Returns the Shotgun user associated with Toolkit.</span>
+
+<span class="sd">    :returns: A :class:`~sgtk.authentication.ShotgunUser` derived object if set,</span>
 <span class="sd">        None otherwise.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">_authenticated_user</span>
-    <span class="k">return</span> <span class="n">_authenticated_user</span>
+    <span class="k">return</span> <span class="n">_authenticated_user</span></div>
 
-<span class="c">##########################################################################################</span>
-<span class="c"># sgtk API aliases</span>
+<span class="c1">##########################################################################################</span>
+<span class="c1"># Legacy handling</span>
 
-<span class="n">Sgtk</span> <span class="o">=</span> <span class="n">Tank</span>
-<span class="n">sgtk_from_path</span> <span class="o">=</span> <span class="n">tank_from_path</span>
-<span class="n">sgtk_from_entity</span> <span class="o">=</span> <span class="n">tank_from_entity</span>
+<span class="k">def</span> <span class="nf">tank_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Legacy alias for :meth:`sgtk_from_path`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">sgtk_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">tank_from_entity</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Legacy alias for :meth:`sgtk_from_entity`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">sgtk_from_entity</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Tank</span><span class="p">(</span><span class="n">Sgtk</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Legacy alias for :class:`Sgtk`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 </pre></div>
 
            </div>
@@ -874,7 +1011,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Autodesk.
+        &copy; Copyright 2016, Autodesk.
 
     </p>
   </div> 
@@ -895,7 +1032,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'31455_sphinx_api_docs',
+            VERSION:'v0.18.0RC1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

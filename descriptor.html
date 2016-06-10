@@ -1,0 +1,2307 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Descriptor API &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="index.html"/>
+        <link rel="next" title="Authentication" href="authentication.html"/>
+        <link rel="prev" title="Utilities" href="utils.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Descriptor API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#descriptor-types">Descriptor types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#app-store">App store</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shotgun">Shotgun</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#git-and-git-branch">Git and Git branch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#path-and-dev">Path and Dev</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#api-reference">API reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#factory-methods">Factory Methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#appdescriptor">AppDescriptor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enginedescriptor">EngineDescriptor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#frameworkdescriptor">FrameworkDescriptor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configdescriptor">ConfigDescriptor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#coredescriptor">CoreDescriptor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#exceptions">Exceptions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Descriptor API</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="descriptor-api">
+<h1>Descriptor API<a class="headerlink" href="#descriptor-api" title="Permalink to this headline">¶</a></h1>
+<p>Descriptors are used to describe a location of code or configuration.
+They are used extensively by Toolkit and allow a user to configure and drive
+Toolkit in a flexible fashion. Descriptors usually point at a remote location
+and makes it easy to handle code transport from that location into a local cache.
+Descriptors form the backbone for Shotgun deployment and installation. The following
+example shows basic usage:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="kn">from</span> <span class="nn">sgtk.descriptor</span> <span class="k">import</span> <span class="n">Descriptor</span>
+
+<span class="c1"># first, authenticate our user</span>
+<span class="n">sg_auth</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">authentication</span><span class="o">.</span><span class="n">ShotgunAuthenticator</span><span class="p">()</span>
+<span class="n">user</span> <span class="o">=</span> <span class="n">sg_auth</span><span class="o">.</span><span class="n">get_user</span><span class="p">()</span>
+<span class="n">sg</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span>
+
+<span class="c1"># we are fetching v1.2.3 of the default config from the app store</span>
+<span class="n">uri</span> <span class="o">=</span> <span class="s2">&quot;sgtk:descriptor:app_store?name=tk-config-default&amp;version=v1.2.3&quot;</span>
+
+<span class="c1"># create object</span>
+<span class="n">desc</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">descriptor</span><span class="o">.</span><span class="n">create_descriptor</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">CONFIG</span><span class="p">,</span> <span class="n">uri</span><span class="p">)</span>
+
+<span class="c1"># make sure this is cached locally on disk</span>
+<span class="n">desc</span><span class="o">.</span><span class="n">ensure_local</span><span class="p">()</span>
+
+<span class="c1"># check if it is the latest version</span>
+<span class="n">latest_desc</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">find_latest_version</span><span class="p">()</span>
+
+<span class="c1"># see what core is needed for this config</span>
+<span class="n">required_core_uri</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">associated_core_descriptor</span>
+</pre></div>
+</div>
+<p>When descriptors serialized, they can have two different forms:</p>
+<ul>
+<li><p class="first">A descriptor URI is a compact string representation, for example
+<code class="docutils literal"><span class="pre">sgtk:descriptor:app_store?name=tk-config-default&amp;version=v1.2.3</span></code></p>
+</li>
+<li><p class="first">A descriptor dictionary contains the equivalent information in key-value pair form:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;app_store&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v1.2.3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-config-default&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>When a the payload of a descriptor is downloaded, it ends up by default in the <em>global bundle cache</em>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The global bundle cache can be found in the following locations:</p>
+<ul class="simple">
+<li>Macosx: <code class="docutils literal"><span class="pre">~/Library/Caches/Shotgun/bundle_cache</span></code></li>
+<li>Windows: <code class="docutils literal"><span class="pre">%APPDATA%\Shotgun\Caches\bundle_cache</span></code></li>
+<li>Linux: <code class="docutils literal"><span class="pre">~/.shotgun/caches/bundle_cache</span></code></li>
+</ul>
+<p>Unless specified otherwise, this is the location where descriptors will be
+cached locally.</p>
+<p class="last">Older versions of Toolkit Core (prior to v0.18) used to maintain a bundle cache
+in an <code class="docutils literal"><span class="pre">install</span></code> folder inside the pipeline configuration location.</p>
+</div>
+<p>In addition to the location above, you can specify additional folders where the
+descriptor API will go and look for cached items. This is useful if you want to
+pre-cache an environment for your studio or distribute a set of app and engine
+versions as an installable package that require no further retrieval in order
+to function.</p>
+<div class="section" id="descriptor-types">
+<h2>Descriptor types<a class="headerlink" href="#descriptor-types" title="Permalink to this headline">¶</a></h2>
+<p>Several different descriptor types are supported by Toolkit:</p>
+<ul class="simple">
+<li>An <strong>app_store</strong> descriptor represents an item in the Toolkit App Store</li>
+<li>A <strong>shotgun</strong> descriptor represents an item stored in Shotgun</li>
+<li>A <strong>git</strong> descriptor represents a tag in a git repo sitory</li>
+<li>A <strong>git_branch</strong> descriptor represents a commit in a git branch</li>
+<li>A <strong>path</strong> descriptor represents a location on disk</li>
+<li>A <strong>dev</strong> descriptor represents a developer sandbox</li>
+</ul>
+<p>The descriptor API knows how to access and locally cache each of the types above.
+You can control the location where the API caches items and supply additional lookup
+locations if you want to pre-bake your own collection of caches.</p>
+<div class="section" id="app-store">
+<h3>App store<a class="headerlink" href="#app-store" title="Permalink to this headline">¶</a></h3>
+<p>The Toolkit app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
+tested and approved by Shotgun. App store descriptors should include a name and version token and
+are on the following form:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">app_store</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="n">tk</span><span class="o">-</span><span class="n">core</span><span class="p">,</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">v12</span><span class="o">.</span><span class="mf">3.4</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="shotgun">
+<h3>Shotgun<a class="headerlink" href="#shotgun" title="Permalink to this headline">¶</a></h3>
+<p>Represents a Shotgun entity to which a payload has been attached.
+This can be an attachment field on any entity. Typically it will be
+a pipeline configuration. In that configuration, the descriptor represents
+a &#8216;cloud based configuration&#8217;. It could also be a custom entity or non-project
+entity in the case you want to store a descriptor (app, engine or config)
+that can be easily accessed from any project:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">shotgun</span><span class="p">,</span>
+    <span class="n">entity_type</span><span class="p">:</span> <span class="n">PipelineConfiguration</span><span class="p">,</span>  <span class="c1"># entity type</span>
+    <span class="n">name</span><span class="p">:</span> <span class="n">primary</span><span class="p">,</span>                       <span class="c1"># name of the record in shotgun (e.g. &#39;code&#39; field)</span>
+    <span class="n">project_id</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span>                     <span class="c1"># optional project id. If omitted, name is assumed to be unique.</span>
+    <span class="n">field</span><span class="p">:</span> <span class="n">sg_config</span><span class="p">,</span>                    <span class="c1"># attachment field where payload can be found</span>
+    <span class="n">version</span><span class="p">:</span> <span class="mi">456</span>                         <span class="c1"># attachment id of particular attachment</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When the attachment field is updated, the attachment id (e.g. version field in the descriptor) changes, resulting in
+a new descriptor. This can be used to determine the latest version for a Shotgun attachment descriptor.</p>
+</div>
+<div class="section" id="git-and-git-branch">
+<h3>Git and Git branch<a class="headerlink" href="#git-and-git-branch" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">git</span></code> descriptor type is used to track git tags and typically used when you are tracking released
+versions of something. You can use any syntax that git supports, with a path key containing the path
+to the git repository:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v0</span><span class="o">.</span><span class="mf">2.1</span><span class="p">}</span>
+<span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">user</span><span class="nd">@remotehost</span><span class="p">:</span><span class="o">/</span><span class="n">path_to</span><span class="o">/</span><span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v0</span><span class="o">.</span><span class="mf">1.0</span><span class="p">}</span>
+<span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v0</span><span class="o">.</span><span class="mf">1.0</span><span class="p">}</span>
+<span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v0</span><span class="o">.</span><span class="mf">1.0</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>The latest version for a descriptor is determined by retrieving the list of tags for
+the repository and comparing the version numbers in order to determine the highest one.
+For this comparison, <code class="xref py py-class docutils literal"><span class="pre">LooseVersion</span></code> is used and we recommend
+that version numbers follow the semantic versioning standard that can be found at <a class="reference external" href="http://semver.org">http://semver.org</a>.</p>
+<p>The <code class="docutils literal"><span class="pre">git_branch</span></code> descriptor type is typically used during development and allows you to track
+a commit in a particular branch:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="n">master</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mi">17</span><span class="n">fedd8</span><span class="p">}</span>
+<span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="n">master</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">user</span><span class="nd">@remotehost</span><span class="p">:</span><span class="o">/</span><span class="n">path_to</span><span class="o">/</span><span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mi">17</span><span class="n">fedd8</span><span class="p">}</span>
+<span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="n">master</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mi">17</span><span class="n">fedd8</span><span class="p">}</span>
+<span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="n">master</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mi">17</span><span class="n">fedd8</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>You can use both long and short hash formats for the version token. The latest version for a git_branch
+descriptor is defined as the most recent commit for a given branch.</p>
+<p>As shown in the examples above, the git descriptors handle both local and remote repositories.
+They also handle private repositories in github, assuming that you have set up your ssh authentication
+correctly. On Windows, it is recommended that you use forward slashes.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When using the git descriptor, you need to have the git executable in
+the <code class="docutils literal"><span class="pre">PATH</span></code> in order for the API to be able to do a latest check or
+app download. The git exeuctable is, however, not needed during descriptor
+resolve and normal operation.</p>
+</div>
+</div>
+<div class="section" id="path-and-dev">
+<h3>Path and Dev<a class="headerlink" href="#path-and-dev" title="Permalink to this headline">¶</a></h3>
+<p>Pointing Sgtk to an app that resides in the local file system is typically something you do when you do
+development. This is when you use the <code class="docutils literal"><span class="pre">dev</span></code> descriptor:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
+    type: dev,
+    path: /path/to/app
+}
+
+{
+    type: dev,
+    path: ${HOME}/path/to/app
+}
+
+{
+    type: dev,
+    windows_path: c:\path\to\app,
+    linux_path: /path/to/app,
+    mac_path: /path/to/app
+}
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The path and dev descriptors support environment variable resolution.</p>
+</div>
+<p>If you needed to point Toolkit at a path, but intend to use the setup for non-dev purposes, use a <code class="docutils literal"><span class="pre">path</span></code>
+descriptor rather than a dev descriptor. These have identical syntax.</p>
+</div>
+</div>
+<div class="section" id="api-reference">
+<h2>API reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="factory-methods">
+<h3>Factory Methods<a class="headerlink" href="#factory-methods" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="sgtk.descriptor.create_descriptor">
+<code class="descclassname">sgtk.descriptor.</code><code class="descname">create_descriptor</code><span class="sig-paren">(</span><em>sg_connection</em>, <em>descriptor_type</em>, <em>dict_or_uri</em>, <em>bundle_cache_root_override=None</em>, <em>fallback_roots=None</em>, <em>resolve_latest=False</em>, <em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor.html#create_descriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.create_descriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory method. Use this when creating descriptor objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sg_connection</strong> &#8211; Shotgun connection to associated site</li>
+<li><strong>descriptor_type</strong> &#8211; Either <code class="docutils literal"><span class="pre">Descriptor.APP</span></code>, <code class="docutils literal"><span class="pre">CORE</span></code>, <code class="docutils literal"><span class="pre">CONFIG</span></code>, <code class="docutils literal"><span class="pre">ENGINE</span></code> or <code class="docutils literal"><span class="pre">FRAMEWORK</span></code></li>
+<li><strong>dict_or_uri</strong> &#8211; A std descriptor dictionary dictionary or string</li>
+<li><strong>bundle_cache_root_override</strong> &#8211; Optional override for root path to where
+downloaded apps are cached. If not specified,
+the global bundle cache location will be used. This location is a per-user
+cache that is shared across all sites and projects.</li>
+<li><strong>fallback_roots</strong> &#8211; Optional List of immutable fallback cache locations where
+apps will be searched for. Note that when descriptors
+download new content, it always ends up in the
+bundle_cache_root.</li>
+<li><strong>resolve_latest</strong> &#8211; If true, the latest version will be determined and returned.
+If set to True, no version information need to be supplied with
+the descriptor dictionary/uri. Please note that setting this flag
+to true will typically affect performance - an external connection
+is often required in order to establish what the latest version is.</li>
+<li><strong>constraint_pattern</strong> &#8211; <p>If resolve_latest is True, this pattern can be used to constrain
+the search for latest to only take part over a subset of versions.
+This is a string that can be on the following form:</p>
+<blockquote>
+<div><ul>
+<li><code class="docutils literal"><span class="pre">v0.1.2</span></code>, <code class="docutils literal"><span class="pre">v0.12.3.2</span></code>, <code class="docutils literal"><span class="pre">v0.1.3beta</span></code> - a specific version</li>
+<li><code class="docutils literal"><span class="pre">v0.12.x</span></code> - get the highest v0.12 version</li>
+<li><code class="docutils literal"><span class="pre">v1.x.x</span></code> - get the highest v1 version</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.descriptor.descriptor_dict_to_uri">
+<code class="descclassname">sgtk.descriptor.</code><code class="descname">descriptor_dict_to_uri</code><span class="sig-paren">(</span><em>ddict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/io_descriptor/factory.html#descriptor_dict_to_uri"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.descriptor_dict_to_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translates a descriptor dictionary into a uri.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ddict</strong> &#8211; descriptor dictionary</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">descriptor uri</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.descriptor.descriptor_uri_to_dict">
+<code class="descclassname">sgtk.descriptor.</code><code class="descname">descriptor_uri_to_dict</code><span class="sig-paren">(</span><em>uri</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/io_descriptor/factory.html#descriptor_uri_to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.descriptor_uri_to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translates a descriptor uri into a dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>uri</strong> &#8211; descriptor string uri</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">descriptor dictionary</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="appdescriptor">
+<h3>AppDescriptor<a class="headerlink" href="#appdescriptor" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.descriptor.AppDescriptor">
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">AppDescriptor</code><span class="sig-paren">(</span><em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_bundle.html#AppDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.AppDescriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Descriptor that describes a Toolkit App</p>
+<p>Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
+creating new descriptor objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.changelog">
+<code class="descname">changelog</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.changelog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about the changelog for this item.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
+to indicate that no changelog exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.configuration_schema">
+<code class="descname">configuration_schema</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.configuration_schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>The manifest configuration schema for this bundle.
+Always returns a dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Configuration dictionary as defined
+in the manifest or {} if not defined</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><em>target_folder</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy the config descriptor into the specified target location</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> &#8211; Folder to copy the descriptor to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.deprecation_status">
+<code class="descname">deprecation_status</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.deprecation_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about deprecation status.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a tuple (is_deprecated, message) to indicate
+if this item is deprecated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.description">
+<code class="descname">description</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short description of the item.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.display_name">
+<code class="descname">display_name</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.display_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The display name for this item.
+If no display name has been defined, the system name will be returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.documentation_url">
+<code class="descname">documentation_url</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.documentation_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The documentation url for this item or None if not defined.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.download_local">
+<code class="descname">download_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.download_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves this version to local repo.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.ensure_local">
+<code class="descname">ensure_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.ensure_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method. Ensures that the item is locally available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.ensure_shotgun_fields_exist">
+<code class="descname">ensure_shotgun_fields_exist</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.ensure_shotgun_fields_exist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures that any shotgun fields a particular descriptor requires
+exists in shotgun. In the metadata (<code class="docutils literal"><span class="pre">info.yml</span></code>) for an app or an engine,
+it is possible to define a section for this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># the Shotgun fields that this app needs in order to operate correctly</span>
+<span class="n">requires_shotgun_fields</span><span class="p">:</span>
+    <span class="n">Version</span><span class="p">:</span>
+        <span class="o">-</span> <span class="p">{</span> <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;sg_movie_type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>This method will retrieve the metadata and ensure that any required
+fields exists.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This feature may be deprecated in the future.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; Core API instance to use for post install execution. This value
+defaults to <code class="docutils literal"><span class="pre">None</span></code> for backwards compatibility reasons and in
+the case a None value is passed in, the hook will not execute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.exists_local">
+<code class="descname">exists_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.exists_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this item exists in a local repo.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.find_latest_version">
+<code class="descname">find_latest_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.find_latest_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a descriptor object that represents the latest version.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Different descriptor types implements this logic differently,
+but general good practice is to follow the semantic version numbering
+standard for any versions used in conjunction with toolkit. This ensures
+that toolkit can track and correctly determine not just the latest version
+but also apply constraint pattern matching such as looking for the latest
+version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+by the given pattern. Version patterns are on the following forms:</p>
+<blockquote>
+<div><ul class="simple">
+<li>v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</li>
+<li>v0.12.x - get the highest v0.12 version</li>
+<li>v1.x.x - get the highest v1 version</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.get_dict">
+<code class="descname">get_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.get_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dictionary associated with this descriptor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.get_location">
+<code class="descname">get_location</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.get_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dictionary associated with this descriptor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.get_path">
+<code class="descname">get_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.get_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the path to the folder where this item either currently resides
+or would reside in case it existed locally.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.get_uri">
+<code class="descname">get_uri</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.get_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the uri associated with this descriptor
+The uri is a string based representation that is equivalent to the
+descriptor dictionary returned by the get_dict() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Uri string that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.icon_256">
+<code class="descname">icon_256</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.icon_256" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path to a 256px square png icon file representing this item</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.is_dev">
+<code class="descname">is_dev</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.is_dev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this item is intended for development purposes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if this is a developer item</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.is_immutable">
+<code class="descname">is_immutable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.is_immutable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this descriptor never changes its content.
+This is true for most descriptors as they represent a particular
+version, tag or commit of an item. Examples of non-immutable
+descriptors include path and dev descriptors, where the
+descriptor points at a &#8220;live&#8221; location on disk where a user
+can make changes at any time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if this is a developer item</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.required_context">
+<code class="descname">required_context</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.required_context" title="Permalink to this definition">¶</a></dt>
+<dd><p>The required context, if there is one defined, for a bundle.
+This is a list of strings, something along the lines of
+[&#8220;user&#8221;, &#8220;task&#8221;, &#8220;step&#8221;] for an app that requires a context with
+user task and step defined.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of strings, with an empty list meaning no items required.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.required_frameworks">
+<code class="descname">required_frameworks</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.required_frameworks" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of required frameworks for this item.</p>
+<p>Always returns a list - for example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-framework-widget&#39;</span><span class="p">}]</span>
+</pre></div>
+</div>
+<p>Each item contains a name and a version key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of dictionaries</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.run_post_install">
+<code class="descname">run_post_install</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.run_post_install" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a post install hook exists in a descriptor, execute it. In the
+hooks directory for an app or engine, if a &#8216;post_install.py&#8217; hook
+exists, the hook will be executed upon each installation.</p>
+<p>Errors reported in the post install hook will be reported to the error
+log but execution will continue.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">We longer recommend using post install hooks. Should you
+need to use one, take great care when designing it so that
+it can execute correctly for all users, regardless of
+their shotgun and system permissions.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; Core API instance to use for post install execution. This value
+defaults to <code class="docutils literal"><span class="pre">None</span></code> for backwards compatibility reasons and in
+the case a None value is passed in, the hook will not execute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.support_url">
+<code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>A url that points at a support web page associated with this item.
+If not url has been defined, None is returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.supported_engines">
+<code class="descname">supported_engines</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.supported_engines" title="Permalink to this definition">¶</a></dt>
+<dd><p>The engines supported by this app or framework. Examples
+of return values:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">None</span></code> - Works in all engines.</li>
+<li><code class="docutils literal"><span class="pre">[&quot;tk-maya&quot;,</span> <span class="pre">&quot;tk-nuke&quot;]</span></code> - Works in Maya and Nuke.</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.supported_platforms">
+<code class="descname">supported_platforms</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.supported_platforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>The platforms supported. Possible values
+are windows, linux and mac.</p>
+<p>Always returns a list, returns an empty list if there is
+no constraint in place.</p>
+<p>example: [&#8220;windows&#8221;, &#8220;linux&#8221;]
+example: []</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.system_name">
+<code class="descname">system_name</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.system_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short name, suitable for use in configuration files and for folders on disk.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.version">
+<code class="descname">version</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>The version number string for this item.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.AppDescriptor.version_constraints">
+<code class="descname">version_constraints</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.version_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary with version constraints. The absence of a key
+indicates that there is no defined constraint. The following keys can be
+returned: min_sg, min_core, min_engine and min_desktop</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with optional keys min_sg, min_core,
+min_engine and min_desktop</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="enginedescriptor">
+<h3>EngineDescriptor<a class="headerlink" href="#enginedescriptor" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.descriptor.EngineDescriptor">
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">EngineDescriptor</code><span class="sig-paren">(</span><em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_bundle.html#EngineDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Descriptor that describes a Toolkit Engine</p>
+<p>Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
+creating new descriptor objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.changelog">
+<code class="descname">changelog</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.changelog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about the changelog for this item.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
+to indicate that no changelog exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.configuration_schema">
+<code class="descname">configuration_schema</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.configuration_schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>The manifest configuration schema for this bundle.
+Always returns a dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Configuration dictionary as defined
+in the manifest or {} if not defined</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><em>target_folder</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy the config descriptor into the specified target location</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> &#8211; Folder to copy the descriptor to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.deprecation_status">
+<code class="descname">deprecation_status</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.deprecation_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about deprecation status.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a tuple (is_deprecated, message) to indicate
+if this item is deprecated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.description">
+<code class="descname">description</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short description of the item.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.display_name">
+<code class="descname">display_name</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.display_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The display name for this item.
+If no display name has been defined, the system name will be returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.documentation_url">
+<code class="descname">documentation_url</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.documentation_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The documentation url for this item or None if not defined.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.download_local">
+<code class="descname">download_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.download_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves this version to local repo.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.ensure_local">
+<code class="descname">ensure_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.ensure_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method. Ensures that the item is locally available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.ensure_shotgun_fields_exist">
+<code class="descname">ensure_shotgun_fields_exist</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.ensure_shotgun_fields_exist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures that any shotgun fields a particular descriptor requires
+exists in shotgun. In the metadata (<code class="docutils literal"><span class="pre">info.yml</span></code>) for an app or an engine,
+it is possible to define a section for this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># the Shotgun fields that this app needs in order to operate correctly</span>
+<span class="n">requires_shotgun_fields</span><span class="p">:</span>
+    <span class="n">Version</span><span class="p">:</span>
+        <span class="o">-</span> <span class="p">{</span> <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;sg_movie_type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>This method will retrieve the metadata and ensure that any required
+fields exists.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This feature may be deprecated in the future.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; Core API instance to use for post install execution. This value
+defaults to <code class="docutils literal"><span class="pre">None</span></code> for backwards compatibility reasons and in
+the case a None value is passed in, the hook will not execute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.exists_local">
+<code class="descname">exists_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.exists_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this item exists in a local repo.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.find_latest_version">
+<code class="descname">find_latest_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.find_latest_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a descriptor object that represents the latest version.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Different descriptor types implements this logic differently,
+but general good practice is to follow the semantic version numbering
+standard for any versions used in conjunction with toolkit. This ensures
+that toolkit can track and correctly determine not just the latest version
+but also apply constraint pattern matching such as looking for the latest
+version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+by the given pattern. Version patterns are on the following forms:</p>
+<blockquote>
+<div><ul class="simple">
+<li>v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</li>
+<li>v0.12.x - get the highest v0.12 version</li>
+<li>v1.x.x - get the highest v1 version</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.get_dict">
+<code class="descname">get_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.get_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dictionary associated with this descriptor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.get_location">
+<code class="descname">get_location</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.get_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dictionary associated with this descriptor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.get_path">
+<code class="descname">get_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.get_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the path to the folder where this item either currently resides
+or would reside in case it existed locally.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.get_uri">
+<code class="descname">get_uri</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.get_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the uri associated with this descriptor
+The uri is a string based representation that is equivalent to the
+descriptor dictionary returned by the get_dict() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Uri string that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.icon_256">
+<code class="descname">icon_256</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.icon_256" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path to a 256px square png icon file representing this item</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.is_dev">
+<code class="descname">is_dev</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.is_dev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this item is intended for development purposes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if this is a developer item</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.is_immutable">
+<code class="descname">is_immutable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.is_immutable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this descriptor never changes its content.
+This is true for most descriptors as they represent a particular
+version, tag or commit of an item. Examples of non-immutable
+descriptors include path and dev descriptors, where the
+descriptor points at a &#8220;live&#8221; location on disk where a user
+can make changes at any time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if this is a developer item</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.required_context">
+<code class="descname">required_context</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.required_context" title="Permalink to this definition">¶</a></dt>
+<dd><p>The required context, if there is one defined, for a bundle.
+This is a list of strings, something along the lines of
+[&#8220;user&#8221;, &#8220;task&#8221;, &#8220;step&#8221;] for an app that requires a context with
+user task and step defined.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of strings, with an empty list meaning no items required.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.required_frameworks">
+<code class="descname">required_frameworks</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.required_frameworks" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of required frameworks for this item.</p>
+<p>Always returns a list - for example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-framework-widget&#39;</span><span class="p">}]</span>
+</pre></div>
+</div>
+<p>Each item contains a name and a version key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of dictionaries</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.run_post_install">
+<code class="descname">run_post_install</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.run_post_install" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a post install hook exists in a descriptor, execute it. In the
+hooks directory for an app or engine, if a &#8216;post_install.py&#8217; hook
+exists, the hook will be executed upon each installation.</p>
+<p>Errors reported in the post install hook will be reported to the error
+log but execution will continue.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">We longer recommend using post install hooks. Should you
+need to use one, take great care when designing it so that
+it can execute correctly for all users, regardless of
+their shotgun and system permissions.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; Core API instance to use for post install execution. This value
+defaults to <code class="docutils literal"><span class="pre">None</span></code> for backwards compatibility reasons and in
+the case a None value is passed in, the hook will not execute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.support_url">
+<code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>A url that points at a support web page associated with this item.
+If not url has been defined, None is returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.supported_engines">
+<code class="descname">supported_engines</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.supported_engines" title="Permalink to this definition">¶</a></dt>
+<dd><p>The engines supported by this app or framework. Examples
+of return values:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">None</span></code> - Works in all engines.</li>
+<li><code class="docutils literal"><span class="pre">[&quot;tk-maya&quot;,</span> <span class="pre">&quot;tk-nuke&quot;]</span></code> - Works in Maya and Nuke.</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.supported_platforms">
+<code class="descname">supported_platforms</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.supported_platforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>The platforms supported. Possible values
+are windows, linux and mac.</p>
+<p>Always returns a list, returns an empty list if there is
+no constraint in place.</p>
+<p>example: [&#8220;windows&#8221;, &#8220;linux&#8221;]
+example: []</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.system_name">
+<code class="descname">system_name</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.system_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short name, suitable for use in configuration files and for folders on disk.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.version">
+<code class="descname">version</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>The version number string for this item.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.EngineDescriptor.version_constraints">
+<code class="descname">version_constraints</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.version_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary with version constraints. The absence of a key
+indicates that there is no defined constraint. The following keys can be
+returned: min_sg, min_core, min_engine and min_desktop</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with optional keys min_sg, min_core,
+min_engine and min_desktop</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="frameworkdescriptor">
+<h3>FrameworkDescriptor<a class="headerlink" href="#frameworkdescriptor" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.descriptor.FrameworkDescriptor">
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">FrameworkDescriptor</code><span class="sig-paren">(</span><em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_bundle.html#FrameworkDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Descriptor that describes a Toolkit Framework</p>
+<p>Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
+creating new descriptor objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.is_shared_framework">
+<code class="descname">is_shared_framework</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_bundle.html#FrameworkDescriptor.is_shared_framework"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.is_shared_framework" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a boolean indicating whether the bundle is a shared framework.
+Shared frameworks only have a single instance per instance name in the
+current environment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the framework is shared</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.changelog">
+<code class="descname">changelog</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.changelog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about the changelog for this item.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
+to indicate that no changelog exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.configuration_schema">
+<code class="descname">configuration_schema</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.configuration_schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>The manifest configuration schema for this bundle.
+Always returns a dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Configuration dictionary as defined
+in the manifest or {} if not defined</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><em>target_folder</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy the config descriptor into the specified target location</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> &#8211; Folder to copy the descriptor to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.deprecation_status">
+<code class="descname">deprecation_status</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.deprecation_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about deprecation status.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a tuple (is_deprecated, message) to indicate
+if this item is deprecated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.description">
+<code class="descname">description</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short description of the item.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.display_name">
+<code class="descname">display_name</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.display_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The display name for this item.
+If no display name has been defined, the system name will be returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.documentation_url">
+<code class="descname">documentation_url</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.documentation_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The documentation url for this item or None if not defined.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.download_local">
+<code class="descname">download_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.download_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves this version to local repo.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.ensure_local">
+<code class="descname">ensure_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.ensure_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method. Ensures that the item is locally available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.ensure_shotgun_fields_exist">
+<code class="descname">ensure_shotgun_fields_exist</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.ensure_shotgun_fields_exist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures that any shotgun fields a particular descriptor requires
+exists in shotgun. In the metadata (<code class="docutils literal"><span class="pre">info.yml</span></code>) for an app or an engine,
+it is possible to define a section for this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># the Shotgun fields that this app needs in order to operate correctly</span>
+<span class="n">requires_shotgun_fields</span><span class="p">:</span>
+    <span class="n">Version</span><span class="p">:</span>
+        <span class="o">-</span> <span class="p">{</span> <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;sg_movie_type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>This method will retrieve the metadata and ensure that any required
+fields exists.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This feature may be deprecated in the future.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; Core API instance to use for post install execution. This value
+defaults to <code class="docutils literal"><span class="pre">None</span></code> for backwards compatibility reasons and in
+the case a None value is passed in, the hook will not execute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.exists_local">
+<code class="descname">exists_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.exists_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this item exists in a local repo.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.find_latest_version">
+<code class="descname">find_latest_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.find_latest_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a descriptor object that represents the latest version.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Different descriptor types implements this logic differently,
+but general good practice is to follow the semantic version numbering
+standard for any versions used in conjunction with toolkit. This ensures
+that toolkit can track and correctly determine not just the latest version
+but also apply constraint pattern matching such as looking for the latest
+version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+by the given pattern. Version patterns are on the following forms:</p>
+<blockquote>
+<div><ul class="simple">
+<li>v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</li>
+<li>v0.12.x - get the highest v0.12 version</li>
+<li>v1.x.x - get the highest v1 version</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.get_dict">
+<code class="descname">get_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.get_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dictionary associated with this descriptor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.get_location">
+<code class="descname">get_location</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.get_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dictionary associated with this descriptor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.get_path">
+<code class="descname">get_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.get_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the path to the folder where this item either currently resides
+or would reside in case it existed locally.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.get_uri">
+<code class="descname">get_uri</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.get_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the uri associated with this descriptor
+The uri is a string based representation that is equivalent to the
+descriptor dictionary returned by the get_dict() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Uri string that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.icon_256">
+<code class="descname">icon_256</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.icon_256" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path to a 256px square png icon file representing this item</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.is_dev">
+<code class="descname">is_dev</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.is_dev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this item is intended for development purposes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if this is a developer item</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.is_immutable">
+<code class="descname">is_immutable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.is_immutable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this descriptor never changes its content.
+This is true for most descriptors as they represent a particular
+version, tag or commit of an item. Examples of non-immutable
+descriptors include path and dev descriptors, where the
+descriptor points at a &#8220;live&#8221; location on disk where a user
+can make changes at any time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if this is a developer item</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.required_context">
+<code class="descname">required_context</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.required_context" title="Permalink to this definition">¶</a></dt>
+<dd><p>The required context, if there is one defined, for a bundle.
+This is a list of strings, something along the lines of
+[&#8220;user&#8221;, &#8220;task&#8221;, &#8220;step&#8221;] for an app that requires a context with
+user task and step defined.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of strings, with an empty list meaning no items required.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.required_frameworks">
+<code class="descname">required_frameworks</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.required_frameworks" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of required frameworks for this item.</p>
+<p>Always returns a list - for example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-framework-widget&#39;</span><span class="p">}]</span>
+</pre></div>
+</div>
+<p>Each item contains a name and a version key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of dictionaries</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.run_post_install">
+<code class="descname">run_post_install</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.run_post_install" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a post install hook exists in a descriptor, execute it. In the
+hooks directory for an app or engine, if a &#8216;post_install.py&#8217; hook
+exists, the hook will be executed upon each installation.</p>
+<p>Errors reported in the post install hook will be reported to the error
+log but execution will continue.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">We longer recommend using post install hooks. Should you
+need to use one, take great care when designing it so that
+it can execute correctly for all users, regardless of
+their shotgun and system permissions.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; Core API instance to use for post install execution. This value
+defaults to <code class="docutils literal"><span class="pre">None</span></code> for backwards compatibility reasons and in
+the case a None value is passed in, the hook will not execute.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.support_url">
+<code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>A url that points at a support web page associated with this item.
+If not url has been defined, None is returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.supported_engines">
+<code class="descname">supported_engines</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.supported_engines" title="Permalink to this definition">¶</a></dt>
+<dd><p>The engines supported by this app or framework. Examples
+of return values:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">None</span></code> - Works in all engines.</li>
+<li><code class="docutils literal"><span class="pre">[&quot;tk-maya&quot;,</span> <span class="pre">&quot;tk-nuke&quot;]</span></code> - Works in Maya and Nuke.</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.supported_platforms">
+<code class="descname">supported_platforms</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.supported_platforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>The platforms supported. Possible values
+are windows, linux and mac.</p>
+<p>Always returns a list, returns an empty list if there is
+no constraint in place.</p>
+<p>example: [&#8220;windows&#8221;, &#8220;linux&#8221;]
+example: []</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.system_name">
+<code class="descname">system_name</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.system_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short name, suitable for use in configuration files and for folders on disk.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.version">
+<code class="descname">version</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>The version number string for this item.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.FrameworkDescriptor.version_constraints">
+<code class="descname">version_constraints</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.version_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary with version constraints. The absence of a key
+indicates that there is no defined constraint. The following keys can be
+returned: min_sg, min_core, min_engine and min_desktop</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with optional keys min_sg, min_core,
+min_engine and min_desktop</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="configdescriptor">
+<h3>ConfigDescriptor<a class="headerlink" href="#configdescriptor" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.descriptor.ConfigDescriptor">
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">ConfigDescriptor</code><span class="sig-paren">(</span><em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_config.html#ConfigDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Descriptor that describes a Toolkit Configuration</p>
+<p>Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
+creating new descriptor objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.version_constraints">
+<code class="descname">version_constraints</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.version_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary with version constraints. The absence of a key
+indicates that there is no defined constraint. The following keys can be
+returned: min_sg, min_core, min_engine and min_desktop</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with optional keys min_sg, min_core,
+min_engine and min_desktop</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.readme_content">
+<code class="descname">readme_content</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.readme_content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Associated readme content as a list.
+If not readme exists, an empty list is returned</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of strings</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.associated_core_descriptor">
+<code class="descname">associated_core_descriptor</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.associated_core_descriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>The descriptor dict or url required for this core or None if not defined.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Core descriptor dict or uri or None if not defined</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.required_storages">
+<code class="descname">required_storages</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.required_storages" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of storage names needed for this config.
+This may be an empty list if the configuration doesn&#8217;t
+make use of the file system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of storage names as strings</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.changelog">
+<code class="descname">changelog</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.changelog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about the changelog for this item.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
+to indicate that no changelog exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><em>target_folder</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy the config descriptor into the specified target location</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> &#8211; Folder to copy the descriptor to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.deprecation_status">
+<code class="descname">deprecation_status</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.deprecation_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about deprecation status.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a tuple (is_deprecated, message) to indicate
+if this item is deprecated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.description">
+<code class="descname">description</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short description of the item.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.display_name">
+<code class="descname">display_name</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.display_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The display name for this item.
+If no display name has been defined, the system name will be returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.documentation_url">
+<code class="descname">documentation_url</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.documentation_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The documentation url for this item or None if not defined.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.download_local">
+<code class="descname">download_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.download_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves this version to local repo.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.ensure_local">
+<code class="descname">ensure_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.ensure_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method. Ensures that the item is locally available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.exists_local">
+<code class="descname">exists_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.exists_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this item exists in a local repo.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.find_latest_version">
+<code class="descname">find_latest_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.find_latest_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a descriptor object that represents the latest version.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Different descriptor types implements this logic differently,
+but general good practice is to follow the semantic version numbering
+standard for any versions used in conjunction with toolkit. This ensures
+that toolkit can track and correctly determine not just the latest version
+but also apply constraint pattern matching such as looking for the latest
+version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+by the given pattern. Version patterns are on the following forms:</p>
+<blockquote>
+<div><ul class="simple">
+<li>v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</li>
+<li>v0.12.x - get the highest v0.12 version</li>
+<li>v1.x.x - get the highest v1 version</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.get_dict">
+<code class="descname">get_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.get_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dictionary associated with this descriptor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.get_location">
+<code class="descname">get_location</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.get_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dictionary associated with this descriptor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.get_path">
+<code class="descname">get_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.get_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the path to the folder where this item either currently resides
+or would reside in case it existed locally.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.get_uri">
+<code class="descname">get_uri</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.get_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the uri associated with this descriptor
+The uri is a string based representation that is equivalent to the
+descriptor dictionary returned by the get_dict() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Uri string that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.icon_256">
+<code class="descname">icon_256</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.icon_256" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path to a 256px square png icon file representing this item</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.is_dev">
+<code class="descname">is_dev</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.is_dev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this item is intended for development purposes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if this is a developer item</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.is_immutable">
+<code class="descname">is_immutable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.is_immutable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this descriptor never changes its content.
+This is true for most descriptors as they represent a particular
+version, tag or commit of an item. Examples of non-immutable
+descriptors include path and dev descriptors, where the
+descriptor points at a &#8220;live&#8221; location on disk where a user
+can make changes at any time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if this is a developer item</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.support_url">
+<code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>A url that points at a support web page associated with this item.
+If not url has been defined, None is returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.system_name">
+<code class="descname">system_name</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.system_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short name, suitable for use in configuration files and for folders on disk.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.version">
+<code class="descname">version</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>The version number string for this item.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="coredescriptor">
+<h3>CoreDescriptor<a class="headerlink" href="#coredescriptor" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.descriptor.CoreDescriptor">
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">CoreDescriptor</code><span class="sig-paren">(</span><em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_core.html#CoreDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Descriptor object which describes a Toolkit Core API version.</p>
+<p>Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
+creating new descriptor objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.descriptor.CoreDescriptor.version_constraints">
+<code class="descname">version_constraints</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.version_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary with version constraints. The absence of a key
+indicates that there is no defined constraint. The following keys can be
+returned: min_sg, min_core, min_engine and min_desktop</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with optional keys min_sg, min_core,
+min_engine, min_desktop</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.CoreDescriptor.changelog">
+<code class="descname">changelog</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.changelog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about the changelog for this item.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
+to indicate that no changelog exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><em>target_folder</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy the config descriptor into the specified target location</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> &#8211; Folder to copy the descriptor to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.CoreDescriptor.deprecation_status">
+<code class="descname">deprecation_status</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.deprecation_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about deprecation status.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a tuple (is_deprecated, message) to indicate
+if this item is deprecated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.CoreDescriptor.description">
+<code class="descname">description</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short description of the item.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.CoreDescriptor.display_name">
+<code class="descname">display_name</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.display_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The display name for this item.
+If no display name has been defined, the system name will be returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.CoreDescriptor.documentation_url">
+<code class="descname">documentation_url</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.documentation_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The documentation url for this item or None if not defined.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.download_local">
+<code class="descname">download_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.download_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves this version to local repo.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.ensure_local">
+<code class="descname">ensure_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.ensure_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method. Ensures that the item is locally available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.exists_local">
+<code class="descname">exists_local</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.exists_local" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this item exists in a local repo.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.find_latest_version">
+<code class="descname">find_latest_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.find_latest_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a descriptor object that represents the latest version.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Different descriptor types implements this logic differently,
+but general good practice is to follow the semantic version numbering
+standard for any versions used in conjunction with toolkit. This ensures
+that toolkit can track and correctly determine not just the latest version
+but also apply constraint pattern matching such as looking for the latest
+version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+by the given pattern. Version patterns are on the following forms:</p>
+<blockquote>
+<div><ul class="simple">
+<li>v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</li>
+<li>v0.12.x - get the highest v0.12 version</li>
+<li>v1.x.x - get the highest v1 version</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.get_dict">
+<code class="descname">get_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.get_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dictionary associated with this descriptor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.get_location">
+<code class="descname">get_location</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.get_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dictionary associated with this descriptor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.get_path">
+<code class="descname">get_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.get_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the path to the folder where this item either currently resides
+or would reside in case it existed locally.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.get_uri">
+<code class="descname">get_uri</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.get_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the uri associated with this descriptor
+The uri is a string based representation that is equivalent to the
+descriptor dictionary returned by the get_dict() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Uri string that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.CoreDescriptor.icon_256">
+<code class="descname">icon_256</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.icon_256" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path to a 256px square png icon file representing this item</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.is_dev">
+<code class="descname">is_dev</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.is_dev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this item is intended for development purposes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if this is a developer item</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.is_immutable">
+<code class="descname">is_immutable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.is_immutable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this descriptor never changes its content.
+This is true for most descriptors as they represent a particular
+version, tag or commit of an item. Examples of non-immutable
+descriptors include path and dev descriptors, where the
+descriptor points at a &#8220;live&#8221; location on disk where a user
+can make changes at any time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if this is a developer item</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.CoreDescriptor.support_url">
+<code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>A url that points at a support web page associated with this item.
+If not url has been defined, None is returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.CoreDescriptor.system_name">
+<code class="descname">system_name</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.system_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short name, suitable for use in configuration files and for folders on disk.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.CoreDescriptor.version">
+<code class="descname">version</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>The version number string for this item.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="exceptions">
+<h3>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.descriptor.TankAppStoreConnectionError">
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankAppStoreConnectionError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankAppStoreConnectionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankAppStoreConnectionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Errors indicating an error connecting to the Toolkit App Store.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.descriptor.TankAppStoreError">
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankAppStoreError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankAppStoreError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankAppStoreError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Errors relating to the Toolkit App Store app store.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.descriptor.TankDescriptorError">
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankDescriptorError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankDescriptorError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankDescriptorError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for all descriptor related errors.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="authentication.html" class="btn btn-neutral float-right" title="Authentication" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="utils.html" class="btn btn-neutral" title="Utilities" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

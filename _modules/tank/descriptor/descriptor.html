@@ -1,0 +1,599 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.descriptor.descriptor</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.descriptor.descriptor</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2016 Shotgun Software Inc.</span>
+<span class="c1"># </span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1"># </span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">filesystem</span>
+<span class="kn">from</span> <span class="nn">.io_descriptor</span> <span class="kn">import</span> <span class="n">create_io_descriptor</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">LocalFileStorageManager</span>
+
+<div class="viewcode-block" id="create_descriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.create_descriptor">[docs]</a><span class="k">def</span> <span class="nf">create_descriptor</span><span class="p">(</span>
+        <span class="n">sg_connection</span><span class="p">,</span>
+        <span class="n">descriptor_type</span><span class="p">,</span>
+        <span class="n">dict_or_uri</span><span class="p">,</span>
+        <span class="n">bundle_cache_root_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">fallback_roots</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">resolve_latest</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Factory method. Use this when creating descriptor objects.</span>
+
+<span class="sd">    :param sg_connection: Shotgun connection to associated site</span>
+<span class="sd">    :param descriptor_type: Either ``Descriptor.APP``, ``CORE``, ``CONFIG``, ``ENGINE`` or ``FRAMEWORK``</span>
+<span class="sd">    :param dict_or_uri: A std descriptor dictionary dictionary or string</span>
+<span class="sd">    :param bundle_cache_root_override: Optional override for root path to where</span>
+<span class="sd">                                       downloaded apps are cached. If not specified,</span>
+<span class="sd">                                       the global bundle cache location will be used. This location is a per-user</span>
+<span class="sd">                                       cache that is shared across all sites and projects.</span>
+<span class="sd">    :param fallback_roots: Optional List of immutable fallback cache locations where</span>
+<span class="sd">                           apps will be searched for. Note that when descriptors</span>
+<span class="sd">                           download new content, it always ends up in the</span>
+<span class="sd">                           bundle_cache_root.</span>
+<span class="sd">    :param resolve_latest: If true, the latest version will be determined and returned.</span>
+<span class="sd">                           If set to True, no version information need to be supplied with</span>
+<span class="sd">                           the descriptor dictionary/uri. Please note that setting this flag</span>
+<span class="sd">                           to true will typically affect performance - an external connection</span>
+<span class="sd">                           is often required in order to establish what the latest version is.</span>
+<span class="sd">    :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain</span>
+<span class="sd">                           the search for latest to only take part over a subset of versions.</span>
+<span class="sd">                           This is a string that can be on the following form:</span>
+
+<span class="sd">                                - ``v0.1.2``, ``v0.12.3.2``, ``v0.1.3beta`` - a specific version</span>
+<span class="sd">                                - ``v0.12.x`` - get the highest v0.12 version</span>
+<span class="sd">                                - ``v1.x.x`` - get the highest v1 version</span>
+
+<span class="sd">    :returns: :class:`Descriptor` object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.descriptor_bundle</span> <span class="kn">import</span> <span class="n">AppDescriptor</span><span class="p">,</span> <span class="n">EngineDescriptor</span><span class="p">,</span> <span class="n">FrameworkDescriptor</span>
+    <span class="kn">from</span> <span class="nn">.descriptor_config</span> <span class="kn">import</span> <span class="n">ConfigDescriptor</span>
+    <span class="kn">from</span> <span class="nn">.descriptor_core</span> <span class="kn">import</span> <span class="n">CoreDescriptor</span>
+
+    <span class="c1"># if bundle root is not set, fall back on default location</span>
+    <span class="k">if</span> <span class="n">bundle_cache_root_override</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">bundle_cache_root_override</span> <span class="o">=</span> <span class="n">_get_default_bundle_cache_root</span><span class="p">()</span>
+        <span class="n">filesystem</span><span class="o">.</span><span class="n">ensure_folder_exists</span><span class="p">(</span><span class="n">bundle_cache_root_override</span><span class="p">)</span>
+
+    <span class="n">fallback_roots</span> <span class="o">=</span> <span class="n">fallback_roots</span> <span class="ow">or</span> <span class="p">[]</span>
+
+    <span class="c1"># first construct a low level IO descriptor</span>
+    <span class="n">io_descriptor</span> <span class="o">=</span> <span class="n">create_io_descriptor</span><span class="p">(</span>
+        <span class="n">sg_connection</span><span class="p">,</span>
+        <span class="n">descriptor_type</span><span class="p">,</span>
+        <span class="n">dict_or_uri</span><span class="p">,</span>
+        <span class="n">bundle_cache_root_override</span><span class="p">,</span>
+        <span class="n">fallback_roots</span><span class="p">,</span>
+        <span class="n">resolve_latest</span><span class="p">,</span>
+        <span class="n">constraint_pattern</span>
+    <span class="p">)</span>
+
+    <span class="c1"># now create a high level descriptor and bind that with the low level descriptor</span>
+    <span class="k">if</span> <span class="n">descriptor_type</span> <span class="o">==</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">APP</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">AppDescriptor</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">descriptor_type</span> <span class="o">==</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">ENGINE</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">EngineDescriptor</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">descriptor_type</span> <span class="o">==</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">FRAMEWORK</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">FrameworkDescriptor</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">descriptor_type</span> <span class="o">==</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">CONFIG</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ConfigDescriptor</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">descriptor_type</span> <span class="o">==</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">CORE</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">CoreDescriptor</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span><span class="s2">&quot;Unsupported descriptor type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor_type</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_default_bundle_cache_root</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the cache location for the default bundle cache.</span>
+
+<span class="sd">    :returns: path on disk</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">get_global_root</span><span class="p">(</span><span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">CACHE</span><span class="p">),</span>
+        <span class="s2">&quot;bundle_cache&quot;</span>
+    <span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Descriptor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A descriptor describes a particular version of an app, engine or core component.</span>
+<span class="sd">    It also knows how to access metadata such as documentation, descriptions etc.</span>
+
+<span class="sd">    Descriptor is subclassed to distinguish different types of payload;</span>
+<span class="sd">    apps, engines, configs, cores etc. Each payload may have different accessors</span>
+<span class="sd">    and helper methods.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="p">(</span><span class="n">APP</span><span class="p">,</span> <span class="n">FRAMEWORK</span><span class="p">,</span> <span class="n">ENGINE</span><span class="p">,</span> <span class="n">CONFIG</span><span class="p">,</span> <span class="n">CORE</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
+<span class="sd">        creating new descriptor objects.</span>
+
+<span class="sd">        :param io_descriptor: Associated IO descriptor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># construct a suitable IO descriptor for this descriptor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span> <span class="o">=</span> <span class="n">io_descriptor</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="c1"># By default, we can assume equality if the path to the data</span>
+        <span class="c1"># on disk is equivalent.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Used for debug logging</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">class_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%r</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">class_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Used for pretty printing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+
+    <span class="c1">###############################################################################################</span>
+    <span class="c1"># data accessors</span>
+
+    <span class="k">def</span> <span class="nf">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the dictionary associated with this descriptor</span>
+
+<span class="sd">        :returns: Dictionary that can be used to construct the descriptor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_dict</span><span class="p">()</span>
+
+    <span class="c1"># legacy support for previous method name</span>
+    <span class="n">get_location</span> <span class="o">=</span> <span class="n">get_dict</span>
+
+    <span class="k">def</span> <span class="nf">get_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the uri associated with this descriptor</span>
+<span class="sd">        The uri is a string based representation that is equivalent to the</span>
+<span class="sd">        descriptor dictionary returned by the get_dict() method.</span>
+
+<span class="sd">        :returns: Uri string that can be used to construct the descriptor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_uri</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_folder</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Copy the config descriptor into the specified target location</span>
+
+<span class="sd">        :param target_folder: Folder to copy the descriptor to</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">target_folder</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">display_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The display name for this item.</span>
+<span class="sd">        If no display name has been defined, the system name will be returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">display_name</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;display_name&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">display_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">display_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system_name</span>
+        <span class="k">return</span> <span class="n">display_name</span>
+
+    <span class="k">def</span> <span class="nf">is_dev</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if this item is intended for development purposes</span>
+
+<span class="sd">        :returns: True if this is a developer item</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">is_dev</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">is_immutable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if this descriptor never changes its content.</span>
+<span class="sd">        This is true for most descriptors as they represent a particular</span>
+<span class="sd">        version, tag or commit of an item. Examples of non-immutable</span>
+<span class="sd">        descriptors include path and dev descriptors, where the</span>
+<span class="sd">        descriptor points at a &quot;live&quot; location on disk where a user</span>
+<span class="sd">        can make changes at any time.</span>
+
+<span class="sd">        :returns: True if this is a developer item</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">is_immutable</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A short description of the item.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">desc</span> <span class="o">=</span> <span class="s2">&quot;No description available.&quot;</span> 
+        <span class="k">return</span> <span class="n">desc</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">icon_256</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The path to a 256px square png icon file representing this item</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">app_icon</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">(),</span> <span class="s2">&quot;icon_256.png&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">app_icon</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">app_icon</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># return default</span>
+            <span class="n">default_icon</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span>
+                <span class="s2">&quot;resources&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;default_bundle_256px.png&quot;</span>
+            <span class="p">))</span>
+            <span class="k">return</span> <span class="n">default_icon</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">support_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A url that points at a support web page associated with this item.</span>
+<span class="sd">        If not url has been defined, None is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">support_url</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;support_url&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">support_url</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">support_url</span> <span class="o">=</span> <span class="s2">&quot;https://support.shotgunsoftware.com&quot;</span> 
+        <span class="k">return</span> <span class="n">support_url</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">documentation_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The documentation url for this item or None if not defined.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">doc_url</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;documentation_url&quot;</span><span class="p">)</span>
+        <span class="c1"># note - doc_url can be none which is fine.</span>
+        <span class="k">return</span> <span class="n">doc_url</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">deprecation_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Information about deprecation status.</span>
+
+<span class="sd">        :returns: Returns a tuple (is_deprecated, message) to indicate</span>
+<span class="sd">                  if this item is deprecated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_deprecation_status</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">system_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A short name, suitable for use in configuration files and for folders on disk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_system_name</span><span class="p">()</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The version number string for this item.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_version</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">get_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the path to the folder where this item either currently resides</span>
+<span class="sd">        or would reside in case it existed locally.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">changelog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Information about the changelog for this item.</span>
+
+<span class="sd">        :returns: A tuple (changelog_summary, changelog_url). Values may be None</span>
+<span class="sd">                  to indicate that no changelog exists.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_changelog</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">ensure_local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper method. Ensures that the item is locally available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">ensure_local</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">exists_local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if this item exists in a local repo.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">exists_local</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">download_local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves this version to local repo.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">download_local</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">find_latest_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a descriptor object that represents the latest version.</span>
+
+<span class="sd">        .. note:: Different descriptor types implements this logic differently,</span>
+<span class="sd">                  but general good practice is to follow the semantic version numbering</span>
+<span class="sd">                  standard for any versions used in conjunction with toolkit. This ensures</span>
+<span class="sd">                  that toolkit can track and correctly determine not just the latest version</span>
+<span class="sd">                  but also apply constraint pattern matching such as looking for the latest</span>
+<span class="sd">                  version matching the pattern ``v1.x.x``. You can read more about semantic</span>
+<span class="sd">                  versioning here: http://semver.org/</span>
+
+<span class="sd">        :param constraint_pattern: If this is specified, the query will be constrained</span>
+<span class="sd">               by the given pattern. Version patterns are on the following forms:</span>
+
+<span class="sd">                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</span>
+<span class="sd">                - v0.12.x - get the highest v0.12 version</span>
+<span class="sd">                - v1.x.x - get the highest v1 version</span>
+
+<span class="sd">        :returns: instance derived from :class:`Descriptor`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># make a copy of the descriptor</span>
+        <span class="n">latest</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="c1"># find latest I/O descriptor</span>
+        <span class="n">latest</span><span class="o">.</span><span class="n">_io_descriptor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_latest_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">latest</span>
+
+    <span class="c1"># compatibility accessors to ensure that all systems</span>
+    <span class="c1"># calling this (previously internal!) parts of toolkit</span>
+    <span class="c1"># will still work.</span>
+    <span class="k">def</span> <span class="nf">get_display_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">display_name</span>
+    <span class="k">def</span> <span class="nf">get_description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span>
+    <span class="k">def</span> <span class="nf">get_icon_256</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">icon_256</span>
+    <span class="k">def</span> <span class="nf">get_support_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">support_url</span>
+    <span class="k">def</span> <span class="nf">get_doc_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">documentation_url</span>
+    <span class="k">def</span> <span class="nf">get_deprecation_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">deprecation_status</span>
+    <span class="k">def</span> <span class="nf">get_system_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">system_name</span>
+    <span class="k">def</span> <span class="nf">get_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span>
+    <span class="k">def</span> <span class="nf">get_changelog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">changelog</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Overview: module code &mdash; tk-core 31455_sphinx_api_docs documentation</title>
+  <title>Overview: module code &mdash; tk-core v0.18.0RC1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core 31455_sphinx_api_docs documentation" href="../index.html"/> 
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../index.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -48,11 +48,16 @@
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search">
           
-    <img style='width: 191px; 
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
                 height: 60px; 
+                margin: 2px;
                 border-radius: 0px; 
                 padding: 0px;' 
-         src='./_static/logo@2x.png'/>
+            src='../_static/logo@2x.png'/>
+    
+    </a>
     
 
           
@@ -83,10 +88,12 @@
             
             
                 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../core_api.html">Toolkit Core API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../platform_api.html">Toolkit Platform API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../filesystem_configuration.html">Configuring the file system</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../environment_configuration.html">Configuration the Environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authentication.html">Authentication</a></li>
 </ul>
 
             
@@ -108,9 +115,11 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> 31455_sphinx_api_docs.<br>
-    This documentation is part of the Shotgun Pipeline Toolkit. 
-    For more information, please visit 
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
     <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
     The code associated with this documentation can be found 
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
@@ -157,6 +166,37 @@
             
   <h1>All modules for which code is available</h1>
 <ul><li><a href="tank/api.html">tank.api</a></li>
+<li><a href="tank/authentication/defaults_manager.html">tank.authentication.defaults_manager</a></li>
+<li><a href="tank/authentication/errors.html">tank.authentication.errors</a></li>
+<li><a href="tank/authentication/shotgun_authenticator.html">tank.authentication.shotgun_authenticator</a></li>
+<li><a href="tank/authentication/user.html">tank.authentication.user</a></li>
+<li><a href="tank/bootstrap/errors.html">tank.bootstrap.errors</a></li>
+<li><a href="tank/bootstrap/manager.html">tank.bootstrap.manager</a></li>
+<li><a href="tank/commands/tank_command.html">tank.commands.tank_command</a></li>
+<li><a href="tank/context.html">tank.context</a></li>
+<li><a href="tank/descriptor/descriptor.html">tank.descriptor.descriptor</a></li>
+<li><a href="tank/descriptor/descriptor_bundle.html">tank.descriptor.descriptor_bundle</a></li>
+<li><a href="tank/descriptor/descriptor_config.html">tank.descriptor.descriptor_config</a></li>
+<li><a href="tank/descriptor/descriptor_core.html">tank.descriptor.descriptor_core</a></li>
+<li><a href="tank/descriptor/errors.html">tank.descriptor.errors</a></li>
+<li><a href="tank/descriptor/io_descriptor/factory.html">tank.descriptor.io_descriptor.factory</a></li>
+<li><a href="tank/errors.html">tank.errors</a></li>
+<li><a href="tank/hook.html">tank.hook</a></li>
+<li><a href="tank/log.html">tank.log</a></li>
+<li><a href="tank/platform/application.html">tank.platform.application</a></li>
+<li><a href="tank/platform/bundle.html">tank.platform.bundle</a></li>
+<li><a href="tank/platform/engine.html">tank.platform.engine</a></li>
+<li><a href="tank/platform/errors.html">tank.platform.errors</a></li>
+<li><a href="tank/platform/framework.html">tank.platform.framework</a></li>
+<li><a href="tank/platform/util.html">tank.platform.util</a></li>
+<li><a href="tank/template.html">tank.template</a></li>
+<li><a href="tank/templatekey.html">tank.templatekey</a></li>
+<li><a href="tank/util/environment.html">tank.util.environment</a></li>
+<li><a href="tank/util/filesystem.html">tank.util.filesystem</a></li>
+<li><a href="tank/util/local_file_storage.html">tank.util.local_file_storage</a></li>
+<li><a href="tank/util/login.html">tank.util.login</a></li>
+<li><a href="tank/util/shotgun.html">tank.util.shotgun</a></li>
+<li><a href="tank/util/shotgun_path.html">tank.util.shotgun_path</a></li>
 </ul>
 
            </div>
@@ -168,7 +208,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Autodesk.
+        &copy; Copyright 2016, Autodesk.
 
     </p>
   </div> 
@@ -189,7 +229,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'31455_sphinx_api_docs',
+            VERSION:'v0.18.0RC1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -1,0 +1,752 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.commands.tank_command &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.commands.tank_command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.commands.tank_command</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2013 Shotgun Software Inc.</span>
+<span class="c1"># </span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1"># </span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Methods for handling of the tank command</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">.action_base</span> <span class="kn">import</span> <span class="n">Action</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">folders</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">misc</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">move_pc</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">pc_overview</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">migrate_entities</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">path_cache</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">update</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">push_pc</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">setup_project</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">setup_project_wizard</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">dump_config</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">validate_config</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">cache_apps</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">switch</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">app_info</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">core_upgrade</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">core_localize</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">install</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">clone_configuration</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">copy_apps</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">unregister_folders</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">desktop_migration</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">cache_yaml</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">get_entity_commands</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..platform.engine</span> <span class="kn">import</span> <span class="n">start_engine</span><span class="p">,</span> <span class="n">get_environment_from_context</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="c1">###############################################################################################</span>
+<span class="c1"># Built in actions (all in the tank_commands sub module)</span>
+
+<span class="n">BUILT_IN_ACTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="n">setup_project</span><span class="o">.</span><span class="n">SetupProjectAction</span><span class="p">,</span>
+                    <span class="n">setup_project_wizard</span><span class="o">.</span><span class="n">SetupProjectFactoryAction</span><span class="p">,</span>
+                    <span class="n">core_upgrade</span><span class="o">.</span><span class="n">CoreUpdateAction</span><span class="p">,</span>
+                    <span class="n">core_localize</span><span class="o">.</span><span class="n">CoreLocalizeAction</span><span class="p">,</span>
+                    <span class="n">core_localize</span><span class="o">.</span><span class="n">ShareCoreAction</span><span class="p">,</span>
+                    <span class="n">core_localize</span><span class="o">.</span><span class="n">AttachToCoreAction</span><span class="p">,</span>
+                    <span class="n">dump_config</span><span class="o">.</span><span class="n">DumpConfigAction</span><span class="p">,</span>
+                    <span class="n">validate_config</span><span class="o">.</span><span class="n">ValidateConfigAction</span><span class="p">,</span>
+                    <span class="n">cache_apps</span><span class="o">.</span><span class="n">CacheAppsAction</span><span class="p">,</span>
+                    <span class="n">misc</span><span class="o">.</span><span class="n">ClearCacheAction</span><span class="p">,</span>
+                    <span class="n">switch</span><span class="o">.</span><span class="n">SwitchAppAction</span><span class="p">,</span>
+                    <span class="n">app_info</span><span class="o">.</span><span class="n">AppInfoAction</span><span class="p">,</span>
+                    <span class="n">misc</span><span class="o">.</span><span class="n">InteractiveShellAction</span><span class="p">,</span>
+                    <span class="n">install</span><span class="o">.</span><span class="n">InstallAppAction</span><span class="p">,</span>
+                    <span class="n">push_pc</span><span class="o">.</span><span class="n">PushPCAction</span><span class="p">,</span>
+                    <span class="n">install</span><span class="o">.</span><span class="n">InstallEngineAction</span><span class="p">,</span>
+                    <span class="n">update</span><span class="o">.</span><span class="n">AppUpdatesAction</span><span class="p">,</span>
+                    <span class="n">folders</span><span class="o">.</span><span class="n">CreateFoldersAction</span><span class="p">,</span>
+                    <span class="n">folders</span><span class="o">.</span><span class="n">PreviewFoldersAction</span><span class="p">,</span>
+                    <span class="n">move_pc</span><span class="o">.</span><span class="n">MovePCAction</span><span class="p">,</span>
+                    <span class="n">pc_overview</span><span class="o">.</span><span class="n">PCBreakdownAction</span><span class="p">,</span>
+                    <span class="n">migrate_entities</span><span class="o">.</span><span class="n">MigratePublishedFileEntitiesAction</span><span class="p">,</span>
+                    <span class="n">path_cache</span><span class="o">.</span><span class="n">SynchronizePathCache</span><span class="p">,</span>
+                    <span class="n">path_cache</span><span class="o">.</span><span class="n">PathCacheMigrationAction</span><span class="p">,</span>
+                    <span class="n">unregister_folders</span><span class="o">.</span><span class="n">UnregisterFoldersAction</span><span class="p">,</span>
+                    <span class="n">clone_configuration</span><span class="o">.</span><span class="n">CloneConfigAction</span><span class="p">,</span>
+                    <span class="n">copy_apps</span><span class="o">.</span><span class="n">CopyAppsAction</span><span class="p">,</span>
+                    <span class="n">desktop_migration</span><span class="o">.</span><span class="n">DesktopMigration</span><span class="p">,</span>
+                    <span class="n">cache_yaml</span><span class="o">.</span><span class="n">CacheYamlAction</span><span class="p">,</span>
+                    <span class="n">get_entity_commands</span><span class="o">.</span><span class="n">GetEntityCommandsAction</span>
+                    <span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_get_built_in_actions</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of built in actions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ClassObj</span> <span class="ow">in</span> <span class="n">BUILT_IN_ACTIONS</span><span class="p">:</span>
+        <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ClassObj</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">actions</span>
+
+<span class="c1">###############################################################################################</span>
+<span class="c1"># Shell engine tank commands - adapter for creating an action from an app</span>
+
+<span class="k">class</span> <span class="nc">ShellEngineAction</span><span class="p">(</span><span class="n">Action</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Action wrapper around a shell engine command</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">command_key</span><span class="p">):</span>
+        <span class="n">Action</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">Action</span><span class="o">.</span><span class="n">ENGINE</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="s2">&quot;Shell Engine&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_command_key</span> <span class="o">=</span> <span class="n">command_key</span>
+    
+    <span class="k">def</span> <span class="nf">run_interactive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">execute_command</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_command_key</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+        
+
+
+<span class="k">def</span> <span class="nf">get_shell_engine_actions</span><span class="p">(</span><span class="n">engine_obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of shell engine actions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">actions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">engine_obj</span><span class="o">.</span><span class="n">commands</span><span class="p">:</span>    
+        
+        <span class="c1"># custom properties dict</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">engine_obj</span><span class="o">.</span><span class="n">commands</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span>
+        
+        <span class="c1"># the properties dict contains some goodies here that we can use</span>
+        <span class="c1"># look for a short_name, if that does not exist, fall back on the command name</span>
+        <span class="c1"># prefix will hold a prefix that guarantees uniqueness, if needed</span>
+        <span class="n">cmd_name</span> <span class="o">=</span> <span class="n">c</span>
+        <span class="k">if</span> <span class="s2">&quot;short_name&quot;</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">props</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">]:</span>
+                <span class="c1"># need a prefix to produce a unique command</span>
+                <span class="n">cmd_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">],</span> <span class="n">props</span><span class="p">[</span><span class="s2">&quot;short_name&quot;</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># unique without a prefix</span>
+                <span class="n">cmd_name</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="s2">&quot;short_name&quot;</span><span class="p">]</span>
+        
+        <span class="n">description</span> <span class="o">=</span> <span class="n">engine_obj</span><span class="o">.</span><span class="n">commands</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;No description available.&quot;</span><span class="p">)</span>
+
+        <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ShellEngineAction</span><span class="p">(</span><span class="n">cmd_name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">c</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">actions</span>
+
+<span class="c1">###############################################################################################</span>
+<span class="c1"># Complete public API definitions for accessing toolkit commands</span>
+<span class="c1"># ------------------------------------------------------------</span>
+<span class="c1"># - The list_commands returns a list of available command names</span>
+<span class="c1"># - The create_command factory returns a SgtkSystemCommand class instance</span>
+<span class="c1">#   for a given command</span>
+<span class="c1"># - The SgtkSystemCommand class wraps around a command implementation and</span>
+<span class="c1">#   forms the actual interface which we expose via the interface.   </span>
+
+<div class="viewcode-block" id="list_commands"><a class="viewcode-back" href="../../../core.html#sgtk.list_commands">[docs]</a><span class="k">def</span> <span class="nf">list_commands</span><span class="p">(</span><span class="n">tk</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lists the system commands registered with the system.</span>
+
+<span class="sd">    If you leave the optional tk parameter as None, a list of</span>
+<span class="sd">    global commands will be returned. These commands can be executed</span>
+<span class="sd">    at any point and do not require a project or a configuration to </span>
+<span class="sd">    be present. Examples of such commands are the core upgrade</span>
+<span class="sd">    check and the setup_project commands::</span>
+
+<span class="sd">        &gt;&gt;&gt; import sgtk</span>
+<span class="sd">        &gt;&gt;&gt; sgtk.list_commands()</span>
+<span class="sd">        [&#39;setup_project&#39;, &#39;core&#39;]</span>
+<span class="sd">    </span>
+<span class="sd">    If you do pass in a tk API handle (or alternatively use the</span>
+<span class="sd">    convenience method :meth:`Sgtk.list_commands`), all commands which</span>
+<span class="sd">    are available in the context of a project configuration will be returned.</span>
+<span class="sd">    This includes for example commands for configuration management, </span>
+<span class="sd">    anything app or engine related and validation and overview functionality.</span>
+<span class="sd">    In addition to these commands, the global commands will also be returned::</span>
+
+<span class="sd">        &gt;&gt;&gt; import sgtk</span>
+<span class="sd">        &gt;&gt;&gt; tk = sgtk.sgtk_from_path(&quot;/studio/project_root&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; tk.list_commands()</span>
+<span class="sd">        [&#39;setup_project&#39;, &#39;core&#39;, &#39;localize&#39;, &#39;validate&#39;, &#39;cache_apps&#39;, &#39;clear_cache&#39;,</span>
+<span class="sd">         &#39;app_info&#39;, &#39;install_app&#39;, &#39;install_engine&#39;, &#39;updates&#39;, &#39;configurations&#39;, &#39;clone_configuration&#39;]</span>
+
+
+<span class="sd">    :param tk: Optional Toolkit API instance</span>
+<span class="sd">    :type tk: :class:`Sgtk`</span>
+<span class="sd">    :returns: list of command names</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">action_names</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">_get_built_in_actions</span><span class="p">():</span>
+        
+        <span class="c1"># check if this tank command has API support</span>
+        <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">supports_api</span><span class="p">:</span>
+        
+            <span class="c1"># if we don&#39;t have a tk API instance, we can only access GLOBAL commands</span>
+            <span class="k">if</span> <span class="n">tk</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">mode</span> <span class="o">!=</span> <span class="n">Action</span><span class="o">.</span><span class="n">GLOBAL</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">action_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                
+    <span class="k">return</span> <span class="n">action_names</span></div>
+
+<div class="viewcode-block" id="get_command"><a class="viewcode-back" href="../../../core.html#sgtk.get_command">[docs]</a><span class="k">def</span> <span class="nf">get_command</span><span class="p">(</span><span class="n">command_name</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns an instance of a command object that can be used to execute a command.</span>
+<span class="sd">    </span>
+<span class="sd">    Once you have retrieved the command instance, you can perform introspection to </span>
+<span class="sd">    check for example the required parameters for the command, name, description etc.</span>
+<span class="sd">    Lastly, you can execute the command by running the execute() method.</span>
+<span class="sd">    </span>
+<span class="sd">    In order to get a list of the available commands, use the :meth:`list_commands` method.</span>
+<span class="sd">    </span>
+<span class="sd">    Certain commands require a project configuration context in order to operate. This</span>
+<span class="sd">    needs to be passed on in the form of a toolkit API instance via the tk parameter.</span>
+<span class="sd">    See the list_command() documentation for more details.</span>
+<span class="sd">    </span>
+<span class="sd">    :param command_name: Name of command to execute. Get a list of all available commands</span>
+<span class="sd">                         using the :meth:`list_commands` method.</span>
+<span class="sd">    :param tk: Optional Toolkit API instance</span>
+<span class="sd">    :type tk: :class:`Sgtk`</span>
+<span class="sd">    :returns: :class:`SgtkSystemCommand`</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="k">if</span> <span class="n">command_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">list_commands</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
+        <span class="c1"># not found</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;The command &#39;</span><span class="si">%s</span><span class="s2">&#39; does not exist. Use the sgtk.list_commands() method to &quot;</span>
+                        <span class="s2">&quot;see a list of all commands available via the API.&quot;</span> <span class="o">%</span> <span class="n">command_name</span><span class="p">)</span>
+        
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">_get_built_in_actions</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">command_name</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">supports_api</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">SgtkSystemCommand</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">tk</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SgtkSystemCommand"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand">[docs]</a><span class="k">class</span> <span class="nc">SgtkSystemCommand</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a toolkit system command.</span>
+<span class="sd">    </span>
+<span class="sd">    You can use this object to introspect command properties such as </span>
+<span class="sd">    name, description, parameters etc. Execution is carried out by calling the :meth:`execute` method.</span>
+
+<span class="sd">    For a global command which doesn&#39;t require an active configuration,</span>
+<span class="sd">    execution typically looks like this::</span>
+
+
+<span class="sd">        &gt;&gt;&gt; import sgtk</span>
+
+<span class="sd">        &gt;&gt;&gt; sgtk.list_commands()</span>
+<span class="sd">        [&#39;setup_project&#39;, &#39;core&#39;]</span>
+
+<span class="sd">        &gt;&gt;&gt; cmd = sgtk.get_command(&quot;core&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; cmd</span>
+<span class="sd">        &lt;tank.deploy.tank_command.SgtkSystemCommand object at 0x106d9f090&gt;</span>
+
+<span class="sd">        &gt;&gt;&gt; cmd.execute({})</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># this class wraps around a tank.deploy.tank_commands.action_base.Action class</span>
+    <span class="c1"># and exposes the &quot;official&quot; interface for it.</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">internal_action_object</span><span class="p">,</span> <span class="n">tk</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instances should be constructed using the :meth:`get_command` factory method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span> <span class="o">=</span> <span class="n">internal_action_object</span>
+        
+        <span class="c1"># only commands of type GLOBAL, TK_INSTANCE are currently supported</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Action</span><span class="o">.</span><span class="n">GLOBAL</span><span class="p">,</span> <span class="n">Action</span><span class="o">.</span><span class="n">TK_INSTANCE</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;The command </span><span class="si">%r</span><span class="s2"> is not of a type which is supported by Toolkit. &quot;</span>
+                            <span class="s2">&quot;Please contact support on support@shotgunsoftware.com&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="p">)</span>
+        
+        <span class="c1"># make sure we pass a tk api for actions that require it</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">Action</span><span class="o">.</span><span class="n">TK_INSTANCE</span> <span class="ow">and</span> <span class="n">tk</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;This command requires a Toolkit API instance to execute. Please &quot;</span>
+                            <span class="s2">&quot;provide this either as a parameter to the sgtk.get_command() method &quot;</span>
+                            <span class="s2">&quot;or alternatively execute the tk.get_command() method directly from &quot;</span>
+                            <span class="s2">&quot;a Toolkit API instance.&quot;</span><span class="p">)</span> 
+
+        <span class="k">if</span> <span class="n">tk</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">tk</span> <span class="o">=</span> <span class="n">tk</span>
+        
+        <span class="c1"># set up a default logger which can be overridden via the set_logger method</span>
+        <span class="c1"># for the default logger, use the standard toolkit logging standard based on __name__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__log</span> <span class="o">=</span> <span class="n">log</span>
+        <span class="c1"># make sure that we have exactly one handler</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">handlers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+            <span class="n">ch</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+            <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The different parameters that needs to be specified and if a</span>
+<span class="sd">        parameter has any default values. For example::</span>
+<span class="sd">        </span>
+<span class="sd">            { &quot;parameter_name&quot;: { &quot;description&quot;: &quot;Parameter info&quot;,</span>
+<span class="sd">                                &quot;default&quot;: None,</span>
+<span class="sd">                                &quot;type&quot;: &quot;str&quot; },</span>
+
+<span class="sd">             ...</span>
+
+<span class="sd">             &quot;return_value&quot;: { &quot;description&quot;: &quot;Return value (optional)&quot;,</span>
+<span class="sd">                               &quot;type&quot;: &quot;str&quot; }</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">parameters</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A brief description of this command.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">description</span>
+         
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The name of this command.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">name</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">category</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The category for this command. This is typically a short string like &quot;Admin&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">category</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The python logger associated with this tank command</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__log</span>
+
+<div class="viewcode-block" id="SgtkSystemCommand.set_logger"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand.set_logger">[docs]</a>    <span class="k">def</span> <span class="nf">set_logger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specify a standard python log instance to send logging output to.</span>
+<span class="sd">        If this is not specify, the standard output mechanism will be used.</span>
+
+<span class="sd">        .. warning:: We strongly recommend using the :meth:`logger` property</span>
+<span class="sd">                     to retrieve the default logger for the tank command</span>
+<span class="sd">                     and attaching a handler to this rather than passing in</span>
+<span class="sd">                     an explicit log object via this method. This method</span>
+<span class="sd">                     may be deprecated at some point in the future.</span>
+
+<span class="sd">        :param log: Standard python logging instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__log</span> <span class="o">=</span> <span class="n">log</span></div>
+
+<div class="viewcode-block" id="SgtkSystemCommand.execute"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute this command.</span>
+<span class="sd">        </span>
+<span class="sd">        :param params: dictionary of parameters to pass to this command.</span>
+<span class="sd">                       the dictionary key is the name of the parameter and the value</span>
+<span class="sd">                       is the value you want to pass. You can query which parameters</span>
+<span class="sd">                       can be passed in via the parameters property.</span>
+<span class="sd">        :returns: Whatever the command returns. Data type and description for the return</span>
+<span class="sd">                  value can be introspected via the :meth:`parameters` property.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">tk</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">log_metric</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">run_noninteractive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div></div>
+        
+        
+        
+    
+    
+    
+<span class="c1">###############################################################################################</span>
+<span class="c1"># Main entry points for accessing tank commands from the tank command / shell engine</span>
+
+<span class="k">def</span> <span class="nf">get_actions</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of Action objects given the current context, api etc.</span>
+<span class="sd">    tk and ctx may be none, indicating that tank is running in a &#39;partial&#39; state.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">if</span> <span class="n">tk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">ctx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>          
+        <span class="c1"># we have all the necessary pieces needed to start an engine</span>
+        
+        <span class="c1"># check if there is an environment object for our context</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">get_environment_from_context</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Probing for a shell engine. ctx &#39;</span><span class="si">%s</span><span class="s2">&#39; --&gt; environment &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">env</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">env</span> <span class="ow">and</span> <span class="n">constants</span><span class="o">.</span><span class="n">SHELL_ENGINE</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">get_engines</span><span class="p">():</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Looks like the environment has a tk-shell engine. Trying to start it.&quot;</span><span class="p">)</span>
+            <span class="c1"># we have an environment and a shell engine. Looking good.</span>
+            <span class="n">engine</span> <span class="o">=</span> <span class="n">start_engine</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SHELL_ENGINE</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>        
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Started engine </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">engine</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;- Started Shell Engine version </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">engine</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;- Environment: </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">engine</span><span class="o">.</span><span class="n">environment</span><span class="p">[</span><span class="s2">&quot;disk_location&quot;</span><span class="p">])</span>
+
+        
+    <span class="n">actions</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c1"># get all actions regardless of current scope first</span>
+    <span class="n">all_actions</span> <span class="o">=</span> <span class="n">_get_built_in_actions</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">engine</span><span class="p">:</span>
+        <span class="n">all_actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span> <span class="n">get_shell_engine_actions</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span> <span class="p">)</span>
+    
+    <span class="c1"># now only pick the ones that are working with our current state</span>
+    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">all_actions</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">a</span><span class="o">.</span><span class="n">supports_tank_command</span><span class="p">:</span>
+            <span class="c1"># this action does not support tank command mode</span>
+            <span class="k">continue</span>
+        
+        <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">Action</span><span class="o">.</span><span class="n">GLOBAL</span><span class="p">:</span>
+            <span class="c1"># globals are always possible to run</span>
+            <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tk</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">Action</span><span class="o">.</span><span class="n">TK_INSTANCE</span><span class="p">:</span>
+            <span class="c1"># we have a PC!</span>
+            <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ctx</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">Action</span><span class="o">.</span><span class="n">CTX</span><span class="p">:</span>
+            <span class="c1"># we have a command that needs a context</span>
+            <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">engine</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">Action</span><span class="o">.</span><span class="n">ENGINE</span><span class="p">:</span>
+            <span class="c1"># needs the engine</span>
+            <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="p">(</span><span class="n">actions</span><span class="p">,</span> <span class="n">engine</span><span class="p">)</span>
+    
+
+<span class="k">def</span> <span class="nf">run_action</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find an action and start execution. This method is tightly coupled with the tank_cmd script.</span>
+<span class="sd">    </span>
+<span class="sd">    The command handles multiple states and contains logic for validating that the mode of the desired command</span>
+<span class="sd">    is actually compatible with the state which is passed in.</span>
+<span class="sd">    </span>
+<span class="sd">    Because tank commands can run in environments with varying degrees of completeness (ranging from only</span>
+<span class="sd">    knowing the code location to having a fully qualified context), some of the parameters deliberately overlap.</span>
+<span class="sd">    </span>
+<span class="sd">    :param log: Python logger to pass command output to</span>
+<span class="sd">    :param tk: API instance to pass to command. For a state where no notion of a pipeline config/current project</span>
+<span class="sd">               exists, this will be None.</span>
+<span class="sd">    :param ctx: Context object. For a state where a current context is not known, this will be none.</span>
+<span class="sd">    :param args: list of strings forming additional arguments to be passed to the command.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c1"># first see if we can find the action without starting the engine</span>
+    <span class="n">found_action</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">_get_built_in_actions</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">command</span><span class="p">:</span>
+            <span class="n">found_action</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="k">break</span>
+    
+    <span class="k">if</span> <span class="n">found_action</span> <span class="ow">and</span> <span class="n">found_action</span><span class="o">.</span><span class="n">wants_running_shell_engine</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No need to load up the engine for this command.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># try to load the engine.</span>
+        <span class="k">if</span> <span class="n">tk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">ctx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>          
+            <span class="c1"># we have all the necessary pieces needed to start an engine  </span>
+            <span class="c1"># check if there is an environment object for our context</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="n">get_environment_from_context</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Probing for a shell engine. ctx &#39;</span><span class="si">%s</span><span class="s2">&#39; --&gt; environment &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">env</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">env</span> <span class="ow">and</span> <span class="n">constants</span><span class="o">.</span><span class="n">SHELL_ENGINE</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">get_engines</span><span class="p">():</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Looks like the environment has a tk-shell engine. Trying to start it.&quot;</span><span class="p">)</span>
+                <span class="c1"># we have an environment and a shell engine. Looking good.</span>
+                <span class="n">engine</span> <span class="o">=</span> <span class="n">start_engine</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SHELL_ENGINE</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>        
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Started engine </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">engine</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;- Started Shell Engine version </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">engine</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;- Environment: </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">engine</span><span class="o">.</span><span class="n">environment</span><span class="p">[</span><span class="s2">&quot;disk_location&quot;</span><span class="p">])</span>
+                        
+                <span class="c1"># now keep looking for our command</span>
+                <span class="k">if</span> <span class="n">found_action</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="c1"># may already be found (a core cmd which needs and engine)</span>
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">get_shell_engine_actions</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">command</span><span class="p">:</span>
+                            <span class="n">found_action</span> <span class="o">=</span> <span class="n">x</span>
+                            <span class="k">break</span>
+                    
+    <span class="c1"># ok we now have all the pieces we need</span>
+    <span class="k">if</span> <span class="n">found_action</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The action &#39;</span><span class="si">%s</span><span class="s2">&#39; could not be found!&quot;</span> <span class="o">%</span> <span class="n">command</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;In order to list all action that are available, try running the same command, &quot;</span> 
+                 <span class="s2">&quot;but omit the &#39;</span><span class="si">%s</span><span class="s2">&#39; part at the end.&quot;</span> <span class="o">%</span> <span class="n">command</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="c1"># seed the action object with all the handles it may need</span>
+        <span class="n">found_action</span><span class="o">.</span><span class="n">tk</span> <span class="o">=</span> <span class="n">tk</span>
+        <span class="n">found_action</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">ctx</span>
+        <span class="n">found_action</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span>
+        
+        <span class="c1"># now check that we actually have passed enough stuff to work with this mode</span>
+        <span class="k">if</span> <span class="n">found_action</span><span class="o">.</span><span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Action</span><span class="o">.</span><span class="n">TK_INSTANCE</span><span class="p">,</span> <span class="n">Action</span><span class="o">.</span><span class="n">CTX</span><span class="p">,</span> <span class="n">Action</span><span class="o">.</span><span class="n">ENGINE</span><span class="p">)</span> <span class="ow">and</span> <span class="n">tk</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c1"># we are missing a tk instance</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Trying to launch </span><span class="si">%r</span><span class="s2"> without an Toolkit instance.&quot;</span> <span class="o">%</span> <span class="n">found_action</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;The command &#39;</span><span class="si">%s</span><span class="s2">&#39; needs a project to run. For example, if you want &quot;</span>
+                            <span class="s2">&quot;to run it for project XYZ, execute &quot;</span>
+                            <span class="s2">&quot;&#39;tank Project XYZ </span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">found_action</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">found_action</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">found_action</span><span class="o">.</span><span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Action</span><span class="o">.</span><span class="n">CTX</span><span class="p">,</span> <span class="n">Action</span><span class="o">.</span><span class="n">ENGINE</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ctx</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c1"># we have a command that needs a context</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Trying to launch </span><span class="si">%r</span><span class="s2"> without a context.&quot;</span> <span class="o">%</span> <span class="n">found_action</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;The command &#39;</span><span class="si">%s</span><span class="s2">&#39; needs a work area to run.&quot;</span> <span class="o">%</span> <span class="n">found_action</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="n">found_action</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">Action</span><span class="o">.</span><span class="n">ENGINE</span> <span class="ow">and</span> <span class="n">engine</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c1"># we have a command that needs an engine</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Trying to launch </span><span class="si">%r</span><span class="s2"> without an engine.&quot;</span> <span class="o">%</span> <span class="n">found_action</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;The command &#39;</span><span class="si">%s</span><span class="s2">&#39; needs the shell engine running.&quot;</span> <span class="o">%</span> <span class="n">found_action</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        
+        <span class="c1"># ok all good</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;- Running command </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">found_action</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">70</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Command: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">found_action</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">())</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">70</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">found_action</span><span class="o">.</span><span class="n">tk</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">found_action</span><span class="p">,</span> <span class="n">ShellEngineAction</span><span class="p">):</span>
+            <span class="n">found_action</span><span class="o">.</span><span class="n">tk</span><span class="o">.</span><span class="n">log_metric</span><span class="p">(</span><span class="n">found_action</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">found_action</span><span class="o">.</span><span class="n">run_interactive</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

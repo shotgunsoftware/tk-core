@@ -1,0 +1,737 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.hook &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.hook</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.hook</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2013 Shotgun Software Inc.</span>
+<span class="c1"># </span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1"># </span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Defines the base class for all Tank Hooks.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">from</span> <span class="nn">.util.loader</span> <span class="kn">import</span> <span class="n">load_plugin</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TankError</span><span class="p">,</span>
+    <span class="n">TankFileDoesNotExistError</span><span class="p">,</span>
+    <span class="n">TankHookMethodDoesNotExistError</span><span class="p">,</span>
+<span class="p">)</span>
+
+<div class="viewcode-block" id="Hook"><a class="viewcode-back" href="../../core.html#sgtk.Hook">[docs]</a><span class="k">class</span> <span class="nc">Hook</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hooks are implemented in a python file and they all derive from a :class:`Hook` base class.</span>
+
+<span class="sd">    If you are writing an app that loads files into Maya, Nuke or other DCCs, a hook is a good</span>
+<span class="sd">    way to expose the actual loading logic, so that not only can be customized by a user, but</span>
+<span class="sd">    so that you could even add support for a new DCC to your load app without having to update it.</span>
+
+<span class="sd">    First, you would create a ``hooks/actions.py`` file in your app. This would contain a hook class::</span>
+
+<span class="sd">        import sgtk</span>
+<span class="sd">        HookBaseClass = sgtk.get_hook_baseclass()</span>
+
+<span class="sd">        class Actions(HookBaseClass):</span>
+
+<span class="sd">            def list_actions(self, sg_publish_data):</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                Given some Shotgun publish data, return a list of</span>
+<span class="sd">                actions that can be performed</span>
+
+<span class="sd">                :param sg_publish_data: Dictionary of publish data from Shotgun</span>
+<span class="sd">                :returns: List of action strings</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                # The base implementation implements an action to show</span>
+<span class="sd">                # the item in Shotgun</span>
+<span class="sd">                return [&quot;show_in_sg&quot;]</span>
+
+<span class="sd">            def run_action(self, action, sg_publish_data):</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                Execute the given action</span>
+
+<span class="sd">                :param action: name of action. One of the items returned by list_actions.</span>
+<span class="sd">                :param sg_publish_data: Dictionary of publish data from Shotgun</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                if action == &quot;show_in_sg&quot;:</span>
+
+<span class="sd">                    url = &quot;%s/detail/%s/%d&quot; % (</span>
+<span class="sd">                        self.parent.shotgun.base_url,</span>
+<span class="sd">                        sg_publish_data[&quot;type&quot;],</span>
+<span class="sd">                        sg_publish_data[&quot;id&quot;]</span>
+<span class="sd">                        )</span>
+<span class="sd">                    QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))</span>
+
+<span class="sd">    The above code forms a generic base for your hook with a basic implementation that works</span>
+<span class="sd">    everywhere.</span>
+
+<span class="sd">    In the app manifest (``info.yml``), where we define all the basic configuration properties for the app,</span>
+<span class="sd">    we define an actions hook::</span>
+
+<span class="sd">        configuration:</span>
+
+<span class="sd">            actions_hook:</span>
+<span class="sd">                type: hook</span>
+<span class="sd">                default_value: &quot;{self}/actions.py&quot;</span>
+<span class="sd">                description: Hook which contains all methods for action management.</span>
+
+<span class="sd">    From the app code itself, you can now use :meth:`~sgtk.platform.Application.execute_hook_method()`</span>
+<span class="sd">    to call out to the hook::</span>
+
+<span class="sd">        # when creating a list of items in the UI for your app -</span>
+<span class="sd">        # given a shotgun publish, build a menu of avaialable actions:</span>
+<span class="sd">        actions = self.execute_hook_method(&quot;actions_hook&quot;, &quot;list_actions&quot;, sg_data)</span>
+
+<span class="sd">        # in a callback method once a user has selected an action -</span>
+<span class="sd">        # call out to the hook to execute the action</span>
+<span class="sd">        self.execute_hook_method(&quot;actions_hook&quot;, &quot;run_action&quot;, sg_data, action_name)</span>
+
+<span class="sd">    In the configuration for your app, you can now &#39;glue together&#39; different functionality</span>
+<span class="sd">    for different scenarios. For example, when you install the app to run inside the Maya</span>
+<span class="sd">    engine, you want to be able to import maya files into maya. We implement this by adding a</span>
+<span class="sd">    custom publish hook for maya. This can either be placed with the app itself, in the ``hooks``</span>
+<span class="sd">    folder in the configuration, or in the maya engine. In this case, we&#39;ll add a ``hooks/actions.py``</span>
+<span class="sd">    to the maya engine. This file looks like this::</span>
+
+<span class="sd">        import sgtk</span>
+<span class="sd">        HookBaseClass = sgtk.get_hook_baseclass()</span>
+
+<span class="sd">        class MayaActions(HookBaseClass):</span>
+
+<span class="sd">            def list_actions(self, sg_publish_data):</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                Given some Shotgun publish data, return a list of</span>
+<span class="sd">                actions that can be performed</span>
+
+<span class="sd">                :param sg_publish_data: Dictionary of publish data from Shotgun</span>
+<span class="sd">                :returns: List of action strings</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                # first get base class actions</span>
+<span class="sd">                actions = HookBaseClass.list_actions(sg_publish_data)</span>
+
+<span class="sd">                # Add maya actions</span>
+<span class="sd">                if sg_publish_data[&quot;published_file_type&quot;][&quot;name&quot;] == &quot;Maya Scene&quot;:</span>
+<span class="sd">                    actions += [&quot;reference&quot;, &quot;import&quot;]</span>
+
+<span class="sd">            def run_action(self, action, sg_publish_data):</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                Execute the given action</span>
+
+<span class="sd">                :param action: name of action. One of the items returned by list_actions.</span>
+<span class="sd">                :param sg_publish_data: Dictionary of publish data from Shotgun</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                if action == &quot;reference&quot;:</span>
+<span class="sd">                    # do maya reference operation</span>
+
+<span class="sd">                elif action == &quot;import&quot;:</span>
+<span class="sd">                    # do maya import operation</span>
+
+<span class="sd">                else:</span>
+<span class="sd">                    # pass on to base class</span>
+<span class="sd">                    return HookBaseClass.run_action(action, sg_publish_data)</span>
+
+<span class="sd">    The above hook implements a couple of actions that are designed to work in Maya.</span>
+<span class="sd">    Lastly, we need to tell the app to pick up this file. In the environment configuration for the app</span>
+<span class="sd">    running inside of maya, we point it at our engine specific hook::</span>
+
+<span class="sd">        tk-maya:</span>
+<span class="sd">            tk-multi-myapp:</span>
+<span class="sd">                actions_hook: &#39;{engine}/actions.py&#39;</span>
+
+<span class="sd">    When we are running the app configuration in maya, the actions hook will automatically</span>
+<span class="sd">    resolve the hook code distributed with the maya engine. The base class will be automatically</span>
+<span class="sd">    determined to be the default value set in the manifest, allowing for the app to carry a default</span>
+<span class="sd">    base implementation that is always taken into account.</span>
+
+<span class="sd">    Several different path formats exist, making this a very powerful configuration mechanism:</span>
+
+<span class="sd">    - ``{self}/path/to/foo.py`` -- looks in the ``hooks`` folder in the local app, engine of framework.</span>
+
+<span class="sd">    - ``{config}/path/to/foo.py`` -- Looks in the ``hooks`` folder in the configuration.</span>
+
+<span class="sd">    - ``{$HOOK_PATH}/path/to/foo.py``  -- expression based around an environment variable.</span>
+
+<span class="sd">    - ``{engine}/path/to/foo.py`` -- looks in the ``hooks`` folder of the current engine.</span>
+
+<span class="sd">    - ``{tk-framework-perforce_v1.x.x}/path/to/foo.py`` -- looks in the ``hooks`` folder of a</span>
+<span class="sd">      framework instance that exists in the current environment. Basically, each entry inside the</span>
+<span class="sd">      frameworks section in the current environment can be specified here - all these entries are</span>
+<span class="sd">      on the form frameworkname_versionpattern, for example ``tk-framework-widget_v0.1.2`` or</span>
+<span class="sd">      ``tk-framework-shotgunutils_v1.3.x``.</span>
+
+<span class="sd">    Supported legacy formats:</span>
+
+<span class="sd">    - ``foo`` -- Equivalent to ``{config}/foo.py``</span>
+
+<span class="sd">    You can also provide your own inheritance chains. For example, if you wanted to add your own,</span>
+<span class="sd">    project specific maya hooks to this app, you could do this by creating a hook file, placing</span>
+<span class="sd">    it in your configuration&#39;s ``hooks`` folder and then configure it like this::</span>
+
+<span class="sd">        tk-maya:</span>
+<span class="sd">            tk-multi-myapp:</span>
+<span class="sd">                actions_hook: &#39;{engine}/actions.py:{config}/maya_actions.py&#39;</span>
+
+<span class="sd">    This would execute your ``maya_actions.py`` hook and make sure that that hook inherits from the</span>
+<span class="sd">    engine specific hook, making sure that you get both your custom actions, the engine default actions</span>
+<span class="sd">    and the app&#39;s built-in actions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># default method to execute on hooks</span>
+    <span class="n">DEFAULT_HOOK_METHOD</span> <span class="o">=</span> <span class="s2">&quot;execute&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span> <span class="o">=</span> <span class="n">parent</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The parent object to the executing hook. This varies with the type of</span>
+<span class="sd">        hook that is being executed. For a hook that runs inside an app or an engine,</span>
+<span class="sd">        the parent object will be the :class:`~sgtk.platform.Application` or</span>
+<span class="sd">        :class:`~sgtk.platform.Engine` instance. For core hooks, the</span>
+<span class="sd">        parent object will be :class:`sgtk`.</span>
+
+<span class="sd">        .. note:: If you need to access Shotgun inside your hook, you can do this by</span>
+<span class="sd">                  calling ``self.parent.shotgun`` since both Apps, Engines and the Core API</span>
+<span class="sd">                  has a ``shotgun`` property.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span>
+    
+<div class="viewcode-block" id="Hook.get_publish_path"><a class="viewcode-back" href="../../core.html#sgtk.Hook.get_publish_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_publish_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the path on disk for a publish entity in Shotgun.</span>
+
+<span class="sd">        Use this method if you have a shotgun publish entity and want</span>
+<span class="sd">        to get a local path on disk. This method will ensure that however</span>
+<span class="sd">        the publish path is encoded, a local path is returned.</span>
+
+<span class="sd">        :param sg_publish_data: Shotgun dictionary containing</span>
+<span class="sd">                                information about a publish. Needs to at least </span>
+<span class="sd">                                contain a type, id and a path key. </span>
+<span class="sd">        :returns: String representing a local path on disk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_publish_paths</span><span class="p">([</span> <span class="n">sg_publish_data</span> <span class="p">])[</span><span class="mi">0</span><span class="p">]</span></div>
+        
+<div class="viewcode-block" id="Hook.get_publish_paths"><a class="viewcode-back" href="../../core.html#sgtk.Hook.get_publish_paths">[docs]</a>    <span class="k">def</span> <span class="nf">get_publish_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns several local paths on disk given a</span>
+<span class="sd">        list of shotgun data dictionaries representing publishes.</span>
+
+<span class="sd">        Use this method if you have several shotgun publish entities and want</span>
+<span class="sd">        to get a local path on disk. This method will ensure that however</span>
+<span class="sd">        the publish path is encoded, a local path is returned.</span>
+
+<span class="sd">        :param sg_publish_data_list: List of shotgun data dictionaries </span>
+<span class="sd">                                     containing publish data. Each dictionary </span>
+<span class="sd">                                     needs to at least contain a type, id and </span>
+<span class="sd">                                     a path key.</span>
+<span class="sd">        :returns: List of strings representing local paths on disk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sg_data</span> <span class="ow">in</span> <span class="n">sg_publish_data_list</span><span class="p">:</span>
+            <span class="n">path_field</span> <span class="o">=</span> <span class="n">sg_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path_field</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot resolve path from publish! The shotgun dictionary </span><span class="si">%s</span><span class="s2"> does &quot;</span>
+                                <span class="s2">&quot;not contain a valid path definition&quot;</span> <span class="o">%</span> <span class="n">sg_data</span><span class="p">)</span>
+            
+            <span class="n">local_path</span> <span class="o">=</span> <span class="n">path_field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;local_path&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">local_path</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot resolve path from publish! The shotgun dictionary </span><span class="si">%s</span><span class="s2"> does &quot;</span>
+                                <span class="s2">&quot;not contain a valid path definition&quot;</span> <span class="o">%</span> <span class="n">sg_data</span><span class="p">)</span>
+            <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">paths</span></div>
+    
+<div class="viewcode-block" id="Hook.load_framework"><a class="viewcode-back" href="../../core.html#sgtk.Hook.load_framework">[docs]</a>    <span class="k">def</span> <span class="nf">load_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">framework_instance_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads and returns a framework given an environment instance name.</span>
+
+<span class="sd">        .. note:: This method only works for hooks that are executed from apps and frameworks.</span>
+
+<span class="sd">        If you have complex logic and functionality and want to manage (and version it) as part</span>
+<span class="sd">        of a framework rather than in a hook, you can do this by calling a configured framework</span>
+<span class="sd">        from inside a hook::</span>
+
+<span class="sd">            import sgtk</span>
+<span class="sd">            HookBaseClass = sgtk.get_hook_baseclass()</span>
+
+<span class="sd">            class SomeHook(HookBaseClass):</span>
+
+<span class="sd">                def some_method(self):</span>
+
+<span class="sd">                    # first get a framework handle. This object is similar to an app or engine object</span>
+<span class="sd">                    fw = self.load_framework(&quot;tk-framework-library_v1.x.x&quot;)</span>
+
+<span class="sd">                    # now just like with an app or an engine, if you want to access code in the python</span>
+<span class="sd">                    # folder, you can do import_plugin</span>
+<span class="sd">                    module = fw.import_module(&quot;some_module&quot;)</span>
+
+<span class="sd">                    module.do_stuff()</span>
+
+
+<span class="sd">        Note how we are accessing the framework instance ``tk-framework-library_v1.x.x`` above.</span>
+<span class="sd">        This needs to be defined in the currently running environment, as part of the ``frameworks`` section::</span>
+
+<span class="sd">            engines:</span>
+<span class="sd">              # all engine and app defs here...</span>
+
+<span class="sd">            frameworks:</span>
+<span class="sd">             # define the framework that we are using in the hook</span>
+<span class="sd">             tk-framework-library_v1.x.x:</span>
+<span class="sd">                location: {type: git, path: &#39;https://github.com/foo/tk-framework-library.git&#39;, version: v1.2.6}</span>
+
+<span class="sd">        :param framework_instance_name: Name of the framework instance to load from the environment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># avoid circular refs</span>
+        <span class="kn">from</span> <span class="nn">.platform</span> <span class="kn">import</span> <span class="n">framework</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span><span class="o">.</span><span class="n">engine</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot load framework </span><span class="si">%s</span><span class="s2"> for </span><span class="si">%r</span><span class="s2"> - it does not have a &quot;</span>
+                            <span class="s2">&quot;valid engine property!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">framework_instance_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span><span class="p">))</span>
+            
+        <span class="k">return</span> <span class="n">framework</span><span class="o">.</span><span class="n">load_framework</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">get_env</span><span class="p">(),</span> <span class="n">framework_instance_name</span><span class="p">)</span></div>
+    
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Legacy support for old style hooks</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<span class="k">class</span> <span class="nc">_HooksCache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A thread-safe cache of loaded hooks.  This uses the hook file path</span>
+<span class="sd">    and base class as the key to cache all hooks loaded by Toolkit in</span>
+<span class="sd">    the current session.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construction</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">thread_exclusive</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        function decorator to ensure multiple threads can&#39;t access the cache </span>
+<span class="sd">        at the same time.</span>
+
+<span class="sd">        :param func:    The function to wrap</span>
+<span class="sd">        :returns:       The return value from func</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Decorator inner function - executes the function within a lock.</span>
+<span class="sd">            :returns:    The return value from func</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">lock</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_lock</span>
+            <span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">inner</span>
+
+    <span class="nd">@thread_exclusive</span>
+    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clear the hook cache</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="nd">@thread_exclusive</span>
+    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_path</span><span class="p">,</span> <span class="n">hook_base_class</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find a hook in the cache using the hook path and base class</span>
+
+<span class="sd">        :param hook_path:       The path to the hook to find</span>
+<span class="sd">        :param hook_base_class: The base class for the hook to find</span>
+<span class="sd">        :returns:               The Hook class if found, None if not</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># The unique cache key is a tuple of the path and the base class to allow </span>
+        <span class="c1"># loading of classes with different bases from the same file</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">hook_base_class</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    
+    <span class="nd">@thread_exclusive</span>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_path</span><span class="p">,</span> <span class="n">hook_base_class</span><span class="p">,</span> <span class="n">hook_class</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add the specified hook to the cache if it isn&#39;t already present</span>
+<span class="sd">        </span>
+<span class="sd">        :param hook_path:       The path to the hook to add</span>
+<span class="sd">        :param hook_base_class: The base class for the hook to add</span>
+<span class="sd">        :param hook_class:      The Hook class to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># The unique cache key is a tuple of the path and the base class to allow </span>
+        <span class="c1"># loading of classes with different bases from the same file</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">hook_base_class</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">hook_class</span>
+
+    <span class="nd">@thread_exclusive</span>        
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the number of items currently in the hook cache</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">)</span>
+
+<span class="n">_hooks_cache</span> <span class="o">=</span> <span class="n">_HooksCache</span><span class="p">()</span>
+<span class="n">_current_hook_baseclass</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">clear_hooks_cache</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Clears the cache where tank keeps hook classes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_hooks_cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">execute_hook</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Executes a hook, old-school style. </span>
+<span class="sd">    </span>
+<span class="sd">    A hook is a python file which </span>
+<span class="sd">    contains exactly one class which derives (at some point </span>
+<span class="sd">    in its inheritance tree) from the Hook base class.</span>
+<span class="sd">    </span>
+<span class="sd">    Once the file has been loaded (and cached), the execute()</span>
+<span class="sd">    method will be called and any optional arguments pass to </span>
+<span class="sd">    this method will be forwarded on to that execute() method.</span>
+<span class="sd">    </span>
+<span class="sd">    :param hook_path: Full path to the hook python file</span>
+<span class="sd">    :param parent: Parent object. This will be accessible inside</span>
+<span class="sd">                   the hook as self.parent, and is typically an </span>
+<span class="sd">                   app, engine or core object.</span>
+<span class="sd">    :returns: Whatever the hook returns.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">execute_hook_method</span><span class="p">([</span><span class="n">hook_path</span><span class="p">],</span> <span class="n">parent</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">execute_hook_method</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    New style hook execution, with method arguments and support for inheritance.</span>
+<span class="sd">    </span>
+<span class="sd">    This method takes a list of hook paths and will load each of the classes</span>
+<span class="sd">    in, while maintaining the correct state of the class returned via </span>
+<span class="sd">    get_hook_baseclass(). Once all classes have been successfully loaded, </span>
+<span class="sd">    the last class in the list is instantiated and the specified method</span>
+<span class="sd">    is executed.</span>
+<span class="sd">    </span>
+<span class="sd">        Example: [&quot;/tmp/a.py&quot;, &quot;/tmp/b.py&quot;, &quot;/tmp/c.py&quot;]</span>
+<span class="sd">        </span>
+<span class="sd">        1. The code in a.py is loaded in. get_hook_baseclass() will return Hook</span>
+<span class="sd">           at this point. class HookA is returned from our plugin loader.</span>
+<span class="sd">        </span>
+<span class="sd">        2. /tmp/b.py is loaded in. get_hook_baseclass() now returns HookA, so </span>
+<span class="sd">           if the hook code in B utilises get_hook_baseclass, this will will</span>
+<span class="sd">           set up an inheritance relationship with A</span>
+<span class="sd">        </span>
+<span class="sd">        3. /tmp/c.py is finally loaded in, get_hook_baseclass() now returns HookB.</span>
+<span class="sd">        </span>
+<span class="sd">        4. HookC class is instantiated and method method_name is executed.</span>
+<span class="sd">    </span>
+<span class="sd">    :param hook_paths: List of full paths to hooks, in inheritance order.</span>
+<span class="sd">    :param parent: Parent object. This will be accessible inside</span>
+<span class="sd">                   the hook as self.parent, and is typically an </span>
+<span class="sd">                   app, engine or core object.</span>
+<span class="sd">    :param method_name: method to execute. If None, the default method will be executed.</span>
+<span class="sd">    :returns: Whatever the hook returns.</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="n">method_name</span> <span class="o">=</span> <span class="n">method_name</span> <span class="ow">or</span> <span class="n">Hook</span><span class="o">.</span><span class="n">DEFAULT_HOOK_METHOD</span>
+
+    <span class="c1"># keep track of the current base class - this is used when loading hooks to dynamically</span>
+    <span class="c1"># inherit from the correct base.</span>
+    <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">Hook</span>
+    
+    <span class="k">for</span> <span class="n">hook_path</span> <span class="ow">in</span> <span class="n">hook_paths</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">hook_path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">TankFileDoesNotExistError</span><span class="p">(</span><span class="s2">&quot;Cannot execute hook &#39;</span><span class="si">%s</span><span class="s2">&#39; - this file does not exist on disk!&quot;</span> <span class="o">%</span> <span class="n">hook_path</span><span class="p">)</span>
+
+        <span class="c1"># look to see if we&#39;ve already loaded this hook into the cache</span>
+        <span class="n">found_hook_class</span> <span class="o">=</span> <span class="n">_hooks_cache</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>         
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">found_hook_class</span><span class="p">:</span>
+            <span class="c1"># load the hook class from the hook file and cache it - this explicitly looks for a</span>
+            <span class="c1"># single class from the hook file that is derived from the current base (or &#39;Hook&#39; for</span>
+            <span class="c1"># backwards compatibility).</span>
+
+            <span class="c1"># determine any alternate base classes to look for in addition to the current base:</span>
+            <span class="n">alternate_base_classes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span> <span class="o">!=</span> <span class="n">Hook</span><span class="p">:</span>
+                <span class="c1"># allow deriving from the Hook base class - this is to support the legacy method of </span>
+                <span class="c1"># overriding hooks but without sub-classing them.</span>
+                <span class="n">alternate_base_classes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Hook</span><span class="p">)</span>
+                
+            <span class="c1"># try to load the hook class:</span>
+            <span class="n">loaded_hook_class</span> <span class="o">=</span> <span class="n">load_plugin</span><span class="p">(</span>
+                <span class="n">hook_path</span><span class="p">,</span>
+                <span class="n">valid_base_class</span><span class="o">=</span><span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="n">alternate_base_classes</span><span class="o">=</span><span class="n">alternate_base_classes</span>
+            <span class="p">)</span>
+                
+            <span class="c1"># add it to the cache...</span>
+            <span class="n">_hooks_cache</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">loaded_hook_class</span><span class="p">)</span>
+            
+            <span class="c1"># ...and find it again - this is to avoid different threads ending up using </span>
+            <span class="c1"># different instances of the loaded class.</span>
+            <span class="n">found_hook_class</span> <span class="o">=</span> <span class="n">_hooks_cache</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># keep track of the current base class:</span>
+        <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">found_hook_class</span>
+    
+    <span class="c1"># all class construction done. _current_hook_baseclass contains</span>
+    <span class="c1"># the last class we iterated over. This is the one we want to </span>
+    <span class="c1"># instantiate.</span>
+    
+    <span class="c1"># instantiate the class</span>
+    <span class="n">hook</span> <span class="o">=</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+    
+    <span class="c1"># get the method</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">hook_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">method_name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankHookMethodDoesNotExistError</span><span class="p">(</span>
+            <span class="s2">&quot;Cannot execute hook &#39;</span><span class="si">%s</span><span class="s2">&#39; - the hook class does not have a &#39;</span><span class="si">%s</span><span class="s2">&#39; &quot;</span>
+            <span class="s2">&quot;method!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">method_name</span><span class="p">)</span>
+        <span class="p">)</span>
+    
+    <span class="c1"># execute the method</span>
+    <span class="n">ret_val</span> <span class="o">=</span> <span class="n">hook_method</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">ret_val</span>
+
+<div class="viewcode-block" id="get_hook_baseclass"><a class="viewcode-back" href="../../core.html#sgtk.get_hook_baseclass">[docs]</a><span class="k">def</span> <span class="nf">get_hook_baseclass</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the base class to use for the hook currently</span>
+<span class="sd">    being loaded. For more details and examples, see the :class:`Hook` documentation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,668 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.bootstrap.manager</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.bootstrap.manager</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2016 Shotgun Software Inc.</span>
+<span class="c1"># </span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1"># </span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankBootstrapError</span>
+<span class="kn">from</span> <span class="nn">.configuration</span> <span class="kn">import</span> <span class="n">Configuration</span>
+<span class="kn">from</span> <span class="nn">.resolver</span> <span class="kn">import</span> <span class="n">ConfigurationResolver</span>
+<span class="kn">from</span> <span class="nn">..authentication</span> <span class="kn">import</span> <span class="n">ShotgunAuthenticator</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ToolkitManager"><a class="viewcode-back" href="../../../bootstrap.html#sgtk.bootstrap.ToolkitManager">[docs]</a><span class="k">class</span> <span class="nc">ToolkitManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class allows for flexible and non-obtrusive management of toolkit configurations</span>
+<span class="sd">    and installations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_user</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param sg_user: Authenticated Shotgun User object. If you pass in None,</span>
+<span class="sd">                        the manager will provide a standard authentication for you</span>
+<span class="sd">                        via the shotgun authentication module and prompting the user</span>
+<span class="sd">                        if necessary. If you have special requirements around</span>
+<span class="sd">                        authentication, simply construct an explicit user object</span>
+<span class="sd">                        and pass it in.</span>
+<span class="sd">        :type sg_user: :class:`~sgtk.authentication.ShotgunUser`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sg_user</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c1"># request a user from the auth module</span>
+            <span class="n">sg_auth</span> <span class="o">=</span> <span class="n">ShotgunAuthenticator</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span> <span class="o">=</span> <span class="n">sg_auth</span><span class="o">.</span><span class="n">get_user</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span> <span class="o">=</span> <span class="n">sg_user</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span>
+
+        <span class="c1"># defaults</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_PIPELINE_CONFIG_NAME</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entry_point</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> instantiated&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">repr</span>  <span class="o">=</span> <span class="s2">&quot;&lt;TkManager &quot;</span>
+        <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; User </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span>
+        <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Cache fallback path </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span>
+        <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Config </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span>
+        <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Base </span><span class="si">%s</span><span class="s2"> &gt;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span>
+        <span class="k">return</span> <span class="nb">repr</span>
+
+    <span class="k">def</span> <span class="nf">_get_pipeline_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The pipeline configuration that is being operated on.</span>
+<span class="sd">        By default, the primary pipeline config will be used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span>
+
+    <span class="k">def</span> <span class="nf">_set_pipeline_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The pipeline configuration that is being operated on.</span>
+<span class="sd">        By default, the primary pipeline config will be used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="n">pipeline_configuration</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_pipeline_configuration</span><span class="p">,</span> <span class="n">_set_pipeline_configuration</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_get_do_shotgun_config_lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Flag to indicate if the bootstrap process should connect to</span>
+<span class="sd">        Shotgun and attempt to resolve a config. Defaults to True.</span>
+
+<span class="sd">        If ``True``, the bootstrap process will connect to Shotgun as part</span>
+<span class="sd">        of the startup, look for a pipeline configuration and attempt</span>
+<span class="sd">        to resolve a toolkit environment to bootstrap into via the</span>
+<span class="sd">        Pipeline configuration data. Failing this, it will fall back on</span>
+<span class="sd">        the :meth:`base_configuration`.</span>
+
+<span class="sd">        If ``False``, no Shotgun lookup will happen. Instead, whatever config</span>
+<span class="sd">        is defined via :meth:`base_configuration` will always be used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span>
+
+    <span class="k">def</span> <span class="nf">_set_do_shotgun_config_lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+        <span class="c1"># setter for do_shotgun_config_lookup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span> <span class="o">=</span> <span class="n">status</span>
+
+    <span class="n">do_shotgun_config_lookup</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_do_shotgun_config_lookup</span><span class="p">,</span> <span class="n">_set_do_shotgun_config_lookup</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_get_entry_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The entry point defines the scope of the bootstrap operation.</span>
+
+<span class="sd">        If you are bootstrapping into an entire Toolkit pipeline, e.g</span>
+<span class="sd">        a traditional Toolkit setup, this should be left blank.</span>
+
+<span class="sd">        If you are writing a plugin that is intended to run side by</span>
+<span class="sd">        side with other plugins in your target environment, the entry</span>
+<span class="sd">        point will be used to define a scope and sandbox in which your</span>
+<span class="sd">        plugin will execute.</span>
+
+<span class="sd">        In the future, it will be possible to use the entry point value</span>
+<span class="sd">        to customize the behavior of a</span>
+<span class="sd">        plugin via Shotgun. At bootstrap, toolkit will look for a pipeline</span>
+<span class="sd">        configuration with a matching name and entry point. If found, this</span>
+<span class="sd">        will be used instead of the one defined by the :meth:`base_configuration`</span>
+<span class="sd">        property.</span>
+
+<span class="sd">        It is possible for multiple plugins running in different DCCs</span>
+<span class="sd">        to share the same entry point - in this case, they would all</span>
+<span class="sd">        get their settings and setup from a shared configuration. If you</span>
+<span class="sd">        were to override the base configuration in Shotgun, your override</span>
+<span class="sd">        would affect the entire suite of plugins. This kind of setup allows</span>
+<span class="sd">        for the development of several plugins in different DCCs that together</span>
+<span class="sd">        form a curated workflow.</span>
+
+<span class="sd">        Consider the following when deciding how to name your entry point:</span>
+
+<span class="sd">        - The entry point needs to be unique</span>
+<span class="sd">        - It should be clear and concise</span>
+<span class="sd">        - We recommend that you use the following naming convention:</span>
+<span class="sd">          ``provider_service``, for example ``rv_review`` for an entry point</span>
+<span class="sd">          maintained by the rv group which hosts review functionality.</span>
+
+<span class="sd">            .. note:: If you want to force the :meth:`base_configuration` to always</span>
+<span class="sd">                      be used, set :meth:`do_shotgun_config_lookup` to False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entry_point</span>
+
+    <span class="k">def</span> <span class="nf">_set_entry_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry_point</span><span class="p">):</span>
+        <span class="c1"># setter for entry_point</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entry_point</span> <span class="o">=</span> <span class="n">entry_point</span>
+
+    <span class="n">entry_point</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_entry_point</span><span class="p">,</span> <span class="n">_set_entry_point</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_base_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The descriptor (string or dict) for the</span>
+<span class="sd">        configuration that should be used as a base fallback</span>
+<span class="sd">        to be used whenever runtime and shotgun configuration</span>
+<span class="sd">        resolution doesn&#39;t resolve an override configuration to use.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span>
+
+    <span class="k">def</span> <span class="nf">_set_base_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
+        <span class="c1"># setter for base_configuration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span> <span class="o">=</span> <span class="n">descriptor</span>
+
+    <span class="n">base_configuration</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_base_configuration</span><span class="p">,</span> <span class="n">_set_base_configuration</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_get_bundle_cache_fallback_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specifies a list of fallback paths where toolkit will go</span>
+<span class="sd">        look for cached bundles in case a bundle isn&#39;t found in</span>
+<span class="sd">        the primary app cache.</span>
+
+<span class="sd">        This is useful if you want to distribute a pre-baked</span>
+<span class="sd">        package, containing all the app version that a user needs.</span>
+<span class="sd">        This avoids downloading anything from the app store or other</span>
+<span class="sd">        sources.</span>
+
+<span class="sd">        Any missing bundles will be downloaded and cached into</span>
+<span class="sd">        the *primary* bundle cache.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span>
+
+    <span class="k">def</span> <span class="nf">_set_bundle_cache_fallback_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="p">):</span>
+        <span class="c1"># setter for bundle_cache_fallback_paths</span>
+
+        <span class="c1"># @todo - maybe here we can add support for environment variables in the</span>
+        <span class="c1">#         future so that studios can easily add their own &#39;primed cache&#39;</span>
+        <span class="c1">#         locations for performance or to save space.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="n">paths</span>
+
+    <span class="n">bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span>
+        <span class="n">_get_bundle_cache_fallback_paths</span><span class="p">,</span>
+        <span class="n">_set_bundle_cache_fallback_paths</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="ToolkitManager.set_progress_callback"><a class="viewcode-back" href="../../../bootstrap.html#sgtk.bootstrap.ToolkitManager.set_progress_callback">[docs]</a>    <span class="k">def</span> <span class="nf">set_progress_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Specify a method to call whenever progress should be reported back.</span>
+
+<span class="sd">        The method needs to have the following signature::</span>
+
+<span class="sd">            progress_callback(message, current_index, max_index)</span>
+
+<span class="sd">        The two index parameters are used to illustrate progress</span>
+<span class="sd">        over time and looping. ``max_index`` is the total number of</span>
+<span class="sd">        current progress items, ``current_index`` is the currently</span>
+<span class="sd">        processed item. This can be used to compute a percentage.</span>
+<span class="sd">        Note that ``max_index`` may change at any time and is not guaranteed</span>
+<span class="sd">        to be fixed.</span>
+
+<span class="sd">        :param callback: Callback fn. See above for details.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span> <span class="o">=</span> <span class="n">callback</span></div>
+
+<div class="viewcode-block" id="ToolkitManager.bootstrap_engine"><a class="viewcode-back" href="../../../bootstrap.html#sgtk.bootstrap.ToolkitManager.bootstrap_engine">[docs]</a>    <span class="k">def</span> <span class="nf">bootstrap_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create an sgtk instance for the given project or site,</span>
+<span class="sd">        then launch into the given engine.</span>
+
+<span class="sd">        If entity is None, the method will bootstrap into the site</span>
+<span class="sd">        config. This method will attempt to resolve the config according</span>
+<span class="sd">        to business logic set in the associated resolver class and based</span>
+<span class="sd">        on this launch a configuration. This may involve downloading new</span>
+<span class="sd">        apps from the toolkit app store and installing files on disk.</span>
+
+<span class="sd">        Please note that the API version of the tk instance that hosts</span>
+<span class="sd">        the engine may not be the same as the API version that was</span>
+<span class="sd">        executed during the bootstrap.</span>
+
+<span class="sd">        :param entity: Shotgun entity to launch engine for</span>
+<span class="sd">        :type entity: Dictionary with keys type and id</span>
+<span class="sd">        :param engine_name: name of engine to launch (e.g. ``tk-nuke``)</span>
+<span class="sd">        :returns: :class:`sgtk.platform.Engine` instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Bootstrapping into engine </span><span class="si">%s</span><span class="s2"> for entity </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">))</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Bootstrapping into environment.&quot;</span><span class="p">)</span>
+        <span class="n">tk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bootstrap_sgtk</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Resolving context.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_empty</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity_dictionary</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Launching Engine...&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Attempting to start engine </span><span class="si">%s</span><span class="s2"> for context </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">ctx</span><span class="p">))</span>
+
+        <span class="c1"># perform absolute import to ensure we get the new swapped core.</span>
+        <span class="kn">import</span> <span class="nn">tank</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="n">tank</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Launched engine </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">engine</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">engine</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_bootstrap_sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create an sgtk instance for the given engine and entity.</span>
+
+<span class="sd">        If entity is None, the method will bootstrap into the site</span>
+<span class="sd">        config. This method will attempt to resolve the config according</span>
+<span class="sd">        to business logic set in the associated resolver class and based</span>
+<span class="sd">        on this launch a configuration. This may involve downloading new</span>
+<span class="sd">        apps from the toolkit app store and installing files on disk.</span>
+
+<span class="sd">        Please note that the API version of the tk instance that hosts</span>
+<span class="sd">        the engine may not be the same as the API version that was</span>
+<span class="sd">        executed during the bootstrap.</span>
+
+<span class="sd">        :param entity: Shotgun entity to launch engine for</span>
+<span class="sd">        :param engine_name: name of engine to launch (e.g. tk-nuke)</span>
+<span class="sd">        :returns: sgtk instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Begin bootstrapping sgtk.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Resolving Toolkit Context...&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">project_id</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">elif</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;Project&quot;</span><span class="p">:</span>
+            <span class="n">project_id</span> <span class="o">=</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="k">elif</span> <span class="s2">&quot;project&quot;</span> <span class="ow">in</span> <span class="n">entity</span> <span class="ow">and</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;Project&quot;</span><span class="p">:</span>
+            <span class="c1"># user passed a project link</span>
+            <span class="n">project_id</span> <span class="o">=</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># resolve from shotgun</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+                <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
+                <span class="p">[[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]]],</span>
+                <span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;project&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">TankBootstrapError</span><span class="p">(</span><span class="s2">&quot;Cannot resolve project for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">entity</span><span class="p">)</span>
+            <span class="n">project_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+
+        <span class="c1"># get an object to represent the business logic for</span>
+        <span class="c1"># how a configuration location is being determined</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Resolving configuration...&quot;</span><span class="p">)</span>
+
+        <span class="n">resolver</span> <span class="o">=</span> <span class="n">ConfigurationResolver</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_entry_point</span><span class="p">,</span>
+            <span class="n">engine_name</span><span class="p">,</span>
+            <span class="n">project_id</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span>
+        <span class="p">)</span>
+
+        <span class="c1"># now request a configuration object from the resolver.</span>
+        <span class="c1"># this object represents a configuration that may or may not</span>
+        <span class="c1"># exist on disk. We can use the config object to check if the</span>
+        <span class="c1"># object needs installation, updating etc.</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span><span class="p">:</span>
+            <span class="c1"># do the full resolve where we connect to shotgun etc.</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">resolve_shotgun_configuration</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># fixed resolve based on the base config alone</span>
+            <span class="c1"># do the full resolve where we connect to shotgun etc.</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">resolve_configuration</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># see what we have locally</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Checking if config is out of date...&quot;</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">status</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Updating configuration...&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">Configuration</span><span class="o">.</span><span class="n">LOCAL_CFG_UP_TO_DATE</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Your locally cached configuration is up to date.&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="n">Configuration</span><span class="o">.</span><span class="n">LOCAL_CFG_MISSING</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;A locally cached configuration will be set up.&quot;</span><span class="p">)</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">update_configuration</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="n">Configuration</span><span class="o">.</span><span class="n">LOCAL_CFG_DIFFERENT</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Your locally cached configuration differs and will be updated.&quot;</span><span class="p">)</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">update_configuration</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="n">Configuration</span><span class="o">.</span><span class="n">LOCAL_CFG_INVALID</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Your locally cached configuration looks invalid and will be replaced.&quot;</span><span class="p">)</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">update_configuration</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankBootstrapError</span><span class="p">(</span><span class="s2">&quot;Unknown configuration update status!&quot;</span><span class="p">)</span>
+
+        <span class="c1"># we can now boot up this config.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Starting up Toolkit...&quot;</span><span class="p">)</span>
+        <span class="n">tk</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_tk_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">status</span> <span class="o">!=</span> <span class="n">Configuration</span><span class="o">.</span><span class="n">LOCAL_CFG_UP_TO_DATE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache_apps</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tk</span>
+
+    <span class="k">def</span> <span class="nf">_report_progress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">curr_idx</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">max_idx</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper method. Report progress back to</span>
+<span class="sd">        any defined progress callback.</span>
+
+<span class="sd">        :param message: Message to report</span>
+<span class="sd">        :param curr_idx: Optional integer denoting progress. This number is</span>
+<span class="sd">                         relative to the max_idx which denotes completion</span>
+<span class="sd">                         of the current task or subtask.</span>
+<span class="sd">        :param max_idx: Max number of items.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Progress Report: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">curr_idx</span><span class="p">,</span> <span class="n">max_idx</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_is_toolkit_activated_in_shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if toolkit has been activated in sg.</span>
+
+<span class="sd">        :return: True if true, false otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Checking if Toolkit is enabled in Shotgun...&quot;</span><span class="p">)</span>
+        <span class="n">entity_types</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="o">.</span><span class="n">schema_entity_read</span><span class="p">()</span>
+        <span class="c1"># returns a dict keyed by entity type</span>
+        <span class="n">enabled</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">PIPELINE_CONFIGURATION_ENTITY_TYPE</span> <span class="ow">in</span> <span class="n">entity_types</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;...enabled: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">enabled</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">enabled</span>
+
+    <span class="k">def</span> <span class="nf">_cache_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">do_post_install</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Caches all apps associated with the given tk instance</span>
+
+<span class="sd">        :param tk: Toolkit instance to cache items for</span>
+<span class="sd">        :param do_post_install: Set to true for post install triggers to execute</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading and installing apps...&quot;</span><span class="p">)</span>
+
+        <span class="c1"># each entry in the config template contains instructions about which version of the app</span>
+        <span class="c1"># to use. First loop over all environments and gather all descriptors we should download,</span>
+        <span class="c1"># then go ahead and download and post-install them</span>
+        <span class="n">pc</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span>
+
+        <span class="c1"># pass 1 - populate list of all descriptors</span>
+        <span class="n">descriptors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">env_name</span> <span class="ow">in</span> <span class="n">pc</span><span class="o">.</span><span class="n">get_environments</span><span class="p">():</span>
+
+            <span class="n">env_obj</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">get_environment</span><span class="p">(</span><span class="n">env_name</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">engine</span> <span class="ow">in</span> <span class="n">env_obj</span><span class="o">.</span><span class="n">get_engines</span><span class="p">():</span>
+                <span class="n">descriptors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_obj</span><span class="o">.</span><span class="n">get_engine_descriptor</span><span class="p">(</span><span class="n">engine</span><span class="p">))</span>
+
+                <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">env_obj</span><span class="o">.</span><span class="n">get_apps</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
+                    <span class="n">descriptors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_obj</span><span class="o">.</span><span class="n">get_app_descriptor</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">app</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">framework</span> <span class="ow">in</span> <span class="n">env_obj</span><span class="o">.</span><span class="n">get_frameworks</span><span class="p">():</span>
+                <span class="n">descriptors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_obj</span><span class="o">.</span><span class="n">get_framework_descriptor</span><span class="p">(</span><span class="n">framework</span><span class="p">))</span>
+
+        <span class="c1"># pass 2 - download all apps</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">descriptor</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">descriptors</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">exists_local</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Downloading </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">descriptors</span><span class="p">))</span>
+                <span class="n">descriptor</span><span class="o">.</span><span class="n">download_local</span><span class="p">()</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Item </span><span class="si">%s</span><span class="s2"> is already locally installed.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
+
+        <span class="c1"># pass 3 - do post install</span>
+        <span class="k">if</span> <span class="n">do_post_install</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">descriptor</span> <span class="ow">in</span> <span class="n">descriptors</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Running post install for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
+                <span class="n">descriptor</span><span class="o">.</span><span class="n">ensure_shotgun_fields_exist</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+                <span class="n">descriptor</span><span class="o">.</span><span class="n">run_post_install</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

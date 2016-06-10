@@ -1,5 +1,7 @@
 
 
+
+
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
@@ -8,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.application &mdash; Shotgun Pipeline Toolkit v1.2.3 documentation</title>
+  <title>tank.platform.application &mdash; tk-core v0.18.0RC1 documentation</title>
   
 
   
@@ -30,7 +32,7 @@
   
 
   
-    <link rel="top" title="Shotgun Pipeline Toolkit v1.2.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -47,21 +49,25 @@
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search">
           
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../_static/logo@2x.png'/>
+    
+    </a>
+    
 
           
-            <a href="../../../index.html" class="icon icon-home"> Shotgun Pipeline Toolkit
+            <a href="../../../index.html" class="icon icon-home"> tk-core
           
 
           
           </a>
 
-          
-            
-            
-              <div class="version">
-                v1.2.3
-              </div>
-            
           
 
           
@@ -74,21 +80,53 @@
 </div>
 
           
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
+    
             
             
                 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../core_api.html">Toolkit Core API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../platform_api.html">Welcome to tk-core&#8217;s documentation!</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../filesystem_configuration.html">Welcome to tk-core&#8217;s documentation!</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../environment_configuration.html">Welcome to tk-core&#8217;s documentation!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
 </ul>
 
             
           
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
         </div>
       </div>
     </nav>
@@ -98,7 +136,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">Shotgun Pipeline Toolkit</a>
+        <a href="../../../index.html">tk-core</a>
       </nav>
 
 
@@ -130,15 +168,15 @@
            <div itemprop="articleBody">
             
   <h1>Source code for tank.platform.application</h1><div class="highlight"><pre>
-<span class="c"># Copyright (c) 2013 Shotgun Software Inc.</span>
-<span class="c"># </span>
-<span class="c"># CONFIDENTIAL AND PROPRIETARY</span>
-<span class="c"># </span>
-<span class="c"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
-<span class="c"># Source Code License included in this distribution package. See LICENSE.</span>
-<span class="c"># By accessing, using, copying or modifying this work you indicate your </span>
-<span class="c"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
-<span class="c"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+<span></span><span class="c1"># Copyright (c) 2013 Shotgun Software Inc.</span>
+<span class="c1"># </span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1"># </span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Defines the base class for all Tank Apps.</span>
@@ -148,146 +186,225 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">loader</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span> 
+<span class="kn">from</span> <span class="nn">..util.loader</span> <span class="kn">import</span> <span class="n">load_plugin</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
 <span class="kn">from</span> <span class="nn">.bundle</span> <span class="kn">import</span> <span class="n">TankBundle</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">log_user_activity_metric</span><span class="p">,</span> <span class="n">log_user_attribute_metric</span>
 
-<div class="viewcode-block" id="Application"><a class="viewcode-back" href="../../../core_api.html#sgtk.platform.Application">[docs]</a><span class="k">class</span> <span class="nc">Application</span><span class="p">(</span><span class="n">TankBundle</span><span class="p">):</span>
+<div class="viewcode-block" id="Application"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application">[docs]</a><span class="k">class</span> <span class="nc">Application</span><span class="p">(</span><span class="n">TankBundle</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Base class for an app in Tank.</span>
+<span class="sd">    Base class for all Applications (Apps) running in Toolkit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Called by the app loader framework. The constructor</span>
-<span class="sd">        is not supposed to be overridden by deriving classes.</span>
+<span class="sd">        Application instances are constructed by the toolkit launch process</span>
+<span class="sd">        and various factory methods such as :meth:`start_engine`.</span>
 <span class="sd">        </span>
 <span class="sd">        :param engine: The engine instance to connect this app to</span>
 <span class="sd">        :param app_name: The short name of this app (e.g. tk-nukepublish)</span>
 <span class="sd">        :param settings: a settings dictionary for this app</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c"># init base class</span>
-        <span class="n">TankBundle</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">tank</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
-        
         <span class="bp">self</span><span class="o">.</span><span class="n">__engine</span> <span class="o">=</span> <span class="n">engine</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__instance_name</span> <span class="o">=</span> <span class="n">instance_name</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s">&quot;App init: Instantiating </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
-                
-        <span class="c"># now if a folder named python is defined in the app, add it to the pythonpath</span>
+        <span class="c1"># create logger for this app</span>
+        <span class="c1"># log will be parented in a sgtk.env.environment_name.engine_instance_name.app_instance_name hierarchy</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine</span><span class="o">.</span><span class="n">get_child_logger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__instance_name</span><span class="p">)</span>
+
+        <span class="c1"># init base class</span>
+        <span class="n">TankBundle</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">tank</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+
+        <span class="c1"># now if a folder named python is defined in the app, add it to the pythonpath</span>
         <span class="n">app_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__module__</span><span class="p">]</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
         <span class="n">python_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">app_path</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">BUNDLE_PYTHON_FOLDER</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">python_path</span><span class="p">):</span>
-            <span class="c"># only append to python path if __init__.py does not exist</span>
-            <span class="c"># if __init__ exists, we should use the special tank import instead</span>
-            <span class="n">init_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">python_path</span><span class="p">,</span> <span class="s">&quot;__init__.py&quot;</span><span class="p">)</span>
+            <span class="c1"># only append to python path if __init__.py does not exist</span>
+            <span class="c1"># if __init__ exists, we should use the special tank import instead</span>
+            <span class="n">init_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">python_path</span><span class="p">,</span> <span class="s2">&quot;__init__.py&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">init_path</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s">&quot;Appending to PYTHONPATH: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">python_path</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Appending to PYTHONPATH: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">python_path</span><span class="p">)</span>
                 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">python_path</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>        
-        <span class="k">return</span> <span class="s">&quot;&lt;Sgtk App 0x</span><span class="si">%08x</span><span class="s">: </span><span class="si">%s</span><span class="s">, engine: </span><span class="si">%s</span><span class="s">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk App 0x</span><span class="si">%08x</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, engine: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_destroy_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called on destroy, prior to calling destroy_app</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">fw</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frameworks</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="c"># don&#39;t destroy shared frameworks</span>
-            <span class="c"># the engine is responsible for this</span>
+            <span class="c1"># don&#39;t destroy shared frameworks</span>
+            <span class="c1"># the engine is responsible for this</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">fw</span><span class="o">.</span><span class="n">is_shared</span><span class="p">:</span>
                 <span class="n">fw</span><span class="o">.</span><span class="n">_destroy_framework</span><span class="p">()</span>
 
-    <span class="c">##########################################################################################</span>
-    <span class="c"># properties</span>
+    <span class="c1">##########################################################################################</span>
+    <span class="c1"># properties</span>
         
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Delegates to the Sgtk API instance&#39;s shotgun connection, which is lazily</span>
-<span class="sd">        created the first time it is requested.</span>
-<span class="sd">        </span>
+<span class="sd">        Returns a Shotgun API handle associated with the currently running</span>
+<span class="sd">        environment. This method is a convenience method that calls out</span>
+<span class="sd">        to :meth:`~sgtk.Tank.shotgun`.</span>
+
 <span class="sd">        :returns: Shotgun API handle</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># pass on information to the user agent manager which bundle is returning</span>
-        <span class="c"># this sg handle. This information will be passed to the web server logs</span>
-        <span class="c"># in the shotgun data centre and makes it easy to track which app and engine versions</span>
-        <span class="c"># are being used by clients</span>
+        <span class="c1"># pass on information to the user agent manager which bundle is returning</span>
+        <span class="c1"># this sg handle. This information will be passed to the web server logs</span>
+        <span class="c1"># in the shotgun data centre and makes it easy to track which app and engine versions</span>
+        <span class="c1"># are being used by clients</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">tk_user_agent_handler</span><span class="o">.</span><span class="n">set_current_app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> 
                                                                     <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
                                                                     <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                                                     <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-            <span class="c"># looks like this sg instance for some reason does not have a</span>
-            <span class="c"># tk user agent handler associated.</span>
+            <span class="c1"># looks like this sg instance for some reason does not have a</span>
+            <span class="c1"># tk user agent handler associated.</span>
             <span class="k">pass</span>
         
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">shotgun</span>        
-        
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">instance_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">_get_instance_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The name for this app instance</span>
+<span class="sd">        The name for this app instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__instance_name</span>
+
+    <span class="k">def</span> <span class="nf">_set_instance_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the instance name of the app.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__instance_name</span> <span class="o">=</span> <span class="n">instance_name</span>
+
+    <span class="n">instance_name</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_instance_name</span><span class="p">,</span> <span class="n">_set_instance_name</span><span class="p">)</span>
         
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">engine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The engine that this app is connected to</span>
+<span class="sd">        The engine that this app is connected to.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine</span>                
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine</span>
+
+    <span class="c1">##########################################################################################</span>
+    <span class="c1"># init, destroy, and context changing</span>
         
-    <span class="c">##########################################################################################</span>
-    <span class="c"># init and destroy</span>
-        
-    <span class="k">def</span> <span class="nf">init_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Application.init_app"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.init_app">[docs]</a>    <span class="k">def</span> <span class="nf">init_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Implemented by deriving classes in order to initialize the app</span>
 <span class="sd">        Called by the engine as it loads the app.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        <span class="k">pass</span></div>
 
-    <span class="k">def</span> <span class="nf">post_engine_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Application.post_engine_init"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.post_engine_init">[docs]</a>    <span class="k">def</span> <span class="nf">post_engine_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Implemented by deriving classes in order to run code after the engine</span>
 <span class="sd">        has completely finished initializing itself and all its apps.</span>
-<span class="sd">        At this point, the engine has a fully populaed apps dictionary and</span>
+<span class="sd">        At this point, the engine has a fully populated apps dictionary and</span>
 <span class="sd">        all loaded apps have been fully initialized and validated.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        <span class="k">pass</span></div>
 
-    <span class="k">def</span> <span class="nf">destroy_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Application.destroy_app"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.destroy_app">[docs]</a>    <span class="k">def</span> <span class="nf">destroy_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Implemented by deriving classes in order to tear down the app</span>
 <span class="sd">        Called by the engine as it is being destroyed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        <span class="k">pass</span></div>
     
-    
-    <span class="c">##########################################################################################</span>
-    <span class="c"># logging methods, delegated to the current engine</span>
+    <span class="c1">##########################################################################################</span>
+    <span class="c1"># logging methods</span>
 
-    <span class="k">def</span> <span class="nf">log_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<div class="viewcode-block" id="Application.log_debug"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.log_debug">[docs]</a>    <span class="k">def</span> <span class="nf">log_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Logs a debug message.</span>
 
-    <span class="k">def</span> <span class="nf">log_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">log_info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<span class="sd">        .. deprecated:: 0.18</span>
+<span class="sd">            Use :meth:`Engine.logger` instead.</span>
 
-    <span class="k">def</span> <span class="nf">log_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">log_warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<span class="sd">        :param msg: Message to log.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">log_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">log_error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<div class="viewcode-block" id="Application.log_info"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.log_info">[docs]</a>    <span class="k">def</span> <span class="nf">log_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Logs an info message.</span>
 
-    <span class="k">def</span> <span class="nf">log_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">log_exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<span class="sd">        .. deprecated:: 0.18</span>
+<span class="sd">            Use :meth:`Engine.logger` instead.</span>
 
-</div>
+<span class="sd">        :param msg: Message to log.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Application.log_warning"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.log_warning">[docs]</a>    <span class="k">def</span> <span class="nf">log_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Logs an warning message.</span>
+
+<span class="sd">        .. deprecated:: 0.18</span>
+<span class="sd">            Use :meth:`Engine.logger` instead.</span>
+
+<span class="sd">        :param msg: Message to log.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Application.log_error"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.log_error">[docs]</a>    <span class="k">def</span> <span class="nf">log_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Logs an error message.</span>
+
+<span class="sd">        .. deprecated:: 0.18</span>
+<span class="sd">            Use :meth:`Engine.logger` instead.</span>
+
+<span class="sd">        :param msg: Message to log.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Application.log_exception"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.log_exception">[docs]</a>    <span class="k">def</span> <span class="nf">log_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Logs an exception message.</span>
+
+<span class="sd">        .. deprecated:: 0.18</span>
+<span class="sd">            Use :meth:`Engine.logger` instead.</span>
+
+<span class="sd">        :param msg: Message to log.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+    <span class="c1">##########################################################################################</span>
+    <span class="c1"># internal API</span>
+
+    <span class="k">def</span> <span class="nf">log_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">log_version</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Logs an app metric.</span>
+
+<span class="sd">        :param action: Action string to log, e.g. &#39;Execute Action&#39;</span>
+<span class="sd">        :param log_version: If True, also log a user attribute metric for the</span>
+<span class="sd">            version of the app. Default is `False`.</span>
+
+<span class="sd">        Logs a user activity metric as performed within an app. This is a</span>
+<span class="sd">        convenience method that auto-populates the module portion of</span>
+<span class="sd">        `tank.util.log_user_activity_metric()`.</span>
+
+<span class="sd">        If the optional `log_version` flag is set to True, this method will</span>
+<span class="sd">        also log a user attribute metric for the current version of the app.</span>
+
+<span class="sd">        Internal Use Only - We provide no guarantees that this method</span>
+<span class="sd">        will be backwards compatible.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># the action contains the engine and app name, e.g.</span>
+        <span class="c1"># module: tk-multi-loader2</span>
+        <span class="c1"># action: (tk-maya) tk-multi-loader2 - Load...</span>
+        <span class="n">full_action</span> <span class="o">=</span> <span class="s2">&quot;(</span><span class="si">%s</span><span class="s2">) </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+        <span class="n">log_user_activity_metric</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">full_action</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">log_version</span><span class="p">:</span>
+            <span class="c1"># log the app version as a user attribute</span>
+            <span class="n">log_user_attribute_metric</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> version&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,),</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span></div>
+
 <span class="k">def</span> <span class="nf">get_application</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">app_folder</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Internal helper method. </span>
@@ -301,10 +418,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">plugin_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">app_folder</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">APP_FILE</span><span class="p">)</span>
         
-    <span class="c"># Instantiate the app</span>
-    <span class="n">class_obj</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load_plugin</span><span class="p">(</span><span class="n">plugin_file</span><span class="p">,</span> <span class="n">Application</span><span class="p">)</span>
+    <span class="c1"># Instantiate the app</span>
+    <span class="n">class_obj</span> <span class="o">=</span> <span class="n">load_plugin</span><span class="p">(</span><span class="n">plugin_file</span><span class="p">,</span> <span class="n">Application</span><span class="p">)</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="n">class_obj</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">obj</span>
+
 </pre></div>
 
            </div>
@@ -316,11 +434,10 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Autodesk.
+        &copy; Copyright 2016, Autodesk.
 
     </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  </div> 
 
 </footer>
 
@@ -338,7 +455,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v1.2.3',
+            VERSION:'v0.18.0RC1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

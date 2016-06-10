@@ -1,0 +1,1412 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.util.shotgun &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.util.shotgun</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.util.shotgun</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2013 Shotgun Software Inc.</span>
+<span class="c1"># </span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1"># </span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Shotgun utilities</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">import</span> <span class="nn">urlparse</span>
+
+<span class="c1"># use api json to cover py 2.5</span>
+<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">shotgun_api3</span>
+
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">hook</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">login</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">yaml_cache</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">__get_api_core_config_location</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Walk from the location of this file on disk to the config area.</span>
+<span class="sd">    this operation is guaranteed to work on any valid tank installation</span>
+
+<span class="sd">    Pipeline Configuration / Studio Location</span>
+<span class="sd">       |</span>
+<span class="sd">       |- Install</span>
+<span class="sd">       |     \- Core</span>
+<span class="sd">       |          \- Python</span>
+<span class="sd">       |                \- tank</span>
+<span class="sd">       |</span>
+<span class="sd">       \- Config</span>
+<span class="sd">             \- Core</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># local import to avoid cyclic references</span>
+    <span class="kn">from</span> <span class="nn">..pipelineconfig_utils</span> <span class="kn">import</span> <span class="n">get_path_to_current_core</span>
+    <span class="n">core_api_root</span> <span class="o">=</span> <span class="n">get_path_to_current_core</span><span class="p">()</span>
+    <span class="n">core_cfg</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">core_api_root</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="s2">&quot;core&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">core_cfg</span><span class="p">):</span>
+        <span class="n">full_path_to_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot resolve the core configuration from the location of the Sgtk Code! &quot;</span>
+                        <span class="s2">&quot;This can happen if you try to move or symlink the Sgtk API. The &quot;</span>
+                        <span class="s2">&quot;Sgtk API is currently picked up from </span><span class="si">%s</span><span class="s2"> which is an &quot;</span>
+                        <span class="s2">&quot;invalid location.&quot;</span> <span class="o">%</span> <span class="n">full_path_to_file</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">core_cfg</span>
+
+<span class="k">def</span> <span class="nf">__get_sg_config</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the site sg config yml file for this install</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: full path to to shotgun.yml config file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">core_cfg</span> <span class="o">=</span> <span class="n">__get_api_core_config_location</span><span class="p">()</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">core_cfg</span><span class="p">,</span> <span class="s2">&quot;shotgun.yml&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">path</span>
+
+<span class="k">def</span> <span class="nf">get_project_name_studio_hook_location</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the studio level hook that is used to compute the default project name</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: The path to the studio level project naming hook.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># NOTE! This code is located here because it needs to be able to run without a project.</span>
+    <span class="c1"># the natural place would probably have been to put this inside the pipeline configuration</span>
+    <span class="c1"># class, however this object assumes a project that exists.</span>
+    <span class="c1">#</span>
+    <span class="c1"># @todo longterm we should probably establish a place in the code where we define </span>
+    <span class="c1"># an API or set of functions which can be executed outside the remit of a </span>
+    <span class="c1"># pipeline configuration/Toolkit project.</span>
+    
+    <span class="n">core_cfg</span> <span class="o">=</span> <span class="n">__get_api_core_config_location</span><span class="p">()</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">core_cfg</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">STUDIO_HOOK_PROJECT_NAME</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">path</span>
+
+<span class="k">def</span> <span class="nf">__get_sg_config_data</span><span class="p">(</span><span class="n">shotgun_cfg_path</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the shotgun configuration yml parameters given a config file.</span>
+<span class="sd">    </span>
+<span class="sd">    The shotgun.yml may look like:</span>
+
+<span class="sd">        host: str</span>
+<span class="sd">        api_script: str</span>
+<span class="sd">        api_key: str</span>
+<span class="sd">        http_proxy: str</span>
+<span class="sd">    </span>
+<span class="sd">        or may now look like:</span>
+<span class="sd">    </span>
+<span class="sd">        &lt;User&gt;:</span>
+<span class="sd">            host: str</span>
+<span class="sd">            api_script: str</span>
+<span class="sd">            api_key: str</span>
+<span class="sd">            http_proxy: str</span>
+<span class="sd">    </span>
+<span class="sd">        &lt;User&gt;:</span>
+<span class="sd">            host: str</span>
+<span class="sd">            api_script: str</span>
+<span class="sd">            api_key: str</span>
+<span class="sd">            http_proxy: str</span>
+
+<span class="sd">    The optional user param refers to the &lt;User&gt; in the shotgun.yml.</span>
+<span class="sd">    If a user is not found the old style is attempted.    </span>
+<span class="sd">    </span>
+<span class="sd">    :param shotgun_cfg_path: path to config file</span>
+<span class="sd">    :param user: Optional user to pass when a multi-user config is being read </span>
+
+<span class="sd">    :returns: dictionary with key host and optional keys api_script, api_key and http_proxy</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># load the config file</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">file_data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">shotgun_cfg_path</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot load config file &#39;</span><span class="si">%s</span><span class="s2">&#39;. Error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">shotgun_cfg_path</span><span class="p">,</span> <span class="n">error</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">_parse_config_data</span><span class="p">(</span><span class="n">file_data</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">shotgun_cfg_path</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">__get_sg_config_data_with_script_user</span><span class="p">(</span><span class="n">shotgun_cfg_path</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the Shotgun configuration yml parameters given a config file, just like</span>
+<span class="sd">    __get_sg_config_data, but the script user is expected to be present or an exception will be</span>
+<span class="sd">    thrown.</span>
+
+<span class="sd">    :param shotgun_cfg_path: path to config file</span>
+<span class="sd">    :param user: Optional user to pass when a multi-user config is being read</span>
+
+<span class="sd">    :raises TankError: Raised if the script user is not configured.</span>
+
+<span class="sd">    :returns: dictionary with mandatory keys host, api_script, api_key and optionally http_proxy</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config_data</span> <span class="o">=</span> <span class="n">__get_sg_config_data</span><span class="p">(</span><span class="n">shotgun_cfg_path</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+    <span class="c1"># If the user is configured, we&#39;re happy.</span>
+    <span class="k">if</span> <span class="n">config_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;api_script&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">config_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;api_key&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">config_data</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Missing required script user in config &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">shotgun_cfg_path</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_config_data</span><span class="p">(</span><span class="n">file_data</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">shotgun_cfg_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses configuration data and overrides it with the studio level hook&#39;s result if available.</span>
+<span class="sd">    :param file_data: Dictionary with all the values from the configuration data.</span>
+<span class="sd">    :param user: Picks the configuration for a specific user in the configuration data.</span>
+<span class="sd">    :param shotgun_cfg_path: Path the configuration was loaded from.</span>
+<span class="sd">    :raises: TankError if there are missing fields in the configuration. The accepted configurations are:</span>
+<span class="sd">            - host</span>
+<span class="sd">            - host, api_script, api_key</span>
+<span class="sd">            In both cases, http_proxy is optional.</span>
+<span class="sd">    :returns: A dictionary holding the configuration data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">file_data</span><span class="p">:</span>
+        <span class="c1"># new config format!</span>
+        <span class="c1"># we have explicit users defined!</span>
+        <span class="n">config_data</span> <span class="o">=</span> <span class="n">file_data</span><span class="p">[</span><span class="n">user</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># old format - not grouped by user</span>
+        <span class="n">config_data</span> <span class="o">=</span> <span class="n">file_data</span>
+
+    <span class="c1"># now check if there is a studio level override hook which want to refine these settings</span>
+    <span class="n">sg_hook_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__get_api_core_config_location</span><span class="p">(),</span> <span class="n">constants</span><span class="o">.</span><span class="n">STUDIO_HOOK_SG_CONNECTION_SETTINGS</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">sg_hook_path</span><span class="p">):</span>
+        <span class="c1"># custom hook is available!</span>
+        <span class="n">config_data</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">execute_hook</span><span class="p">(</span><span class="n">sg_hook_path</span><span class="p">,</span>
+                                        <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                        <span class="n">config_data</span><span class="o">=</span><span class="n">config_data</span><span class="p">,</span>
+                                        <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
+                                        <span class="n">cfg_path</span><span class="o">=</span><span class="n">shotgun_cfg_path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_raise_missing_key</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
+            <span class="s2">&quot;Missing required field &#39;</span><span class="si">%s</span><span class="s2">&#39; in config &#39;</span><span class="si">%s</span><span class="s2">&#39; for script user authentication.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">shotgun_cfg_path</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">config_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;host&quot;</span><span class="p">):</span>
+        <span class="n">_raise_missing_key</span><span class="p">(</span><span class="s2">&quot;host&quot;</span><span class="p">)</span>
+
+    <span class="c1"># The script authentication credentials need to be complete in order to work. They can be completely</span>
+    <span class="c1"># omitted or fully specified, but not halfway configured.</span>
+    <span class="k">if</span> <span class="n">config_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;api_script&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">config_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;api_key&quot;</span><span class="p">):</span>
+        <span class="n">_raise_missing_key</span><span class="p">(</span><span class="s2">&quot;api_key&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">config_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;api_script&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">config_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;api_key&quot;</span><span class="p">):</span>
+        <span class="n">_raise_missing_key</span><span class="p">(</span><span class="s2">&quot;api_script&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">config_data</span>
+
+
+<span class="k">def</span> <span class="nf">__create_sg_connection</span><span class="p">(</span><span class="n">config_data</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a standard Toolkit shotgun connection.</span>
+
+<span class="sd">    :param config_data: Configuration data dictionary. Keys host, api_script and api_key are</span>
+<span class="sd">                        expected, while http_proxy is optional. If None, the user parameter will be</span>
+<span class="sd">                        used to determine which credentials to use.</span>
+<span class="sd">    :param user: Shotgun user from the authentication module to use to create the</span>
+<span class="sd">                 connection. Won&#39;t be used if config_data is set. Can be None.</span>
+
+<span class="sd">    :raises TankError: Raised if both config_data and user are None.</span>
+
+<span class="sd">    :returns: A Shotgun connection.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">config_data</span><span class="p">:</span>
+        <span class="c1"># Credentials were passed in, so let&#39;s run the legacy authentication</span>
+        <span class="c1"># mechanism for script user.</span>
+        <span class="n">sg</span> <span class="o">=</span> <span class="n">shotgun_api3</span><span class="o">.</span><span class="n">Shotgun</span><span class="p">(</span>
+            <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;host&quot;</span><span class="p">],</span>
+            <span class="n">script_name</span><span class="o">=</span><span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;api_script&quot;</span><span class="p">],</span>
+            <span class="n">api_key</span><span class="o">=</span><span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;api_key&quot;</span><span class="p">],</span>
+            <span class="n">http_proxy</span><span class="o">=</span><span class="n">config_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http_proxy&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">user</span><span class="p">:</span>
+        <span class="n">sg</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;No Shotgun user available.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># bolt on our custom user agent manager</span>
+    <span class="n">sg</span><span class="o">.</span><span class="n">tk_user_agent_handler</span> <span class="o">=</span> <span class="n">ToolkitUserAgentHandler</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sg</span>
+
+
+<span class="nd">@LogManager.log_timing</span>
+<div class="viewcode-block" id="download_url"><a class="viewcode-back" href="../../../utils.html#sgtk.util.download_url">[docs]</a><span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">location</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convenience method that downloads a file from a given url.</span>
+<span class="sd">    This method will take into account any proxy settings which have</span>
+<span class="sd">    been defined in the Shotgun connection parameters.</span>
+<span class="sd">    </span>
+<span class="sd">    :param sg: Shotgun API instance to get proxy connection settings from</span>
+<span class="sd">    :param url: url to download</span>
+<span class="sd">    :param location: path on disk where the payload should be written.</span>
+<span class="sd">                     this path needs to exists and the current user needs</span>
+<span class="sd">                     to have write permissions</span>
+<span class="sd">    :raises: :class:`TankError` on failure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># grab proxy server settings from the shotgun API</span>
+    <span class="k">if</span> <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">:</span>
+        <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">)</span>
+        <span class="n">urllib2</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
+    
+    <span class="c1"># inherit the timeout value from the sg API    </span>
+    <span class="n">timeout</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">timeout_secs</span>
+    
+    <span class="c1"># download the given url</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">timeout</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
+            <span class="c1"># timeout parameter only available in python 2.6+</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># use system default</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Could not download contents of url &#39;</span><span class="si">%s</span><span class="s2">&#39;. Error reported: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span></div>
+    
+    
+<span class="k">def</span> <span class="nf">get_associated_sg_base_url</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the shotgun url which is associated with this Toolkit setup.</span>
+<span class="sd">    This is an optimization, allowing code to get the Shotgun site URL</span>
+<span class="sd">    without having to create a shotgun connection and then inspecting</span>
+<span class="sd">    the base_url property.</span>
+<span class="sd">    </span>
+<span class="sd">    This method is equivalent to calling:</span>
+<span class="sd">    </span>
+<span class="sd">    create_sg_connection().base_url</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: The base url for the associated Shotgun site</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">get_associated_sg_config_data</span><span class="p">()[</span><span class="s2">&quot;host&quot;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">get_associated_sg_config_data</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the shotgun configuration which is associated with this Toolkit setup.</span>
+<span class="sd">    :returns: The configuration data dictionary with keys host and optional entries</span>
+<span class="sd">              api_script, api_key and http_proxy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">__get_sg_config</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">__get_sg_config_data</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_deferred_sg_connection</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a shotgun API instance that is lazily initialized.</span>
+<span class="sd">    This is a method intended only to support certain legacy cases</span>
+<span class="sd">    where some operations in Toolkit are not fully authenticated.</span>
+<span class="sd">    When descriptor objects are constructed, they are associated with a</span>
+<span class="sd">    SG API handle. This handle is not necessary for basic operations such</span>
+<span class="sd">    as path resolution. By passing a deferred connection object to</span>
+<span class="sd">    descriptors, authentication is essentially deferred until the need</span>
+<span class="sd">    for more complex operations arises, allowing for simple, *legacy*</span>
+<span class="sd">    non-authenticated pathways.</span>
+
+<span class="sd">    :return: Proxied SG API handle</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">class</span> <span class="nc">DeferredInitShotgunProxy</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sg</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sg</span> <span class="o">=</span> <span class="n">get_sg_connection</span><span class="p">()</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">DeferredInitShotgunProxy</span><span class="p">()</span>
+
+
+<span class="n">g_sg_cached_connection</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="k">def</span> <span class="nf">get_sg_connection</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a shotgun connection and maintains a global, cached connection so that only one</span>
+<span class="sd">    object is ever returned, no matter how many times this call is made.</span>
+<span class="sd">    </span>
+<span class="sd">    If you have access to a tk API handle, DO NOT USE THIS METHOD! Instead, use the </span>
+<span class="sd">    tk.shotgun handle, which is also optimal and doesn&#39;t keep creating new instances.</span>
+<span class="sd">    </span>
+<span class="sd">    For all methods where no tk API handle is available (pre-init stuff and global </span>
+<span class="sd">    tk commands for example), this method is useful for performance reasons.</span>
+<span class="sd">    </span>
+<span class="sd">    Whenever a Shotgun API instance is created, it pings the server to check that </span>
+<span class="sd">    it is running the right versions etc. This is slow and inefficient and means that</span>
+<span class="sd">    there will be a delay every time create_sg_connection is called.</span>
+
+<span class="sd">    This method caches a global (non-threadsafe!) sg instance and thereby avoids</span>
+<span class="sd">    the penalty of connecting to sg every single time the method is called.</span>
+<span class="sd">    </span>
+<span class="sd">    :return: SG API handle    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">global</span> <span class="n">g_sg_cached_connection</span>
+    <span class="k">if</span> <span class="n">g_sg_cached_connection</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">g_sg_cached_connection</span> <span class="o">=</span> <span class="n">create_sg_connection</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">g_sg_cached_connection</span>
+
+<span class="k">def</span> <span class="nf">create_sg_connection</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a standard tank shotgun connection.</span>
+<span class="sd">    </span>
+<span class="sd">    Note! This method returns *a brand new sg API instance*. It is slow.</span>
+<span class="sd">    Always consider using tk.shotgun and if you don&#39;t have a tk instance,</span>
+<span class="sd">    consider using get_sg_connection(). </span>
+<span class="sd">    </span>
+<span class="sd">    Whenever a Shotgun API instance is created, it pings the server to check that </span>
+<span class="sd">    it is running the right versions etc. This is slow and inefficient and means that</span>
+<span class="sd">    there will be a delay every time create_sg_connection is called.</span>
+<span class="sd">    </span>
+<span class="sd">    :param user: Optional shotgun config user to use when connecting to shotgun, as defined in shotgun.yml</span>
+<span class="sd">    :returns: SG API instance</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Avoids cyclic imports.</span>
+    <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">api</span>
+    <span class="n">sg_user</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">()</span>
+
+    <span class="c1"># If there is no user, that&#39;s probably because we&#39;re running in an old script that doesn&#39;t use</span>
+    <span class="c1"># the authenticated user concept. In that case, we&#39;ll do what we&#39;ve always been doing in the</span>
+    <span class="c1"># past, which is read shotgun.yml and expect there to be a script user.</span>
+    <span class="k">if</span> <span class="n">sg_user</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;This tk session has no associated authenticated user. Falling back to &quot;</span>
+            <span class="s2">&quot;creating a shotgun API instance based on script based credentials in the &quot;</span>
+            <span class="s2">&quot;shotgun.yml configuration file.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">config_data</span> <span class="o">=</span> <span class="n">__get_sg_config_data_with_script_user</span><span class="p">(</span><span class="n">__get_sg_config</span><span class="p">(),</span> <span class="n">user</span><span class="p">)</span>
+        <span class="n">api_handle</span> <span class="o">=</span> <span class="n">__create_sg_connection</span><span class="p">(</span><span class="n">config_data</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Otherwise use the authenticated user to create the connection.</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating shotgun connection from </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sg_user</span><span class="p">)</span>
+        <span class="n">api_handle</span> <span class="o">=</span> <span class="n">__create_sg_connection</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">sg_user</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">api_handle</span>
+
+
+<span class="n">g_entity_display_name_lookup</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="get_entity_type_display_name"><a class="viewcode-back" href="../../../utils.html#sgtk.util.get_entity_type_display_name">[docs]</a><span class="k">def</span> <span class="nf">get_entity_type_display_name</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type_code</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the display name for an entity type given its type name.</span>
+<span class="sd">    For example, if a custom entity is named &quot;Workspace&quot; in the</span>
+<span class="sd">    Shotgun preferences, but is addressed as &quot;CustomEntity03&quot; in the</span>
+<span class="sd">    Shotgun API, this method will resolve the display name::</span>
+
+<span class="sd">        &gt;&gt;&gt; get_entity_type_display_name(tk, &quot;CustomEntity03&quot;)</span>
+<span class="sd">        &#39;Workspace&#39;</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :param entity_type_code: API entity type name</span>
+<span class="sd">    :returns: display name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">global</span> <span class="n">g_entity_display_name_lookup</span>
+
+    <span class="k">if</span> <span class="n">g_entity_display_name_lookup</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1"># now resolve the entity types into display names using the schema_entity_read method.</span>
+        <span class="n">g_entity_display_name_lookup</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">schema_entity_read</span><span class="p">()</span>
+        <span class="c1"># returns a dictionary on the following form:</span>
+        <span class="c1"># { &#39;Booking&#39;: {&#39;name&#39;: {&#39;editable&#39;: False, &#39;value&#39;: &#39;Booking&#39;}}, ... }</span>
+
+    <span class="n">display_name</span> <span class="o">=</span> <span class="n">entity_type_code</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">entity_type_code</span> <span class="ow">in</span> <span class="n">g_entity_display_name_lookup</span><span class="p">:</span>
+            <span class="n">display_name</span> <span class="o">=</span> <span class="n">g_entity_display_name_lookup</span><span class="p">[</span><span class="n">entity_type_code</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">display_name</span></div>
+
+<span class="nd">@LogManager.log_timing</span>
+<div class="viewcode-block" id="find_publish"><a class="viewcode-back" href="../../../utils.html#sgtk.util.find_publish">[docs]</a><span class="k">def</span> <span class="nf">find_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds publishes in Shotgun given paths on disk.</span>
+<span class="sd">    This method is similar to the find method in the Shotgun API,</span>
+<span class="sd">    except that instead of an Entity type, a list of files is</span>
+<span class="sd">    passed into the function.</span>
+
+<span class="sd">    In addition to a list of files, shotgun filters can also be specified.</span>
+<span class="sd">    This may be useful if for example all publishes with a certain status</span>
+<span class="sd">    should be retrieved.</span>
+
+<span class="sd">    By default, the shotgun id is returned for each successfully identified path.</span>
+<span class="sd">    If you want to retrieve additional fields, you can specify these using</span>
+<span class="sd">    the fields parameter.</span>
+
+<span class="sd">    The method will return a dictionary, keyed by path. The value will be</span>
+<span class="sd">    a standard shotgun query result dictionary, for example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;/foo/bar&quot; : { &quot;id&quot;: 234, &quot;type&quot;: &quot;TankPublishedFile&quot;, &quot;code&quot;: &quot;some data&quot; },</span>
+<span class="sd">            &quot;/foo/baz&quot; : { &quot;id&quot;: 23,  &quot;type&quot;: &quot;TankPublishedFile&quot;, &quot;code&quot;: &quot;some more data&quot; }</span>
+<span class="sd">        }</span>
+
+<span class="sd">    Fields that are not found, or filtered out by the filters parameter,</span>
+<span class="sd">    are not returned in the dictionary.</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :param list_of_paths: List of full paths for which information should be retrieved</span>
+<span class="sd">    :param filters: Optional list of shotgun filters to apply.</span>
+<span class="sd">    :param fields: Optional list of fields from the matched entities to</span>
+<span class="sd">                   return. Defaults to id and type.</span>
+<span class="sd">    :returns: dictionary keyed by path</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Map path caches to full paths, grouped by storage</span>
+    <span class="c1"># in case of sequences, there will be more than one file</span>
+    <span class="c1"># per path cache</span>
+    <span class="c1"># {&lt;storage name&gt;: { path_cache: [full_path, full_path]}}</span>
+    <span class="n">storages_paths</span> <span class="o">=</span> <span class="n">_group_by_storage</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">)</span>
+
+    <span class="n">filters</span> <span class="o">=</span> <span class="n">filters</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">fields</span> <span class="ow">or</span> <span class="p">[]</span>
+
+    <span class="c1"># make copy</span>
+    <span class="n">sg_fields</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[:]</span>
+    <span class="c1"># add these parameters to the fields list - they are needed for the internal processing</span>
+    <span class="c1"># of the result set.</span>
+    <span class="n">sg_fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;created_at&quot;</span><span class="p">)</span>
+    <span class="n">sg_fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;path_cache&quot;</span><span class="p">)</span>
+
+    <span class="c1"># PASS 1</span>
+    <span class="c1"># because the file locations are split for each publish in shotgun into two fields</span>
+    <span class="c1"># - the path_cache which is a storage relative, platform agnostic path</span>
+    <span class="c1"># - a link to a storage entity</span>
+    <span class="c1"># ...we need to group the paths per storage and then for each storage do a</span>
+    <span class="c1"># shotgun query on the form find all records where path_cache, in, /foo, /bar, /baz etc.</span>
+    <span class="n">published_files</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># get a list of all storages that we should look up.</span>
+    <span class="c1"># for 0.12 backwards compatibility, add the Tank Storage.</span>
+    <span class="n">local_storage_names</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span> <span class="ow">in</span> <span class="n">local_storage_names</span><span class="p">:</span>
+        <span class="n">local_storage_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Tank&quot;</span><span class="p">)</span>
+
+    <span class="n">published_file_entity_type</span> <span class="o">=</span> <span class="n">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">local_storage_name</span> <span class="ow">in</span> <span class="n">local_storage_names</span><span class="p">:</span>
+
+        <span class="n">local_storage</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s2">&quot;LocalStorage&quot;</span><span class="p">,</span> <span class="p">[[</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">local_storage_name</span><span class="p">]])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">local_storage</span><span class="p">:</span>
+            <span class="c1"># fail gracefully here - it may be a storage which has been deleted</span>
+            <span class="n">published_files</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># make copy</span>
+        <span class="n">sg_filters</span> <span class="o">=</span> <span class="n">filters</span><span class="p">[:]</span>
+        <span class="n">path_cache_filter</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;path_cache&quot;</span><span class="p">,</span> <span class="s2">&quot;in&quot;</span><span class="p">]</span>
+
+        <span class="c1"># now get the list of normalized files for this storage</span>
+        <span class="c1"># 0.12 backwards compatibility: if the storage name is Tank,</span>
+        <span class="c1"># this is the same as the primary storage.</span>
+        <span class="k">if</span> <span class="n">local_storage_name</span> <span class="o">==</span> <span class="s2">&quot;Tank&quot;</span><span class="p">:</span>
+            <span class="n">normalized_paths</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">normalized_paths</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="c1"># add all of those to the query filter</span>
+        <span class="k">for</span> <span class="n">path_cache_path</span> <span class="ow">in</span> <span class="n">normalized_paths</span><span class="p">:</span>
+            <span class="n">path_cache_filter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path_cache_path</span><span class="p">)</span>
+
+        <span class="n">sg_filters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path_cache_filter</span><span class="p">)</span>
+        <span class="n">sg_filters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="p">[</span><span class="s2">&quot;path_cache_storage&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">local_storage</span><span class="p">]</span> <span class="p">)</span>
+
+        <span class="c1"># organize the returned data by storage</span>
+        <span class="n">published_files</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">sg_filters</span><span class="p">,</span> <span class="n">sg_fields</span><span class="p">)</span>
+
+
+    <span class="c1"># PASS 2</span>
+    <span class="c1"># take the published_files structure, containing the shotgun data</span>
+    <span class="c1"># grouped by storage, and turn that into the final data structure</span>
+    <span class="c1">#</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">local_storage_name</span><span class="p">,</span> <span class="n">publishes</span> <span class="ow">in</span> <span class="n">published_files</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+        <span class="c1"># get a dictionary which maps shotgun paths to file system paths</span>
+        <span class="k">if</span> <span class="n">local_storage_name</span> <span class="o">==</span> <span class="s2">&quot;Tank&quot;</span><span class="p">:</span>
+            <span class="n">normalized_path_lookup_dict</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">normalized_path_lookup_dict</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span>
+
+        <span class="c1"># now go through all publish entities found for current storage</span>
+        <span class="k">for</span> <span class="n">publish</span> <span class="ow">in</span> <span class="n">publishes</span><span class="p">:</span>
+
+            <span class="n">path_cache</span> <span class="o">=</span> <span class="n">publish</span><span class="p">[</span><span class="s2">&quot;path_cache&quot;</span><span class="p">]</span>
+
+            <span class="c1"># get the list of real paths matching this entry</span>
+            <span class="k">for</span> <span class="n">full_path</span> <span class="ow">in</span> <span class="n">normalized_path_lookup_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path_cache</span><span class="p">,</span> <span class="p">[]):</span>
+
+                <span class="k">if</span> <span class="n">full_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+                    <span class="c1"># this path not yet in the list of matching publish entity data</span>
+                    <span class="n">matches</span><span class="p">[</span><span class="n">full_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">publish</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># found a match! This is most likely because the same file</span>
+                    <span class="c1"># has been published more than once. In this case, we return</span>
+                    <span class="c1"># the entity data for the file that is more recent.</span>
+                    <span class="n">existing_publish</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="n">full_path</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">existing_publish</span><span class="p">[</span><span class="s2">&quot;created_at&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">publish</span><span class="p">[</span><span class="s2">&quot;created_at&quot;</span><span class="p">]:</span>
+                        <span class="n">matches</span><span class="p">[</span><span class="n">full_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">publish</span>
+
+    <span class="c1"># PASS 3 -</span>
+    <span class="c1"># clean up resultset</span>
+    <span class="c1"># note that in order to do this we have pulled in additional fields from</span>
+    <span class="c1"># shotgun (path_cache, created_at etc) - unless these are specifically asked for</span>
+    <span class="c1"># by the caller, get rid of them.</span>
+    <span class="c1">#</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+        <span class="n">delete_fields</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># find fields</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">[</span><span class="n">path</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fields</span> <span class="ow">and</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">):</span>
+                <span class="c1"># field is not the id field and was not asked for.</span>
+                <span class="n">delete_fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="c1"># remove fields</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">delete_fields</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">matches</span><span class="p">[</span><span class="n">path</span><span class="p">][</span><span class="n">f</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">matches</span></div>
+
+
+<span class="k">def</span> <span class="nf">_group_by_storage</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a list of paths on disk, groups them into a data structure suitable for</span>
+<span class="sd">    shotgun. In shotgun, the path_cache field contains an abstracted representation</span>
+<span class="sd">    of the publish field, with a normalized path and the storage chopped off.</span>
+
+<span class="sd">    This method aims to process the paths to make them useful for later shotgun processing.</span>
+
+<span class="sd">    Returns a dictionary, keyed by storage name. Each storage in the dict contains another dict,</span>
+<span class="sd">    with an item for each path_cache entry.</span>
+
+<span class="sd">    Examples::</span>
+
+<span class="sd">        [&#39;/studio/project_code/foo/bar.0003.exr&#39;, &#39;/secondary_storage/foo/bar&#39;]</span>
+
+<span class="sd">        {&#39;Tank&#39;:</span>
+<span class="sd">            {&#39;project_code/foo/bar.%04d.exr&#39;: [&#39;/studio/project_code/foo/bar.0003.exr&#39;] }</span>
+
+<span class="sd">         &#39;Secondary_Storage&#39;:</span>
+<span class="sd">            {&#39;foo/bar&#39;: [&#39;/secondary_storage/foo/bar&#39;] }</span>
+<span class="sd">        }</span>
+
+
+<span class="sd">        [&#39;c:\studio\project_code\foo\bar&#39;, &#39;/secondary_storage/foo/bar&#39;]</span>
+
+<span class="sd">        {&#39;Tank&#39;:</span>
+<span class="sd">            {&#39;project_code/foo/bar&#39;: [&#39;c:\studio\project_code\foo\bar&#39;] }</span>
+
+<span class="sd">         &#39;Secondary_Storage&#39;:</span>
+<span class="sd">            {&#39;foo/bar&#39;: [&#39;/secondary_storage/foo/bar&#39;] }</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">storages_paths</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">list_of_paths</span><span class="p">:</span>
+
+        <span class="c1"># use abstracted path if path is part of a sequence</span>
+        <span class="n">abstract_path</span> <span class="o">=</span> <span class="n">_translate_abstract_fields</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="n">root_name</span><span class="p">,</span> <span class="n">dep_path_cache</span> <span class="o">=</span> <span class="n">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">abstract_path</span><span class="p">)</span>
+
+        <span class="c1"># make sure that the path is even remotely valid, otherwise skip</span>
+        <span class="k">if</span> <span class="n">dep_path_cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Update data for this storage</span>
+        <span class="n">storage_info</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">root_name</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">paths</span> <span class="o">=</span> <span class="n">storage_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dep_path_cache</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">storage_info</span><span class="p">[</span><span class="n">dep_path_cache</span><span class="p">]</span> <span class="o">=</span> <span class="n">paths</span>
+        <span class="n">storages_paths</span><span class="p">[</span><span class="n">root_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">storage_info</span>
+
+    <span class="k">return</span> <span class="n">storages_paths</span>
+
+<span class="nd">@LogManager.log_timing</span>
+<div class="viewcode-block" id="create_event_log_entry"><a class="viewcode-back" href="../../../utils.html#sgtk.util.create_event_log_entry">[docs]</a><span class="k">def</span> <span class="nf">create_event_log_entry</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">event_type</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates an event log entry inside of Shotgun.</span>
+<span class="sd">    Event log entries can be handy if you want to track a process or a sequence of events.</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :param context: A :class:`~sgtk.Context` to associate with the event log entry.</span>
+
+<span class="sd">    :param event_type: String which defines the event type. The Shotgun standard suggests</span>
+<span class="sd">                       that this should be on the form Company_Item_Action. Examples include::</span>
+
+<span class="sd">                           Shotgun_Asset_New</span>
+<span class="sd">                           Shotgun_Asset_Change</span>
+<span class="sd">                           Shotgun_User_Login</span>
+
+<span class="sd">    :param description: A verbose description explaining the meaning of this event.</span>
+
+<span class="sd">    :param metadata: A dictionary of metadata information which will be attached to the event</span>
+<span class="sd">                     log record in Shotgun. This dictionary may only contain simple data types</span>
+<span class="sd">                     such as ints, strings etc.</span>
+
+<span class="sd">    :returns: The newly created shotgun record</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">description</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">event_type</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span>
+
+    <span class="n">sg_user</span> <span class="o">=</span> <span class="n">login</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sg_user</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sg_user</span>
+
+    <span class="k">return</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;EventLogEntry&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_published_file_entity_type"><a class="viewcode-back" href="../../../utils.html#sgtk.util.get_published_file_entity_type">[docs]</a><span class="k">def</span> <span class="nf">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the entity type that this toolkit uses for its Publishes.</span>
+
+<span class="sd">    .. note:: This is for backwards compatibility situations only.</span>
+<span class="sd">              Code targeting new installations can assume that</span>
+<span class="sd">              the published file type in Shotgun is always ``PublishedFile``.</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :returns: &quot;PublishedFile&quot; or &quot;TankPublishedFile&quot;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_published_file_entity_type</span><span class="p">()</span></div>
+
+<span class="nd">@LogManager.log_timing</span>
+<div class="viewcode-block" id="register_publish"><a class="viewcode-back" href="../../../utils.html#sgtk.util.register_publish">[docs]</a><span class="k">def</span> <span class="nf">register_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version_number</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a Published File in Shotgun.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        &gt;&gt;&gt; version_number = 1</span>
+<span class="sd">        &gt;&gt;&gt; file_path = &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
+<span class="sd">        &gt;&gt;&gt; name = &#39;layout&#39;</span>
+<span class="sd">        &gt;&gt;&gt; sgtk.util.register_publish(tk, ctx, file_path, name, version_number)</span>
+<span class="sd">        {&#39;code&#39;: &#39;layout.v001.ma&#39;,</span>
+<span class="sd">         &#39;created_by&#39;: {&#39;id&#39;: 40, &#39;name&#39;: &#39;John Smith&#39;, &#39;type&#39;: &#39;HumanUser&#39;},</span>
+<span class="sd">         &#39;description&#39;: None,</span>
+<span class="sd">         &#39;entity&#39;: {&#39;id&#39;: 2, &#39;name&#39;: &#39;shot_010&#39;, &#39;type&#39;: &#39;Shot&#39;},</span>
+<span class="sd">         &#39;id&#39;: 2,</span>
+<span class="sd">         &#39;name&#39;: &#39;layout&#39;,</span>
+<span class="sd">         &#39;path&#39;: {&#39;content_type&#39;: None,</span>
+<span class="sd">          &#39;link_type&#39;: &#39;local&#39;,</span>
+<span class="sd">          &#39;local_path&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
+<span class="sd">          &#39;local_path_linux&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
+<span class="sd">          &#39;local_path_mac&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
+<span class="sd">          &#39;local_path_windows&#39;: &#39;c:\\studio\\demo_project\\sequences\\Sequence-1\\shot_010\\Anm\\publish\\layout.v001.ma&#39;,</span>
+<span class="sd">          &#39;local_storage&#39;: {&#39;id&#39;: 1, &#39;name&#39;: &#39;primary&#39;, &#39;type&#39;: &#39;LocalStorage&#39;},</span>
+<span class="sd">          &#39;name&#39;: &#39;layout.v001.ma&#39;,</span>
+<span class="sd">          &#39;url&#39;: &#39;file:///studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;},</span>
+<span class="sd">         &#39;path_cache&#39;: &#39;demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
+<span class="sd">         &#39;project&#39;: {&#39;id&#39;: 4, &#39;name&#39;: &#39;Demo Project&#39;, &#39;type&#39;: &#39;Project&#39;},</span>
+<span class="sd">         &#39;task&#39;: None,</span>
+<span class="sd">         &#39;type&#39;: &#39;PublishedFile&#39;,</span>
+<span class="sd">         &#39;version_number&#39;: 1}</span>
+
+<span class="sd">    The above example shows a basic publish. In addition to the required parameters, it is</span>
+<span class="sd">    recommended to supply at least a description and a Publish Type.</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :param context: A :class:`~sgtk.Context` to associate with the publish. This will</span>
+<span class="sd">                    populate the task and entity link in Shotgun.</span>
+<span class="sd">    :param path: The path to the file or sequence we want to publish. If the</span>
+<span class="sd">                 path is a sequence path it will be abstracted so that</span>
+<span class="sd">                 any sequence keys are replaced with their default values.</span>
+<span class="sd">    :param name: A name, without version number, which helps distinguish</span>
+<span class="sd">               this publish from other publishes. This is typically</span>
+<span class="sd">               used for grouping inside of Shotgun so that all the</span>
+<span class="sd">               versions of the same &quot;file&quot; can be grouped into a cluster.</span>
+<span class="sd">               For example, for a maya publish, where we track only</span>
+<span class="sd">               the scene name, the name would simply be that: the scene</span>
+<span class="sd">               name. For something like a render, it could be the scene</span>
+<span class="sd">               name, the name of the AOV and the name of the render layer.</span>
+<span class="sd">    :param version_number: The version number of the item we are publishing.</span>
+
+
+<span class="sd">    In addition to the above, the following optional arguments exist:</span>
+
+<span class="sd">        - ``task`` - A shotgun entity dictionary with id and type (which should always be Task).</span>
+<span class="sd">          if no value is specified, the task will be grabbed from the context object.</span>
+
+<span class="sd">        - ``comment`` - A string containing a description of the comment</span>
+
+<span class="sd">        - ``thumbnail_path`` - A path to a thumbnail (png or jpeg) which will be uploaded to shotgun</span>
+<span class="sd">          and associated with the publish.</span>
+
+<span class="sd">        - ``dependency_paths`` - A list of file system paths that should be attempted to be registered</span>
+<span class="sd">          as dependencies. Files in this listing that do not appear as publishes in shotgun will be ignored.</span>
+
+<span class="sd">        - ``dependency_ids`` - A list of publish ids which should be registered as dependencies.</span>
+
+<span class="sd">        - ``published_file_type`` - A tank type in the form of a string which should match a tank type</span>
+<span class="sd">          that is registered in Shotgun.</span>
+
+<span class="sd">        - ``update_entity_thumbnail`` - Push thumbnail up to the attached entity</span>
+
+<span class="sd">        - ``update_task_thumbnail`` - Push thumbnail up to the attached task</span>
+
+<span class="sd">        - ``created_by`` - Override for the user that will be marked as creating the publish.  This should</span>
+<span class="sd">          be in the form of shotgun entity, e.g. {&quot;type&quot;:&quot;HumanUser&quot;, &quot;id&quot;:7}</span>
+
+<span class="sd">        - ``created_at`` - Override for the date the publish is created at.  This should be a python</span>
+<span class="sd">          datetime object</span>
+<span class="sd">                    </span>
+<span class="sd">        - ``version_entity`` - The Shotgun version entity this published file should be linked to</span>
+
+<span class="sd">        - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{&#39;tag_list&#39;: [&#39;foo&#39;, &#39;bar&#39;]}``)</span>
+
+<span class="sd">    :returns: The created entity dictionary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># get the task from the optional args, fall back on context task if not set</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">task</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">task</span>
+
+    <span class="n">thumbnail_path</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;thumbnail_path&quot;</span><span class="p">)</span>
+    <span class="n">comment</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;comment&quot;</span><span class="p">)</span>
+    <span class="n">dependency_paths</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dependency_paths&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">dependency_ids</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dependency_ids&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">published_file_type</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;published_file_type&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">published_file_type</span><span class="p">:</span>
+        <span class="c1"># check for legacy name:</span>
+        <span class="n">published_file_type</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tank_type&#39;</span><span class="p">)</span>
+    <span class="n">update_entity_thumbnail</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;update_entity_thumbnail&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">update_task_thumbnail</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;update_task_thumbnail&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">created_by_user</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;created_by&quot;</span><span class="p">)</span>
+    <span class="n">created_at</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;created_at&quot;</span><span class="p">)</span>
+    <span class="n">version_entity</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;version_entity&quot;</span><span class="p">)</span>
+    <span class="n">sg_fields</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sg_fields&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+    <span class="c1"># convert the abstract fields to their defaults</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">_translate_abstract_fields</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+    <span class="n">published_file_entity_type</span> <span class="o">=</span> <span class="n">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+
+    <span class="n">sg_published_file_type</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="c1"># query shotgun for the published_file_type</span>
+    <span class="k">if</span> <span class="n">published_file_type</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">published_file_type</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;published_file_type must be a string&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">published_file_entity_type</span> <span class="o">==</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">:</span>
+            <span class="n">filters</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">published_file_type</span><span class="p">]]</span>
+            <span class="n">sg_published_file_type</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s1">&#39;PublishedFileType&#39;</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sg_published_file_type</span><span class="p">:</span>
+                <span class="c1"># create a published file type on the fly</span>
+                <span class="n">sg_published_file_type</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;PublishedFileType&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="n">published_file_type</span><span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span><span class="c1"># == TankPublishedFile</span>
+            <span class="n">filters</span> <span class="o">=</span> <span class="p">[</span> <span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">published_file_type</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span><span class="p">]</span> <span class="p">]</span>
+            <span class="n">sg_published_file_type</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s1">&#39;TankType&#39;</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sg_published_file_type</span><span class="p">:</span>
+                <span class="c1"># create a tank type on the fly</span>
+                <span class="n">sg_published_file_type</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;TankType&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="n">published_file_type</span><span class="p">,</span> <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span><span class="p">})</span>
+
+    <span class="c1"># create the publish</span>
+    <span class="n">entity</span> <span class="o">=</span> <span class="n">_create_published_file</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> 
+                                    <span class="n">context</span><span class="p">,</span> 
+                                    <span class="n">path</span><span class="p">,</span> 
+                                    <span class="n">name</span><span class="p">,</span> 
+                                    <span class="n">version_number</span><span class="p">,</span> 
+                                    <span class="n">task</span><span class="p">,</span> 
+                                    <span class="n">comment</span><span class="p">,</span> 
+                                    <span class="n">sg_published_file_type</span><span class="p">,</span> 
+                                    <span class="n">created_by_user</span><span class="p">,</span> 
+                                    <span class="n">created_at</span><span class="p">,</span> 
+                                    <span class="n">version_entity</span><span class="p">,</span>
+                                    <span class="n">sg_fields</span><span class="p">)</span>
+
+    <span class="c1"># upload thumbnails</span>
+    <span class="k">if</span> <span class="n">thumbnail_path</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">thumbnail_path</span><span class="p">):</span>
+
+        <span class="c1"># publish</span>
+        <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span><span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">thumbnail_path</span><span class="p">)</span>
+
+        <span class="c1"># entity</span>
+        <span class="k">if</span> <span class="n">update_entity_thumbnail</span> <span class="o">==</span> <span class="bp">True</span> <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
+                                        <span class="n">context</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+                                        <span class="n">thumbnail_path</span><span class="p">)</span>
+
+        <span class="c1"># task</span>
+        <span class="k">if</span> <span class="n">update_task_thumbnail</span> <span class="o">==</span> <span class="bp">True</span> <span class="ow">and</span> <span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">thumbnail_path</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># no thumbnail found - instead use the default one</span>
+        <span class="n">this_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+        <span class="n">no_thumb</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">this_folder</span><span class="p">,</span> <span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;no_preview.jpg&quot;</span><span class="p">)</span>
+        <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span><span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">),</span> <span class="n">no_thumb</span><span class="p">)</span>
+
+
+    <span class="c1"># register dependencies</span>
+    <span class="n">_create_dependencies</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">dependency_paths</span><span class="p">,</span> <span class="n">dependency_ids</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">entity</span></div>
+
+<span class="k">def</span> <span class="nf">_translate_abstract_fields</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Translates abstract fields for a path into the default abstract value.</span>
+<span class="sd">    For example, the path /foo/bar/xyz.0003.exr will be transformed into</span>
+<span class="sd">    /foo/bar/xyz.%04d.exr</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">template_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">template</span><span class="p">:</span>
+
+        <span class="n">abstract_key_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">template</span><span class="o">.</span><span class="n">keys</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">is_abstract</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">abstract_key_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># we want to use the default values for abstract keys</span>
+            <span class="n">cur_fields</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">abstract_key_name</span> <span class="ow">in</span> <span class="n">abstract_key_names</span><span class="p">:</span>
+                <span class="k">del</span><span class="p">(</span><span class="n">cur_fields</span><span class="p">[</span><span class="n">abstract_key_name</span><span class="p">])</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">cur_fields</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">path</span>
+
+<span class="k">def</span> <span class="nf">_create_dependencies</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">publish_entity</span><span class="p">,</span> <span class="n">dependency_paths</span><span class="p">,</span> <span class="n">dependency_ids</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates dependencies in shotgun from a given entity to</span>
+<span class="sd">    a list of paths and ids. Paths not recognized are skipped.</span>
+<span class="sd">    </span>
+<span class="sd">    :param tk: API handle</span>
+<span class="sd">    :param publish_entity: The publish entity to set the dependencies for. This is a dictionary</span>
+<span class="sd">                           with keys type and id.</span>
+<span class="sd">    :param dependency_paths: List of paths on disk. List of strings.</span>
+<span class="sd">    :param dependency_ids: List of publish entity ids to associate. List of ints</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">published_file_entity_type</span> <span class="o">=</span> <span class="n">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+
+    <span class="n">publishes</span> <span class="o">=</span> <span class="n">find_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">dependency_paths</span><span class="p">)</span>
+
+    <span class="c1"># create a single batch request for maximum speed</span>
+    <span class="n">sg_batch_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">dependency_path</span> <span class="ow">in</span> <span class="n">dependency_paths</span><span class="p">:</span>
+        
+        <span class="c1"># did we manage to resolve this file path against</span>
+        <span class="c1"># a publish in shotgun?</span>
+        <span class="n">published_file</span> <span class="o">=</span> <span class="n">publishes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dependency_path</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">published_file</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">published_file_entity_type</span> <span class="o">==</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">:</span>
+
+                <span class="n">req</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;request_type&quot;</span><span class="p">:</span> <span class="s2">&quot;create&quot;</span><span class="p">,</span> 
+                       <span class="s2">&quot;entity_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PublishedFileDependency&quot;</span><span class="p">,</span> 
+                       <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;published_file&quot;</span><span class="p">:</span> <span class="n">publish_entity</span><span class="p">,</span>
+                                <span class="s2">&quot;dependent_published_file&quot;</span><span class="p">:</span> <span class="n">published_file</span>
+                                <span class="p">}</span>
+                        <span class="p">}</span> 
+                <span class="n">sg_batch_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>    
+            
+            <span class="k">else</span><span class="p">:</span><span class="c1"># == &quot;TankPublishedFile&quot;</span>
+
+                <span class="n">req</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;request_type&quot;</span><span class="p">:</span> <span class="s2">&quot;create&quot;</span><span class="p">,</span> 
+                       <span class="s2">&quot;entity_type&quot;</span><span class="p">:</span> <span class="s2">&quot;TankDependency&quot;</span><span class="p">,</span> 
+                       <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;tank_published_file&quot;</span><span class="p">:</span> <span class="n">publish_entity</span><span class="p">,</span>
+                                <span class="s2">&quot;dependent_tank_published_file&quot;</span><span class="p">:</span> <span class="n">published_file</span>
+                                <span class="p">}</span>
+                        <span class="p">}</span> 
+                <span class="n">sg_batch_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+
+
+    <span class="k">for</span> <span class="n">dependency_id</span> <span class="ow">in</span> <span class="n">dependency_ids</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">published_file_entity_type</span> <span class="o">==</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">:</span>
+
+            <span class="n">req</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;request_type&quot;</span><span class="p">:</span> <span class="s2">&quot;create&quot;</span><span class="p">,</span> 
+                   <span class="s2">&quot;entity_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PublishedFileDependency&quot;</span><span class="p">,</span> 
+                   <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;published_file&quot;</span><span class="p">:</span> <span class="n">publish_entity</span><span class="p">,</span>
+                            <span class="s2">&quot;dependent_published_file&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">,</span> 
+                                                         <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">dependency_id</span> <span class="p">}</span>
+                            <span class="p">}</span>
+                    <span class="p">}</span> 
+            <span class="n">sg_batch_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+            
+        <span class="k">else</span><span class="p">:</span><span class="c1"># == &quot;TankPublishedFile&quot;</span>
+            
+            <span class="n">req</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;request_type&quot;</span><span class="p">:</span> <span class="s2">&quot;create&quot;</span><span class="p">,</span> 
+                   <span class="s2">&quot;entity_type&quot;</span><span class="p">:</span> <span class="s2">&quot;TankDependency&quot;</span><span class="p">,</span> 
+                   <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;tank_published_file&quot;</span><span class="p">:</span> <span class="n">publish_entity</span><span class="p">,</span>
+                            <span class="s2">&quot;dependent_tank_published_file&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;TankPublishedFile&quot;</span><span class="p">,</span> 
+                                                              <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">dependency_id</span> <span class="p">}</span>
+                            <span class="p">}</span>
+                    <span class="p">}</span> 
+            <span class="n">sg_batch_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+
+
+    <span class="c1"># push to shotgun in a single xact</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sg_batch_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="n">sg_batch_data</span><span class="p">)</span>
+                
+
+<span class="k">def</span> <span class="nf">_create_published_file</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version_number</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">comment</span><span class="p">,</span> <span class="n">published_file_type</span><span class="p">,</span> 
+                           <span class="n">created_by_user</span><span class="p">,</span> <span class="n">created_at</span><span class="p">,</span> <span class="n">version_entity</span><span class="p">,</span> <span class="n">sg_fields</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a publish entity in shotgun given some standard fields.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">published_file_entity_type</span> <span class="o">=</span> <span class="n">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+
+    <span class="c1"># Check if path is a url or a straight file path.  Path</span>
+    <span class="c1"># is assumed to be a url if it has a scheme or netloc, e.g.:</span>
+    <span class="c1">#</span>
+    <span class="c1">#     scheme://netloc/path</span>
+    <span class="c1">#</span>
+    <span class="n">path_is_url</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">scheme</span><span class="p">:</span>
+        <span class="c1"># handle windows drive letters - note this adds a limitation</span>
+        <span class="c1"># but one that is not likely to be a problem as single-character</span>
+        <span class="c1"># schemes are unlikely!</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">scheme</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">res</span><span class="o">.</span><span class="n">scheme</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+            <span class="n">path_is_url</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">elif</span> <span class="n">res</span><span class="o">.</span><span class="n">netloc</span><span class="p">:</span>
+        <span class="n">path_is_url</span> <span class="o">=</span> <span class="bp">True</span>
+        
+    <span class="n">code</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">path_is_url</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="c1"># if the context does not have an entity, link it up to the project</span>
+    <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">linked_entity</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">linked_entity</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span>
+    
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="c1"># we set the optional additional fields first so we don&#39;t allow overwriting the standard parameters</span>
+    <span class="k">if</span> <span class="n">sg_fields</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">sg_fields</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sg_fields</span><span class="p">)</span>
+    
+    <span class="c1"># standard parameters</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+        <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="n">code</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">comment</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span><span class="p">,</span>
+        <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="n">linked_entity</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="n">task</span><span class="p">,</span>
+        <span class="s2">&quot;version_number&quot;</span><span class="p">:</span> <span class="n">version_number</span><span class="p">,</span>
+        <span class="p">})</span>
+
+    <span class="k">if</span> <span class="n">path_is_url</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;url&quot;</span><span class="p">:</span><span class="n">path</span> <span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Make path platform agnostic.</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">path_cache</span> <span class="o">=</span> <span class="n">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="n">path</span> <span class="p">}</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path_cache&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">path_cache</span>        
+
+    <span class="k">if</span> <span class="n">created_by_user</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;created_by&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">created_by_user</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># use current user</span>
+        <span class="n">sg_user</span> <span class="o">=</span> <span class="n">login</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sg_user</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;created_by&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sg_user</span>
+
+    <span class="k">if</span> <span class="n">created_at</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;created_at&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">created_at</span>
+
+    <span class="k">if</span> <span class="n">published_file_type</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">published_file_entity_type</span> <span class="o">==</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;published_file_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">published_file_type</span>
+        <span class="k">else</span><span class="p">:</span><span class="c1"># == TankPublishedFile</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;tank_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">published_file_type</span>
+
+    <span class="k">if</span> <span class="n">version_entity</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">version_entity</span>
+
+    <span class="c1"># now call out to hook just before publishing</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">TANK_PUBLISH_HOOK_NAME</span><span class="p">,</span> <span class="n">shotgun_data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates root path name and relative path (including project directory).</span>
+<span class="sd">    returns (root_name, path_cache)</span>
+
+<span class="sd">    If the location cannot be computed, because the path does not belong</span>
+<span class="sd">    to a valid root, (None, None) is returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># paths may be c:/foo in maya on windows - don&#39;t rely on os.sep here!</span>
+
+    <span class="c1"># normalize input path first c:\foo -&gt; c:/foo</span>
+    <span class="n">norm_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+    <span class="c1"># get roots - don&#39;t assume data is returned on any particular form</span>
+    <span class="c1"># may return c:\foo, c:/foo or /foo - assume that we need to normalize this path</span>
+    <span class="n">roots</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_data_roots</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">root_name</span><span class="p">,</span> <span class="n">root_path</span> <span class="ow">in</span> <span class="n">roots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">norm_root_path</span> <span class="o">=</span> <span class="n">root_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">norm_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">norm_root_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+            <span class="n">norm_parent_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">norm_root_path</span><span class="p">)</span>
+            <span class="c1"># Remove parent dir plus &quot;/&quot; - be careful to handle the case where</span>
+            <span class="c1"># the parent dir ends with a &#39;/&#39;, e.g. &#39;T:/&#39; for a Windows drive</span>
+            <span class="n">path_cache</span> <span class="o">=</span> <span class="n">norm_path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">norm_parent_dir</span><span class="p">):]</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">root_name</span><span class="p">,</span> <span class="n">path_cache</span>
+    <span class="c1"># not found, return None values</span>
+    <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+
+
+
+<span class="c1">#################################################################################################</span>
+<span class="c1"># wrappers around the shotgun API&#39;s http header API methods</span>
+
+    
+<span class="k">class</span> <span class="nc">ToolkitUserAgentHandler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convenience wrapper to handle the user agent management</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sg</span> <span class="o">=</span> <span class="n">sg</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_framework</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span> <span class="o">=</span> <span class="bp">None</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_core_version</span> <span class="o">=</span> <span class="bp">None</span>
+        
+    <span class="k">def</span> <span class="nf">__clear_bundles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resets the currently active bundle.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_framework</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span> <span class="o">=</span> <span class="bp">None</span>
+
+        
+    <span class="k">def</span> <span class="nf">set_current_app</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">engine_version</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the user agent headers for the currently active app </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># first clear out the other bundle settings - there can only</span>
+        <span class="c1"># be one active bundle at a time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__clear_bundles</span><span class="p">()</span>
+
+        <span class="c1"># populate the currently running bundle data        </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span> <span class="o">=</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">engine_version</span><span class="p">)</span>
+        
+        <span class="c1"># push to shotgun</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__update</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">set_current_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">engine_version</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the user agent headers for the currently active framework </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># first clear out the other bundle settings - there can only</span>
+        <span class="c1"># be one active bundle at a time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__clear_bundles</span><span class="p">()</span>
+
+        <span class="c1"># populate the currently running bundle data        </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_framework</span> <span class="o">=</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span> <span class="o">=</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">engine_version</span><span class="p">)</span>
+        
+        <span class="c1"># push to shotgun</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__update</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">set_current_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the user agent headers for the currently active engine </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># first clear out the other bundle settings - there can only</span>
+        <span class="c1"># be one active bundle at a time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__clear_bundles</span><span class="p">()</span>
+
+        <span class="c1"># populate the currently running bundle data        </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span> <span class="o">=</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+        
+        <span class="c1"># push to shotgun</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__update</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">set_current_core</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">core_version</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the user agent headers for the currently active core</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_core_version</span> <span class="o">=</span> <span class="n">core_version</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__update</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">__update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform changes to the Shotgun API</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># note that because of shortcomings in the API, </span>
+        <span class="c1"># we have to reference the member variable directly.</span>
+        <span class="c1">#</span>
+        <span class="c1"># sg._user_agents is a list of strings. By default,</span>
+        <span class="c1"># its value is [ &quot;shotgun-json (1.2.3)&quot; ] </span>
+        
+        <span class="c1"># First, remove any old Toolkit settings</span>
+        <span class="n">new_agents</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg</span><span class="o">.</span><span class="n">_user_agents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;tk-core&quot;</span><span class="p">)</span> <span class="ow">or</span> \
+               <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;tk-app&quot;</span><span class="p">)</span> <span class="ow">or</span> \
+               <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;tk-engine&quot;</span><span class="p">)</span> <span class="ow">or</span> \
+               <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;tk-fw&quot;</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">new_agents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+         
+        <span class="c1"># Add new Toolkit settings</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_core_version</span><span class="p">:</span>
+            <span class="n">new_agents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;tk-core (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_core_version</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span><span class="p">:</span>
+            <span class="n">new_agents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;tk-engine (</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+            <span class="n">new_agents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;tk-app (</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_framework</span><span class="p">:</span>
+            <span class="n">new_agents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;tk-fw (</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_framework</span><span class="p">)</span>
+
+        <span class="c1"># and update shotgun</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sg</span><span class="o">.</span><span class="n">_user_agents</span> <span class="o">=</span> <span class="n">new_agents</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

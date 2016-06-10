@@ -1,0 +1,868 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.log &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.log</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.log</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2016 Shotgun Software Inc.</span>
+<span class="c1">#</span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Toolkit uses the standard python logging for its</span>
+<span class="sd">log management. The :class:`LogManager` class below</span>
+<span class="sd">acts as an interface that helps make it easy to access</span>
+<span class="sd">and manage Toolkit logging.</span>
+
+
+<span class="sd">Logging hierarchy</span>
+<span class="sd">-----------------------------------</span>
+
+<span class="sd">All Toolkit logging is written into a ``sgtk.*`` logging</span>
+<span class="sd">namespace. This has been &quot;sealed&quot; so that log messages</span>
+<span class="sd">from Toolkit do not propagate up to the root logger. This</span>
+<span class="sd">is to ensure that Toolkit doesn&#39;t interfere with other logging</span>
+<span class="sd">that has been already configured.</span>
+
+<span class="sd">The following sub-heirarchies exist:</span>
+
+<span class="sd">- Each app, engine and bundle provides access to logging and</span>
+<span class="sd">  these log streams are collected and organized under the</span>
+<span class="sd">  ``sgtk.env`` logging namespace. Below this level, messages</span>
+<span class="sd">  are broken down further by environment, engine, etc.</span>
+
+<span class="sd">- Logging from external tools and scripts is written to ``sgtk.ext``.</span>
+
+<span class="sd">- All core logging is written to the ``sgtk.core`` logger.</span>
+
+<span class="sd">Below is a simple log hierarchy to illustrate what this might look like in practice.</span>
+
+<span class="sd">.. code-block:: text</span>
+
+<span class="sd">    sgtk                                              Root point for all Toolkit logging</span>
+<span class="sd">     |</span>
+<span class="sd">     |- core                                          Root point for the Core API</span>
+<span class="sd">     |   |</span>
+<span class="sd">     |   |- descriptor                                Logging from core Modules</span>
+<span class="sd">     |   |- path_cache</span>
+<span class="sd">     |</span>
+<span class="sd">     |- env                                           Logging from apps and engines</span>
+<span class="sd">     |   |</span>
+<span class="sd">     |   |- project                                   Toolkit Environment</span>
+<span class="sd">     |       |</span>
+<span class="sd">     |       |- tk-maya                               Toolkit Engine</span>
+<span class="sd">     |             |</span>
+<span class="sd">     |             |- tk-multi-workfiles2             Toolkit App (or framework)</span>
+<span class="sd">     |                  |</span>
+<span class="sd">     |                  |- tkimp63c3b2d57f85          Toolkit Command Session</span>
+<span class="sd">     |                      |</span>
+<span class="sd">     |                      |- tk_multi_workfiles     Python hierarchy inside app&#39;s python folder</span>
+<span class="sd">     |                          |</span>
+<span class="sd">     |                          |- entity_tree</span>
+<span class="sd">     |</span>
+<span class="sd">     |- ext                                           Logging from associated external scripts</span>
+<span class="sd">         |</span>
+<span class="sd">         |- tank_cmd</span>
+
+
+
+<span class="sd">Generating log messages in Toolkit</span>
+<span class="sd">-----------------------------------</span>
+
+<span class="sd">Generating log messages are done differently depending on your context.</span>
+<span class="sd">Below are a series of examples and best practice recipes explaining how to best</span>
+<span class="sd">apply logging to different scenarios.</span>
+
+
+<span class="sd">Logging from within your App, Engine or Framework</span>
+<span class="sd">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">Inside your app, a logger is available via :meth:`~sgtk.platform.Application.logger`.</span>
+<span class="sd">Alternatively, you can also</span>
+<span class="sd">use the legacy methods ``log_debug|error|info|...()``. This provides</span>
+<span class="sd">a basic level of general logging.</span>
+
+<span class="sd">For code inside the ``python`` folder, which has been imported via</span>
+<span class="sd">Toolkit&#39;s :meth:`~sgtk.platform.Application.import_module()` method,</span>
+<span class="sd">we recommend that you access a logger using the following method::</span>
+
+<span class="sd">    # at the top of the file, include the following</span>
+<span class="sd">    import sgtk</span>
+<span class="sd">    logger = sgtk.platform.get_logger(__name__)</span>
+
+<span class="sd">    def my_method():</span>
+<span class="sd">        logger.debug(&quot;inside my code, i can log like this&quot;)</span>
+
+<span class="sd">This logger will be grouped per invocation instance,</span>
+<span class="sd">meaning that you can see for example which dialog UI</span>
+<span class="sd">a particular collection of log messages comes from.</span>
+<span class="sd">An invocation is typically associated with someone launching</span>
+<span class="sd">the app from the Shotgun menu.</span>
+
+<span class="sd">    .. note:: Because log messages are grouped per invocation,</span>
+<span class="sd">              this makes it easy to for example generate log files</span>
+<span class="sd">              for export or import sessions running as part of an</span>
+<span class="sd">              app. It also makes it possible to create a log window</span>
+<span class="sd">              which displays the logging associated with a particular</span>
+<span class="sd">              app UI dialog.</span>
+
+<span class="sd">Logging from scripts and other external locations</span>
+<span class="sd">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">If you want to add standard Toolkit logging to a script, simply</span>
+<span class="sd">use the following recipe::</span>
+
+<span class="sd">    # at the top of the file, include the following</span>
+<span class="sd">    import sgtk</span>
+<span class="sd">    logger = sgtk.LogManager.get_logger(__name__)</span>
+
+<span class="sd">    def my_method():</span>
+<span class="sd">        logger.debug(&quot;inside my code, i can log like this&quot;)</span>
+
+<span class="sd">All this logging will appear below the ``sgtk.ext`` logger.</span>
+
+<span class="sd">Logging from inside the Core API</span>
+<span class="sd">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">To emit log messages from inside the Toolkit Core API, use the following pattern::</span>
+
+<span class="sd">    # at the top of the file, include the following</span>
+<span class="sd">    import sgtk</span>
+<span class="sd">    logger = sgtk.LogManager.get_logger(__name__)</span>
+
+<span class="sd">    def my_method():</span>
+<span class="sd">        logger.debug(&quot;inside my code, i can log like this&quot;)</span>
+
+
+
+<span class="sd">Consuming log messages in Toolkit</span>
+<span class="sd">-----------------------------------</span>
+
+<span class="sd">Toolkit provides several ways to access the log information generated by</span>
+<span class="sd">the various methods and recipes shown above.</span>
+
+<span class="sd">The general approach is to attach one or several log handlers to the root</span>
+<span class="sd">logging point of the hierarchy (``sgtk``). Each handler controls its own</span>
+<span class="sd">logging resolution, e.g. how much log information to display. The toolkit</span>
+<span class="sd">logging hierarchy itself is set to DEBUG resolution.</span>
+
+<span class="sd">The Toolkit :class:`LogManager` provides a default set of logging methods</span>
+<span class="sd">to help access log information.</span>
+
+
+<span class="sd">Global debug</span>
+<span class="sd">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">Toolkit has a concept of a global debug flag. This flag can be</span>
+<span class="sd">enabled by setting the ``TK_DEBUG`` environment variable or</span>
+<span class="sd">alternatively setting the :meth:`LogManager.global_debug` property.</span>
+
+<span class="sd">All log handlers that have been created using the :class:`LogManager`</span>
+<span class="sd">will be affected by the flag.</span>
+
+
+<span class="sd">Backend file logging</span>
+<span class="sd">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">Log information is automatically written to disk by the :class:`LogManager`.</span>
+<span class="sd">The location to which log files are written can be accessed via the</span>
+<span class="sd">:meth:`LogManager.log_folder` property. Backend file logging is normally</span>
+<span class="sd">automatically enabled and end users do not need to worry about this.</span>
+<span class="sd">If you want debug logging to be written to these files, enable the</span>
+<span class="sd">global debug flag.</span>
+
+<span class="sd">    .. note:: If you are writing a toolkit plugin, we recommend</span>
+<span class="sd">              that you initialize logging early on in your code by</span>
+<span class="sd">              calling :meth:`LogManager.initialize_base_file_handler`.</span>
+<span class="sd">              This will ensure that all your logs are written to disk.</span>
+<span class="sd">              If you omit this call, logging will automatically be</span>
+<span class="sd">              started up as the engine is launched.</span>
+
+<span class="sd">DCC Logging</span>
+<span class="sd">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">Each toolkit engine integrates logging into the DCC. DCCs such as</span>
+<span class="sd">Maya, Nuke or houdini traditionally have a console of some sort where</span>
+<span class="sd">logging information typically should be dispatched.</span>
+
+<span class="sd">Engine log output has traditionally been implemented by subclassing</span>
+<span class="sd">the ``log_info``, ``log_error`` methods. In Core v0.18, a new and</span>
+<span class="sd">improved logging platform is introduced and we recommend that engines</span>
+<span class="sd">*do not* implement the ``log_xxx`` methods at all but instead implement</span>
+<span class="sd">a single :meth:`~sgtk.platform.Engine._emit_log_message` method.</span>
+
+
+<span class="sd">Standard Logging</span>
+<span class="sd">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">If you want some sort of log output in addition to the logging an</span>
+<span class="sd">engine provides, you can add standard toolkit handlers. These handlers</span>
+<span class="sd">are created via the :meth:`LogManager.initialize_custom_handler` method.</span>
+
+<span class="sd">All log handlers created or registered via this method will respond</span>
+<span class="sd">to the global debug flag.</span>
+
+<span class="sd">    .. note:: If you want a raw log output that is not affected</span>
+<span class="sd">              by any changes to the global debug flag, we recommend that</span>
+<span class="sd">              you manually create your log handler and attach it to</span>
+<span class="sd">              the ``sgtk`` root logger.</span>
+
+<span class="sd">Python provides a large number of log handlers as part of its standard library.</span>
+<span class="sd">For more information, see https://docs.python.org/2/library/logging.handlers.html#module-logging.handlers</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">logging.handlers</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+
+<div class="viewcode-block" id="LogManager"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager">[docs]</a><span class="k">class</span> <span class="nc">LogManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main interface for logging in Toolkit.</span>
+
+<span class="sd">    This class contains a series of methods to help standardize log output</span>
+<span class="sd">    and access. Since Toolkit uses the standard python logging interface,</span>
+<span class="sd">    you can manually configure and associate your logging if you like.</span>
+
+<span class="sd">    .. note:: This is a singleton class, so every time you instantiate it,</span>
+<span class="sd">              the same object is returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># keeps track of the single instance of the class</span>
+    <span class="n">__instance</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1">#</span>
+        <span class="c1"># note - this init isn&#39;t currently threadsafe.</span>
+        <span class="c1">#</span>
+        <span class="c1"># create the instance if it hasn&#39;t been created already</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cls</span><span class="o">.</span><span class="n">__instance</span><span class="p">:</span>
+            <span class="c1"># remember the instance so that no more are created</span>
+            <span class="n">instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">LogManager</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span>
+                <span class="n">cls</span><span class="p">,</span>
+                <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+            <span class="c1"># a global and standard rotating log file handler</span>
+            <span class="c1"># for writing generic toolkit logs to disk</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">_std_file_handler_log_name</span> <span class="o">=</span> <span class="bp">None</span>
+
+            <span class="c1"># collection of weak references to handlers</span>
+            <span class="c1"># that were created via the log manager.</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">_handlers</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="c1"># the root logger, created at code init</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">_root_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">)</span>
+
+            <span class="c1"># check the TK_DEBUG flag at startup</span>
+            <span class="c1"># this controls the &quot;global debug&quot; state</span>
+            <span class="c1"># in the log manager</span>
+            <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> environment variable detected. Enabling debug logging.&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span>
+                <span class="p">)</span>
+                <span class="n">instance</span><span class="o">.</span><span class="n">_global_debug</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">instance</span><span class="o">.</span><span class="n">_global_debug</span> <span class="o">=</span> <span class="bp">False</span>
+
+            <span class="n">cls</span><span class="o">.</span><span class="n">__instance</span> <span class="o">=</span> <span class="n">instance</span>
+
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">__instance</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="LogManager.get_logger"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.get_logger">[docs]</a>    <span class="k">def</span> <span class="nf">get_logger</span><span class="p">(</span><span class="n">log_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates standard logger objects for Toolkit.</span>
+
+<span class="sd">        If you want to add standard toolkit logging to your code,</span>
+<span class="sd">        the easiest way is to include the following at the top of</span>
+<span class="sd">        your python file::</span>
+
+<span class="sd">            import sgtk</span>
+<span class="sd">            logger = sgtk.LogManager.get_logger(__name__)</span>
+
+<span class="sd">        This will pick up the module hierarchy of your code and</span>
+<span class="sd">        parent it under the standard Toolkit logger.</span>
+
+<span class="sd">        .. note:: This method is useful if you are writing scripts, tools or wrappers.</span>
+<span class="sd">                  If you are developing a Toolkit app, framework or engine,</span>
+<span class="sd">                  you typically want to use :meth:`sgtk.platform.get_logger`</span>
+<span class="sd">                  for your logging.</span>
+
+<span class="sd">        .. note:: To output logging to screen or to a console,</span>
+<span class="sd">                  we recommend using the :meth:`initialize_custom_handler`</span>
+<span class="sd">                  convenience method.</span>
+
+<span class="sd">        :param log_name: Name of logger to create. This name will be parented under</span>
+<span class="sd">                         the sgtk namespace. If the name begins with ``tank.``, it will</span>
+<span class="sd">                         be automatically replaced with ``sgtk.``.</span>
+<span class="sd">        :returns: Standard python logger.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">log_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;tank.&quot;</span><span class="p">):</span>
+            <span class="c1"># old style import of core</span>
+            <span class="c1">#</span>
+            <span class="c1"># this will be parented under sgtk.core.xxx</span>
+            <span class="c1">#</span>
+            <span class="n">log_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.core.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">,</span> <span class="n">log_name</span><span class="p">[</span><span class="mi">5</span><span class="p">:])</span>
+        <span class="k">elif</span> <span class="n">log_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sgtk.&quot;</span><span class="p">):</span>
+            <span class="c1"># new style import of core</span>
+            <span class="c1">#</span>
+            <span class="c1"># this will be parented under sgtk.core.xxx</span>
+            <span class="c1">#</span>
+            <span class="n">log_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.core.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">,</span> <span class="n">log_name</span><span class="p">[</span><span class="mi">5</span><span class="p">:])</span>
+        <span class="k">elif</span> <span class="n">log_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;env.&quot;</span><span class="p">):</span>
+            <span class="c1"># engine logging</span>
+            <span class="c1">#</span>
+            <span class="c1"># this will be parented under sgtk.env.xxx</span>
+            <span class="c1"># for example sgtk.env.asset.tk-maya</span>
+            <span class="c1">#</span>
+
+            <span class="n">log_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">,</span> <span class="n">log_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># some external script or tool</span>
+            <span class="n">log_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.ext.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">,</span> <span class="n">log_name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">log_name</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="LogManager.log_timing"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.log_timing">[docs]</a>    <span class="k">def</span> <span class="nf">log_timing</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decorator that times and logs the execution of a method.</span>
+
+<span class="sd">        Sometimes it is useful to log runtime statistics about</span>
+<span class="sd">        how long time a certain method takes to execute. In the</span>
+<span class="sd">        case of Toolkit, it is particularly helpful when debugging</span>
+<span class="sd">        issues to do with I/O or cloud connectivity.</span>
+
+<span class="sd">        If you have a method that for example connects to Shotgun to</span>
+<span class="sd">        retrieve data, you can decorate it::</span>
+
+<span class="sd">            @sgtk.LogManager.log_timing</span>
+<span class="sd">            def my_shotgun_publish_method():</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                Publishes lots of files to Shotgun</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                # shotgun code here</span>
+
+<span class="sd">        In the debug logs, timings will be written to the</span>
+<span class="sd">        ``sgtk.stopwatch`` logger::</span>
+
+<span class="sd">            [DEBUG sgtk.stopwatch.module] my_shotgun_publish_method: 0.633s</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">time_before</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="n">time_spent</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">time_before</span>
+                <span class="c1"># log to special timing logger</span>
+                <span class="n">timing_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">PROFILING_LOG_CHANNEL</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">__module__</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">timing_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%f</span><span class="s2">s&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">time_spent</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">return</span> <span class="n">wrapper</span></div>
+
+
+
+    <span class="k">def</span> <span class="nf">_set_global_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the state of the global debug in toolkit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_global_debug</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_debug</span><span class="p">:</span>
+            <span class="n">new_log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Disabling debug logging.&quot;</span><span class="p">)</span>
+            <span class="n">new_log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+
+        <span class="c1"># process handlers</span>
+        <span class="k">for</span> <span class="n">handler_weak_ref</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">:</span>
+            <span class="n">handler</span> <span class="o">=</span> <span class="n">handler_weak_ref</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">handler</span><span class="p">:</span>
+                <span class="n">handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">new_log_level</span><span class="p">)</span>
+
+        <span class="c1"># process backdoor logger</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_file_handler</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_file_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">new_log_level</span><span class="p">)</span>
+
+        <span class="c1"># log notifications</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_debug</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Debug logging enabled. To permanently enable it, &quot;</span>
+                <span class="s2">&quot;set the </span><span class="si">%s</span><span class="s2"> environment variable.&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_global_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Controls the global debug flag in toolkit. Toggling this</span>
+<span class="sd">        flag will affect all log handlers that have been created</span>
+<span class="sd">        via :meth:`initialize_custom_handler`.</span>
+
+<span class="sd">        .. note:: Debug logging is off by default.</span>
+<span class="sd">                  If you want to permanently enable debug logging,</span>
+<span class="sd">                  set the environment variable ``TK_DEBUG``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_debug</span>
+
+    <span class="n">global_debug</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_global_debug</span><span class="p">,</span> <span class="n">_set_global_debug</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The folder where log files generated by :meth:`initialize_base_file_handler` are stored.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># avoid cyclic references</span>
+        <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">LocalFileStorageManager</span>
+        <span class="k">return</span> <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">get_global_root</span><span class="p">(</span><span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">LOGGING</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">root_logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the root logger for Toolkit.</span>
+
+<span class="sd">        .. note:: If you want to add a custom logging handler to the root logger,</span>
+<span class="sd">                  we recommend using the :meth:`initialize_custom_handler` method.</span>
+
+<span class="sd">        .. warning:: The root logger logs down to a debug resolution by default.</span>
+<span class="sd">                     Do not change the output level of logger as this will have</span>
+<span class="sd">                     a global effect. If you are connecting a logging handler</span>
+<span class="sd">                     and want to limit the stream of messages that are being</span>
+<span class="sd">                     emitted, instead adjust the logging level of the handler.</span>
+
+<span class="sd">        :return: log object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root_logger</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">base_file_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The base file handler that is used to write log files to disk</span>
+<span class="sd">        in a default location, or None if not defined.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span>
+
+<div class="viewcode-block" id="LogManager.initialize_custom_handler"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.initialize_custom_handler">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_custom_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convenience method that initializes a log handler</span>
+<span class="sd">        and attaches it to the toolkit logging root.</span>
+
+<span class="sd">        .. note:: If you want to display log messages inside a DCC,</span>
+<span class="sd">                  implement :meth:`~sgtk.platform.Engine._emit_log_message`.</span>
+
+<span class="sd">        .. note:: If :meth:`global_debug` is set to True, the handler created</span>
+<span class="sd">                  will be set to debug level, otherwise it will be set to info level.</span>
+<span class="sd">                  Furthermore, the log handler will automatically adjust its log</span>
+<span class="sd">                  level whenever the global debug flag changes its state.</span>
+
+<span class="sd">        Calling this without parameters will generate a standard</span>
+<span class="sd">        stream based logging handler that logs to stderr::</span>
+
+<span class="sd">            # start logging to stderr</span>
+<span class="sd">            import sgtk.LogManager</span>
+<span class="sd">            LogManager().initialize_custom_handler()</span>
+
+<span class="sd">        If you want to log to a file instead, create a log handler</span>
+<span class="sd">        and pass that to the method::</span>
+
+<span class="sd">            handler = logging.FileHandler(&quot;/tmp/toolkit.log)</span>
+<span class="sd">            LogManager().initialize_custom_handler(handler)</span>
+
+<span class="sd">        The log handler will be configured to output its messages</span>
+<span class="sd">        in a standard fashion.</span>
+
+<span class="sd">        :param handler: Logging handler to connect with the toolkit logger.</span>
+<span class="sd">                        If not passed, a standard stream handler will be created.</span>
+<span class="sd">        :return: The configured log handler.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">handler</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+
+            <span class="c1"># example: [DEBUG tank.log] message message</span>
+            <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
+                <span class="s2">&quot;[</span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2">] </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+            <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_root_logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_debug</span><span class="p">:</span>
+            <span class="n">handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+        <span class="c1"># add it to our list of handlers, but as a</span>
+        <span class="c1"># weak reference so that it can be destroyed</span>
+        <span class="c1"># elsewhere (e.g. at engine shutdown)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">handler</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">handler</span></div>
+
+<div class="viewcode-block" id="LogManager.uninitialize_base_file_handler"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.uninitialize_base_file_handler">[docs]</a>    <span class="k">def</span> <span class="nf">uninitialize_base_file_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uninitialize base file handler created with :meth:`initialize_base_file_handler`.</span>
+
+<span class="sd">        :returns: The name of the previous log_name that is being switched away from,</span>
+<span class="sd">                  None if no base logger was previously active.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">base_log_name</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base_log_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler_log_name</span>
+
+            <span class="c1"># there is a log handler, so terminate it</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Tearing down existing log handler &#39;</span><span class="si">%s</span><span class="s2">&#39; (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base_log_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_root_logger</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler_log_name</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c1"># return the previous base log name</span>
+        <span class="k">return</span> <span class="n">base_log_name</span></div>
+
+<div class="viewcode-block" id="LogManager.initialize_base_file_handler"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.initialize_base_file_handler">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_base_file_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a file handler and attach it to the stgk base logger.</span>
+<span class="sd">        This will write a rotating log file to disk in a standard</span>
+<span class="sd">        location and will capture all log messages passed through</span>
+<span class="sd">        the log hierarchy.</span>
+
+<span class="sd">        .. note:: Files will be written into the a location on disk</span>
+<span class="sd">                  defined by :meth:`log_folder`.</span>
+
+<span class="sd">        When you start an engine via the :meth:`sgtk.platform.start_engine` method,</span>
+<span class="sd">        a file handler will automatically be created if one doesn&#39;t already exist.</span>
+
+<span class="sd">        If you are manually launching toolkit, we recommend that you call</span>
+<span class="sd">        this method to initialize logging to file early on in your setup.</span>
+<span class="sd">        Calling it multiple times will not result in the information being</span>
+<span class="sd">        written to multiple different files - only one file logger can</span>
+<span class="sd">        exist per session.</span>
+
+<span class="sd">        :param log_name: Name of logger to create. This will form the</span>
+<span class="sd">                         filename of the log file.</span>
+<span class="sd">        :returns: The name of the previous log_name that is being switched away from,</span>
+<span class="sd">                  None if no base logger was previously active.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># shut down any previous logger</span>
+        <span class="n">previous_log_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uninitialize_base_file_handler</span><span class="p">()</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Switching file based std logger from </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">previous_log_name</span><span class="p">,</span> <span class="n">log_name</span><span class="p">))</span>
+
+        <span class="c1"># store new log name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler_log_name</span> <span class="o">=</span> <span class="n">log_name</span>
+
+        <span class="c1"># avoid cyclic references</span>
+        <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">filesystem</span>
+
+        <span class="c1"># set up logging root folder</span>
+        <span class="n">filesystem</span><span class="o">.</span><span class="n">ensure_folder_exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_folder</span><span class="p">)</span>
+
+        <span class="c1"># generate log path</span>
+        <span class="n">log_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_folder</span><span class="p">,</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.log&quot;</span> <span class="o">%</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">create_valid_filename</span><span class="p">(</span><span class="n">log_name</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># create a rotating log file with a max size of 5 megs -</span>
+        <span class="c1"># this should make all log files easily attachable to support tickets.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">RotatingFileHandler</span><span class="p">(</span>
+            <span class="n">log_file</span><span class="p">,</span>
+            <span class="n">maxBytes</span><span class="o">=</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="o">*</span><span class="mi">5</span><span class="p">,</span>  <span class="c1"># 5 MiB</span>
+            <span class="n">backupCount</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+
+        <span class="c1"># set the level based on global debug flag</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_debug</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+        <span class="c1"># Set up formatter. Example:</span>
+        <span class="c1"># 2016-04-25 08:56:12,413 [44862 DEBUG tank.log] message message</span>
+        <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> [</span><span class="si">%(process)d</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2">] </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_root_logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="p">)</span>
+
+        <span class="c1"># log the fact that we set up the log file :)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Writing to log standard log file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">log_file</span><span class="p">)</span>
+
+        <span class="c1"># return previous log name</span>
+        <span class="k">return</span> <span class="n">previous_log_name</span></div></div>
+
+
+<span class="c1"># the logger for logging messages from this file :)</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="c1"># initialize toolkit logging</span>
+<span class="c1">#</span>
+<span class="c1"># retrieve top most logger in the sgtk hierarchy</span>
+<span class="n">sgtk_root_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">)</span>
+<span class="c1"># &#39;cap it&#39; so that log messages don&#39;t propagate</span>
+<span class="c1"># further upwards in the hierarchy. This is to avoid</span>
+<span class="c1"># log message spilling over into other loggers; if you</span>
+<span class="c1"># want to receive toolkit log messages, you have to</span>
+<span class="c1"># explicitly attach a log handler to the sgtk top level</span>
+<span class="c1"># logger (or any of its child loggers).</span>
+<span class="n">sgtk_root_logger</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="c1"># The top level logger object has its message throughput</span>
+<span class="c1"># level set to DEBUG by default.</span>
+<span class="c1"># this should not be changed, but any filtering</span>
+<span class="c1"># should happen via log handlers</span>
+<span class="n">sgtk_root_logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="c1">#</span>
+<span class="c1"># create a &#39;nop&#39; log handler to be attached.</span>
+<span class="c1"># this is to avoid warnings being reported that</span>
+<span class="c1"># logging is missing.</span>
+<span class="c1">#</span>
+<span class="k">class</span> <span class="nc">NullHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Handler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="k">pass</span>
+<span class="c1"># and add it to the logger</span>
+<span class="n">sgtk_root_logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">NullHandler</span><span class="p">())</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

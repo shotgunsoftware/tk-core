@@ -1,0 +1,537 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.descriptor.descriptor_bundle</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.descriptor.descriptor_bundle</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2016 Shotgun Software Inc.</span>
+<span class="c1"># </span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1"># </span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">BundleDescriptor</span><span class="p">(</span><span class="n">Descriptor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Descriptor that describes a Toolkit Bundle (App/Engine/Framework)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
+<span class="sd">        creating new descriptor objects.</span>
+
+<span class="sd">        :param io_descriptor: Associated IO descriptor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A dictionary with version constraints. The absence of a key</span>
+<span class="sd">        indicates that there is no defined constraint. The following keys can be</span>
+<span class="sd">        returned: min_sg, min_core, min_engine and min_desktop</span>
+
+<span class="sd">        :returns: Dictionary with optional keys min_sg, min_core,</span>
+<span class="sd">                  min_engine and min_desktop</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">constraints</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+
+        <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_sg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_version&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">constants</span><span class="o">.</span><span class="n">LOWEST_SHOTGUN_VERSION</span>
+
+        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_core_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_core&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_core_version&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_engine_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_engine&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_engine_version&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_desktop_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_desktop&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_desktop_version&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">constraints</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">required_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The required context, if there is one defined, for a bundle.</span>
+<span class="sd">        This is a list of strings, something along the lines of</span>
+<span class="sd">        [&quot;user&quot;, &quot;task&quot;, &quot;step&quot;] for an app that requires a context with</span>
+<span class="sd">        user task and step defined.</span>
+
+<span class="sd">        :returns: A list of strings, with an empty list meaning no items required.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">rc</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;required_context&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">rc</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">rc</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">supported_platforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The platforms supported. Possible values</span>
+<span class="sd">        are windows, linux and mac.</span>
+
+<span class="sd">        Always returns a list, returns an empty list if there is</span>
+<span class="sd">        no constraint in place.</span>
+
+<span class="sd">        example: [&quot;windows&quot;, &quot;linux&quot;]</span>
+<span class="sd">        example: []</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">sp</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;supported_platforms&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">sp</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">sp</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">configuration_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The manifest configuration schema for this bundle.</span>
+<span class="sd">        Always returns a dictionary.</span>
+
+<span class="sd">        :returns: Configuration dictionary as defined</span>
+<span class="sd">                  in the manifest or {} if not defined</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;configuration&quot;</span><span class="p">)</span>
+        <span class="c1"># always return a dict</span>
+        <span class="k">if</span> <span class="n">cfg</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">cfg</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">cfg</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">supported_engines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The engines supported by this app or framework. Examples</span>
+<span class="sd">        of return values:</span>
+
+<span class="sd">            - ``None`` - Works in all engines.</span>
+<span class="sd">            - ``[&quot;tk-maya&quot;, &quot;tk-nuke&quot;]`` - Works in Maya and Nuke.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;supported_engines&quot;</span><span class="p">)</span>
+
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">required_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A list of required frameworks for this item.</span>
+
+<span class="sd">        Always returns a list - for example::</span>
+
+<span class="sd">            [{&#39;version&#39;: &#39;v0.1.0&#39;, &#39;name&#39;: &#39;tk-framework-widget&#39;}]</span>
+
+<span class="sd">        Each item contains a name and a version key.</span>
+
+<span class="sd">        :returns: list of dictionaries</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">frameworks</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;frameworks&quot;</span><span class="p">)</span>
+        <span class="c1"># always return a list</span>
+        <span class="k">if</span> <span class="n">frameworks</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">frameworks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">frameworks</span>
+
+    <span class="c1"># compatibility accessors to ensure that all systems</span>
+    <span class="c1"># calling this (previously internal!) parts of toolkit</span>
+    <span class="c1"># will still work.</span>
+    <span class="k">def</span> <span class="nf">get_version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_constraints</span>
+    <span class="k">def</span> <span class="nf">get_required_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_context</span>
+    <span class="k">def</span> <span class="nf">get_supported_platforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_platforms</span>
+    <span class="k">def</span> <span class="nf">get_configuration_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">configuration_schema</span>
+    <span class="k">def</span> <span class="nf">get_supported_engines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_engines</span>
+    <span class="k">def</span> <span class="nf">get_required_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_frameworks</span>
+
+    <span class="c1">###############################################################################################</span>
+    <span class="c1"># helper methods</span>
+
+    <span class="k">def</span> <span class="nf">ensure_shotgun_fields_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ensures that any shotgun fields a particular descriptor requires</span>
+<span class="sd">        exists in shotgun. In the metadata (``info.yml``) for an app or an engine,</span>
+<span class="sd">        it is possible to define a section for this::</span>
+
+<span class="sd">            # the Shotgun fields that this app needs in order to operate correctly</span>
+<span class="sd">            requires_shotgun_fields:</span>
+<span class="sd">                Version:</span>
+<span class="sd">                    - { &quot;system_name&quot;: &quot;sg_movie_type&quot;, &quot;type&quot;: &quot;text&quot; }</span>
+
+<span class="sd">        This method will retrieve the metadata and ensure that any required</span>
+<span class="sd">        fields exists.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            This feature may be deprecated in the future.</span>
+
+<span class="sd">        :param tk: Core API instance to use for post install execution. This value</span>
+<span class="sd">                   defaults to ``None`` for backwards compatibility reasons and in</span>
+<span class="sd">                   the case a None value is passed in, the hook will not execute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if tk is None, exit early. This is to keep things backwards compatible</span>
+        <span class="c1"># with earlier versions of the desktop startup framework (which never used</span>
+        <span class="c1"># any post install functionality, so the fact that we don&#39;t execute anything</span>
+        <span class="c1"># in that case should&#39;t affect the behavior).</span>
+        <span class="k">if</span> <span class="n">tk</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># first fetch metadata</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">sg_fields_def</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_fields&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sg_fields_def</span><span class="p">:</span>  <span class="c1"># can be defined as None from yml file</span>
+            <span class="k">for</span> <span class="n">sg_entity_type</span> <span class="ow">in</span> <span class="n">sg_fields_def</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">sg_fields_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="p">[]):</span>
+                    <span class="c1"># attempt to create field!</span>
+                    <span class="n">sg_data_type</span> <span class="o">=</span> <span class="n">field</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+                    <span class="n">sg_field_name</span> <span class="o">=</span> <span class="n">field</span><span class="p">[</span><span class="s2">&quot;system_name&quot;</span><span class="p">]</span>
+
+                    <span class="c1"># sg_my_awesome_field -&gt; My Awesome Field</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">sg_field_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sg_&quot;</span><span class="p">):</span>
+                        <span class="c1"># invalid field name</span>
+                        <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
+                            <span class="s2">&quot;Invalid field name &#39;</span><span class="si">%s</span><span class="s2">&#39; in app manifest. &quot;</span>
+                            <span class="s2">&quot;Must start with sg_&quot;</span> <span class="o">%</span> <span class="n">sg_field_name</span>
+                        <span class="p">)</span>
+
+                    <span class="n">ui_field_name</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">word</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">sg_field_name</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+                    <span class="p">)</span>
+
+                    <span class="c1"># now check that the field exists</span>
+                    <span class="n">sg_field_schema</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">schema_field_read</span><span class="p">(</span><span class="n">sg_entity_type</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">sg_field_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sg_field_schema</span><span class="p">:</span>
+                        <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">schema_field_create</span><span class="p">(</span>
+                            <span class="n">sg_entity_type</span><span class="p">,</span>
+                            <span class="n">sg_data_type</span><span class="p">,</span>
+                            <span class="n">ui_field_name</span>
+                        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">run_post_install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If a post install hook exists in a descriptor, execute it. In the</span>
+<span class="sd">        hooks directory for an app or engine, if a &#39;post_install.py&#39; hook</span>
+<span class="sd">        exists, the hook will be executed upon each installation.</span>
+
+<span class="sd">        Errors reported in the post install hook will be reported to the error</span>
+<span class="sd">        log but execution will continue.</span>
+
+<span class="sd">        .. warning:: We longer recommend using post install hooks. Should you</span>
+<span class="sd">                     need to use one, take great care when designing it so that</span>
+<span class="sd">                     it can execute correctly for all users, regardless of</span>
+<span class="sd">                     their shotgun and system permissions.</span>
+
+<span class="sd">        :param tk: Core API instance to use for post install execution. This value</span>
+<span class="sd">                   defaults to ``None`` for backwards compatibility reasons and in</span>
+<span class="sd">                   the case a None value is passed in, the hook will not execute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if tk is None, exit early. This is to keep things backwards compatible</span>
+        <span class="c1"># with earlier versions of the desktop startup framework (which never used</span>
+        <span class="c1"># any post install functionality, so the fact that we don&#39;t execute anything</span>
+        <span class="c1"># in that case should&#39;t affect the behavior).</span>
+        <span class="k">if</span> <span class="n">tk</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">execute_post_install_bundle_hook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_path</span><span class="p">())</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;Could not run post-install hook for </span><span class="si">%s</span><span class="s2">. Error reported: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="p">)</span>
+
+
+<div class="viewcode-block" id="EngineDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.EngineDescriptor">[docs]</a><span class="k">class</span> <span class="nc">EngineDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Descriptor that describes a Toolkit Engine</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
+<span class="sd">        creating new descriptor objects.</span>
+
+<span class="sd">        :param io_descriptor: Associated IO descriptor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">EngineDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AppDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.AppDescriptor">[docs]</a><span class="k">class</span> <span class="nc">AppDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Descriptor that describes a Toolkit App</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
+<span class="sd">        creating new descriptor objects.</span>
+
+<span class="sd">        :param io_descriptor: Associated IO descriptor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AppDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FrameworkDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.FrameworkDescriptor">[docs]</a><span class="k">class</span> <span class="nc">FrameworkDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Descriptor that describes a Toolkit Framework</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
+<span class="sd">        creating new descriptor objects.</span>
+
+<span class="sd">        :param io_descriptor: Associated IO descriptor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FrameworkDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FrameworkDescriptor.is_shared_framework"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.FrameworkDescriptor.is_shared_framework">[docs]</a>    <span class="k">def</span> <span class="nf">is_shared_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a boolean indicating whether the bundle is a shared framework.</span>
+<span class="sd">        Shared frameworks only have a single instance per instance name in the</span>
+<span class="sd">        current environment.</span>
+
+<span class="sd">        :returns: True if the framework is shared</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">shared</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shared&quot;</span><span class="p">)</span>
+        <span class="c1"># always return a bool</span>
+        <span class="k">if</span> <span class="n">shared</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c1"># frameworks are now shared by default unless you opt out.</span>
+            <span class="n">shared</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="n">shared</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

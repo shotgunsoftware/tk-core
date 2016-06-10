@@ -1,0 +1,2600 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Foundation &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="index.html"/>
+        <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
+        <link rel="prev" title="Deploy and management" href="bootstrap.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Foundation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-toolkit-core-api">The Toolkit Core API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#factory-methods">Factory methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#authentication">Authentication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sgtk">Sgtk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#context">Context</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#executing-tank-commands">Executing Tank commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#api-access-methods">API access methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sgtksystemcommand">SgtkSystemCommand</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#hooks">Hooks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hook">Hook</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-hook-baseclass">get_hook_baseclass</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#template-system">Template system</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#template">Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#templatepath">TemplatePath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#templatestring">TemplateString</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#templatekey">TemplateKey</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stringkey">StringKey</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sequencekey">SequenceKey</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#integerkey">IntegerKey</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#timestampkey">TimestampKey</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Foundation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="foundation">
+<h1>Foundation<a class="headerlink" href="#foundation" title="Permalink to this headline">¶</a></h1>
+<p>The Toolkit Foundation is the part of the Toolkit Core API
+that contains lower level components and APIs. These include</p>
+<ul class="simple">
+<li>Automatic folder creation</li>
+<li><a class="reference internal" href="#sgtk.Template" title="sgtk.Template"><code class="xref py py-class docutils literal"><span class="pre">Template</span></code></a> system and path resolution APIs</li>
+<li>Execution of Tank Admin commands</li>
+<li>The Toolkit <a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a></li>
+<li>The <a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> Main API class</li>
+</ul>
+<p>For apps and engines, see the <a class="reference internal" href="platform.html#sgtk-platform-docs"><span class="std std-ref">Apps, Engines and Frameworks</span></a> documentation.</p>
+<div class="section" id="the-toolkit-core-api">
+<h2>The Toolkit Core API<a class="headerlink" href="#the-toolkit-core-api" title="Permalink to this headline">¶</a></h2>
+<p>Each instance of the <a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">sgtk.Sgtk</span></code></a> class is associated with a specific set of configuration settings.
+This association is automatically resolved as the API instance is created and can be
+specified in several ways:</p>
+<ul class="simple">
+<li>As a path pointing directly at the desired pipeline configuration</li>
+<li>As a Shotgun entity for which the associated (primary) pipeline configuration is resolved via Shotgun</li>
+<li>As a path to a project folder on disk from which the associated (primary) pipeline configuration is computed.</li>
+</ul>
+<div class="section" id="factory-methods">
+<h3>Factory methods<a class="headerlink" href="#factory-methods" title="Permalink to this headline">¶</a></h3>
+<p>The following factory methods are used to create a Toolkit API instance:</p>
+<dl class="function">
+<dt id="sgtk.sgtk_from_path">
+<code class="descclassname">sgtk.</code><code class="descname">sgtk_from_path</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#sgtk_from_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.sgtk_from_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Toolkit Core API instance based on a path inside a project
+or path pointing directly at a pipeline configuration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; Path to pipeline configuration or to a folder associated with a project.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.sgtk_from_entity">
+<code class="descclassname">sgtk.</code><code class="descname">sgtk_from_entity</code><span class="sig-paren">(</span><em>entity_type</em>, <em>entity_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#sgtk_from_entity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.sgtk_from_entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Toolkit Core API instance given an entity in Shotgun.
+The given object will be looked up in Shotgun and an
+associated pipeline configuration will be determined and loaded.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>entity_type</strong> &#8211; Shotgun entity type, e.g. <code class="docutils literal"><span class="pre">Shot</span></code></li>
+<li><strong>entity_id</strong> &#8211; Shotgun entity id</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you are using the <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a>, initialization of <a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">sgtk.Sgtk</span></code></a>
+happens behind the scenes. While it is still possible to access a setup managed by the
+<a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> via the same methods that you would use to access a
+traditionally set up project, is is usually much easier to let the bootstrap process
+handle the initialization.</p>
+</div>
+</div>
+<div class="section" id="authentication">
+<h3>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h3>
+<p>Certain API operations require Shotgun data and hence require a way for the API
+to establish a connection to Shotgun. The easiest way to handle this is by
+making sure that each API instance has an associated authenticated user:</p>
+<dl class="function">
+<dt id="sgtk.set_authenticated_user">
+<code class="descclassname">sgtk.</code><code class="descname">set_authenticated_user</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#set_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.set_authenticated_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the currently authenticated Shotgun user for the current toolkit session.</p>
+<p>You instruct the Toolkit API which user the current session is associated with by executing
+this command. Conversely, you can use <a class="reference internal" href="#sgtk.get_authenticated_user" title="sgtk.get_authenticated_user"><code class="xref py py-meth docutils literal"><span class="pre">get_authenticated_user()</span></code></a> to retrieve the current user.
+The user object above is created by the <code class="docutils literal"><span class="pre">sgtk.authentication</span></code> part of the API and wraps around the Shotgun
+API to provide a continuous and configurable experience around user based Shotgun connections.</p>
+<p>Normally, Toolkit handles this transparently as part of setting up the <cite>sgtk</cite> instance and there is no need
+to call this method. However, if you are running a custom tool which has particular requirements
+around authentication, you can provide your own logic if desirable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user</strong> &#8211; A <a class="reference internal" href="authentication.html#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived object. Can
+be None to clear the authenticated user.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.get_authenticated_user">
+<code class="descclassname">sgtk.</code><code class="descname">get_authenticated_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#get_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.get_authenticated_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Shotgun user associated with Toolkit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <a class="reference internal" href="authentication.html#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived object if set,
+None otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="sgtk">
+<h3>Sgtk<a class="headerlink" href="#sgtk" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.Sgtk">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">Sgtk</code><span class="sig-paren">(</span><em>project_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Toolkit Core API class. Instances of this class are associated with a particular
+configuration and contain access methods for a number of low level
+Toolkit services such as filesystem creation, hooks, context
+manipulation and the Toolkit template system.</p>
+<p>Instances of this class should be created via the factory methods
+<a class="reference internal" href="#sgtk.sgtk_from_path" title="sgtk.sgtk_from_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_path()</span></code></a> and <a class="reference internal" href="#sgtk.sgtk_from_entity" title="sgtk.sgtk_from_entity"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_entity()</span></code></a>.</p>
+<dl class="attribute">
+<dt id="sgtk.Sgtk.project_path">
+<code class="descname">project_path</code><a class="headerlink" href="#sgtk.Sgtk.project_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to the primary data directory for a project.</p>
+<p>Toolkit Projects that utilize the template system to read and write data
+to disk will use a number of Shotgun local storages as part of their setup
+to define where data should be stored on disk. One of these storages
+are identified as the &#8216;primary&#8217; storage root and this is the value
+returned by this property.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#sgtk.TankError" title="sgtk.TankError"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code></a> if the configuration doesn&#8217;t use storages.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Sgtk.roots">
+<code class="descname">roots</code><a class="headerlink" href="#sgtk.Sgtk.roots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of root names to root paths.</p>
+<p>Toolkit Projects that utilize the template system to read and write data
+to disk will use a number of Shotgun local storages as part of their setup
+to define where data should be stored on disk. This method returns a dictionary
+keyed by storage root name with the value being the path on the current
+operating system platform:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;primary&quot;</span><span class="p">:</span> <span class="s2">&quot;/studio/my_project&quot;</span><span class="p">,</span> <span class="s2">&quot;textures&quot;</span><span class="p">:</span> <span class="s2">&quot;/textures/my_project&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>These items reflect the Local Storages that you have set up in Shotgun.
+Each project in the Pipeline Toolkit is connected to a number of these
+storages - these storages define the root points for all the different
+data locations for your project. So for example, if you have a mount
+point for textures, one for renders and one for production data such
+as scene files, you can set up a multi root configuration which uses
+three Local Storages in Shotgun. This method returns the project
+storage locations for the current project. The key is the name of the local
+storage, the way it is defined in Shotgun. The value is the path which is defined in the
+Shotgun Local storage definition for the current operating system,
+concatenated with the project folder name.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Sgtk.shotgun_url">
+<code class="descname">shotgun_url</code><a class="headerlink" href="#sgtk.Sgtk.shotgun_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The associated shotgun url, e.g. <code class="docutils literal"><span class="pre">https://mysite.shotgunstudio.com</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Sgtk.shotgun">
+<code class="descname">shotgun</code><a class="headerlink" href="#sgtk.Sgtk.shotgun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just-in-time access to a per-thread Shotgun API instance.</p>
+<p>This Shotgun API is threadlocal, meaning that each thread will get
+a separate instance of the Shotgun API. This is in order to prevent
+concurrency issues and add a layer of basic protection around the 
+Shotgun API, which isn&#8217;t threadsafe.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Sgtk.version">
+<code class="descname">version</code><a class="headerlink" href="#sgtk.Sgtk.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>The version of the tank Core API (e.g. v0.2.3)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Sgtk.documentation_url">
+<code class="descname">documentation_url</code><a class="headerlink" href="#sgtk.Sgtk.documentation_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>A url pointing at relevant documentation for this version of the Toolkit Core
+or None if no documentation is associated.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Sgtk.configuration_name">
+<code class="descname">configuration_name</code><a class="headerlink" href="#sgtk.Sgtk.configuration_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the currently running pipeline configuration</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">pipeline configuration name as string, e.g. &#8216;primary&#8217;</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.reload_templates">
+<code class="descname">reload_templates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.reload_templates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.reload_templates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads the template definitions from disk. If the reload fails a
+<a class="reference internal" href="#sgtk.TankError" title="sgtk.TankError"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code></a> will be raised and the previous template definitions
+will be preserved.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>This method can be helpful if you are tweaking
+templates inside of for example Maya and want to reload them. You can
+then access this method from the python console via the current engine
+handle:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">current_engine</span><span class="p">()</span><span class="o">.</span><span class="n">sgtk</span><span class="o">.</span><span class="n">reload_templates</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#sgtk.TankError" title="sgtk.TankError"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.list_commands">
+<code class="descname">list_commands</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.list_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.list_commands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists the system commands registered with the system.</p>
+<p>This method will return all system commands which 
+are available in the context of a project configuration will be returned.
+This includes for example commands for configuration management, 
+anything app or engine related and validation and overview functionality.
+In addition to these commands, the global commands such as project setup
+and core API check commands will also be returned.</p>
+<p>For more information, see <a class="reference internal" href="#sgtk.list_commands" title="sgtk.list_commands"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.list_commands()</span></code></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of command names</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.get_command">
+<code class="descname">get_command</code><span class="sig-paren">(</span><em>command_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.get_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.get_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an instance of a command object that can be used to execute a command.</p>
+<p>Once you have retrieved the command instance, you can perform introspection to 
+check for example the required parameters for the command, name, description etc.
+Lastly, you can execute the command by running the execute() method.</p>
+<p>In order to get a list of the available commands, use the list_commands() method.</p>
+<p>For more information, see <a class="reference internal" href="#sgtk.get_command" title="sgtk.get_command"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.get_command()</span></code></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>command_name</strong> &#8211; Name of command to execute. Get a list of all available commands
+using the <a class="reference internal" href="#sgtk.list_commands" title="sgtk.list_commands"><code class="xref py py-meth docutils literal"><span class="pre">list_commands()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.SgtkSystemCommand" title="sgtk.SgtkSystemCommand"><code class="xref py py-class docutils literal"><span class="pre">SgtkSystemCommand</span></code></a> object instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.template_from_path">
+<code class="descname">template_from_path</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.template_from_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.template_from_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds a template that matches the given path:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">template_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/my_proj/assets/Car/Anim/work&quot;</span><span class="p">)</span>
+<span class="go">&lt;Sgtk Template maya_asset_project: assets/%(Asset)s/%(Step)s/work&gt;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; Path to match against a template</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.TemplatePath" title="sgtk.TemplatePath"><code class="xref py py-class docutils literal"><span class="pre">TemplatePath</span></code></a> or None if no match could be found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.paths_from_template">
+<code class="descname">paths_from_template</code><span class="sig-paren">(</span><em>template</em>, <em>fields</em>, <em>skip_keys=None</em>, <em>skip_missing_optional_keys=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.paths_from_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.paths_from_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds paths that match a template using field values passed.</p>
+<p>This is useful if you want to get a list of files matching a particular
+template and set of fields. One common pattern is when you are dealing
+with versions, and you want to retrieve all the different versions for a
+file. In that case just resolve all the fields for the file you want to operate
+on, then pass those in to the paths_from_template() method. By passing version to
+the <code class="docutils literal"><span class="pre">skip_keys</span></code> parameter, the method will return all the versions associated
+with your original file.</p>
+<p>Any keys that are required by the template but aren&#8217;t included in the fields
+dictionary are always skipped. Any optional keys that aren&#8217;t included are only
+skipped if the <code class="docutils literal"><span class="pre">skip_missing_optional_keys</span></code> parameter is set to True.</p>
+<p>If an optional key is to be skipped, all matching paths that contain a value for
+that key as well as those that don&#8217;t will be included in the result.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The result is not ordered in any particular way.</p>
+</div>
+<p>Imagine you have a template <code class="docutils literal"><span class="pre">maya_work:</span> <span class="pre">sequences/{Sequence}/{Shot}/work/{name}.v{version}.ma</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/my_proj&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">maya_work</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;maya_work&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>All fields that you don&#8217;t specify will be searched for. So if we want to search for all
+names and versions for a particular sequence and shot, we can do:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">paths_from_template</span><span class="p">(</span><span class="n">maya_work</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;Sequence&quot;</span><span class="p">:</span> <span class="s2">&quot;AAA&quot;</span><span class="p">,</span> <span class="s2">&quot;Shot&quot;</span><span class="p">:</span> <span class="s2">&quot;001&quot;</span><span class="p">})</span>
+<span class="go">/studio/my_proj/sequences/AAA/001/work/background.v001.ma</span>
+<span class="go">/studio/my_proj/sequences/AAA/001/work/background.v002.ma</span>
+<span class="go">/studio/my_proj/sequences/AAA/001/work/background.v003.ma</span>
+<span class="go">/studio/my_proj/sequences/AAA/001/work/mainscene.v001.ma</span>
+<span class="go">/studio/my_proj/sequences/AAA/001/work/mainscene.v002.ma</span>
+<span class="go">/studio/my_proj/sequences/AAA/001/work/mainscene.v003.ma</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>template</strong> (<a class="reference internal" href="#sgtk.TemplatePath" title="sgtk.TemplatePath"><code class="xref py py-class docutils literal"><span class="pre">TemplatePath</span></code></a>) &#8211; Template against whom to match.</li>
+<li><strong>fields</strong> (<em>Dictionary</em>) &#8211; Fields and values to use.</li>
+<li><strong>skip_keys</strong> (<em>List of key names</em>) &#8211; Keys whose values should be ignored from the fields parameter.</li>
+<li><strong>skip_missing_optional_keys</strong> &#8211; Specify if optional keys should be skipped if they 
+aren&#8217;t found in the fields collection</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Matching file paths</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">List of strings.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.abstract_paths_from_template">
+<code class="descname">abstract_paths_from_template</code><span class="sig-paren">(</span><em>template</em>, <em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.abstract_paths_from_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.abstract_paths_from_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an abstract path based on a template.</p>
+<p>Similar to <a class="reference internal" href="#sgtk.Sgtk.paths_from_template" title="sgtk.Sgtk.paths_from_template"><code class="xref py py-meth docutils literal"><span class="pre">paths_from_template()</span></code></a>, but optimized for abstract fields
+such as image sequences and stereo patterns.</p>
+<p>An <em>abstract field</em> is for example an image sequence pattern
+token, such as <code class="docutils literal"><span class="pre">%04d</span></code>, <code class="docutils literal"><span class="pre">%V</span></code> or <code class="docutils literal"><span class="pre">&#64;&#64;&#64;&#64;&#64;</span></code>. This token represents
+a large collection of files. This method will return abstract fields whenever
+it can, and it will attempt to optimize the calls based on abstract
+pattern matching, trying to avoid doing a thousand file lookups for a
+thousand frames in a sequence.</p>
+<p>It works exactly like <a class="reference internal" href="#sgtk.Sgtk.paths_from_template" title="sgtk.Sgtk.paths_from_template"><code class="xref py py-meth docutils literal"><span class="pre">paths_from_template()</span></code></a> with the difference
+that any field marked as abstract in the configuration will use its
+default value rather than any matched file values. Sequence
+fields are abstract by default.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The result is not ordered in any particular way.</p>
+</div>
+<p>Imagine you have a template <code class="docutils literal"><span class="pre">render:</span> <span class="pre">sequences/{Sequence}/{Shot}/images/{eye}/{name}.{SEQ}.exr</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/my_proj&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">render</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;render&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>All fields that you don&#8217;t specify will be searched for. So if we want to search for all
+names and versions for a particular sequence and shot, we can do:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">abstract_paths_from_template</span><span class="p">(</span><span class="n">maya_work</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;Sequence&quot;</span><span class="p">:</span> <span class="s2">&quot;AAA&quot;</span><span class="p">,</span> <span class="s2">&quot;Shot&quot;</span><span class="p">:</span> <span class="s2">&quot;001&quot;</span><span class="p">})</span>
+<span class="go">/studio/my_proj/sequences/AAA/001/images/%V/render_1.%04d.exr</span>
+<span class="go">/studio/my_proj/sequences/AAA/001/images/%V/render_2.%04d.exr</span>
+<span class="go">/studio/my_proj/sequences/AAA/001/images/%V/render_3.%04d.exr</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>template</strong> (<a class="reference internal" href="#sgtk.TemplatePath" title="sgtk.TemplatePath"><code class="xref py py-class docutils literal"><span class="pre">TemplatePath</span></code></a>) &#8211; Template with which to search</li>
+<li><strong>fields</strong> (<em>dictionary</em>) &#8211; Mapping of keys to values with which to assemble the abstract path.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of paths whose abstract keys use their abstract(default) value unless
+a value is specified for them in the fields parameter.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.paths_from_entity">
+<code class="descname">paths_from_entity</code><span class="sig-paren">(</span><em>entity_type</em>, <em>entity_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.paths_from_entity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.paths_from_entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds paths associated with a Shotgun entity.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only paths that have been generated by <a class="reference internal" href="#sgtk.Sgtk.create_filesystem_structure" title="sgtk.Sgtk.create_filesystem_structure"><code class="xref py py-meth docutils literal"><span class="pre">create_filesystem_structure()</span></code></a> will
+be returned. Such paths are stored in Shotgun as <code class="docutils literal"><span class="pre">FilesystemLocation</span></code> entities.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>entity_type</strong> &#8211; a Shotgun entity type</li>
+<li><strong>entity_id</strong> &#8211; a Shotgun entity id</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Matching file paths</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">List of strings.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.entity_from_path">
+<code class="descname">entity_from_path</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.entity_from_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.entity_from_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the shotgun entity associated with a path.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only paths that have been generated by <a class="reference internal" href="#sgtk.Sgtk.create_filesystem_structure" title="sgtk.Sgtk.create_filesystem_structure"><code class="xref py py-meth docutils literal"><span class="pre">create_filesystem_structure()</span></code></a> will
+be returned. Such paths are stored in Shotgun as <code class="docutils literal"><span class="pre">FilesystemLocation</span></code> entities.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; A path to a folder or file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Shotgun dictionary containing name, type and id or None
+if no path was associated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.context_empty">
+<code class="descname">context_empty</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.context_empty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.context_empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory method that constructs an empty Context object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.context_from_path">
+<code class="descname">context_from_path</code><span class="sig-paren">(</span><em>path</em>, <em>previous_context=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.context_from_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.context_from_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory method that constructs a context object from a path on disk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> &#8211; a file system path</li>
+<li><strong>previous_context</strong> (<a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a>) &#8211; A context object to use to try to automatically extend the generated
+context if it is incomplete when extracted from the path. For example,
+the Task may be carried across from the previous context if it is
+suitable and if the task wasn&#8217;t already expressed in the file system
+path passed in via the path argument.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.context_from_entity">
+<code class="descname">context_from_entity</code><span class="sig-paren">(</span><em>entity_type</em>, <em>entity_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.context_from_entity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.context_from_entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory method that constructs a context object from a Shotgun entity.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>entity_type</strong> &#8211; The name of the entity type.</li>
+<li><strong>entity_id</strong> &#8211; Shotgun id of the entity upon which to base the context.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.context_from_entity_dictionary">
+<code class="descname">context_from_entity_dictionary</code><span class="sig-paren">(</span><em>entity_dictionary</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.context_from_entity_dictionary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.context_from_entity_dictionary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Derives a context from a shotgun entity dictionary. This will try to use any
+linked information available in the dictionary where possible but if it can&#8217;t 
+determine a valid context then it will fall back to <a class="reference internal" href="#sgtk.Sgtk.context_from_entity" title="sgtk.Sgtk.context_from_entity"><code class="xref py py-meth docutils literal"><span class="pre">context_from_entity()</span></code></a> which
+may result in a Shotgun path cache query and be considerably slower.</p>
+<p>The following values for <code class="docutils literal"><span class="pre">entity_dictionary</span></code> will result in a context being
+created without falling back to a potential Shotgun query - each entity in the
+dictionary (including linked entities) must have the fields: &#8216;type&#8217;, &#8216;id&#8217; and 
+&#8216;name&#8217; (or the name equivalent for specific entity types, e.g. &#8216;content&#8217; for
+Step entities, &#8216;code&#8217; for Shot entities, etc.):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Project&quot;</span><span class="p">}</span>
+
+<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">,</span>
+ <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Project&quot;</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">789</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Animation&quot;</span><span class="p">,</span>
+ <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Project&quot;</span><span class="p">}</span>
+ <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">}</span>
+ <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Step&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">101112</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Anm&quot;</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The following values for <code class="docutils literal"><span class="pre">entity_dictionary</span></code> don&#8217;t contain enough information to
+fully form a context so the code will fall back to <a class="reference internal" href="#sgtk.Sgtk.context_from_entity" title="sgtk.Sgtk.context_from_entity"><code class="xref py py-meth docutils literal"><span class="pre">context_from_entity()</span></code></a> which
+may then result in a Shotgun query to retrieve the missing information:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># missing project name</span>
+<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">}</span>
+
+<span class="c1"># missing linked project</span>
+<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">}</span>
+
+<span class="c1"># missing linked project name and linked step</span>
+<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">789</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Animation&quot;</span><span class="p">,</span>
+ <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">}}</span>
+ <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entity_dictionary</strong> &#8211; A Shotgun entity dictionary containing at least &#8216;type&#8217;
+and &#8216;id&#8217;. See examples above.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.synchronize_filesystem_structure">
+<code class="descname">synchronize_filesystem_structure</code><span class="sig-paren">(</span><em>full_sync=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.synchronize_filesystem_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.synchronize_filesystem_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures that the filesystem structure on this machine is in sync
+with Shotgun. This synchronization is implicitly carried out as part of the 
+normal folder creation process, however sometimes it is useful to
+be able to call it on its own.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">That this method is equivalent to the <strong>synchronize_folders</strong> tank command.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>full_sync</strong> &#8211; If set to true, a complete sync will be carried out.
+By default, the sync is incremental.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of folders that were synchronized.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.create_filesystem_structure">
+<code class="descname">create_filesystem_structure</code><span class="sig-paren">(</span><em>entity_type</em>, <em>entity_id</em>, <em>engine=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.create_filesystem_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.create_filesystem_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create folders and associated data on disk to reflect branches in the project
+tree related to a specific entity.</p>
+<p>It is possible to set up folder creation so that it happens in two passes -
+a primary pass and a deferred pass. Typically, the primary pass is used to
+create the high level folder structure and the deferred is executed just before
+launching an application environment. It can be used to create application specific
+folders or to create a user workspace based on the user launching the application. By
+setting the optional engine parameter to a string value (typically the engine name, for
+example <code class="docutils literal"><span class="pre">tk-maya</span></code>) you can indicate to the system that it should trigger the deferred
+pass and recurse down in the part of the configuration that has been marked as being
+deferred in the configuration.</p>
+<p>Note that this is just a string following a convention - typically, we recommend
+that an engine name (e.g. &#8216;tk-nuke&#8217;) is passed in, however all this method is doing
+is to relay this string on to the folder creation (schema) setup so that it is
+compared with any deferred entries there. In case of a match, the folder creation
+will recurse down into the subtree marked as deferred.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>entity_type</strong> &#8211; Shotgun entity type</li>
+<li><strong>entity_id</strong> &#8211; Shotgun id</li>
+<li><strong>engine</strong> &#8211; Optional engine name to indicate that a second, engine specific
+folder creation pass should be executed for a particular engine.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The number of folders processed</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.preview_filesystem_structure">
+<code class="descname">preview_filesystem_structure</code><span class="sig-paren">(</span><em>entity_type</em>, <em>entity_id</em>, <em>engine=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.preview_filesystem_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.preview_filesystem_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Previews folders that would be created by <a class="reference internal" href="#sgtk.Sgtk.create_filesystem_structure" title="sgtk.Sgtk.create_filesystem_structure"><code class="xref py py-meth docutils literal"><span class="pre">create_filesystem_structure()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>entity_type</strong> &#8211; Shotgun entity type</li>
+<li><strong>entity_id</strong> &#8211; Shotgun id</li>
+<li><strong>engine</strong> (<em>String.</em>) &#8211; Optional engine name to indicate that a second, engine specific
+folder creation pass should be executed for a particular engine.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of paths that would be created</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="context">
+<h3>Context<a class="headerlink" href="#context" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.Context">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">Context</code><span class="sig-paren">(</span><em>tk</em>, <em>project=None</em>, <em>entity=None</em>, <em>step=None</em>, <em>task=None</em>, <em>user=None</em>, <em>additional_entities=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Context" title="Permalink to this definition">¶</a></dt>
+<dd><p>A context instance is used to collect a set of key fields describing the
+current Context. We sometimes refer to the context as the current work area.
+Typically this would be the current shot or asset that someone is working on.</p>
+<p>The context captures the current point in both shotgun and the file system and context
+objects are launch a toolkit engine via the <a class="reference internal" href="platform.html#sgtk.platform.start_engine" title="sgtk.platform.start_engine"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.platform.start_engine()</span></code></a>
+method. The context points the engine to a particular
+point in shotgun and on disk - it could be something as detailed as a task inside a Shot,
+and something as vague as an empty context.</p>
+<p>The context is split up into several levels of granularity, reflecting the
+fundamental hierarchy of Shotgun itself.</p>
+<ul class="simple">
+<li>The project level defines which shotgun project the context reflects.</li>
+<li>The entity level defines which entity the context reflects. For example,
+this may be a Shot or an Asset. Note that in the case of a Shot, the context
+does not contain any direct information of which sequence the shot is linked to,
+however the context can still resolve such relationships implicitly if needed -
+typically via the <code class="xref py py-meth docutils literal"><span class="pre">Context.as_context_fields()</span></code> method.</li>
+<li>The step level defines the current pipeline step. This is often a reflection of a
+department or a general step in a workflow or pipeline (e.g. Modeling, Rigging).</li>
+<li>The task level defines a current Shotgun task.</li>
+<li>The user level defines the current user.</li>
+</ul>
+<p>The data forms a hierarchy, so implicitly, the task belongs to the entity which in turn
+belongs to the project. The exception to this is the user, which simply reflects the
+currently operating user.</p>
+<p>Context objects are not constructed by hand but are fabricated by the
+methods <a class="reference internal" href="#sgtk.Sgtk.context_from_entity" title="sgtk.Sgtk.context_from_entity"><code class="xref py py-meth docutils literal"><span class="pre">Sgtk.context_from_entity()</span></code></a>, <a class="reference internal" href="#sgtk.Sgtk.context_from_entity_dictionary" title="sgtk.Sgtk.context_from_entity_dictionary"><code class="xref py py-meth docutils literal"><span class="pre">Sgtk.context_from_entity_dictionary()</span></code></a>
+and <a class="reference internal" href="#sgtk.Sgtk.context_from_path" title="sgtk.Sgtk.context_from_path"><code class="xref py py-meth docutils literal"><span class="pre">Sgtk.context_from_path()</span></code></a>.</p>
+<dl class="attribute">
+<dt id="sgtk.Context.project">
+<code class="descname">project</code><a class="headerlink" href="#sgtk.Context.project" title="Permalink to this definition">¶</a></dt>
+<dd><p>The shotgun project associated with this context.</p>
+<p>If the context is incomplete, it is possible that the property is None. Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">project</span>
+<span class="go">{&#39;type&#39;: &#39;Project&#39;, &#39;id&#39;: 4, &#39;name&#39;: &#39;demo_project&#39;}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A std shotgun link dictionary with keys id, type and name, or None if not defined</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Context.entity">
+<code class="descname">entity</code><a class="headerlink" href="#sgtk.Context.entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>The shotgun entity associated with this context.</p>
+<p>If the context is incomplete, it is possible that the property is None. Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">entity</span>
+<span class="go">{&#39;type&#39;: &#39;Shot&#39;, &#39;id&#39;: 412, &#39;name&#39;: &#39;ABC&#39;}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A std shotgun link dictionary with keys id, type and name, or None if not defined</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Context.step">
+<code class="descname">step</code><a class="headerlink" href="#sgtk.Context.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>The shotgun step associated with this context.</p>
+<p>If the context is incomplete, it is possible that the property is None. Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">step</span>
+<span class="go">{&#39;type&#39;: &#39;Step&#39;, &#39;id&#39;: 12, &#39;name&#39;: &#39;Light&#39;}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A std shotgun link dictionary with keys id, type and name, or None if not defined</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Context.task">
+<code class="descname">task</code><a class="headerlink" href="#sgtk.Context.task" title="Permalink to this definition">¶</a></dt>
+<dd><p>The shotgun task associated with this context.</p>
+<p>If the context is incomplete, it is possible that the property is None. Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/first_pass_lgt/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">task</span>
+<span class="go">{&#39;type&#39;: &#39;Task&#39;, &#39;id&#39;: 212, &#39;name&#39;: &#39;first_pass_lgt&#39;}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A std shotgun link dictionary with keys id, type and name, or None if not defined</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Context.user">
+<code class="descname">user</code><a class="headerlink" href="#sgtk.Context.user" title="Permalink to this definition">¶</a></dt>
+<dd><p>A property which holds the user associated with this context.
+If the context is incomplete, it is possible that the property is None.</p>
+<p>The user property is special - either it represents a user value that was baked
+into a template path upon folder creation, or it represents the current user:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">user</span>
+<span class="go">{&#39;type&#39;: &#39;HumanUser&#39;, &#39;id&#39;: 23, &#39;name&#39;: &#39;Dirk Gently&#39;}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A std shotgun link dictionary with keys id, type and name, or None if not defined</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Context.additional_entities">
+<code class="descname">additional_entities</code><a class="headerlink" href="#sgtk.Context.additional_entities" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of entities that are required to provide a full context in non-standard configurations.
+The &#8220;context_additional_entities&#8221; core hook gives the context construction code hints about how
+this data should be populated.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This is an old and advanced option and may be deprecated in the future. We strongly
+recommend not using it.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of std shotgun link dictionaries.
+Will be an empty list in most cases.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Context.entity_locations">
+<code class="descname">entity_locations</code><a class="headerlink" href="#sgtk.Context.entity_locations" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of paths on disk which correspond to the <strong>entity</strong> which this context represents.
+If no folders have been created for this context yet, the value of this property will be an empty list:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">entity_locations</span>
+<span class="go">[&#39;/studio.08/demo_project/sequences/AAA/ABC&#39;]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of paths</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Context.shotgun_url">
+<code class="descname">shotgun_url</code><a class="headerlink" href="#sgtk.Context.shotgun_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the shotgun detail page url that best represents this context. Depending on 
+the context, this may be a task, a shot, an asset or a project. If the context is 
+completely empty, the root url of the associated shotgun installation is returned.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">shotgun_url</span>
+<span class="go">&#39;https://mystudio.shotgunstudio.com/detail/Task/8&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Context.filesystem_locations">
+<code class="descname">filesystem_locations</code><a class="headerlink" href="#sgtk.Context.filesystem_locations" title="Permalink to this definition">¶</a></dt>
+<dd><p>A property which holds a list of paths on disk which correspond to this context.
+If no folders have been created for this context yet, the value of this property will be an empty list:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">filesystem_locations</span>
+<span class="go">[&#39;/studio.08/demo_project/sequences/AAA/ABC/light/initial_pass&#39;]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of paths</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Context.sgtk">
+<code class="descname">sgtk</code><a class="headerlink" href="#sgtk.Context.sgtk" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Toolkit API instance associated with this context</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Context.as_template_fields">
+<code class="descname">as_template_fields</code><span class="sig-paren">(</span><em>template</em>, <em>validate=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context.as_template_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Context.as_template_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the context object as a dictionary of template fields.</p>
+<p>This is useful if you want to use a Context object as part of a call to
+the Sgtk API. In order for the system to pass suitable values, you need to
+pass the template you intend to use the data with as a parameter to this method.
+The values are derived from existing paths on disk, or in the case of keys with
+shotgun_entity_type and shotgun_entity_field settings, direct queries to the Shotgun
+server. The validate parameter can be used to ensure that the method returns all
+context fields required by the template and if it can&#8217;t then a <a class="reference internal" href="#sgtk.TankError" title="sgtk.TankError"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code></a> will be raised.
+Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+
+<span class="go"># Create a template based on a path on disk. Because this path has been</span>
+<span class="go"># generated through Toolkit&#39;s folder processing and there are corresponding</span>
+<span class="go"># FilesystemLocation entities stored in Shotgun, the context can resolve</span>
+<span class="go"># the path into a set of Shotgun entities.</span>
+<span class="go">#</span>
+<span class="go"># Note how the context object, once resolved, does not contain</span>
+<span class="go"># any information about the sequence associated with the Shot.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">project</span>
+<span class="go">{&#39;type&#39;: &#39;Project&#39;, &#39;id&#39;: 4, &#39;name&#39;: &#39;demo_project&#39;}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">entity</span>
+<span class="go">{&#39;type&#39;: &#39;Shot&#39;, &#39;id&#39;: 2, &#39;name&#39;: &#39;ABC&#39;}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">step</span>
+<span class="go">{&#39;type&#39;: &#39;Step&#39;, &#39;id&#39;: 1, &#39;name&#39;: &#39;Light&#39;}</span>
+
+<span class="go"># now if we have a template object that we want to turn into a path,</span>
+<span class="go"># we can request that the context object attempts to resolve as many</span>
+<span class="go"># fields as it can. These fields can then be plugged into the template</span>
+<span class="go"># object to generate a path on disk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">templ</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;maya_shot_publish&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">templ</span>
+<span class="go">&lt;Sgtk TemplatePath maya_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/{name}.v{version}.ma&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fields</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">as_template_fields</span><span class="p">(</span><span class="n">templ</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fields</span>
+<span class="go">{&#39;Step&#39;: &#39;Lighting&#39;, &#39;Shot&#39;: &#39;ABC&#39;, &#39;Sequence&#39;: &#39;AAA&#39;}</span>
+
+<span class="go"># the fields dictionary above contains all the &#39;high level&#39; data that is necessary to realise</span>
+<span class="go"># the template path. An app or integration can now go ahead and populate the fields specific</span>
+<span class="go"># for the app&#39;s business logic - in this case name and version - and resolve the fields dictionary</span>
+<span class="go"># data into a path.</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>template</strong> &#8211; <a class="reference internal" href="#sgtk.Template" title="sgtk.Template"><code class="xref py py-class docutils literal"><span class="pre">Template</span></code></a> for which the fields will be used.</li>
+<li><strong>validate</strong> &#8211; If True then the fields found will be checked to ensure that all expected fields for
+the context were found.  If a field is missing then a <a class="reference internal" href="#sgtk.TankError" title="sgtk.TankError"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code></a> will be raised</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A dictionary of template files representing the context. Handy to pass to for example
+<a class="reference internal" href="#sgtk.Template.apply_fields" title="sgtk.Template.apply_fields"><code class="xref py py-meth docutils literal"><span class="pre">Template.apply_fields()</span></code></a>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.TankError" title="sgtk.TankError"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code></a> if the fields can&#8217;t be resolved for some reason or if &#8216;validate&#8217; is True
+and any of the context fields for the template weren&#8217;t found.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Context.create_copy_for_user">
+<code class="descname">create_copy_for_user</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context.create_copy_for_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Context.create_copy_for_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides the ability to create a copy of an existing Context for a specific user.</p>
+<p>This is useful if you need to determine a user specific version of a path, e.g.
+when copying files between different user sandboxes. Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">user</span>
+<span class="go">{&#39;type&#39;: &#39;HumanUser&#39;, &#39;id&#39;: 23, &#39;name&#39;: &#39;Dirk Gently&#39;}</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">copied_ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">create_copy_for_user</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;HumanUser&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;John Snow&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">copied_ctx</span><span class="o">.</span><span class="n">user</span>
+<span class="go">{&#39;type&#39;: &#39;HumanUser&#39;, &#39;id&#39;: 23, &#39;name&#39;: &#39;John Snow&#39;}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user</strong> &#8211; The Shotgun user entity dictionary that should be set on the copied context</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="executing-tank-commands">
+<h2>Executing Tank commands<a class="headerlink" href="#executing-tank-commands" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">tank</span></code> command offers a variety of system utility commands to handle for example upgrades,
+administration and maintenance. These commands are also available to use via the API in order to
+make it easy to integrate Toolkit maintenance workflows with other scriped workflows you may have
+in your studio. The following commands can be used to manage and execute these functions:</p>
+<div class="section" id="api-access-methods">
+<h3>API access methods<a class="headerlink" href="#api-access-methods" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="sgtk.list_commands">
+<code class="descclassname">sgtk.</code><code class="descname">list_commands</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/commands/tank_command.html#list_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.list_commands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists the system commands registered with the system.</p>
+<p>If you leave the optional tk parameter as None, a list of
+global commands will be returned. These commands can be executed
+at any point and do not require a project or a configuration to 
+be present. Examples of such commands are the core upgrade
+check and the setup_project commands:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">list_commands</span><span class="p">()</span>
+<span class="go">[&#39;setup_project&#39;, &#39;core&#39;]</span>
+</pre></div>
+</div>
+<p>If you do pass in a tk API handle (or alternatively use the
+convenience method <a class="reference internal" href="#sgtk.Sgtk.list_commands" title="sgtk.Sgtk.list_commands"><code class="xref py py-meth docutils literal"><span class="pre">Sgtk.list_commands()</span></code></a>), all commands which
+are available in the context of a project configuration will be returned.
+This includes for example commands for configuration management, 
+anything app or engine related and validation and overview functionality.
+In addition to these commands, the global commands will also be returned:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">list_commands</span><span class="p">()</span>
+<span class="go">[&#39;setup_project&#39;, &#39;core&#39;, &#39;localize&#39;, &#39;validate&#39;, &#39;cache_apps&#39;, &#39;clear_cache&#39;,</span>
+<span class="go"> &#39;app_info&#39;, &#39;install_app&#39;, &#39;install_engine&#39;, &#39;updates&#39;, &#39;configurations&#39;, &#39;clone_configuration&#39;]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> (<a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a>) &#8211; Optional Toolkit API instance</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of command names</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.get_command">
+<code class="descclassname">sgtk.</code><code class="descname">get_command</code><span class="sig-paren">(</span><em>command_name</em>, <em>tk=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/commands/tank_command.html#get_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.get_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an instance of a command object that can be used to execute a command.</p>
+<p>Once you have retrieved the command instance, you can perform introspection to 
+check for example the required parameters for the command, name, description etc.
+Lastly, you can execute the command by running the execute() method.</p>
+<p>In order to get a list of the available commands, use the <a class="reference internal" href="#sgtk.list_commands" title="sgtk.list_commands"><code class="xref py py-meth docutils literal"><span class="pre">list_commands()</span></code></a> method.</p>
+<p>Certain commands require a project configuration context in order to operate. This
+needs to be passed on in the form of a toolkit API instance via the tk parameter.
+See the list_command() documentation for more details.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>command_name</strong> &#8211; Name of command to execute. Get a list of all available commands
+using the <a class="reference internal" href="#sgtk.list_commands" title="sgtk.list_commands"><code class="xref py py-meth docutils literal"><span class="pre">list_commands()</span></code></a> method.</li>
+<li><strong>tk</strong> (<a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a>) &#8211; Optional Toolkit API instance</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.SgtkSystemCommand" title="sgtk.SgtkSystemCommand"><code class="xref py py-class docutils literal"><span class="pre">SgtkSystemCommand</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="sgtksystemcommand">
+<h3>SgtkSystemCommand<a class="headerlink" href="#sgtksystemcommand" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.SgtkSystemCommand">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">SgtkSystemCommand</code><span class="sig-paren">(</span><em>internal_action_object</em>, <em>tk</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/commands/tank_command.html#SgtkSystemCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.SgtkSystemCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a toolkit system command.</p>
+<p>You can use this object to introspect command properties such as 
+name, description, parameters etc. Execution is carried out by calling the <a class="reference internal" href="#sgtk.SgtkSystemCommand.execute" title="sgtk.SgtkSystemCommand.execute"><code class="xref py py-meth docutils literal"><span class="pre">execute()</span></code></a> method.</p>
+<p>For a global command which doesn&#8217;t require an active configuration,
+execution typically looks like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">list_commands</span><span class="p">()</span>
+<span class="go">[&#39;setup_project&#39;, &#39;core&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmd</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_command</span><span class="p">(</span><span class="s2">&quot;core&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmd</span>
+<span class="go">&lt;tank.deploy.tank_command.SgtkSystemCommand object at 0x106d9f090&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmd</span><span class="o">.</span><span class="n">execute</span><span class="p">({})</span>
+</pre></div>
+</div>
+<p>Instances should be constructed using the <a class="reference internal" href="#sgtk.get_command" title="sgtk.get_command"><code class="xref py py-meth docutils literal"><span class="pre">get_command()</span></code></a> factory method.</p>
+<dl class="attribute">
+<dt id="sgtk.SgtkSystemCommand.parameters">
+<code class="descname">parameters</code><a class="headerlink" href="#sgtk.SgtkSystemCommand.parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>The different parameters that needs to be specified and if a
+parameter has any default values. For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;parameter_name&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Parameter info&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span> <span class="p">},</span>
+
+ <span class="o">...</span>
+
+ <span class="s2">&quot;return_value&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Return value (optional)&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span> <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.SgtkSystemCommand.description">
+<code class="descname">description</code><a class="headerlink" href="#sgtk.SgtkSystemCommand.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>A brief description of this command.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.SgtkSystemCommand.name">
+<code class="descname">name</code><a class="headerlink" href="#sgtk.SgtkSystemCommand.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of this command.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.SgtkSystemCommand.category">
+<code class="descname">category</code><a class="headerlink" href="#sgtk.SgtkSystemCommand.category" title="Permalink to this definition">¶</a></dt>
+<dd><p>The category for this command. This is typically a short string like &#8220;Admin&#8221;.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.SgtkSystemCommand.logger">
+<code class="descname">logger</code><a class="headerlink" href="#sgtk.SgtkSystemCommand.logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>The python logger associated with this tank command</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.SgtkSystemCommand.set_logger">
+<code class="descname">set_logger</code><span class="sig-paren">(</span><em>log</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/commands/tank_command.html#SgtkSystemCommand.set_logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.SgtkSystemCommand.set_logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify a standard python log instance to send logging output to.
+If this is not specify, the standard output mechanism will be used.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">We strongly recommend using the <a class="reference internal" href="#sgtk.SgtkSystemCommand.logger" title="sgtk.SgtkSystemCommand.logger"><code class="xref py py-meth docutils literal"><span class="pre">logger()</span></code></a> property
+to retrieve the default logger for the tank command
+and attaching a handler to this rather than passing in
+an explicit log object via this method. This method
+may be deprecated at some point in the future.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>log</strong> &#8211; Standard python logging instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.SgtkSystemCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/commands/tank_command.html#SgtkSystemCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.SgtkSystemCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute this command.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> &#8211; dictionary of parameters to pass to this command.
+the dictionary key is the name of the parameter and the value
+is the value you want to pass. You can query which parameters
+can be passed in via the parameters property.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Whatever the command returns. Data type and description for the return
+value can be introspected via the <a class="reference internal" href="#sgtk.SgtkSystemCommand.parameters" title="sgtk.SgtkSystemCommand.parameters"><code class="xref py py-meth docutils literal"><span class="pre">parameters()</span></code></a> property.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="hooks">
+<h2>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h2>
+<p>Hooks are snippets of code that can be customized as part of the configuration of a Toolkit app,
+engine or core itself. You can use hooks with the Core API (we call those core hooks) and with
+apps and engines. Hooks are a central concept in the configuration of Toolkit. We use hooks whenever
+there is a need to expose code and allow it to be customized. Examples
+of when this is useful is Disk I/O, launching of applications, DCC-specific logic and permissions control.</p>
+<div class="section" id="hook">
+<h3>Hook<a class="headerlink" href="#hook" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.Hook">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">Hook</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/hook.html#Hook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Hook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hooks are implemented in a python file and they all derive from a <a class="reference internal" href="#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a> base class.</p>
+<p>If you are writing an app that loads files into Maya, Nuke or other DCCs, a hook is a good
+way to expose the actual loading logic, so that not only can be customized by a user, but
+so that you could even add support for a new DCC to your load app without having to update it.</p>
+<p>First, you would create a <code class="docutils literal"><span class="pre">hooks/actions.py</span></code> file in your app. This would contain a hook class:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="n">HookBaseClass</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_hook_baseclass</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">Actions</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">list_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Given some Shotgun publish data, return a list of</span>
+<span class="sd">        actions that can be performed</span>
+
+<span class="sd">        :param sg_publish_data: Dictionary of publish data from Shotgun</span>
+<span class="sd">        :returns: List of action strings</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># The base implementation implements an action to show</span>
+        <span class="c1"># the item in Shotgun</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;show_in_sg&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">run_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Execute the given action</span>
+
+<span class="sd">        :param action: name of action. One of the items returned by list_actions.</span>
+<span class="sd">        :param sg_publish_data: Dictionary of publish data from Shotgun</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;show_in_sg&quot;</span><span class="p">:</span>
+
+            <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/detail/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
+                <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
+                <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="n">QtGui</span><span class="o">.</span><span class="n">QDesktopServices</span><span class="o">.</span><span class="n">openUrl</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QUrl</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The above code forms a generic base for your hook with a basic implementation that works
+everywhere.</p>
+<p>In the app manifest (<code class="docutils literal"><span class="pre">info.yml</span></code>), where we define all the basic configuration properties for the app,
+we define an actions hook:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">configuration</span><span class="p">:</span>
+
+    <span class="n">actions_hook</span><span class="p">:</span>
+        <span class="nb">type</span><span class="p">:</span> <span class="n">hook</span>
+        <span class="n">default_value</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{self}</span><span class="s2">/actions.py&quot;</span>
+        <span class="n">description</span><span class="p">:</span> <span class="n">Hook</span> <span class="n">which</span> <span class="n">contains</span> <span class="nb">all</span> <span class="n">methods</span> <span class="k">for</span> <span class="n">action</span> <span class="n">management</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>From the app code itself, you can now use <a class="reference internal" href="platform.html#sgtk.platform.Application.execute_hook_method" title="sgtk.platform.Application.execute_hook_method"><code class="xref py py-meth docutils literal"><span class="pre">execute_hook_method()</span></code></a>
+to call out to the hook:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># when creating a list of items in the UI for your app -</span>
+<span class="c1"># given a shotgun publish, build a menu of avaialable actions:</span>
+<span class="n">actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_hook_method</span><span class="p">(</span><span class="s2">&quot;actions_hook&quot;</span><span class="p">,</span> <span class="s2">&quot;list_actions&quot;</span><span class="p">,</span> <span class="n">sg_data</span><span class="p">)</span>
+
+<span class="c1"># in a callback method once a user has selected an action -</span>
+<span class="c1"># call out to the hook to execute the action</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">execute_hook_method</span><span class="p">(</span><span class="s2">&quot;actions_hook&quot;</span><span class="p">,</span> <span class="s2">&quot;run_action&quot;</span><span class="p">,</span> <span class="n">sg_data</span><span class="p">,</span> <span class="n">action_name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the configuration for your app, you can now &#8216;glue together&#8217; different functionality
+for different scenarios. For example, when you install the app to run inside the Maya
+engine, you want to be able to import maya files into maya. We implement this by adding a
+custom publish hook for maya. This can either be placed with the app itself, in the <code class="docutils literal"><span class="pre">hooks</span></code>
+folder in the configuration, or in the maya engine. In this case, we&#8217;ll add a <code class="docutils literal"><span class="pre">hooks/actions.py</span></code>
+to the maya engine. This file looks like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="n">HookBaseClass</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_hook_baseclass</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">MayaActions</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">list_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Given some Shotgun publish data, return a list of</span>
+<span class="sd">        actions that can be performed</span>
+
+<span class="sd">        :param sg_publish_data: Dictionary of publish data from Shotgun</span>
+<span class="sd">        :returns: List of action strings</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># first get base class actions</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="n">HookBaseClass</span><span class="o">.</span><span class="n">list_actions</span><span class="p">(</span><span class="n">sg_publish_data</span><span class="p">)</span>
+
+        <span class="c1"># Add maya actions</span>
+        <span class="k">if</span> <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;published_file_type&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Maya Scene&quot;</span><span class="p">:</span>
+            <span class="n">actions</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;reference&quot;</span><span class="p">,</span> <span class="s2">&quot;import&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">run_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Execute the given action</span>
+
+<span class="sd">        :param action: name of action. One of the items returned by list_actions.</span>
+<span class="sd">        :param sg_publish_data: Dictionary of publish data from Shotgun</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;reference&quot;</span><span class="p">:</span>
+            <span class="c1"># do maya reference operation</span>
+
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;import&quot;</span><span class="p">:</span>
+            <span class="c1"># do maya import operation</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># pass on to base class</span>
+            <span class="k">return</span> <span class="n">HookBaseClass</span><span class="o">.</span><span class="n">run_action</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The above hook implements a couple of actions that are designed to work in Maya.
+Lastly, we need to tell the app to pick up this file. In the environment configuration for the app
+running inside of maya, we point it at our engine specific hook:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tk</span><span class="o">-</span><span class="n">maya</span><span class="p">:</span>
+    <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">myapp</span><span class="p">:</span>
+        <span class="n">actions_hook</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{engine}</span><span class="s1">/actions.py&#39;</span>
+</pre></div>
+</div>
+<p>When we are running the app configuration in maya, the actions hook will automatically
+resolve the hook code distributed with the maya engine. The base class will be automatically
+determined to be the default value set in the manifest, allowing for the app to carry a default
+base implementation that is always taken into account.</p>
+<p>Several different path formats exist, making this a very powerful configuration mechanism:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">{self}/path/to/foo.py</span></code> &#8211; looks in the <code class="docutils literal"><span class="pre">hooks</span></code> folder in the local app, engine of framework.</li>
+<li><code class="docutils literal"><span class="pre">{config}/path/to/foo.py</span></code> &#8211; Looks in the <code class="docutils literal"><span class="pre">hooks</span></code> folder in the configuration.</li>
+<li><code class="docutils literal"><span class="pre">{$HOOK_PATH}/path/to/foo.py</span></code>  &#8211; expression based around an environment variable.</li>
+<li><code class="docutils literal"><span class="pre">{engine}/path/to/foo.py</span></code> &#8211; looks in the <code class="docutils literal"><span class="pre">hooks</span></code> folder of the current engine.</li>
+<li><code class="docutils literal"><span class="pre">{tk-framework-perforce_v1.x.x}/path/to/foo.py</span></code> &#8211; looks in the <code class="docutils literal"><span class="pre">hooks</span></code> folder of a
+framework instance that exists in the current environment. Basically, each entry inside the
+frameworks section in the current environment can be specified here - all these entries are
+on the form frameworkname_versionpattern, for example <code class="docutils literal"><span class="pre">tk-framework-widget_v0.1.2</span></code> or
+<code class="docutils literal"><span class="pre">tk-framework-shotgunutils_v1.3.x</span></code>.</li>
+</ul>
+<p>Supported legacy formats:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">foo</span></code> &#8211; Equivalent to <code class="docutils literal"><span class="pre">{config}/foo.py</span></code></li>
+</ul>
+<p>You can also provide your own inheritance chains. For example, if you wanted to add your own,
+project specific maya hooks to this app, you could do this by creating a hook file, placing
+it in your configuration&#8217;s <code class="docutils literal"><span class="pre">hooks</span></code> folder and then configure it like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tk</span><span class="o">-</span><span class="n">maya</span><span class="p">:</span>
+    <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">myapp</span><span class="p">:</span>
+        <span class="n">actions_hook</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{engine}</span><span class="s1">/actions.py:</span><span class="si">{config}</span><span class="s1">/maya_actions.py&#39;</span>
+</pre></div>
+</div>
+<p>This would execute your <code class="docutils literal"><span class="pre">maya_actions.py</span></code> hook and make sure that that hook inherits from the
+engine specific hook, making sure that you get both your custom actions, the engine default actions
+and the app&#8217;s built-in actions.</p>
+<dl class="attribute">
+<dt id="sgtk.Hook.parent">
+<code class="descname">parent</code><a class="headerlink" href="#sgtk.Hook.parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>The parent object to the executing hook. This varies with the type of
+hook that is being executed. For a hook that runs inside an app or an engine,
+the parent object will be the <a class="reference internal" href="platform.html#sgtk.platform.Application" title="sgtk.platform.Application"><code class="xref py py-class docutils literal"><span class="pre">Application</span></code></a> or
+<a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a> instance. For core hooks, the
+parent object will be <code class="xref py py-class docutils literal"><span class="pre">sgtk</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you need to access Shotgun inside your hook, you can do this by
+calling <code class="docutils literal"><span class="pre">self.parent.shotgun</span></code> since both Apps, Engines and the Core API
+has a <code class="docutils literal"><span class="pre">shotgun</span></code> property.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Hook.get_publish_path">
+<code class="descname">get_publish_path</code><span class="sig-paren">(</span><em>sg_publish_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/hook.html#Hook.get_publish_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Hook.get_publish_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the path on disk for a publish entity in Shotgun.</p>
+<p>Use this method if you have a shotgun publish entity and want
+to get a local path on disk. This method will ensure that however
+the publish path is encoded, a local path is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_publish_data</strong> &#8211; Shotgun dictionary containing
+information about a publish. Needs to at least 
+contain a type, id and a path key.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">String representing a local path on disk.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Hook.get_publish_paths">
+<code class="descname">get_publish_paths</code><span class="sig-paren">(</span><em>sg_publish_data_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/hook.html#Hook.get_publish_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Hook.get_publish_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns several local paths on disk given a
+list of shotgun data dictionaries representing publishes.</p>
+<p>Use this method if you have several shotgun publish entities and want
+to get a local path on disk. This method will ensure that however
+the publish path is encoded, a local path is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_publish_data_list</strong> &#8211; List of shotgun data dictionaries 
+containing publish data. Each dictionary 
+needs to at least contain a type, id and 
+a path key.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of strings representing local paths on disk.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Hook.load_framework">
+<code class="descname">load_framework</code><span class="sig-paren">(</span><em>framework_instance_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/hook.html#Hook.load_framework"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Hook.load_framework" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads and returns a framework given an environment instance name.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method only works for hooks that are executed from apps and frameworks.</p>
+</div>
+<p>If you have complex logic and functionality and want to manage (and version it) as part
+of a framework rather than in a hook, you can do this by calling a configured framework
+from inside a hook:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="n">HookBaseClass</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_hook_baseclass</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">SomeHook</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">some_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># first get a framework handle. This object is similar to an app or engine object</span>
+        <span class="n">fw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_framework</span><span class="p">(</span><span class="s2">&quot;tk-framework-library_v1.x.x&quot;</span><span class="p">)</span>
+
+        <span class="c1"># now just like with an app or an engine, if you want to access code in the python</span>
+        <span class="c1"># folder, you can do import_plugin</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">fw</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;some_module&quot;</span><span class="p">)</span>
+
+        <span class="n">module</span><span class="o">.</span><span class="n">do_stuff</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Note how we are accessing the framework instance <code class="docutils literal"><span class="pre">tk-framework-library_v1.x.x</span></code> above.
+This needs to be defined in the currently running environment, as part of the <code class="docutils literal"><span class="pre">frameworks</span></code> section:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">engines</span><span class="p">:</span>
+  <span class="c1"># all engine and app defs here...</span>
+
+<span class="n">frameworks</span><span class="p">:</span>
+ <span class="c1"># define the framework that we are using in the hook</span>
+ <span class="n">tk</span><span class="o">-</span><span class="n">framework</span><span class="o">-</span><span class="n">library_v1</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">x</span><span class="p">:</span>
+    <span class="n">location</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="s1">&#39;https://github.com/foo/tk-framework-library.git&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v1</span><span class="o">.</span><span class="mf">2.6</span><span class="p">}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>framework_instance_name</strong> &#8211; Name of the framework instance to load from the environment.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="get-hook-baseclass">
+<h3>get_hook_baseclass<a class="headerlink" href="#get-hook-baseclass" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="sgtk.get_hook_baseclass">
+<code class="descclassname">sgtk.</code><code class="descname">get_hook_baseclass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/hook.html#get_hook_baseclass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.get_hook_baseclass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the base class to use for the hook currently
+being loaded. For more details and examples, see the <a class="reference internal" href="#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a> documentation.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="template-system">
+<h2>Template system<a class="headerlink" href="#template-system" title="Permalink to this headline">¶</a></h2>
+<p>The Toolkit template system is used to handle path and string token manipulations.</p>
+<p>Since the Shotgun Toolkit is file system based, Apps will need to resolve file paths whenever
+they need to read or write data from disk. Apps are file system structure agnostic - meaning
+that they don&#8217;t know how the file system is organized. The template system handles all this for them.</p>
+<p>At the heart of the template system, there is a Templates Configuration File. This file contains
+all the important file system locations for a project. A Template looks something like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">maya_shot_publish</span><span class="p">:</span> <span class="s1">&#39;shots/</span><span class="si">{Shot}</span><span class="s1">/</span><span class="si">{Step}</span><span class="s1">/pub/</span><span class="si">{name}</span><span class="s1">.v</span><span class="si">{version}</span><span class="s1">.ma&#39;</span>
+</pre></div>
+</div>
+<p>It basically defines a path which contains certain dynamic fields. Each field can be
+configured with validation and typing, so you can, for example, define that the <code class="docutils literal"><span class="pre">{version}</span></code> field
+in the template above is an integer padded with three zeros (e.g. <code class="docutils literal"><span class="pre">001</span></code>, <code class="docutils literal"><span class="pre">012</span></code>, <code class="docutils literal"><span class="pre">132</span></code>).
+Whenever and App needs to write or read something from disk, a template is added to the templates
+file to describe that location. Since Apps often are set up to form a pipeline, the output template
+of one App (e.g. a publishing app) is often the input template of another app (e.g. a loading app).
+This is why all the file system locations are kept in a single file.</p>
+<p>The template API lets you jump between a list of field values and paths:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># get a template object from the API</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">template_obj</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;maya_shot_publish&quot;</span><span class="p">]</span>
+<span class="o">&lt;</span><span class="n">Sgtk</span> <span class="n">Template</span> <span class="n">maya_asset_project</span><span class="p">:</span> <span class="n">shots</span><span class="o">/</span><span class="p">{</span><span class="n">Shot</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">Step</span><span class="p">}</span><span class="o">/</span><span class="n">pub</span><span class="o">/</span><span class="p">{</span><span class="n">name</span><span class="p">}</span><span class="o">.</span><span class="n">v</span><span class="p">{</span><span class="n">version</span><span class="p">}</span><span class="o">.</span><span class="n">ma</span><span class="o">&gt;</span>
+
+<span class="c1"># we can use the template object to turn a path into a set of fields...</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;/projects/bbb/shots/001_002/comp/pub/main_scene.v003.ma&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">fields</span> <span class="o">=</span> <span class="n">template_obj</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<span class="p">{</span><span class="s1">&#39;Shot&#39;</span><span class="p">:</span> <span class="s1">&#39;001_002&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;Step&#39;</span><span class="p">:</span> <span class="s1">&#39;comp&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;main_scene&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+
+<span class="c1"># alternatively, we can take a fields dictionary and make a path</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">template_obj</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
+<span class="s1">&#39;/projects/bbb/shots/001_002/comp/pub/main_scene.v003.ma&#39;</span>
+</pre></div>
+</div>
+<p>Note how the above path and template has two different types of fields: The Shot and Step fields are
+high-level fields with equivalent objects in Shotgun (a Shot and a Pipeline Step) where the name and
+the version fields are very specific to this particular type of template (in this case a publish path.).
+If we wanted to describe a publish path for an asset rather than a shot, we would still have a name
+and a version field, since this is needed for all publishes, regardless of what type of data it is -
+however, we would not have a Shot and a Step field. Instead, we may have an Asset and a Step field,
+where the asset field would be associated with an asset in Shotgun.</p>
+<div class="section" id="template">
+<h3>Template<a class="headerlink" href="#template" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.Template">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">Template</code><span class="sig-paren">(</span><em>definition</em>, <em>keys</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/template.html#Template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents an expression containing several dynamic tokens
+in the form of <a class="reference internal" href="#sgtk.TemplateKey" title="sgtk.TemplateKey"><code class="xref py py-class docutils literal"><span class="pre">TemplateKey</span></code></a> objects.</p>
+<p>This class is not designed to be used directly but
+should be subclassed by any Template implementations.</p>
+<p>Current implementations can be found in
+the <a class="reference internal" href="#sgtk.TemplatePath" title="sgtk.TemplatePath"><code class="xref py py-class docutils literal"><span class="pre">TemplatePath</span></code></a> and <a class="reference internal" href="#sgtk.TemplateString" title="sgtk.TemplateString"><code class="xref py py-class docutils literal"><span class="pre">TemplateString</span></code></a> classes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>definition</strong> (<em>String</em>) &#8211; Template definition.</li>
+<li><strong>keys</strong> (<em>Dictionary</em>) &#8211; Mapping of key names to keys</li>
+<li><strong>name</strong> (<em>String</em>) &#8211; (Optional) name for this template.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.Template.definition">
+<code class="descname">definition</code><a class="headerlink" href="#sgtk.Template.definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>The template as a string, e.g <code class="docutils literal"><span class="pre">shots/{Shot}/{Step}/pub/{name}.v{version}.ma</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Template.keys">
+<code class="descname">keys</code><a class="headerlink" href="#sgtk.Template.keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>The keys that this template is using. For a template
+<code class="docutils literal"><span class="pre">shots/{Shot}/{Step}/pub/{name}.v{version}.ma</span></code>, the keys are <code class="docutils literal"><span class="pre">{Shot}</span></code>,
+<code class="docutils literal"><span class="pre">{Step}</span></code> and <code class="docutils literal"><span class="pre">{name}</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a dictionary of class:<cite>TemplateKey</cite> objects, keyed by token name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Template.is_optional">
+<code class="descname">is_optional</code><span class="sig-paren">(</span><em>key_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/template.html#Template.is_optional"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Template.is_optional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the given key name is optional for this template.</p>
+<p>For the template <code class="docutils literal"><span class="pre">{Shot}[_{name}]</span></code>,
+<code class="docutils literal"><span class="pre">is_optional(&quot;Shot&quot;)</span></code> would return <code class="docutils literal"><span class="pre">False</span></code> and <code class="docutils literal"><span class="pre">is_optional(&quot;name&quot;)</span></code>
+would return <code class="docutils literal"><span class="pre">True</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key_name</strong> &#8211; Name of template key for which the check should be carried out</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if key is optional, False if not.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Template.missing_keys">
+<code class="descname">missing_keys</code><span class="sig-paren">(</span><em>fields</em>, <em>skip_defaults=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/template.html#Template.missing_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Template.missing_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines keys required for use of template which do not exist
+in a given fields.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;max_asset_work&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">missing_keys</span><span class="p">({})</span>
+<span class="go">[&#39;Step&#39;, &#39;sg_asset_type&#39;, &#39;Asset&#39;, &#39;version&#39;, &#39;name&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;max_asset_work&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">missing_keys</span><span class="p">({</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">})</span>
+<span class="go">[&#39;Step&#39;, &#39;sg_asset_type&#39;, &#39;Asset&#39;, &#39;version&#39;]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fields</strong> (<em>mapping (dictionary or other)</em>) &#8211; fields to test</li>
+<li><strong>skip_defaults</strong> (<em>Bool</em>) &#8211; If true, do not treat keys with default values as missing.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Fields needed by template which are not in inputs keys or which have
+values of None.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://docs.python.org/library/functions.html#list" title="(in Python v2.7)">list</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Template.apply_fields">
+<code class="descname">apply_fields</code><span class="sig-paren">(</span><em>fields</em>, <em>platform=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/template.html#Template.apply_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Template.apply_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates path using fields. Certain fields may be processed in special ways, for
+example <a class="reference internal" href="#sgtk.SequenceKey" title="sgtk.SequenceKey"><code class="xref py py-class docutils literal"><span class="pre">SequenceKey</span></code></a> fields, which can take a <cite>FORMAT</cite> string which will intelligently
+format a image sequence specifier based on the type of data is being handled. Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># get a template object from the API</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">template_obj</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;maya_shot_publish&quot;</span><span class="p">]</span>
+<span class="o">&lt;</span><span class="n">Sgtk</span> <span class="n">Template</span> <span class="n">maya_asset_project</span><span class="p">:</span> <span class="n">shots</span><span class="o">/</span><span class="p">{</span><span class="n">Shot</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">Step</span><span class="p">}</span><span class="o">/</span><span class="n">pub</span><span class="o">/</span><span class="p">{</span><span class="n">name</span><span class="p">}</span><span class="o">.</span><span class="n">v</span><span class="p">{</span><span class="n">version</span><span class="p">}</span><span class="o">.</span><span class="n">ma</span><span class="o">&gt;</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Shot&#39;</span><span class="p">:</span> <span class="s1">&#39;001_002&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Step&#39;</span><span class="p">:</span> <span class="s1">&#39;comp&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;main_scene&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="mi">3</span>
+              <span class="p">}</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">template_obj</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
+<span class="s1">&#39;/projects/bbb/shots/001_002/comp/pub/main_scene.v003.ma&#39;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For formatting of special values, see <a class="reference internal" href="#sgtk.SequenceKey" title="sgtk.SequenceKey"><code class="xref py py-class docutils literal"><span class="pre">SequenceKey</span></code></a> and <a class="reference internal" href="#sgtk.TimestampKey" title="sgtk.TimestampKey"><code class="xref py py-class docutils literal"><span class="pre">TimestampKey</span></code></a>.</p>
+</div>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Sequence&quot;</span><span class="p">:</span><span class="s2">&quot;seq_1&quot;</span><span class="p">,</span> <span class="s2">&quot;Shot&quot;</span><span class="p">:</span><span class="s2">&quot;shot_2&quot;</span><span class="p">,</span> <span class="s2">&quot;Step&quot;</span><span class="p">:</span><span class="s2">&quot;comp&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;henry&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span><span class="mi">3</span><span class="p">}</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
+<span class="go">&#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="s1">&#39;win32&#39;</span><span class="p">)</span>
+<span class="go">&#39;z:\studio_root\sgtk\demo_project_1\sequences\seq_1\shot_2\comp\publish\henry.v003.ma&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">template_str</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
+<span class="go">&#39;Maya Scene henry, v003&#39;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fields</strong> &#8211; Mapping of keys to fields. Keys must match those in template 
+definition.</li>
+<li><strong>platform</strong> &#8211; Optional operating system platform. If you leave it at the 
+default value of None, paths will be created to match the 
+current operating system. If you pass in a sys.platform-style string
+(e.g. <code class="docutils literal"><span class="pre">win32</span></code>, <code class="docutils literal"><span class="pre">linux2</span></code> or <code class="docutils literal"><span class="pre">darwin</span></code>), paths will be generated to
+match that platform.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Full path, matching the template with the given fields inserted.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Template.parent">
+<code class="descname">parent</code><a class="headerlink" href="#sgtk.Template.parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns Template representing the parent of this object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.Template" title="sgtk.Template"><code class="xref py py-class docutils literal"><span class="pre">Template</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Template.validate_and_get_fields">
+<code class="descname">validate_and_get_fields</code><span class="sig-paren">(</span><em>path</em>, <em>required_fields=None</em>, <em>skip_keys=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/template.html#Template.validate_and_get_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Template.validate_and_get_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes an input string and determines whether it can be mapped to the template pattern.
+If it can then the list of matching fields is returned. Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">good_path</span> <span class="o">=</span> <span class="s1">&#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">validate_and_get_fields</span><span class="p">(</span><span class="n">good_path</span><span class="p">)</span>
+<span class="go">{&#39;Sequence&#39;: &#39;seq_1&#39;,</span>
+<span class="go"> &#39;Shot&#39;: &#39;shot_2&#39;,</span>
+<span class="go"> &#39;Step&#39;: &#39;comp&#39;,</span>
+<span class="go"> &#39;name&#39;: &#39;henry&#39;,</span>
+<span class="go"> &#39;version&#39;: 3}</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bad_path</span> <span class="o">=</span> <span class="s1">&#39;/studio_root/sgtk/demo_project_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">validate_and_get_fields</span><span class="p">(</span><span class="n">bad_path</span><span class="p">)</span>
+<span class="go">None</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> &#8211; Path to validate</li>
+<li><strong>required_fields</strong> &#8211; An optional dictionary of key names to key values. If supplied these values must 
+be present in the input path and found by the template.</li>
+<li><strong>skip_keys</strong> &#8211; List of field names whose values should be ignored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Dictionary of fields found from the path or None if path fails to validate</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Template.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>path</em>, <em>fields=None</em>, <em>skip_keys=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/template.html#Template.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Template.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates that a path can be mapped to the pattern given by the template. Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">good_path</span> <span class="o">=</span> <span class="s1">&#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">good_path</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bad_path</span> <span class="o">=</span> <span class="s1">&#39;/studio_root/sgtk/demo_project_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">bad_path</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<em>String</em>) &#8211; Path to validate</li>
+<li><strong>fields</strong> (<em>Dictionary</em>) &#8211; An optional dictionary of key names to key values. If supplied these values must 
+be present in the input path and found by the template.</li>
+<li><strong>skip_keys</strong> (<em>List</em>) &#8211; Field names whose values should be ignored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True if the path is valid for this template</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Template.get_fields">
+<code class="descname">get_fields</code><span class="sig-paren">(</span><em>input_path</em>, <em>skip_keys=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/template.html#Template.get_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Template.get_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts key name, value pairs from a string. Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">input_path</span> <span class="o">=</span> <span class="s1">&#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span>
+
+<span class="go">{&#39;Sequence&#39;: &#39;seq_1&#39;,</span>
+<span class="go"> &#39;Shot&#39;: &#39;shot_2&#39;,</span>
+<span class="go"> &#39;Step&#39;: &#39;comp&#39;,</span>
+<span class="go"> &#39;name&#39;: &#39;henry&#39;,</span>
+<span class="go"> &#39;version&#39;: 3}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_path</strong> (<em>String</em>) &#8211; Source path for values</li>
+<li><strong>skip_keys</strong> (<em>List</em>) &#8211; Optional keys to skip</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Values found in the path based on keys in template</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Dictionary</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="templatepath">
+<h3>TemplatePath<a class="headerlink" href="#templatepath" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.TemplatePath">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TemplatePath</code><span class="sig-paren">(</span><em>definition</em>, <em>keys</em>, <em>root_path</em>, <em>name=None</em>, <em>per_platform_roots=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/template.html#TemplatePath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TemplatePath" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#sgtk.Template" title="sgtk.Template"><code class="xref py py-class docutils literal"><span class="pre">Template</span></code></a> representing a complete path on disk. The template definition is multi-platform
+and you can pass it per-os roots given by a separate <a class="reference internal" href="#sgtk.TemplatePath.root_path" title="sgtk.TemplatePath.root_path"><code class="xref py py-meth docutils literal"><span class="pre">root_path()</span></code></a>.</p>
+<p>TemplatePath objects are typically created automatically by toolkit reading
+the template configuration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>definition</strong> &#8211; Template definition string.</li>
+<li><strong>keys</strong> &#8211; Mapping of key names to keys (dict)</li>
+<li><strong>root_path</strong> &#8211; Path to project root for this template.</li>
+<li><strong>name</strong> &#8211; Optional name for this template.</li>
+<li><strong>per_platform_roots</strong> &#8211; Root paths for all supported operating systems. 
+This is a dictionary with sys.platform-style keys</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.TemplatePath.root_path">
+<code class="descname">root_path</code><a class="headerlink" href="#sgtk.TemplatePath.root_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the root path associated with this template.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.TemplatePath.parent">
+<code class="descname">parent</code><a class="headerlink" href="#sgtk.TemplatePath.parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns Template representing the parent of this object.</p>
+<p>For paths, this means the parent folder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.Template" title="sgtk.Template"><code class="xref py py-class docutils literal"><span class="pre">Template</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="templatestring">
+<h3>TemplateString<a class="headerlink" href="#templatestring" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.TemplateString">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TemplateString</code><span class="sig-paren">(</span><em>definition</em>, <em>keys</em>, <em>name=None</em>, <em>validate_with=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/template.html#TemplateString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TemplateString" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#sgtk.Template" title="sgtk.Template"><code class="xref py py-class docutils literal"><span class="pre">Template</span></code></a> class for templates representing strings.</p>
+<p>Templated strings are useful if you want to write code where you can configure
+the formatting of strings, for example how a name or other string field should
+be configured in Shotgun, given a series of key values.</p>
+<p>TemplatePath objects are typically created automatically by toolkit reading
+the template configuration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>definition</strong> &#8211; Template definition string.</li>
+<li><strong>keys</strong> &#8211; Mapping of key names to keys (dict)</li>
+<li><strong>name</strong> &#8211; Optional name for this template.</li>
+<li><strong>validate_with</strong> &#8211; Optional <a class="reference internal" href="#sgtk.Template" title="sgtk.Template"><code class="xref py py-class docutils literal"><span class="pre">Template</span></code></a> to use for validation</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.TemplateString.parent">
+<code class="descname">parent</code><a class="headerlink" href="#sgtk.TemplateString.parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Strings don&#8217;t have a concept of parent so this always returns <code class="docutils literal"><span class="pre">None</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="templatekey">
+<h3>TemplateKey<a class="headerlink" href="#templatekey" title="Permalink to this headline">¶</a></h3>
+<p>A template, e.g. <code class="docutils literal"><span class="pre">shots/{Shot}/{Step}/pub/{name}.v{version}.ma</span></code> consists of several dynamic <code class="docutils literal"><span class="pre">{tokens}</span></code>.
+Each token is represented by a <a class="reference internal" href="#sgtk.TemplateKey" title="sgtk.TemplateKey"><code class="xref py py-class docutils literal"><span class="pre">TemplateKey</span></code></a> object at runtime, where you can access properties and
+execute token specific logic.</p>
+<dl class="class">
+<dt id="sgtk.TemplateKey">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TemplateKey</code><span class="sig-paren">(</span><em>name</em>, <em>default=None</em>, <em>choices=None</em>, <em>shotgun_entity_type=None</em>, <em>shotgun_field_name=None</em>, <em>exclusions=None</em>, <em>abstract=False</em>, <em>length=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#TemplateKey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TemplateKey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for all template key types. Should not be used directly.</p>
+<p>TemplateKeys are used by Template object to move between key values and resolved strings.
+The template keys handle the manner in which this conversion should occur. Template keys come
+in four flavors: string, integer, sequence and timestamp:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s1">&#39;nuke_asset_render&#39;</span><span class="p">]</span>
+<span class="go"># .../{name}/v{version}/{width}x{height}/{Asset}_{name}_{output}_{render_time}.{frame}.exr&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">str_key</span> <span class="o">=</span> <span class="n">template_path</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="s1">&#39;Asset&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">str_key</span>
+<span class="go">&lt;Sgtk StringKey Asset&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span> <span class="o">=</span> <span class="n">template_path</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span>
+<span class="go">&lt;Sgtk IntegerKey height&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span> <span class="o">=</span> <span class="n">template_path</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span>
+<span class="go">&lt;Sgtk SequenceKey frame&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">timestamp_key</span> <span class="o">=</span> <span class="n">template_path</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="s1">&#39;render_time&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">timestamp_key</span>
+<span class="go">&lt;Sgtk TimestampKey render_time&gt;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Key name.</li>
+<li><strong>default</strong> &#8211; Default value for this key. If the default is a callable, it will be invoked
+without any parameters whenever a default value is required.</li>
+<li><strong>choices</strong> &#8211; List of possible values for this key. Can be either a list or a dictionary
+of choice:label pairs.</li>
+<li><strong>shotgun_entity_type</strong> &#8211; For keys directly linked to a shotgun field, the entity type.</li>
+<li><strong>shotgun_field_name</strong> &#8211; For keys directly linked to a shotgun field, the field name.</li>
+<li><strong>exclusions</strong> &#8211; List of values which are not allowed.</li>
+<li><strong>abstract</strong> &#8211; Boolean indicating if the value is abstract.</li>
+<li><strong>length</strong> &#8211; If non-None, indicating that the value should be of a fixed length.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.TemplateKey.default">
+<code class="descname">default</code><a class="headerlink" href="#sgtk.TemplateKey.default" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default value for this key. If the default argument was specified
+as a callable in the constructor, it is invoked and assumed to take no parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The default value.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.TemplateKey.name">
+<code class="descname">name</code><a class="headerlink" href="#sgtk.TemplateKey.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name that the template will use to refer to the key.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.TemplateKey.length">
+<code class="descname">length</code><a class="headerlink" href="#sgtk.TemplateKey.length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fixed length that needs to be used for this item or None if any length is valid.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.TemplateKey.shotgun_entity_type">
+<code class="descname">shotgun_entity_type</code><a class="headerlink" href="#sgtk.TemplateKey.shotgun_entity_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shotgun entity type associated with this item</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.TemplateKey.shotgun_field_name">
+<code class="descname">shotgun_field_name</code><a class="headerlink" href="#sgtk.TemplateKey.shotgun_field_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shotgun field name associated with this item</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.TemplateKey.exclusions">
+<code class="descname">exclusions</code><a class="headerlink" href="#sgtk.TemplateKey.exclusions" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of values which are not allowed for this item.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.TemplateKey.is_abstract">
+<code class="descname">is_abstract</code><a class="headerlink" href="#sgtk.TemplateKey.is_abstract" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean value indicating if this key is abstract. Abstract keys are
+typically used in conjunction with path elements which represent clusters
+of files, for example when you want to represent a sequence of frames using a
+<code class="docutils literal"><span class="pre">%04d</span></code> syntax or a left and right eye using a <code class="docutils literal"><span class="pre">%v</span></code> syntax.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.TemplateKey.choices">
+<code class="descname">choices</code><a class="headerlink" href="#sgtk.TemplateKey.choices" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of choices available, e.g. <code class="docutils literal"><span class="pre">['ma',</span> <span class="pre">'mb']</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.TemplateKey.labelled_choices">
+<code class="descname">labelled_choices</code><a class="headerlink" href="#sgtk.TemplateKey.labelled_choices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary of labelled choices, e.g. <code class="docutils literal"><span class="pre">{'ma':</span> <span class="pre">'Maya</span> <span class="pre">Ascii',</span> <span class="pre">'mb':</span> <span class="pre">'Maya</span> <span class="pre">Binary'}</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.TemplateKey.str_from_value">
+<code class="descname">str_from_value</code><span class="sig-paren">(</span><em>value=None</em>, <em>ignore_type=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#TemplateKey.str_from_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TemplateKey.str_from_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string version of a value as appropriate for the key&#8217;s setting.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>value</strong> &#8211; Value to process. If None, the key&#8217;s default will be used.</li>
+<li><strong>ignore_type</strong> &#8211; If true, no validation will be carried out prior to casting.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">String version of value as processed by the key.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.TankError" title="sgtk.TankError"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code></a> if value is not valid for the key.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.TemplateKey.value_from_str">
+<code class="descname">value_from_str</code><span class="sig-paren">(</span><em>str_value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#TemplateKey.value_from_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TemplateKey.value_from_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates and translates a string into an appropriate value for this key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>str_value</strong> &#8211; The string to translate.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The translated value.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.TemplateKey.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#TemplateKey.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TemplateKey.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if a value is valid for this key:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">str_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">True</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; Value to test</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="stringkey">
+<h3>StringKey<a class="headerlink" href="#stringkey" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.StringKey">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">StringKey</code><span class="sig-paren">(</span><em>name</em>, <em>default=None</em>, <em>choices=None</em>, <em>filter_by=None</em>, <em>shotgun_entity_type=None</em>, <em>shotgun_field_name=None</em>, <em>exclusions=None</em>, <em>abstract=False</em>, <em>length=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#StringKey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.StringKey" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#sgtk.TemplateKey" title="sgtk.TemplateKey"><code class="xref py py-class docutils literal"><span class="pre">TemplateKey</span></code></a> representing a string value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Name by which the key will be referred.</li>
+<li><strong>default</strong> &#8211; Default value for the key.</li>
+<li><strong>choices</strong> &#8211; List of possible values for this key.</li>
+<li><strong>filter_by</strong> &#8211; Name of filter type to limit values for string. Currently
+only accepted values are &#8216;alphanumeric&#8217;, &#8216;alpha&#8217;, None and a regex string.</li>
+<li><strong>shotgun_entity_type</strong> &#8211; For keys directly linked to a shotgun field, the entity type.</li>
+<li><strong>shotgun_field_name</strong> &#8211; For keys directly linked to a shotgun field, the field name.</li>
+<li><strong>exclusions</strong> &#8211; List of forbidden values.</li>
+<li><strong>abstract</strong> &#8211; Bool, should this key be treated as abstract.</li>
+<li><strong>length</strong> &#8211; int, should this key be fixed length</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.StringKey.filter_by">
+<code class="descname">filter_by</code><a class="headerlink" href="#sgtk.StringKey.filter_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of filter type to limit values for string.</p>
+<p>returns: &#8216;alphanumeric&#8217;, &#8216;alpha&#8217;, None or a regex string.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="sequencekey">
+<h3>SequenceKey<a class="headerlink" href="#sequencekey" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.SequenceKey">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">SequenceKey</code><span class="sig-paren">(</span><em>name</em>, <em>default=None</em>, <em>choices=None</em>, <em>format_spec='01'</em>, <em>shotgun_entity_type=None</em>, <em>shotgun_field_name=None</em>, <em>exclusions=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#SequenceKey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.SequenceKey" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#sgtk.TemplateKey" title="sgtk.TemplateKey"><code class="xref py py-class docutils literal"><span class="pre">TemplateKey</span></code></a> representing an integer sequence, usually used to handle frame sequences.</p>
+<p>With image sequences, there are many ways of representing a set of images. Different
+applications use different representations, so it is often necessary to be able to
+extract image sequences on a particular format so that it works with a particular
+application environment.</p>
+<p>In Toolkit, this can be done using a special FORMAT directive. This format directive
+only works with abstract image sequence fields and supports a number of different formats.
+For example, an app may need to reconstruct a path, but the app doesn&#8217;t know if the user
+has configured the input paths to use eight zero padded paths or four zero padded paths.
+However, the app runs in Nuke, so it needs path on the form %04d (for four zero padded paths).
+In order to get the correct padding, pass <code class="docutils literal"><span class="pre">FORMAT:</span> <span class="pre">%d</span></code> and Toolkit will format this with the
+correct padding.</p>
+<p>The following conversions are supported for sequence keys:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">FORMAT:</span> <span class="pre">%d</span></code> - Turns format_spec 04 into <code class="docutils literal"><span class="pre">%04d</span></code> and a non-zero padded format_spec into <code class="docutils literal"><span class="pre">%d</span></code></li>
+<li><code class="docutils literal"><span class="pre">FORMAT:</span> <span class="pre">&#64;</span></code> - Turns format_spec 04 into <code class="docutils literal"><span class="pre">&#64;&#64;&#64;&#64;</span></code> and a non-zero padded format_spec into <code class="docutils literal"><span class="pre">&#64;</span></code></li>
+<li><code class="docutils literal"><span class="pre">FORMAT:</span> <span class="pre">#</span></code> - Turns format_spec 04 into <code class="docutils literal"><span class="pre">####</span></code> and a non-zero padded format_spec into <code class="docutils literal"><span class="pre">#</span></code></li>
+<li><code class="docutils literal"><span class="pre">FORMAT:</span> <span class="pre">$F</span></code> - Turns format_spec 04 into <code class="docutils literal"><span class="pre">$F4</span></code> and a non-zero padded format_spec into <code class="docutils literal"><span class="pre">$F</span></code></li>
+</ul>
+</div></blockquote>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># An app in nuke generates a sequence path like this:</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Shot&quot;</span><span class="p">:</span><span class="s2">&quot;shot_2&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;render&quot;</span><span class="p">,</span> <span class="s2">&quot;seq&quot;</span><span class="p">:</span> <span class="s2">&quot;FORMAT: </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">}</span>
+<span class="c1"># the FORMAT field will correctly format the key regardless of</span>
+<span class="c1"># how it has been configured (e.g. for any type of padding)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">template_path</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
+<span class="s1">&#39;/mnt/proj/shot_2/publish/render.</span><span class="si">%04d</span><span class="s1">.exr&#39;</span>
+
+
+<span class="c1"># in houdini, the code would look like this</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Shot&quot;</span><span class="p">:</span><span class="s2">&quot;shot_2&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;render&quot;</span><span class="p">,</span> <span class="s2">&quot;seq&quot;</span><span class="p">:</span> <span class="s2">&quot;FORMAT: $F&quot;</span><span class="p">}</span>
+<span class="c1"># the FORMAT field will correctly format the key regardless of</span>
+<span class="c1"># how it has been configured (e.g. for any type of padding)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">template_path</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
+<span class="s1">&#39;/mnt/proj/shot_2/publish/render.$F4.exr&#39;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Key&#8217;s name.</li>
+<li><strong>default</strong> &#8211; Default value for this key.</li>
+<li><strong>choices</strong> &#8211; List of possible values for this key.</li>
+<li><strong>format_spec</strong> &#8211; Specification for formatting when casting to a string.
+The form is a zero followed the number of spaces to pad
+the value.</li>
+<li><strong>shotgun_entity_type</strong> &#8211; For keys directly linked to a shotgun field, the entity type.</li>
+<li><strong>shotgun_field_name</strong> &#8211; For keys directly linked to a shotgun field, the field name.</li>
+<li><strong>exclusions</strong> &#8211; List of forbidden values.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="integerkey">
+<h3>IntegerKey<a class="headerlink" href="#integerkey" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.IntegerKey">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">IntegerKey</code><span class="sig-paren">(</span><em>name</em>, <em>default=None</em>, <em>choices=None</em>, <em>format_spec=None</em>, <em>shotgun_entity_type=None</em>, <em>shotgun_field_name=None</em>, <em>exclusions=None</em>, <em>abstract=False</em>, <em>length=None</em>, <em>strict_matching=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#IntegerKey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.IntegerKey" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#sgtk.TemplateKey" title="sgtk.TemplateKey"><code class="xref py py-class docutils literal"><span class="pre">TemplateKey</span></code></a> representing an integer value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Key&#8217;s name.</li>
+<li><strong>default</strong> &#8211; Default value for this key.</li>
+<li><strong>choices</strong> &#8211; List of possible values for this key.</li>
+<li><strong>format_spec</strong> &#8211; Specification for formatting when casting to a string.
+The form is a zero followed the number of spaces to pad
+the value.</li>
+<li><strong>shotgun_entity_type</strong> &#8211; For keys directly linked to a shotgun field, the entity type.</li>
+<li><strong>shotgun_field_name</strong> &#8211; For keys directly linked to a shotgun field, the field name.</li>
+<li><strong>exclusions</strong> &#8211; List of forbidden values.</li>
+<li><strong>abstract</strong> &#8211; Bool, should this key be treated as abstract.</li>
+<li><strong>length</strong> &#8211; int, should this key be fixed length</li>
+<li><strong>strict_matching</strong> &#8211; Bool, indicates if the padding should be matching exactly the
+format_spec when parsing a string. Default behavior is to match
+exactly the padding when a format_spec is provided.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.IntegerKey.format_spec">
+<code class="descname">format_spec</code><a class="headerlink" href="#sgtk.IntegerKey.format_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specification for formatting when casting to a string.
+The form is a zero followed the number of spaces to pad
+the value.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.IntegerKey.strict_matching">
+<code class="descname">strict_matching</code><a class="headerlink" href="#sgtk.IntegerKey.strict_matching" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates if the padding should be matching exactly the
+format_spec when parsing a string.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="timestampkey">
+<h3>TimestampKey<a class="headerlink" href="#timestampkey" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.TimestampKey">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TimestampKey</code><span class="sig-paren">(</span><em>name</em>, <em>default=None</em>, <em>format_spec='%Y-%m-%d-%H-%M-%S'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#TimestampKey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TimestampKey" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#sgtk.TemplateKey" title="sgtk.TemplateKey"><code class="xref py py-class docutils literal"><span class="pre">TemplateKey</span></code></a> representing a time or date string formatted with strftime.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Name by which the key will be referred.</li>
+<li><strong>default</strong> &#8211; <p>Default value for this field. Acceptable values are:</p>
+<ul>
+<li><code class="docutils literal"><span class="pre">None</span></code></li>
+<li>a string formatted according to the format_spec, e.g. &#8216;2003-01-02 12:23&#8217;</li>
+<li><code class="docutils literal"><span class="pre">utc_now</span></code>, which means the current time in the UTC timezone will be used
+as the default value.</li>
+<li><code class="docutils literal"><span class="pre">now</span></code>, which means the current time in the local timezone will be used
+as the default value.</li>
+</ul>
+</li>
+<li><strong>format_spec</strong> &#8211; Specification for formatting when casting to/from a string.
+The format follows the convention of <code class="xref py py-meth docutils literal"><span class="pre">time.strftime()</span></code>. The
+default value is <code class="docutils literal"><span class="pre">%Y-%m-%d-%H-%M-%S</span></code>. Given June 24th, 2015 at
+9:20:30 PM, this will yield <code class="docutils literal"><span class="pre">2015-06-24-21-20-30</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.TimestampKey.format_spec">
+<code class="descname">format_spec</code><a class="headerlink" href="#sgtk.TimestampKey.format_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specification for formatting when casting to/from a string.
+The format follows the convention of <code class="xref py py-meth docutils literal"><span class="pre">time.strftime()</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.TimestampKey.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#TimestampKey.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TimestampKey.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if a value is valid for this key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; Value to test.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<p>The following exceptions are raised by the Toolkit Core API classes:</p>
+<dl class="class">
+<dt id="sgtk.TankError">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankError</code><a class="reference internal" href="_modules/tank/errors.html#TankError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Top level exception for all toolkit-core level runtime errors</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.TankUnreadableFileError">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankUnreadableFileError</code><a class="reference internal" href="_modules/tank/errors.html#TankUnreadableFileError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankUnreadableFileError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception that indicates that a required file can&#8217;t be read from disk.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.TankFileDoesNotExistError">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankFileDoesNotExistError</code><a class="reference internal" href="_modules/tank/errors.html#TankFileDoesNotExistError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankFileDoesNotExistError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exceptions that indicates that a required file does not exist.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.TankErrorProjectIsSetup">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankErrorProjectIsSetup</code><a class="reference internal" href="_modules/tank/errors.html#TankErrorProjectIsSetup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankErrorProjectIsSetup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception that indicates that a project already has a toolkit name but no pipeline configuration.</p>
+<p>Include error message</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.TankHookMethodDoesNotExistError">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankHookMethodDoesNotExistError</code><a class="reference internal" href="_modules/tank/errors.html#TankHookMethodDoesNotExistError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankHookMethodDoesNotExistError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception that indicates that a called method does not exist in the hook.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="platform.html" class="btn btn-neutral float-right" title="Apps, Engines and Frameworks" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="bootstrap.html" class="btn btn-neutral" title="Deploy and management" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,1056 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.template &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.template</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.template</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2013 Shotgun Software Inc.</span>
+<span class="c1"># </span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1"># </span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Management of file and directory templates.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">templatekey</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">.template_path_parser</span> <span class="kn">import</span> <span class="n">TemplatePathParser</span>
+
+<div class="viewcode-block" id="Template"><a class="viewcode-back" href="../../core.html#sgtk.Template">[docs]</a><span class="k">class</span> <span class="nc">Template</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents an expression containing several dynamic tokens</span>
+<span class="sd">    in the form of :class:`TemplateKey` objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+       
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_keys_from_definition</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">template_name</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extracts Template Keys from a definition.</span>
+
+<span class="sd">        :param definition: Template definition as string</span>
+<span class="sd">        :param template_name: Name of template.</span>
+<span class="sd">        :param keys: Mapping of key names to keys as dict</span>
+
+<span class="sd">        :returns: Mapping of key names to keys and collection of keys ordered as they appear in the definition.</span>
+<span class="sd">        :rtype: List of Dictionaries, List of lists</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">names_keys</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">ordered_keys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># regular expression to find key names</span>
+        <span class="n">regex</span> <span class="o">=</span> <span class="s2">r&quot;(?&lt;={)</span><span class="si">%s</span><span class="s2">(?=})&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">TEMPLATE_KEY_NAME_REGEX</span>
+        <span class="n">key_names</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key_name</span> <span class="ow">in</span> <span class="n">key_names</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Template definition for template </span><span class="si">%s</span><span class="s2"> refers to key {</span><span class="si">%s</span><span class="s2">}, which does not appear in supplied keys.&quot;</span>
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_name</span><span class="p">,</span> <span class="n">key_name</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">names_keys</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">!=</span> <span class="n">key</span><span class="p">:</span>
+                    <span class="c1"># Different keys using same name</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Template definition for template </span><span class="si">%s</span><span class="s2"> uses two keys&quot;</span> <span class="o">+</span>
+                           <span class="s2">&quot; which use the name &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_name</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="n">names_keys</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="n">ordered_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">names_keys</span><span class="p">,</span> <span class="n">ordered_keys</span>
+        
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This class is not designed to be used directly but</span>
+<span class="sd">        should be subclassed by any Template implementations.</span>
+
+<span class="sd">        Current implementations can be found in</span>
+<span class="sd">        the :class:`TemplatePath` and :class:`TemplateString` classes.</span>
+
+<span class="sd">        :param definition: Template definition.</span>
+<span class="sd">        :type definition: String</span>
+<span class="sd">        :param keys: Mapping of key names to keys</span>
+<span class="sd">        :type keys: Dictionary </span>
+<span class="sd">        :param name: (Optional) name for this template.</span>
+<span class="sd">        :type name: String</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="c1"># version for __repr__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_repr_def</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fix_key_names</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+
+        <span class="n">variations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_definition_variations</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span>
+        <span class="c1"># We want them most inclusive(longest) version first</span>
+        <span class="n">variations</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="nb">cmp</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">cmp</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)),</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c1"># get format keys and types</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ordered_keys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">variation</span> <span class="ow">in</span> <span class="n">variations</span><span class="p">:</span>
+            <span class="n">var_keys</span><span class="p">,</span> <span class="n">ordered_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keys_from_definition</span><span class="p">(</span><span class="n">variation</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var_keys</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ordered_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ordered_keys</span><span class="p">)</span>
+
+        <span class="c1"># substitute aliased key names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_definitions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">variation</span> <span class="ow">in</span> <span class="n">variations</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_definitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fix_key_names</span><span class="p">(</span><span class="n">variation</span><span class="p">,</span> <span class="n">keys</span><span class="p">))</span>
+
+        <span class="c1"># get defintion ready for string substitution</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cleaned_definitions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">definition</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_definitions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cleaned_definitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_definition</span><span class="p">(</span><span class="n">definition</span><span class="p">))</span>
+
+        <span class="c1"># string which will be prefixed to definition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_static_tokens</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">class_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">class_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_repr_def</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">class_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_repr_def</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The template as a string, e.g ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Use first definition as it should be most inclusive in case of variations</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_definitions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The keys that this template is using. For a template</span>
+<span class="sd">        ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma``, the keys are ``{Shot}``,</span>
+<span class="sd">        ``{Step}`` and ``{name}``.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: a dictionary of class:`TemplateKey` objects, keyed by token name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># First keys should be most inclusive</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Template.is_optional"><a class="viewcode-back" href="../../core.html#sgtk.Template.is_optional">[docs]</a>    <span class="k">def</span> <span class="nf">is_optional</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if the given key name is optional for this template.</span>
+
+<span class="sd">        For the template ``{Shot}[_{name}]``,</span>
+<span class="sd">        ``is_optional(&quot;Shot&quot;)`` would return ``False`` and ``is_optional(&quot;name&quot;)``</span>
+<span class="sd">        would return ``True``</span>
+
+<span class="sd">        :param key_name: Name of template key for which the check should be carried out</span>
+<span class="sd">        :returns: True if key is optional, False if not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># the key is required if it&#39;s in the </span>
+        <span class="c1"># minimum set of keys for this template</span>
+        <span class="k">if</span> <span class="n">key_name</span> <span class="ow">in</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">):</span>
+            <span class="c1"># this key is required</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span></div>
+
+<div class="viewcode-block" id="Template.missing_keys"><a class="viewcode-back" href="../../core.html#sgtk.Template.missing_keys">[docs]</a>    <span class="k">def</span> <span class="nf">missing_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determines keys required for use of template which do not exist</span>
+<span class="sd">        in a given fields.</span>
+<span class="sd">        </span>
+<span class="sd">        Example::</span>
+<span class="sd">        </span>
+<span class="sd">            &gt;&gt;&gt; tk.templates[&quot;max_asset_work&quot;].missing_keys({})</span>
+<span class="sd">            [&#39;Step&#39;, &#39;sg_asset_type&#39;, &#39;Asset&#39;, &#39;version&#39;, &#39;name&#39;]</span>
+<span class="sd">        </span>
+<span class="sd">            &gt;&gt;&gt; tk.templates[&quot;max_asset_work&quot;].missing_keys({&quot;name&quot;: &quot;foo&quot;})</span>
+<span class="sd">            [&#39;Step&#39;, &#39;sg_asset_type&#39;, &#39;Asset&#39;, &#39;version&#39;]</span>
+
+
+<span class="sd">        :param fields: fields to test</span>
+<span class="sd">        :type fields: mapping (dictionary or other)</span>
+<span class="sd">        :param skip_defaults: If true, do not treat keys with default values as missing.</span>
+<span class="sd">        :type skip_defaults: Bool</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: Fields needed by template which are not in inputs keys or which have</span>
+<span class="sd">                  values of None.</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># find shortest keys dictionary</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_missing_keys</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_missing_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compares two dictionaries to determine keys in second missing in first.</span>
+
+<span class="sd">        :param fields: fields to test</span>
+<span class="sd">        :param keys: Dictionary of template keys to test</span>
+<span class="sd">        :param skip_defaults: If true, do not treat keys with default values as missing.</span>
+<span class="sd">        :returns: Fields needed by template which are not in inputs keys or which have</span>
+<span class="sd">                  values of None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">skip_defaults</span><span class="p">:</span>
+            <span class="n">required_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">required_keys</span> <span class="o">=</span> <span class="n">keys</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">required_keys</span> <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">)</span> <span class="ow">or</span>  <span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">)]</span>
+
+<div class="viewcode-block" id="Template.apply_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.apply_fields">[docs]</a>    <span class="k">def</span> <span class="nf">apply_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates path using fields. Certain fields may be processed in special ways, for</span>
+<span class="sd">        example :class:`SequenceKey` fields, which can take a `FORMAT` string which will intelligently</span>
+<span class="sd">        format a image sequence specifier based on the type of data is being handled. Example::</span>
+
+<span class="sd">            # get a template object from the API</span>
+<span class="sd">            &gt;&gt;&gt; template_obj = sgtk.templates[&quot;maya_shot_publish&quot;]</span>
+<span class="sd">            &lt;Sgtk Template maya_asset_project: shots/{Shot}/{Step}/pub/{name}.v{version}.ma&gt;</span>
+
+<span class="sd">            &gt;&gt;&gt; fields = {&#39;Shot&#39;: &#39;001_002&#39;,</span>
+<span class="sd">                          &#39;Step&#39;: &#39;comp&#39;,</span>
+<span class="sd">                          &#39;name&#39;: &#39;main_scene&#39;,</span>
+<span class="sd">                          &#39;version&#39;: 3</span>
+<span class="sd">                          }</span>
+
+<span class="sd">            &gt;&gt;&gt; template_obj.apply_fields(fields)</span>
+<span class="sd">            &#39;/projects/bbb/shots/001_002/comp/pub/main_scene.v003.ma&#39;</span>
+
+<span class="sd">        .. note:: For formatting of special values, see :class:`SequenceKey` and :class:`TimestampKey`.</span>
+
+<span class="sd">        Example::</span>
+
+<span class="sd">            &gt;&gt;&gt; fields = {&quot;Sequence&quot;:&quot;seq_1&quot;, &quot;Shot&quot;:&quot;shot_2&quot;, &quot;Step&quot;:&quot;comp&quot;, &quot;name&quot;:&quot;henry&quot;, &quot;version&quot;:3}</span>
+
+<span class="sd">            &gt;&gt;&gt; template_path.apply_fields(fields)</span>
+<span class="sd">            &#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+
+<span class="sd">            &gt;&gt;&gt; template_path.apply_fields(fields, platform=&#39;win32&#39;)</span>
+<span class="sd">            &#39;z:\studio_root\sgtk\demo_project_1\sequences\seq_1\shot_2\comp\publish\henry.v003.ma&#39;</span>
+
+<span class="sd">            &gt;&gt;&gt; template_str.apply_fields(fields)</span>
+<span class="sd">            &#39;Maya Scene henry, v003&#39;</span>
+
+
+<span class="sd">        :param fields: Mapping of keys to fields. Keys must match those in template </span>
+<span class="sd">                       definition.</span>
+<span class="sd">        :param platform: Optional operating system platform. If you leave it at the </span>
+<span class="sd">                         default value of None, paths will be created to match the </span>
+<span class="sd">                         current operating system. If you pass in a sys.platform-style string</span>
+<span class="sd">                         (e.g. ``win32``, ``linux2`` or ``darwin``), paths will be generated to</span>
+<span class="sd">                         match that platform.</span>
+
+<span class="sd">        :returns: Full path, matching the template with the given fields inserted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="n">platform</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_apply_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates path using fields.</span>
+
+<span class="sd">        :param fields: Mapping of keys to fields. Keys must match those in template </span>
+<span class="sd">                       definition.</span>
+<span class="sd">        :param ignore_types: Keys for whom the defined type is ignored as list of strings.</span>
+<span class="sd">                            This allows setting a Key whose type is int with a string value.</span>
+<span class="sd">        :param platform: Optional operating system platform. If you leave it at the </span>
+<span class="sd">                         default value of None, paths will be created to match the </span>
+<span class="sd">                         current operating system. If you pass in a sys.platform-style string</span>
+<span class="sd">                         (e.g. &#39;win32&#39;, &#39;linux2&#39; or &#39;darwin&#39;), paths will be generated to </span>
+<span class="sd">                         match that platform.</span>
+
+<span class="sd">        :returns: Full path, matching the template with the given fields inserted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="n">ignore_types</span> <span class="o">=</span> <span class="n">ignore_types</span> <span class="ow">or</span> <span class="p">[]</span>
+
+        <span class="c1"># find largest key mapping without missing values</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c1"># index of matching keys will be used to find cleaned_definition</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">cur_keys</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">):</span>
+            <span class="n">missing_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_missing_keys</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">cur_keys</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_keys</span><span class="p">:</span>
+                <span class="n">keys</span> <span class="o">=</span> <span class="n">cur_keys</span>
+                <span class="k">break</span>
+
+        
+        <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Tried to resolve a path from the template </span><span class="si">%s</span><span class="s2"> and a set &quot;</span>
+                            <span class="s2">&quot;of input fields &#39;</span><span class="si">%s</span><span class="s2">&#39; but the following required fields were missing &quot;</span>
+                            <span class="s2">&quot;from the input: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">missing_keys</span><span class="p">))</span>
+
+        <span class="c1"># Process all field values through template keys </span>
+        <span class="n">processed_fields</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key_name</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key_name</span><span class="p">)</span>
+            <span class="n">ignore_type</span> <span class="o">=</span>  <span class="n">key_name</span> <span class="ow">in</span> <span class="n">ignore_types</span>
+            <span class="n">processed_fields</span><span class="p">[</span><span class="n">key_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">str_from_value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ignore_type</span><span class="o">=</span><span class="n">ignore_type</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cleaned_definitions</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">%</span> <span class="n">processed_fields</span>
+
+    <span class="k">def</span> <span class="nf">_definition_variations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determines all possible definition based on combinations of optional sectionals.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;{foo}&quot;               ==&gt; [&#39;{foo}&#39;]</span>
+<span class="sd">        &quot;{foo}_{bar}&quot;         ==&gt; [&#39;{foo}_{bar}&#39;]</span>
+<span class="sd">        &quot;{foo}[_{bar}]&quot;       ==&gt; [&#39;{foo}&#39;, &#39;{foo}_{bar}&#39;]</span>
+<span class="sd">        &quot;{foo}_[{bar}_{baz}]&quot; ==&gt; [&#39;{foo}_&#39;, &#39;{foo}_{bar}_{baz}&#39;]</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># split definition by optional sections</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;(\[[^]]*\])&quot;</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
+
+        <span class="c1"># seed with empty string</span>
+        <span class="n">definitions</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+            <span class="n">temp_definitions</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1"># regex return some blank strings, skip them</span>
+            <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
+                <span class="c1"># check that optional contains a key</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;{*</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">TEMPLATE_KEY_NAME_REGEX</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span> 
+                    <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Optional sections must include a key definition.&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Add definitions skipping this optional value</span>
+                <span class="n">temp_definitions</span> <span class="o">=</span> <span class="n">definitions</span><span class="p">[:]</span>
+                <span class="c1"># strip brackets from token</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;[\[\]]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span>
+
+            <span class="c1"># check non-optional contains no dangleing brackets</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;[\[\]]&quot;</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span> 
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Square brackets are not allowed outside of optional section definitions.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># make defintions with token appended</span>
+            <span class="k">for</span> <span class="n">definition</span> <span class="ow">in</span> <span class="n">definitions</span><span class="p">:</span>
+                <span class="n">temp_definitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">definition</span> <span class="o">+</span> <span class="n">token</span><span class="p">)</span>
+
+            <span class="n">definitions</span> <span class="o">=</span> <span class="n">temp_definitions</span>
+
+        <span class="k">return</span> <span class="n">definitions</span>
+
+
+
+    <span class="k">def</span> <span class="nf">_fix_key_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Substitutes key name for name used in definition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Substitute key names for original key input names(key aliasing)</span>
+        <span class="n">substitutions</span> <span class="o">=</span> <span class="p">[(</span><span class="n">key_name</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">key_name</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key_name</span> <span class="o">!=</span> <span class="n">key</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">old_name</span><span class="p">,</span> <span class="n">new_name</span> <span class="ow">in</span> <span class="n">substitutions</span><span class="p">:</span>
+            <span class="n">old_def</span> <span class="o">=</span> <span class="s2">r&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">old_name</span>
+            <span class="n">new_def</span> <span class="o">=</span> <span class="s2">r&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">new_name</span>
+            <span class="n">definition</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">old_def</span><span class="p">,</span> <span class="n">new_def</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">definition</span>
+
+    <span class="k">def</span> <span class="nf">_clean_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">):</span>
+        <span class="c1"># Create definition with key names as strings with no format, enum or default values</span>
+        <span class="n">regex</span> <span class="o">=</span> <span class="s2">r&quot;{(</span><span class="si">%s</span><span class="s2">)}&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">TEMPLATE_KEY_NAME_REGEX</span>
+        <span class="n">cleaned_definition</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="s2">&quot;%(\g&lt;1&gt;)s&quot;</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cleaned_definition</span>
+
+    <span class="k">def</span> <span class="nf">_calc_static_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds the tokens from a definition which are not involved in defining keys.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># expand the definition to include the prefix unless the definition is empty in which</span>
+        <span class="c1"># case we just want to parse the prefix.  For example, in the case of a path template, </span>
+        <span class="c1"># having an empty definition would result in expanding to the project/storage root</span>
+        <span class="n">expanded_definition</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span> <span class="k">if</span> <span class="n">definition</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span>
+        <span class="n">regex</span> <span class="o">=</span> <span class="s2">r&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">TEMPLATE_KEY_NAME_REGEX</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">expanded_definition</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="c1"># Remove empty strings</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tokens</span> <span class="k">if</span> <span class="n">x</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns Template representing the parent of this object.</span>
+
+<span class="sd">        :returns: :class:`Template`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+<div class="viewcode-block" id="Template.validate_and_get_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.validate_and_get_fields">[docs]</a>    <span class="k">def</span> <span class="nf">validate_and_get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">required_fields</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes an input string and determines whether it can be mapped to the template pattern.</span>
+<span class="sd">        If it can then the list of matching fields is returned. Example::</span>
+
+<span class="sd">            &gt;&gt;&gt; good_path = &#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="sd">            &gt;&gt;&gt; template_path.validate_and_get_fields(good_path)</span>
+<span class="sd">            {&#39;Sequence&#39;: &#39;seq_1&#39;,</span>
+<span class="sd">             &#39;Shot&#39;: &#39;shot_2&#39;,</span>
+<span class="sd">             &#39;Step&#39;: &#39;comp&#39;,</span>
+<span class="sd">             &#39;name&#39;: &#39;henry&#39;,</span>
+<span class="sd">             &#39;version&#39;: 3}</span>
+
+<span class="sd">            &gt;&gt;&gt; bad_path = &#39;/studio_root/sgtk/demo_project_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="sd">            &gt;&gt;&gt; template_path.validate_and_get_fields(bad_path)</span>
+<span class="sd">            None</span>
+
+
+<span class="sd">        :param path:            Path to validate</span>
+<span class="sd">        :param required_fields: An optional dictionary of key names to key values. If supplied these values must </span>
+<span class="sd">                                be present in the input path and found by the template.</span>
+<span class="sd">        :param skip_keys:       List of field names whose values should be ignored</span>
+
+<span class="sd">        :returns:               Dictionary of fields found from the path or None if path fails to validate </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">required_fields</span> <span class="o">=</span> <span class="n">required_fields</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">skip_keys</span> <span class="o">=</span> <span class="n">skip_keys</span> <span class="ow">or</span> <span class="p">[]</span>
+        
+        <span class="c1"># Path should split into keys as per template</span>
+        <span class="n">path_fields</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">path_fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="n">skip_keys</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">TankError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        
+        <span class="c1"># Check that all required fields were found in the path:</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">required_fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">skip_keys</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">path_fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">!=</span> <span class="n">value</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="k">return</span> <span class="n">path_fields</span></div>
+
+<div class="viewcode-block" id="Template.validate"><a class="viewcode-back" href="../../core.html#sgtk.Template.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validates that a path can be mapped to the pattern given by the template. Example::</span>
+
+<span class="sd">            &gt;&gt;&gt; good_path = &#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="sd">            &gt;&gt;&gt; template_path.validate(good_path)</span>
+<span class="sd">            True</span>
+
+<span class="sd">            &gt;&gt;&gt; bad_path = &#39;/studio_root/sgtk/demo_project_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="sd">            &gt;&gt;&gt; template_path.validate(bad_path)</span>
+<span class="sd">            False</span>
+<span class="sd">                            </span>
+<span class="sd">        :param path:        Path to validate</span>
+<span class="sd">        :type path:         String</span>
+<span class="sd">        :param fields:      An optional dictionary of key names to key values. If supplied these values must </span>
+<span class="sd">                            be present in the input path and found by the template.</span>
+<span class="sd">        :type fields:       Dictionary</span>
+<span class="sd">        :param skip_keys:   Field names whose values should be ignored</span>
+<span class="sd">        :type skip_keys:    List</span>
+<span class="sd">        :returns:           True if the path is valid for this template</span>
+<span class="sd">        :rtype:             Bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_and_get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">skip_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">None</span></div>
+        
+<div class="viewcode-block" id="Template.get_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.get_fields">[docs]</a>    <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts key name, value pairs from a string. Example::</span>
+
+<span class="sd">            &gt;&gt;&gt; input_path = &#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="sd">            &gt;&gt;&gt; template_path.get_fields(input_path)</span>
+
+<span class="sd">            {&#39;Sequence&#39;: &#39;seq_1&#39;,</span>
+<span class="sd">             &#39;Shot&#39;: &#39;shot_2&#39;,</span>
+<span class="sd">             &#39;Step&#39;: &#39;comp&#39;,</span>
+<span class="sd">             &#39;name&#39;: &#39;henry&#39;,</span>
+<span class="sd">             &#39;version&#39;: 3}</span>
+<span class="sd">        </span>
+<span class="sd">        :param input_path: Source path for values</span>
+<span class="sd">        :type input_path: String</span>
+<span class="sd">        :param skip_keys: Optional keys to skip</span>
+<span class="sd">        :type skip_keys: List</span>
+
+<span class="sd">        :returns: Values found in the path based on keys in template</span>
+<span class="sd">        :rtype: Dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path_parser</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">for</span> <span class="n">ordered_keys</span><span class="p">,</span> <span class="n">static_tokens</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ordered_keys</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_static_tokens</span><span class="p">):</span>
+            <span class="n">path_parser</span> <span class="o">=</span> <span class="n">TemplatePathParser</span><span class="p">(</span><span class="n">ordered_keys</span><span class="p">,</span> <span class="n">static_tokens</span><span class="p">)</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="n">path_parser</span><span class="o">.</span><span class="n">parse_path</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">fields</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span> <span class="n">fields</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Template </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">path_parser</span><span class="o">.</span><span class="n">last_error</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">fields</span></div></div>
+
+
+<div class="viewcode-block" id="TemplatePath"><a class="viewcode-back" href="../../core.html#sgtk.TemplatePath">[docs]</a><span class="k">class</span> <span class="nc">TemplatePath</span><span class="p">(</span><span class="n">Template</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :class:`Template` representing a complete path on disk. The template definition is multi-platform</span>
+<span class="sd">    and you can pass it per-os roots given by a separate :meth:`root_path`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">root_path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">per_platform_roots</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        TemplatePath objects are typically created automatically by toolkit reading</span>
+<span class="sd">        the template configuration.</span>
+
+<span class="sd">        :param definition: Template definition string.</span>
+<span class="sd">        :param keys: Mapping of key names to keys (dict)</span>
+<span class="sd">        :param root_path: Path to project root for this template.</span>
+<span class="sd">        :param name: Optional name for this template.</span>
+<span class="sd">        :param per_platform_roots: Root paths for all supported operating systems. </span>
+<span class="sd">                                   This is a dictionary with sys.platform-style keys</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TemplatePath</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">=</span> <span class="n">root_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_per_platform_roots</span> <span class="o">=</span> <span class="n">per_platform_roots</span>
+
+        <span class="c1"># Make definition use platform separator</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">rel_definition</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_definitions</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_definitions</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">split_path</span><span class="p">(</span><span class="n">rel_definition</span><span class="p">))</span>
+
+        <span class="c1"># get definition ready for string substitution</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cleaned_definitions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">definition</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_definitions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cleaned_definitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_definition</span><span class="p">(</span><span class="n">definition</span><span class="p">))</span>
+
+        <span class="c1"># split by format strings the definition string into tokens </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_static_tokens</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">definition</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_definitions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_static_tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calc_static_tokens</span><span class="p">(</span><span class="n">definition</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">root_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the root path associated with this template.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns Template representing the parent of this object.</span>
+
+<span class="sd">        For paths, this means the parent folder.</span>
+
+<span class="sd">        :returns: :class:`Template`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parent_definition</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parent_definition</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">TemplatePath</span><span class="p">(</span><span class="n">parent_definition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_path</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_per_platform_roots</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">_apply_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates path using fields.</span>
+
+<span class="sd">        :param fields: Mapping of keys to fields. Keys must match those in template </span>
+<span class="sd">                       definition.</span>
+<span class="sd">        :param ignore_types: Keys for whom the defined type is ignored as list of strings.</span>
+<span class="sd">                            This allows setting a Key whose type is int with a string value.</span>
+<span class="sd">        :param platform: Optional operating system platform. If you leave it at the </span>
+<span class="sd">                         default value of None, paths will be created to match the </span>
+<span class="sd">                         current operating system. If you pass in a sys.platform-style string</span>
+<span class="sd">                         (e.g. &#39;win32&#39;, &#39;linux2&#39; or &#39;darwin&#39;), paths will be generated to </span>
+<span class="sd">                         match that platform.</span>
+
+<span class="sd">        :returns: Full path, matching the template with the given fields inserted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="n">relative_path</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">TemplatePath</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="p">,</span> <span class="n">platform</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">platform</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c1"># return the current OS platform&#39;s path</span>
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_path</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">relative_path</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_path</span>
+    
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># caller has requested a path for another OS</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_per_platform_roots</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c1"># it&#39;s possible that the additional os paths are not set for a template</span>
+                <span class="c1"># object (mainly because of backwards compatibility reasons) and in this case</span>
+                <span class="c1"># we cannot compute the path.</span>
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Template </span><span class="si">%s</span><span class="s2"> cannot resolve path for operating system &#39;</span><span class="si">%s</span><span class="s2">&#39; - &quot;</span>
+                                <span class="s2">&quot;it was instantiated in a mode which only supports the resolving &quot;</span>
+                                <span class="s2">&quot;of current operating system paths.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">platform</span><span class="p">))</span>
+            
+            <span class="n">platform_root_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_per_platform_roots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">platform</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">platform_root_path</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c1"># either the platform is undefined or unknown</span>
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot resolve path for operating system &#39;</span><span class="si">%s</span><span class="s2">&#39;! Please ensure &quot;</span>
+                                <span class="s2">&quot;that you have a valid storage set up for this platform.&quot;</span> <span class="o">%</span> <span class="n">platform</span><span class="p">)</span>
+            
+            <span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+                <span class="c1"># use backslashes for windows</span>
+                <span class="k">if</span> <span class="n">relative_path</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="se">\\</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">platform_root_path</span><span class="p">,</span> <span class="n">relative_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># not path generated - just return the root path</span>
+                    <span class="k">return</span> <span class="n">platform_root_path</span>
+            
+            <span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span> <span class="ow">or</span> <span class="s2">&quot;linux&quot;</span> <span class="ow">in</span> <span class="n">platform</span><span class="p">:</span>
+                <span class="c1"># unix-like plaforms - use slashes</span>
+                <span class="k">if</span> <span class="n">relative_path</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">platform_root_path</span><span class="p">,</span> <span class="n">relative_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># not path generated - just return the root path </span>
+                    <span class="k">return</span> <span class="n">platform_root_path</span>
+            
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot evaluate path. Unsupported platform &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">platform</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TemplateString"><a class="viewcode-back" href="../../core.html#sgtk.TemplateString">[docs]</a><span class="k">class</span> <span class="nc">TemplateString</span><span class="p">(</span><span class="n">Template</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :class:`Template` class for templates representing strings.</span>
+
+<span class="sd">    Templated strings are useful if you want to write code where you can configure</span>
+<span class="sd">    the formatting of strings, for example how a name or other string field should</span>
+<span class="sd">    be configured in Shotgun, given a series of key values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">validate_with</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        TemplatePath objects are typically created automatically by toolkit reading</span>
+<span class="sd">        the template configuration.</span>
+
+<span class="sd">        :param definition: Template definition string.</span>
+<span class="sd">        :param keys: Mapping of key names to keys (dict)</span>
+<span class="sd">        :param name: Optional name for this template.</span>
+<span class="sd">        :param validate_with: Optional :class:`Template` to use for validation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TemplateString</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_with</span> <span class="o">=</span> <span class="n">validate_with</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">=</span> <span class="s2">&quot;@&quot;</span>
+
+        <span class="c1"># split by format strings the definition string into tokens </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_static_tokens</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">definition</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_definitions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_static_tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calc_static_tokens</span><span class="p">(</span><span class="n">definition</span><span class="p">))</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Strings don&#39;t have a concept of parent so this always returns ``None``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts key name, value pairs from a string. Example::</span>
+
+<span class="sd">            &gt;&gt;&gt; input = &#39;filename.v003.ma&#39;</span>
+<span class="sd">            &gt;&gt;&gt; template_string.get_fields(input)</span>
+
+<span class="sd">            {&#39;name&#39;: &#39;henry&#39;,</span>
+<span class="sd">             &#39;version&#39;: 3}</span>
+
+<span class="sd">        :param input_path: Source path for values</span>
+<span class="sd">        :type input_path: String</span>
+<span class="sd">        :param skip_keys: Optional keys to skip</span>
+<span class="sd">        :type skip_keys: List</span>
+
+<span class="sd">        :returns: Values found in the path based on keys in template</span>
+<span class="sd">        :rtype: Dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># add path prefix as original design was to require project root</span>
+        <span class="n">adj_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">,</span> <span class="n">input_path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">TemplateString</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">adj_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="n">skip_keys</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">split_path</span><span class="p">(</span><span class="n">input_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Split a path into tokens.</span>
+
+<span class="sd">    :param input_path: path to split</span>
+<span class="sd">    :type input_path: string</span>
+
+<span class="sd">    :returns: tokenized path</span>
+<span class="sd">    :rtype: list of tokens</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span>
+    <span class="n">cur_path</span> <span class="o">=</span> <span class="n">cur_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cur_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">read_templates</span><span class="p">(</span><span class="n">pipeline_configuration</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates templates and keys based on contents of templates file.</span>
+
+<span class="sd">    :param pipeline_configuration: pipeline config object</span>
+
+<span class="sd">    :returns: Dictionary of form {template name: template object}</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="n">per_platform_roots</span> <span class="o">=</span> <span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_all_platform_data_roots</span><span class="p">()</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_templates_config</span><span class="p">()</span>            
+    
+    <span class="c1"># get dictionaries from the templates config file:</span>
+    <span class="k">def</span> <span class="nf">get_data_section</span><span class="p">(</span><span class="n">section_name</span><span class="p">):</span>
+        <span class="c1"># support both the case where the section </span>
+        <span class="c1"># name exists and is set to None and the case where it doesn&#39;t exist</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">d</span>            
+            
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">templatekey</span><span class="o">.</span><span class="n">make_keys</span><span class="p">(</span><span class="n">get_data_section</span><span class="p">(</span><span class="s2">&quot;keys&quot;</span><span class="p">))</span>
+    <span class="n">template_paths</span> <span class="o">=</span> <span class="n">make_template_paths</span><span class="p">(</span><span class="n">get_data_section</span><span class="p">(</span><span class="s2">&quot;paths&quot;</span><span class="p">),</span> <span class="n">keys</span><span class="p">,</span> <span class="n">per_platform_roots</span><span class="p">)</span>
+    <span class="n">template_strings</span> <span class="o">=</span> <span class="n">make_template_strings</span><span class="p">(</span><span class="n">get_data_section</span><span class="p">(</span><span class="s2">&quot;strings&quot;</span><span class="p">),</span> <span class="n">keys</span><span class="p">,</span> <span class="n">template_paths</span><span class="p">)</span>
+
+    <span class="c1"># Detect duplicate names across paths and strings</span>
+    <span class="n">dup_names</span> <span class="o">=</span>  <span class="nb">set</span><span class="p">(</span><span class="n">template_paths</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">template_strings</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">dup_names</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Detected paths and strings with the same name: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">dup_names</span><span class="p">)))</span>
+
+    <span class="c1"># Put path and strings together</span>
+    <span class="n">templates</span> <span class="o">=</span> <span class="n">template_paths</span>
+    <span class="n">templates</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">template_strings</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">templates</span>
+
+
+<span class="k">def</span> <span class="nf">make_template_paths</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">all_per_platform_roots</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Factory function which creates TemplatePaths.</span>
+
+<span class="sd">    :param data: Data from which to construct the template paths.</span>
+<span class="sd">                 Dictionary of form: {&lt;template name&gt;: {&lt;option&gt;: &lt;option value&gt;}}</span>
+<span class="sd">    :param keys: Available keys. Dictionary of form: {&lt;key name&gt; : &lt;TemplateKey object&gt;}</span>
+<span class="sd">    :param all_per_platform_roots: Root paths for all platforms. nested dictionary first keyed by </span>
+<span class="sd">                                   storage root name and then by sys.platform-style os name.</span>
+
+<span class="sd">    :returns: Dictionary of form {&lt;template name&gt; : &lt;TemplatePath object&gt;}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">template_paths</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">templates_data</span> <span class="o">=</span> <span class="n">_process_templates_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">template_name</span><span class="p">,</span> <span class="n">template_data</span> <span class="ow">in</span> <span class="n">templates_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">definition</span> <span class="o">=</span> <span class="n">template_data</span><span class="p">[</span><span class="s2">&quot;definition&quot;</span><span class="p">]</span>
+        <span class="n">root_name</span> <span class="o">=</span> <span class="n">template_data</span><span class="p">[</span><span class="s2">&quot;root_name&quot;</span><span class="p">]</span>
+        <span class="c1"># to avoid confusion between strings and paths, validate to check</span>
+        <span class="c1"># that each item contains at least a &quot;/&quot; (#19098)</span>
+        <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">definition</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;The template </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">) does not seem to be a valid path. A valid &quot;</span>
+                            <span class="s2">&quot;path needs to contain at least one &#39;/&#39; character. Perhaps this &quot;</span>
+                            <span class="s2">&quot;template should be in the strings section &quot;</span>
+                            <span class="s2">&quot;instead?&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_name</span><span class="p">,</span> <span class="n">definition</span><span class="p">))</span>
+
+        <span class="n">root_path</span> <span class="o">=</span> <span class="n">all_per_platform_roots</span><span class="p">[</span><span class="n">root_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">root_path</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Undefined Shotgun storage! The local file storage &#39;</span><span class="si">%s</span><span class="s2">&#39; is not defined for this &quot;</span>
+                            <span class="s2">&quot;operating system.&quot;</span> <span class="o">%</span> <span class="n">root_name</span><span class="p">)</span>
+
+        <span class="n">template_path</span> <span class="o">=</span> <span class="n">TemplatePath</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">root_path</span><span class="p">,</span> <span class="n">template_name</span><span class="p">,</span> <span class="n">all_per_platform_roots</span><span class="p">[</span><span class="n">root_name</span><span class="p">])</span>
+        <span class="n">template_paths</span><span class="p">[</span><span class="n">template_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">template_path</span>
+
+    <span class="k">return</span> <span class="n">template_paths</span>
+
+<span class="k">def</span> <span class="nf">make_template_strings</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">template_paths</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Factory function which creates TemplateStrings.</span>
+
+<span class="sd">    :param data: Data from which to construct the template strings.</span>
+<span class="sd">    :type data:  Dictionary of form: {&lt;template name&gt;: {&lt;option&gt;: &lt;option value&gt;}}</span>
+<span class="sd">    :param keys: Available keys.</span>
+<span class="sd">    :type keys:  Dictionary of form: {&lt;key name&gt; : &lt;TemplateKey object&gt;}</span>
+<span class="sd">    :param template_paths: TemplatePaths available for optional validation.</span>
+<span class="sd">    :type template_paths: Dictionary of form: {&lt;template name&gt;: &lt;TemplatePath object&gt;}</span>
+
+<span class="sd">    :returns: Dictionary of form {&lt;template name&gt; : &lt;TemplateString object&gt;}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">template_strings</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">templates_data</span> <span class="o">=</span> <span class="n">_process_templates_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">template_name</span><span class="p">,</span> <span class="n">template_data</span> <span class="ow">in</span> <span class="n">templates_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">definition</span> <span class="o">=</span> <span class="n">template_data</span><span class="p">[</span><span class="s2">&quot;definition&quot;</span><span class="p">]</span>
+
+        <span class="n">validator_name</span> <span class="o">=</span> <span class="n">template_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;validate_with&quot;</span><span class="p">)</span>
+        <span class="n">validator</span> <span class="o">=</span> <span class="n">template_paths</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">validator_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">validator_name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">validator</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Template </span><span class="si">%s</span><span class="s2"> validate_with is set to undefined template </span><span class="si">%s</span><span class="s2">.&quot;</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">msg</span> <span class="o">%</span><span class="p">(</span><span class="n">template_name</span><span class="p">,</span> <span class="n">validator_name</span><span class="p">))</span>
+
+        <span class="n">template_string</span> <span class="o">=</span> <span class="n">TemplateString</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span>
+                                         <span class="n">keys</span><span class="p">,</span>
+                                         <span class="n">template_name</span><span class="p">,</span>
+                                         <span class="n">validate_with</span><span class="o">=</span><span class="n">validator</span><span class="p">)</span>
+
+        <span class="n">template_strings</span><span class="p">[</span><span class="n">template_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">template_string</span>
+
+    <span class="k">return</span> <span class="n">template_strings</span>
+
+<span class="k">def</span> <span class="nf">_conform_template_data</span><span class="p">(</span><span class="n">template_data</span><span class="p">,</span> <span class="n">template_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes data for single template and conforms it expected data structure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template_data</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+        <span class="n">template_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;definition&quot;</span><span class="p">:</span> <span class="n">template_data</span><span class="p">}</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;template </span><span class="si">%s</span><span class="s2"> has data which is not a string or dictionary.&quot;</span> <span class="o">%</span> <span class="n">template_name</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;definition&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">template_data</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Template </span><span class="si">%s</span><span class="s2"> missing definition.&quot;</span> <span class="o">%</span> <span class="n">template_name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">template_data</span>
+
+<span class="k">def</span> <span class="nf">_process_templates_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">template_type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Conforms templates data and checks for duplicate definitions.</span>
+
+<span class="sd">    :param data: Dictionary in form { &lt;template name&gt; : &lt;data&gt; }</span>
+<span class="sd">    :param template_type: path or string</span>
+
+<span class="sd">    :returns: Processed data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">templates_data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># Track definition to detect duplicates</span>
+    <span class="n">definitions</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">template_name</span><span class="p">,</span> <span class="n">template_data</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">cur_data</span> <span class="o">=</span> <span class="n">_conform_template_data</span><span class="p">(</span><span class="n">template_data</span><span class="p">,</span> <span class="n">template_name</span><span class="p">)</span>
+        <span class="n">definition</span> <span class="o">=</span> <span class="n">cur_data</span><span class="p">[</span><span class="s2">&quot;definition&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">template_type</span> <span class="o">==</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;root_name&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cur_data</span><span class="p">:</span>
+                <span class="n">cur_data</span><span class="p">[</span><span class="s2">&quot;root_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span>
+            
+            <span class="n">root_name</span> <span class="o">=</span> <span class="n">cur_data</span><span class="p">[</span><span class="s2">&quot;root_name&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">root_name</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c1"># Record this templates definition</span>
+        <span class="n">cur_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">root_name</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
+        <span class="n">definitions</span><span class="p">[</span><span class="n">cur_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cur_key</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">template_name</span><span class="p">]</span>
+
+        <span class="n">templates_data</span><span class="p">[</span><span class="n">template_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_data</span>
+
+
+    <span class="n">dups_msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">root_name</span><span class="p">,</span> <span class="n">definition</span><span class="p">),</span> <span class="n">template_names</span> <span class="ow">in</span> <span class="n">definitions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">template_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># We have a duplicate</span>
+            <span class="n">dups_msg</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template_names</span><span class="p">),</span> <span class="n">definition</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dups_msg</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;It looks like you have one or more &quot;</span>
+                        <span class="s2">&quot;duplicate entries in your templates.yml file. Each template path that you &quot;</span> 
+                        <span class="s2">&quot;define in the templates.yml file needs to be unique, otherwise toolkit &quot;</span>
+                        <span class="s2">&quot;will not be able to resolve which template a particular path on disk &quot;</span>
+                        <span class="s2">&quot;corresponds to. The following duplicate &quot;</span>
+                        <span class="s2">&quot;templates were detected:</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dups_msg</span><span class="p">)</span> 
+
+    <span class="k">return</span> <span class="n">templates_data</span>
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

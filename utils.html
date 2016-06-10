@@ -1,0 +1,1557 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Utilities &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="index.html"/>
+        <link rel="next" title="Descriptor API" href="descriptor.html"/>
+        <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-sgtk.log">Logging</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#logging-hierarchy">Logging hierarchy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generating-log-messages-in-toolkit">Generating log messages in Toolkit</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#logging-from-within-your-app-engine-or-framework">Logging from within your App, Engine or Framework</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#logging-from-scripts-and-other-external-locations">Logging from scripts and other external locations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#logging-from-inside-the-core-api">Logging from inside the Core API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#consuming-log-messages-in-toolkit">Consuming log messages in Toolkit</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#global-debug">Global debug</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#backend-file-logging">Backend file logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcc-logging">DCC Logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#standard-logging">Standard Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#logmanager">LogManager</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#file-system-utilities">File System Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sgtk-util-filesystem">sgtk.util.filesystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shotgunpath">ShotgunPath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#localfilestoragemanager">LocalFileStorageManager</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#shotgun-related">Shotgun Related</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Utilities</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="utilities">
+<h1>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-sgtk.log">
+<span id="logging"></span><h2>Logging<a class="headerlink" href="#module-sgtk.log" title="Permalink to this headline">¶</a></h2>
+<p>Toolkit uses the standard python logging for its
+log management. The <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal"><span class="pre">LogManager</span></code></a> class below
+acts as an interface that helps make it easy to access
+and manage Toolkit logging.</p>
+<div class="section" id="logging-hierarchy">
+<h3>Logging hierarchy<a class="headerlink" href="#logging-hierarchy" title="Permalink to this headline">¶</a></h3>
+<p>All Toolkit logging is written into a <code class="docutils literal"><span class="pre">sgtk.*</span></code> logging
+namespace. This has been &#8220;sealed&#8221; so that log messages
+from Toolkit do not propagate up to the root logger. This
+is to ensure that Toolkit doesn&#8217;t interfere with other logging
+that has been already configured.</p>
+<p>The following sub-heirarchies exist:</p>
+<ul class="simple">
+<li>Each app, engine and bundle provides access to logging and
+these log streams are collected and organized under the
+<code class="docutils literal"><span class="pre">sgtk.env</span></code> logging namespace. Below this level, messages
+are broken down further by environment, engine, etc.</li>
+<li>Logging from external tools and scripts is written to <code class="docutils literal"><span class="pre">sgtk.ext</span></code>.</li>
+<li>All core logging is written to the <code class="docutils literal"><span class="pre">sgtk.core</span></code> logger.</li>
+</ul>
+<p>Below is a simple log hierarchy to illustrate what this might look like in practice.</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span>sgtk                                              Root point for all Toolkit logging
+ |
+ |- core                                          Root point for the Core API
+ |   |
+ |   |- descriptor                                Logging from core Modules
+ |   |- path_cache
+ |
+ |- env                                           Logging from apps and engines
+ |   |
+ |   |- project                                   Toolkit Environment
+ |       |
+ |       |- tk-maya                               Toolkit Engine
+ |             |
+ |             |- tk-multi-workfiles2             Toolkit App (or framework)
+ |                  |
+ |                  |- tkimp63c3b2d57f85          Toolkit Command Session
+ |                      |
+ |                      |- tk_multi_workfiles     Python hierarchy inside app&#39;s python folder
+ |                          |
+ |                          |- entity_tree
+ |
+ |- ext                                           Logging from associated external scripts
+     |
+     |- tank_cmd
+</pre></div>
+</div>
+</div>
+<div class="section" id="generating-log-messages-in-toolkit">
+<h3>Generating log messages in Toolkit<a class="headerlink" href="#generating-log-messages-in-toolkit" title="Permalink to this headline">¶</a></h3>
+<p>Generating log messages are done differently depending on your context.
+Below are a series of examples and best practice recipes explaining how to best
+apply logging to different scenarios.</p>
+<div class="section" id="logging-from-within-your-app-engine-or-framework">
+<h4>Logging from within your App, Engine or Framework<a class="headerlink" href="#logging-from-within-your-app-engine-or-framework" title="Permalink to this headline">¶</a></h4>
+<p>Inside your app, a logger is available via <a class="reference internal" href="platform.html#sgtk.platform.Application.logger" title="sgtk.platform.Application.logger"><code class="xref py py-meth docutils literal"><span class="pre">logger()</span></code></a>.
+Alternatively, you can also
+use the legacy methods <code class="docutils literal"><span class="pre">log_debug|error|info|...()</span></code>. This provides
+a basic level of general logging.</p>
+<p>For code inside the <code class="docutils literal"><span class="pre">python</span></code> folder, which has been imported via
+Toolkit&#8217;s <a class="reference internal" href="platform.html#sgtk.platform.Application.import_module" title="sgtk.platform.Application.import_module"><code class="xref py py-meth docutils literal"><span class="pre">import_module()</span></code></a> method,
+we recommend that you access a logger using the following method:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># at the top of the file, include the following</span>
+<span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">my_method</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;inside my code, i can log like this&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This logger will be grouped per invocation instance,
+meaning that you can see for example which dialog UI
+a particular collection of log messages comes from.
+An invocation is typically associated with someone launching
+the app from the Shotgun menu.</p>
+<blockquote>
+<div><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Because log messages are grouped per invocation,
+this makes it easy to for example generate log files
+for export or import sessions running as part of an
+app. It also makes it possible to create a log window
+which displays the logging associated with a particular
+app UI dialog.</p>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="logging-from-scripts-and-other-external-locations">
+<h4>Logging from scripts and other external locations<a class="headerlink" href="#logging-from-scripts-and-other-external-locations" title="Permalink to this headline">¶</a></h4>
+<p>If you want to add standard Toolkit logging to a script, simply
+use the following recipe:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># at the top of the file, include the following</span>
+<span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">my_method</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;inside my code, i can log like this&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All this logging will appear below the <code class="docutils literal"><span class="pre">sgtk.ext</span></code> logger.</p>
+</div>
+<div class="section" id="logging-from-inside-the-core-api">
+<h4>Logging from inside the Core API<a class="headerlink" href="#logging-from-inside-the-core-api" title="Permalink to this headline">¶</a></h4>
+<p>To emit log messages from inside the Toolkit Core API, use the following pattern:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># at the top of the file, include the following</span>
+<span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">my_method</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;inside my code, i can log like this&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="consuming-log-messages-in-toolkit">
+<h3>Consuming log messages in Toolkit<a class="headerlink" href="#consuming-log-messages-in-toolkit" title="Permalink to this headline">¶</a></h3>
+<p>Toolkit provides several ways to access the log information generated by
+the various methods and recipes shown above.</p>
+<p>The general approach is to attach one or several log handlers to the root
+logging point of the hierarchy (<code class="docutils literal"><span class="pre">sgtk</span></code>). Each handler controls its own
+logging resolution, e.g. how much log information to display. The toolkit
+logging hierarchy itself is set to DEBUG resolution.</p>
+<p>The Toolkit <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal"><span class="pre">LogManager</span></code></a> provides a default set of logging methods
+to help access log information.</p>
+<div class="section" id="global-debug">
+<h4>Global debug<a class="headerlink" href="#global-debug" title="Permalink to this headline">¶</a></h4>
+<p>Toolkit has a concept of a global debug flag. This flag can be
+enabled by setting the <code class="docutils literal"><span class="pre">TK_DEBUG</span></code> environment variable or
+alternatively setting the <a class="reference internal" href="#sgtk.log.LogManager.global_debug" title="sgtk.log.LogManager.global_debug"><code class="xref py py-meth docutils literal"><span class="pre">LogManager.global_debug()</span></code></a> property.</p>
+<p>All log handlers that have been created using the <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal"><span class="pre">LogManager</span></code></a>
+will be affected by the flag.</p>
+</div>
+<div class="section" id="backend-file-logging">
+<h4>Backend file logging<a class="headerlink" href="#backend-file-logging" title="Permalink to this headline">¶</a></h4>
+<p>Log information is automatically written to disk by the <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal"><span class="pre">LogManager</span></code></a>.
+The location to which log files are written can be accessed via the
+<a class="reference internal" href="#sgtk.log.LogManager.log_folder" title="sgtk.log.LogManager.log_folder"><code class="xref py py-meth docutils literal"><span class="pre">LogManager.log_folder()</span></code></a> property. Backend file logging is normally
+automatically enabled and end users do not need to worry about this.
+If you want debug logging to be written to these files, enable the
+global debug flag.</p>
+<blockquote>
+<div><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you are writing a toolkit plugin, we recommend
+that you initialize logging early on in your code by
+calling <a class="reference internal" href="#sgtk.log.LogManager.initialize_base_file_handler" title="sgtk.log.LogManager.initialize_base_file_handler"><code class="xref py py-meth docutils literal"><span class="pre">LogManager.initialize_base_file_handler()</span></code></a>.
+This will ensure that all your logs are written to disk.
+If you omit this call, logging will automatically be
+started up as the engine is launched.</p>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="dcc-logging">
+<h4>DCC Logging<a class="headerlink" href="#dcc-logging" title="Permalink to this headline">¶</a></h4>
+<p>Each toolkit engine integrates logging into the DCC. DCCs such as
+Maya, Nuke or houdini traditionally have a console of some sort where
+logging information typically should be dispatched.</p>
+<p>Engine log output has traditionally been implemented by subclassing
+the <code class="docutils literal"><span class="pre">log_info</span></code>, <code class="docutils literal"><span class="pre">log_error</span></code> methods. In Core v0.18, a new and
+improved logging platform is introduced and we recommend that engines
+<em>do not</em> implement the <code class="docutils literal"><span class="pre">log_xxx</span></code> methods at all but instead implement
+a single <a class="reference internal" href="platform.html#sgtk.platform.Engine._emit_log_message" title="sgtk.platform.Engine._emit_log_message"><code class="xref py py-meth docutils literal"><span class="pre">_emit_log_message()</span></code></a> method.</p>
+</div>
+<div class="section" id="standard-logging">
+<h4>Standard Logging<a class="headerlink" href="#standard-logging" title="Permalink to this headline">¶</a></h4>
+<p>If you want some sort of log output in addition to the logging an
+engine provides, you can add standard toolkit handlers. These handlers
+are created via the <a class="reference internal" href="#sgtk.log.LogManager.initialize_custom_handler" title="sgtk.log.LogManager.initialize_custom_handler"><code class="xref py py-meth docutils literal"><span class="pre">LogManager.initialize_custom_handler()</span></code></a> method.</p>
+<p>All log handlers created or registered via this method will respond
+to the global debug flag.</p>
+<blockquote>
+<div><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want a raw log output that is not affected
+by any changes to the global debug flag, we recommend that
+you manually create your log handler and attach it to
+the <code class="docutils literal"><span class="pre">sgtk</span></code> root logger.</p>
+</div>
+</div></blockquote>
+<p>Python provides a large number of log handlers as part of its standard library.
+For more information, see <a class="reference external" href="https://docs.python.org/2/library/logging.handlers.html#module-logging.handlers">https://docs.python.org/2/library/logging.handlers.html#module-logging.handlers</a></p>
+</div>
+</div>
+<div class="section" id="logmanager">
+<h3>LogManager<a class="headerlink" href="#logmanager" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.log.LogManager">
+<em class="property">class </em><code class="descclassname">sgtk.log.</code><code class="descname">LogManager</code><a class="reference internal" href="_modules/tank/log.html#LogManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.log.LogManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main interface for logging in Toolkit.</p>
+<p>This class contains a series of methods to help standardize log output
+and access. Since Toolkit uses the standard python logging interface,
+you can manually configure and associate your logging if you like.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is a singleton class, so every time you instantiate it,
+the same object is returned.</p>
+</div>
+<dl class="staticmethod">
+<dt id="sgtk.log.LogManager.get_logger">
+<em class="property">static </em><code class="descname">get_logger</code><span class="sig-paren">(</span><em>log_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/log.html#LogManager.get_logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.log.LogManager.get_logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates standard logger objects for Toolkit.</p>
+<p>If you want to add standard toolkit logging to your code,
+the easiest way is to include the following at the top of
+your python file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will pick up the module hierarchy of your code and
+parent it under the standard Toolkit logger.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method is useful if you are writing scripts, tools or wrappers.
+If you are developing a Toolkit app, framework or engine,
+you typically want to use <a class="reference internal" href="platform.html#sgtk.platform.get_logger" title="sgtk.platform.get_logger"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.platform.get_logger()</span></code></a>
+for your logging.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To output logging to screen or to a console,
+we recommend using the <a class="reference internal" href="#sgtk.log.LogManager.initialize_custom_handler" title="sgtk.log.LogManager.initialize_custom_handler"><code class="xref py py-meth docutils literal"><span class="pre">initialize_custom_handler()</span></code></a>
+convenience method.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>log_name</strong> &#8211; Name of logger to create. This name will be parented under
+the sgtk namespace. If the name begins with <code class="docutils literal"><span class="pre">tank.</span></code>, it will
+be automatically replaced with <code class="docutils literal"><span class="pre">sgtk.</span></code>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Standard python logger.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="sgtk.log.LogManager.log_timing">
+<em class="property">static </em><code class="descname">log_timing</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/log.html#LogManager.log_timing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.log.LogManager.log_timing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator that times and logs the execution of a method.</p>
+<p>Sometimes it is useful to log runtime statistics about
+how long time a certain method takes to execute. In the
+case of Toolkit, it is particularly helpful when debugging
+issues to do with I/O or cloud connectivity.</p>
+<p>If you have a method that for example connects to Shotgun to
+retrieve data, you can decorate it:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">log_timing</span>
+<span class="k">def</span> <span class="nf">my_shotgun_publish_method</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Publishes lots of files to Shotgun</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># shotgun code here</span>
+</pre></div>
+</div>
+<p>In the debug logs, timings will be written to the
+<code class="docutils literal"><span class="pre">sgtk.stopwatch</span></code> logger:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">DEBUG</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">stopwatch</span><span class="o">.</span><span class="n">module</span><span class="p">]</span> <span class="n">my_shotgun_publish_method</span><span class="p">:</span> <span class="mf">0.633</span><span class="n">s</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.log.LogManager.global_debug">
+<code class="descname">global_debug</code><a class="headerlink" href="#sgtk.log.LogManager.global_debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Controls the global debug flag in toolkit. Toggling this
+flag will affect all log handlers that have been created
+via <a class="reference internal" href="#sgtk.log.LogManager.initialize_custom_handler" title="sgtk.log.LogManager.initialize_custom_handler"><code class="xref py py-meth docutils literal"><span class="pre">initialize_custom_handler()</span></code></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Debug logging is off by default.
+If you want to permanently enable debug logging,
+set the environment variable <code class="docutils literal"><span class="pre">TK_DEBUG</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.log.LogManager.log_folder">
+<code class="descname">log_folder</code><a class="headerlink" href="#sgtk.log.LogManager.log_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>The folder where log files generated by <a class="reference internal" href="#sgtk.log.LogManager.initialize_base_file_handler" title="sgtk.log.LogManager.initialize_base_file_handler"><code class="xref py py-meth docutils literal"><span class="pre">initialize_base_file_handler()</span></code></a> are stored.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.log.LogManager.root_logger">
+<code class="descname">root_logger</code><a class="headerlink" href="#sgtk.log.LogManager.root_logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the root logger for Toolkit.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want to add a custom logging handler to the root logger,
+we recommend using the <a class="reference internal" href="#sgtk.log.LogManager.initialize_custom_handler" title="sgtk.log.LogManager.initialize_custom_handler"><code class="xref py py-meth docutils literal"><span class="pre">initialize_custom_handler()</span></code></a> method.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The root logger logs down to a debug resolution by default.
+Do not change the output level of logger as this will have
+a global effect. If you are connecting a logging handler
+and want to limit the stream of messages that are being
+emitted, instead adjust the logging level of the handler.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">log object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.log.LogManager.base_file_handler">
+<code class="descname">base_file_handler</code><a class="headerlink" href="#sgtk.log.LogManager.base_file_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>The base file handler that is used to write log files to disk
+in a default location, or None if not defined.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.log.LogManager.initialize_custom_handler">
+<code class="descname">initialize_custom_handler</code><span class="sig-paren">(</span><em>handler=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/log.html#LogManager.initialize_custom_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.log.LogManager.initialize_custom_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method that initializes a log handler
+and attaches it to the toolkit logging root.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want to display log messages inside a DCC,
+implement <a class="reference internal" href="platform.html#sgtk.platform.Engine._emit_log_message" title="sgtk.platform.Engine._emit_log_message"><code class="xref py py-meth docutils literal"><span class="pre">_emit_log_message()</span></code></a>.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If <a class="reference internal" href="#sgtk.log.LogManager.global_debug" title="sgtk.log.LogManager.global_debug"><code class="xref py py-meth docutils literal"><span class="pre">global_debug()</span></code></a> is set to True, the handler created
+will be set to debug level, otherwise it will be set to info level.
+Furthermore, the log handler will automatically adjust its log
+level whenever the global debug flag changes its state.</p>
+</div>
+<p>Calling this without parameters will generate a standard
+stream based logging handler that logs to stderr:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># start logging to stderr</span>
+<span class="kn">import</span> <span class="nn">sgtk.LogManager</span>
+<span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">initialize_custom_handler</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If you want to log to a file instead, create a log handler
+and pass that to the method:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s2">&quot;/tmp/toolkit.log)</span>
+<span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">initialize_custom_handler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The log handler will be configured to output its messages
+in a standard fashion.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>handler</strong> &#8211; Logging handler to connect with the toolkit logger.
+If not passed, a standard stream handler will be created.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The configured log handler.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.log.LogManager.uninitialize_base_file_handler">
+<code class="descname">uninitialize_base_file_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/log.html#LogManager.uninitialize_base_file_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.log.LogManager.uninitialize_base_file_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uninitialize base file handler created with <a class="reference internal" href="#sgtk.log.LogManager.initialize_base_file_handler" title="sgtk.log.LogManager.initialize_base_file_handler"><code class="xref py py-meth docutils literal"><span class="pre">initialize_base_file_handler()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The name of the previous log_name that is being switched away from,
+None if no base logger was previously active.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.log.LogManager.initialize_base_file_handler">
+<code class="descname">initialize_base_file_handler</code><span class="sig-paren">(</span><em>log_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/log.html#LogManager.initialize_base_file_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.log.LogManager.initialize_base_file_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a file handler and attach it to the stgk base logger.
+This will write a rotating log file to disk in a standard
+location and will capture all log messages passed through
+the log hierarchy.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Files will be written into the a location on disk
+defined by <a class="reference internal" href="#sgtk.log.LogManager.log_folder" title="sgtk.log.LogManager.log_folder"><code class="xref py py-meth docutils literal"><span class="pre">log_folder()</span></code></a>.</p>
+</div>
+<p>When you start an engine via the <a class="reference internal" href="platform.html#sgtk.platform.start_engine" title="sgtk.platform.start_engine"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.platform.start_engine()</span></code></a> method,
+a file handler will automatically be created if one doesn&#8217;t already exist.</p>
+<p>If you are manually launching toolkit, we recommend that you call
+this method to initialize logging to file early on in your setup.
+Calling it multiple times will not result in the information being
+written to multiple different files - only one file logger can
+exist per session.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>log_name</strong> &#8211; Name of logger to create. This will form the
+filename of the log file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The name of the previous log_name that is being switched away from,
+None if no base logger was previously active.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="file-system-utilities">
+<h2>File System Utilities<a class="headerlink" href="#file-system-utilities" title="Permalink to this headline">¶</a></h2>
+<p>Below is a collection of file system related
+convenience methods that make it easy to manage
+and create files and folders on disk in a standard
+fashion.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These methods are not configurable or overridable
+by hooks. If you are developing apps or engines, we
+recommend using <a class="reference internal" href="platform.html#sgtk.platform.Application.ensure_folder_exists" title="sgtk.platform.Application.ensure_folder_exists"><code class="xref py py-meth docutils literal"><span class="pre">ensure_folder_exists()</span></code></a>
+as this method calls out to a customizable hook implementation.</p>
+</div>
+<div class="section" id="sgtk-util-filesystem">
+<h3>sgtk.util.filesystem<a class="headerlink" href="#sgtk-util-filesystem" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="sgtk.util.filesystem.with_cleared_umask">
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">with_cleared_umask</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#with_cleared_umask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.with_cleared_umask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator which clears the umask for a method.</p>
+<p>The umask is a permissions mask that gets applied
+whenever new files or folders are created. For I/O methods
+that have a permissions parameter, it is important that the
+umask is cleared prior to execution, otherwise the default
+umask may alter the resulting permissions, for example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_folders</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mi">0777</span><span class="p">):</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating folder </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The 0777 permissions indicate that we want folders to be
+completely open for all users (a+rwx). However, the umask
+overrides this, so if the umask for example is set to 0777,
+meaning that I/O operations are not allowed to create files
+that are readable, executable or writable for users, groups
+or others, the resulting permissions on folders created
+by create folders will be 0, despite passing in 0777 permissions.</p>
+<p>By adding this decorator to the method, we temporarily reset
+the umask to 0, thereby giving full control to
+any permissions operation to take place without any restriction
+by the umask:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@with_cleared_umask</span>
+<span class="k">def</span> <span class="nf">create_folders</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mi">0777</span><span class="p">):</span>
+    <span class="c1"># Creates folders with the given permissions,</span>
+    <span class="c1"># regardless of umask setting.</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating folder </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.filesystem.touch_file">
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">touch_file</code><span class="sig-paren">(</span><em>path</em>, <em>permissions=0666</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#touch_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.touch_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Touch a file and optionally set its permissions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> &#8211; path to touch</li>
+<li><strong>permissions</strong> &#8211; Optional permissions to set on the file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">OSError - if there was a problem reading/writing the file</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.filesystem.ensure_folder_exists">
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">ensure_folder_exists</code><span class="sig-paren">(</span><em>path</em>, <em>permissions=0775</em>, <em>create_placeholder_file=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#ensure_folder_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.ensure_folder_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method - creates a folder and parent folders if such do not already exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> &#8211; path to create</li>
+<li><strong>permissions</strong> &#8211; Permissions to use when folder is created</li>
+<li><strong>create_placeholder_file</strong> &#8211; If true, a placeholder file will be generated.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">OSError - if there was a problem creating the folder</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.filesystem.copy_file">
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">copy_file</code><span class="sig-paren">(</span><em>src</em>, <em>dst</em>, <em>permissions=0555</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#copy_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.copy_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy file with permissions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>src</strong> &#8211; Source file</li>
+<li><strong>dst</strong> &#8211; Target destination</li>
+<li><strong>permissions</strong> &#8211; Permissions to use for target file</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.filesystem.safe_delete_file">
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">safe_delete_file</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#safe_delete_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.safe_delete_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the given file if it exists.</p>
+<p>Ignores any errors raised in the process and logs them as warnings.
+If the user does not have sufficient permissions to
+remove the file, nothing will happen, it will simply
+be skipped over.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; Full path to file to remove</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.filesystem.copy_folder">
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">copy_folder</code><span class="sig-paren">(</span><em>src</em>, <em>dst</em>, <em>folder_permissions=0775</em>, <em>skip_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#copy_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.copy_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alternative implementation to <code class="docutils literal"><span class="pre">shutil.copytree</span></code>
+Copies recursively and creates folders if they don&#8217;t already exist.
+Skips a fixed list of system files such as .svn, .git, etc.
+Files will the extension <code class="docutils literal"><span class="pre">.sh</span></code>, <code class="docutils literal"><span class="pre">.bat</span></code> or <code class="docutils literal"><span class="pre">.exe</span></code> will be given
+executable permissions.</p>
+<p>Returns a list of files that were copied.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>src</strong> &#8211; Source path to copy from</li>
+<li><strong>dst</strong> &#8211; Destination to copy to</li>
+<li><strong>folder_permissions</strong> &#8211; permissions to use for new folders</li>
+<li><strong>skip_list</strong> &#8211; List of file names to skip</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of files copied</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.filesystem.move_folder">
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">move_folder</code><span class="sig-paren">(</span><em>src</em>, <em>dst</em>, <em>folder_permissions=0775</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#move_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.move_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves a directory.</p>
+<p>First copies all content into target. Then deletes
+all content from sources. Skips files that won&#8217;t delete.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>src</strong> &#8211; Source path to copy from</li>
+<li><strong>dst</strong> &#8211; Destination to copy to</li>
+<li><strong>folder_permissions</strong> &#8211; permissions to use for new folders</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.filesystem.create_valid_filename">
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">create_valid_filename</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#create_valid_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.create_valid_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a sanitized file name given a string.
+Replaces spaces and other characters with underscores</p>
+<p>&#8216;my lovely name &#8216; -&gt; &#8216;my_lovely_name&#8217;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; String value to sanitize</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">sanitized string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="shotgunpath">
+<h3>ShotgunPath<a class="headerlink" href="#shotgunpath" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.util.ShotgunPath">
+<em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">ShotgunPath</code><span class="sig-paren">(</span><em>windows_path=None</em>, <em>linux_path=None</em>, <em>macosx_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class that handles a path on multiple operating systems.</p>
+<p>Contains methods to easily cast multi-os path between shotgun and os representations
+and mappings. The ShotgunPath object automatically sanitizes any path that it is given.
+When working with local storages in Shotgun, roots are keyed by the tokens
+<code class="docutils literal"><span class="pre">windows_path</span></code>, <code class="docutils literal"><span class="pre">linux_path</span></code> and <code class="docutils literal"><span class="pre">mac_path</span></code>. When using <code class="docutils literal"><span class="pre">sys.platform</span></code> in python,
+you get back <code class="docutils literal"><span class="pre">win32</span></code>, <code class="docutils literal"><span class="pre">darwin</span></code> and <code class="docutils literal"><span class="pre">linux2</span></code> depending on platform. This class makes
+it easy to perform operations and cast between representations and platforms.</p>
+<p>Usage example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ShotgunPath</span><span class="o">.</span><span class="n">SHOTGUN_PATH_FIELDS</span>
+<span class="go">[&quot;windows_path&quot;, &quot;linux_path&quot;, &quot;mac_path&quot;]</span>
+
+<span class="go"># construction</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="p">(</span><span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">,</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_shotgun_dict</span><span class="p">({</span> <span class="s2">&quot;windows_path&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;mac_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_system_dict</span><span class="p">({</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_current_os_path</span><span class="p">(</span><span class="s2">&quot;/tmp&quot;</span><span class="p">)</span>
+
+<span class="go"># access</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">macosx</span>
+<span class="go">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">windows</span>
+<span class="go">&quot;C:\temp&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">linux</span>
+<span class="go">&#39;/tmp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">current_os</span>
+<span class="go">&#39;/tmp&#39;</span>
+
+<span class="go"># multi-platform access</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">as_shotgun_dict</span><span class="p">()</span>
+<span class="go">{ &quot;windows_path&quot;: &quot;C:\temp&quot;, &quot;mac_path&quot;: None, &quot;linux_path&quot;: &quot;/tmp&quot;}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">as_system_dict</span><span class="p">()</span>
+<span class="go">{ &quot;win32&quot;: &quot;C:\temp&quot;, &quot;darwin&quot;: None, &quot;linux2&quot;: &quot;/tmp&quot;}</span>
+
+<span class="go"># path manipulation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p2</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p2</span>
+<span class="go">&lt;Path win:&#39;c:\temp\foo&#39;, linux:&#39;/tmp/foo&#39;, macosx:&#39;/tmp/foo&#39;&gt;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>windows_path</strong> &#8211; Path on windows to associate with this path object</li>
+<li><strong>linux_path</strong> &#8211; Path on linux to associate with this path object</li>
+<li><strong>macosx_path</strong> &#8211; Path on macosx to associate with this path object</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.util.ShotgunPath.SHOTGUN_PATH_FIELDS">
+<code class="descname">SHOTGUN_PATH_FIELDS</code><em class="property"> = ['windows_path', 'linux_path', 'mac_path']</em><a class="headerlink" href="#sgtk.util.ShotgunPath.SHOTGUN_PATH_FIELDS" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of the standard path fields used by Shotgun.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="sgtk.util.ShotgunPath.get_shotgun_storage_key">
+<em class="property">static </em><code class="descname">get_shotgun_storage_key</code><span class="sig-paren">(</span><em>platform='darwin'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.get_shotgun_storage_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.get_shotgun_storage_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <code class="docutils literal"><span class="pre">sys.platform</span></code> constant, resolve a Shotgun storage key</p>
+<p>Shotgun local storages handle operating systems using
+the three keys &#8216;windows_path, &#8216;mac_path&#8217; and &#8216;linux_path&#8217;,
+also defined as <code class="docutils literal"><span class="pre">ShotgunPath.SHOTGUN_PATH_FIELDS</span></code></p>
+<p>This method resolves the right key given a std. python
+sys.platform:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">get_shotgun_storage_key</span><span class="p">(</span><span class="s1">&#39;win32&#39;</span><span class="p">)</span>
+<span class="go">&#39;windows_path&#39;</span>
+
+<span class="go"># if running on a mac</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">get_shotgun_storage_key</span><span class="p">()</span>
+<span class="go">&#39;mac_path&#39;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>platform</strong> &#8211; sys.platform style string, e.g &#8216;linux2&#8217;,
+&#8216;win32&#8217; or &#8216;darwin&#8217;.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Shotgun storage path as string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="sgtk.util.ShotgunPath.from_shotgun_dict">
+<em class="property">classmethod </em><code class="descname">from_shotgun_dict</code><span class="sig-paren">(</span><em>sg_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.from_shotgun_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.from_shotgun_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a path from data contained in a std shotgun data dict,
+containing the paths windows_path, mac_path and linux_path</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_dict</strong> &#8211; Shotgun query resultset with possible keys
+windows_path, mac_path and linux_path.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">ShotgunPath</span></code> instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="sgtk.util.ShotgunPath.from_system_dict">
+<em class="property">classmethod </em><code class="descname">from_system_dict</code><span class="sig-paren">(</span><em>system_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.from_system_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.from_system_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a path from data contained in a dictionary keyed by
+sys.platform constants.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>system_dict</strong> &#8211; Dictionary with possible keys
+win32, darwin and linux2.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">ShotgunPath</span></code> instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="sgtk.util.ShotgunPath.from_current_os_path">
+<em class="property">classmethod </em><code class="descname">from_current_os_path</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.from_current_os_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.from_current_os_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a path object for a path on the current platform only.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; Path on the current os platform.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">ShotgunPath</span></code> instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.util.ShotgunPath.macosx">
+<code class="descname">macosx</code><a class="headerlink" href="#sgtk.util.ShotgunPath.macosx" title="Permalink to this definition">¶</a></dt>
+<dd><p>The macosx representation of the path</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.util.ShotgunPath.windows">
+<code class="descname">windows</code><a class="headerlink" href="#sgtk.util.ShotgunPath.windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>The windows representation of the path</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.util.ShotgunPath.linux">
+<code class="descname">linux</code><a class="headerlink" href="#sgtk.util.ShotgunPath.linux" title="Permalink to this definition">¶</a></dt>
+<dd><p>The linux representation of the path</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.util.ShotgunPath.current_os">
+<code class="descname">current_os</code><a class="headerlink" href="#sgtk.util.ShotgunPath.current_os" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path on the current os</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.util.ShotgunPath.as_shotgun_dict">
+<code class="descname">as_shotgun_dict</code><span class="sig-paren">(</span><em>include_empty=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.as_shotgun_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.as_shotgun_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path as a shotgun dictionary. With <code class="docutils literal"><span class="pre">include_empty</span></code> set to True:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;windows_path&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;mac_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>With <code class="docutils literal"><span class="pre">include_empty</span></code> set to False:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;windows_path&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;linux_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>include_empty</strong> &#8211; Controls whether keys should be included for empty path values</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary of paths keyed by standard shotgun keys.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.util.ShotgunPath.as_system_dict">
+<code class="descname">as_system_dict</code><span class="sig-paren">(</span><em>include_empty=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.as_system_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.as_system_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path as a dictionary keyed by sys.platform.</p>
+<p>With <code class="docutils literal"><span class="pre">include_empty</span></code> set to True:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>With <code class="docutils literal"><span class="pre">include_empty</span></code> set to False:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>include_empty</strong> &#8211; Controls whether keys should be included for empty path values</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary of paths keyed by sys.platform.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.util.ShotgunPath.join">
+<code class="descname">join</code><span class="sig-paren">(</span><em>folder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.join"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appends a single folder to the path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>folder</strong> &#8211; folder name as sting</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">ShotgunPath</span></code> object containing the new path</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="localfilestoragemanager">
+<h3>LocalFileStorageManager<a class="headerlink" href="#localfilestoragemanager" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.util.LocalFileStorageManager">
+<em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">LocalFileStorageManager</code><a class="reference internal" href="_modules/tank/util/local_file_storage.html#LocalFileStorageManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.LocalFileStorageManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class that encapsulates logic for resolving local storage paths.</p>
+<p>Toolkit needs to store cache data, logs and other items at runtime.
+Some of this data is global, other is per site or per configuraiton.</p>
+<p>This class provides a consistent and centralized interface for resolving
+such paths and also handles compatibility across generations of path
+standards if and when these change between releases.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All paths returned by this class are local to the currently running
+user and typically private or with limited access settings for other users.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Constant CORE_V17:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">Indicates compatibility with Core 0.17 or earlier</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Constant CORE_V18:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">Indicates compatibility with Core 0.18 or later</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Constant LOGGING:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">Indicates a path suitable for storing logs, useful for debugging</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Constant CACHE:</th><td class="field-body">Indicates a path suitable for storing cache data that can be deleted without
+any loss of functionality or state.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Constant PERSISTENT:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">Indicates a path suitable for storing settings and other data that is needs
+to be retained between sessions.</td>
+</tr>
+</tbody>
+</table>
+<dl class="classmethod">
+<dt id="sgtk.util.LocalFileStorageManager.get_global_root">
+<em class="property">classmethod </em><code class="descname">get_global_root</code><span class="sig-paren">(</span><em>path_type</em>, <em>generation=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/local_file_storage.html#LocalFileStorageManager.get_global_root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.LocalFileStorageManager.get_global_root" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a generic Shotgun storage root.</p>
+<p>The following paths will be used:</p>
+<blockquote>
+<div><ul class="simple">
+<li>On the mac, paths will point into <code class="docutils literal"><span class="pre">~/Library/PATH_TYPE/Shotgun</span></code>, where PATH_TYPE
+is controlled by the path_type property.</li>
+<li>On Windows, paths will created below a <code class="docutils literal"><span class="pre">%APPDATA%/Shotgun</span></code> root point.</li>
+<li>On Linux, paths will be created below a <code class="docutils literal"><span class="pre">~/.shotgun</span></code> root point.</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method does not ensure that the folder exists.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path_type</strong> &#8211; Type of path to return. One of <code class="docutils literal"><span class="pre">LocalFileStorageManager.LOGGING</span></code>,
+<code class="docutils literal"><span class="pre">LocalFileStorageManager.CACHE</span></code>, <code class="docutils literal"><span class="pre">LocalFileStorageManager.PERSISTENT</span></code>, where
+logging is a path where log- and debug related data should be stored,
+cache is a location intended for cache data, e.g. data that can be deleted
+without affecting the state of execution, and persistent is a location intended
+for data that is meant to be persist. This includes things like settings and
+preferences.</li>
+<li><strong>generation</strong> &#8211; Path standard generation to use. Defaults to <code class="docutils literal"><span class="pre">LocalFileStorageManager.CORE_V18</span></code>,
+which is the current generation of paths.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Path as string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="sgtk.util.LocalFileStorageManager.get_site_root">
+<em class="property">classmethod </em><code class="descname">get_site_root</code><span class="sig-paren">(</span><em>hostname</em>, <em>path_type</em>, <em>generation=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/local_file_storage.html#LocalFileStorageManager.get_site_root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.LocalFileStorageManager.get_site_root" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a cache root where items can be stored on a per site basis.</p>
+<p>For more details, see <code class="xref py py-meth docutils literal"><span class="pre">LocalFileStorageManager.get_global_root()</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method does not ensure that the folder exists.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>hostname</strong> &#8211; Shotgun hostname as string, e.g. &#8216;<a class="reference external" href="https://foo.shotgunstudio.com">https://foo.shotgunstudio.com</a>&#8216;</li>
+<li><strong>path_type</strong> &#8211; Type of path to return. One of <code class="docutils literal"><span class="pre">LocalFileStorageManager.LOGGING</span></code>,
+<code class="docutils literal"><span class="pre">LocalFileStorageManager.CACHE</span></code>, <code class="docutils literal"><span class="pre">LocalFileStorageManager.PERSISTENT</span></code>, where
+logging is a path where log- and debug related data should be stored,
+cache is a location intended for cache data, e.g. data that can be deleted
+without affecting the state of execution, and persistent is a location intended
+for data that is meant to be persist. This includes things like settings and
+preferences.</li>
+<li><strong>generation</strong> &#8211; Path standard generation to use. Defaults to <code class="docutils literal"><span class="pre">LocalFileStorageManager.CORE_V18</span></code>,
+which is the current generation of paths.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Path as string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="sgtk.util.LocalFileStorageManager.get_configuration_root">
+<em class="property">classmethod </em><code class="descname">get_configuration_root</code><span class="sig-paren">(</span><em>hostname</em>, <em>project_id</em>, <em>pipeline_config_id</em>, <em>path_type</em>, <em>generation=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/local_file_storage.html#LocalFileStorageManager.get_configuration_root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.LocalFileStorageManager.get_configuration_root" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the storage root for any data that is project and config specific.</p>
+<p>For more details, see <code class="xref py py-meth docutils literal"><span class="pre">LocalFileStorageManager.get_global_root()</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method does not ensure that the folder exists.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>hostname</strong> &#8211; Shotgun hostname as string, e.g. &#8216;<a class="reference external" href="https://foo.shotgunstudio.com">https://foo.shotgunstudio.com</a>&#8216;</li>
+<li><strong>project_id</strong> &#8211; Shotgun project id as integer. For the site config, this should be None.</li>
+<li><strong>pipeline_config_id</strong> &#8211; Shotgun pipeline config id. None for bootstraped configs.</li>
+<li><strong>path_type</strong> &#8211; Type of path to return. One of <code class="docutils literal"><span class="pre">LocalFileStorageManager.LOGGING</span></code>,
+<code class="docutils literal"><span class="pre">LocalFileStorageManager.CACHE</span></code>, <code class="docutils literal"><span class="pre">LocalFileStorageManager.PERSISTENT</span></code>, where
+logging is a path where log- and debug related data should be stored,
+cache is a location intended for cache data, e.g. data that can be deleted
+without affecting the state of execution, and persistent is a location intended
+for data that is meant to be persist. This includes things like settings and
+preferences.</li>
+<li><strong>generation</strong> &#8211; Path standard generation to use. Defaults to <code class="docutils literal"><span class="pre">LocalFileStorageManager.CORE_V18</span></code>,
+which is the current generation of paths.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Path as string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="shotgun-related">
+<h2>Shotgun Related<a class="headerlink" href="#shotgun-related" title="Permalink to this headline">¶</a></h2>
+<p>Below are a collection of Shotgun related utility
+and convenience methods:</p>
+<dl class="function">
+<dt id="sgtk.util.register_publish">
+<code class="descclassname">sgtk.util.</code><code class="descname">register_publish</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>path</em>, <em>name</em>, <em>version_number</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#register_publish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.register_publish" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Published File in Shotgun.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">version_number</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_path</span> <span class="o">=</span> <span class="s1">&#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;layout&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">register_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version_number</span><span class="p">)</span>
+<span class="go">{&#39;code&#39;: &#39;layout.v001.ma&#39;,</span>
+<span class="go"> &#39;created_by&#39;: {&#39;id&#39;: 40, &#39;name&#39;: &#39;John Smith&#39;, &#39;type&#39;: &#39;HumanUser&#39;},</span>
+<span class="go"> &#39;description&#39;: None,</span>
+<span class="go"> &#39;entity&#39;: {&#39;id&#39;: 2, &#39;name&#39;: &#39;shot_010&#39;, &#39;type&#39;: &#39;Shot&#39;},</span>
+<span class="go"> &#39;id&#39;: 2,</span>
+<span class="go"> &#39;name&#39;: &#39;layout&#39;,</span>
+<span class="go"> &#39;path&#39;: {&#39;content_type&#39;: None,</span>
+<span class="go">  &#39;link_type&#39;: &#39;local&#39;,</span>
+<span class="go">  &#39;local_path&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
+<span class="go">  &#39;local_path_linux&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
+<span class="go">  &#39;local_path_mac&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
+<span class="go">  &#39;local_path_windows&#39;: &#39;c:\studio\demo_project\sequences\Sequence-1\shot_010\Anm\publish\layout.v001.ma&#39;,</span>
+<span class="go">  &#39;local_storage&#39;: {&#39;id&#39;: 1, &#39;name&#39;: &#39;primary&#39;, &#39;type&#39;: &#39;LocalStorage&#39;},</span>
+<span class="go">  &#39;name&#39;: &#39;layout.v001.ma&#39;,</span>
+<span class="go">  &#39;url&#39;: &#39;file:///studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;},</span>
+<span class="go"> &#39;path_cache&#39;: &#39;demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
+<span class="go"> &#39;project&#39;: {&#39;id&#39;: 4, &#39;name&#39;: &#39;Demo Project&#39;, &#39;type&#39;: &#39;Project&#39;},</span>
+<span class="go"> &#39;task&#39;: None,</span>
+<span class="go"> &#39;type&#39;: &#39;PublishedFile&#39;,</span>
+<span class="go"> &#39;version_number&#39;: 1}</span>
+</pre></div>
+</div>
+<p>The above example shows a basic publish. In addition to the required parameters, it is
+recommended to supply at least a description and a Publish Type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</li>
+<li><strong>context</strong> &#8211; A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> to associate with the publish. This will
+populate the task and entity link in Shotgun.</li>
+<li><strong>path</strong> &#8211; The path to the file or sequence we want to publish. If the
+path is a sequence path it will be abstracted so that
+any sequence keys are replaced with their default values.</li>
+<li><strong>name</strong> &#8211; A name, without version number, which helps distinguish
+this publish from other publishes. This is typically
+used for grouping inside of Shotgun so that all the
+versions of the same &#8220;file&#8221; can be grouped into a cluster.
+For example, for a maya publish, where we track only
+the scene name, the name would simply be that: the scene
+name. For something like a render, it could be the scene
+name, the name of the AOV and the name of the render layer.</li>
+<li><strong>version_number</strong> &#8211; The version number of the item we are publishing.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>In addition to the above, the following optional arguments exist:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">task</span></code> - A shotgun entity dictionary with id and type (which should always be Task).
+if no value is specified, the task will be grabbed from the context object.</li>
+<li><code class="docutils literal"><span class="pre">comment</span></code> - A string containing a description of the comment</li>
+<li><code class="docutils literal"><span class="pre">thumbnail_path</span></code> - A path to a thumbnail (png or jpeg) which will be uploaded to shotgun
+and associated with the publish.</li>
+<li><code class="docutils literal"><span class="pre">dependency_paths</span></code> - A list of file system paths that should be attempted to be registered
+as dependencies. Files in this listing that do not appear as publishes in shotgun will be ignored.</li>
+<li><code class="docutils literal"><span class="pre">dependency_ids</span></code> - A list of publish ids which should be registered as dependencies.</li>
+<li><code class="docutils literal"><span class="pre">published_file_type</span></code> - A tank type in the form of a string which should match a tank type
+that is registered in Shotgun.</li>
+<li><code class="docutils literal"><span class="pre">update_entity_thumbnail</span></code> - Push thumbnail up to the attached entity</li>
+<li><code class="docutils literal"><span class="pre">update_task_thumbnail</span></code> - Push thumbnail up to the attached task</li>
+<li><code class="docutils literal"><span class="pre">created_by</span></code> - Override for the user that will be marked as creating the publish.  This should
+be in the form of shotgun entity, e.g. {&#8220;type&#8221;:&#8221;HumanUser&#8221;, &#8220;id&#8221;:7}</li>
+<li><code class="docutils literal"><span class="pre">created_at</span></code> - Override for the date the publish is created at.  This should be a python
+datetime object</li>
+<li><code class="docutils literal"><span class="pre">version_entity</span></code> - The Shotgun version entity this published file should be linked to</li>
+<li><code class="docutils literal"><span class="pre">sg_fields</span></code> - Some additional Shotgun fields as a dict (e.g. <code class="docutils literal"><span class="pre">{'tag_list':</span> <span class="pre">['foo',</span> <span class="pre">'bar']}</span></code>)</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The created entity dictionary</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.find_publish">
+<code class="descclassname">sgtk.util.</code><code class="descname">find_publish</code><span class="sig-paren">(</span><em>tk</em>, <em>list_of_paths</em>, <em>f ilters=None</em>, <em>fields=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#find_publish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.find_publish" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds publishes in Shotgun given paths on disk.
+This method is similar to the find method in the Shotgun API,
+except that instead of an Entity type, a list of files is
+passed into the function.</p>
+<p>In addition to a list of files, shotgun filters can also be specified.
+This may be useful if for example all publishes with a certain status
+should be retrieved.</p>
+<p>By default, the shotgun id is returned for each successfully identified path.
+If you want to retrieve additional fields, you can specify these using
+the fields parameter.</p>
+<p>The method will return a dictionary, keyed by path. The value will be
+a standard shotgun query result dictionary, for example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;/foo/bar&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">234</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;TankPublishedFile&quot;</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;some data&quot;</span> <span class="p">},</span>
+    <span class="s2">&quot;/foo/baz&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span>  <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;TankPublishedFile&quot;</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;some more data&quot;</span> <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Fields that are not found, or filtered out by the filters parameter,
+are not returned in the dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</li>
+<li><strong>list_of_paths</strong> &#8211; List of full paths for which information should be retrieved</li>
+<li><strong>filters</strong> &#8211; Optional list of shotgun filters to apply.</li>
+<li><strong>fields</strong> &#8211; Optional list of fields from the matched entities to
+return. Defaults to id and type.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dictionary keyed by path</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.download_url">
+<code class="descclassname">sgtk.util.</code><code class="descname">download_url</code><span class="sig-paren">(</span><em>sg</em>, <em>url</em>, <em>location</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#download_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.download_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method that downloads a file from a given url.
+This method will take into account any proxy settings which have
+been defined in the Shotgun connection parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sg</strong> &#8211; Shotgun API instance to get proxy connection settings from</li>
+<li><strong>url</strong> &#8211; url to download</li>
+<li><strong>location</strong> &#8211; path on disk where the payload should be written.
+this path needs to exists and the current user needs
+to have write permissions</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code> on failure.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.create_event_log_entry">
+<code class="descclassname">sgtk.util.</code><code class="descname">create_event_log_entry</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>event_type</em>, <em>description</em>, <em>metadata=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#create_event_log_entry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.create_event_log_entry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an event log entry inside of Shotgun.
+Event log entries can be handy if you want to track a process or a sequence of events.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</li>
+<li><strong>context</strong> &#8211; A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> to associate with the event log entry.</li>
+<li><strong>event_type</strong> &#8211; <p>String which defines the event type. The Shotgun standard suggests
+that this should be on the form Company_Item_Action. Examples include:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Shotgun_Asset_New</span>
+<span class="n">Shotgun_Asset_Change</span>
+<span class="n">Shotgun_User_Login</span>
+</pre></div>
+</div>
+</li>
+<li><strong>description</strong> &#8211; A verbose description explaining the meaning of this event.</li>
+<li><strong>metadata</strong> &#8211; A dictionary of metadata information which will be attached to the event
+log record in Shotgun. This dictionary may only contain simple data types
+such as ints, strings etc.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The newly created shotgun record</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.get_entity_type_display_name">
+<code class="descclassname">sgtk.util.</code><code class="descname">get_entity_type_display_name</code><span class="sig-paren">(</span><em>tk</em>, <em>entity_type_code</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#get_entity_type_display_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.get_entity_type_display_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the display name for an entity type given its type name.
+For example, if a custom entity is named &#8220;Workspace&#8221; in the
+Shotgun preferences, but is addressed as &#8220;CustomEntity03&#8221; in the
+Shotgun API, this method will resolve the display name:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_entity_type_display_name</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="s2">&quot;CustomEntity03&quot;</span><span class="p">)</span>
+<span class="go">&#39;Workspace&#39;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</li>
+<li><strong>entity_type_code</strong> &#8211; API entity type name</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">display name</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.get_published_file_entity_type">
+<code class="descclassname">sgtk.util.</code><code class="descname">get_published_file_entity_type</code><span class="sig-paren">(</span><em>tk</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#get_published_file_entity_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.get_published_file_entity_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the entity type that this toolkit uses for its Publishes.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is for backwards compatibility situations only.
+Code targeting new installations can assume that
+the published file type in Shotgun is always <code class="docutils literal"><span class="pre">PublishedFile</span></code>.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">&#8220;PublishedFile&#8221; or &#8220;TankPublishedFile&#8221;</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="miscellaneous">
+<h2>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="sgtk.util.append_path_to_env_var">
+<code class="descclassname">sgtk.util.</code><code class="descname">append_path_to_env_var</code><span class="sig-paren">(</span><em>env_var_name</em>, <em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/environment.html#append_path_to_env_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.append_path_to_env_var" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append the path to the given environment variable.
+Creates the env var if it doesn&#8217;t exist already.
+will concatenate paths using : on linux and ; on windows</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.prepend_path_to_env_var">
+<code class="descclassname">sgtk.util.</code><code class="descname">prepend_path_to_env_var</code><span class="sig-paren">(</span><em>env_var_name</em>, <em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/environment.html#prepend_path_to_env_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.prepend_path_to_env_var" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepend the path to the given environment variable.
+Creates the env var if it doesn&#8217;t exist already.
+will concatenate paths using : on linux and ; on windows</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.get_current_user">
+<code class="descclassname">sgtk.util.</code><code class="descname">get_current_user</code><span class="sig-paren">(</span><em>tk</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/login.html#get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.get_current_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the current user as a dictionary of metadata values. Note: This method connects to
+shotgun the first time around. The result is then cached to reduce latency.</p>
+<p>If a user has been authenticated via a login prompt, this method will return the credentials
+associated with that user. If Toolkit has been configured to use a script user to connect to
+Shotgun, a core hook will be executed to established which user is associated with the current
+session. This is usually based on the currently logged in user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None if the user is not found in Shotgun. Otherwise, it returns a dictionary
+with the following fields: id, type, email, login, name, image, firstname, lastname</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="descriptor.html" class="btn btn-neutral float-right" title="Descriptor API" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="platform.html" class="btn btn-neutral" title="Apps, Engines and Frameworks" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,464 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.util.local_file_storage &mdash; tk-core v0.18.0RC1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.0RC1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.util.local_file_storage</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.util.local_file_storage</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2016 Shotgun Software Inc.</span>
+<span class="c1">#</span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">urlparse</span>
+
+
+<div class="viewcode-block" id="LocalFileStorageManager"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager">[docs]</a><span class="k">class</span> <span class="nc">LocalFileStorageManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class that encapsulates logic for resolving local storage paths.</span>
+
+<span class="sd">    Toolkit needs to store cache data, logs and other items at runtime.</span>
+<span class="sd">    Some of this data is global, other is per site or per configuraiton.</span>
+
+<span class="sd">    This class provides a consistent and centralized interface for resolving</span>
+<span class="sd">    such paths and also handles compatibility across generations of path</span>
+<span class="sd">    standards if and when these change between releases.</span>
+
+<span class="sd">    .. note:: All paths returned by this class are local to the currently running</span>
+<span class="sd">              user and typically private or with limited access settings for other users.</span>
+
+<span class="sd">    :constant CORE_V17: Indicates compatibility with Core 0.17 or earlier</span>
+<span class="sd">    :constant CORE_V18: Indicates compatibility with Core 0.18 or later</span>
+
+<span class="sd">    :constant LOGGING: Indicates a path suitable for storing logs, useful for debugging</span>
+<span class="sd">    :constant CACHE: Indicates a path suitable for storing cache data that can be deleted without</span>
+<span class="sd">                       any loss of functionality or state.</span>
+<span class="sd">    :constant PERSISTENT: Indicates a path suitable for storing settings and other data that is needs</span>
+<span class="sd">                          to be retained between sessions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># generation of path structures</span>
+    <span class="p">(</span><span class="n">CORE_V17</span><span class="p">,</span> <span class="n">CORE_V18</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># supported types of paths</span>
+    <span class="p">(</span><span class="n">LOGGING</span><span class="p">,</span> <span class="n">CACHE</span><span class="p">,</span> <span class="n">PERSISTENT</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="LocalFileStorageManager.get_global_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_global_root">[docs]</a>    <span class="k">def</span> <span class="nf">get_global_root</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a generic Shotgun storage root.</span>
+
+<span class="sd">        The following paths will be used:</span>
+
+<span class="sd">            - On the mac, paths will point into ``~/Library/PATH_TYPE/Shotgun``, where PATH_TYPE</span>
+<span class="sd">              is controlled by the path_type property.</span>
+<span class="sd">            - On Windows, paths will created below a ``%APPDATA%/Shotgun`` root point.</span>
+<span class="sd">            - On Linux, paths will be created below a ``~/.shotgun`` root point.</span>
+
+<span class="sd">        .. note:: This method does not ensure that the folder exists.</span>
+
+<span class="sd">        :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,</span>
+<span class="sd">                          ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where</span>
+<span class="sd">                          logging is a path where log- and debug related data should be stored,</span>
+<span class="sd">                          cache is a location intended for cache data, e.g. data that can be deleted</span>
+<span class="sd">                          without affecting the state of execution, and persistent is a location intended</span>
+<span class="sd">                          for data that is meant to be persist. This includes things like settings and</span>
+<span class="sd">                          preferences.</span>
+<span class="sd">        :param generation: Path standard generation to use. Defaults to ``LocalFileStorageManager.CORE_V18``,</span>
+<span class="sd">                           which is the current generation of paths.</span>
+<span class="sd">        :return: Path as string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">generation</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">CORE_V18</span><span class="p">:</span>
+
+            <span class="c1"># current generation of paths</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/Library/Caches/Shotgun&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/Library/Application Support/Shotgun&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">LOGGING</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/Library/Logs/Shotgun&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">,</span> <span class="s2">&quot;Data&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">LOGGING</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">,</span> <span class="s2">&quot;Logs&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.shotgun&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.shotgun/data&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">LOGGING</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.shotgun/logs&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown platform: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">generation</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">CORE_V17</span><span class="p">:</span>
+
+            <span class="c1"># previous generation of paths</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/Library/Caches/Shotgun&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/Library/Application Support/Shotgun&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">LOGGING</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/Library/Logs/Shotgun&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">LOGGING</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.shotgun&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.shotgun&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">LOGGING</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.shotgun&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown platform: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="LocalFileStorageManager.get_site_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_site_root">[docs]</a>    <span class="k">def</span> <span class="nf">get_site_root</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a cache root where items can be stored on a per site basis.</span>
+
+<span class="sd">        For more details, see :meth:`LocalFileStorageManager.get_global_root`.</span>
+
+<span class="sd">        .. note:: This method does not ensure that the folder exists.</span>
+
+<span class="sd">        :param hostname: Shotgun hostname as string, e.g. &#39;https://foo.shotgunstudio.com&#39;</span>
+<span class="sd">        :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,</span>
+<span class="sd">                          ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where</span>
+<span class="sd">                          logging is a path where log- and debug related data should be stored,</span>
+<span class="sd">                          cache is a location intended for cache data, e.g. data that can be deleted</span>
+<span class="sd">                          without affecting the state of execution, and persistent is a location intended</span>
+<span class="sd">                          for data that is meant to be persist. This includes things like settings and</span>
+<span class="sd">                          preferences.</span>
+<span class="sd">        :param generation: Path standard generation to use. Defaults to ``LocalFileStorageManager.CORE_V18``,</span>
+<span class="sd">                           which is the current generation of paths.</span>
+<span class="sd">        :return: Path as string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get site only; https://www.FOO.com:8080 -&gt; www.foo.com</span>
+        <span class="n">base_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">hostname</span><span class="p">)</span><span class="o">.</span><span class="n">netloc</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">generation</span> <span class="o">&gt;</span> <span class="n">cls</span><span class="o">.</span><span class="n">CORE_V17</span><span class="p">:</span>
+            <span class="c1"># for 0.18, in order to apply further shortcuts to avoid hitting</span>
+            <span class="c1"># MAX_PATH on windows, strip shotgunstudio.com from all</span>
+            <span class="c1"># hosted sites</span>
+            <span class="c1">#</span>
+            <span class="c1"># mysite.shotgunstudio.com -&gt; mysite</span>
+            <span class="c1"># shotgun.internal.int     -&gt; shotgun.internal.int</span>
+            <span class="c1">#</span>
+            <span class="n">base_url</span> <span class="o">=</span> <span class="n">base_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.shotgunstudio.com&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">cls</span><span class="o">.</span><span class="n">get_global_root</span><span class="p">(</span><span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="p">),</span>
+            <span class="n">base_url</span>
+        <span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="LocalFileStorageManager.get_configuration_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_configuration_root">[docs]</a>    <span class="k">def</span> <span class="nf">get_configuration_root</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">pipeline_config_id</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the storage root for any data that is project and config specific.</span>
+
+<span class="sd">        For more details, see :meth:`LocalFileStorageManager.get_global_root`.</span>
+
+<span class="sd">        .. note:: This method does not ensure that the folder exists.</span>
+
+<span class="sd">        :param hostname: Shotgun hostname as string, e.g. &#39;https://foo.shotgunstudio.com&#39;</span>
+<span class="sd">        :param project_id: Shotgun project id as integer. For the site config, this should be None.</span>
+<span class="sd">        :param pipeline_config_id: Shotgun pipeline config id. None for bootstraped configs.</span>
+<span class="sd">        :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,</span>
+<span class="sd">                          ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where</span>
+<span class="sd">                          logging is a path where log- and debug related data should be stored,</span>
+<span class="sd">                          cache is a location intended for cache data, e.g. data that can be deleted</span>
+<span class="sd">                          without affecting the state of execution, and persistent is a location intended</span>
+<span class="sd">                          for data that is meant to be persist. This includes things like settings and</span>
+<span class="sd">                          preferences.</span>
+<span class="sd">        :param generation: Path standard generation to use. Defaults to ``LocalFileStorageManager.CORE_V18``,</span>
+<span class="sd">                           which is the current generation of paths.</span>
+<span class="sd">        :return: Path as string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">generation</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">CORE_V17</span><span class="p">:</span>
+
+            <span class="c1"># older paths are on the form root/mysite.shotgunstudio.com/project_123/config_123</span>
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">cls</span><span class="o">.</span><span class="n">get_site_root</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="p">),</span>
+                <span class="s2">&quot;project_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">project_id</span><span class="p">,</span>
+                <span class="s2">&quot;config_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pipeline_config_id</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="c1"># new paths are on the form</span>
+            <span class="c1"># project 123, config 33:     root/mysite/p123c33</span>
+            <span class="c1"># project 123 without config: root/mysite/p123</span>
+            <span class="c1"># site project:               root/mysite/site</span>
+            <span class="k">if</span> <span class="n">pipeline_config_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c1"># unmanaged config</span>
+                <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;c</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pipeline_config_id</span>
+
+            <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c1"># site configuration</span>
+                <span class="n">project_config_folder</span> <span class="o">=</span> <span class="s2">&quot;site</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pc_suffix</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">project_config_folder</span> <span class="o">=</span> <span class="s2">&quot;p</span><span class="si">%d%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">pc_suffix</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">cls</span><span class="o">.</span><span class="n">get_site_root</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="p">),</span>
+                <span class="n">project_config_folder</span>
+            <span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'v0.18.0RC1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
