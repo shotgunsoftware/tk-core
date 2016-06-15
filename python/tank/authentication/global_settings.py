@@ -29,32 +29,100 @@ class GlobalSettings(object):
 
     _LOGIN = "Login"
 
-    def __init__(self):
+    @property
+    def default_http_proxy(self):
         """
-        Constructor.
+        :returns: The default proxy.
+        """
+        return self._get_value(self._LOGIN, "http_proxy")
 
-        :param bootstrap: The application bootstrap.
+    @property
+    def default_app_store_http_proxy(self):
+        """
+        :returns: If None, the proxy wasn't set. If an empty string, it has been forced to
+        """
+        # Passing PROXY_NOT_SET and getting it back means that the proxy wasn't set in the file.
+        _PROXY_NOT_SET = "PROXY_NOT_SET"
+        proxy = self._get_value(self._LOGIN, "app_store_http_proxy", default=_PROXY_NOT_SET)
+
+        # If proxy wasn't set, then return None, which means Toolkit will use the value from the http_proxy
+        # setting for the app store proxy.
+        if proxy == _PROXY_NOT_SET:
+            return None
+        # If the proxy was set to a falsy value, it means it was hardcoded to be None.
+        elif not proxy:
+            return ""
+        else:
+            return proxy
+
+    @property
+    def default_site(self):
+        """
+        :returns: The default site.
+        """
+        return self._get_value(self._LOGIN, "default_site")
+
+    @property
+    def default_login(self):
+        """
+        :returns: The default login.
+        """
+        return self._get_value(self._LOGIN, "default_login")
+
+    def _get_value(self, section, key, type_cast=str, default=None):
+        """
+        Retrieves a value from the config.ini file. If the value is not set, returns the default.
+        Since all values are strings inside the file, you can optionally cast the data to another type.
+
+        :param section: Section (name between brackets) of the setting.
+        :param key: Name of the setting within a section.
+        ;param type_cast: Casts the value to the passed in type. Defaults to str.
+        :param default: If the value is not found, returns this default value. Defauts to None.
+
+        :returns: The appropriately type casted value if the value is found, default otherwise.
+        """
+        if not self._global_config.has_section(section):
+            return default
+        elif not self._global_config.has_option(section, key):
+            return default
+        else:
+            return type_cast(self._global_config.get(section, key))
+
+    def __new__(cls, *args, **kwargs):
+        """
+        Create the singleton instance if it hasn't been created already. Once instantiated,
+        the object will be cached and never be instantiated again for performance
+        reasons.
+        """
+        #
+        # note - this init isn't currently threadsafe.
+        #
+        if not cls.__instance:
+            instance = super(GlobalSettings, cls).__new__(
+                cls,
+                *args,
+                **kwargs
+            )
+            instance.__init_singleton()
+            # remember the instance so that no more are created
+            cls.__instance = instance
+        return cls.__instance
+
+    def __init_singleton(self):
+        """
+        Singleton initialization.
         """
         path = self._compute_config_location()
         logger.debug("Reading global settings from %s" % path)
+
         self._global_config = self._load_config(path)
+
+        # Log the default settings
         logger.debug("Default site: %s" % (self.default_site,))
         logger.debug("Default proxy: %s" % (self._get_filtered_proxy(self.default_http_proxy),))
         proxy = self._get_filtered_proxy(self.default_app_store_http_proxy)
         logger.debug("Default app store proxy: %s" % ("<not set>" if proxy is None else proxy,))
         logger.debug("Default login: %s" % (self.default_login,))
-
-    def _get_user_dir_config_location(self, bootstrap):
-        """
-        :param bootstrap: The application bootstrap.
-
-        :returns: Path to the ``config.ini`` within the user folder.
-        """
-        return os.path.join(
-            bootstrap.get_shotgun_desktop_cache_location(),
-            "config",
-            "config.ini"
-        )
 
     def _compute_config_location(self):
         """
@@ -120,65 +188,6 @@ class GlobalSettings(object):
         if os.path.exists(path):
             config.read(path)
         return config
-
-    @property
-    def default_http_proxy(self):
-        """
-        :returns: The default proxy.
-        """
-        return self._get_value(self._LOGIN, "http_proxy")
-
-    @property
-    def default_app_store_http_proxy(self):
-        """
-        :returns: If None, the proxy wasn't set. If an empty string, it has been forced to
-        """
-        # Passing PROXY_NOT_SET and getting it back means that the proxy wasn't set in the file.
-        _PROXY_NOT_SET = "PROXY_NOT_SET"
-        proxy = self._get_value(self._LOGIN, "app_store_http_proxy", default=_PROXY_NOT_SET)
-
-        # If proxy wasn't set, then return None, which means Toolkit will use the value from the http_proxy
-        # setting for the app store proxy.
-        if proxy == _PROXY_NOT_SET:
-            return None
-        # If the proxy was set to a falsy value, it means it was hardcoded to be None.
-        elif not proxy:
-            return ""
-        else:
-            return proxy
-
-    @property
-    def default_site(self):
-        """
-        :returns: The default site.
-        """
-        return self._get_value(self._LOGIN, "default_site")
-
-    @property
-    def default_login(self):
-        """
-        :returns: The default login.
-        """
-        return self._get_value(self._LOGIN, "default_login")
-
-    def _get_value(self, section, key, type_cast=str, default=None):
-        """
-        Retrieves a value from the config.ini file. If the value is not set, returns the default.
-        Since all values are strings inside the file, you can optionally cast the data to another type.
-
-        :param section: Section (name between brackets) of the setting.
-        :param key: Name of the setting within a section.
-        ;param type_cast: Casts the value to the passed in type. Defaults to str.
-        :param default: If the value is not found, returns this default value. Defauts to None.
-
-        :returns: The appropriately type casted value if the value is found, default otherwise.
-        """
-        if not self._global_config.has_section(section):
-            return default
-        elif not self._global_config.has_option(section, key):
-            return default
-        else:
-            return type_cast(self._global_config.get(section, key))
 
     def _get_filtered_proxy(self, proxy):
         """
