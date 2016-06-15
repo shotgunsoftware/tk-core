@@ -25,138 +25,101 @@ from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
+
 class ConfigurationResolver(object):
     """
-    Base class for defining recipes for how to resolve a configuration object
-    given a particular project and configuration.
+    A class that contains the business logic for returning a configuration
+    object given a set of parameters.
     """
 
-    def __init__(self, sg_connection, bundle_cache_fallback_paths):
-        """
-        Constructor.
-
-        :param sg_connection: Shotgun API instance
-        :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
-        """
-        self._sg_connection = sg_connection
-        self._bundle_cache_fallback_paths = bundle_cache_fallback_paths
-
-    def resolve_configuration(
-        self,
-        project_id,
-        pipeline_config_name,
-        engine_name,
-        base_config_descriptor,
-        get_latest_config
+    def __init__(
+            self,
+            entry_point,
+            engine_name,
+            project_id=None,
+            bundle_cache_fallback_paths=None
     ):
-        """
-        Given a Shotgun project (or None for site mode), return a configuration
-        object based on a particular set of resolution logic rules.
-
-        This method needs to be subclassed by different methods, implementing different
-        business logic for resolve. This resolve may include different type of fallback
-        schemes, simple non-shotgun schemes etc.
-
-        :param project_id: Project id to create a config object for, None for the site config.
-        :param pipeline_config_name: Name of configuration branch (e.g Primary)
-        :param engine_name: Engine name for which we are resolving the configuration.
-        :param base_config_descriptor: descriptor dict or string for fallback config.
-        :param get_latest_config: Flag to indicate that latest version of the fallback config
-                                  should be resolved and used.
-        :return: Configuration instance
-        """
-        raise NotImplementedError
-
-
-class BaseConfigurationResolver(ConfigurationResolver):
-    """
-    An simplistic resolver which is not aware of pipeline configurations
-    in Shotgun. This will always resolve the base config location
-    regardless of any external state.
-    """
-
-    def __init__(self, sg_connection, bundle_cache_fallback_paths):
         """
         Constructor
 
-        :param sg_connection: Shotgun API instance
-        :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
-        """
-        super(BaseConfigurationResolver, self).__init__(
-            sg_connection,
-            bundle_cache_fallback_paths
-        )
-
-    def resolve_configuration(
-        self,
-        project_id,
-        pipeline_config_name,
-        engine_name,
-        base_config_descriptor,
-        get_latest_config
-    ):
-        """
-        Given a Shotgun project (or None for site mode), return a configuration
-        object based on a particular set of resolution logic rules.
-
-        The BaseConfigurationResolver is a simple and fast implementation
-        which does not take pipeline configuration entities in Shotgun into account.
-        It just returns the base configuration.
-
-        Note: This implementation is expected to be replaced with the
-              BasicConfigurationResolver at some point soon.
-
+        :param entry_point: The entry point name of the system that is being bootstrapped.
+        :param engine_name: Name of the engine that is about to be launched.
         :param project_id: Project id to create a config object for, None for the site config.
-        :param pipeline_config_name: Name of configuration branch (e.g Primary)
-        :param engine_name: Engine name for which we are resolving the configuration.
-        :param base_config_descriptor: descriptor dict or string for fallback config.
-        :param get_latest_config: Flag to indicate that latest version of the fallback config
-                                  should be resolved and used.
-        :return: Configuration instance
+        :param bundle_cache_fallback_paths: Optional list of additional paths where apps are cached.
         """
-        log.debug(
-            "%s resolving a configuration for project %s, "
-            "pipeline config %s, engine %s" % (
-                self,
-                project_id,
-                pipeline_config_name,
-                engine_name
-            )
+        self._project_id = project_id
+        self._entry_point = entry_point
+        self._engine_name = engine_name
+        self._bundle_cache_fallback_paths = bundle_cache_fallback_paths or []
+
+    def __repr__(self):
+        return "<Resolver: proj id %s, engine %s, entry point %s>" % (
+            self._project_id,
+            self._engine_name,
+            self._entry_point,
         )
 
-        # fall back on base
-        if base_config_descriptor is None:
-            raise TankBootstrapError(
-                "No base configuration specified and no pipeline "
-                "configuration exists in Shotgun for the given project. "
-                "Cannot create a configuration object.")
+    def resolve_configuration(self, config_descriptor, sg_connection):
+        """
+        Return a configuration object given a config descriptor
 
+        :param config_descriptor: descriptor dict or string
+        :param sg_connection: Shotgun API instance
+        :return: :class:`Configuration` instance
+        """
+        log.debug("%s resolving configuration for descriptor %s" % (self, config_descriptor))
+
+        if config_descriptor is None:
+            raise TankBootstrapError(
+                "No config descriptor specified - Cannot create a configuration object."
+            )
+
+        # note how we currently always prefer latest as part of the resolve.
+        # later on, it will be possible to specify an update policy as part of
+        # the descriptor system, allowing a user to specify what latest means -
+        # does it actually mean that the version is frozen to a particular version,
+        # the latest release on a conservative release track, the latest alpha etc.
+        #
+        # for installations bundled with manual descriptors, latest currently
+        # means the same version that the descriptor is pointing at, so for
+        # these installations, version numbers are effectively fixed.
         cfg_descriptor = create_descriptor(
-            self._sg_connection,
+            sg_connection,
             Descriptor.CONFIG,
-            base_config_descriptor,
+            config_descriptor,
             fallback_roots=self._bundle_cache_fallback_paths,
-            resolve_latest=get_latest_config
+            resolve_latest=True
         )
 
         log.debug("Configuration resolved to %r." % cfg_descriptor)
 
         # first get the cache root
         cache_root = LocalFileStorageManager.get_configuration_root(
-            self._sg_connection.base_url,
-            project_id,
+            sg_connection.base_url,
+            self._project_id,
             None,  # pipeline config id
             LocalFileStorageManager.CACHE
         )
 
+        # resolve the config location both based on entry point and current engine.
+        #
+        # Example: ~/Library/Caches/Shotgun/mysitename/site/cfg.tk-rv.review
+        #
+        config_folder = "cfg.%s" % filesystem.create_valid_filename(self._engine_name)
+
+        if self._entry_point:
+            # append the entry point
+            config_folder = "%s.%s" % (
+                config_folder,
+                filesystem.create_valid_filename(self._entry_point)
+            )
+
         # now locate configs created by the base config resolver
         # in cfg/base/engine-name folder
-        config_cache_root = os.path.join(
-            cache_root,
-            "cfg.base",
-            filesystem.create_valid_filename(engine_name)
-        )
+        config_cache_root = os.path.join(cache_root, config_folder)
         filesystem.ensure_folder_exists(config_cache_root)
+
+        log.debug("Configuration root resolved to %s." % config_cache_root)
 
         # populate current platform, leave rest blank.
         # this resolver only supports local, on-the-fly
@@ -166,11 +129,47 @@ class BaseConfigurationResolver(ConfigurationResolver):
         # create an object to represent our configuration install
         return Configuration(
             config_root,
-            self._sg_connection,
+            sg_connection,
             cfg_descriptor,
-            project_id,
+            self._project_id,
             None,  # pipeline config id
             self._bundle_cache_fallback_paths
         )
 
+    def resolve_shotgun_configuration(
+        self,
+        pipeline_config_name,
+        fallback_config_descriptor,
+        sg_connection
+    ):
+        """
+        Return a configuration object by requesting a pipeline configuration
+        in Shotgun. If no suitable configuration is found, return a configuration
+        for the given fallback config.
+
+            .. note:: The current implementation for this is a pass-through
+                      to the base configuration resolver. In the future, business
+                      logic will be added to handle this.
+
+        :param pipeline_config_name: Name of configuration branch (e.g Primary)
+        :param fallback_config_descriptor: descriptor dict or string for fallback config.
+        :param sg_connection: Shotgun API instance
+        :return: :class:`Configuration` instance
+        """
+        log.debug(
+            "%s resolving configuration from Shotgun Pipeline Configuration %s" % (self, pipeline_config_name)
+        )
+
+        log.warning(
+            "Shotgun pipeline configuration resolve has not been implemented yet. "
+            "Falling back on the base configuration resolver."
+        )
+
+        # TODO: add shotgun resolve logic
+        # - find pipeline config record that matches both
+        #   name and entry point
+        # - if found, bootstrap into it
+        # - if not found, try the fallback
+
+        return self.resolve_configuration(fallback_config_descriptor, sg_connection)
 
