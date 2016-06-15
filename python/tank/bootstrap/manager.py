@@ -128,13 +128,17 @@ class ToolkitManager(object):
         for the development of several plugins in different DCCs that together
         form a curated workflow.
 
-        Consider the following when deciding how to name your entry point:
+        We recommend an entry point naming convention of ``provider_service``,
+        for example:
 
-        - The entry point needs to be unique
-        - It should be clear and concise
-        - We recommend that you use the following naming convention:
-          ``provider_service``, for example ``rv_review`` for an entry point
-          maintained by the rv group which hosts review functionality.
+        - A plugin maintained by the RV group which handles review inside RV would
+          be named ``rv_review``.
+        - A plugin for a toolkit load/publish workflow that runs inside of Maya and
+          Nuke, maintained by the Toolkit team, could be named ``sgtk_publish``.
+        - A plugin containg a studio VR workflow across multiple DCCs could be
+          named ``studioname_vrtools``.
+
+        Please make sure that your entry point is **unique, explicit and short**.
 
             .. note:: If you want to force the :meth:`base_configuration` to always
                       be used, set :meth:`do_shotgun_config_lookup` to False.
