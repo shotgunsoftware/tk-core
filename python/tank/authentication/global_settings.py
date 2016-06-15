@@ -29,13 +29,13 @@ class GlobalSettings(object):
 
     _LOGIN = "Login"
 
-    def __init__(self, fallback_locations):
+    def __init__(self):
         """
         Constructor.
 
         :param bootstrap: The application bootstrap.
         """
-        path = self._compute_config_location(fallback_locations)
+        path = self._compute_config_location()
         logger.debug("Reading global settings from %s" % path)
         self._global_config = self._load_config(path)
         logger.debug("Default site: %s" % (self.default_site,))
@@ -56,7 +56,7 @@ class GlobalSettings(object):
             "config.ini"
         )
 
-    def _compute_config_location(self, fallback_locations):
+    def _compute_config_location(self):
         """
         Retrieves the location of the ``config.ini`` file. It will look in multiple locations:
 
@@ -64,9 +64,6 @@ class GlobalSettings(object):
             - The ``SGTK_DESKTOP_CONFIG_LOCATION`` environment variable.
             - The ``~/Library/Application Support/Shotgun/config.ini`` file
             - The ``~/Library/Caches/Shotgun/desktop/config/config.ini`` file
-            - One of the fallback locations
-
-        :param fallback_locations: List of alternate locations to look for the ``config.ini`` file.
 
         :returns: The location where to read the configuration file from.
         """
@@ -101,8 +98,7 @@ class GlobalSettings(object):
                 ),
                 "desktop", "config", "config.ini"
             )
-            # Any other locations set by our caller as a fallback.
-        ] + fallback_locations
+        ]
 
         # Search for the first path that exists and then use it.
         for loc in file_locations:

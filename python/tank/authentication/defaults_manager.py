@@ -70,16 +70,13 @@ class DefaultsManager(object):
     to the :class:`ShotgunAuthenticator` object when you construct it.
     """
 
-    def __init__(self, global_settings_fallback=[]):
+    def __init__(self):
         """
         Constructor.
-
-        :param list global_settings_fallback: Complete paths to alternate ``config.ini`` files if
-            none of the default locations have a file.
         """
         # Avoids circular dep
         from .global_settings import GlobalSettings
-        self._global_settings = GlobalSettings(global_settings_fallback)
+        self._global_settings = GlobalSettings()
 
     def is_host_fixed(self):
         """
