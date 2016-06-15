@@ -266,6 +266,31 @@ def get_associated_sg_config_data():
     cfg = __get_sg_config()
     return __get_sg_config_data(cfg)
 
+def get_deferred_sg_connection():
+    """
+    Returns a shotgun API instance that is lazily initialized.
+    This is a method intended only to support certain legacy cases
+    where some operations in Toolkit are not fully authenticated.
+    When descriptor objects are constructed, they are associated with a
+    SG API handle. This handle is not necessary for basic operations such
+    as path resolution. By passing a deferred connection object to
+    descriptors, authentication is essentially deferred until the need
+    for more complex operations arises, allowing for simple, *legacy*
+    non-authenticated pathways.
+
+    :return: Proxied SG API handle
+    """
+    class DeferredInitShotgunProxy(object):
+        def __init__(self):
+            self._sg = None
+        def __getattr__(self, key):
+            if self._sg is None:
+                self._sg = get_sg_connection()
+            return getattr(self._sg, key)
+
+    return DeferredInitShotgunProxy()
+
+
 g_sg_cached_connection = threading.local()
 def get_sg_connection():
     """

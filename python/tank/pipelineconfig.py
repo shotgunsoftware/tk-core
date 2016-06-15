@@ -603,9 +603,13 @@ class PipelineConfiguration(object):
         # note: certain legacy methods, for example how shotgun menu actions are cached
         # from the tank command, are not authenticated pathways. This is something we
         # ultimately need to more away from, ensuring that the system is fully authenticated
-        # across the board. However, in the meantime, we rely on the fact that the shotgun API
-        # instance connects lazily as of 0.18
-        sg_connection = shotgun.get_sg_connection()
+        # across the board. However, in the meantime, ensure that *basic* descriptor operations can
+        # be accessed without having a valid shotgun connection by using a deferred shotgun API wrapper
+        # rather than a wrapper that is initialized straight away. This ensures that a valid authentication
+        # state in toolkit is not required until the connection is actually needed. In the case of descriptors,
+        # a connection is typically only needed at download and when checking for latest. Path resolution
+        # methods do not require a connection.
+        sg_connection = shotgun.get_deferred_sg_connection()
 
         if isinstance(dict_or_uri, basestring):
             descriptor_dict = descriptor_uri_to_dict(dict_or_uri)
