@@ -220,22 +220,28 @@ class SessionUser(ShotgunUserImpl):
         """
         Creates a Shotgun instance using the script user's credentials.
 
+        The Shotgun instance will connect upon its first request.
+
         :returns: A Shotgun instance.
         """
         return _shotgun_instance_factory(
             self.get_host(), session_token=self.get_session_token(),
             http_proxy=self.get_http_proxy(),
-            sg_auth_user=self
+            sg_auth_user=self,
+            connect=False
         )
 
+    @LogManager.log_timing
     def are_credentials_expired(self):
         """
         Checks if the credentials for the user are expired.
 
         :returns: True if the credentials are expired, False otherwise.
         """
+        logger.debug("Connecting to shotgun to determine if credentials have expired...")
         sg = Shotgun(
-            self.get_host(), session_token=self.get_session_token(),
+            self.get_host(),
+            session_token=self.get_session_token(),
             http_proxy=self.get_http_proxy()
         )
         try:
@@ -325,6 +331,8 @@ class ScriptUser(ShotgunUserImpl):
         """
         Creates a Shotgun instance using the script user's credentials.
 
+        The Shotgun instance will connect upon its first request.
+
         :returns: A Shotgun instance.
         """
         # No need to instantiate the ShotgunWrapper because we're not using
@@ -334,6 +342,7 @@ class ScriptUser(ShotgunUserImpl):
             script_name=self._api_script,
             api_key=self._api_key,
             http_proxy=self._http_proxy,
+            connect=False
         )
 
     def are_credentials_expired(self):
