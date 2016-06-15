@@ -69,12 +69,6 @@ def __get_sg_config():
     """
     core_cfg = __get_api_core_config_location()
     path = os.path.join(core_cfg, "shotgun.yml")
-
-    log.debug(
-        "Resolving shotgun.yml location to '%s' by looking "
-        "at the location of the currently executing code." % path
-    )
-
     return path
 
 def get_project_name_studio_hook_location():
@@ -94,12 +88,6 @@ def get_project_name_studio_hook_location():
     
     core_cfg = __get_api_core_config_location()
     path = os.path.join(core_cfg, constants.STUDIO_HOOK_PROJECT_NAME)
-
-    log.debug(
-        "Resolving studio hook location to '%s' by looking "
-        "at the location of the currently executing code." % path
-    )
-
     return path
 
 def __get_sg_config_data(shotgun_cfg_path, user="default"):
@@ -313,7 +301,31 @@ def get_associated_sg_config_data():
     cfg = __get_sg_config()
     return __get_sg_config_data(cfg)
 
-    
+def get_deferred_sg_connection():
+    """
+    Returns a shotgun API instance that is lazily initialized.
+    This is a method intended only to support certain legacy cases
+    where some operations in Toolkit are not fully authenticated.
+    When descriptor objects are constructed, they are associated with a
+    SG API handle. This handle is not necessary for basic operations such
+    as path resolution. By passing a deferred connection object to
+    descriptors, authentication is essentially deferred until the need
+    for more complex operations arises, allowing for simple, *legacy*
+    non-authenticated pathways.
+
+    :return: Proxied SG API handle
+    """
+    class DeferredInitShotgunProxy(object):
+        def __init__(self):
+            self._sg = None
+        def __getattr__(self, key):
+            if self._sg is None:
+                self._sg = get_sg_connection()
+            return getattr(self._sg, key)
+
+    return DeferredInitShotgunProxy()
+
+
 g_sg_cached_connection = None
 def get_sg_connection():
     """
@@ -365,10 +377,16 @@ def create_sg_connection(user="default"):
     # the authenticated user concept. In that case, we'll do what we've always been doing in the
     # past, which is read shotgun.yml and expect there to be a script user.
     if sg_user is None:
+        log.debug(
+            "This tk session has no associated authenticated user. Falling back to "
+            "creating a shotgun API instance based on script based credentials in the "
+            "shotgun.yml configuration file."
+        )
         config_data = __get_sg_config_data_with_script_user(__get_sg_config(), user)
         api_handle = __create_sg_connection(config_data)
     else:
         # Otherwise use the authenticated user to create the connection.
+        log.debug("Creating shotgun connection from %r" % sg_user)
         api_handle = __create_sg_connection(None, sg_user)
     return api_handle
 

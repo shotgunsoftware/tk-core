@@ -8,6 +8,210 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+Toolkit uses the standard python logging for its
+log management. The :class:`LogManager` class below
+acts as an interface that helps make it easy to access
+and manage Toolkit logging.
+
+
+Logging hierarchy
+-----------------------------------
+
+All Toolkit logging is written into a ``sgtk.*`` logging
+namespace. This has been "sealed" so that log messages
+from Toolkit do not propagate up to the root logger. This
+is to ensure that Toolkit doesn't interfere with other logging
+that has been already configured.
+
+The following sub-heirarchies exist:
+
+- Each app, engine and bundle provides access to logging and
+  these log streams are collected and organized under the
+  ``sgtk.env`` logging namespace. Below this level, messages
+  are broken down further by environment, engine, etc.
+
+- Logging from external tools and scripts is written to ``sgtk.ext``.
+
+- All core logging is written to the ``sgtk.core`` logger.
+
+Below is a simple log hierarchy to illustrate what this might look like in practice.
+
+.. code-block:: text
+
+    sgtk                                              Root point for all Toolkit logging
+     |
+     |- core                                          Root point for the Core API
+     |   |
+     |   |- descriptor                                Logging from core Modules
+     |   |- path_cache
+     |
+     |- env                                           Logging from apps and engines
+     |   |
+     |   |- project                                   Toolkit Environment
+     |       |
+     |       |- tk-maya                               Toolkit Engine
+     |             |
+     |             |- tk-multi-workfiles2             Toolkit App (or framework)
+     |                  |
+     |                  |- tkimp63c3b2d57f85          Toolkit Command Session
+     |                      |
+     |                      |- tk_multi_workfiles     Python hierarchy inside app's python folder
+     |                          |
+     |                          |- entity_tree
+     |
+     |- ext                                           Logging from associated external scripts
+         |
+         |- tank_cmd
+
+
+
+Generating log messages in Toolkit
+-----------------------------------
+
+Generating log messages are done differently depending on your context.
+Below are a series of examples and best practice recipes explaining how to best
+apply logging to different scenarios.
+
+
+Logging from within your App, Engine or Framework
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Inside your app, a logger is available via :meth:`~sgtk.platform.Application.logger`.
+Alternatively, you can also
+use the legacy methods ``log_debug|error|info|...()``. This provides
+a basic level of general logging.
+
+For code inside the ``python`` folder, which has been imported via
+Toolkit's :meth:`~sgtk.platform.Application.import_module()` method,
+we recommend that you access a logger using the following method::
+
+    # at the top of the file, include the following
+    import sgtk
+    logger = sgtk.platform.get_logger(__name__)
+
+    def my_method():
+        logger.debug("inside my code, i can log like this")
+
+This logger will be grouped per invocation instance,
+meaning that you can see for example which dialog UI
+a particular collection of log messages comes from.
+An invocation is typically associated with someone launching
+the app from the Shotgun menu.
+
+    .. note:: Because log messages are grouped per invocation,
+              this makes it easy to for example generate log files
+              for export or import sessions running as part of an
+              app. It also makes it possible to create a log window
+              which displays the logging associated with a particular
+              app UI dialog.
+
+Logging from scripts and other external locations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to add standard Toolkit logging to a script, simply
+use the following recipe::
+
+    # at the top of the file, include the following
+    import sgtk
+    logger = sgtk.LogManager.get_logger(__name__)
+
+    def my_method():
+        logger.debug("inside my code, i can log like this")
+
+All this logging will appear below the ``sgtk.ext`` logger.
+
+Logging from inside the Core API
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To emit log messages from inside the Toolkit Core API, use the following pattern::
+
+    # at the top of the file, include the following
+    import sgtk
+    logger = sgtk.LogManager.get_logger(__name__)
+
+    def my_method():
+        logger.debug("inside my code, i can log like this")
+
+
+
+Consuming log messages in Toolkit
+-----------------------------------
+
+Toolkit provides several ways to access the log information generated by
+the various methods and recipes shown above.
+
+The general approach is to attach one or several log handlers to the root
+logging point of the hierarchy (``sgtk``). Each handler controls its own
+logging resolution, e.g. how much log information to display. The toolkit
+logging hierarchy itself is set to DEBUG resolution.
+
+The Toolkit :class:`LogManager` provides a default set of logging methods
+to help access log information.
+
+
+Global debug
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Toolkit has a concept of a global debug flag. This flag can be
+enabled by setting the ``TK_DEBUG`` environment variable or
+alternatively setting the :meth:`LogManager.global_debug` property.
+
+All log handlers that have been created using the :class:`LogManager`
+will be affected by the flag.
+
+
+Backend file logging
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Log information is automatically written to disk by the :class:`LogManager`.
+The location to which log files are written can be accessed via the
+:meth:`LogManager.log_folder` property. Backend file logging is normally
+automatically enabled and end users do not need to worry about this.
+If you want debug logging to be written to these files, enable the
+global debug flag.
+
+    .. note:: If you are writing a toolkit plugin, we recommend
+              that you initialize logging early on in your code by
+              calling :meth:`LogManager.initialize_base_file_handler`.
+              This will ensure that all your logs are written to disk.
+              If you omit this call, logging will automatically be
+              started up as the engine is launched.
+
+DCC Logging
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each toolkit engine integrates logging into the DCC. DCCs such as
+Maya, Nuke or houdini traditionally have a console of some sort where
+logging information typically should be dispatched.
+
+Engine log output has traditionally been implemented by subclassing
+the ``log_info``, ``log_error`` methods. In Core v0.18, a new and
+improved logging platform is introduced and we recommend that engines
+*do not* implement the ``log_xxx`` methods at all but instead implement
+a single :meth:`~sgtk.platform.Engine._emit_log_message` method.
+
+
+Standard Logging
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want some sort of log output in addition to the logging an
+engine provides, you can add standard toolkit handlers. These handlers
+are created via the :meth:`LogManager.initialize_custom_handler` method.
+
+All log handlers created or registered via this method will respond
+to the global debug flag.
+
+    .. note:: If you want a raw log output that is not affected
+              by any changes to the global debug flag, we recommend that
+              you manually create your log handler and attach it to
+              the ``sgtk`` root logger.
+
+Python provides a large number of log handlers as part of its standard library.
+For more information, see https://docs.python.org/2/library/logging.handlers.html#module-logging.handlers
+"""
+
+
 import logging
 import logging.handlers
 import os
@@ -101,11 +305,28 @@ class LogManager(object):
         :returns: Standard python logger.
         """
         if log_name.startswith("tank."):
-            # replace tank
-            log_name = "%s.%s" % (constants.ROOT_LOGGER_NAME, log_name[5:])
-        else:
-            # parent under root logger
+            # old style import of core
+            #
+            # this will be parented under sgtk.core.xxx
+            #
+            log_name = "%s.core.%s" % (constants.ROOT_LOGGER_NAME, log_name[5:])
+        elif log_name.startswith("sgtk."):
+            # new style import of core
+            #
+            # this will be parented under sgtk.core.xxx
+            #
+            log_name = "%s.core.%s" % (constants.ROOT_LOGGER_NAME, log_name[5:])
+        elif log_name.startswith("env."):
+            # engine logging
+            #
+            # this will be parented under sgtk.env.xxx
+            # for example sgtk.env.asset.tk-maya
+            #
+
             log_name = "%s.%s" % (constants.ROOT_LOGGER_NAME, log_name)
+        else:
+            # some external script or tool
+            log_name = "%s.ext.%s" % (constants.ROOT_LOGGER_NAME, log_name)
 
         return logging.getLogger(log_name)
 
@@ -186,7 +407,7 @@ class LogManager(object):
         """
         Controls the global debug flag in toolkit. Toggling this
         flag will affect all log handlers that have been created
-        though :meth:`initialize_custom_handler`.
+        via :meth:`initialize_custom_handler`.
 
         .. note:: Debug logging is off by default.
                   If you want to permanently enable debug logging,
@@ -241,6 +462,8 @@ class LogManager(object):
 
         .. note:: If :meth:`global_debug` is set to True, the handler created
                   will be set to debug level, otherwise it will be set to info level.
+                  Furthermore, the log handler will automatically adjust its log
+                  level whenever the global debug flag changes its state.
 
         Calling this without parameters will generate a standard
         stream based logging handler that logs to stderr::
@@ -254,13 +477,6 @@ class LogManager(object):
 
             handler = logging.FileHandler("/tmp/toolkit.log)
             LogManager().initialize_custom_handler(handler)
-
-        If you want to only show warnings::
-
-            # start logging to stderr
-            import sgtk.LogManager
-            handler = LogManager().initialize_custom_handler()
-            handler.setLevel(logging.WARNING)
 
         The log handler will be configured to output its messages
         in a standard fashion.

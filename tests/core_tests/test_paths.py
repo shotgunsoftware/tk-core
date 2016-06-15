@@ -27,11 +27,11 @@ class TestLocalFileStorageManager(TankTestBase):
         """
         p = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
         if sys.platform == "win32":
-            self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun", "Caches"))
+            self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun"))
         if sys.platform == "darwin":
             self.assertEqual(p, os.path.expanduser("~/Library/Caches/Shotgun"))
         if sys.platform == "linux2":
-            self.assertEqual(p, os.path.expanduser("~/.shotgun/caches"))
+            self.assertEqual(p, os.path.expanduser("~/.shotgun"))
 
 
         p = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE, LocalFileStorageManager.CORE_V17)
@@ -75,11 +75,11 @@ class TestLocalFileStorageManager(TankTestBase):
         p = LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING)
 
         if sys.platform == "win32":
-            self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun", "Log"))
+            self.assertEqual(p, os.path.join(os.environ["APPDATA"], "Shotgun", "Logs"))
         if sys.platform == "darwin":
             self.assertEqual(p, os.path.expanduser("~/Library/Logs/Shotgun"))
         if sys.platform == "linux2":
-            self.assertEqual(p, os.path.expanduser("~/.shotgun/log"))
+            self.assertEqual(p, os.path.expanduser("~/.shotgun/logs"))
 
 
         p = LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING, LocalFileStorageManager.CORE_V17)

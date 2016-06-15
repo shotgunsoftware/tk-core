@@ -33,7 +33,7 @@ for terminating an engine can be found on the engine class itself.
 Engines
 ---------------------------------------
 
-A toolkit engine connects a runtime environment such as a DCC with the rest of the Toolkit ecosystem.
+A Toolkit engine connects a runtime environment such as a DCC with the rest of the Toolkit ecosystem.
 As the engine starts up, it loads the various associated apps and frameworks defined in the configuration and acts a
 host for all these objects, ensuring that they can operate in a consistent fashion across integrations.
 
@@ -203,7 +203,7 @@ access and load other objects.
 
 
 
-Using QT inside your app
+Using QT inside your Toolkit App
 ---------------------------------------
 
 You can use QT classes inside your app code. Sgtk will handle the import and gracefully manage different
@@ -266,9 +266,9 @@ property called ``exit_code``. Typically, your code for a modal dialog would loo
 
 The call to self.engine.show_modal() will return the appropriate status code depending on which button was clicked.
 
-**Hiding the Sgtk Title Bar**
+**Hiding the default Toolkit title bar**
 
-By default, the standard Sgtk dialog includes a title bar at the top. However, sometimes this is not desirable,
+By default, the standard Toolkit UI dialog includes a title bar at the top. However, sometimes this is not desirable,
 especially when the contained widget is quite small. To hide the title bar, just add a property called
 ``hide_tk_title_bar`` to your widget class and set it to a value of True, for example::
 

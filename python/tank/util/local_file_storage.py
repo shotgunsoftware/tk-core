@@ -82,7 +82,7 @@ class LocalFileStorageManager(object):
 
             elif sys.platform == "win32":
                 if path_type == cls.CACHE:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun", "Cache")
+                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
                 elif path_type == cls.PERSISTENT:
                     return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun", "Data")
                 elif path_type == cls.LOGGING:
@@ -92,7 +92,7 @@ class LocalFileStorageManager(object):
 
             elif sys.platform.startswith("linux"):
                 if path_type == cls.CACHE:
-                    return os.path.expanduser("~/.shotgun/caches")
+                    return os.path.expanduser("~/.shotgun")
                 elif path_type == cls.PERSISTENT:
                     return os.path.expanduser("~/.shotgun/data")
                 elif path_type == cls.LOGGING:
@@ -189,7 +189,7 @@ class LocalFileStorageManager(object):
 
         :param hostname: Shotgun hostname as string, e.g. 'https://foo.shotgunstudio.com'
         :param project_id: Shotgun project id as integer. For the site config, this should be None.
-        :param pipeline_config_id: Shotgun pipeline config id.
+        :param pipeline_config_id: Shotgun pipeline config id. None for bootstraped configs.
         :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,
                           ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where
                           logging is a path where log- and debug related data should be stored,

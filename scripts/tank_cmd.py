@@ -36,8 +36,8 @@ from tank.platform import engine
 from tank import pipelineconfig_utils
 from tank import LogManager
 
-
-logger = LogManager.get_logger("tankcmd")
+# the logger used by this file is sgtk.tank_cmd
+logger = LogManager.get_logger("tank_cmd")
 
 # custom log formatter for the tank command
 formatter = None
@@ -92,7 +92,7 @@ class AltCustomFormatter(logging.Formatter):
         Constructor
         """
         self._html = False
-        self._num_items = 0
+        self._num_errors = 0
         logging.Formatter.__init__(self, *args, **kwargs)
 
     def enable_html_mode(self):
@@ -101,13 +101,16 @@ class AltCustomFormatter(logging.Formatter):
         """
         self._html = True
 
-    def get_num_items(self):
+    def get_num_errors(self):
         """
         Returns the number of items that have been logged so far.
         """
-        return self._num_items
+        return self._num_errors
 
     def format(self, record):
+
+        if record.levelno > logging.WARNING:
+            self._num_errors += 1
 
         if self._html:
             # html logging for shotgun.
@@ -150,7 +153,6 @@ class AltCustomFormatter(logging.Formatter):
                     lines.append(x)
                 record.msg = "\n".join(lines)
 
-        self._num_items += 1
         return logging.Formatter.format(self, record)
 
 
@@ -430,14 +432,14 @@ def shotgun_cache_actions(pipeline_config_root, args):
     entity_type = args[0]
     cache_file_name = args[1]
 
-    num_log_messages_before = formatter.get_num_items()
+    num_log_messages_before = formatter.get_num_errors()
     try:
         _write_shotgun_cache(tk, entity_type, cache_file_name)
     except TankError, e:
         logger.error("Error writing shotgun cache file: %s" % e)
     except Exception, e:
         logger.exception("A general error occurred.")
-    num_log_messages_after = formatter.get_num_items()
+    num_log_messages_after = formatter.get_num_errors()
 
     # check if there were any log output. This is an indication that something
     # weird and unexpected has happened...
@@ -1247,7 +1249,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
             # use normal string based parse methods
             # we are now left with the following cases to resolve
             # tank Entitytype name_expression
-            entity_id = _resolve_shotgun_entity(log, entity_type, entity_search_token, project_id)
+            entity_id = _resolve_shotgun_entity(entity_type, entity_search_token, project_id)
 
         # now initialize toolkit and set up the context.
         tk = tank.tank_from_entity(entity_type, entity_id)
@@ -1418,7 +1420,7 @@ def _extract_credentials(cmd_line):
 if __name__ == "__main__":
 
     # set up std toolkit logging to file
-    LogManager().initialize_base_file_handler("tk-shell")
+    LogManager().initialize_base_file_handler(command_constants.SHELL_ENGINE)
 
     # set up output of all sgtk log messages to stdout
     log_handler = LogManager().initialize_custom_handler(

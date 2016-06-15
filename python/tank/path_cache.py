@@ -754,8 +754,6 @@ class PathCache(object):
             #   'type': 'FilesystemLocation'},
             #
             
-            log.debug("Processing id %s..." % x["id"])
-            
             # no path at all - this is an anomaly but handle it gracefully regardless
             if x[SG_PATH_FIELD] is None:
                 log.debug("No path associated with entry for %s. Skipping." % entity)

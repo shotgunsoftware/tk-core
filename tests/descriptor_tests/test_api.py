@@ -10,7 +10,7 @@
 
 import os
 import tempfile
-import datetime
+import uuid
 import sgtk
 
 from tank_test.tank_test_base import *
@@ -63,10 +63,7 @@ class TestApi(TankTestBase):
         sg = self.tk.shotgun
 
         # make a unique bundleroot
-        bundle_root = os.path.join(
-            tempfile.gettempdir(),
-            str(datetime.datetime.now())
-        )
+        bundle_root = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
 
         os.makedirs(bundle_root)
 

@@ -8,10 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
+
 import sys
 import os
 import shutil
 import tempfile
+import mock
 
 from tank_test.tank_test_base import *
 import tank
@@ -334,16 +337,16 @@ class TestHookCache(TestApplication):
     Check that the hooks cache is cleared when an engine is restarted.
     """
     def test_call_hook(self):
-        
+
         tank.hook.clear_hooks_cache()
         self.assertTrue(len(tank.hook._hooks_cache) == 0)
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_std", dummy_param=True))
         self.assertTrue(len(tank.hook._hooks_cache) == 1)
-        self.engine.destroy()
-        self.assertTrue(len(tank.hook._hooks_cache) == 0)
 
-
+        with mock.patch("tank.hook._hooks_cache.clear", wraps=tank.hook._hooks_cache.clear) as clear_mock:
+            self.engine.destroy()
+            self.assertEqual(clear_mock.call_count, 1)
 
 
 class TestProperties(TestApplication):

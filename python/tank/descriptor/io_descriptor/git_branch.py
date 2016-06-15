@@ -191,14 +191,16 @@ class IODescriptorGitBranch(IODescriptorGit):
             cmd = "git ls-remote \"%s\" \"%s\"" % (self._sanitized_repo_path, self._branch)
             branch_info = subprocess_check_output(cmd, shell=True).strip()
             log.debug("ls-remote returned: '%s'" % branch_info)
+
+            # get first chunk of return data
+            git_hash = branch_info.split()[0]
+
         except Exception, e:
             raise TankDescriptorError(
                 "Could not get latest commit for %s, "
                 "branch %s: %s" % (self._path, self._branch, e)
             )
 
-        # get first chunk of return data
-        git_hash = branch_info.split()[0]
 
         # make a new descriptor
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
