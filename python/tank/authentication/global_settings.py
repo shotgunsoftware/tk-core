@@ -12,8 +12,11 @@
 Global settings management.
 """
 
+from __future__ import with_statement
+
 import os
 import ConfigParser
+import threading
 
 from .errors import MissingConfigurationFileError
 from .. import LogManager
@@ -21,8 +24,44 @@ from ..util import LocalFileStorageManager
 
 logger = LogManager.get_logger(__name__)
 
+class Singleton(object):
+    """
+    Thread-safe base class for singletons. Derived classes must implement _init_singleton.
+    """
 
-class GlobalSettings(object):
+    __lock = threading.Lock()
+    def __new__(cls, *args, **kwargs):
+        """
+        Create the singleton instance if it hasn't been created already. Once instantiated,
+        the object will be cached and never be instantiated again for performance
+        reasons.
+        """
+
+        # Check if the instance has been created before taking the lock for performance
+        # reason.
+        if not hasattr(cls, "_instance") or cls._instance is None:
+            # Take the lock.
+            with cls.__lock:
+                # Check the instance again, it might have been created between the
+                # if and the lock.
+                if hasattr(cls, "_instance") and cls._instance:
+                    return cls._instance
+
+                # Create and init the instance.
+                instance = super(Singleton, cls).__new__(
+                    cls,
+                    *args,
+                    **kwargs
+                )
+                instance._init_singleton()
+
+                # remember the instance so that no more are created
+                cls._instance = instance
+
+        return cls._instance
+
+
+class GlobalSettings(Singleton):
     """
     Handles finding and loading the global settings for Toolkit.
     """
@@ -87,26 +126,6 @@ class GlobalSettings(object):
             return default
         else:
             return type_cast(self._global_config.get(section, key))
-
-    def __new__(cls, *args, **kwargs):
-        """
-        Create the singleton instance if it hasn't been created already. Once instantiated,
-        the object will be cached and never be instantiated again for performance
-        reasons.
-        """
-        #
-        # note - this init isn't currently threadsafe.
-        #
-        if not cls.__instance:
-            instance = super(GlobalSettings, cls).__new__(
-                cls,
-                *args,
-                **kwargs
-            )
-            instance.__init_singleton()
-            # remember the instance so that no more are created
-            cls.__instance = instance
-        return cls.__instance
 
     def __init_singleton(self):
         """
