@@ -17,6 +17,7 @@ import os
 import sys
 import urllib2
 import urlparse
+import threading
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -290,32 +291,26 @@ def get_deferred_sg_connection():
     return DeferredInitShotgunProxy()
 
 
-g_sg_cached_connection = None
+g_sg_cached_connection = threading.local()
 def get_sg_connection():
     """
-    Returns a shotgun connection and maintains a global, cached connection so that only one
-    object is ever returned, no matter how many times this call is made.
-    
-    If you have access to a tk API handle, DO NOT USE THIS METHOD! Instead, use the 
-    tk.shotgun handle, which is also optimal and doesn't keep creating new instances.
-    
-    For all methods where no tk API handle is available (pre-init stuff and global 
-    tk commands for example), this method is useful for performance reasons.
-    
-    Whenever a Shotgun API instance is created, it pings the server to check that 
-    it is running the right versions etc. This is slow and inefficient and means that
-    there will be a delay every time create_sg_connection is called.
+    Returns a shotgun connection and maintains a global cache of connections
+    so that only one API instance is ever returned per thread, no matter how many
+    times this call is made.
 
-    This method caches a global (non-threadsafe!) sg instance and thereby avoids
-    the penalty of connecting to sg every single time the method is called.
-    
+        .. note:: Because Shotgun API instances are not safe to share across
+                  threads, this method caches SG Instances per-thread.
+
     :return: SG API handle    
     """
-    
     global g_sg_cached_connection
-    if g_sg_cached_connection is None:
-        g_sg_cached_connection = create_sg_connection()
-    return g_sg_cached_connection
+    sg = getattr(g_sg_cached_connection, "sg", None)
+
+    if sg is None:
+        sg = create_sg_connection()
+        g_sg_cached_connection.sg = sg
+
+    return sg
 
 @LogManager.log_timing
 def create_sg_connection(user="default"):
