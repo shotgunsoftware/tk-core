@@ -14,6 +14,7 @@ PySide 2 backwards compatibility layer for use with PySide 1 code.
 
 from __future__ import with_statement
 
+import os
 import functools
 import imp
 import subprocess
@@ -106,6 +107,7 @@ class PySide2Patcher(object):
         :param QtCore: The QtCore module.
         """
         original_QCoreApplication = QtCore.QCoreApplication
+
         class QCoreApplication(original_QCoreApplication):
             pass
         cls._fix_QCoreApplication_api(QCoreApplication, original_QCoreApplication)
