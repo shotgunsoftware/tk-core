@@ -367,11 +367,12 @@ class IODescriptorBase(object):
         #             params='', query='foo=bar&baz=buz', fragment='')
         #
         #
-        # NOTE - on python 2.5, the result is different:
+        # NOTE - it seems on some versions of python the result is different.
+        #        this includes python2.5 but seems to affect other SKUs as well.
         #
         # uri: sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle
         #
-        # python 2.6+: ParseResult(
+        # python 2.6+ expected: ParseResult(
         # scheme='sgtk',
         # netloc='',
         # path='descriptor:app_store',
@@ -379,7 +380,7 @@ class IODescriptorBase(object):
         # query='version=v0.1.2&name=tk-bundle',
         # fragment='')
         #
-        # python 2.5: (
+        # python 2.5 and others: (
         # 'sgtk',
         # '',
         # 'descriptor:app_store?version=v0.1.2&name=tk-bundle',
@@ -390,8 +391,8 @@ class IODescriptorBase(object):
         if parsed_uri.scheme != constants.DESCRIPTOR_URI_PATH_SCHEME:
             raise TankDescriptorError("Invalid uri '%s' - must begin with 'sgtk'" % uri)
 
-        if sys.version_info < (2,6):
-            # in python 2.5, the querystring is part of the path (see above)
+        if parsed_uri.query == "":
+            # in python 2.5 and others, the querystring is part of the path (see above)
             (path, query) = parsed_uri.path.split("?")
         else:
             path = parsed_uri.path
