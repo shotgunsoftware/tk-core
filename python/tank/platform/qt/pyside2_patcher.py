@@ -280,7 +280,6 @@ class PySide2Patcher(object):
 
                 if url.isLocalFile():
                     url = url.toLocalFile().encode("utf-8")
-                    print url
 
                     if sys.platform == "darwin":
                         return subprocess.call(["open", url]) == 0
