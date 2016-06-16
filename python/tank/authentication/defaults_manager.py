@@ -15,40 +15,29 @@ class DefaultsManager(object):
     """
     The defaults manager allows a client of the Shotgun Authenticator class
     to customize various behaviors around data storage and settings.
-    
+
     By default, when you construct a :class:`ShotgunAuthenticator` object, it will be
-    instantiated with a standard defaults manager implementation. This will 
+    instantiated with a standard defaults manager implementation. This will
     work for most cases - user session credentials will be stored in a file
-    on disk and the system maintains a concept of a current user and a current 
+    on disk and the system maintains a concept of a current user and a current
     host.
-    
+
     If, however, you want to implement a custom behavior around how defaults
-    are managed, simply derive from this class and pass your custom instance 
+    are managed, simply derive from this class and pass your custom instance
     to the :class:`ShotgunAuthenticator` object when you construct it.
     """
-
-    def __init__(self):
-        """
-        """
-        # Reads the default host and login from disk.
-        self._host = session_cache.get_current_host()
-        if self._host:
-            self._login = session_cache.get_current_user(self.get_host())
-        else:
-            self._login = None
-
     def is_host_fixed(self):
         """
         When doing an interactive login, this indicates if the user can decide
         the host to connect to. In its default implementation, the :class:`DefaultsManager`
         will indicate that the host is not fixed, meaning that the user will be
         presented with an option to pick a site at login time.
-        
+
         With something like Toolkit, where each project already have a specific
         site association, you typically want to override this to return True,
-        indicating to the authenticator not to ask the user which site they want 
+        indicating to the authenticator not to ask the user which site they want
         to log in to.
-        
+
         :returns: False if the user should be given an option to decide which host
                   to log in to, True if the host is already predetermined and cannot
                   be changed by the user.
@@ -58,13 +47,13 @@ class DefaultsManager(object):
     def get_host(self):
         """
         The default host is used as a useful starting point when doing
-        interactive authentication. When the host is not fixed (see the 
+        interactive authentication. When the host is not fixed (see the
         :meth:`is_host_fixed` method), the return value of get_host is what is
-        used to implement single sign-on between all Toolkit desktop 
+        used to implement single sign-on between all Toolkit desktop
         applications (at the moment, tank and Shotgun Desktop).
 
         The default implementation maintains a concept of a "current host"
-        which will be presented as a default to users when they are 
+        which will be presented as a default to users when they are
         logging in.
 
         When the host is fixed, this must return a value and this value will
@@ -72,25 +61,24 @@ class DefaultsManager(object):
 
         :returns: A string containing the default host name.
         """
-        return self._host
+        return session_cache.get_current_host()
 
     def set_host(self, host):
         """
-        Called by the authentication system when a new host has been defined.  
+        Called by the authentication system when a new host has been defined.
 
         :param host: The new default host.
         """
         # Host is fixed, don't update the default host.
         if self.is_host_fixed():
             return
-        self._host = host
         session_cache.set_current_host(host)
 
     def get_http_proxy(self):
         """
-        Called by the authentication system when it needs to retrieve the 
+        Called by the authentication system when it needs to retrieve the
         proxy settings to use for a Shotgun connection.
-        
+
         The format should be the same as is being used in the Shotgun API.
         For more information, see the Shotgun API documentation:
         https://github.com/shotgunsoftware/python-api/wiki/Reference%3A-Methods#shotgun
@@ -104,28 +92,28 @@ class DefaultsManager(object):
         Called by the authentication system when it needs to get a
         value for the login. Typically this is used to populate UI
         fields with defaults.
-        
-        :returns: Default implementation returns the login for the 
+
+        :returns: Default implementation returns the login for the
                   currently stored user.
         """
-        return self._login
+        return session_cache.get_current_user(self.get_host())
 
     def get_user_credentials(self):
         """
         Called by the authentication system when it requests a default or current user.
-        
+
         A dictionary with a login and a session token should be returned, which will
         allow the authentication system to authenticate the user.
-        
-        The default implementation maintains a concept where it stores the currently 
-        authenticated user and its session token and tries to return this if possible, 
+
+        The default implementation maintains a concept where it stores the currently
+        authenticated user and its session token and tries to return this if possible,
         effectively meaning that the user will be automatically logged in without having
         to be prompted.
-        
+
         This is typically subclassed if you want to track the notion of a current
         user in an alternative way or maintain a separate notion of the "current" user,
         separate from the default user maintained by the default implementation.
-        
+
         Toolkit uses the default implementation and will therefore remember the user's
         credentials across all DCCs and tools.
 
@@ -141,12 +129,12 @@ class DefaultsManager(object):
     def set_login(self, login):
         """
         Called by the authentication system when a new user is being logged in.
-        
-        The default implementation maintains a concept of a default user 
+
+        The default implementation maintains a concept of a default user
         (returned via the get_user_credentials) and whenever the login is set
-        via this method, the default user will change to be this login instead. 
-        
-        :param login: login as string 
+        via this method, the default user will change to be this login instead.
+
+        :param login: login as string
         """
         self._login = login
         session_cache.set_current_user(self.get_host(), login)
