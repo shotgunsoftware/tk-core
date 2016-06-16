@@ -291,7 +291,7 @@ def get_deferred_sg_connection():
     return DeferredInitShotgunProxy()
 
 
-g_sg_cached_connection = threading.local()
+_g_sg_cached_connections = threading.local()
 def get_sg_connection():
     """
     Returns a shotgun connection and maintains a global cache of connections
@@ -303,12 +303,12 @@ def get_sg_connection():
 
     :return: SG API handle    
     """
-    global g_sg_cached_connection
-    sg = getattr(g_sg_cached_connection, "sg", None)
+    global _g_sg_cached_connections
+    sg = getattr(_g_sg_cached_connections, "sg", None)
 
     if sg is None:
         sg = create_sg_connection()
-        g_sg_cached_connection.sg = sg
+        _g_sg_cached_connections.sg = sg
 
     return sg
 

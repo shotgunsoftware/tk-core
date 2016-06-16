@@ -189,6 +189,8 @@ class MetricsDispatchWorkerThread(Thread):
     endpoint. The worker retrieves any pending metrics after the
     `DISPATCH_INTERVAL` and sends them all in a single request to sg.
 
+    In the case metrics dispatch isn't supported by the shotgun server,
+    the worker thread will exit early.
     """
 
     API_ENDPOINT = "api3/log_metrics/"
