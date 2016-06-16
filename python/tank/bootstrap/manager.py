@@ -17,6 +17,8 @@ from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
+
+
 class ToolkitManager(object):
     """
     This class allows for flexible and non-obtrusive management of toolkit configurations

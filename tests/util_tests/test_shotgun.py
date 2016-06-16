@@ -11,6 +11,7 @@
 from __future__ import with_statement
 import os
 import datetime
+import threading
 import unittest2 as unittest
 
 from mock import patch
@@ -456,8 +457,7 @@ class ConnectionSettingsTestCases:
             """
             Clear cached appstore connection
             """
-            tank.util.shotgun.g_sg_cached_connection = None
-            tank.util.shotgun.g_app_store_connection = None
+            tank.util.shotgun._g_sg_cached_connections = threading.local()
             tank.set_authenticated_user(None)
 
             # Prevents from connecting to Shotgun.
@@ -485,8 +485,7 @@ class ConnectionSettingsTestCases:
             """
             Clear cached appstore connection
             """
-            tank.util.shotgun.g_sg_cached_connection = None
-            tank.util.shotgun.g_app_store_connection = None
+            tank.util.shotgun._g_sg_cached_connections = threading.local()
             tank.set_authenticated_user(None)
 
         def test_connections_no_proxy(self):

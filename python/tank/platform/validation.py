@@ -650,28 +650,15 @@ class _SettingsValidator:
 
     def __validate_settings_config_path(self, settings_key, schema, config_value):
         """
-        Validate that the value for a setting of type config_path corresponds to a file in the 
-        config folder somewhere
-        """        
+        Makes sure that the path is relative and not absolute.
+        """
         if config_value.startswith("/"):
             msg = ("Invalid configuration setting '%s' for %s: "
                    "Config value '%s' starts with a / which is not valid." % (settings_key, 
                                                                               self._display_name,
                                                                               config_value) ) 
             raise TankError(msg)
-        
-        config_folder = self._tank_api.pipeline_configuration.get_config_location()
-        adjusted_value = config_value.replace("/", os.path.sep)
-        full_path = os.path.join(config_folder, adjusted_value)
 
-        if not os.path.exists(full_path):
-            msg = ("Invalid configuration setting '%s' for %s: "
-                   "The specified resource '%s' does not exist." % (settings_key, 
-                                                                    self._display_name,
-                                                                    full_path) ) 
-            raise TankError(msg)
-
-            
     def __validate_new_style_template(self, cur_template, fields_str):
         
         #################################################################################

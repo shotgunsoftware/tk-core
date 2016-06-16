@@ -147,10 +147,12 @@ class MetricsDispatcher(object):
                 "Metrics dispatching already started. Doing nothing.")
             return
 
-        # if metrics are not supported, then no reason to process the queue
-        if not self._metrics_supported(self._engine.tank):
-            self._engine.log_debug(
-                "Metrics not supported for this version of Shotgun.")
+        # Now check that we have a valid authenticated user, which is
+        # required for metrics dispatch. This is to ensure certain legacy
+        # and edge case scenarios work, for example the 
+        # shotgun_cache_actions tank command which runs un-authenticated.
+        from ..api import get_authenticated_user
+        if not get_authenticated_user():
             return
 
         # start the dispatch workers to use this queue
@@ -180,26 +182,6 @@ class MetricsDispatcher(object):
         """A list of workers threads dispatching metrics from the queue."""
         return self._workers
 
-    def _metrics_supported(self, tk):
-        """Returns True if server supports the metrics api endpoint."""
-
-        if not hasattr(self, '_metrics_ok'):
-
-            # local import avoids circular dependency errors
-            from ..api import get_authenticated_user
-            if not get_authenticated_user():
-                self._metrics_ok = False
-            else:
-                sg_connection = tk.shotgun
-                self._metrics_ok = (
-                    hasattr(sg_connection, 'server_caps') and
-                    sg_connection.server_caps.version and
-                    sg_connection.server_caps.version >= (6, 3, 11)
-                )
-
-        return self._metrics_ok
-
-
 class MetricsDispatchWorkerThread(Thread):
     """Worker thread for dispatching metrics to sg logging endpoint.
 
@@ -207,6 +189,8 @@ class MetricsDispatchWorkerThread(Thread):
     endpoint. The worker retrieves any pending metrics after the
     `DISPATCH_INTERVAL` and sends them all in a single request to sg.
 
+    In the case metrics dispatch isn't supported by the shotgun server,
+    the worker thread will exit early.
     """
 
     API_ENDPOINT = "api3/log_metrics/"
@@ -219,10 +203,10 @@ class MetricsDispatchWorkerThread(Thread):
     """Worker will dispatch this many metrics at a time, or all if <= 0."""
 
     def __init__(self, engine):
-        """Initialize the worker thread.
+        """
+        Initialize the worker thread.
 
         :params engine: Engine instance
-
         """
 
         super(MetricsDispatchWorkerThread, self).__init__()
@@ -240,6 +224,18 @@ class MetricsDispatchWorkerThread(Thread):
 
     def run(self):
         """Runs a loop to dispatch metrics that have been logged."""
+
+        # first of all, check if metrics dispatch is supported
+        # connect to shotgun and probe for server version
+        sg_connection = self._engine.shotgun
+        metrics_ok = (
+            hasattr(sg_connection, "server_caps") and
+            sg_connection.server_caps.version and
+            sg_connection.server_caps.version >= (6, 3, 11)
+        )
+        if not metrics_ok:
+            # metrics not supported
+            return
 
         # run until halted
         while not self._halt_event.isSet():
