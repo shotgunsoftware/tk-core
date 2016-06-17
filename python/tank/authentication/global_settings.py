@@ -20,7 +20,6 @@ import threading
 
 from .errors import MissingConfigurationFileError
 from .. import LogManager
-from ..util import LocalFileStorageManager
 
 logger = LogManager.get_logger(__name__)
 
@@ -59,6 +58,13 @@ class Singleton(object):
                 cls._instance = instance
 
         return cls._instance
+
+    @classmethod
+    def reset_singleton(cls):
+        """
+        Resets the internal singleton instance.
+        """
+        cls._instance = None
 
 
 class GlobalSettings(Singleton):
@@ -127,7 +133,7 @@ class GlobalSettings(Singleton):
         else:
             return type_cast(self._global_config.get(section, key))
 
-    def __init_singleton(self):
+    def _init_singleton(self):
         """
         Singleton initialization.
         """
@@ -166,6 +172,9 @@ class GlobalSettings(Singleton):
 
             # Path is set and exist, we've found it!
             return path
+
+        # Breaks circular dependency...
+        from ..util import LocalFileStorageManager
 
         # This is the default location.
         default_location = os.path.join(

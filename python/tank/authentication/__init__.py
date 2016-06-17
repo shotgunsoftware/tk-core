@@ -22,3 +22,4 @@ from .errors import ShotgunAuthenticationError, AuthenticationError, IncompleteC
 from .shotgun_authenticator import ShotgunAuthenticator
 from .defaults_manager import DefaultsManager
 from .user import ShotgunUser, deserialize_user, serialize_user
+from .global_settings import GlobalSettings

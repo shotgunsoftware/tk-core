@@ -30,6 +30,7 @@ import sgtk
 import tank
 from tank import path_cache
 from tank_vendor import yaml
+from tank.authentication import GlobalSettings
 
 TANK_TEMP = None
 
@@ -113,8 +114,8 @@ class TankTestBase(unittest.TestCase):
     
     def __init__(self, *args, **kws):
          
-        super(TankTestBase, self).__init__(*args, **kws)        
-        
+        super(TankTestBase, self).__init__(*args, **kws)
+
         # Below are attributes which will be set during setUp
 
         # Path to temp directory
@@ -157,7 +158,11 @@ class TankTestBase(unittest.TestCase):
                                                                
         
         """
-        
+
+        # Make sure the global settings instance has been reset so anything from a previous test doesn't
+        # leak into the next one.
+        GlobalSettings.reset_singleton()
+
         parameters = parameters or {}
         
         if "project_tank_name" in parameters:
@@ -285,8 +290,7 @@ class TankTestBase(unittest.TestCase):
                                 "mac_path": self.tank_temp }
         
         self.add_to_sg_mock_db(self.primary_storage)
-        
-        
+
     def tearDown(self):
         """
         Cleans up after tests.
