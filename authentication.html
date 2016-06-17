@@ -56,7 +56,7 @@
                 margin: 2px;
                 border-radius: 0px; 
                 padding: 0px;' 
-            src='./_static/logo@2x.png'/>
+            src='_static/logo@2x.png'/>
     
     </a>
     
@@ -323,25 +323,18 @@ None will be returned.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sgtk.authentication.ShotgunAuthenticator.create_script_user">
-<code class="descname">create_script_user</code><span class="sig-paren">(</span><em>api_script</em>, <em>api_key</em>, <em>host=None</em>, <em>http_proxy=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.create_script_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.create_script_user" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an AuthenticatedUser given a set of script credentials.</p>
+<dt id="sgtk.authentication.ShotgunAuthenticator.get_user_from_prompt">
+<code class="descname">get_user_from_prompt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.get_user_from_prompt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.get_user_from_prompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display a UI prompt (QT based UI if possible but may fall back on console)</p>
+<p>The DefaultsManager is called to pre-fill the host and login name.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>script_user</strong> &#8211; Shotgun script user</li>
-<li><strong>script_key</strong> &#8211; Shotgun script key</li>
-<li><strong>host</strong> &#8211; Shotgun host to log in to. If None, the default host will
-be used.</li>
-<li><strong>http_proxy</strong> &#8211; Shotgun proxy to use. If None, the default http proxy
-will be used.</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>AuthenticationCancelled</strong> &#8211; If the user cancels the authentication process,
+an AuthenticationCancelled is thrown.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived instance.</p>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The SessionUser based on the login information provided.</td>
 </tr>
 </tbody>
 </table>
@@ -367,6 +360,31 @@ a session token will be generated for security reasons.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> instance.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunAuthenticator.create_script_user">
+<code class="descname">create_script_user</code><span class="sig-paren">(</span><em>api_script</em>, <em>api_key</em>, <em>host=None</em>, <em>http_proxy=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.create_script_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.create_script_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an AuthenticatedUser given a set of script credentials.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>script_user</strong> &#8211; Shotgun script user</li>
+<li><strong>script_key</strong> &#8211; Shotgun script key</li>
+<li><strong>host</strong> &#8211; Shotgun host to log in to. If None, the default host will
+be used.</li>
+<li><strong>http_proxy</strong> &#8211; Shotgun proxy to use. If None, the default http proxy
+will be used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived instance.</p>
 </td>
 </tr>
 </tbody>
@@ -437,24 +455,6 @@ if the user cancelled the authentication.</td>
 </table>
 </dd></dl>
 
-<dl class="method">
-<dt id="sgtk.authentication.ShotgunAuthenticator.get_user_from_prompt">
-<code class="descname">get_user_from_prompt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.get_user_from_prompt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.get_user_from_prompt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Display a UI prompt (QT based UI if possible but may fall back on console)</p>
-<p>The DefaultsManager is called to pre-fill the host and login name.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>AuthenticationCancelled</strong> &#8211; If the user cancels the authentication process,
-an AuthenticationCancelled is thrown.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The SessionUser based on the login information provided.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </dd></dl>
 
 </div>
@@ -484,34 +484,6 @@ process to another, for example when launching a DCC such as Maya or Nuke.</p>
 </tr>
 </tbody>
 </table>
-<dl class="method">
-<dt id="sgtk.authentication.ShotgunUser.are_credentials_expired">
-<code class="descname">are_credentials_expired</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser.are_credentials_expired"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser.are_credentials_expired" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks if the credentials for the user are expired.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the credentials are expired, False otherwise.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.authentication.ShotgunUser.create_sg_connection">
-<code class="descname">create_sg_connection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser.create_sg_connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser.create_sg_connection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a Shotgun connection using the credentials for this user.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A Shotgun connection.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="sgtk.authentication.ShotgunUser.host">
 <code class="descname">host</code><a class="headerlink" href="#sgtk.authentication.ShotgunUser.host" title="Permalink to this definition">¶</a></dt>
@@ -556,6 +528,34 @@ of a login (like API scripts), None is returned.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="sgtk.authentication.ShotgunUser.create_sg_connection">
+<code class="descname">create_sg_connection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser.create_sg_connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser.create_sg_connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Shotgun connection using the credentials for this user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A Shotgun connection.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.ShotgunUser.are_credentials_expired">
+<code class="descname">are_credentials_expired</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser.are_credentials_expired"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser.are_credentials_expired" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if the credentials for the user are expired.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the credentials are expired, False otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="sgtk.authentication.ShotgunUser.refresh_credentials">
 <code class="descname">refresh_credentials</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser.refresh_credentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser.refresh_credentials" title="Permalink to this definition">¶</a></dt>
 <dd><p>Refreshes the credentials of this user so that they don&#8217;t expire.
@@ -581,6 +581,29 @@ host.</p>
 are managed, simply derive from this class and pass your custom instance 
 to the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> object when you construct it.</p>
 <dl class="method">
+<dt id="sgtk.authentication.DefaultsManager.is_host_fixed">
+<code class="descname">is_host_fixed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.is_host_fixed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.is_host_fixed" title="Permalink to this definition">¶</a></dt>
+<dd><p>When doing an interactive login, this indicates if the user can decide
+the host to connect to. In its default implementation, the <a class="reference internal" href="#sgtk.authentication.DefaultsManager" title="sgtk.authentication.DefaultsManager"><code class="xref py py-class docutils literal"><span class="pre">DefaultsManager</span></code></a>
+will indicate that the host is not fixed, meaning that the user will be
+presented with an option to pick a site at login time.</p>
+<p>With something like Toolkit, where each project already have a specific
+site association, you typically want to override this to return True,
+indicating to the authenticator not to ask the user which site they want 
+to log in to.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">False if the user should be given an option to decide which host
+to log in to, True if the host is already predetermined and cannot
+be changed by the user.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="sgtk.authentication.DefaultsManager.get_host">
 <code class="descname">get_host</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.get_host"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.get_host" title="Permalink to this definition">¶</a></dt>
 <dd><p>The default host is used as a useful starting point when doing
@@ -598,6 +621,20 @@ be used as an absolute rather than a default suggested to the user.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A string containing the default host name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.authentication.DefaultsManager.set_host">
+<code class="descname">set_host</code><span class="sig-paren">(</span><em>host</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.set_host"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.set_host" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by the authentication system when a new host has been defined.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>host</strong> &#8211; The new default host.</td>
 </tr>
 </tbody>
 </table>
@@ -660,43 +697,6 @@ credentials across all DCCs and tools.</p>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dictionary either with keys login and session_token in the case
 of a normal Shotgun User, keys api_script and api_key in the case of a Script
 User or None in case no credentials could be established.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.authentication.DefaultsManager.is_host_fixed">
-<code class="descname">is_host_fixed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.is_host_fixed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.is_host_fixed" title="Permalink to this definition">¶</a></dt>
-<dd><p>When doing an interactive login, this indicates if the user can decide
-the host to connect to. In its default implementation, the <a class="reference internal" href="#sgtk.authentication.DefaultsManager" title="sgtk.authentication.DefaultsManager"><code class="xref py py-class docutils literal"><span class="pre">DefaultsManager</span></code></a>
-will indicate that the host is not fixed, meaning that the user will be
-presented with an option to pick a site at login time.</p>
-<p>With something like Toolkit, where each project already have a specific
-site association, you typically want to override this to return True,
-indicating to the authenticator not to ask the user which site they want 
-to log in to.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">False if the user should be given an option to decide which host
-to log in to, True if the host is already predetermined and cannot
-be changed by the user.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.authentication.DefaultsManager.set_host">
-<code class="descname">set_host</code><span class="sig-paren">(</span><em>host</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.set_host"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.set_host" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called by the authentication system when a new host has been defined.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>host</strong> &#8211; The new default host.</td>
 </tr>
 </tbody>
 </table>
@@ -850,7 +850,19 @@ derived instance.</p>
           SphinxRtdTheme.StickyNav.enable();
       });
   </script>
-   
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
 
 </body>
 </html>

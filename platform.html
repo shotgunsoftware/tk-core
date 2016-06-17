@@ -57,7 +57,7 @@
                 margin: 2px;
                 border-radius: 0px; 
                 padding: 0px;' 
-            src='./_static/logo@2x.png'/>
+            src='_static/logo@2x.png'/>
     
     </a>
     
@@ -636,6 +636,82 @@ logging code is writing to the DCC console in the main thread.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="sgtk.platform.Engine.logger">
+<code class="descname">logger</code><a class="headerlink" href="#sgtk.platform.Engine.logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard python logger for this engine, app or framework.</p>
+<p>Use this whenever you want to emit or process
+log messages. If you are developing an app,
+engine or framework, call this method for generic logging.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Inside the <code class="docutils literal"><span class="pre">python</span></code> area of your app, engine or framework,
+we recommend that you use <a class="reference internal" href="#sgtk.platform.get_logger" title="sgtk.platform.get_logger"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.platform.get_logger()</span></code></a>
+for your logging.</p>
+</div>
+<p>Logging will be dispatched to a logger parented under the
+main toolkit logging namespace:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># pattern</span>
+<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">environment_name</span><span class="o">.</span><span class="n">engine_instance_name</span>
+
+<span class="c1"># for example</span>
+<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">asset</span><span class="o">.</span><span class="n">tk</span><span class="o">-</span><span class="n">maya</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want all log messages that you are emitting in your
+app, engine or framework to be written to a log file or
+to a logging console, you can attach a std log handler here.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Engine.shotgun">
+<code class="descname">shotgun</code><a class="headerlink" href="#sgtk.platform.Engine.shotgun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a Shotgun API handle associated with the currently running
+environment. This method is a convenience method that calls out
+to <code class="xref py py-meth docutils literal"><span class="pre">shotgun()</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Shotgun API handle</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Engine.environment">
+<code class="descname">environment</code><a class="headerlink" href="#sgtk.platform.Engine.environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary with information about the environment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dictionary with keys <code class="docutils literal"><span class="pre">name</span></code>,
+<code class="docutils literal"><span class="pre">description</span></code> and <code class="docutils literal"><span class="pre">disk_location</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Engine.instance_name">
+<code class="descname">instance_name</code><a class="headerlink" href="#sgtk.platform.Engine.instance_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The instance name for this engine. The instance name
+is the entry that is defined in the environment file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance name as string, e.g. <code class="docutils literal"><span class="pre">tk-maya</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sgtk.platform.Engine.apps">
 <code class="descname">apps</code><a class="headerlink" href="#sgtk.platform.Engine.apps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dictionary of apps associated with this engine</p>
@@ -644,6 +720,287 @@ logging code is writing to the DCC console in the main thread.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dictionary with keys being app name and values being app objects</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Engine.commands">
+<code class="descname">commands</code><a class="headerlink" href="#sgtk.platform.Engine.commands" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary representing all the commands that have been registered
+by apps in this engine via <a class="reference internal" href="#sgtk.platform.Engine.register_command" title="sgtk.platform.Engine.register_command"><code class="xref py py-meth docutils literal"><span class="pre">register_command()</span></code></a>.
+Each dictionary item contains the following keys:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">callback</span></code> - function pointer to function to execute for this command</li>
+<li><code class="docutils literal"><span class="pre">properties</span></code> - dictionary with free form options - these are typically
+engine specific and driven by convention.</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">commands dictionary, keyed by command name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Engine.panels">
+<code class="descname">panels</code><a class="headerlink" href="#sgtk.platform.Engine.panels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Panels which have been registered with the engine via the <a class="reference internal" href="#sgtk.platform.Engine.register_panel" title="sgtk.platform.Engine.register_panel"><code class="xref py py-meth docutils literal"><span class="pre">register_panel()</span></code></a>
+method. Returns a dictionary keyed by panel unique ids. Each value is a dictionary with keys
+<code class="docutils literal"><span class="pre">callback</span></code> and <code class="docutils literal"><span class="pre">properties</span></code>.</p>
+<p>Returns all the panels which have been registered with the engine.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dictionary keyed by panel unique ids. Each value is a dictionary
+with keys &#8216;callback&#8217; and &#8216;properties&#8217;</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Engine.has_ui">
+<code class="descname">has_ui</code><a class="headerlink" href="#sgtk.platform.Engine.has_ui" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates that the host application that the engine is connected to has a UI enabled.
+This always returns False for some engines (such as the shell engine) and may vary 
+for some engines, depending if the host application for example is in batch mode or
+UI mode.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">boolean value indicating if a UI currently exists</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Engine.metrics_dispatch_allowed">
+<code class="descname">metrics_dispatch_allowed</code><a class="headerlink" href="#sgtk.platform.Engine.metrics_dispatch_allowed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates this engine will allow the metrics worker threads to forward
+the user metrics logged via core, this engine, or registered apps to
+SG.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">boolean value indicating that the engine allows user metrics
+to be forwarded to SG.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Engine.created_qt_dialogs">
+<code class="descname">created_qt_dialogs</code><a class="headerlink" href="#sgtk.platform.Engine.created_qt_dialogs" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of dialog objects that have been created by the engine.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of TankQDialog objects.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.pre_app_init">
+<code class="descname">pre_app_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.pre_app_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.pre_app_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up the engine into an operational state. Executed by the system and typically
+implemented by deriving classes. This method called before any apps are loaded.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.post_app_init">
+<code class="descname">post_app_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.post_app_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.post_app_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executed by the system and typically implemented by deriving classes.
+This method called after all apps have been loaded.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.destroy">
+<code class="descname">destroy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.destroy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.destroy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Destroy all apps, then call destroy_engine so subclasses can add their own tear down code.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method should not be subclassed. Instead, implement <a class="reference internal" href="#sgtk.platform.Engine.destroy_engine" title="sgtk.platform.Engine.destroy_engine"><code class="xref py py-meth docutils literal"><span class="pre">destroy_engine()</span></code></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.destroy_engine">
+<code class="descname">destroy_engine</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.destroy_engine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.destroy_engine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the engine should tear down itself and all its apps.
+Implemented by deriving classes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.change_context">
+<code class="descname">change_context</code><span class="sig-paren">(</span><em>new_context</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.change_context"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.change_context" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the engine is being asked to change contexts. This
+will only be allowed if the engine explicitly suppose on-the-fly
+context changes by way of its context_change_allowed property. Any
+apps that do not support context changing will be restarted instead.
+Custom behavior at the engine level should be handled by overriding
+one or both of pre_context_change and post_context_change methods.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>new_context</strong> (<a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a>) &#8211; The context to change to.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.show_busy">
+<code class="descname">show_busy</code><span class="sig-paren">(</span><em>title</em>, <em>details</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_busy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_busy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays or updates a global &#8220;busy window&#8221; tied to this engine. The window
+is a splash screen type window, floats on top and contains details of what
+is currently being processed.</p>
+<p>This method pops up a splash screen with a message and the idea is that
+long running core processes can use this as a way to communicate their intent
+to the user and keep the user informed as slow processes are executed. If the engine
+has a UI present, this will be used to display the progress message. If the engine
+does not have UI support, a message will be logged. The UI always appears in the
+main thread for safety.</p>
+<p>Only one global progress window can exist per engine at a time, so if you want to
+push several updates one after the other, just keep calling this method.</p>
+<p>When you want to remove the window, call <a class="reference internal" href="#sgtk.platform.Engine.clear_busy" title="sgtk.platform.Engine.clear_busy"><code class="xref py py-meth docutils literal"><span class="pre">clear_busy()</span></code></a>.</p>
+<p>Note! If you are calling this from the Core API you typically don&#8217;t have
+access to the current engine object. In this case you can use the
+convenience method <code class="docutils literal"><span class="pre">tank.platform.engine.show_global_busy()</span></code> which will
+attempt to broadcast the request to the currently active engine.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params title:</th><td class="field-body">Short descriptive title of what is happening</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Params details:</th><td class="field-body">Detailed message describing what is going on.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.clear_busy">
+<code class="descname">clear_busy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.clear_busy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.clear_busy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes any active busy window.</p>
+<p>For more details, see the <a class="reference internal" href="#sgtk.platform.Engine.show_busy" title="sgtk.platform.Engine.show_busy"><code class="xref py py-meth docutils literal"><span class="pre">show_busy()</span></code></a> documentation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.register_command">
+<code class="descname">register_command</code><span class="sig-paren">(</span><em>name</em>, <em>callback</em>, <em>properties=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.register_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.register_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a command with a name and a callback function.</p>
+<p>Each engine implements its own command handling, so the way
+commands are exposed to the user can differ. Typically, they
+appear as items on a Shotgun menu somewhere in the user interface
+of the DCC that is being integrated into.</p>
+<p>Properties can store
+implementation specific configuration, like if a tooltip is supported.
+Typically called from the <a class="reference internal" href="#sgtk.platform.Application.init_app" title="sgtk.platform.Application.init_app"><code class="xref py py-meth docutils literal"><span class="pre">Application.init_app()</span></code></a> method of an app:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">register_command</span><span class="p">(</span>
+    <span class="s2">&quot;Work Area Info...&quot;</span><span class="p">,</span>
+    <span class="n">callback</span><span class="p">,</span>
+    <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;context_menu&quot;</span><span class="p">,</span> <span class="s2">&quot;short_name&quot;</span><span class="p">:</span> <span class="s2">&quot;work_area_info&quot;</span><span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Name of the command. This will be the key when accessed via the
+<a class="reference internal" href="#sgtk.platform.Engine.commands" title="sgtk.platform.Engine.commands"><code class="xref py py-meth docutils literal"><span class="pre">commands()</span></code></a> dictionary.</li>
+<li><strong>callback</strong> &#8211; Callback to call upon command execution</li>
+<li><strong>properties</strong> &#8211; Dictionary with command properties.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.register_panel">
+<code class="descname">register_panel</code><span class="sig-paren">(</span><em>callback</em>, <em>panel_name='main'</em>, <em>properties=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.register_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.register_panel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Similar to <a class="reference internal" href="#sgtk.platform.Engine.register_command" title="sgtk.platform.Engine.register_command"><code class="xref py py-meth docutils literal"><span class="pre">register_command()</span></code></a>, but instead of registering a menu item in the form of a
+command, this method registers a UI panel. A register_panel call should
+be used in conjunction with a register_command call.</p>
+<p>Panels need to be registered if they should persist between DCC sessions (e.g. 
+for example &#8216;saved layouts&#8217;).</p>
+<p>Just like with the <a class="reference internal" href="#sgtk.platform.Engine.register_command" title="sgtk.platform.Engine.register_command"><code class="xref py py-meth docutils literal"><span class="pre">register_command()</span></code></a> method, panel registration should be executed
+from within the init phase of the app. Once a panel has been registered, it is possible
+for the engine to correctly restore panel UIs at startup and profile switches.</p>
+<p>Not all engines support this feature, but in for example Nuke, a panel can be added to 
+a saved layout. Apps wanting to be able to take advantage of the persistence given by
+these saved layouts will need to call register_panel as part of their init_app phase.</p>
+<p>In order to show or focus on a panel, use the <a class="reference internal" href="#sgtk.platform.Engine.show_panel" title="sgtk.platform.Engine.show_panel"><code class="xref py py-meth docutils literal"><span class="pre">show_panel()</span></code></a> method instead.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>callback</strong> &#8211; Callback to a factory method that creates the panel and returns a panel widget.</li>
+<li><strong>panel_name</strong> &#8211; A string to distinguish this panel from other panels created by 
+the app. This will be used as part of the unique id for the panel.</li>
+<li><strong>properties</strong> &#8211; Properties dictionary. Reserved for future use.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A unique identifier that can be used to consistently identify the 
+panel across sessions. This identifier should be used to identify the panel
+in all subsequent calls, e.g. for example <a class="reference internal" href="#sgtk.platform.Engine.show_panel" title="sgtk.platform.Engine.show_panel"><code class="xref py py-meth docutils literal"><span class="pre">show_panel()</span></code></a>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.execute_in_main_thread">
+<code class="descname">execute_in_main_thread</code><span class="sig-paren">(</span><em>func</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.execute_in_main_thread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.execute_in_main_thread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the specified function in the main thread when called from a non-main
+thread.  This will block the calling thread until the function returns. Note that this
+method can introduce a deadlock if the main thread is waiting for a background thread
+and the background thread is invoking this method. Since the main thread is waiting
+for the background thread to finish, Qt&#8217;s event loop won&#8217;t be able to process the request
+to execute in the main thread:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="k">import</span> <span class="n">QtGui</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span><span class="o">.</span><span class="n">execute_in_main_thread</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Hello&quot;</span><span class="p">,</span> <span class="s2">&quot;Hello from the main thread!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This currently only works if Qt is available, otherwise it just
+executes immediately on the current thread.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>func</strong> &#8211; function to call</li>
+<li><strong>args</strong> &#8211; arguments to pass to the function</li>
+<li><strong>kwargs</strong> &#8211; named arguments to pass to the function</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the result of the function call</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -675,6 +1032,260 @@ executes immediately on the current thread.</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="sgtk.platform.Engine.get_matching_commands">
+<code class="descname">get_matching_commands</code><span class="sig-paren">(</span><em>command_selectors</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.get_matching_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.get_matching_commands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds all the commands that match the given selectors.</p>
+<p>Command selector structures are typically found in engine configurations
+and are typically defined on the following form in yaml:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">menu_favourites</span><span class="p">:</span>
+<span class="o">-</span> <span class="p">{</span><span class="n">app_instance</span><span class="p">:</span> <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">workfiles</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Shotgun</span> <span class="n">File</span> <span class="n">Manager</span><span class="o">...</span><span class="p">}</span>
+<span class="o">-</span> <span class="p">{</span><span class="n">app_instance</span><span class="p">:</span> <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">snapshot</span><span class="p">,</span>  <span class="n">name</span><span class="p">:</span> <span class="n">Snapshot</span><span class="o">...</span><span class="p">}</span>
+<span class="o">-</span> <span class="p">{</span><span class="n">app_instance</span><span class="p">:</span> <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">workfiles</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Shotgun</span> <span class="n">Save</span> <span class="n">As</span><span class="o">...</span><span class="p">}</span>
+<span class="o">-</span> <span class="p">{</span><span class="n">app_instance</span><span class="p">:</span> <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="p">,</span>   <span class="n">name</span><span class="p">:</span> <span class="n">Publish</span><span class="o">...</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Note that selectors that do not match a command will output a warning.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>command_selectors</strong> &#8211; <p>A list of command selectors, with each
+selector having the following structure:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="n">name</span><span class="p">:</span> <span class="n">command</span><span class="o">-</span><span class="n">name</span><span class="p">,</span>
+  <span class="n">app_instance</span><span class="p">:</span> <span class="n">instance</span><span class="o">-</span><span class="n">name</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>An empty name (&#8220;&#8221;) will select all the
+commands of the given instance-name.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of tuples for all commands that match
+the selectors. Each tuple has the format:<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">instance</span><span class="o">-</span><span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="o">-</span><span class="n">name</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.log_debug">
+<code class="descname">log_debug</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.log_debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.log_debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs a debug message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Toolkit will probe for this method and use it to determine if
+the current engine supports the new <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> based logging
+or not. If you are developing an engine and want to upgrade it to
+use the new logging capabilities, you should remove the
+implementation of <code class="docutils literal"><span class="pre">log_debug|error|info|...()</span></code> methods and
+instead sublcass <a class="reference internal" href="#sgtk.platform.Engine._emit_log_message" title="sgtk.platform.Engine._emit_log_message"><code class="xref py py-meth docutils literal"><span class="pre">Engine._emit_log_message()</span></code></a>.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.log_info">
+<code class="descname">log_info</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.log_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.log_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs an info message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.log_warning">
+<code class="descname">log_warning</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.log_warning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.log_warning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs an warning message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.log_error">
+<code class="descname">log_error</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.log_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.log_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs an error message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.log_exception">
+<code class="descname">log_exception</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.log_exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.log_exception" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs an exception message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.get_debug_tracked_qt_widgets">
+<code class="descname">get_debug_tracked_qt_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.get_debug_tracked_qt_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.get_debug_tracked_qt_widgets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print debug info about created Qt dialogs and widgets</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.show_dialog">
+<code class="descname">show_dialog</code><span class="sig-paren">(</span><em>title</em>, <em>bundle</em>, <em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_dialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_dialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows a non-modal dialog window in a way suitable for this engine. 
+The engine will attempt to parent the dialog nicely to the host application.</p>
+<p><strong>Notes for engine developers</strong></p>
+<p>Qt dialog &amp; widget management can be quite tricky in different engines/applications.
+Because of this, Sgtk provides a few overridable methods with the idea being that when
+developing a new engine, you only need to override the minimum amount necessary.</p>
+<p>Making use of these methods in the correct way allows the base Engine class to manage the
+lifetime of the dialogs and widgets efficiently and safely without you having to worry about it.</p>
+<p>The methods available are listed here in the hierarchy in which they are called:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">show_dialog</span><span class="p">()</span><span class="o">/</span><span class="n">show_modal</span><span class="p">()</span>
+    <span class="n">_create_dialog_with_widget</span><span class="p">()</span>
+        <span class="n">_get_dialog_parent</span><span class="p">()</span>
+        <span class="n">_create_widget</span><span class="p">()</span>
+        <span class="n">_create_dialog</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>For example, if you just need to make sure that all dialogs use a specific parent widget
+then you only need to override _get_dialog_parent() (e.g. the tk-maya engine).
+However, if you need to implement a two-stage creation then you may need to re-implement
+show_dialog() and show_modal() to call _create_widget() and _create_dialog() directly rather
+than using the helper method _create_dialog_with_widget() (e.g. the tk-3dsmax engine).
+Finally, if the application you are writing an engine for is Qt based then you may not need
+to override any of these methods (e.g. the tk-nuke engine).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>title</strong> &#8211; The title of the window</li>
+<li><strong>bundle</strong> &#8211; The app, engine or framework object that is associated with this window</li>
+<li><strong>widget_class</strong> (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>) &#8211; The class of the UI to be constructed. This must derive from QWidget.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Additional parameters specified will be passed through to the widget_class constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the created widget_class instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.show_modal">
+<code class="descname">show_modal</code><span class="sig-paren">(</span><em>title</em>, <em>bundle</em>, <em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_modal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_modal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows a modal dialog window in a way suitable for this engine. The engine will attempt to
+integrate it as seamlessly as possible into the host application. This call is blocking 
+until the user closes the dialog.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>title</strong> &#8211; The title of the window</li>
+<li><strong>bundle</strong> &#8211; The app, engine or framework object that is associated with this window</li>
+<li><strong>widget_class</strong> (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>) &#8211; The class of the UI to be constructed. This must derive from QWidget.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Additional parameters specified will be passed through to the widget_class constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(a standard QT dialog status return code, the created widget_class instance)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.show_panel">
+<code class="descname">show_panel</code><span class="sig-paren">(</span><em>panel_id</em>, <em>title</em>, <em>bundle</em>, <em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_panel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows a panel in a way suitable for this engine. Engines should attempt to
+integrate panel support as seamlessly as possible into the host application. 
+Some engines have extensive panel support and workflows, others have none at all.</p>
+<p>If the engine does not specifically implement panel support, the window will 
+be shown as a modeless dialog instead and the call is equivalent to 
+calling show_dialog().</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>panel_id</strong> &#8211; Unique identifier for the panel, as obtained by register_panel().</li>
+<li><strong>title</strong> &#8211; The title of the panel</li>
+<li><strong>bundle</strong> &#8211; The app, engine or framework object that is associated with this window</li>
+<li><strong>widget_class</strong> (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>) &#8211; The class of the UI to be constructed. This must derive from QWidget.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Additional parameters specified will be passed through to the widget_class constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the created widget_class instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="sgtk.platform.Engine.cache_location">
 <code class="descname">cache_location</code><a class="headerlink" href="#sgtk.platform.Engine.cache_location" title="Permalink to this definition">¶</a></dt>
@@ -691,53 +1302,6 @@ sessions:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_location</span><span class="p">,</span> <span class="s2">&quot;query.dat&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.change_context">
-<code class="descname">change_context</code><span class="sig-paren">(</span><em>new_context</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.change_context"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.change_context" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called when the engine is being asked to change contexts. This
-will only be allowed if the engine explicitly suppose on-the-fly
-context changes by way of its context_change_allowed property. Any
-apps that do not support context changing will be restarted instead.
-Custom behavior at the engine level should be handled by overriding
-one or both of pre_context_change and post_context_change methods.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>new_context</strong> (<a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a>) &#8211; The context to change to.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.clear_busy">
-<code class="descname">clear_busy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.clear_busy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.clear_busy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Closes any active busy window.</p>
-<p>For more details, see the <a class="reference internal" href="#sgtk.platform.Engine.show_busy" title="sgtk.platform.Engine.show_busy"><code class="xref py py-meth docutils literal"><span class="pre">show_busy()</span></code></a> documentation.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Engine.commands">
-<code class="descname">commands</code><a class="headerlink" href="#sgtk.platform.Engine.commands" title="Permalink to this definition">¶</a></dt>
-<dd><p>A dictionary representing all the commands that have been registered
-by apps in this engine via <a class="reference internal" href="#sgtk.platform.Engine.register_command" title="sgtk.platform.Engine.register_command"><code class="xref py py-meth docutils literal"><span class="pre">register_command()</span></code></a>.
-Each dictionary item contains the following keys:</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">callback</span></code> - function pointer to function to execute for this command</li>
-<li><code class="docutils literal"><span class="pre">properties</span></code> - dictionary with free form options - these are typically
-engine specific and driven by convention.</li>
-</ul>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">commands dictionary, keyed by command name</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -771,20 +1335,6 @@ be overridden in the deriving class and forced to return True.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="sgtk.platform.Engine.created_qt_dialogs">
-<code class="descname">created_qt_dialogs</code><a class="headerlink" href="#sgtk.platform.Engine.created_qt_dialogs" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of dialog objects that have been created by the engine.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of TankQDialog objects.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="sgtk.platform.Engine.description">
 <code class="descname">description</code><a class="headerlink" href="#sgtk.platform.Engine.description" title="Permalink to this definition">¶</a></dt>
 <dd><p>A short description of the item</p>
@@ -796,23 +1346,6 @@ be overridden in the deriving class and forced to return True.</p>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.destroy">
-<code class="descname">destroy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.destroy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.destroy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Destroy all apps, then call destroy_engine so subclasses can add their own tear down code.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This method should not be subclassed. Instead, implement <a class="reference internal" href="#sgtk.platform.Engine.destroy_engine" title="sgtk.platform.Engine.destroy_engine"><code class="xref py py-meth docutils literal"><span class="pre">destroy_engine()</span></code></a>.</p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.destroy_engine">
-<code class="descname">destroy_engine</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.destroy_engine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.destroy_engine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called when the engine should tear down itself and all its apps.
-Implemented by deriving classes.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -874,21 +1407,6 @@ over the methods provided in <code class="docutils literal"><span class="pre">sg
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; path to create</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Engine.environment">
-<code class="descname">environment</code><a class="headerlink" href="#sgtk.platform.Engine.environment" title="Permalink to this definition">¶</a></dt>
-<dd><p>A dictionary with information about the environment.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dictionary with keys <code class="docutils literal"><span class="pre">name</span></code>,
-<code class="docutils literal"><span class="pre">description</span></code> and <code class="docutils literal"><span class="pre">disk_location</span></code>.</td>
 </tr>
 </tbody>
 </table>
@@ -1026,42 +1544,6 @@ parameters without breaking backwards compatibility, for example
 </table>
 </dd></dl>
 
-<dl class="method">
-<dt id="sgtk.platform.Engine.execute_in_main_thread">
-<code class="descname">execute_in_main_thread</code><span class="sig-paren">(</span><em>func</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.execute_in_main_thread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.execute_in_main_thread" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute the specified function in the main thread when called from a non-main
-thread.  This will block the calling thread until the function returns. Note that this
-method can introduce a deadlock if the main thread is waiting for a background thread
-and the background thread is invoking this method. Since the main thread is waiting
-for the background thread to finish, Qt&#8217;s event loop won&#8217;t be able to process the request
-to execute in the main thread:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="k">import</span> <span class="n">QtGui</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span><span class="o">.</span><span class="n">execute_in_main_thread</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Hello&quot;</span><span class="p">,</span> <span class="s2">&quot;Hello from the main thread!&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This currently only works if Qt is available, otherwise it just
-executes immediately on the current thread.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>func</strong> &#8211; function to call</li>
-<li><strong>args</strong> &#8211; arguments to pass to the function</li>
-<li><strong>kwargs</strong> &#8211; named arguments to pass to the function</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the result of the function call</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="sgtk.platform.Engine.frameworks">
 <code class="descname">frameworks</code><a class="headerlink" href="#sgtk.platform.Engine.frameworks" title="Permalink to this definition">¶</a></dt>
@@ -1071,52 +1553,6 @@ executes immediately on the current thread.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of framework objects</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.get_debug_tracked_qt_widgets">
-<code class="descname">get_debug_tracked_qt_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.get_debug_tracked_qt_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.get_debug_tracked_qt_widgets" title="Permalink to this definition">¶</a></dt>
-<dd><p>Print debug info about created Qt dialogs and widgets</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.get_matching_commands">
-<code class="descname">get_matching_commands</code><span class="sig-paren">(</span><em>command_selectors</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.get_matching_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.get_matching_commands" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds all the commands that match the given selectors.</p>
-<p>Command selector structures are typically found in engine configurations
-and are typically defined on the following form in yaml:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">menu_favourites</span><span class="p">:</span>
-<span class="o">-</span> <span class="p">{</span><span class="n">app_instance</span><span class="p">:</span> <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">workfiles</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Shotgun</span> <span class="n">File</span> <span class="n">Manager</span><span class="o">...</span><span class="p">}</span>
-<span class="o">-</span> <span class="p">{</span><span class="n">app_instance</span><span class="p">:</span> <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">snapshot</span><span class="p">,</span>  <span class="n">name</span><span class="p">:</span> <span class="n">Snapshot</span><span class="o">...</span><span class="p">}</span>
-<span class="o">-</span> <span class="p">{</span><span class="n">app_instance</span><span class="p">:</span> <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">workfiles</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Shotgun</span> <span class="n">Save</span> <span class="n">As</span><span class="o">...</span><span class="p">}</span>
-<span class="o">-</span> <span class="p">{</span><span class="n">app_instance</span><span class="p">:</span> <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="p">,</span>   <span class="n">name</span><span class="p">:</span> <span class="n">Publish</span><span class="o">...</span><span class="p">}</span>
-</pre></div>
-</div>
-<p>Note that selectors that do not match a command will output a warning.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>command_selectors</strong> &#8211; <p>A list of command selectors, with each
-selector having the following structure:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="n">name</span><span class="p">:</span> <span class="n">command</span><span class="o">-</span><span class="n">name</span><span class="p">,</span>
-  <span class="n">app_instance</span><span class="p">:</span> <span class="n">instance</span><span class="o">-</span><span class="n">name</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>An empty name (&#8220;&#8221;) will select all the
-commands of the given instance-name.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of tuples for all commands that match
-the selectors. Each tuple has the format:<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">instance</span><span class="o">-</span><span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="o">-</span><span class="n">name</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
-</pre></div>
-</div>
-</td>
 </tr>
 </tbody>
 </table>
@@ -1224,23 +1660,6 @@ the settings dictionary passed in.  It then calls get_template_by_name() on it.<
 </dd></dl>
 
 <dl class="attribute">
-<dt id="sgtk.platform.Engine.has_ui">
-<code class="descname">has_ui</code><a class="headerlink" href="#sgtk.platform.Engine.has_ui" title="Permalink to this definition">¶</a></dt>
-<dd><p>Indicates that the host application that the engine is connected to has a UI enabled.
-This always returns False for some engines (such as the shell engine) and may vary 
-for some engines, depending if the host application for example is in batch mode or
-UI mode.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">boolean value indicating if a UI currently exists</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="sgtk.platform.Engine.icon_256">
 <code class="descname">icon_256</code><a class="headerlink" href="#sgtk.platform.Engine.icon_256" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path to a 256x256 pixel png file which describes the item</p>
@@ -1275,162 +1694,6 @@ the following when you want to load the payload module inside of app.py:</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="sgtk.platform.Engine.instance_name">
-<code class="descname">instance_name</code><a class="headerlink" href="#sgtk.platform.Engine.instance_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>The instance name for this engine. The instance name
-is the entry that is defined in the environment file.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance name as string, e.g. <code class="docutils literal"><span class="pre">tk-maya</span></code></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.log_debug">
-<code class="descname">log_debug</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.log_debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.log_debug" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs a debug message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Toolkit will probe for this method and use it to determine if
-the current engine supports the new <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> based logging
-or not. If you are developing an engine and want to upgrade it to
-use the new logging capabilities, you should remove the
-implementation of <code class="docutils literal"><span class="pre">log_debug|error|info|...()</span></code> methods and
-instead sublcass <a class="reference internal" href="#sgtk.platform.Engine._emit_log_message" title="sgtk.platform.Engine._emit_log_message"><code class="xref py py-meth docutils literal"><span class="pre">Engine._emit_log_message()</span></code></a>.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.log_error">
-<code class="descname">log_error</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.log_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.log_error" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs an error message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.log_exception">
-<code class="descname">log_exception</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.log_exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.log_exception" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs an exception message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.log_info">
-<code class="descname">log_info</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.log_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.log_info" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs an info message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.log_warning">
-<code class="descname">log_warning</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.log_warning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.log_warning" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs an warning message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Engine.logger">
-<code class="descname">logger</code><a class="headerlink" href="#sgtk.platform.Engine.logger" title="Permalink to this definition">¶</a></dt>
-<dd><p>Standard python logger for this engine, app or framework.</p>
-<p>Use this whenever you want to emit or process
-log messages. If you are developing an app,
-engine or framework, call this method for generic logging.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Inside the <code class="docutils literal"><span class="pre">python</span></code> area of your app, engine or framework,
-we recommend that you use <a class="reference internal" href="#sgtk.platform.get_logger" title="sgtk.platform.get_logger"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.platform.get_logger()</span></code></a>
-for your logging.</p>
-</div>
-<p>Logging will be dispatched to a logger parented under the
-main toolkit logging namespace:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># pattern</span>
-<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">environment_name</span><span class="o">.</span><span class="n">engine_instance_name</span>
-
-<span class="c1"># for example</span>
-<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">asset</span><span class="o">.</span><span class="n">tk</span><span class="o">-</span><span class="n">maya</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If you want all log messages that you are emitting in your
-app, engine or framework to be written to a log file or
-to a logging console, you can attach a std log handler here.</p>
-</div>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Engine.metrics_dispatch_allowed">
-<code class="descname">metrics_dispatch_allowed</code><a class="headerlink" href="#sgtk.platform.Engine.metrics_dispatch_allowed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Indicates this engine will allow the metrics worker threads to forward
-the user metrics logged via core, this engine, or registered apps to
-SG.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">boolean value indicating that the engine allows user metrics
-to be forwarded to SG.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="sgtk.platform.Engine.name">
 <code class="descname">name</code><a class="headerlink" href="#sgtk.platform.Engine.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>The short name for the item (e.g. tk-maya)</p>
@@ -1442,31 +1705,6 @@ to be forwarded to SG.</td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Engine.panels">
-<code class="descname">panels</code><a class="headerlink" href="#sgtk.platform.Engine.panels" title="Permalink to this definition">¶</a></dt>
-<dd><p>Panels which have been registered with the engine via the <a class="reference internal" href="#sgtk.platform.Engine.register_panel" title="sgtk.platform.Engine.register_panel"><code class="xref py py-meth docutils literal"><span class="pre">register_panel()</span></code></a>
-method. Returns a dictionary keyed by panel unique ids. Each value is a dictionary with keys
-<code class="docutils literal"><span class="pre">callback</span></code> and <code class="docutils literal"><span class="pre">properties</span></code>.</p>
-<p>Returns all the panels which have been registered with the engine.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dictionary keyed by panel unique ids. Each value is a dictionary
-with keys &#8216;callback&#8217; and &#8216;properties&#8217;</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.post_app_init">
-<code class="descname">post_app_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.post_app_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.post_app_init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Executed by the system and typically implemented by deriving classes.
-This method called after all apps have been loaded.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1489,13 +1727,6 @@ This method called after all apps have been loaded.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sgtk.platform.Engine.pre_app_init">
-<code class="descname">pre_app_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.pre_app_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.pre_app_init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets up the engine into an operational state. Executed by the system and typically
-implemented by deriving classes. This method called before any apps are loaded.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="sgtk.platform.Engine.pre_context_change">
 <code class="descname">pre_context_change</code><span class="sig-paren">(</span><em>old_context</em>, <em>new_context</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.pre_context_change" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called before a context change.</p>
@@ -1514,76 +1745,6 @@ implemented by deriving classes. This method called before any apps are loaded.<
 </table>
 </dd></dl>
 
-<dl class="method">
-<dt id="sgtk.platform.Engine.register_command">
-<code class="descname">register_command</code><span class="sig-paren">(</span><em>name</em>, <em>callback</em>, <em>properties=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.register_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.register_command" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register a command with a name and a callback function.</p>
-<p>Each engine implements its own command handling, so the way
-commands are exposed to the user can differ. Typically, they
-appear as items on a Shotgun menu somewhere in the user interface
-of the DCC that is being integrated into.</p>
-<p>Properties can store
-implementation specific configuration, like if a tooltip is supported.
-Typically called from the <a class="reference internal" href="#sgtk.platform.Application.init_app" title="sgtk.platform.Application.init_app"><code class="xref py py-meth docutils literal"><span class="pre">Application.init_app()</span></code></a> method of an app:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">register_command</span><span class="p">(</span>
-    <span class="s2">&quot;Work Area Info...&quot;</span><span class="p">,</span>
-    <span class="n">callback</span><span class="p">,</span>
-    <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;context_menu&quot;</span><span class="p">,</span> <span class="s2">&quot;short_name&quot;</span><span class="p">:</span> <span class="s2">&quot;work_area_info&quot;</span><span class="p">}</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> &#8211; Name of the command. This will be the key when accessed via the
-<a class="reference internal" href="#sgtk.platform.Engine.commands" title="sgtk.platform.Engine.commands"><code class="xref py py-meth docutils literal"><span class="pre">commands()</span></code></a> dictionary.</li>
-<li><strong>callback</strong> &#8211; Callback to call upon command execution</li>
-<li><strong>properties</strong> &#8211; Dictionary with command properties.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.register_panel">
-<code class="descname">register_panel</code><span class="sig-paren">(</span><em>callback</em>, <em>panel_name='main'</em>, <em>properties=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.register_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.register_panel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Similar to <a class="reference internal" href="#sgtk.platform.Engine.register_command" title="sgtk.platform.Engine.register_command"><code class="xref py py-meth docutils literal"><span class="pre">register_command()</span></code></a>, but instead of registering a menu item in the form of a
-command, this method registers a UI panel. A register_panel call should
-be used in conjunction with a register_command call.</p>
-<p>Panels need to be registered if they should persist between DCC sessions (e.g. 
-for example &#8216;saved layouts&#8217;).</p>
-<p>Just like with the <a class="reference internal" href="#sgtk.platform.Engine.register_command" title="sgtk.platform.Engine.register_command"><code class="xref py py-meth docutils literal"><span class="pre">register_command()</span></code></a> method, panel registration should be executed
-from within the init phase of the app. Once a panel has been registered, it is possible
-for the engine to correctly restore panel UIs at startup and profile switches.</p>
-<p>Not all engines support this feature, but in for example Nuke, a panel can be added to 
-a saved layout. Apps wanting to be able to take advantage of the persistence given by
-these saved layouts will need to call register_panel as part of their init_app phase.</p>
-<p>In order to show or focus on a panel, use the <a class="reference internal" href="#sgtk.platform.Engine.show_panel" title="sgtk.platform.Engine.show_panel"><code class="xref py py-meth docutils literal"><span class="pre">show_panel()</span></code></a> method instead.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>callback</strong> &#8211; Callback to a factory method that creates the panel and returns a panel widget.</li>
-<li><strong>panel_name</strong> &#8211; A string to distinguish this panel from other panels created by 
-the app. This will be used as part of the unique id for the panel.</li>
-<li><strong>properties</strong> &#8211; Properties dictionary. Reserved for future use.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A unique identifier that can be used to consistently identify the 
-panel across sessions. This identifier should be used to identify the panel
-in all subsequent calls, e.g. for example <a class="reference internal" href="#sgtk.platform.Engine.show_panel" title="sgtk.platform.Engine.show_panel"><code class="xref py py-meth docutils literal"><span class="pre">show_panel()</span></code></a>.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="sgtk.platform.Engine.sgtk">
 <code class="descname">sgtk</code><a class="headerlink" href="#sgtk.platform.Engine.sgtk" title="Permalink to this definition">¶</a></dt>
@@ -1593,167 +1754,6 @@ in all subsequent calls, e.g. for example <a class="reference internal" href="#s
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Tank</span></code></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Engine.shotgun">
-<code class="descname">shotgun</code><a class="headerlink" href="#sgtk.platform.Engine.shotgun" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a Shotgun API handle associated with the currently running
-environment. This method is a convenience method that calls out
-to <code class="xref py py-meth docutils literal"><span class="pre">shotgun()</span></code>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Shotgun API handle</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.show_busy">
-<code class="descname">show_busy</code><span class="sig-paren">(</span><em>title</em>, <em>details</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_busy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_busy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Displays or updates a global &#8220;busy window&#8221; tied to this engine. The window
-is a splash screen type window, floats on top and contains details of what
-is currently being processed.</p>
-<p>This method pops up a splash screen with a message and the idea is that
-long running core processes can use this as a way to communicate their intent
-to the user and keep the user informed as slow processes are executed. If the engine
-has a UI present, this will be used to display the progress message. If the engine
-does not have UI support, a message will be logged. The UI always appears in the
-main thread for safety.</p>
-<p>Only one global progress window can exist per engine at a time, so if you want to
-push several updates one after the other, just keep calling this method.</p>
-<p>When you want to remove the window, call <a class="reference internal" href="#sgtk.platform.Engine.clear_busy" title="sgtk.platform.Engine.clear_busy"><code class="xref py py-meth docutils literal"><span class="pre">clear_busy()</span></code></a>.</p>
-<p>Note! If you are calling this from the Core API you typically don&#8217;t have
-access to the current engine object. In this case you can use the
-convenience method <code class="docutils literal"><span class="pre">tank.platform.engine.show_global_busy()</span></code> which will
-attempt to broadcast the request to the currently active engine.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Params title:</th><td class="field-body">Short descriptive title of what is happening</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Params details:</th><td class="field-body">Detailed message describing what is going on.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.show_dialog">
-<code class="descname">show_dialog</code><span class="sig-paren">(</span><em>title</em>, <em>bundle</em>, <em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_dialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_dialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shows a non-modal dialog window in a way suitable for this engine. 
-The engine will attempt to parent the dialog nicely to the host application.</p>
-<p><strong>Notes for engine developers</strong></p>
-<p>Qt dialog &amp; widget management can be quite tricky in different engines/applications.
-Because of this, Sgtk provides a few overridable methods with the idea being that when
-developing a new engine, you only need to override the minimum amount necessary.</p>
-<p>Making use of these methods in the correct way allows the base Engine class to manage the
-lifetime of the dialogs and widgets efficiently and safely without you having to worry about it.</p>
-<p>The methods available are listed here in the hierarchy in which they are called:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">show_dialog</span><span class="p">()</span><span class="o">/</span><span class="n">show_modal</span><span class="p">()</span>
-    <span class="n">_create_dialog_with_widget</span><span class="p">()</span>
-        <span class="n">_get_dialog_parent</span><span class="p">()</span>
-        <span class="n">_create_widget</span><span class="p">()</span>
-        <span class="n">_create_dialog</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>For example, if you just need to make sure that all dialogs use a specific parent widget
-then you only need to override _get_dialog_parent() (e.g. the tk-maya engine).
-However, if you need to implement a two-stage creation then you may need to re-implement
-show_dialog() and show_modal() to call _create_widget() and _create_dialog() directly rather
-than using the helper method _create_dialog_with_widget() (e.g. the tk-3dsmax engine).
-Finally, if the application you are writing an engine for is Qt based then you may not need
-to override any of these methods (e.g. the tk-nuke engine).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>title</strong> &#8211; The title of the window</li>
-<li><strong>bundle</strong> &#8211; The app, engine or framework object that is associated with this window</li>
-<li><strong>widget_class</strong> (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>) &#8211; The class of the UI to be constructed. This must derive from QWidget.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Additional parameters specified will be passed through to the widget_class constructor.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the created widget_class instance</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.show_modal">
-<code class="descname">show_modal</code><span class="sig-paren">(</span><em>title</em>, <em>bundle</em>, <em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_modal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_modal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shows a modal dialog window in a way suitable for this engine. The engine will attempt to
-integrate it as seamlessly as possible into the host application. This call is blocking 
-until the user closes the dialog.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>title</strong> &#8211; The title of the window</li>
-<li><strong>bundle</strong> &#8211; The app, engine or framework object that is associated with this window</li>
-<li><strong>widget_class</strong> (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>) &#8211; The class of the UI to be constructed. This must derive from QWidget.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Additional parameters specified will be passed through to the widget_class constructor.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(a standard QT dialog status return code, the created widget_class instance)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.show_panel">
-<code class="descname">show_panel</code><span class="sig-paren">(</span><em>panel_id</em>, <em>title</em>, <em>bundle</em>, <em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_panel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shows a panel in a way suitable for this engine. Engines should attempt to
-integrate panel support as seamlessly as possible into the host application. 
-Some engines have extensive panel support and workflows, others have none at all.</p>
-<p>If the engine does not specifically implement panel support, the window will 
-be shown as a modeless dialog instead and the call is equivalent to 
-calling show_dialog().</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>panel_id</strong> &#8211; Unique identifier for the panel, as obtained by register_panel().</li>
-<li><strong>title</strong> &#8211; The title of the panel</li>
-<li><strong>bundle</strong> &#8211; The app, engine or framework object that is associated with this window</li>
-<li><strong>widget_class</strong> (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>) &#8211; The class of the UI to be constructed. This must derive from QWidget.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Additional parameters specified will be passed through to the widget_class constructor.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the created widget_class instance</td>
 </tr>
 </tbody>
 </table>
@@ -1869,6 +1869,172 @@ and various factory methods such as <a class="reference internal" href="#sgtk.pl
 </tbody>
 </table>
 <dl class="attribute">
+<dt id="sgtk.platform.Application.logger">
+<code class="descname">logger</code><a class="headerlink" href="#sgtk.platform.Application.logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard python logger for this engine, app or framework.</p>
+<p>Use this whenever you want to emit or process
+log messages. If you are developing an app,
+engine or framework, call this method for generic logging.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Inside the <code class="docutils literal"><span class="pre">python</span></code> area of your app, engine or framework,
+we recommend that you use <a class="reference internal" href="#sgtk.platform.get_logger" title="sgtk.platform.get_logger"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.platform.get_logger()</span></code></a>
+for your logging.</p>
+</div>
+<p>Logging will be dispatched to a logger parented under the
+main toolkit logging namespace:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># pattern</span>
+<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">environment_name</span><span class="o">.</span><span class="n">engine_instance_name</span>
+
+<span class="c1"># for example</span>
+<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">asset</span><span class="o">.</span><span class="n">tk</span><span class="o">-</span><span class="n">maya</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want all log messages that you are emitting in your
+app, engine or framework to be written to a log file or
+to a logging console, you can attach a std log handler here.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Application.shotgun">
+<code class="descname">shotgun</code><a class="headerlink" href="#sgtk.platform.Application.shotgun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a Shotgun API handle associated with the currently running
+environment. This method is a convenience method that calls out
+to <code class="xref py py-meth docutils literal"><span class="pre">shotgun()</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Shotgun API handle</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Application.instance_name">
+<code class="descname">instance_name</code><a class="headerlink" href="#sgtk.platform.Application.instance_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name for this app instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Application.engine">
+<code class="descname">engine</code><a class="headerlink" href="#sgtk.platform.Application.engine" title="Permalink to this definition">¶</a></dt>
+<dd><p>The engine that this app is connected to.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.init_app">
+<code class="descname">init_app</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.init_app"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.init_app" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implemented by deriving classes in order to initialize the app
+Called by the engine as it loads the app.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.post_engine_init">
+<code class="descname">post_engine_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.post_engine_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.post_engine_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implemented by deriving classes in order to run code after the engine
+has completely finished initializing itself and all its apps.
+At this point, the engine has a fully populated apps dictionary and
+all loaded apps have been fully initialized and validated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.destroy_app">
+<code class="descname">destroy_app</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.destroy_app"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.destroy_app" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implemented by deriving classes in order to tear down the app
+Called by the engine as it is being destroyed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.log_debug">
+<code class="descname">log_debug</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.log_debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.log_debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs a debug message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.log_info">
+<code class="descname">log_info</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.log_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.log_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs an info message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.log_warning">
+<code class="descname">log_warning</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.log_warning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.log_warning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs an warning message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.log_error">
+<code class="descname">log_error</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.log_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.log_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs an error message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.log_exception">
+<code class="descname">log_exception</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.log_exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.log_exception" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs an exception message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sgtk.platform.Application.cache_location">
 <code class="descname">cache_location</code><a class="headerlink" href="#sgtk.platform.Application.cache_location" title="Permalink to this definition">¶</a></dt>
 <dd><p>An item-specific location on disk where the app or engine can store
@@ -1946,13 +2112,6 @@ be overridden in the deriving class and forced to return True.</p>
 </table>
 </dd></dl>
 
-<dl class="method">
-<dt id="sgtk.platform.Application.destroy_app">
-<code class="descname">destroy_app</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.destroy_app"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.destroy_app" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implemented by deriving classes in order to tear down the app
-Called by the engine as it is being destroyed.</p>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="sgtk.platform.Application.disk_location">
 <code class="descname">disk_location</code><a class="headerlink" href="#sgtk.platform.Application.disk_location" title="Permalink to this definition">¶</a></dt>
@@ -1990,12 +2149,6 @@ to retrieve a local resource:</p>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Application.engine">
-<code class="descname">engine</code><a class="headerlink" href="#sgtk.platform.Application.engine" title="Permalink to this definition">¶</a></dt>
-<dd><p>The engine that this app is connected to.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2304,134 +2457,6 @@ the following when you want to load the payload module inside of app.py:</p>
 </div>
 </dd></dl>
 
-<dl class="method">
-<dt id="sgtk.platform.Application.init_app">
-<code class="descname">init_app</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.init_app"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.init_app" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implemented by deriving classes in order to initialize the app
-Called by the engine as it loads the app.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Application.instance_name">
-<code class="descname">instance_name</code><a class="headerlink" href="#sgtk.platform.Application.instance_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>The name for this app instance.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Application.log_debug">
-<code class="descname">log_debug</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.log_debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.log_debug" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs a debug message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Application.log_error">
-<code class="descname">log_error</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.log_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.log_error" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs an error message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Application.log_exception">
-<code class="descname">log_exception</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.log_exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.log_exception" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs an exception message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Application.log_info">
-<code class="descname">log_info</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.log_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.log_info" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs an info message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Application.log_warning">
-<code class="descname">log_warning</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.log_warning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.log_warning" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs an warning message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Application.logger">
-<code class="descname">logger</code><a class="headerlink" href="#sgtk.platform.Application.logger" title="Permalink to this definition">¶</a></dt>
-<dd><p>Standard python logger for this engine, app or framework.</p>
-<p>Use this whenever you want to emit or process
-log messages. If you are developing an app,
-engine or framework, call this method for generic logging.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Inside the <code class="docutils literal"><span class="pre">python</span></code> area of your app, engine or framework,
-we recommend that you use <a class="reference internal" href="#sgtk.platform.get_logger" title="sgtk.platform.get_logger"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.platform.get_logger()</span></code></a>
-for your logging.</p>
-</div>
-<p>Logging will be dispatched to a logger parented under the
-main toolkit logging namespace:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># pattern</span>
-<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">environment_name</span><span class="o">.</span><span class="n">engine_instance_name</span>
-
-<span class="c1"># for example</span>
-<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">asset</span><span class="o">.</span><span class="n">tk</span><span class="o">-</span><span class="n">maya</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If you want all log messages that you are emitting in your
-app, engine or framework to be written to a log file or
-to a logging console, you can attach a std log handler here.</p>
-</div>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="sgtk.platform.Application.name">
 <code class="descname">name</code><a class="headerlink" href="#sgtk.platform.Application.name" title="Permalink to this definition">¶</a></dt>
@@ -2466,15 +2491,6 @@ to a logging console, you can attach a std log handler here.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sgtk.platform.Application.post_engine_init">
-<code class="descname">post_engine_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.post_engine_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.post_engine_init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implemented by deriving classes in order to run code after the engine
-has completely finished initializing itself and all its apps.
-At this point, the engine has a fully populated apps dictionary and
-all loaded apps have been fully initialized and validated.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="sgtk.platform.Application.pre_context_change">
 <code class="descname">pre_context_change</code><span class="sig-paren">(</span><em>old_context</em>, <em>new_context</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.pre_context_change" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called before a context change.</p>
@@ -2502,22 +2518,6 @@ all loaded apps have been fully initialized and validated.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Tank</span></code></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Application.shotgun">
-<code class="descname">shotgun</code><a class="headerlink" href="#sgtk.platform.Application.shotgun" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a Shotgun API handle associated with the currently running
-environment. This method is a convenience method that calls out
-to <code class="xref py py-meth docutils literal"><span class="pre">shotgun()</span></code>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Shotgun API handle</td>
 </tr>
 </tbody>
 </table>
@@ -2666,6 +2666,175 @@ is not meant to be overridden by deriving classes.</p>
 </tbody>
 </table>
 <dl class="attribute">
+<dt id="sgtk.platform.Framework.logger">
+<code class="descname">logger</code><a class="headerlink" href="#sgtk.platform.Framework.logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard python logger for this engine, app or framework.</p>
+<p>Use this whenever you want to emit or process
+log messages. If you are developing an app,
+engine or framework, call this method for generic logging.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Inside the <code class="docutils literal"><span class="pre">python</span></code> area of your app, engine or framework,
+we recommend that you use <a class="reference internal" href="#sgtk.platform.get_logger" title="sgtk.platform.get_logger"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.platform.get_logger()</span></code></a>
+for your logging.</p>
+</div>
+<p>Logging will be dispatched to a logger parented under the
+main toolkit logging namespace:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># pattern</span>
+<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">environment_name</span><span class="o">.</span><span class="n">engine_instance_name</span>
+
+<span class="c1"># for example</span>
+<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">asset</span><span class="o">.</span><span class="n">tk</span><span class="o">-</span><span class="n">maya</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want all log messages that you are emitting in your
+app, engine or framework to be written to a log file or
+to a logging console, you can attach a std log handler here.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Framework.shotgun">
+<code class="descname">shotgun</code><a class="headerlink" href="#sgtk.platform.Framework.shotgun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a Shotgun API handle associated with the currently running
+environment. This method is a convenience method that calls out
+to <code class="xref py py-meth docutils literal"><span class="pre">shotgun()</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Shotgun API handle</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Framework.engine">
+<code class="descname">engine</code><a class="headerlink" href="#sgtk.platform.Framework.engine" title="Permalink to this definition">¶</a></dt>
+<dd><p>The engine that this framework is connected to</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Framework.is_shared">
+<code class="descname">is_shared</code><a class="headerlink" href="#sgtk.platform.Framework.is_shared" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean indicating whether this is a shared framework.</p>
+<p>Frameworks are shared by default and this is a setting that can be
+controlled by the bundle manifest.</p>
+<p>When a framework is shared, a single copy of the code is shared
+across all apps that use it. All apps will cut their framework
+instances from the same code. Any global state within the framework
+will be shared across all framework instances, and hence across all
+different apps.</p>
+<p>If your framework manages complex global state that you want to control
+precisely, it may be useful to set the framework to be not shared in
+the <code class="docutils literal"><span class="pre">info.yml</span></code> manifest file. This will ensure that each bundle that
+uses the framework will maintain it&#8217;s own private version of the
+framework code.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Framework.init_framework">
+<code class="descname">init_framework</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.init_framework"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.init_framework" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implemented by deriving classes in order to initialize the app.
+Called by the engine as it loads the framework.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Framework.destroy_framework">
+<code class="descname">destroy_framework</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.destroy_framework"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.destroy_framework" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implemented by deriving classes in order to tear down the framework.
+Called by the engine as it is being destroyed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Framework.log_debug">
+<code class="descname">log_debug</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.log_debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.log_debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs a debug message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Framework.log_info">
+<code class="descname">log_info</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.log_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.log_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs an info message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Framework.log_warning">
+<code class="descname">log_warning</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.log_warning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.log_warning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs an warning message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Framework.log_error">
+<code class="descname">log_error</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.log_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.log_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs an error message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Framework.log_exception">
+<code class="descname">log_exception</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.log_exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.log_exception" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs an exception message.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sgtk.platform.Framework.cache_location">
 <code class="descname">cache_location</code><a class="headerlink" href="#sgtk.platform.Framework.cache_location" title="Permalink to this definition">¶</a></dt>
 <dd><p>An item-specific location on disk where the app or engine can store
@@ -2743,13 +2912,6 @@ be overridden in the deriving class and forced to return True.</p>
 </table>
 </dd></dl>
 
-<dl class="method">
-<dt id="sgtk.platform.Framework.destroy_framework">
-<code class="descname">destroy_framework</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.destroy_framework"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.destroy_framework" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implemented by deriving classes in order to tear down the framework.
-Called by the engine as it is being destroyed.</p>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="sgtk.platform.Framework.disk_location">
 <code class="descname">disk_location</code><a class="headerlink" href="#sgtk.platform.Framework.disk_location" title="Permalink to this definition">¶</a></dt>
@@ -2787,12 +2949,6 @@ to retrieve a local resource:</p>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Framework.engine">
-<code class="descname">engine</code><a class="headerlink" href="#sgtk.platform.Framework.engine" title="Permalink to this definition">¶</a></dt>
-<dd><p>The engine that this framework is connected to</p>
 </dd></dl>
 
 <dl class="method">
@@ -3101,146 +3257,6 @@ the following when you want to load the payload module inside of app.py:</p>
 </div>
 </dd></dl>
 
-<dl class="method">
-<dt id="sgtk.platform.Framework.init_framework">
-<code class="descname">init_framework</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.init_framework"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.init_framework" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implemented by deriving classes in order to initialize the app.
-Called by the engine as it loads the framework.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Framework.is_shared">
-<code class="descname">is_shared</code><a class="headerlink" href="#sgtk.platform.Framework.is_shared" title="Permalink to this definition">¶</a></dt>
-<dd><p>Boolean indicating whether this is a shared framework.</p>
-<p>Frameworks are shared by default and this is a setting that can be
-controlled by the bundle manifest.</p>
-<p>When a framework is shared, a single copy of the code is shared
-across all apps that use it. All apps will cut their framework
-instances from the same code. Any global state within the framework
-will be shared across all framework instances, and hence across all
-different apps.</p>
-<p>If your framework manages complex global state that you want to control
-precisely, it may be useful to set the framework to be not shared in
-the <code class="docutils literal"><span class="pre">info.yml</span></code> manifest file. This will ensure that each bundle that
-uses the framework will maintain it&#8217;s own private version of the
-framework code.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Framework.log_debug">
-<code class="descname">log_debug</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.log_debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.log_debug" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs a debug message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Framework.log_error">
-<code class="descname">log_error</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.log_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.log_error" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs an error message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Framework.log_exception">
-<code class="descname">log_exception</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.log_exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.log_exception" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs an exception message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Framework.log_info">
-<code class="descname">log_info</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.log_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.log_info" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs an info message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Framework.log_warning">
-<code class="descname">log_warning</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.log_warning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.log_warning" title="Permalink to this definition">¶</a></dt>
-<dd><p>Logs an warning message.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.18: </span>Use <a class="reference internal" href="#sgtk.platform.Engine.logger" title="sgtk.platform.Engine.logger"><code class="xref py py-meth docutils literal"><span class="pre">Engine.logger()</span></code></a> instead.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Message to log.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Framework.logger">
-<code class="descname">logger</code><a class="headerlink" href="#sgtk.platform.Framework.logger" title="Permalink to this definition">¶</a></dt>
-<dd><p>Standard python logger for this engine, app or framework.</p>
-<p>Use this whenever you want to emit or process
-log messages. If you are developing an app,
-engine or framework, call this method for generic logging.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Inside the <code class="docutils literal"><span class="pre">python</span></code> area of your app, engine or framework,
-we recommend that you use <a class="reference internal" href="#sgtk.platform.get_logger" title="sgtk.platform.get_logger"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.platform.get_logger()</span></code></a>
-for your logging.</p>
-</div>
-<p>Logging will be dispatched to a logger parented under the
-main toolkit logging namespace:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># pattern</span>
-<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">environment_name</span><span class="o">.</span><span class="n">engine_instance_name</span>
-
-<span class="c1"># for example</span>
-<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">asset</span><span class="o">.</span><span class="n">tk</span><span class="o">-</span><span class="n">maya</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If you want all log messages that you are emitting in your
-app, engine or framework to be written to a log file or
-to a logging console, you can attach a std log handler here.</p>
-</div>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="sgtk.platform.Framework.name">
 <code class="descname">name</code><a class="headerlink" href="#sgtk.platform.Framework.name" title="Permalink to this definition">¶</a></dt>
@@ -3302,22 +3318,6 @@ to a logging console, you can attach a std log handler here.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Tank</span></code></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.platform.Framework.shotgun">
-<code class="descname">shotgun</code><a class="headerlink" href="#sgtk.platform.Framework.shotgun" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a Shotgun API handle associated with the currently running
-environment. This method is a convenience method that calls out
-to <code class="xref py py-meth docutils literal"><span class="pre">shotgun()</span></code>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Shotgun API handle</td>
 </tr>
 </tbody>
 </table>
@@ -3429,7 +3429,7 @@ our starter app <a class="reference external" href="https://github.com/shotgunso
 </div>
 <dl class="function">
 <dt id="sgtk.platform.current_bundle">
-<code class="descclassname">sgtk.platform.</code><code class="descname">current_bundle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/util.html#current_bundle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.current_bundle" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">sgtk.platform.</code><code class="descname">current_bundle</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.current_bundle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the bundle (app, engine or framework) instance for the
 app that the calling code is associated with. This is a special method, designed to
 be used inside python modules that belong to apps, engines or frameworks.</p>
@@ -3479,7 +3479,7 @@ info.yml manifest.</td>
 
 <dl class="function">
 <dt id="sgtk.platform.import_framework">
-<code class="descclassname">sgtk.platform.</code><code class="descname">import_framework</code><span class="sig-paren">(</span><em>framework</em>, <em>module</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/util.html#import_framework"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.import_framework" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">sgtk.platform.</code><code class="descname">import_framework</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.import_framework" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convenience method for using frameworks code inside of apps, engines and other frameworks.</p>
 <p>This method is intended to replace an import statement.
 Instead of typing:</p>
@@ -3674,7 +3674,19 @@ especially when the contained widget is quite small. To hide the title bar, just
           SphinxRtdTheme.StickyNav.enable();
       });
   </script>
-   
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
 
 </body>
 </html>

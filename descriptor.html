@@ -57,7 +57,7 @@
                 margin: 2px;
                 border-radius: 0px; 
                 padding: 0px;' 
-            src='./_static/logo@2x.png'/>
+            src='_static/logo@2x.png'/>
     
     </a>
     
@@ -1252,6 +1252,22 @@ creating new descriptor objects.</p>
 </tr>
 </tbody>
 </table>
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.is_shared_framework">
+<code class="descname">is_shared_framework</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_bundle.html#FrameworkDescriptor.is_shared_framework"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.is_shared_framework" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a boolean indicating whether the bundle is a shared framework.
+Shared frameworks only have a single instance per instance name in the
+current environment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the framework is shared</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="sgtk.descriptor.FrameworkDescriptor.changelog">
 <code class="descname">changelog</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.changelog" title="Permalink to this definition">¶</a></dt>
@@ -1504,22 +1520,6 @@ can make changes at any time.</p>
 </table>
 </dd></dl>
 
-<dl class="method">
-<dt id="sgtk.descriptor.FrameworkDescriptor.is_shared_framework">
-<code class="descname">is_shared_framework</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_bundle.html#FrameworkDescriptor.is_shared_framework"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.is_shared_framework" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a boolean indicating whether the bundle is a shared framework.
-Shared frameworks only have a single instance per instance name in the
-current environment.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the framework is shared</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="sgtk.descriptor.FrameworkDescriptor.required_context">
 <code class="descname">required_context</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.required_context" title="Permalink to this definition">¶</a></dt>
@@ -1663,6 +1663,38 @@ creating new descriptor objects.</p>
 </tbody>
 </table>
 <dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.version_constraints">
+<code class="descname">version_constraints</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.version_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary with version constraints. The absence of a key
+indicates that there is no defined constraint. The following keys can be
+returned: min_sg, min_core, min_engine and min_desktop</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with optional keys min_sg, min_core,
+min_engine and min_desktop</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.readme_content">
+<code class="descname">readme_content</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.readme_content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Associated readme content as a list.
+If not readme exists, an empty list is returned</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of strings</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sgtk.descriptor.ConfigDescriptor.associated_core_descriptor">
 <code class="descname">associated_core_descriptor</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.associated_core_descriptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>The descriptor dict or url required for this core or None if not defined.</p>
@@ -1671,6 +1703,22 @@ creating new descriptor objects.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Core descriptor dict or uri or None if not defined</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.descriptor.ConfigDescriptor.required_storages">
+<code class="descname">required_storages</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.required_storages" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of storage names needed for this config.
+This may be an empty list if the configuration doesn&#8217;t
+make use of the file system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of storage names as strings</td>
 </tr>
 </tbody>
 </table>
@@ -1883,37 +1931,6 @@ can make changes at any time.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="sgtk.descriptor.ConfigDescriptor.readme_content">
-<code class="descname">readme_content</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.readme_content" title="Permalink to this definition">¶</a></dt>
-<dd><p>Associated readme content as a list.
-If not readme exists, an empty list is returned</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of strings</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.descriptor.ConfigDescriptor.required_storages">
-<code class="descname">required_storages</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.required_storages" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of storage names needed for this config.
-This may be an empty list if the configuration doesn&#8217;t
-make use of the file system.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of storage names as strings</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="sgtk.descriptor.ConfigDescriptor.support_url">
 <code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A url that points at a support web page associated with this item.
@@ -1930,23 +1947,6 @@ If not url has been defined, None is returned.</p>
 <dt id="sgtk.descriptor.ConfigDescriptor.version">
 <code class="descname">version</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.version" title="Permalink to this definition">¶</a></dt>
 <dd><p>The version number string for this item.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="sgtk.descriptor.ConfigDescriptor.version_constraints">
-<code class="descname">version_constraints</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.version_constraints" title="Permalink to this definition">¶</a></dt>
-<dd><p>A dictionary with version constraints. The absence of a key
-indicates that there is no defined constraint. The following keys can be
-returned: min_sg, min_core, min_engine and min_desktop</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with optional keys min_sg, min_core,
-min_engine and min_desktop</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 </dd></dl>
@@ -1968,6 +1968,23 @@ creating new descriptor objects.</p>
 </tr>
 </tbody>
 </table>
+<dl class="attribute">
+<dt id="sgtk.descriptor.CoreDescriptor.version_constraints">
+<code class="descname">version_constraints</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.version_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary with version constraints. The absence of a key
+indicates that there is no defined constraint. The following keys can be
+returned: min_sg, min_core, min_engine and min_desktop</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with optional keys min_sg, min_core,
+min_engine, min_desktop</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="sgtk.descriptor.CoreDescriptor.changelog">
 <code class="descname">changelog</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.changelog" title="Permalink to this definition">¶</a></dt>
@@ -2193,23 +2210,6 @@ If not url has been defined, None is returned.</p>
 <dd><p>The version number string for this item.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="sgtk.descriptor.CoreDescriptor.version_constraints">
-<code class="descname">version_constraints</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.version_constraints" title="Permalink to this definition">¶</a></dt>
-<dd><p>A dictionary with version constraints. The absence of a key
-indicates that there is no defined constraint. The following keys can be
-returned: min_sg, min_core, min_engine and min_desktop</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with optional keys min_sg, min_core,
-min_engine, min_desktop</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </dd></dl>
 
 </div>
@@ -2301,7 +2301,19 @@ min_engine, min_desktop</td>
           SphinxRtdTheme.StickyNav.enable();
       });
   </script>
-   
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
 
 </body>
 </html>
