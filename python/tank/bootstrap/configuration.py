@@ -45,6 +45,7 @@ class Configuration(object):
             sg,
             descriptor,
             project_id,
+            entry_point,
             pipeline_config_id,
             bundle_cache_fallback_paths
     ):
@@ -57,6 +58,10 @@ class Configuration(object):
         :param project_id: Project id for the shotgun project associated with the
                            configuration. For a site-level configuration, this
                            can be set to None.
+        :param entry_point: Entry point string to identify the scope for a particular plugin
+                            or integration. For more information,
+                            see :meth:`~sgtk.bootstrap.ToolkitManager.entry_point`. For
+                            non-plugin based toolkit projects, this value is None.
         :param pipeline_config_id: Pipeline Configuration id for the shotgun
                                    pipeline config id associated. If a config does
                                    not have an associated entity in Shotgun, this
@@ -67,13 +72,15 @@ class Configuration(object):
         self._sg_connection = sg
         self._descriptor = descriptor
         self._project_id = project_id
+        self._entry_point = entry_point
         self._pipeline_config_id = pipeline_config_id
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths
 
     def __repr__(self):
-        return "<Config with id %s, project id %s and base %r>" % (
+        return "<Config with id %s, project id %s, ep %s and base %r>" % (
             self._pipeline_config_id,
             self._project_id,
+            self._entry_point,
             self._descriptor
         )
 
@@ -583,6 +590,7 @@ class Configuration(object):
             "pc_name": pipeline_config_name,
             "project_id": self._project_id,
             "project_name": project_name,
+            "entry_point": self._entry_point,
             "published_file_entity_type": "PublishedFile",
             "use_bundle_cache": True,
             "bundle_cache_fallback_roots": self._bundle_cache_fallback_paths,

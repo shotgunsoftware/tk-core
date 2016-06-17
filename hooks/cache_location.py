@@ -17,6 +17,7 @@ import os
 from sgtk.util import filesystem, LocalFileStorageManager
 
 HookBaseClass = sgtk.get_hook_baseclass()
+log = sgtk.LogManager.get_logger(__name__)
 
 class CacheLocation(HookBaseClass):
     """
@@ -25,10 +26,12 @@ class CacheLocation(HookBaseClass):
     For further details, see individual cache methods below.
     """
     
-    def path_cache(self, project_id, pipeline_configuration_id):
+    def path_cache_v2(self, project_id, entry_point, pipeline_configuration_id):
         """
         Establish a location for the path cache database file.
-        
+
+        This hook method was introduced in Toolkit v0.18 and replaces path_cache_v2.
+
         Overriding this method in a hook allows a user to change the location on disk where
         the path cache file is located. The path cache file holds a temporary cache representation
         of the FilesystemLocation entities stored in Shotgun for a project. Typically, this cache
@@ -39,9 +42,30 @@ class CacheLocation(HookBaseClass):
         id will be set to None.
 
         :param project_id: The shotgun id of the project to store caches for
+        :param entry_point: Entry point string to identify the scope for a particular plugin
+                            or integration. For more information,
+                            see :meth:`~sgtk.bootstrap.ToolkitManager.entry_point`. For
+                            non-plugin based toolkit projects, this value is None.
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
         :returns: The path to a path cache file. This file should exist when this method returns.
         """
+        # backwards compatibility with custom hooks created before 0.18
+        if hasattr(self, "path_cache") and callable(getattr(self, "path_cache")):
+            # there is a custom version of the legacy hook path_cache
+            log.warning(
+                "Detected old core cache hook implementation. "
+                "It is strongly recommended that this is upgraded."
+            )
+
+            # call legacy hook to make sure we call the custom
+            # implementation that is provided by the user.
+            # this implementation expects project id 0 for
+            # the site config, so ensure that's the case too
+            if project_id is None:
+                project_id = 0
+
+            return self.path_cache(project_id, pipeline_configuration_id)
+
 
         cache_filename = "path_cache.db"
 
@@ -50,6 +74,7 @@ class CacheLocation(HookBaseClass):
         cache_root = LocalFileStorageManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
+            entry_point,
             pipeline_configuration_id,
             LocalFileStorageManager.CACHE
         )
@@ -68,6 +93,7 @@ class CacheLocation(HookBaseClass):
         legacy_cache_root = LocalFileStorageManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
+            entry_point,
             pipeline_configuration_id,
             LocalFileStorageManager.CACHE,
             generation=LocalFileStorageManager.CORE_V17
@@ -84,10 +110,12 @@ class CacheLocation(HookBaseClass):
         filesystem.touch_file(target_path)
 
         return target_path
-    
-    def bundle_cache(self, project_id, pipeline_configuration_id, bundle):
+
+    def bundle_cache_v2(self, project_id, entry_point, pipeline_configuration_id, bundle):
         """
         Establish a cache folder for an app, engine or framework.
+
+        This hook method was introduced in Toolkit v0.18 and replaces bundle_cache.
         
         Apps, Engines or Frameworks commonly caches data on disk. This can be 
         small files, shotgun queries, thumbnails etc. This method implements the 
@@ -96,22 +124,44 @@ class CacheLocation(HookBaseClass):
         which needs to cache things per-instance can implement this using a sub
         folder inside the bundle cache location).
 
+        ..note:: This method may be slightly confusing given the use of the term
+                 "bundle_cache" throughout core which refers to the location on disk
+                 where bundles (apps, engines, frameworks) are installed. A better
+                 name for this method might have been `bundle_data_cache`. The name
+                 remains to avoid breaking client code.
+
         :param project_id: The shotgun id of the project to store caches for
+        :param entry_point: Entry point string to identify the scope for a particular plugin
+                            or integration. For more information,
+                            see :meth:`~sgtk.bootstrap.ToolkitManager.entry_point`. For
+                            non-plugin based toolkit projects, this value is None.
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
         :param bundle: The app, engine or framework object which is requesting the cache folder.
         :returns: The path to a folder which should exist on disk.
-
-        NOTE: This method may be slightly confusing given the use of the term
-        "bundle_cache" throughout core which refers to the location on disk
-        where bundles (apps, engines, frameworks) are installed. A better
-        name for this method might have been `bundle_data_cache`. The name
-        remains to avoid breaking client code.
-
         """
+        # backwards compatibility with custom hooks created before 0.18
+        if hasattr(self, "bundle_cache") and callable(getattr(self, "bundle_cache")):
+            # there is a custom version of the legacy hook path_cache
+            log.warning(
+                "Detected old core cache hook implementation. "
+                "It is strongly recommended that this is upgraded."
+            )
+
+            # call legacy hook to make sure we call the custom
+            # implementation that is provided by the user.
+            # this implementation expects project id 0 for
+            # the site config, so ensure that's the case too
+            if project_id is None:
+                project_id = 0
+
+            return self.bundle_cache(project_id, pipeline_configuration_id, bundle)
+
+
         tk = self.parent
         cache_root = LocalFileStorageManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
+            entry_point,
             pipeline_configuration_id,
             LocalFileStorageManager.CACHE
         )
@@ -141,6 +191,7 @@ class CacheLocation(HookBaseClass):
         legacy_cache_root = LocalFileStorageManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
+            entry_point,
             pipeline_configuration_id,
             LocalFileStorageManager.CACHE,
             generation=LocalFileStorageManager.CORE_V17
