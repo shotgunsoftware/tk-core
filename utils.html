@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.0RC1 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.0RC2 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.0RC2 documentation" href="index.html"/>
         <link rel="next" title="Descriptor API" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -145,7 +145,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.0RC1.<br>
+    <b>tk-core</b> v0.18.0RC2.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1159,9 +1159,25 @@ which is the current generation of paths.</li>
 
 <dl class="classmethod">
 <dt id="sgtk.util.LocalFileStorageManager.get_configuration_root">
-<em class="property">classmethod </em><code class="descname">get_configuration_root</code><span class="sig-paren">(</span><em>hostname</em>, <em>project_id</em>, <em>pipeline_config_id</em>, <em>path_type</em>, <em>generation=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/local_file_storage.html#LocalFileStorageManager.get_configuration_root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.LocalFileStorageManager.get_configuration_root" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">get_configuration_root</code><span class="sig-paren">(</span><em>hostname</em>, <em>project_id</em>, <em>entry_point</em>, <em>pipeline_config_id</em>, <em>path_type</em>, <em>generation=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/local_file_storage.html#LocalFileStorageManager.get_configuration_root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.LocalFileStorageManager.get_configuration_root" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the storage root for any data that is project and config specific.</p>
+<ul class="simple">
+<li>A well defined project id should always be passed. Passing None as the project
+id indicates that the <em>site</em> configuration, a special toolkit configuration
+that represents the non-project state in Shotgun.</li>
+<li>Configurations that have a pipeline configuration in Shotgun should pass in
+a pipeline configuration id. When a pipeline configuration is not registered
+in Shotgun, this value should be None.</li>
+<li>If the configuration has been bootstrapped or has a known entry point, this
+should be specified via the entry point parameter.</li>
+</ul>
 <p>For more details, see <code class="xref py py-meth docutils literal"><span class="pre">LocalFileStorageManager.get_global_root()</span></code>.</p>
+<p>Examples of paths that will be generated:</p>
+<ul class="simple">
+<li>Site config: <code class="docutils literal"><span class="pre">ROOT/shotgunsite/p0</span></code></li>
+<li>Project 123, config 33: <code class="docutils literal"><span class="pre">ROOT/shotgunsite/p123c33</span></code></li>
+<li>project 123, no config, entry point rv_review: <code class="docutils literal"><span class="pre">ROOT/shotgunsite/p123.rv_review</span></code></li>
+</ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This method does not ensure that the folder exists.</p>
@@ -1173,6 +1189,10 @@ which is the current generation of paths.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>hostname</strong> &#8211; Shotgun hostname as string, e.g. &#8216;<a class="reference external" href="https://foo.shotgunstudio.com">https://foo.shotgunstudio.com</a>&#8216;</li>
 <li><strong>project_id</strong> &#8211; Shotgun project id as integer. For the site config, this should be None.</li>
+<li><strong>entry_point</strong> &#8211; Entry point string to identify the scope for a particular plugin
+or integration. For more information,
+see <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager.entry_point" title="sgtk.bootstrap.ToolkitManager.entry_point"><code class="xref py py-meth docutils literal"><span class="pre">entry_point()</span></code></a>. For
+non-plugin based toolkit projects, this value is None.</li>
 <li><strong>pipeline_config_id</strong> &#8211; Shotgun pipeline config id. None for bootstraped configs.</li>
 <li><strong>path_type</strong> &#8211; Type of path to return. One of <code class="docutils literal"><span class="pre">LocalFileStorageManager.LOGGING</span></code>,
 <code class="docutils literal"><span class="pre">LocalFileStorageManager.CACHE</span></code>, <code class="docutils literal"><span class="pre">LocalFileStorageManager.PERSISTENT</span></code>, where
@@ -1527,7 +1547,7 @@ with the following fields: id, type, email, login, name, image, firstname, lastn
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.0RC1',
+            VERSION:'v0.18.0RC2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

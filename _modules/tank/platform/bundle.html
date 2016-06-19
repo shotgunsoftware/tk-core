@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.bundle &mdash; tk-core v0.18.0RC1 documentation</title>
+  <title>tank.platform.bundle &mdash; tk-core v0.18.0RC2 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.0RC2 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.0RC1.<br>
+    <b>tk-core</b> v0.18.0RC2.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -399,22 +399,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># this method is memoized for performance since it is being called a lot!</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="c1"># Site configuration&#39;s project id is None. Since we&#39;re calling a hook, we&#39;ll have to</span>
-            <span class="c1"># pass in 0 to avoid client code crashing because it expects an integer and not</span>
-            <span class="c1"># the None object. This happens when we are building the cache root, where %d is used to</span>
-            <span class="c1"># inject the project id in the file path.        </span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">is_site_configuration</span><span class="p">():</span>
-                <span class="n">project_id</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">project_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_project_id</span><span class="p">()</span>
-            
-            <span class="n">pc_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_shotgun_id</span><span class="p">()</span>
-            
+
             <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">execute_core_hook_method</span><span class="p">(</span>
                 <span class="n">constants</span><span class="o">.</span><span class="n">CACHE_LOCATION_HOOK_NAME</span><span class="p">,</span>
-                <span class="s2">&quot;bundle_cache&quot;</span><span class="p">,</span>
-                <span class="n">project_id</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
-                <span class="n">pipeline_configuration_id</span><span class="o">=</span><span class="n">pc_id</span><span class="p">,</span>
+                <span class="s2">&quot;get_bundle_data_cache_path&quot;</span><span class="p">,</span>
+                <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_project_id</span><span class="p">(),</span>
+                <span class="n">entry_point</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_entry_point</span><span class="p">(),</span>
+                <span class="n">pipeline_configuration_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_shotgun_id</span><span class="p">(),</span>
                 <span class="n">bundle</span><span class="o">=</span><span class="bp">self</span>
             <span class="p">)</span>
         
@@ -1272,7 +1263,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.0RC1',
+            VERSION:'v0.18.0RC2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

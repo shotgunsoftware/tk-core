@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Deploy and management &mdash; tk-core v0.18.0RC1 documentation</title>
+  <title>Deploy and management &mdash; tk-core v0.18.0RC2 documentation</title>
   
 
   
@@ -32,9 +32,9 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.0RC2 documentation" href="index.html"/>
         <link rel="next" title="Foundation" href="core.html"/>
-        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.0RC1" href="index.html"/> 
+        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.0RC2" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -125,7 +125,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.0RC1.<br>
+    <b>tk-core</b> v0.18.0RC2.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -295,15 +295,17 @@ were to override the base configuration in Shotgun, your override
 would affect the entire suite of plugins. This kind of setup allows
 for the development of several plugins in different DCCs that together
 form a curated workflow.</p>
-<p>Consider the following when deciding how to name your entry point:</p>
-<ul>
-<li><p class="first">The entry point needs to be unique</p>
-</li>
-<li><p class="first">It should be clear and concise</p>
-</li>
-<li><p class="first">We recommend that you use the following naming convention:
-<code class="docutils literal"><span class="pre">provider_service</span></code>, for example <code class="docutils literal"><span class="pre">rv_review</span></code> for an entry point
-maintained by the rv group which hosts review functionality.</p>
+<p>We recommend an entry point naming convention of <code class="docutils literal"><span class="pre">provider_service</span></code>,
+for example:</p>
+<ul class="simple">
+<li>A plugin maintained by the RV group which handles review inside RV would
+be named <code class="docutils literal"><span class="pre">rv_review</span></code>.</li>
+<li>A plugin for a toolkit load/publish workflow that runs inside of Maya and
+Nuke, maintained by the Toolkit team, could be named <code class="docutils literal"><span class="pre">sgtk_publish</span></code>.</li>
+<li>A plugin containg a studio VR workflow across multiple DCCs could be
+named <code class="docutils literal"><span class="pre">studioname_vrtools</span></code>.</li>
+</ul>
+<p>Please make sure that your entry point is <strong>unique, explicit and short</strong>.</p>
 <blockquote>
 <div><div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -311,8 +313,6 @@ maintained by the rv group which hosts review functionality.</p>
 be used, set <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup" title="sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup"><code class="xref py py-meth docutils literal"><span class="pre">do_shotgun_config_lookup()</span></code></a> to False.</p>
 </div>
 </div></blockquote>
-</li>
-</ul>
 </dd></dl>
 
 <dl class="attribute">
@@ -417,7 +417,7 @@ executed during the bootstrap.</p>
         <a href="core.html" class="btn btn-neutral float-right" title="Foundation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.0RC1" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.0RC2" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -447,7 +447,7 @@ executed during the bootstrap.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.0RC1',
+            VERSION:'v0.18.0RC2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

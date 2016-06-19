@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.bootstrap.manager &mdash; tk-core v0.18.0RC1 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.0RC2 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.0RC1 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.0RC2 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.0RC1.<br>
+    <b>tk-core</b> v0.18.0RC2.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -298,13 +298,17 @@
 <span class="sd">        for the development of several plugins in different DCCs that together</span>
 <span class="sd">        form a curated workflow.</span>
 
-<span class="sd">        Consider the following when deciding how to name your entry point:</span>
+<span class="sd">        We recommend an entry point naming convention of ``provider_service``,</span>
+<span class="sd">        for example:</span>
 
-<span class="sd">        - The entry point needs to be unique</span>
-<span class="sd">        - It should be clear and concise</span>
-<span class="sd">        - We recommend that you use the following naming convention:</span>
-<span class="sd">          ``provider_service``, for example ``rv_review`` for an entry point</span>
-<span class="sd">          maintained by the rv group which hosts review functionality.</span>
+<span class="sd">        - A plugin maintained by the RV group which handles review inside RV would</span>
+<span class="sd">          be named ``rv_review``.</span>
+<span class="sd">        - A plugin for a toolkit load/publish workflow that runs inside of Maya and</span>
+<span class="sd">          Nuke, maintained by the Toolkit team, could be named ``sgtk_publish``.</span>
+<span class="sd">        - A plugin containg a studio VR workflow across multiple DCCs could be</span>
+<span class="sd">          named ``studioname_vrtools``.</span>
+
+<span class="sd">        Please make sure that your entry point is **unique, explicit and short**.</span>
 
 <span class="sd">            .. note:: If you want to force the :meth:`base_configuration` to always</span>
 <span class="sd">                      be used, set :meth:`do_shotgun_config_lookup` to False.</span>
@@ -638,7 +642,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.0RC1',
+            VERSION:'v0.18.0RC2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
