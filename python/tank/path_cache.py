@@ -165,7 +165,7 @@ class PathCache(object):
             # where the path cache should be located.
             path = self._tk.execute_core_hook_method(
                 constants.CACHE_LOCATION_HOOK_NAME,
-                "path_cache_v2",
+                "get_path_cache_path",
                 project_id=self._tk.pipeline_configuration.get_project_id(),
                 entry_point=self._tk.pipeline_configuration.get_entry_point(),
                 pipeline_configuration_id=self._tk.pipeline_configuration.get_shotgun_id()

@@ -26,11 +26,13 @@ class CacheLocation(HookBaseClass):
     For further details, see individual cache methods below.
     """
     
-    def path_cache_v2(self, project_id, entry_point, pipeline_configuration_id):
+    def get_path_cache_path(self, project_id, entry_point, pipeline_configuration_id):
         """
         Establish a location for the path cache database file.
 
-        This hook method was introduced in Toolkit v0.18 and replaces path_cache_v2.
+        This hook method was introduced in Toolkit v0.18 and replaces path_cache.
+        If you already have implemented path_cache, this will be detected and called instead,
+        however we strongly recommend that you tweak your hook.
 
         Overriding this method in a hook allows a user to change the location on disk where
         the path cache file is located. The path cache file holds a temporary cache representation
@@ -111,11 +113,13 @@ class CacheLocation(HookBaseClass):
 
         return target_path
 
-    def bundle_cache_v2(self, project_id, entry_point, pipeline_configuration_id, bundle):
+    def get_bundle_data_cache_path(self, project_id, entry_point, pipeline_configuration_id, bundle):
         """
         Establish a cache folder for an app, engine or framework.
 
         This hook method was introduced in Toolkit v0.18 and replaces bundle_cache.
+        If you already have implemented bundle_cache, this will be detected and called instead,
+        however we strongly recommend that you tweak your hook.
         
         Apps, Engines or Frameworks commonly caches data on disk. This can be 
         small files, shotgun queries, thumbnails etc. This method implements the 
@@ -123,12 +127,6 @@ class CacheLocation(HookBaseClass):
         a way so that all instances of the app can re-use the same data. (Apps 
         which needs to cache things per-instance can implement this using a sub
         folder inside the bundle cache location).
-
-        ..note:: This method may be slightly confusing given the use of the term
-                 "bundle_cache" throughout core which refers to the location on disk
-                 where bundles (apps, engines, frameworks) are installed. A better
-                 name for this method might have been `bundle_data_cache`. The name
-                 remains to avoid breaking client code.
 
         :param project_id: The shotgun id of the project to store caches for
         :param entry_point: Entry point string to identify the scope for a particular plugin

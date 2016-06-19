@@ -194,7 +194,24 @@ class LocalFileStorageManager(object):
         """
         Returns the storage root for any data that is project and config specific.
 
+        - A well defined project id should always be passed. Passing None as the project
+          id indicates that the *site* configuration, a special toolkit configuration
+          that represents the non-project state in Shotgun.
+
+        - Configurations that have a pipeline configuration in Shotgun should pass in
+          a pipeline configuration id. When a pipeline configuration is not registered
+          in Shotgun, this value should be None.
+
+        - If the configuration has been bootstrapped or has a known entry point, this
+          should be specified via the entry point parameter.
+
         For more details, see :meth:`LocalFileStorageManager.get_global_root`.
+
+        Examples of paths that will be generated:
+
+        - Site config: ``ROOT/shotgunsite/p0``
+        - Project 123, config 33: ``ROOT/shotgunsite/p123c33``
+        - project 123, no config, entry point rv_review: ``ROOT/shotgunsite/p123.rv_review``
 
         .. note:: This method does not ensure that the folder exists.
 

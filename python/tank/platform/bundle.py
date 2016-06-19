@@ -232,7 +232,7 @@ class TankBundle(object):
 
             self.__cache_location = self.__tk.execute_core_hook_method(
                 constants.CACHE_LOCATION_HOOK_NAME,
-                "bundle_cache_v2",
+                "get_bundle_data_cache_path",
                 project_id=self.__tk.pipeline_configuration.get_project_id(),
                 entry_point=self.__tk.pipeline_configuration.get_entry_point(),
                 pipeline_configuration_id=self.__tk.pipeline_configuration.get_shotgun_id(),
