@@ -175,6 +175,13 @@ class Engine(TankBundle):
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
         qt_abstraction.QtWidgets = qt.QtWidgets
+
+        # Setup the engine base class event signal. This isn't emitted by
+        # the engine base class itself, but is provided for derived engine
+        # classes and can be used to broadcast event notifications to other
+        # bundles, like apps.
+        from .qt import event_emitter
+        self._emitter = event_emitter.EventEmitter()
         
         # create invoker to allow execution of functions on the
         # main thread:
@@ -617,6 +624,17 @@ class Engine(TankBundle):
         :returns:   A list of TankQDialog objects.
         """
         return self.__created_qt_dialogs
+
+    @property
+    def emitter(self):
+        """
+        The engine's event emitter object. This object can be used by deriving
+        engines to emit an event() signal containing an
+        :class:`sgtk.platform.EngineEvent` object.
+
+        :returns:   An :class:`EventEmitter` object.
+        """
+        return self._emitter
 
     ##########################################################################################
     # init and destroy
