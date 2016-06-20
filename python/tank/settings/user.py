@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Shotgun Software Inc.
+# Copyright (c) 2016 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Global settings management.
+User settings management.
 """
 
 from __future__ import with_statement
@@ -67,9 +67,9 @@ class Singleton(object):
         cls._instance = None
 
 
-class GlobalSettings(Singleton):
+class UserSettings(Singleton):
     """
-    Handles finding and loading the global settings for Toolkit.
+    Handles finding and loading the user settings for Toolkit.
     """
 
     _LOGIN = "Login"
@@ -81,24 +81,24 @@ class GlobalSettings(Singleton):
         """
         return self._get_value(self._LOGIN, "http_proxy")
 
-    @property
-    def default_app_store_http_proxy(self):
+    def is_default_app_store_http_proxy_set(self):
         """
-        :returns: If None, the proxy wasn't set. If an empty string, it has been forced to
+        :returns: ``True`` if ``app_store_http_proxy`` is set, ``False`` otherwise.
         """
         # Passing PROXY_NOT_SET and getting it back means that the proxy wasn't set in the file.
         _PROXY_NOT_SET = "PROXY_NOT_SET"
         proxy = self._get_value(self._LOGIN, "app_store_http_proxy", default=_PROXY_NOT_SET)
 
-        # If proxy wasn't set, then return None, which means Toolkit will use the value from the http_proxy
+        # If proxy wasn't set, then return False, which means Toolkit will use the value from the http_proxy
         # setting for the app store proxy.
-        if proxy == _PROXY_NOT_SET:
-            return None
-        # If the proxy was set to a falsy value, it means it was hardcoded to be None.
-        elif not proxy:
-            return ""
-        else:
-            return proxy
+        return proxy != _PROXY_NOT_SET
+
+    @property
+    def default_app_store_http_proxy(self):
+        """
+        :returns: The app store specific proxy.
+        """
+        return self._get_value(self._LOGIN, "app_store_http_proxy", default=None)
 
     @property
     def default_site(self):
@@ -126,28 +126,31 @@ class GlobalSettings(Singleton):
 
         :returns: The appropriately type casted value if the value is found, default otherwise.
         """
-        if not self._global_config.has_section(section):
+        if not self._user_config.has_section(section):
             return default
-        elif not self._global_config.has_option(section, key):
+        elif not self._user_config.has_option(section, key):
             return default
         else:
-            return type_cast(self._global_config.get(section, key))
+            return type_cast(self._user_config.get(section, key))
 
     def _init_singleton(self):
         """
         Singleton initialization.
         """
         path = self._compute_config_location()
-        logger.debug("Reading global settings from %s" % path)
+        logger.debug("Reading user settings from %s" % path)
 
-        self._global_config = self._load_config(path)
+        self._user_config = self._load_config(path)
 
         # Log the default settings
-        logger.debug("Default site: %s" % (self.default_site,))
-        logger.debug("Default proxy: %s" % (self._get_filtered_proxy(self.default_http_proxy),))
+        logger.debug("Default site: %s" % (self.default_site or "<missing>",))
+        logger.debug("Default proxy: %s" % (self._get_filtered_proxy(self.default_http_proxy or "<missing>"),))
         proxy = self._get_filtered_proxy(self.default_app_store_http_proxy)
-        logger.debug("Default app store proxy: %s" % ("<not set>" if proxy is None else proxy,))
-        logger.debug("Default login: %s" % (self.default_login,))
+        if self.is_default_app_store_http_proxy_set():
+            logger.debug("Default app store proxy: %s" % (proxy or "<empty>",))
+        else:
+            logger.debug("Default app store proxy: <missing>")
+        logger.debug("Default login: %s" % (self.default_login or "<missing>",))
 
     def _compute_config_location(self):
         """

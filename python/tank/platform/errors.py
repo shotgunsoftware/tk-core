@@ -27,3 +27,9 @@ class TankEngineInitError(TankError):
     """
     pass
 
+
+
+# backwards compatibility to ensure code that was calling internal
+# parts of the API will still work.
+from .. import errors
+errors.TankEngineInitError = TankEngineInitError

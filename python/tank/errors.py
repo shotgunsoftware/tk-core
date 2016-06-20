@@ -59,8 +59,3 @@ class TankErrorProjectIsSetup(TankError):
         """
         super(TankErrorProjectIsSetup, self).__init__("You are trying to set up a project which has already been set up. "
                                                       "If you want to do this, make sure to set the force parameter.")
-
-# backwards compatibility to ensure code that was calling internal
-# parts of the API will still work.
-from .platform.errors import TankEngineInitError
-

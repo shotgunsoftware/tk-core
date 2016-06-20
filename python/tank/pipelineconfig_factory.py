@@ -16,6 +16,7 @@ import cPickle as pickle
 from .errors import TankError
 from . import constants
 from . import LogManager
+from .settings import core
 from .util import shotgun
 from .util import filesystem
 from .util import ShotgunPath
@@ -698,7 +699,7 @@ def _get_cache_location():
     """
     # optimized version of creating an sg instance and then calling sg.base_url
     # this is to avoid connecting to shotgun if possible.
-    sg_base_url = shotgun.get_associated_sg_base_url()
+    sg_base_url = core.CoreSettings().host
     root_path = LocalFileStorageManager.get_site_root(sg_base_url, LocalFileStorageManager.CACHE)
     return os.path.join(root_path, constants.TOOLKIT_INIT_CACHE_FILE)
 

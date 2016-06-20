@@ -55,25 +55,3 @@ class AuthenticationCancelled(ShotgunAuthenticationError):
         ShotgunAuthenticationError.__init__(
             self, "Authentication was cancelled by the user."
         )
-
-
-class MissingConfigurationFileError(ShotgunAuthenticationError):
-    """
-    Thrown when an environment variable specific a location for a configuration
-    file that doesn't exist.
-    """
-
-    def __init__(self, var_name, path):
-        """
-        Constructor.
-
-        :param str var_name: Name of the environment variable used.
-        :param str path: Path to the configuration file that doesn't exist.
-        """
-        ShotgunAuthenticationError.__init__(
-            self,
-            "The environment variable '%s' refers to a configuration file on disk at '%s' that doesn't exist." % (
-                var_name,
-                path
-            )
-        )

@@ -51,6 +51,37 @@ def is_pipeline_config(pipeline_config_path):
     pc_file = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
     return os.path.exists(pc_file)
 
+
+def get_api_core_config_location():
+    """
+
+    Walk from the location of this file on disk to the config area.
+    this operation is guaranteed to work on any valid tank installation
+
+    Pipeline Configuration / Studio Location
+       |
+       |- Install
+       |     +- Core
+       |          +- Python
+       |                +- tank
+       |
+       +- Config
+             +- Core
+    """
+    # local import to avoid cyclic references
+    core_api_root = get_path_to_current_core()
+    core_cfg = os.path.join(core_api_root, "config", "core")
+
+    if not os.path.exists(core_cfg):
+        full_path_to_file = os.path.abspath(os.path.dirname(__file__))
+        raise TankError("Cannot resolve the core configuration from the location of the Sgtk Code! "
+                        "This can happen if you try to move or symlink the Sgtk API. The "
+                        "Sgtk API is currently picked up from %s which is an "
+                        "invalid location." % full_path_to_file)
+
+    return core_cfg
+
+
 def get_metadata(pipeline_config_path):
     """
     Loads the pipeline config metadata (the pipeline_configuration.yml) file from disk.

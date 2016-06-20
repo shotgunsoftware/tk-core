@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from . import session_cache
-
+from ..settings import user
 
 class DefaultsManager(object):
     """
@@ -74,9 +74,7 @@ class DefaultsManager(object):
         """
         Constructor.
         """
-        # Avoids circular dep
-        from .global_settings import GlobalSettings
-        self._global_settings = GlobalSettings()
+        self._user_settings = user.UserSettings()
 
     def is_host_fixed(self):
         """
@@ -113,7 +111,7 @@ class DefaultsManager(object):
 
         :returns: A string containing the default host name.
         """
-        return session_cache.get_current_host() or self._global_settings.default_site
+        return session_cache.get_current_host() or self._user_settings.default_site
 
     def set_host(self, host):
         """
@@ -137,7 +135,7 @@ class DefaultsManager(object):
 
         :returns: String containing the default http proxy, None by default.
         """
-        return self._global_settings.default_http_proxy
+        return self._user_settings.default_http_proxy
 
     def get_login(self):
         """
@@ -148,7 +146,7 @@ class DefaultsManager(object):
         :returns: Default implementation returns the login for the
                   currently stored user.
         """
-        return session_cache.get_current_user(self.get_host()) or self._global_settings.default_login
+        return session_cache.get_current_user(self.get_host()) or self._user_settings.default_login
 
     def get_user_credentials(self):
         """
