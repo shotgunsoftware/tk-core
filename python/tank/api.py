@@ -491,9 +491,9 @@ class Sgtk(object):
 
         .. note:: There are situations where the resulting abstract paths may not match any files on disk
 
-        Take the following template:
+        Take the following template::
 
-            ``render: sequences/{Sequence}/{Shot}/images/{Shot}.{SEQ}.jpg``
+            render: sequences/{Sequence}/{Shot}/images/{Shot}.{SEQ}.jpg
 
         Assuming ``Shot`` is provided via the ``fields`` argument, the method will avoid
         listing all files in the leaf directory since ``{SEQ}`` is abstract and ``{Shot}``
