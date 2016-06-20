@@ -97,26 +97,16 @@ class ConfigurationResolver(object):
         cache_root = LocalFileStorageManager.get_configuration_root(
             sg_connection.base_url,
             self._project_id,
+            self._entry_point,
             None,  # pipeline config id
             LocalFileStorageManager.CACHE
         )
 
         # resolve the config location both based on entry point and current engine.
         #
-        # Example: ~/Library/Caches/Shotgun/mysitename/site/cfg.tk-rv.review
+        # Example: ~/Library/Caches/Shotgun/mysitename/site.rv_review/cfg
         #
-        config_folder = "cfg.%s" % filesystem.create_valid_filename(self._engine_name)
-
-        if self._entry_point:
-            # append the entry point
-            config_folder = "%s.%s" % (
-                config_folder,
-                filesystem.create_valid_filename(self._entry_point)
-            )
-
-        # now locate configs created by the base config resolver
-        # in cfg/base/engine-name folder
-        config_cache_root = os.path.join(cache_root, config_folder)
+        config_cache_root = os.path.join(cache_root, "cfg")
         filesystem.ensure_folder_exists(config_cache_root)
 
         log.debug("Configuration root resolved to %s." % config_cache_root)
@@ -132,6 +122,7 @@ class ConfigurationResolver(object):
             sg_connection,
             cfg_descriptor,
             self._project_id,
+            self._entry_point,
             None,  # pipeline config id
             self._bundle_cache_fallback_paths
         )
