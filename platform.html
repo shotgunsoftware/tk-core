@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.0RC2 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.0RC3 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.0RC2 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.0RC3 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -108,7 +108,38 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#import-and-access-methods">Import and access methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#using-qt-inside-your-toolkit-app">Using QT inside your Toolkit App</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-and-info-yml-manifest">Configuration and <code class="docutils literal"><span class="pre">info.yml</span></code> manifest</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#display-name-and-description">Display name and Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Frameworks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#version-constraints">Version constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#supported-engines-and-operating-systems">Supported Engines and operating systems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation-and-support">Documentation and Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#required-context-fields">Required Context Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shotgun-fields">Shotgun fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-configuration-section">The configuration section</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sparse-configurations">Sparse configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#default-values-per-engine">Default values per engine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#values-that-are-procedurally-populated-by-hooks">Values that are procedurally populated by hooks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#simple-data-types">Simple Data Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-config-path-data-type">The config_path data type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-tank-type-data-type">The tank_type data type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-shotgun-entity-type-data-type">The shotgun_entity_type data type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-shotgun-permission-group-data-type">The shotgun_permission_group data type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-shotgun-filter-data-type">The shotgun_filter data type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-template-data-type">The template data type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-hook-data-type">The hook data type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-list-data-type">The list data type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-dict-data-type">The dict data type</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#using-qt-inside-your-toolkit-app">Using QT inside your Toolkit App</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#creating-dialogs">Creating Dialogs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#modal-dialogs-and-exit-codes">Modal dialogs and exit codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hiding-the-default-toolkit-title-bar">Hiding the default Toolkit title bar</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
@@ -135,7 +166,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.0RC2.<br>
+    <b>tk-core</b> v0.18.0RC3.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -3537,6 +3568,481 @@ under the correct bundle.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="configuration-and-info-yml-manifest">
+<h2>Configuration and <code class="docutils literal"><span class="pre">info.yml</span></code> manifest<a class="headerlink" href="#configuration-and-info-yml-manifest" title="Permalink to this headline">¶</a></h2>
+<p>Apps, engines and frameworks each have a metadata file. It always resides in the root of the app or engine
+and is always named <code class="docutils literal"><span class="pre">info.yml</span></code>. This metadata file contains important information about the item:</p>
+<ul class="simple">
+<li>Configuration settings available for an app or engine.</li>
+<li>Display name, documentation and support links for the app and other user facing metadata.</li>
+<li>All custom Shotgun fields that are required by the app or engine code.</li>
+<li>Which frameworks that are required in order for this app to run. You can specify
+an exact framework version to use (e.g. <code class="docutils literal"><span class="pre">v1.2.3</span></code>) or you can track against a subset of
+versions (e.g. <code class="docutils literal"><span class="pre">v1.x.x</span></code> or <code class="docutils literal"><span class="pre">v1.2.x</span></code>).</li>
+</ul>
+<p>For real-world examples, see for example
+the <a class="reference external" href="https://github.com/shotgunsoftware/tk-multi-loader2/blob/master/info.yml">Shotgun Loader</a>
+or the <a class="reference external" href="https://github.com/shotgunsoftware/tk-nuke-writenode/blob/master/info.yml">Shotgun Nuke Write Node</a>.</p>
+<div class="section" id="display-name-and-description">
+<h3>Display name and Description<a class="headerlink" href="#display-name-and-description" title="Permalink to this headline">¶</a></h3>
+<p>The optional <code class="docutils literal"><span class="pre">display_name</span></code> field defines the name that the user will see for the app.
+The optional <code class="docutils literal"><span class="pre">description</span></code> field is a brief one line description of what the app does:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># More verbose description of this item</span>
+<span class="n">display_name</span><span class="p">:</span> <span class="s2">&quot;Write Node&quot;</span>
+<span class="n">description</span><span class="p">:</span> <span class="s2">&quot;Support for the Shotgun Write Node in Nuke.&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id1">
+<h3>Frameworks<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>If a framework is being used by the app, declare it in the <code class="docutils literal"><span class="pre">info.yml</span></code> and Toolkit will keep track
+and make sure that it is installed and available. Once inside the app, use the call
+<code class="docutils literal"><span class="pre">module_name</span> <span class="pre">=</span> <span class="pre">sgtk.platform.import_framework(&quot;tk-framework-name&quot;,</span> <span class="pre">&quot;module_name&quot;)</span></code>. For more
+information, see <a class="reference internal" href="#sgtk.platform.import_framework" title="sgtk.platform.import_framework"><code class="xref py py-meth docutils literal"><span class="pre">import_framework()</span></code></a>.</p>
+<p>The frameworks section is a list of dictionaries, for example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># the frameworks required to run this app</span>
+<span class="n">frameworks</span><span class="p">:</span>
+    <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-framework-shotgunutils&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v2.x.x&quot;</span><span class="p">}</span>
+    <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-framework-qtwidgets&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v1.x.x&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Version numbers are typically supplied on the form <code class="docutils literal"><span class="pre">v1.x.x</span></code>, meaning that it will try to use
+the most recent approved major version one of the framework. Toolkit uses semantic versioning
+(<a class="reference external" href="http://semver.org/">http://semver.org/</a>) for its versioning, meaning that major version numbers indicate breaking changes,
+minor version number increments indicates added features and patch version numbers indicates backwards
+compatible bug fixes. We therefore recommend to have framework dependencies track against a
+major version number.</p>
+</div>
+<div class="section" id="version-constraints">
+<h3>Version constraints<a class="headerlink" href="#version-constraints" title="Permalink to this headline">¶</a></h3>
+<p>If your app or engine requires specific versions of shotgun, the core or other things,
+you can specify this using the three parameters <code class="docutils literal"><span class="pre">requires_shotgun_version</span></code>, <code class="docutils literal"><span class="pre">requires_core_verson</span></code>
+and (for apps only) <code class="docutils literal"><span class="pre">requires_engine_version</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Required minimum versions for this item to run</span>
+<span class="n">requires_shotgun_version</span><span class="p">:</span>
+<span class="n">requires_core_version</span><span class="p">:</span> <span class="s2">&quot;v0.14.37&quot;</span>
+<span class="n">requires_engine_version</span><span class="p">:</span> <span class="s2">&quot;v0.2.3&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="supported-engines-and-operating-systems">
+<h3>Supported Engines and operating systems<a class="headerlink" href="#supported-engines-and-operating-systems" title="Permalink to this headline">¶</a></h3>
+<p>If your app is not a multi-app that has been designed to run in <em>any</em> engine, use
+this option to specify which engines are supported:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">supported_engines</span><span class="p">:</span> <span class="p">[</span><span class="n">tk</span><span class="o">-</span><span class="n">nuke</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>If your app or engine only supports a particular operating system, you can define this
+using a <code class="docutils literal"><span class="pre">supported_platforms</span></code> parameter. Valid values are <code class="docutils literal"><span class="pre">linux</span></code>, <code class="docutils literal"><span class="pre">windows</span></code> and <code class="docutils literal"><span class="pre">mac</span></code>.
+This is an optional setting - omitting it or leaving it blank means that the app
+or engine will work on all platforms.</p>
+</div>
+<div class="section" id="documentation-and-support">
+<h3>Documentation and Support<a class="headerlink" href="#documentation-and-support" title="Permalink to this headline">¶</a></h3>
+<p>If you are developing an app for the Toolkit app store, no need to fill this in - the Sgtk Store
+manages documentation separately! But if you are building an in-house app for your studio,
+it can be useful to link it up to a wiki page or similar, so that it is easy for users to
+jump straight from the app to the documentation. In this case, just add a <code class="docutils literal"><span class="pre">documentation_url</span></code>
+setting:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">documentation_url</span><span class="p">:</span> <span class="s2">&quot;http://intranet/path/to/sgtk_app_docs.html&quot;</span>
+</pre></div>
+</div>
+<p>This will be picked up and displayed in various locations in the Toolkit UI.</p>
+<p>Similar to the documentation url above, it can be useful to connect an app to a url
+which lets users know how to get help when they have questions. If you have a separate
+system in your studio, (like an Request Tracker setup), and you want to make it easy for
+users to reach out from the app to this system, just define a <code class="docutils literal"><span class="pre">support_url</span></code> url:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">support_url</span><span class="p">:</span> <span class="s2">&quot;http://intranet/pipeline_team/support.html&quot;</span>
+</pre></div>
+</div>
+<p>This setting is optional, and if left blank, the support url will automatically
+be the standard Toolkit support location.</p>
+</div>
+<div class="section" id="required-context-fields">
+<h3>Required Context Fields<a class="headerlink" href="#required-context-fields" title="Permalink to this headline">¶</a></h3>
+<p>Toolkit has a <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> which it uses to determine what the current Shot, Project or Asset is.
+Apps may require a particular feature to be present in the context - for example, a
+Loader App may require an entity to be present in order to show a list of items for the
+current Asset or Shot. The <code class="docutils literal"><span class="pre">required_context</span></code> settings help defining what fields are needed.
+Possible values are <code class="docutils literal"><span class="pre">project</span></code>, <code class="docutils literal"><span class="pre">entity</span></code>, <code class="docutils literal"><span class="pre">step</span></code>, <code class="docutils literal"><span class="pre">task</span></code> and <code class="docutils literal"><span class="pre">user</span></code>.</p>
+</div>
+<div class="section" id="shotgun-fields">
+<h3>Shotgun fields<a class="headerlink" href="#shotgun-fields" title="Permalink to this headline">¶</a></h3>
+<p>If your app requires a particular custom field in Shotgun to operate correctly, you can add this to the
+<code class="docutils literal"><span class="pre">info.yml</span></code> manifest. Whenever the app is installed into a setup, toolkit will ensure that this custom field exists in shotgun.</p>
+<p>Just create a <code class="docutils literal"><span class="pre">requires_shotgun_fields</span></code> in your manifest and add entries on the following form:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">requires_shotgun_fields</span><span class="p">:</span>
+    <span class="c1"># Shotgun fields that this app expects</span>
+    <span class="n">Version</span><span class="p">:</span>
+        <span class="o">-</span> <span class="p">{</span> <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;sg_movie_type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>Note how the fields are grouped by Shotgun entity type (in the example above <code class="docutils literal"><span class="pre">Version</span></code>). For a list of
+which field types are supported,
+see the <a class="reference external" href="http://developer.shotgunsoftware.com/python-api/data_types.html">Shotgun API documentation</a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For more complex field types (such as entity and multi entity links), you need to set up creation via
+the <strong>post-install hook</strong> instead. (The post install hook is a special hook which runs at installation time
+and allows you to execute arbitrary code as part of the app installation process.)</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This functionality requires administrative privileges in Shotgun. Apps using this functionality
+therefore requires a workflow where an admin is required to update or install such apps. For general
+purpose apps, we therefore recommend not relying on this functionality.</p>
+</div>
+</div>
+<div class="section" id="the-configuration-section">
+<h3>The configuration section<a class="headerlink" href="#the-configuration-section" title="Permalink to this headline">¶</a></h3>
+<p>If an app requires a setting in its code, it should be defined in the info.yml.
+Toolkit will validate all requested settings and make sure that they
+have all been defined (or have default values) and are valid before apps are
+launched. It will also use this metadata when performing upgrades and installations.</p>
+<p>A single configuration entry typically looks like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">setting_name</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">some_type</span>
+    <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;description of the setting&quot;</span>
+    <span class="n">default_value</span><span class="p">:</span> <span class="n">general_default</span>
+    <span class="n">default_value_tk</span><span class="o">-</span><span class="n">nuke</span><span class="p">:</span> <span class="n">nuke_default</span>
+    <span class="n">default_value_tk</span><span class="o">-</span><span class="n">maya</span><span class="p">:</span> <span class="n">maya_default</span>
+    <span class="n">option1</span><span class="p">:</span> <span class="n">option_value1</span>
+    <span class="n">option2</span><span class="p">:</span> <span class="n">option_value2</span>
+</pre></div>
+</div>
+<p>Data types typically have specific optional settings. All data types and their options are
+outlines in the following sections.</p>
+<p>A full configuration section inside an <code class="docutils literal"><span class="pre">info.yml</span></code> manifest may look like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">configuration</span><span class="p">:</span>
+
+    <span class="n">shotgun_fields_hook</span><span class="p">:</span>
+        <span class="nb">type</span><span class="p">:</span> <span class="n">hook</span>
+        <span class="n">default_value</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{self}</span><span class="s2">/shotgun_fields.py&quot;</span>
+        <span class="n">description</span><span class="p">:</span> <span class="n">Hook</span> <span class="n">which</span> <span class="n">controls</span> <span class="n">how</span> <span class="n">values</span> <span class="n">are</span> <span class="n">presented</span>
+
+    <span class="n">action_mappings</span><span class="p">:</span>
+        <span class="nb">type</span><span class="p">:</span> <span class="nb">dict</span>
+        <span class="n">description</span><span class="p">:</span> <span class="n">Associates</span> <span class="n">shotgun</span> <span class="n">objects</span> <span class="k">with</span> <span class="n">actions</span><span class="o">.</span> <span class="n">The</span> <span class="n">actions</span> <span class="n">are</span> <span class="nb">all</span> <span class="n">defined</span>
+                     <span class="n">inside</span> <span class="n">the</span> <span class="n">actions</span> <span class="n">hook</span><span class="p">,</span> <span class="n">so</span> <span class="n">a</span> <span class="n">number</span> <span class="n">of</span> <span class="n">actions</span> <span class="n">are</span> <span class="n">available</span> <span class="n">by</span> <span class="n">default</span>
+                     <span class="ow">and</span> <span class="ow">in</span> <span class="n">addition</span> <span class="n">to</span> <span class="n">this</span> <span class="n">you</span> <span class="n">can</span> <span class="n">add</span> <span class="n">your</span> <span class="n">own</span> <span class="n">actions</span> <span class="k">if</span> <span class="n">you</span> <span class="n">like</span><span class="o">.</span>
+        <span class="n">default_value</span><span class="p">:</span>
+            <span class="n">Task</span><span class="p">:</span>
+                <span class="o">-</span> <span class="p">{</span> <span class="n">actions</span><span class="p">:</span> <span class="p">[</span><span class="n">assign_task</span><span class="p">,</span> <span class="n">task_to_ip</span><span class="p">],</span> <span class="n">filters</span><span class="p">:</span> <span class="p">{}</span> <span class="p">}</span>
+            <span class="n">Version</span><span class="p">:</span>
+                <span class="o">-</span> <span class="p">{</span> <span class="n">actions</span><span class="p">:</span> <span class="p">[</span><span class="n">quicktime_clipboard</span><span class="p">,</span> <span class="n">sequence_clipboard</span><span class="p">],</span> <span class="n">filters</span><span class="p">:</span> <span class="p">{}</span> <span class="p">}</span>
+            <span class="n">PublishedFile</span><span class="p">:</span>
+                <span class="o">-</span> <span class="p">{</span> <span class="n">actions</span><span class="p">:</span> <span class="p">[</span><span class="n">publish_clipboard</span><span class="p">],</span> <span class="n">filters</span><span class="p">:</span> <span class="p">{}</span> <span class="p">}</span>
+
+        <span class="n">default_value_tk</span><span class="o">-</span><span class="n">nuke</span><span class="p">:</span>
+            <span class="n">Task</span><span class="p">:</span>
+                <span class="o">-</span> <span class="p">{</span> <span class="n">actions</span><span class="p">:</span> <span class="p">[</span><span class="n">assign_task</span><span class="p">,</span> <span class="n">task_to_ip</span><span class="p">],</span> <span class="n">filters</span><span class="p">:</span> <span class="p">{}</span> <span class="p">}</span>
+            <span class="n">Version</span><span class="p">:</span>
+                <span class="o">-</span> <span class="p">{</span> <span class="n">actions</span><span class="p">:</span> <span class="p">[</span><span class="n">quicktime_clipboard</span><span class="p">,</span> <span class="n">sequence_clipboard</span><span class="p">],</span> <span class="n">filters</span><span class="p">:</span> <span class="p">{}</span> <span class="p">}</span>
+            <span class="n">PublishedFile</span><span class="p">:</span>
+                <span class="o">-</span> <span class="p">{</span> <span class="n">actions</span><span class="p">:</span> <span class="p">[</span><span class="n">publish_clipboard</span><span class="p">],</span> <span class="n">filters</span><span class="p">:</span> <span class="p">{}</span> <span class="p">}</span>
+                <span class="o">-</span> <span class="p">{</span> <span class="n">actions</span><span class="p">:</span> <span class="p">[</span><span class="n">read_node</span><span class="p">],</span> <span class="n">filters</span><span class="p">:</span> <span class="p">{</span> <span class="n">published_file_type</span><span class="p">:</span> <span class="n">Rendered</span> <span class="n">Image</span><span class="p">}</span> <span class="p">}</span>
+                <span class="o">-</span> <span class="p">{</span> <span class="n">actions</span><span class="p">:</span> <span class="p">[</span><span class="n">script_import</span><span class="p">],</span> <span class="n">filters</span><span class="p">:</span> <span class="p">{</span> <span class="n">published_file_type</span><span class="p">:</span> <span class="n">Nuke</span> <span class="n">Script</span><span class="p">}</span> <span class="p">}</span>
+</pre></div>
+</div>
+<div class="section" id="sparse-configurations">
+<h4>Sparse configurations<a class="headerlink" href="#sparse-configurations" title="Permalink to this headline">¶</a></h4>
+<p>In the configuration you can define default value for the various app settings that you define.
+As of <code class="docutils literal"><span class="pre">v0.18.x</span></code>, these values will be read at run-time if the setting is not
+specified in the environment. Prior to <code class="docutils literal"><span class="pre">v0.18.x</span></code>, configuration files were required to be
+non-sparse, meaning that all parameters needed to be populated in the configuration.</p>
+</div>
+<div class="section" id="default-values-per-engine">
+<h4>Default values per engine<a class="headerlink" href="#default-values-per-engine" title="Permalink to this headline">¶</a></h4>
+<p>It is possible to define defaults per engine using the following syntax:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">setting_name</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">some_type</span>
+    <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;description of the setting&quot;</span>
+    <span class="n">default_value</span><span class="p">:</span> <span class="n">general_default</span>
+    <span class="n">default_value_tk</span><span class="o">-</span><span class="n">nuke</span><span class="p">:</span> <span class="n">nuke_default</span>
+    <span class="n">default_value_tk</span><span class="o">-</span><span class="n">maya</span><span class="p">:</span> <span class="n">maya_default</span>
+</pre></div>
+</div>
+<p>When the app is being installed or updated, toolkit will first look for a default value
+for the engine which the app is being installed into. If that is not found, it will look
+for a general <code class="docutils literal"><span class="pre">default_value</span></code> setting. If that is not found, the user will be prompted to
+manually supply a value to populate in the environment. As of <code class="docutils literal"><span class="pre">v0.18.x</span></code>,
+settings with a default value will not be explicitly added to the installed/updated
+app&#8217;s settings.</p>
+</div>
+<div class="section" id="values-that-are-procedurally-populated-by-hooks">
+<h4>Values that are procedurally populated by hooks<a class="headerlink" href="#values-that-are-procedurally-populated-by-hooks" title="Permalink to this headline">¶</a></h4>
+<p>For advanced use cases, it is possible to specify a configuration value as a special hook evaluator
+rather than as a template setting. This means that when you configure your environment,
+rather than specifying an actual value for a setting to use with your app, you can specify a piece of
+code that returns the value to use. This makes it possible to create very complex
+settings logic. For more information, see
+the <a class="reference external" href="https://github.com/shotgunsoftware/tk-core/blob/master/hooks/example_template_hook.py">example_template_hook.py hook</a>
+located in the core hooks area.</p>
+</div>
+<div class="section" id="simple-data-types">
+<h4>Simple Data Types<a class="headerlink" href="#simple-data-types" title="Permalink to this headline">¶</a></h4>
+<p>A number of simple data types are supported. These do not have any special options.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">str</span></code> - a string value</li>
+<li><code class="docutils literal"><span class="pre">int</span></code> - an integer</li>
+<li><code class="docutils literal"><span class="pre">float</span></code> - a floating point value</li>
+<li><code class="docutils literal"><span class="pre">bool</span></code> - a boolean, expecting values true or false</li>
+</ul>
+<p>An example declaration for a simple data type may look like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">debug_logging</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">default_value</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">Controls</span> <span class="n">whether</span> <span class="n">debug</span> <span class="n">messages</span> <span class="n">should</span> <span class="n">be</span> <span class="n">emitted</span> <span class="n">to</span> <span class="n">the</span> <span class="n">logger</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-config-path-data-type">
+<h4>The config_path data type<a class="headerlink" href="#the-config-path-data-type" title="Permalink to this headline">¶</a></h4>
+<p>Use this when your app requires an external file that is part of the configuration.
+Typically, this settings type is used when you want to allow for a user to associate
+files with a configuration. These files can be icons or other resource files that
+should be part of the configuration. These paths should always be defined without an initial
+slash and using slashes as its path separator. Sgtk will translate it into a valid windows path:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">output_icon</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">config_path</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">A</span> <span class="n">config</span> <span class="n">centric</span> <span class="n">path</span> <span class="n">that</span> <span class="n">points</span> <span class="n">to</span> <span class="n">a</span> <span class="n">square</span> <span class="n">icon</span> <span class="n">png</span> <span class="n">file</span><span class="o">.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-tank-type-data-type">
+<h4>The tank_type data type<a class="headerlink" href="#the-tank-type-data-type" title="Permalink to this headline">¶</a></h4>
+<p>Use this when you want a setting which expects a <strong>Tank Type</strong> - these are typically used
+when publishing data to Shotgun. Value is a string matching TankType.code:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">published_script_tank_type</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">tank_type</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">The</span> <span class="n">string</span> <span class="n">value</span> <span class="n">of</span> <span class="n">the</span> <span class="n">TankType</span> <span class="n">used</span> <span class="k">for</span> <span class="n">published</span> <span class="n">Nuke</span> <span class="n">scripts</span><span class="o">.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-shotgun-entity-type-data-type">
+<h4>The shotgun_entity_type data type<a class="headerlink" href="#the-shotgun-entity-type-data-type" title="Permalink to this headline">¶</a></h4>
+<p>Value is a string that represents a Shotgun entity type like Task, Sequence, Shot:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">entity_type</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">shotgun_entity_type</span>
+    <span class="n">default_value</span><span class="p">:</span> <span class="n">Shot</span>
+    <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;The entity type to attach to&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-shotgun-permission-group-data-type">
+<h4>The shotgun_permission_group data type<a class="headerlink" href="#the-shotgun-permission-group-data-type" title="Permalink to this headline">¶</a></h4>
+<p>Value is a string that represents the display name of a Shotgun permission group like Admin,
+Artist:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">permissions_group</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">shotgun_permission_group</span>
+    <span class="n">default_value</span><span class="p">:</span> <span class="n">Artist</span>
+    <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;Permissions group to use when performing the operation&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-shotgun-filter-data-type">
+<h4>The shotgun_filter data type<a class="headerlink" href="#the-shotgun-filter-data-type" title="Permalink to this headline">¶</a></h4>
+<p>Value is a filter that will be passed to the shotgun api when performing a query (e.g. <code class="docutils literal"><span class="pre">[&quot;sg_status_list&quot;,</span> <span class="pre">&quot;is&quot;,</span> <span class="pre">&quot;cmpt&quot;]</span></code>).
+As shotgun filters can take multiple forms, no additional validation will be done on values of this type:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">publish_filters</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">values</span><span class="p">:</span>
+        <span class="nb">type</span><span class="p">:</span> <span class="n">shotgun_filter</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-template-data-type">
+<h4>The template data type<a class="headerlink" href="#the-template-data-type" title="Permalink to this headline">¶</a></h4>
+<p>Value is a string matching an entry in <code class="docutils literal"><span class="pre">templates.yml</span></code>. Using the fields option
+you specify how Toolkit should validate the template that the user specifies:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">output_render</span><span class="p">:</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">Render</span> <span class="n">output</span> <span class="n">location</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">template</span>
+    <span class="n">fields</span><span class="p">:</span> <span class="s2">&quot;context, name, channel, version, [width], [height], [eye]&quot;</span>
+</pre></div>
+</div>
+<p>When you specify which fields your app requires, it must be strict. Toolkit will ensure
+that the template that the user has chosen to configure the app with exactly matches the
+values specified in the fields string. Typically, the app will also pull in fields
+via the context object - you can specify this by using the special <code class="docutils literal"><span class="pre">context</span></code> parameter.
+Optional parameters are represented with <code class="docutils literal"><span class="pre">[brackets]</span></code> and the special token <code class="docutils literal"><span class="pre">*</span></code> indicates
+that an arbitrary number of fields is okay. For example:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">fields:</span> <span class="pre">name</span></code> - only templates containing a single field name will be valid</li>
+<li><code class="docutils literal"><span class="pre">fields:</span> <span class="pre">context,</span> <span class="pre">name</span></code> - templates containing exactly the number of fields that the context
+is able to resolve, and name, will be valid.</li>
+<li><code class="docutils literal"><span class="pre">fields:</span> <span class="pre">context,</span> <span class="pre">name,</span> <span class="pre">[width],</span> <span class="pre">[height]</span></code> - same as previous but the two fields width and height
+can be present in the template at the user&#8217;s discression.</li>
+<li><code class="docutils literal"><span class="pre">fields:</span> <span class="pre">name,</span> <span class="pre">*</span></code> - name is required, the rest of the fields can be arbitrary.</li>
+</ul>
+<p>A typical example illustrating the use of <code class="docutils literal"><span class="pre">*</span></code> is when you need to look for things in the
+scene which do not belong to the current context - for example if you are working on a shot
+and wants to scan for assets that have been imported into the scene. In this case, you cannot
+use the context since this is pointing at the current Shot:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">input_templates_to_look_for</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">List</span> <span class="n">of</span> <span class="n">templates</span> <span class="n">to</span> <span class="n">look</span> <span class="k">for</span> <span class="n">when</span> <span class="n">scanning</span> <span class="n">the</span> <span class="n">scene</span> <span class="k">for</span> <span class="n">inputs</span><span class="o">.</span>
+                 <span class="n">A</span> <span class="n">template</span> <span class="n">listed</span> <span class="n">here</span> <span class="n">only</span> <span class="n">needs</span> <span class="n">to</span> <span class="n">have</span> <span class="n">a</span> <span class="n">field</span> <span class="n">called</span> <span class="n">version</span><span class="o">.</span> <span class="n">This</span> <span class="n">field</span>
+                 <span class="n">will</span> <span class="n">be</span> <span class="n">used</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">comparison</span> <span class="n">to</span> <span class="n">determine</span> <span class="n">what</span> <span class="ow">is</span> <span class="n">out</span> <span class="n">of</span> <span class="n">date</span><span class="o">.</span>
+    <span class="n">values</span><span class="p">:</span>
+        <span class="nb">type</span><span class="p">:</span> <span class="n">template</span>
+        <span class="n">fields</span><span class="p">:</span> <span class="s2">&quot;version, *&quot;</span>
+</pre></div>
+</div>
+<p><strong>Empty settings</strong></p>
+<p>By default, all template settings require the user to specify a valid template when
+they are added to the environment configuration. If you want to define a template
+setting that can be set to <code class="docutils literal"><span class="pre">None</span></code>, specify the <strong>allows_empty</strong> option and set it to True:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">output_render</span><span class="p">:</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">Render</span> <span class="n">output</span> <span class="n">location</span><span class="p">,</span> <span class="n">Leave</span> <span class="n">blank</span> <span class="k">for</span> <span class="n">default</span> <span class="n">output</span><span class="o">.</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">template</span>
+    <span class="n">fields</span><span class="p">:</span> <span class="s2">&quot;context, name, channel, version, [width], [height], [eye]&quot;</span>
+    <span class="n">allows_empty</span><span class="p">:</span> <span class="kc">True</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-hook-data-type">
+<h4>The hook data type<a class="headerlink" href="#the-hook-data-type" title="Permalink to this headline">¶</a></h4>
+<p>Hooks makes it possible to create flexible and powerful configurations for toolkit apps.
+A hook is a python file which contains a single class (deriving from a Hook base class or
+from other hook classes) and a number of pre-defined methods.</p>
+<p>Hooks takes configuration beyond the retrival of a simple string or int value and allows
+apps to break out parts of the code that are likely to vary across facilities into
+code that can be customized, either by completely overriding it or by deriving from
+another hook class.</p>
+<p>For hook documentation, see <a class="reference internal" href="core.html#sgtk-hook-docs"><span class="std std-ref">Hooks</span></a>.</p>
+<p><strong>Typical Workflow for hooks</strong></p>
+<p>If you are using a Toolkit app and want to customize the behaviour that is defined in a hook,
+you can typically follow these steps:</p>
+<ol class="arabic">
+<li><p class="first">Identify the hook file and copy it into the <code class="docutils literal"><span class="pre">hooks</span></code> folder in your Toolkit project
+configuration. For example, if your hook is named <code class="docutils literal"><span class="pre">validation.py</span></code>, copy it to the
+configuration folder as <code class="docutils literal"><span class="pre">CONFIG_ROOT/hooks/validation.py</span></code>.</p>
+</li>
+<li><p class="first">In your environment configuration, find the app config and tell the app to use your
+new file instead of the default one:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># change the default value in your env config:</span>
+<span class="n">validation_hook</span><span class="p">:</span> <span class="p">{</span><span class="bp">self</span><span class="p">}</span><span class="o">/</span><span class="n">validation</span><span class="o">.</span><span class="n">py</span>
+
+<span class="c1"># to this new value:</span>
+<span class="n">validation_hook</span><span class="p">:</span> <span class="p">{</span><span class="n">config</span><span class="p">}</span><span class="o">/</span><span class="n">validation</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Now we have a bunch of duplicated code in our config folder which isn&#8217;t great. Because we are inheriting
+from the default hook, our custom hook only really needs to contain the <em>modifications</em> that we are making
+and not the entire logic. So go in and strip back our custom hook in the config folder:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># customized validation hook in CONFIG_ROOT/hooks/validation.py</span>
+<span class="kn">import</span> <span class="nn">sgtk</span>
+
+<span class="n">HookBaseClass</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_hook_baseclass</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">Validator</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">validate_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1"># call the built-in hook that comes with the app first</span>
+        <span class="n">HookBaseClass</span><span class="o">.</span><span class="n">validate_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># now add our extra bit of validation</span>
+        <span class="k">if</span> <span class="s2">&quot;LOLCAT&quot;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No lol-cats in my pipeline!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>This makes it possible to customize parts of hooks, while leaving a lot of the hook code
+in tact. This keeps customizations lightweight, avoids code duplication and allows an app
+developer to push out bug fixes much more easily.</p>
+<p><strong>Multiple levels of inheritance in hooks</strong></p>
+<p>For even more complex scenarios, it is possible to declare an inheritance chain in the
+environment config:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>validation_hook: {$STUDIO_ROOT}/studio_validation.py:{config}/project_validation.py.
+</pre></div>
+</div>
+<p>This example will have three levels of inheritance: first the built in hook, after that a studio
+level implementation defined by an environment variable and lastly a project level implementation.</p>
+<p><strong>Accessing a framework inside a hook</strong></p>
+<p>For even more complex hook setups, you can also access frameworks from inside your hooks:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SomeHook</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">some_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># first get a framework handle. This object is similar to an app or engine object</span>
+        <span class="n">fw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_framework</span><span class="p">(</span><span class="s2">&quot;my-framework-library_v123.x.x&quot;</span><span class="p">)</span>
+
+        <span class="c1"># now just like with an app or an engine, if you want to access code in the python</span>
+        <span class="c1"># folder, you can do import_plugin</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">fw</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;some_module&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note how we are accessing the framework instance <cite>my-framework-library_v123.x.x</cite> above. This needs
+to be defined in the currently running environment, as part of the frameworks section:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">engines</span><span class="p">:</span>
+  <span class="c1"># all engine and app defs here...</span>
+
+<span class="n">frameworks</span><span class="p">:</span>
+ <span class="c1"># define the framework that we are using in the hook</span>
+ <span class="n">my</span><span class="o">-</span><span class="n">framework</span><span class="o">-</span><span class="n">library_v123</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">x</span><span class="p">:</span>
+    <span class="n">location</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">dev</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="o">/</span><span class="n">some</span><span class="o">/</span><span class="n">path</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-list-data-type">
+<h4>The list data type<a class="headerlink" href="#the-list-data-type" title="Permalink to this headline">¶</a></h4>
+<p>Value is a list, all values in the list must be of the same data type.
+You must supply values dict that describes the data type of the list items:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">entity_types</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">values</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">shotgun_entity_type</span><span class="p">}</span>
+    <span class="n">default_value</span><span class="p">:</span> <span class="p">[</span><span class="n">Sequence</span><span class="p">,</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">Asset</span><span class="p">,</span> <span class="n">Task</span><span class="p">]</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">List</span> <span class="n">of</span> <span class="n">Shotgun</span> <span class="n">entity</span> <span class="n">types</span> <span class="n">where</span> <span class="n">this</span>
+                 <span class="n">Sgtk</span> <span class="n">action</span> <span class="n">should</span> <span class="n">be</span> <span class="n">visible</span> <span class="n">on</span> <span class="n">the</span> <span class="n">Actions</span> <span class="n">menu</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>Optionally you can also specify an <strong>allows_empty</strong> option if an empty list is a valid value:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tank_types</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">allows_empty</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="n">values</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">tank_type</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>You would then be able to specify an empty list in your environment configuration:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">apps</span><span class="p">:</span>
+    <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">loader</span><span class="p">:</span>
+        <span class="n">tank_types</span><span class="p">:</span> <span class="p">[]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-dict-data-type">
+<h4>The dict data type<a class="headerlink" href="#the-dict-data-type" title="Permalink to this headline">¶</a></h4>
+<p>Value is a dictionary, keys are always strings, values can be of mixed types.</p>
+<p>In info.yml, optionally provide an <strong>items</strong> dict. Used to mark what keys must be in the config,
+default values, and type info for the values which will be used for validation:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">write_nodes</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;A list of dictionaries in which you define the Sgtk write nodes that</span>
+                 <span class="n">are</span> <span class="n">supported</span> <span class="ow">in</span> <span class="n">this</span> <span class="n">configuration</span><span class="o">.</span><span class="s2">&quot;</span>
+    <span class="n">allows_empty</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="n">values</span><span class="p">:</span>
+        <span class="nb">type</span><span class="p">:</span> <span class="nb">dict</span>
+        <span class="n">items</span><span class="p">:</span>
+            <span class="n">name</span><span class="p">:</span> <span class="p">{</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="p">}</span>
+            <span class="n">file_type</span><span class="p">:</span> <span class="p">{</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="p">}</span>
+            <span class="n">publish_type</span><span class="p">:</span> <span class="p">{</span> <span class="nb">type</span><span class="p">:</span> <span class="n">tank_type</span> <span class="p">}</span>
+            <span class="n">render_template</span><span class="p">:</span>
+                <span class="nb">type</span><span class="p">:</span> <span class="n">template</span>
+                <span class="n">fields</span><span class="p">:</span> <span class="s2">&quot;context, name, channel, version, SEQ, [width], [height], [eye]&quot;</span>
+</pre></div>
+</div>
+<p>A valid setting could look like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">movies</span><span class="p">:</span>
+<span class="o">-</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">Exr</span> <span class="n">Render</span><span class="p">,</span> <span class="n">file_type</span><span class="p">:</span> <span class="n">exr</span><span class="p">,</span> <span class="n">publish_type</span><span class="p">:</span> <span class="n">Quicktime</span><span class="p">,</span> <span class="n">render_template</span><span class="p">:</span> <span class="n">exr_shot_render</span><span class="p">}</span>
+<span class="o">-</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">Dpx</span> <span class="n">Render</span><span class="p">,</span> <span class="n">file_type</span><span class="p">:</span> <span class="n">dpx</span><span class="p">,</span> <span class="n">publish_type</span><span class="p">:</span> <span class="n">Quicktime</span><span class="p">,</span> <span class="n">render_template</span><span class="p">:</span> <span class="n">dpx_shot_render</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
 <div class="section" id="using-qt-inside-your-toolkit-app">
 <h2>Using QT inside your Toolkit App<a class="headerlink" href="#using-qt-inside-your-toolkit-app" title="Permalink to this headline">¶</a></h2>
 <p>You can use QT classes inside your app code. Sgtk will handle the import and gracefully manage different
@@ -3549,7 +4055,8 @@ should be no problem writing code that works with both libraries.</p>
 </div>
 <p>Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many applications (for example Nuke)
 may not have a functional Qt that can be imported when they run in batch mode.</p>
-<p><strong>Creating Dialogs</strong></p>
+<div class="section" id="creating-dialogs">
+<h3>Creating Dialogs<a class="headerlink" href="#creating-dialogs" title="Permalink to this headline">¶</a></h3>
 <p>When creating a dialog, it is important to parent it properly to the host environment. There is nothing stopping
 you from managing this by yourself, but for maximum compatibility and portabilty, we strongly suggest that you l
 et Toolkit handle it. When using Sgtk to set up your UI, just let your UI class derive from QtGui.QWidget and pass
@@ -3576,7 +4083,9 @@ it to one of the UI factory methods that the engine has. For example:</p>
 <p>What happens in the above calls is that your app widget is parented inside of a Dialog window Sgtk is creating.
 Sgtk will add additional potential window constructs, menus etc. Whenever the app widget is closed (for example
 using the close() method), the parent window that is used to wrap the widget will automatically close too.</p>
-<p><strong>Modal dialogs and exit codes</strong></p>
+</div>
+<div class="section" id="modal-dialogs-and-exit-codes">
+<h3>Modal dialogs and exit codes<a class="headerlink" href="#modal-dialogs-and-exit-codes" title="Permalink to this headline">¶</a></h3>
 <p>If you want to run your widget as a modal dialog, it may be useful to signal success or failure.
 This is normally done in QT using the methods QDialog.accepted() and QDialog.rejected(), however since the app
 widget typically derives from QWidget, these methods are not available. Instead, Sgtk will look for a member
@@ -3593,7 +4102,9 @@ property called <code class="docutils literal"><span class="pre">exit_code</span
 </pre></div>
 </div>
 <p>The call to self.engine.show_modal() will return the appropriate status code depending on which button was clicked.</p>
-<p><strong>Hiding the default Toolkit title bar</strong></p>
+</div>
+<div class="section" id="hiding-the-default-toolkit-title-bar">
+<h3>Hiding the default Toolkit title bar<a class="headerlink" href="#hiding-the-default-toolkit-title-bar" title="Permalink to this headline">¶</a></h3>
 <p>By default, the standard Toolkit UI dialog includes a title bar at the top. However, sometimes this is not desirable,
 especially when the contained widget is quite small. To hide the title bar, just add a property called
 <code class="docutils literal"><span class="pre">hide_tk_title_bar</span></code> to your widget class and set it to a value of True, for example:</p>
@@ -3606,6 +4117,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="o">...</span>
 </pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -3650,7 +4162,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.0RC2',
+            VERSION:'v0.18.0RC3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

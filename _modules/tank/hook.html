@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.hook &mdash; tk-core v0.18.0RC2 documentation</title>
+  <title>tank.hook &mdash; tk-core v0.18.0RC3 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.0RC2 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.0RC3 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.0RC2.<br>
+    <b>tk-core</b> v0.18.0RC3.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -318,6 +318,10 @@
 <span class="sd">    Several different path formats exist, making this a very powerful configuration mechanism:</span>
 
 <span class="sd">    - ``{self}/path/to/foo.py`` -- looks in the ``hooks`` folder in the local app, engine of framework.</span>
+
+<span class="sd">    - ``{self}/{engine_name}_publish.py`` -- If running in maya, looks for a ``tk-maya_publish.py`` in</span>
+<span class="sd">      the ``hooks`` folder in the local app, engine of framework. If running in Nuke, it would instead</span>
+<span class="sd">      look for ``BUNDLE_ROOT/hooks/tk-nuke_publish.py``.</span>
 
 <span class="sd">    - ``{config}/path/to/foo.py`` -- Looks in the ``hooks`` folder in the configuration.</span>
 
@@ -707,7 +711,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.0RC2',
+            VERSION:'v0.18.0RC3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

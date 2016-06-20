@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.0RC2 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.0RC3 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.0RC2 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.0RC3 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -100,6 +100,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#shotgun">Shotgun</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#git-and-git-branch">Git and Git branch</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#path-and-dev">Path and Dev</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#manual">Manual</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#api-reference">API reference</a><ul>
@@ -136,7 +137,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.0RC2.<br>
+    <b>tk-core</b> v0.18.0RC3.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -261,6 +262,7 @@ to function.</p>
 <li>A <strong>git_branch</strong> descriptor represents a commit in a git branch</li>
 <li>A <strong>path</strong> descriptor represents a location on disk</li>
 <li>A <strong>dev</strong> descriptor represents a developer sandbox</li>
+<li>A <strong>manual</strong> descriptor gives raw access to the bundle caching structure</li>
 </ul>
 <p>The descriptor API knows how to access and locally cache each of the types above.
 You can control the location where the API caches items and supply additional lookup
@@ -270,11 +272,7 @@ locations if you want to pre-bake your own collection of caches.</p>
 <p>The Toolkit app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
 tested and approved by Shotgun. App store descriptors should include a name and version token and
 are on the following form:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="nb">type</span><span class="p">:</span> <span class="n">app_store</span><span class="p">,</span>
-    <span class="n">name</span><span class="p">:</span> <span class="n">tk</span><span class="o">-</span><span class="n">core</span><span class="p">,</span>
-    <span class="n">version</span><span class="p">:</span> <span class="n">v12</span><span class="o">.</span><span class="mf">3.4</span>
-<span class="p">}</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nb">type</span><span class="p">:</span> <span class="n">app_store</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">tk</span><span class="o">-</span><span class="n">core</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v12</span><span class="o">.</span><span class="mf">3.4</span> <span class="p">}</span>
 </pre></div>
 </div>
 </div>
@@ -305,8 +303,11 @@ a new descriptor. This can be used to determine the latest version for a Shotgun
 versions of something. You can use any syntax that git supports, with a path key containing the path
 to the git repository:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v0</span><span class="o">.</span><span class="mf">2.1</span><span class="p">}</span>
+
 <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">user</span><span class="nd">@remotehost</span><span class="p">:</span><span class="o">/</span><span class="n">path_to</span><span class="o">/</span><span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v0</span><span class="o">.</span><span class="mf">1.0</span><span class="p">}</span>
+
 <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v0</span><span class="o">.</span><span class="mf">1.0</span><span class="p">}</span>
+
 <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v0</span><span class="o">.</span><span class="mf">1.0</span><span class="p">}</span>
 </pre></div>
 </div>
@@ -317,8 +318,11 @@ that version numbers follow the semantic versioning standard that can be found a
 <p>The <code class="docutils literal"><span class="pre">git_branch</span></code> descriptor type is typically used during development and allows you to track
 a commit in a particular branch:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="n">master</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mi">17</span><span class="n">fedd8</span><span class="p">}</span>
+
 <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="n">master</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">user</span><span class="nd">@remotehost</span><span class="p">:</span><span class="o">/</span><span class="n">path_to</span><span class="o">/</span><span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mi">17</span><span class="n">fedd8</span><span class="p">}</span>
+
 <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="n">master</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mi">17</span><span class="n">fedd8</span><span class="p">}</span>
+
 <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="n">master</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mi">17</span><span class="n">fedd8</span><span class="p">}</span>
 </pre></div>
 </div>
@@ -359,10 +363,36 @@ development. This is when you use the <code class="docutils literal"><span class
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The path and dev descriptors support environment variable resolution.</p>
+<p class="last">The path and dev descriptors support environment variable resolution on the form <code class="docutils literal"><span class="pre">${MYENVVAR}</span></code></p>
+</div>
+<p>Sometimes it can be handy to organize your development sandbox relative to a pipeline configuration.
+If all developers in the studio share a convention where they for example have a <code class="docutils literal"><span class="pre">dev</span></code> folder inside
+their pipeline configuration dev sandboxes, it becomes easy to exchange environment configs.
+You can achieve this by using the special token <code class="docutils literal"><span class="pre">{PIPELINE_CONFIG}</span></code> which will resolve into the
+local path to the pipeline configuration:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;dev&quot;</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{PIPELINE_CONFIG}</span><span class="s2">/dev/tk-nuke-myapp&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Since Sgtk does not know what version of the app is being run, it will return <code class="docutils literal"><span class="pre">Undefined</span></code> for
+an app referenced using the dev type. Sometimes, especially when doing framework development,
+it can be useful to be able to specify a version number. In that case, you can specify
+a specific version number and Toolkit will associate this version number with the app:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;dev&quot;</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;/path/to/app&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v0.2.1&quot;</span><span class="p">}</span>
+</pre></div>
 </div>
 <p>If you needed to point Toolkit at a path, but intend to use the setup for non-dev purposes, use a <code class="docutils literal"><span class="pre">path</span></code>
 descriptor rather than a dev descriptor. These have identical syntax.</p>
+</div>
+<div class="section" id="manual">
+<h3>Manual<a class="headerlink" href="#manual" title="Permalink to this headline">¶</a></h3>
+<p>Toolkit also provides a <code class="docutils literal"><span class="pre">manual</span></code> mode to make it easy to manage production installations of apps
+and engines without any automation. When you use the manual descriptor, it is up to you to install the code in the right
+location and no automated update checks will ever take place. The manual mode uses the following syntax:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;manual&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-nuke-publish&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v0.5.0&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>It will look for the code in a <cite>manual</cite> folder in the bundle cache, so with the example above, Toolkit would look
+for the code in the <code class="docutils literal"><span class="pre">CACHE_ROOT/manual/tk-nuke-publish/v0.5.0</span></code> folder.</p>
 </div>
 </div>
 <div class="section" id="api-reference">
@@ -2277,7 +2307,7 @@ If not url has been defined, None is returned.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.0RC2',
+            VERSION:'v0.18.0RC3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

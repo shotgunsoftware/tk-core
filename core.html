@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Foundation &mdash; tk-core v0.18.0RC2 documentation</title>
+  <title>Foundation &mdash; tk-core v0.18.0RC3 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.0RC2 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.0RC3 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Deploy and management" href="bootstrap.html"/> 
 
@@ -148,7 +148,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.0RC2.<br>
+    <b>tk-core</b> v0.18.0RC3.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1402,7 +1402,7 @@ value can be introspected via the <a class="reference internal" href="#sgtk.Sgtk
 </div>
 </div>
 <div class="section" id="hooks">
-<h2>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h2>
+<span id="sgtk-hook-docs"></span><h2>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h2>
 <p>Hooks are snippets of code that can be customized as part of the configuration of a Toolkit app,
 engine or core itself. You can use hooks with the Core API (we call those core hooks) and with
 apps and engines. Hooks are a central concept in the configuration of Toolkit. We use hooks whenever
@@ -1534,6 +1534,9 @@ base implementation that is always taken into account.</p>
 <p>Several different path formats exist, making this a very powerful configuration mechanism:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">{self}/path/to/foo.py</span></code> &#8211; looks in the <code class="docutils literal"><span class="pre">hooks</span></code> folder in the local app, engine of framework.</li>
+<li><code class="docutils literal"><span class="pre">{self}/{engine_name}_publish.py</span></code> &#8211; If running in maya, looks for a <code class="docutils literal"><span class="pre">tk-maya_publish.py</span></code> in
+the <code class="docutils literal"><span class="pre">hooks</span></code> folder in the local app, engine of framework. If running in Nuke, it would instead
+look for <code class="docutils literal"><span class="pre">BUNDLE_ROOT/hooks/tk-nuke_publish.py</span></code>.</li>
 <li><code class="docutils literal"><span class="pre">{config}/path/to/foo.py</span></code> &#8211; Looks in the <code class="docutils literal"><span class="pre">hooks</span></code> folder in the configuration.</li>
 <li><code class="docutils literal"><span class="pre">{$HOOK_PATH}/path/to/foo.py</span></code>  &#8211; expression based around an environment variable.</li>
 <li><code class="docutils literal"><span class="pre">{engine}/path/to/foo.py</span></code> &#8211; looks in the <code class="docutils literal"><span class="pre">hooks</span></code> folder of the current engine.</li>
@@ -2570,7 +2573,7 @@ The format follows the convention of <code class="xref py py-meth docutils liter
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.0RC2',
+            VERSION:'v0.18.0RC3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
