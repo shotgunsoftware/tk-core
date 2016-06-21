@@ -10,11 +10,12 @@
 
 from __future__ import with_statement
 
+import os
 import unittest2 as unittest
 from mock import patch
 
-from tank import TankError
 from tank.settings.user import UserSettings
+
 
 class MockConfigParser(object):
     def __init__(self, data):
@@ -86,5 +87,14 @@ class UserSettingsTests(unittest.TestCase):
         self.assertTrue(settings.is_default_app_store_http_proxy_set())
         self.assertEqual(settings.default_app_store_http_proxy, None)
 
-    def test_file_detection(self):
-        pass
+    @patch("tank.settings.user.UserSettings._load_config", return_value=MockConfigParser({
+        # Config parser represent empty settings as empty strings
+        "default_site": "https://${SGTK_TEST_SHOTGUN_SITE}.shotgunstudio.com"
+    }))
+    def test_environment_variable_expansions(self, mock):
+        """
+        Tests that setting an environment variable will be resolved.
+        """
+        with patch.dict(os.environ, {"SGTK_TEST_SHOTGUN_SITE": "shotgun_site"}):
+            settings = UserSettings()
+            self.assertEqual(settings.default_site, "https://shotgun_site.shotgunstudio.com")

@@ -133,7 +133,9 @@ class UserSettings(Singleton):
         elif not self._user_config.has_option(section, key):
             return default
         else:
-            return type_cast(self._user_config.get(section, key))
+            value = self._user_config.get(section, key)
+            value = os.path.expandvars(value)
+            return type_cast(value)
 
     def _init_singleton(self):
         """
