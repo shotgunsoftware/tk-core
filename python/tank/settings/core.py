@@ -184,10 +184,8 @@ class CoreSettings(object):
             # old format - not grouped by user
             config_data = file_data
 
-        from ..pipelineconfig_utils import get_api_core_config_location
-
         # now check if there is a studio level override hook which want to refine these settings
-        sg_hook_path = os.path.join(get_api_core_config_location(), constants.STUDIO_HOOK_SG_CONNECTION_SETTINGS)
+        sg_hook_path = os.path.join(self.get_location(), constants.STUDIO_HOOK_SG_CONNECTION_SETTINGS)
 
         if os.path.exists(sg_hook_path):
             # custom hook is available!

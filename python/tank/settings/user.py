@@ -105,7 +105,7 @@ class UserSettings(Singleton):
         """
         :returns: The default site.
         """
-        return self._get_value(self._LOGIN, "default_site")
+        return self._get_value(self._LOGIN, "default_site", default=None)
 
     @property
     def default_login(self):

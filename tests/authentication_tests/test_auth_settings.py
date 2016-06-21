@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Tests settings retrieval from session_cache and config.ini
+Tests settings retrieval through the DefaultsManager
 """
 
 from __future__ import with_statement
@@ -101,7 +101,7 @@ class DefaultsManagerTest(TankTestBase):
     )
     def test_shotgun_yml_over_global(self, *unused_mocks):
         """
-        Make sure that the session cache always overrides config.ini
+        Make sure that shotgun.yml always overrides config.ini
         """
         instance = UserSettings._instance = Mock()
         instance.default_http_proxy = self._CONFIG_HTTP_PROXY
@@ -122,7 +122,7 @@ class DefaultsManagerTest(TankTestBase):
     )
     def test_shotgun_yml_no_proxy_uses_global_proxy(self, *unused_mocks):
         """
-        Make sure that the session cache always overrides config.ini
+        Make sure that no proxy in shogun.yml means proxy in shotgun.yml will be picked.
         """
         instance = UserSettings._instance = Mock()
         instance.default_http_proxy = self._CONFIG_HTTP_PROXY
