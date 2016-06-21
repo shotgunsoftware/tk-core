@@ -14,31 +14,54 @@ import os
 import unittest2 as unittest
 from mock import patch
 
+from tank.settings.errors import MissingConfigurationFileError
 from tank.settings.user import UserSettings
 
 
 class MockConfigParser(object):
+    """
+    Mocks the config parser object used internally by the UserSettings class.
+    """
+
     def __init__(self, data):
+        """
+        Constructor.
+        """
         self._data = {
             "Login": data
         }
 
     def has_section(self, name):
+        """
+        Checks if a section [name] is present.
+        """
         return name in self._data
 
     def has_option(self, name, key):
+        """
+        Checks for setting key: inside [name].
+        """
         return self.has_section(name) and key in self._data[name]
 
     def get(self, name, key):
+        """
+        Retrieves setting from ini file.
+        """
         return self._data[name][key]
 
     def read(self, path):
+        """
+        Mocked to please the UserSettings implementation.
+        """
         pass
 
 
 # Got get the tank test harness, we don't want part of the API mocked, we'll
 # mock the parsing and be done with it.
 class UserSettingsTests(unittest.TestCase):
+    """
+    Tests functionality around config.ini
+    """
 
     def setUp(self):
         """
@@ -98,3 +121,15 @@ class UserSettingsTests(unittest.TestCase):
         with patch.dict(os.environ, {"SGTK_TEST_SHOTGUN_SITE": "shotgun_site"}):
             settings = UserSettings()
             self.assertEqual(settings.default_site, "https://shotgun_site.shotgunstudio.com")
+
+    def test_bad_environment_variable(self):
+        """
+        Test environment variables being set to files that don't exist.
+        """
+        with patch.dict(os.environ, {"SGTK_CONFIG_LOCATION": "/a/b/c"}):
+            with self.assertRaisesRegexp(MissingConfigurationFileError, "/a/b/c"):
+                UserSettings()
+
+        with patch.dict(os.environ, {"SGTK_DESKTOP_CONFIG_LOCATION": "/d/e/f"}):
+            with self.assertRaisesRegexp(MissingConfigurationFileError, "/d/e/f"):
+                UserSettings()

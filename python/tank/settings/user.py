@@ -79,63 +79,68 @@ class UserSettings(Singleton):
         """
         :returns: The default proxy.
         """
-        return self._get_value(self._LOGIN, "http_proxy")
+        return self._get_value("http_proxy")
 
     def is_default_app_store_http_proxy_set(self):
         """
         :returns: ``True`` if ``app_store_http_proxy`` is set, ``False`` otherwise.
         """
-        # Passing PROXY_NOT_SET and getting it back means that the proxy wasn't set in the file.
-        _PROXY_NOT_SET = "PROXY_NOT_SET"
-        proxy = self._get_value(self._LOGIN, "app_store_http_proxy", default=_PROXY_NOT_SET)
-
-        # If proxy wasn't set, then return False, which means Toolkit will use the value from the http_proxy
-        # setting for the app store proxy.
-        return proxy != _PROXY_NOT_SET
+        return self._is_setting_found("app_store_http_proxy")
 
     @property
     def default_app_store_http_proxy(self):
         """
-        :returns: The app store specific proxy.
+        :returns: The app store specific proxy or None is not set or set to an empty value.
+            Use is_default_app_store_http_proxy_set to disambiguate.
         """
         # If the config parser returned a falsy value, it meant that the app_store_http_proxy
         # setting was present but empty. We'll advertise that fact as None instead.
-        return self._get_value(self._LOGIN, "app_store_http_proxy", default=None) or None
+        return self._get_value("app_store_http_proxy") or None
 
     @property
     def default_site(self):
         """
         :returns: The default site.
         """
-        return self._get_value(self._LOGIN, "default_site", default=None)
+        return self._get_value("default_site")
 
     @property
     def default_login(self):
         """
         :returns: The default login.
         """
-        return self._get_value(self._LOGIN, "default_login")
+        return self._get_value("default_login")
 
-    def _get_value(self, section, key, type_cast=str, default=None):
+    def _get_value(self, key):
         """
         Retrieves a value from the config.ini file. If the value is not set, returns the default.
         Since all values are strings inside the file, you can optionally cast the data to another type.
 
-        :param section: Section (name between brackets) of the setting.
-        :param key: Name of the setting within a section.
-        ;param type_cast: Casts the value to the passed in type. Defaults to str.
-        :param default: If the value is not found, returns this default value. Defauts to None.
+        :param default: If the value is not found, returns this default value. Defaults to None.
 
         :returns: The appropriately type casted value if the value is found, default otherwise.
         """
-        if not self._user_config.has_section(section):
-            return default
-        elif not self._user_config.has_option(section, key):
-            return default
+        if not self._is_setting_found(key):
+            return None
         else:
-            value = self._user_config.get(section, key)
-            value = os.path.expandvars(value)
-            return type_cast(value)
+            # Read the value, remove any extra whitespace. If the string is empty,
+            # or None will set value to None
+            value = os.path.expandvars(self._user_config.get(self._LOGIN, key))
+            return value.strip()
+
+    def _is_setting_found(self, key):
+        """
+        Checks if the setting is in the file.
+
+        :param key: Name of the setting within the Login section.
+
+        :returns: True if found, False otherwise.
+        """
+        if not self._user_config.has_section(self._LOGIN):
+            return False
+        elif not self._user_config.has_option(self._LOGIN, key):
+            return False
+        return True
 
     def _init_singleton(self):
         """
