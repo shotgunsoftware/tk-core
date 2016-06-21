@@ -74,5 +74,17 @@ class UserSettingsTests(unittest.TestCase):
         self.assertTrue(settings.is_default_app_store_http_proxy_set())
         self.assertEqual(settings.default_app_store_http_proxy, "app_store_http_proxy")
 
+    @patch("tank.settings.user.UserSettings._load_config", return_value=MockConfigParser({
+        # Config parser represent empty settings as empty strings
+        "app_store_http_proxy": ""
+    }))
+    def test_app_store_to_none(self, mock):
+        """
+        Tests a file with a present but empty app store proxy setting.
+        """
+        settings = UserSettings()
+        self.assertTrue(settings.is_default_app_store_http_proxy_set())
+        self.assertEqual(settings.default_app_store_http_proxy, None)
+
     def test_file_detection(self):
         pass

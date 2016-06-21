@@ -120,7 +120,9 @@ class CoreSettings(object):
         :returns: The app store specific proxy. If None, the proxy wasn't set. If an empty string, app
             store access is forced to not use a proxy.
         """
-        return self._data.get("app_store_http_proxy")
+        # The user can either enter null or "" in the document. Both will be falsy and or-ing
+        # the value will yield a None.
+        return self._data.get("app_store_http_proxy") or None
 
     def __get_sg_config_data_with_script_user(self, shotgun_cfg_path, user="default"):
         """

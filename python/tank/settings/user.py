@@ -98,7 +98,9 @@ class UserSettings(Singleton):
         """
         :returns: The app store specific proxy.
         """
-        return self._get_value(self._LOGIN, "app_store_http_proxy", default=None)
+        # If the config parser returned a falsy value, it meant that the app_store_http_proxy
+        # setting was present but empty. We'll advertise that fact as None instead.
+        return self._get_value(self._LOGIN, "app_store_http_proxy", default=None) or None
 
     @property
     def default_site(self):

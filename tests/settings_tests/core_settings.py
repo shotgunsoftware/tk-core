@@ -143,10 +143,21 @@ class CoreSettingsTests(unittest.TestCase):
     @patch("tank.util.yaml_cache.g_yaml_cache.get", return_value={
         "host": "host", "app_store_http_proxy": None
     })
-    def test_none_app_store_proxy(self, mock):
+    def test_empty_app_store_proxy(self, mock):
         """
         Tests a shotgun.yml file with the app store proxy forced to be None.
         """
+
+        # Test for null
+        settings = CoreSettings()
+        self.assertIsNone(settings.api_key)
+        self.assertTrue(settings.is_app_store_http_proxy_set())
+
+        # Test for ""
+        mock.return_value={
+           "host": "host", "app_store_http_proxy": ""
+        }
+
         settings = CoreSettings()
         self.assertIsNone(settings.api_key)
         self.assertTrue(settings.is_app_store_http_proxy_set())
