@@ -149,6 +149,10 @@ class Hook(object):
 
     - ``{self}/path/to/foo.py`` -- looks in the ``hooks`` folder in the local app, engine of framework.
 
+    - ``{self}/{engine_name}_publish.py`` -- If running in maya, looks for a ``tk-maya_publish.py`` in
+      the ``hooks`` folder in the local app, engine of framework. If running in Nuke, it would instead
+      look for ``BUNDLE_ROOT/hooks/tk-nuke_publish.py``.
+
     - ``{config}/path/to/foo.py`` -- Looks in the ``hooks`` folder in the configuration.
 
     - ``{$HOOK_PATH}/path/to/foo.py``  -- expression based around an environment variable.

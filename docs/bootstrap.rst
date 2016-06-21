@@ -50,11 +50,10 @@ to launch Toolkit's default config for a given Shotgun Asset::
     # Start up a Toolkit Manager
     mgr = sgtk.bootstrap.ToolkitManager()
 
-    # set the base configuration to the default config
+    # Set the base configuration to the default config
+    # note that the version token is not specified
+    # The bootstrap will always try to use the latest version
     mgr.base_configuration = "sgtk:descriptor:app_store?name=tk-config-default"
-
-    # make sure we grab the latest version
-    mgr.resolve_latest_base_configuration = True
 
     # now start up the maya engine for a given Shotgun object
     e = mgr.bootstrap_engine("tk-maya", entity={"type": "Asset", "id": 1234})

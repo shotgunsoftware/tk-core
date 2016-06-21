@@ -174,8 +174,15 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         # in the case of a pipeline configuration, simply fetch the current pipeline configuration attachment
         # and build a descriptor based on that
+        spec_name_fields = {
+            "Project": "name",
+            "Task": "content",
+            "HumanUser": "name"
+        }
+        name_field = spec_name_fields.get(self._entity_type, "code")
 
-        filters = [["code", "is", self._name]]
+        filters = [[name_field, "is", self._name]]
+
         if self._project_link:
             filters.append(["project", "is", self._project_link])
 
