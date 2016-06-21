@@ -79,3 +79,6 @@ DEBUG_LOGGING_ENV_VAR = "TK_DEBUG"
 
 # cache data for toolkit init
 TOOLKIT_INIT_CACHE_FILE = "toolkit_init.cache"
+
+# Email address of Shotgun support
+SUPPORT_EMAIL = "support@shotgunsoftware.com"

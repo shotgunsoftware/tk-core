@@ -22,6 +22,7 @@ from .action_base import Action
 from . import update 
 from ..errors import TankError
 from . import constants
+from .. import constants as constants_global
 from ..util import shotgun
 from ..util import ShotgunPath
 
@@ -1396,7 +1397,7 @@ class MigratePublishedFileEntitiesAction(Action):
         log.info("- Update any custom apps or hooks you are using to support the new 'PublishedFile' "
                  "entity types.")
         log.info("")
-        log.info("If you are unsure about any of this, please contact support@shotgunsoftware.com!")
+        log.info("If you are unsure about any of this, please contact %s." % (constants_global.SUPPORT_EMAIL,))
         
         # now, after all that are they ready to start?
         num_entities_to_migrate = 0
@@ -1704,8 +1705,8 @@ class MigratePublishedFileEntitiesAction(Action):
                      "this, just run this comand again.")
         
         log.info("")
-        log.info("Finally, if you have any problems with this migration, please contact: "
-                 "support@shotgunsoftware.com")
+        log.info("Finally, if you have any problems with this migration, please contact "
+                 "%s." % (constants_global.SUPPORT_EMAIL,))
         log.info("")
         
 
