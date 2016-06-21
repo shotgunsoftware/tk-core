@@ -33,10 +33,7 @@ class InteractiveTests(TankTestBase):
         from PySide import QtGui
         # Only configure qApp once, it's a singleton.
         if QtGui.qApp is None:
-            print "creating qapp"
             self._app = QtGui.QApplication(sys.argv)
-        else:
-            print "qapp already exists"
         super(InteractiveTests, self).setUp()
 
     def test_site_and_user_disabled_on_session_renewal(self):
