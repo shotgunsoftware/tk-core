@@ -57,6 +57,8 @@ class Application(TankBundle):
                 self.log_debug("Appending to PYTHONPATH: %s" % python_path)
                 sys.path.append(python_path)
 
+        engine.emitter.event.connect(self.event)
+
     def __repr__(self):        
         return "<Sgtk App 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
 
@@ -206,6 +208,17 @@ class Application(TankBundle):
 
     ##########################################################################################
     # internal API
+
+    def event(self, event):
+        """
+        Called when the parent engine emits an event signal. This method
+        is intended to be overridden by deriving classes in order to
+        implement event-specific behavior.
+
+        :param event:   The event object that was emitted.
+        :type event:    :class:`sgtk.platform.EngineEvent`
+        """
+        pass
 
     def log_metric(self, action, log_version=False):
         """Logs an app metric.
