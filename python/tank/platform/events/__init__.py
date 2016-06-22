@@ -8,14 +8,5 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from . import QtCore
-
-class EventEmitter(QtCore.QObject):
-    """
-    A container object for event signals.
-
-    :signal event(object): A generic event signal housing a Python object.
-        Typically this object will be an :class:`sgtk.platform.EngineEvent`
-        object.
-    """
-    event = QtCore.Signal(object)
+from .event_engine import EngineEvent
+from .event_file_open import FileOpenEvent

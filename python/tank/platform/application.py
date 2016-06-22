@@ -57,8 +57,6 @@ class Application(TankBundle):
                 self.log_debug("Appending to PYTHONPATH: %s" % python_path)
                 sys.path.append(python_path)
 
-        engine.emitter.event.connect(self.event)
-
     def __repr__(self):        
         return "<Sgtk App 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
 
@@ -89,7 +87,7 @@ class Application(TankBundle):
         # in the shotgun data centre and makes it easy to track which app and engine versions
         # are being used by clients
         try:
-            self.tank.shotgun.tk_user_agent_handler.set_current_app(self.name, 
+            self.tank.shotgun.tk_user_agent_handler.set_current_app(self.name,
                                                                     self.version,
                                                                     self.engine.name,
                                                                     self.engine.version)
@@ -144,6 +142,44 @@ class Application(TankBundle):
         """
         Implemented by deriving classes in order to tear down the app
         Called by the engine as it is being destroyed.
+        """
+        pass
+
+    ##########################################################################################
+    # event handling
+
+    def event_engine(self, event):
+        """
+        Called when the parent engine emits an event. This method
+        is intended to be overridden by deriving classes in order to
+        implement event-specific behavior.
+
+        .. note:: This method is called for all engine event types. If
+                  overriding this method to implement an event handler
+                  in a specific app, the event object received will need
+                  to be checked via isinstance (or via its event_type
+                  property) to know what event has been triggered.
+
+        .. warning:: It is possible that events will be triggered quite
+                     frequently. It is important to keep performance in
+                     mind when writing an event handler.
+
+        :param event:   The event object that was emitted.
+        :type event:    :class:`~sgtk.platform.events.EngineEvent`
+        """
+        pass
+
+    def event_file_open(self, event):
+        """
+        Called when the parent engine emits a file-open event. This method
+        is intended to be overridden by deriving classes.
+
+        .. warning:: It is possible that events will be triggered quite
+                     frequently. It is important to keep performance in
+                     mind when writing an event handler.
+
+        :param event:   The event object that was emitted.
+        :type event:    :class:`~sgtk.platform.events.FileOpenEvent`
         """
         pass
     
@@ -208,17 +244,6 @@ class Application(TankBundle):
 
     ##########################################################################################
     # internal API
-
-    def event(self, event):
-        """
-        Called when the parent engine emits an event signal. This method
-        is intended to be overridden by deriving classes in order to
-        implement event-specific behavior.
-
-        :param event:   The event object that was emitted.
-        :type event:    :class:`sgtk.platform.EngineEvent`
-        """
-        pass
 
     def log_metric(self, action, log_version=False):
         """Logs an app metric.
