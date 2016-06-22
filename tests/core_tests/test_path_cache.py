@@ -37,7 +37,7 @@ def sync_path_cache(tk, force_full_sync=False):
     # capture sync log to string
     stream = StringIO.StringIO()
     handler = logging.StreamHandler(stream)
-    log = logging.getLogger("sgtk.path_cache")
+    log = logging.getLogger("sgtk.core.path_cache")
     log.setLevel(logging.DEBUG)
     log.addHandler(handler)
     

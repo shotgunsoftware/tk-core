@@ -14,7 +14,6 @@ Classes for the main Sgtk API.
 
 import os
 import glob
-import threading
 
 from . import folder
 from . import context
@@ -44,9 +43,6 @@ class Sgtk(object):
         Instances of this class should be created via the factory methods
         :meth:`sgtk_from_path` and :meth:`sgtk_from_entity`.
         """
-        
-        self.__threadlocal_storage = threading.local()
-
         # special stuff to make sure we maintain backwards compatibility in the constructor
         # if the 'project_path' parameter contains a pipeline config object,
         # just use this straight away. If the param contains a string, assume
@@ -199,13 +195,8 @@ class Sgtk(object):
         concurrency issues and add a layer of basic protection around the 
         Shotgun API, which isn't threadsafe.
         """
+        sg = shotgun.get_sg_connection()
         
-        sg = getattr(self.__threadlocal_storage, "sg", None)
-        
-        if sg is None:
-            sg = shotgun.create_sg_connection()
-            self.__threadlocal_storage.sg = sg
-
         # pass on information to the user agent manager which core version is returning
         # this sg handle. This information will be passed to the web server logs
         # in the shotgun data centre and makes it easy to track which core versions
@@ -489,6 +480,18 @@ class Sgtk(object):
             /studio/my_proj/sequences/AAA/001/images/%V/render_2.%04d.exr
             /studio/my_proj/sequences/AAA/001/images/%V/render_3.%04d.exr
 
+        .. note:: There are situations where the resulting abstract paths may not match any files on disk
+
+        Take the following template::
+
+            render: sequences/{Sequence}/{Shot}/images/{Shot}.{SEQ}.jpg
+
+        Assuming ``Shot`` is provided via the ``fields`` argument, the method will avoid
+        listing all files in the leaf directory since ``{SEQ}`` is abstract and ``{Shot}``
+        is known. The following abstract path will be returned even if only the
+        parent ``images`` directory exists::
+
+            /studio/my_proj/sequences/AAA/001/images/001.%04d.exr
 
         :param template: Template with which to search
         :type  template: :class:`TemplatePath`

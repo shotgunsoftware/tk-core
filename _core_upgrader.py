@@ -20,7 +20,6 @@ next to it in the file system. This is what it will attempt to install.
 """
 
 import os
-import logging
 import sys
 import stat
 import datetime
@@ -35,7 +34,6 @@ CORE_CFG_OS_MAP = {"linux2": "core_Linux.cfg", "win32": "core_Windows.cfg", "dar
 vendor = os.path.abspath(os.path.join( os.path.dirname(__file__), "python", "tank_vendor"))
 sys.path.append(vendor)
 import yaml
-from shotgun_api3 import Shotgun
 
 ###################################################################################################
 # migration utilities
@@ -98,93 +96,7 @@ def __current_version_less_than(log, sgtk_install_root, ver):
 ###################################################################################################
 # helpers
 
-def __create_sg_connection(log, shotgun_cfg_path):
-    """
-    Creates a standard sgtk shotgun connection.
-    
-    :param log: std python logger
-    :param shotgun_cfg_path: path to shotgun.yml configuration file
-    :returns: Shotgun API instance 
-    """
-    
-    log.debug("Reading shotgun config from %s..." % shotgun_cfg_path)
-    if not os.path.exists(shotgun_cfg_path):
-        raise Exception("Could not find shotgun configuration file '%s'!" % shotgun_cfg_path)
 
-    # load the config file
-    try:
-        open_file = open(shotgun_cfg_path)
-        config_data = yaml.load(open_file)
-    except Exception, error:
-        raise Exception("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
-    finally:
-        open_file.close()
-
-    # validate the config file
-    if "host" not in config_data:
-        raise Exception("Missing required field 'host' in config '%s'" % shotgun_cfg_path)
-    if "api_script" not in config_data:
-        raise Exception("Missing required field 'api_script' in config '%s'" % shotgun_cfg_path)
-    if "api_key" not in config_data:
-        raise Exception("Missing required field 'api_key' in config '%s'" % shotgun_cfg_path)
-    if "http_proxy" not in config_data:
-        http_proxy = None
-    else:
-        http_proxy = config_data["http_proxy"]
-
-    # create API
-    log.debug("Connecting to %s..." % config_data["host"])
-    sg = Shotgun(config_data["host"],
-                 config_data["api_script"],
-                 config_data["api_key"],
-                 http_proxy=http_proxy)
-
-    return sg
-
-def __get_pc_core_install_root(pc_root, visited_paths = None):
-    """
-    Find the installed core root dir for the specified pipeline config root.
-    
-    :param pc_root:         The pipeline config root to find the corresponding core
-                            install root for
-    :param visited_paths:   The paths visited so far - used to catch cyclic references
-    :returns:               The core install root directory for this pc
-    """
-    # check we haven't already visited this path:
-    visited_paths = visited_paths or set()
-    if pc_root in visited_paths:
-        # found a cyclic config lookup - this is bad!
-        raise Exception("Found cyclic reference in core config lookups: '%s'" % pc_root)
-    visited_paths.add(pc_root)
-    
-    # check for the existence of a known file in the core location to determine if it is
-    # a local core or not (this is similar logic to that used in the tank.bat/tank scripts):
-    pc_install_root = os.path.join(pc_root, "install")
-    tank_cmd_script = os.path.join(pc_install_root, "core", "scripts", "tank_cmd.py")
-    if os.path.exists(tank_cmd_script):
-        # found a core install
-        return pc_install_root
-    
-    # look for the core location in the config file:
-    pc_install_root = os.path.join(pc_root, "install")
-    core_cfg_path = os.path.join(pc_install_root, "core", CORE_CFG_OS_MAP[sys.platform])
-    if not os.path.exists(core_cfg_path):
-        # cfg is missing!
-        raise Exception("The config file '%s' could not be found on disk!" % core_cfg_path)
-    
-    # get the path from the config:
-    cfg = open(core_cfg_path, "r")
-    try:
-        root_path = cfg.read().strip()
-        root_path = os.path.expandvars(root_path)
-        if root_path in ["None", "undefined"]:
-            return None
-        
-        # recurse to this path:
-        return __get_pc_core_install_root(root_path, visited_paths)
-    finally:
-        cfg.close()
-    
 def _copy_folder(log, src, dst): 
     """
     Alternative implementation to shutil.copytree
