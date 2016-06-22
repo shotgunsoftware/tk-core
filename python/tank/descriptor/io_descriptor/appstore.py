@@ -23,7 +23,7 @@ import cPickle as pickle
 
 from ...util.zip import unzip_file
 from ...util import filesystem, shotgun
-from ...util.errors import UnresolvableCoreConfigurationError
+from ...util import UnresolvableCoreConfigurationError
 from ..descriptor import Descriptor
 from ..errors import TankAppStoreConnectionError
 from ..errors import TankAppStoreError
@@ -678,6 +678,7 @@ class IODescriptorAppStore(IODescriptorBase):
         except UnresolvableCoreConfigurationError:
             # This core is not part of a pipeline configuration, we're probably bootstrapping,
             # so skip the check and simply return the regular proxy settings.
+            log.debug("No core configuration was found, using the current connection's proxy setting.")
             return self._sg_connection.config.raw_http_proxy
 
         if config_data and constants.APP_STORE_HTTP_PROXY in config_data:
