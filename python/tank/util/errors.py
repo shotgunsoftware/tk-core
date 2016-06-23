@@ -10,6 +10,11 @@
 
 from ..errors import TankError
 
+class ShotgunAttachmentDownloadError(TankError):
+    """
+    Raised when a Shotgun attachment could not be downloaded
+    """
+
 class UnresolvableCoreConfigurationError(TankError):
     """
     Raises when Toolkit is not able to resolve the path
