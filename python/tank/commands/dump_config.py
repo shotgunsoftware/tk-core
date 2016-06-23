@@ -176,20 +176,6 @@ class DumpConfigAction(Action):
             writable=True
         )
 
-        # make sure the environment file doesn't match the output file.
-        # at some point we may want to make this possible, but dump_config is
-        # more about debugging, so for now just error out if they're the same file.
-        if params["file"]:
-            out_file = os.path.realpath(params["file"])
-            env_file = os.path.realpath(env.disk_location)
-
-            if out_file == env_file:
-                raise TankError(
-                    "The specified output file matches the environment configuration.\n"
-                    "As a precaution, writing to the source configuration is not allowed.\n"
-                    "Please specify a different output path."
-                )
-
         # get a file to write to
         env_fh = self._get_file_handle(params)
 
@@ -277,6 +263,18 @@ class DumpConfigAction(Action):
         # get a list of valid env names
         valid_env_names = self.tk.pipeline_configuration.get_environments()
 
+        # make sure the output file doesn't exist. at some point we may want to
+        # make this possible, but dump_config is more about debugging, so for
+        # now just error out if the file exists. overwriting any config file is
+        # scary anyway.
+        if parameters["file"]:
+            if os.path.exists(os.path.normpath(parameters["file"])):
+                raise TankError(
+                    "As a precaution, dumping to an existing file is not allowed.\n"
+                    "Please specify a different output path or move the existing file."
+                )
+
+        # make sure the supplied environment name is valid
         if parameters["env"] not in valid_env_names:
             if self._is_interactive:
                 print "\nUsage: %s\n" % (self._usage(),)
