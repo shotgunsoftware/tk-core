@@ -79,9 +79,7 @@ class IODescriptorPath(IODescriptorBase):
         # if there is a version defined in the descriptor dict
         # (this is handy when doing framework development, but totally
         #  non-required for finding the code)
-        self._version = "Undefined"
-        if "version" in descriptor_dict:
-            self._version = descriptor_dict.get("version")
+        self._version = descriptor_dict.get("version") or "Undefined"
 
         # if there is a name defined in the descriptor dict then lets use
         # this, otherwise we'll fall back to the folder name:
