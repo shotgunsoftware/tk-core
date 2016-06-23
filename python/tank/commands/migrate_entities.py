@@ -1498,7 +1498,13 @@ class MigratePublishedFileEntitiesAction(Action):
             else:
                 # run the app update:
                 try:
-                    update.check_for_updates(log, self.tk)
+                    update.check_for_updates(
+                        log,
+                        self.tk,
+                        env_name=None,
+                        engine_instance_name=None,
+                        app_instance_name=None
+                    )
                     log.info("App update completed successfully.")
                 except TankError, e:
                     raise TankError("App update failed with the following error: %s" % e)
