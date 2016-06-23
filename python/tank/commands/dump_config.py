@@ -285,7 +285,6 @@ class DumpConfigAction(Action):
                 "Could not find an environment named: '%s'. "
                 "Available environments are: %s." % (parameters["env"], ", ".join(valid_env_names)))
 
-
         return parameters
 
     def _usage(self):
