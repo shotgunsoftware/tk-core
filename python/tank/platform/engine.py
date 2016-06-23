@@ -84,6 +84,7 @@ class Engine(TankBundle):
         self.__commands = {}
         self.__command_pool = {}
         self.__panels = {}
+        self.__event_registry = {}
         self.__currently_initializing_app = None
         
         self.__qt_widget_trash = []
@@ -938,6 +939,20 @@ class Engine(TankBundle):
             "properties": properties,
         }
 
+    def register_event_handler(self, handler, event_class):
+        """
+        Registers an event handler with the engine and associates it with the
+        given event class.
+
+        :param handler: The handler callable.
+        :type handler:  Python callable
+        :param event_class: The event class of interest to the bundle.
+        :type event_class:  :class:`~sgtk.platform.events.EngineEvent`
+        """
+        if event_class in self.__event_registry:
+            self.__event_registry[event_class].append(handler)
+        else:
+            self.__event_registry[event_class] = [handler]
 
     def register_panel(self, callback, panel_name="main", properties=None):
         """
@@ -1293,17 +1308,8 @@ class Engine(TankBundle):
         :type event:  :class:`~sgtk.platform.events.EngineEvent`
         """
         self.log_debug("Emitting event: %s" % event)
-        for app_instance_name, app in self.__applications.iteritems():
-            self.log_debug("Sending event to %s..." % app_instance_name)
-
-            # We send the event to the generic engine event handler
-            # as well as to the type-specific handler when we have
-            # one. This mirror's Qt's event system's structure.
-            app.event_engine(event)
-
-            if isinstance(event, events.FileOpenEvent):
-                self.log_debug("Calling event_file_open for app %s" % app_instance_name)
-                app.event_file_open(event)
+        for handler in self.__event_registry.get(event.__class__, []):
+            handler(event)
 
     def _emit_log_message(self, handler, record):
         """

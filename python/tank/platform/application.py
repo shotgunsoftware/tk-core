@@ -144,44 +144,6 @@ class Application(TankBundle):
         Called by the engine as it is being destroyed.
         """
         pass
-
-    ##########################################################################################
-    # event handling
-
-    def event_engine(self, event):
-        """
-        Called when the parent engine emits an event. This method
-        is intended to be overridden by deriving classes in order to
-        implement event-specific behavior.
-
-        .. note:: This method is called for all engine event types. If
-                  overriding this method to implement an event handler
-                  in a specific app, the event object received will need
-                  to be checked via isinstance (or via its event_type
-                  property) to know what event has been triggered.
-
-        .. warning:: It is possible that events will be triggered quite
-                     frequently. It is important to keep performance in
-                     mind when writing an event handler.
-
-        :param event:   The event object that was emitted.
-        :type event:    :class:`~sgtk.platform.events.EngineEvent`
-        """
-        pass
-
-    def event_file_open(self, event):
-        """
-        Called when the parent engine emits a file-open event. This method
-        is intended to be overridden by deriving classes.
-
-        .. warning:: It is possible that events will be triggered quite
-                     frequently. It is important to keep performance in
-                     mind when writing an event handler.
-
-        :param event:   The event object that was emitted.
-        :type event:    :class:`~sgtk.platform.events.FileOpenEvent`
-        """
-        pass
     
     ##########################################################################################
     # logging methods
