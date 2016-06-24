@@ -294,7 +294,6 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
     # sometimes people report that this download fails (because of flaky connections etc)
     # engines can often be 30-50MiB - as a quick fix, just retry the download once
     # if it fails.
-    log.debug("Downloading attachment id %s..." % attachment_id)
     attempt = 1
     done = False
 

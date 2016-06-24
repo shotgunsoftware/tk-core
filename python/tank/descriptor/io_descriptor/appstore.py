@@ -19,7 +19,7 @@ import httplib
 from tank_vendor.shotgun_api3.lib import httplib2
 import cPickle as pickle
 
-from ...util import shotgun
+from ...util import shotgun, filesystem
 from ...util import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
 from ..descriptor import Descriptor
 from ..errors import TankAppStoreConnectionError
@@ -221,6 +221,7 @@ class IODescriptorAppStore(IODescriptorBase):
             "sg_version_data": sg_version_data
         }
 
+        filesystem.ensure_folder_exists(os.path.dirname(path))
         fp = open(path, "wt")
         try:
             pickle.dump(metadata, fp)
