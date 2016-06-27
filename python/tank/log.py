@@ -557,8 +557,33 @@ class LogManager(object):
         :returns: The name of the previous log_name that is being switched away from,
                   None if no base logger was previously active.
         """
+        # avoid cyclic references
+        from .util import filesystem
+
+        return self.initialize_base_file_handler_from_path(
+            os.path.join(
+                self.log_folder,
+                "%s.log" % filesystem.create_valid_filename(log_name)
+            )
+        )
+
+    def initialize_base_file_handler_from_path(self, log_file):
+        """
+        Create a file handler and attach it to the sgtk base logger.
+
+        This method is there for legacy Toolkit applications and shouldn't be used. Use
+        ``initialize_base_file_handler`` instead.
+
+        :param log_file: Path of the file to write the logs to.
+
+        :returns: The name of the previous log_name that is being switched away from,
+                  None if no base logger was previously active.
+        """
         # shut down any previous logger
         previous_log_name = self.uninitialize_base_file_handler()
+
+        log_folder, log_file_name = os.path.split(log_file)
+        log_name, _ = os.path.splitext(log_file_name)
 
         log.debug("Switching file based std logger from %s to %s" % (previous_log_name, log_name))
 
@@ -569,13 +594,7 @@ class LogManager(object):
         from .util import filesystem
 
         # set up logging root folder
-        filesystem.ensure_folder_exists(self.log_folder)
-
-        # generate log path
-        log_file = os.path.join(
-            self.log_folder,
-            "%s.log" % filesystem.create_valid_filename(log_name)
-        )
+        filesystem.ensure_folder_exists(log_folder)
 
         # create a rotating log file with a max size of 5 megs -
         # this should make all log files easily attachable to support tickets.
@@ -605,7 +624,6 @@ class LogManager(object):
 
         # return previous log name
         return previous_log_name
-
 
 # the logger for logging messages from this file :)
 log = LogManager.get_logger(__name__)
