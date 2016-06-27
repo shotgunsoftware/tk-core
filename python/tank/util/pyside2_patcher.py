@@ -21,7 +21,7 @@ import subprocess
 import sys
 import webbrowser
 
-from ... import constants
+from .. import constants
 
 
 class PySide2Patcher(object):
