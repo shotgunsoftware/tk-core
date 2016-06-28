@@ -30,7 +30,7 @@ import sgtk
 import tank
 from tank import path_cache
 from tank_vendor import yaml
-from tank.settings.user import UserSettings
+from tank.util.user_settings import UserSettings
 
 TANK_TEMP = None
 
@@ -196,11 +196,10 @@ class TankTestBase(unittest.TestCase):
         # Mock this so that authentication manager works even tough we are not in a config.
         # If we don't mock it than the path cache calling get_current_user will fail.
         patch = mock.patch(
-            "tank.settings.core.CoreSettings.__new__",
+            "tank.util.shotgun.get_associated_sg_config_data",
+            return_value={"host": "https://somewhere.shotguntudio.com"}
         )
-        core_settings_mock = patch.start()
-        instance = core_settings_mock.return_value
-        instance.host = "https://somewhere.shotguntudio.com"
+        patch.start()
         self.addCleanup(patch.stop)
 
         # define entity for test project
@@ -268,7 +267,7 @@ class TankTestBase(unittest.TestCase):
         # fake a version response from the server
         self.mockgun.server_info = {"version": (7, 0, 0)}
 
-        patch = mock.patch("tank.settings.core.CoreSettings", return_value=mock.Mock(host="http://unit_test_mock_sg"))
+        patch = mock.patch("tank.util.shotgun.get_associated_sg_base_url", return_value="http://unit_test_mock_sg")
         patch.start()
         self.addCleanup(patch.stop)
 

@@ -22,8 +22,7 @@ from tank_vendor.shotgun_api3.lib import httplib2
 import cPickle as pickle
 
 from ...util.zip import unzip_file
-from ...settings import core, user
-from ...util import filesystem
+from ...util import shotgun, user_settings
 from ..descriptor import Descriptor
 from ..errors import TankAppStoreConnectionError
 from ..errors import TankAppStoreError
@@ -673,15 +672,15 @@ class IODescriptorAppStore(IODescriptorBase):
 
         :returns: The http proxy connection string.
         """
-        core_settings = core.CoreSettings()
-        if core_settings.is_app_store_http_proxy_set():
+        config_data = shotgun.get_associated_sg_config_data()
+        if config_data and constants.APP_STORE_HTTP_PROXY in config_data:
             # Cast any falsy value (e.g. "") from the settings into None.
-            return core_settings.app_store_http_proxy or None
+            return config_data[constants.APP_STORE_HTTP_PROXY] or None
 
-        user_settings = user.UserSettings()
-        if user_settings.is_default_app_store_http_proxy_set():
+        settings = user_settings.UserSettings()
+        if settings.is_default_app_store_http_proxy_set():
             # Cast any falsy value (e.g. "") from the settings into None.
-            return user_settings.app_store_http_proxy or None
+            return settings.app_store_http_proxy or None
 
         # Use the http proxy from the connection so we don't have to run
         # the connection hook again.

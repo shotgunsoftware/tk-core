@@ -15,7 +15,6 @@ been configured with the core, its credentials will also be provided.
 """
 
 from ..authentication import DefaultsManager
-from ..settings import core
 
 
 class CoreDefaultsManager(DefaultsManager):
@@ -32,7 +31,6 @@ class CoreDefaultsManager(DefaultsManager):
             returning the script user credentials if the are available.
         """
         self._mask_script_user = mask_script_user
-        self._core_settings = core.CoreSettings()
         super(CoreDefaultsManager, self).__init__()
 
     def is_host_fixed(self):
@@ -49,7 +47,8 @@ class CoreDefaultsManager(DefaultsManager):
         Returns the host found in the core configuration.
         :returns: The host value from the configuration
         """
-        return self._core_settings.host
+        from . import shotgun
+        return shotgun.get_associated_sg_config_data().get("host")
 
     def get_http_proxy(self):
         """
@@ -60,7 +59,8 @@ class CoreDefaultsManager(DefaultsManager):
         :returns: String with proxy definition suitable for the Shotgun API or
                   None if not necessary.
         """
-        return self._core_settings.http_proxy or DefaultsManager.get_http_proxy(self)
+        from . import shotgun
+        return shotgun.get_associated_sg_config_data().get("http_proxy") or super(CoreDefaultsManager, self).get_http_proxy()
 
     def get_user_credentials(self):
         """
@@ -72,9 +72,11 @@ class CoreDefaultsManager(DefaultsManager):
                   User or None in case no credentials could be established.
         """
         if not self._mask_script_user:
-            if self._core_settings.is_script_user_configured():
+            from . import shotgun
+            data = shotgun.get_associated_sg_config_data()
+            if data.get("api_script") and data.get("api_key"):
                 return {
-                    "api_script": self._core_settings.api_script,
-                    "api_key": self._core_settings.api_key
+                    "api_script": data["api_script"],
+                    "api_key": data["api_key"]
                 }
         return super(CoreDefaultsManager, self).get_user_credentials()

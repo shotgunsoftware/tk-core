@@ -19,7 +19,7 @@ from tank_test.tank_test_base import *
 
 from tank.util import CoreDefaultsManager
 from tank.authentication import DefaultsManager
-from tank.settings.user import UserSettings
+from tank.util.user_settings import UserSettings
 
 
 class DefaultsManagerTest(TankTestBase):
@@ -93,11 +93,11 @@ class DefaultsManagerTest(TankTestBase):
         self.assertIs(dm.get_http_proxy(), self._CONFIG_HTTP_PROXY)
 
     @patch(
-        "tank.settings.core.CoreSettings",
-        return_value=Mock(
-            host=_SHOTGUN_YML_HOST,
-            http_proxy=_SHOTGUN_YML_PROXY
-        )
+        "tank.util.shotgun.get_associated_sg_config_data",
+        return_value={
+            "host": _SHOTGUN_YML_HOST,
+            "http_proxy": _SHOTGUN_YML_PROXY
+        }
     )
     def test_shotgun_yml_over_global(self, *unused_mocks):
         """
@@ -114,11 +114,10 @@ class DefaultsManagerTest(TankTestBase):
         self.assertIs(dm.get_http_proxy(), self._SHOTGUN_YML_PROXY)
 
     @patch(
-        "tank.settings.core.CoreSettings",
-        return_value=Mock(
-            host=_SHOTGUN_YML_HOST,
-            http_proxy=None
-        )
+        "tank.util.shotgun.get_associated_sg_config_data",
+        return_value={
+            "host": _SHOTGUN_YML_HOST
+        }
     )
     def test_shotgun_yml_no_proxy_uses_global_proxy(self, *unused_mocks):
         """

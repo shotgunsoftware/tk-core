@@ -17,7 +17,6 @@ import glob
 
 from . import folder
 from . import context
-from .settings import core
 from .util import shotgun, yaml_cache
 from .errors import TankError
 from .path_cache import PathCache
@@ -184,7 +183,7 @@ class Sgtk(object):
         """
         The associated shotgun url, e.g. ``https://mysite.shotgunstudio.com``
         """
-        return core.CoreSettings().host
+        return shotgun.get_associated_sg_base_url()
 
     @property
     def shotgun(self):

@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from . import session_cache
-from ..settings import user
 
 class DefaultsManager(object):
     """
@@ -74,7 +73,9 @@ class DefaultsManager(object):
         """
         Constructor.
         """
-        self._user_settings = user.UserSettings()
+        # Breaks circular dependency between util and authentication framework
+        from ..util import user_settings
+        self._user_settings = user_settings.UserSettings()
 
     def is_host_fixed(self):
         """

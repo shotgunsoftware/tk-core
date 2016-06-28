@@ -14,8 +14,8 @@ import os
 import unittest2 as unittest
 from mock import patch
 
-from tank.settings.errors import MissingConfigurationFileError
-from tank.settings.user import UserSettings
+from tank.util import MissingConfigurationFileError
+from tank.util.user_settings import UserSettings
 
 
 class MockConfigParser(object):

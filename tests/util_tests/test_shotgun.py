@@ -375,7 +375,7 @@ class TestGetSgConfigData(TankTestBase):
 
     def test_all_fields_present(self, get_api_core_config_location_mock):
         self._prepare_common_mocks(get_api_core_config_location_mock)
-        tank.settings.core._parse_config_data(
+        tank.util.shotgun._parse_config_data(
             {
                 "host": "host",
                 "api_key": "api_key",
@@ -388,7 +388,7 @@ class TestGetSgConfigData(TankTestBase):
 
     def test_proxy_is_optional(self, get_api_core_config_location_mock):
         self._prepare_common_mocks(get_api_core_config_location_mock)
-        tank.settings.core._parse_config_data(
+        tank.util.shotgun._parse_config_data(
             {
                 "host": "host",
                 "api_key": "api_key",
@@ -402,7 +402,7 @@ class TestGetSgConfigData(TankTestBase):
         self._prepare_common_mocks(get_api_core_config_location_mock)
 
         with self.assertRaises(errors.TankError):
-            tank.settings.core._parse_config_data(
+            tank.util.shotgun._parse_config_data(
                 {
                     "host": "host",
                     "api_script": "api_script"
@@ -412,7 +412,7 @@ class TestGetSgConfigData(TankTestBase):
             )
 
         with self.assertRaises(errors.TankError):
-            tank.settings.core._parse_config_data(
+            tank.util.shotgun._parse_config_data(
                 {
                     "host": "host",
                     "api_key": "api_key"
@@ -422,7 +422,7 @@ class TestGetSgConfigData(TankTestBase):
             )
 
         with self.assertRaises(errors.TankError):
-            tank.settings.core._parse_config_data(
+            tank.util.shotgun._parse_config_data(
                 {
                     "api_key": "api_key",
                     "api_script": "api_script"
@@ -432,7 +432,7 @@ class TestGetSgConfigData(TankTestBase):
             )
 
 # Class decorators don't exist on Python2.5
-TestGetSgConfigData = patch("tank.pipelineconfig_utils.get_api_core_config_location", TestGetSgConfigData)
+TestGetSgConfigData = patch("tank.util.shotgun.__get_api_core_config_location", TestGetSgConfigData)
 
 
 class ConnectionSettingsTestCases:
@@ -467,7 +467,7 @@ class ConnectionSettingsTestCases:
 
             # Avoids crash because we're not in a pipeline configuration.
             self._get_api_core_config_location_mock = patch(
-                "tank.pipelineconfig_utils.get_api_core_config_location",
+                "tank.util.shotgun.__get_api_core_config_location",
                 return_value="unused_path_location"
             )
             self._get_api_core_config_location_mock.start()
@@ -578,20 +578,17 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases.Impl):
         """
         Mock information coming from shotgun.yml for pre-authentication framework authentication.
         """
-        with patch("tank.settings.core.CoreSettings") as mock:
+        with patch("tank.util.shotgun.__get_sg_config_data") as mock:
             # Mocks shotgun.yml content, which we use for authentication.
-            instance = mock.return_value
-            instance.host = site
-            instance.api_script = "1234"
-            instance.api_key = "1234"
-            instance.http_proxy = source_proxy
-
+            mock.return_value = {
+                "host": site,
+                "api_script": "1234",
+                "api_key": "1234",
+                "http_proxy": source_proxy
+            }
             # Adds the app store proxy setting in the mock shotgun.yml settings if one should be present.
             if source_store_proxy != ConnectionSettingsTestCases.FOLLOW_HTTP_PROXY_SETTING:
-                instance.app_store_http_proxy = source_store_proxy
-                instance.is_app_store_http_proxy_set.return_value = True
-            else:
-                instance.is_app_store_http_proxy_set.return_value = False
+                mock.return_value["app_store_http_proxy"] = source_store_proxy
 
             ConnectionSettingsTestCases.Impl._run_test(
                 self,
@@ -617,21 +614,18 @@ class AuthConnectionSettings(ConnectionSettingsTestCases.Impl):
         """
         Mock information coming from the Shotgun user and shotgun.yml for authentication.
         """
-        with patch("tank.settings.core.CoreSettings") as mock:
+        with patch("tank.util.shotgun.__get_sg_config_data") as mock:
             # Mocks shotgun.yml content
-            instance = mock.return_value
-            # We're supposed to read only the proxy settings for the appstore
-            instance.host = "https://this_should_not_be_read.shotgunstudio.com"
-            instance.api_script = "1234"
-            instance.api_key = "1234"
-            instance.http_proxy = "123.234.345.456:7890"
-
+            mock.return_value = {
+                # We're supposed to read only the proxy settings for the appstore
+                "host": "https://this_should_not_be_read.shotgunstudio.com",
+                "api_script": "1234",
+                "api_key": "1234",
+                "http_proxy": "123.234.345.456:7890"
+            }
             # Adds the app store proxy setting in the mock shotgun.yml settings if one should be present.
             if source_store_proxy != ConnectionSettingsTestCases.FOLLOW_HTTP_PROXY_SETTING:
-                instance.app_store_http_proxy = source_store_proxy
-                instance.is_app_store_http_proxy_set.return_value = True
-            else:
-                instance.is_app_store_http_proxy_set.return_value = False
+                mock.return_value["app_store_http_proxy"] = source_store_proxy
 
             # Mocks a user being authenticated.
             user = ShotgunUser(
