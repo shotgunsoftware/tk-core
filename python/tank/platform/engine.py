@@ -35,6 +35,7 @@ from ..log import LogManager
 from . import application
 from . import constants
 from . import validation
+from . import events
 from . import qt
 from .bundle import TankBundle
 from .framework import setup_frameworks
@@ -72,6 +73,7 @@ class Engine(TankBundle):
         .. automethod:: _create_dialog_with_widget
         .. automethod:: _get_dialog_parent
         .. automethod:: _on_dialog_closed
+        .. automethod:: _emit_event
         .. automethod:: _emit_log_message
         """
         
@@ -83,6 +85,7 @@ class Engine(TankBundle):
         self.__commands = {}
         self.__command_pool = {}
         self.__panels = {}
+        self.__event_registry = {}
         self.__currently_initializing_app = None
         
         self.__qt_widget_trash = []
@@ -937,6 +940,20 @@ class Engine(TankBundle):
             "properties": properties,
         }
 
+    def register_event_handler(self, handler, event_class):
+        """
+        Registers an event handler with the engine and associates it with the
+        given event class.
+
+        :param handler: The handler callable.
+        :type handler:  Python callable
+        :param event_class: The event class of interest to the bundle.
+        :type event_class:  :class:`~sgtk.platform.events.EngineEvent`
+        """
+        if event_class in self.__event_registry:
+            self.__event_registry[event_class].append(handler)
+        else:
+            self.__event_registry[event_class] = [handler]
 
     def register_panel(self, callback, panel_name="main", properties=None):
         """
@@ -1276,6 +1293,24 @@ class Engine(TankBundle):
         
     ##########################################################################################
     # private and protected methods
+
+    def _emit_event(self, event):
+        """
+        Called by the engine whenever an event is to be emitted to child
+        apps of this engine.
+
+        .. note:: Events will be emitted and child apps notified immediately.
+
+        .. warning:: Some event types might be triggered quite frequently. Apps
+                     that react to events should do so in a way that is aware of
+                     the potential performance impact of their actions.
+
+        :param event: The event object that will be emitted.
+        :type event:  :class:`~sgtk.platform.events.EngineEvent`
+        """
+        self.log_debug("Emitting event: %s" % event)
+        for handler in self.__event_registry.get(event.__class__, []):
+            handler(event)
 
     def _emit_log_message(self, handler, record):
         """

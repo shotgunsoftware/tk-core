@@ -87,7 +87,7 @@ class Application(TankBundle):
         # in the shotgun data centre and makes it easy to track which app and engine versions
         # are being used by clients
         try:
-            self.tank.shotgun.tk_user_agent_handler.set_current_app(self.name, 
+            self.tank.shotgun.tk_user_agent_handler.set_current_app(self.name,
                                                                     self.version,
                                                                     self.engine.name,
                                                                     self.engine.version)
