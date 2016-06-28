@@ -654,7 +654,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 else:
                     # other type of ssl error
                     raise TankAppStoreError(e)
-            except Exception:
+            except Exception, e:
                 raise TankAppStoreError(e)
 
             if script_user is None:
