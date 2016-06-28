@@ -183,6 +183,7 @@ development. This is when you use the ``dev`` descriptor::
     }
 
 .. note:: The path and dev descriptors support environment variable resolution on the form ``${MYENVVAR}``
+          as well as user directory resolution if the path starts with `~`.
 
 Sometimes it can be handy to organize your development sandbox relative to a pipeline configuration.
 If all developers in the studio share a convention where they for example have a ``dev`` folder inside
