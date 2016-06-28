@@ -177,6 +177,11 @@ development. This is when you use the ``dev`` descriptor::
 
     {
         type: dev,
+        path: ~/path/to/app
+    }
+
+    {
+        type: dev,
         windows_path: c:\path\to\app,
         linux_path: /path/to/app,
         mac_path: /path/to/app
