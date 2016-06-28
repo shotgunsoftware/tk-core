@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.api &mdash; tk-core v0.18.0RC3 documentation</title>
+  <title>tank.api &mdash; tk-core v0.18.0 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.0RC3 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.0 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.0RC3.<br>
+    <b>tk-core</b> v0.18.0.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -659,6 +659,18 @@
 <span class="sd">            /studio/my_proj/sequences/AAA/001/images/%V/render_2.%04d.exr</span>
 <span class="sd">            /studio/my_proj/sequences/AAA/001/images/%V/render_3.%04d.exr</span>
 
+<span class="sd">        .. note:: There are situations where the resulting abstract paths may not match any files on disk</span>
+
+<span class="sd">        Take the following template::</span>
+
+<span class="sd">            render: sequences/{Sequence}/{Shot}/images/{Shot}.{SEQ}.jpg</span>
+
+<span class="sd">        Assuming ``Shot`` is provided via the ``fields`` argument, the method will avoid</span>
+<span class="sd">        listing all files in the leaf directory since ``{SEQ}`` is abstract and ``{Shot}``</span>
+<span class="sd">        is known. The following abstract path will be returned even if only the</span>
+<span class="sd">        parent ``images`` directory exists::</span>
+
+<span class="sd">            /studio/my_proj/sequences/AAA/001/images/001.%04d.exr</span>
 
 <span class="sd">        :param template: Template with which to search</span>
 <span class="sd">        :type  template: :class:`TemplatePath`</span>
@@ -1032,7 +1044,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.0RC3',
+            VERSION:'v0.18.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

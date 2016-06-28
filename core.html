@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Foundation &mdash; tk-core v0.18.0RC3 documentation</title>
+  <title>Foundation &mdash; tk-core v0.18.0 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.0RC3 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.0 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Deploy and management" href="bootstrap.html"/> 
 
@@ -148,7 +148,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.0RC3.<br>
+    <b>tk-core</b> v0.18.0.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -595,6 +595,21 @@ names and versions for a particular sequence and shot, we can do:</p>
 <span class="go">/studio/my_proj/sequences/AAA/001/images/%V/render_1.%04d.exr</span>
 <span class="go">/studio/my_proj/sequences/AAA/001/images/%V/render_2.%04d.exr</span>
 <span class="go">/studio/my_proj/sequences/AAA/001/images/%V/render_3.%04d.exr</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">There are situations where the resulting abstract paths may not match any files on disk</p>
+</div>
+<p>Take the following template:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">render</span><span class="p">:</span> <span class="n">sequences</span><span class="o">/</span><span class="p">{</span><span class="n">Sequence</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">Shot</span><span class="p">}</span><span class="o">/</span><span class="n">images</span><span class="o">/</span><span class="p">{</span><span class="n">Shot</span><span class="p">}</span><span class="o">.</span><span class="p">{</span><span class="n">SEQ</span><span class="p">}</span><span class="o">.</span><span class="n">jpg</span>
+</pre></div>
+</div>
+<p>Assuming <code class="docutils literal"><span class="pre">Shot</span></code> is provided via the <code class="docutils literal"><span class="pre">fields</span></code> argument, the method will avoid
+listing all files in the leaf directory since <code class="docutils literal"><span class="pre">{SEQ}</span></code> is abstract and <code class="docutils literal"><span class="pre">{Shot}</span></code>
+is known. The following abstract path will be returned even if only the
+parent <code class="docutils literal"><span class="pre">images</span></code> directory exists:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">studio</span><span class="o">/</span><span class="n">my_proj</span><span class="o">/</span><span class="n">sequences</span><span class="o">/</span><span class="n">AAA</span><span class="o">/</span><span class="mi">001</span><span class="o">/</span><span class="n">images</span><span class="o">/</span><span class="mf">001.</span><span class="o">%</span><span class="mi">04</span><span class="n">d</span><span class="o">.</span><span class="n">exr</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1820,7 +1835,7 @@ in a given fields.</p>
 values of None.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://docs.python.org/library/functions.html#list" title="(in Python v2.7)">list</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)">list</a></p>
 </td>
 </tr>
 </tbody>
@@ -2573,7 +2588,7 @@ The format follows the convention of <code class="xref py py-meth docutils liter
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.0RC3',
+            VERSION:'v0.18.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
