@@ -227,15 +227,7 @@ class TankBundle(object):
             stored_query_data_path = os.path.join(self.cache_location, "query.dat")
 
         """
-        # Site configuration's project id is None. Since we're calling a hook, we'll have to
-        # pass in 0 to avoid client code crashing because it expects an integer and not
-        # the None object. This happens when we are building the cache root, where %d is used to
-        # inject the project id in the file path.        
-        if self.__tk.pipeline_configuration.is_site_configuration():
-            project_id = 0
-        else:
-            project_id = self.__tk.pipeline_configuration.get_project_id()
-
+        project_id = self.__tk.pipeline_configuration.get_project_id()
         return self.get_project_cache_location(project_id)
 
     @property
@@ -424,16 +416,16 @@ class TankBundle(object):
         """
         # this method is memoized for performance since it is being called a lot!
         if self.__cache_location.get(project_id) is None:
-            pc_id = self.__tk.pipeline_configuration.get_shotgun_id()
-            
+
             self.__cache_location[project_id] = self.__tk.execute_core_hook_method(
                 constants.CACHE_LOCATION_HOOK_NAME,
-                "bundle_cache",
+                "get_bundle_data_cache_path",
                 project_id=project_id,
-                pipeline_configuration_id=pc_id,
+                entry_point=self.__tk.pipeline_configuration.get_entry_point(),
+                pipeline_configuration_id=self.__tk.pipeline_configuration.get_shotgun_id(),
                 bundle=self
             )
-        
+
         return self.__cache_location[project_id]
 
     def get_setting(self, key, default=None):

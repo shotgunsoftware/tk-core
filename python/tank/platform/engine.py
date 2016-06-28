@@ -22,7 +22,8 @@ import traceback
 import inspect
 import weakref
 import threading
-        
+
+from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
 from .. import hook
 from ..errors import TankError
@@ -1690,8 +1691,6 @@ class Engine(TankBundle):
         """
         base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
         try:
-            # Local import since Qt might not be available.
-            from .qt.qt_importer import QtImporter
             importer = QtImporter()
             base["qt_core"] = importer.QtCore
             base["qt_gui"] = importer.QtGui

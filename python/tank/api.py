@@ -480,6 +480,18 @@ class Sgtk(object):
             /studio/my_proj/sequences/AAA/001/images/%V/render_2.%04d.exr
             /studio/my_proj/sequences/AAA/001/images/%V/render_3.%04d.exr
 
+        .. note:: There are situations where the resulting abstract paths may not match any files on disk
+
+        Take the following template::
+
+            render: sequences/{Sequence}/{Shot}/images/{Shot}.{SEQ}.jpg
+
+        Assuming ``Shot`` is provided via the ``fields`` argument, the method will avoid
+        listing all files in the leaf directory since ``{SEQ}`` is abstract and ``{Shot}``
+        is known. The following abstract path will be returned even if only the
+        parent ``images`` directory exists::
+
+            /studio/my_proj/sequences/AAA/001/images/001.%04d.exr
 
         :param template: Template with which to search
         :type  template: :class:`TemplatePath`

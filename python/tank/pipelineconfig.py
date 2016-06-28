@@ -90,6 +90,7 @@ class PipelineConfiguration(object):
         self._project_name = pipeline_config_metadata.get("project_name")
         self._project_id = pipeline_config_metadata.get("project_id")
         self._pc_id = pipeline_config_metadata.get("pc_id")
+        self._entry_point = pipeline_config_metadata.get("entry_point")
         self._pc_name = pipeline_config_metadata.get("pc_name")
         self._published_file_entity_type = pipeline_config_metadata.get("published_file_entity_type", "TankPublishedFile")        
         self._use_shotgun_path_cache = pipeline_config_metadata.get("use_shotgun_path_cache", False)
@@ -324,6 +325,12 @@ class PipelineConfiguration(object):
         Returns the shotgun id for this PC.
         """
         return self._pc_id
+
+    def get_entry_point(self):
+        """
+        Returns the entry point for this PC.
+        """
+        return self._entry_point
 
     def get_project_id(self):
         """
