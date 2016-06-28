@@ -22,7 +22,8 @@ from tank_vendor.shotgun_api3.lib import httplib2
 import cPickle as pickle
 
 from ...util.zip import unzip_file
-from ...util import shotgun, user_settings
+from ...util import shotgun
+from ...util.user_settings import UserSettings
 from ..descriptor import Descriptor
 from ..errors import TankAppStoreConnectionError
 from ..errors import TankAppStoreError
@@ -677,7 +678,7 @@ class IODescriptorAppStore(IODescriptorBase):
             # Cast any falsy value (e.g. "") from the settings into None.
             return config_data[constants.APP_STORE_HTTP_PROXY] or None
 
-        settings = user_settings.UserSettings()
+        settings = UserSettings()
         if settings.is_default_app_store_http_proxy_set():
             # Cast any falsy value (e.g. "") from the settings into None.
             return settings.app_store_http_proxy or None

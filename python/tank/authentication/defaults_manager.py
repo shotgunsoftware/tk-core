@@ -74,8 +74,8 @@ class DefaultsManager(object):
         Constructor.
         """
         # Breaks circular dependency between util and authentication framework
-        from ..util import user_settings
-        self._user_settings = user_settings.UserSettings()
+        from ..util.user_settings import UserSettings
+        self._user_settings = UserSettings()
 
     def is_host_fixed(self):
         """
