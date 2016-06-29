@@ -1256,7 +1256,7 @@ def serialize(context):
         >>> context_str = sgtk.context.serialize(ctx)
         >>> new_ctx = sgtk.context.deserialize(context_str)
 
-    .. info:: The currently authenticated user is also serialized together with the Context.
+    .. note:: The currently authenticated user is also serialized together with the Context.
 
     :param context: :class:`Context` instance to serialize
     :returns: String representation
