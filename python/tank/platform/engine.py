@@ -25,8 +25,14 @@ import threading
         
 from ..util.loader import load_plugin
 from .. import hook
+
 from ..errors import TankError
-from .errors import TankEngineInitError, TankContextChangeNotSupportedError
+from .errors import (
+    TankEngineInitError,
+    TankContextChangeNotSupportedError,
+    TankEngineEventError,
+)
+
 from ..util import log_user_activity_metric, log_user_attribute_metric
 from ..util.metrics import MetricsDispatcher
 from ..log import LogManager
@@ -1292,9 +1298,15 @@ class Engine(TankBundle):
         :param event: The event object that will be emitted.
         :type event:  :class:`~sgtk.platform.events.EngineEvent`
         """
-        self.log_debug("Emitting event: %s" % event)
+        if not isinstance(event, events.EngineEvent):
+            raise TankEngineEventError(
+                "Given object does not derive from EngineEvent: %r" % event
+            )
+
+        self.log_debug("Emitting event: %r" % event)
+
         for app_instance_name, app in self.__applications.iteritems():
-            self.log_debug("Sending event to %s..." % app_instance_name)
+            self.log_debug("Sending event to %r..." % app)
 
             # We send the event to the generic engine event handler
             # as well as to the type-specific handler when we have
@@ -1302,7 +1314,6 @@ class Engine(TankBundle):
             app.event_engine(event)
 
             if isinstance(event, events.FileOpenEvent):
-                self.log_debug("Calling event_file_open for app %s" % app_instance_name)
                 app.event_file_open(event)
 
     def _emit_log_message(self, handler, record):

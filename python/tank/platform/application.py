@@ -158,7 +158,11 @@ class Application(TankBundle):
                   overriding this method to implement an event handler
                   in a specific app, the event object received will need
                   to be checked via isinstance (or via its event_type
-                  property) to know what event has been triggered.
+                  property) to know what event has been triggered. As
+                  there are also type specific event handlers available,
+                  it is considered best practice to use those in all
+                  cases except those where a generic handler is absolutely
+                  required.
 
         .. warning:: It is possible that events will be triggered quite
                      frequently. It is important to keep performance in

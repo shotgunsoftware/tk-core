@@ -14,14 +14,11 @@ class FileOpenEvent(EngineEvent):
     """
     An object representation of a file-open event.
     """
-    _EVENT_TYPE = "file_open"
-
     def __init__(self, file_path):
         """
         Constructor.
 
-        :param file_path:   The path to the file opened.
-        :type file_path:    str
+        :param str file_path: The path to the file opened.
         """
         super(FileOpenEvent, self).__init__()
         self._file_path = file_path
@@ -34,5 +31,5 @@ class FileOpenEvent(EngineEvent):
         return self._file_path
 
     def __str__(self):
-        return ("%s: %s" % (self.event_type, self.file_path))
+        return ("%s: %s" % ("FileOpenEvent", self.file_path))
 

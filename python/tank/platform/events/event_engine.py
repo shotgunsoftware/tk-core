@@ -13,21 +13,7 @@ class EngineEvent(object):
     The base class of all concrete engine event objects. It provides a very
     basic interface that is expanded on in deriving classes.
     """
-    _EVENT_TYPE = None
-
-    def __init__(self):
-        """
-        Constructor.
-        """
-        self._event_type = self._EVENT_TYPE
-
-    @property
-    def event_type(self):
-        """
-        The string name of the event's type.
-        """
-        return self._event_type
-
-    def __str__(self):
-        return str(self.event_type)
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        return "<%s 0x%08x %s>" % (class_name, id(self))
 
