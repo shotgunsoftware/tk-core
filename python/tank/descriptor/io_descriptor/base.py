@@ -77,6 +77,9 @@ class IODescriptorBase(object):
         """
         Human readable representation
         """
+        # fall back onto uri which is semi-human-readable
+        # it is recommended that each class implements its own
+        # operator in order to better customize the ux.
         return self.get_uri()
 
     def __repr__(self):

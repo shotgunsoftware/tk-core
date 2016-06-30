@@ -112,6 +112,27 @@ class IODescriptorAppStore(IODescriptorBase):
         # cached metadata - loaded on demand
         self.__cached_metadata = None
 
+    def __str__(self):
+        """
+        Human readable representation
+        """
+        display_name_lookup = {
+            Descriptor.APP: "App",
+            Descriptor.FRAMEWORK: "Framework",
+            Descriptor.ENGINE: "Engine",
+            Descriptor.CONFIG: "Config",
+            Descriptor.CORE: "Core",
+        }
+
+        # Toolkit App Store App tk-multi-loader2 v1.2.3
+        # Toolkit App Store Framework tk-framework-shotgunutils v1.2.3
+        # Toolkit App Store Core v1.2.3
+        if self._type == Descriptor.CORE:
+            return "Toolkit App Store Core %s" % self._version
+        else:
+            display_name = display_name_lookup[self._type]
+            return "Toolkit App Store %s %s %s" % (display_name, self._name, self._version)
+
     def _get_app_store_metadata(self):
         """
         Returns a metadata dictionary.
@@ -361,7 +382,7 @@ class IODescriptorAppStore(IODescriptorBase):
             shotgun.download_and_unpack_attachment(sg, attachment_id, target)
         except ShotgunAttachmentDownloadError, e:
             raise TankAppStoreError(
-                "Failed to download %s from the Toolkit App Store (%s). Error: %s" % (self, sg.base_url, e)
+                "Failed to download %s. Error: %s" % (self, e)
             )
 
         # write a stats record to the tank app store
