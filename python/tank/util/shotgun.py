@@ -261,7 +261,7 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
     # sometimes people report that this download fails (because of flaky connections etc)
     # engines can often be 30-50MiB - as a quick fix, just retry the download once
     # if it fails.
-    attempt = 1
+    attempt = 0
     done = False
 
     while not done and attempt < retries:
@@ -294,7 +294,7 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
     if not done:
         # we were not successful
         raise ShotgunAttachmentDownloadError(
-            "Failed to download attachment after %s retries. See error log for details." % retries
+            "Failed to download from '%s' after %s retries. See error log for details." % (sg.base_url, retries)
         )
 
     else:
