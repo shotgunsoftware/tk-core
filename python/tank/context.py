@@ -628,7 +628,92 @@ class Context(object):
         """
         ctx_copy = copy.deepcopy(self)
         ctx_copy.__user = user
-        return ctx_copy       
+        return ctx_copy
+
+
+    ################################################################################################
+    # serialization
+
+    def serialize(self):
+        """
+        Serializes the context into a string.
+
+        Any Context object can be serialized to/deserialized from a string.
+        This can be useful if you need to pass a Context between different processes.
+        As an example, the ``tk-multi-launchapp`` uses this mechanism to pass the Context
+        from the launch process (e.g. for example Shotgun Desktop) to the
+        Application (e.g. Maya) being launched. Example:
+
+            >>> import sgtk
+            >>> tk = sgtk.sgtk_from_path("/studio.08/demo_project")
+            >>> ctx = tk.context_from_path("/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work")
+            >>> context_str = sgtk.context.serialize(ctx)
+            >>> new_ctx = sgtk.context.deserialize(context_str)
+
+        .. note:: The currently authenticated user is also serialized together with the Context.
+
+        :returns: String representation
+        """
+        # Avoids cyclic imports
+        from .api import get_authenticated_user
+
+        data = {
+            "project": self.project,
+            "entity": self.entity,
+            "user": self.user,
+            "step": self.step,
+            "task": self.task,
+            "additional_entities": self.additional_entities,
+            "_pc_path": self.tank.pipeline_configuration.get_path()
+        }
+
+        # If there is an authenticated user.
+        user = get_authenticated_user()
+        if user:
+            # We should serialize it as well so that the next process knows who to
+            # run as.
+            data["_current_user"] = authentication.serialize_user(user)
+        return pickle.dumps(data)
+
+    @classmethod
+    def deserialize(cls, context_str):
+        """
+        The inverse of :meth:`Context.serialize`.
+
+        :param context_str: String representation of context, created with :meth:`serialize`
+        :returns: :class:`Context`
+        """
+        # lazy load this to avoid cyclic dependencies
+        from .api import Tank, set_authenticated_user
+
+        data = pickle.loads(context_str)
+
+        # first get the pipeline config path out of the dict
+        pipeline_config_path = data["_pc_path"]
+        del data["_pc_path"]
+
+        # Authentication in Toolkit requires that credentials are passed from
+        # one process to another so the currently authenticated user is carried
+        # from one process to another. The current user needs to be part of the
+        # context because multiple DCCs can run at the same time under different
+        # users, e.g. launching Maya from the site as user A and Nuke from the tank
+        # command as user B.
+        user_string = data.get("_current_user")
+        if user_string:
+            # Remove it from the data
+            del data["_current_user"]
+            # and set the authenticated user user.
+            user = authentication.deserialize_user(user_string)
+            set_authenticated_user(user)
+
+        # create a Sgtk API instance.
+        tk = Tank(pipeline_config_path)
+
+        # add it to the constructor instance
+        data["tk"] = tk
+
+        # and lastly make the obejct
+        return cls(**data)
 
     ################################################################################################
     # private methods
@@ -1244,84 +1329,20 @@ def serialize(context):
     """
     Serializes the context into a string.
 
-    Any Context object can be serialized to/deserialized from a string.
-    This can be useful if you need to pass a Context between different processes.
-    As an example, the ``tk-multi-launchapp`` uses this mechanism to pass the Context
-    from the launch process (e.g. for example Shotgun Desktop) to the
-    Application (e.g. Maya) being launched. Example:
-
-        >>> import sgtk
-        >>> tk = sgtk.sgtk_from_path("/studio.08/demo_project")
-        >>> ctx = tk.context_from_path("/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work")
-        >>> context_str = sgtk.context.serialize(ctx)
-        >>> new_ctx = sgtk.context.deserialize(context_str)
-
-    .. note:: The currently authenticated user is also serialized together with the Context.
-
-    :param context: :class:`Context` instance to serialize
-    :returns: String representation
+    .. deprecated:: v0.18.2
+       Use :meth:`Context.serialize`
     """
-    # Avoids cyclic imports
-    from .api import get_authenticated_user
-
-    data = {
-        "project": context.project,
-        "entity": context.entity,
-        "user": context.user,
-        "step": context.step,
-        "task": context.task,
-        "additional_entities": context.additional_entities,
-        "_pc_path": context.tank.pipeline_configuration.get_path()
-    }
-
-    # If there is an authenticated user.
-    user = get_authenticated_user()
-    if user:
-        # We should serialize it as well so that the next process knows who to
-        # run as.
-        data["_current_user"] = authentication.serialize_user(user)
-    return pickle.dumps(data)
+    return context.serialize()
 
 
 def deserialize(context_str):
     """
     The inverse of :meth:`serialize`.
 
-    :param context_str: String representation of context, created with :meth:`serialize`
-    :returns: :class:`Context`
+    .. deprecated:: v0.18.2
+       Use :meth:`Context.deserialize`
     """
-    # lazy load this to avoid cyclic dependencies
-    from .api import Tank, set_authenticated_user
-
-    data = pickle.loads(context_str)
-
-    # first get the pipeline config path out of the dict
-    pipeline_config_path = data["_pc_path"]
-    del data["_pc_path"]
-
-    # Authentication in Toolkit requires that credentials are passed from
-    # one process to another so the currently authenticated user is carried
-    # from one process to another. The current user needs to be part of the
-    # context because multiple DCCs can run at the same time under different
-    # users, e.g. launching Maya from the site as user A and Nuke from the tank
-    # command as user B.
-    user_string = data.get("_current_user")
-    if user_string:
-        # Remove it from the data
-        del data["_current_user"]
-        # and set the authenticated user user.
-        user = authentication.deserialize_user(user_string)
-        set_authenticated_user(user)
-
-    # create a Sgtk API instance.
-    tk = Tank(pipeline_config_path)
-
-    # add it to the constructor instance
-    data["tk"] = tk
-
-    # and lastly make the obejct
-    return Context(**data)
-
+    return Context.deserialize(context_str)
 
 ################################################################################################
 # YAML representer/constructor

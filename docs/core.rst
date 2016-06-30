@@ -69,13 +69,6 @@ Context
     :members:
     :exclude-members: tank
 
-.. autofunction:: sgtk.context.serialize
-.. autofunction:: sgtk.context.deserialize
-
-
-
-
-
 Executing Tank commands
 ---------------------------------------------------------
 
