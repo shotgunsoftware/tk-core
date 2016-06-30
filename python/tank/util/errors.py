@@ -11,7 +11,7 @@
 from ..errors import TankError
 
 
-class MissingConfigurationFileError(TankError):
+class EnvironmentVariableFileLookupError(TankError):
     """
     Thrown when an environment variable specific a location for a configuration
     file that doesn't exist.

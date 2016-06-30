@@ -33,4 +33,4 @@ from . import filesystem
 
 from .local_file_storage import LocalFileStorageManager
 
-from .errors import MissingConfigurationFileError
+from .errors import EnvironmentVariableFileLookupError

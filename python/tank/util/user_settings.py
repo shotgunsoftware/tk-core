@@ -12,59 +12,14 @@
 User settings management.
 """
 
-from __future__ import with_statement
-
 import os
 import ConfigParser
-import threading
 
-from .errors import MissingConfigurationFileError
+from .errors import EnvironmentVariableFileLookupError
 from .. import LogManager
+from .singleton import Singleton
 
 logger = LogManager.get_logger(__name__)
-
-class Singleton(object):
-    """
-    Thread-safe base class for singletons. Derived classes must implement _init_singleton.
-    """
-
-    __lock = threading.Lock()
-    def __new__(cls, *args, **kwargs):
-        """
-        Create the singleton instance if it hasn't been created already. Once instantiated,
-        the object will be cached and never be instantiated again for performance
-        reasons.
-        """
-
-        # Check if the instance has been created before taking the lock for performance
-        # reason.
-        if not hasattr(cls, "_instance") or cls._instance is None:
-            # Take the lock.
-            with cls.__lock:
-                # Check the instance again, it might have been created between the
-                # if and the lock.
-                if hasattr(cls, "_instance") and cls._instance:
-                    return cls._instance
-
-                # Create and init the instance.
-                instance = super(Singleton, cls).__new__(
-                    cls,
-                    *args,
-                    **kwargs
-                )
-                instance._init_singleton()
-
-                # remember the instance so that no more are created
-                cls._instance = instance
-
-        return cls._instance
-
-    @classmethod
-    def reset_singleton(cls):
-        """
-        Resets the internal singleton instance.
-        """
-        cls._instance = None
 
 
 class UserSettings(Singleton):
@@ -73,6 +28,25 @@ class UserSettings(Singleton):
     """
 
     _LOGIN = "Login"
+
+    def _init_singleton(self):
+        """
+        Singleton initialization.
+        """
+        path = self._compute_config_location()
+        logger.debug("Reading user settings from %s" % path)
+
+        self._user_config = self._load_config(path)
+
+        # Log the default settings
+        logger.debug("Default site: %s" % (self.default_site or "<missing>",))
+        logger.debug("Default proxy: %s" % (self._get_filtered_proxy(self.default_http_proxy or "<missing>"),))
+        proxy = self._get_filtered_proxy(self.default_app_store_http_proxy)
+        if self.is_default_app_store_http_proxy_set():
+            logger.debug("Default app store proxy: %s" % (proxy or "<empty>",))
+        else:
+            logger.debug("Default app store proxy: <missing>")
+        logger.debug("Default login: %s" % (self.default_login or "<missing>",))
 
     @property
     def default_http_proxy(self):
@@ -142,25 +116,6 @@ class UserSettings(Singleton):
             return False
         return True
 
-    def _init_singleton(self):
-        """
-        Singleton initialization.
-        """
-        path = self._compute_config_location()
-        logger.debug("Reading user settings from %s" % path)
-
-        self._user_config = self._load_config(path)
-
-        # Log the default settings
-        logger.debug("Default site: %s" % (self.default_site or "<missing>",))
-        logger.debug("Default proxy: %s" % (self._get_filtered_proxy(self.default_http_proxy or "<missing>"),))
-        proxy = self._get_filtered_proxy(self.default_app_store_http_proxy)
-        if self.is_default_app_store_http_proxy_set():
-            logger.debug("Default app store proxy: %s" % (proxy or "<empty>",))
-        else:
-            logger.debug("Default app store proxy: <missing>")
-        logger.debug("Default login: %s" % (self.default_login or "<missing>",))
-
     def _compute_config_location(self):
         """
         Retrieves the location of the ``config.ini`` file. It will look in multiple locations:
@@ -180,7 +135,7 @@ class UserSettings(Singleton):
             # If the path doesn't exist, raise an error.
             path = os.environ[var_name]
             if not os.path.exists(path):
-                raise MissingConfigurationFileError(var_name, path)
+                raise EnvironmentVariableFileLookupError(var_name, path)
 
             # Path is set and exist, we've found it!
             return path

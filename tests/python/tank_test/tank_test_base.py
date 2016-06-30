@@ -161,7 +161,7 @@ class TankTestBase(unittest.TestCase):
 
         # Make sure the global settings instance has been reset so anything from a previous test doesn't
         # leak into the next one.
-        UserSettings.reset_singleton()
+        UserSettings.clear_singleton()
 
         parameters = parameters or {}
         

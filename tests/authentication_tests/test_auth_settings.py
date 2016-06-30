@@ -44,7 +44,7 @@ class DefaultsManagerTest(TankTestBase):
         Sets up the next test's environment.
         """
         TankTestBase.setUp(self)
-        UserSettings.reset_singleton()
+        UserSettings.clear_singleton()
 
     @patch(
         "tank.authentication.session_cache.get_current_host",

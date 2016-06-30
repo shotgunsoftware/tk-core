@@ -21,48 +21,8 @@ class DefaultsManager(object):
     on disk and the system maintains a concept of a current user and a current
     host.
 
-    The defaults manager will also look in multiple locations for a file called ``config.ini``
-    in order to provide appropriate defaults:
-
-        - The SGTK_CONFIG_LOCATION environment variable,
-        - The SGTK_DESKTOP_CONFIG_LOCATION environment variable.
-        - The ~/Library/Application Support/Shotgun/config.ini file
-        - The ~/Library/Caches/Shotgun/desktop/config/config.ini file
-        - One of the fallback locations specified in the :meth:``~DefaultsManager.__init__``
-
-    .. code-block:: ini
-        # Login related settings
-        #
-        [Login]
-
-        # If specified, the username text input on the login screen will be populated
-        # with this value when logging into the Shotgun Desktop for the very first time.
-        # Defaults to the user's OS login.
-        #
-        default_login=$USERNAME
-
-        # If specified, the site text input on the login screen will be populated with
-        # this value when logging into the Shotgun Desktop for the very first time.
-        # Defaults to https://mystudio.shotgunstudio.com.
-        #
-        default_site=https://your-site-here.shotgunstudio.com
-
-        # If specified, the Shotgun Desktop will use these proxy settings to connect to
-        # the Shotgun site and the Toolkit App Store. The proxy string should be of the
-        # forms 123.123.123.123, 123.123.123.123:8888 or
-        # username:pass@123.123.123.123:8888.
-        # Empty by default.
-        #
-        http_proxy=123.234.345.456:8888
-
-        # If specified, the Shotgun API Desktop will use these proxy settings to connect
-        # to the Toolkit App Store. The proxy string format is the same as http_proxy.
-        # If the setting is present in the file but not set, then no proxy will be used
-        # to connect to the Toolkit App Store, regardless of the value of the http_proxy
-        # setting.
-        # Empty by default.
-        #
-        app_store_http_proxy=123.234.345.456:8888
+    If a setting isn't found, the DefaultsManager will fall back to the value stored inside
+    ``config.ini`` See :ref:`centralizing_settings` for more information.
 
     If, however, you want to implement a custom behavior around how defaults
     are managed, simply derive from this class and pass your custom instance
@@ -70,9 +30,6 @@ class DefaultsManager(object):
     """
 
     def __init__(self):
-        """
-        Constructor.
-        """
         # Breaks circular dependency between util and authentication framework
         from ..util.user_settings import UserSettings
         self._user_settings = UserSettings()

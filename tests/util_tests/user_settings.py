@@ -14,7 +14,7 @@ import os
 import unittest2 as unittest
 from mock import patch
 
-from tank.util import MissingConfigurationFileError
+from tank.util import EnvironmentVariableFileLookupError
 from tank.util.user_settings import UserSettings
 
 
@@ -67,8 +67,8 @@ class UserSettingsTests(unittest.TestCase):
         """
         Make sure the singleton is reset at the beginning of this test.
         """
-        UserSettings.reset_singleton()
-        self.addCleanup(UserSettings.reset_singleton)
+        UserSettings.clear_singleton()
+        self.addCleanup(UserSettings.clear_singleton)
 
     @patch("tank.settings.user.UserSettings._load_config", return_value=MockConfigParser({}))
     def test_empty_file(self, mock):
@@ -127,9 +127,9 @@ class UserSettingsTests(unittest.TestCase):
         Test environment variables being set to files that don't exist.
         """
         with patch.dict(os.environ, {"SGTK_CONFIG_LOCATION": "/a/b/c"}):
-            with self.assertRaisesRegexp(MissingConfigurationFileError, "/a/b/c"):
+            with self.assertRaisesRegexp(EnvironmentVariableFileLookupError, "/a/b/c"):
                 UserSettings()
 
         with patch.dict(os.environ, {"SGTK_DESKTOP_CONFIG_LOCATION": "/d/e/f"}):
-            with self.assertRaisesRegexp(MissingConfigurationFileError, "/d/e/f"):
+            with self.assertRaisesRegexp(EnvironmentVariableFileLookupError, "/d/e/f"):
                 UserSettings()
