@@ -168,6 +168,8 @@ class DumpConfigAction(Action):
         :param params: parameter dict.
         """
 
+        log.info("Dumping config...")
+
         # the env to dump
         env = self.tk.pipeline_configuration.get_environment(
             params["env"],
@@ -261,6 +263,18 @@ class DumpConfigAction(Action):
         # get a list of valid env names
         valid_env_names = self.tk.pipeline_configuration.get_environments()
 
+        # make sure the output file doesn't exist. at some point we may want to
+        # make this possible, but dump_config is more about debugging, so for
+        # now just error out if the file exists. overwriting any config file is
+        # scary anyway.
+        if parameters["file"]:
+            if os.path.exists(os.path.normpath(parameters["file"])):
+                raise TankError(
+                    "As a precaution, dumping to an existing file is not allowed.\n"
+                    "Please specify a different output path or move the existing file."
+                )
+
+        # make sure the supplied environment name is valid
         if parameters["env"] not in valid_env_names:
             if self._is_interactive:
                 print "\nUsage: %s\n" % (self._usage(),)

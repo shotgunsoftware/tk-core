@@ -50,7 +50,7 @@ class IODescriptorPath(IODescriptorBase):
         self._validate_descriptor(
             descriptor_dict,
             required=["type"],
-            optional=["name", "linux_path", "mac_path", "path", "windows_path"]
+            optional=["name", "linux_path", "mac_path", "path", "windows_path", "version"]
         )
 
         # platform specific location support
@@ -70,12 +70,18 @@ class IODescriptorPath(IODescriptorBase):
                 "descriptor dict %s." % (platform_key, descriptor_dict)
             )
 
-        # lastly, resolve environment variables
+        # lastly, resolve environment variables and ~
         self._path = os.path.expandvars(self._path)
-        
-        # and normalise:
+        self._path = os.path.expanduser(self._path)
+
+        # and normalize:
         self._path = os.path.normpath(self._path)
-        
+
+        # if there is a version defined in the descriptor dict
+        # (this is handy when doing framework development, but totally
+        #  non-required for finding the code)
+        self._version = descriptor_dict.get("version") or "Undefined"
+
         # if there is a name defined in the descriptor dict then lets use
         # this, otherwise we'll fall back to the folder name:
         self._name = descriptor_dict.get("name")
@@ -83,6 +89,8 @@ class IODescriptorPath(IODescriptorBase):
             # fall back to the folder name
             bn = os.path.basename(self._path)
             self._name, _ = os.path.splitext(bn)
+
+
 
     def _get_cache_paths(self):
         """
@@ -108,7 +116,7 @@ class IODescriptorPath(IODescriptorBase):
         """
         # version number does not make sense for this type of item
         # so a fixed string is returned
-        return "v0.0.0"
+        return self._version
 
     def download_local(self):
         """
