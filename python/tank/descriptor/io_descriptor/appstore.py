@@ -359,9 +359,9 @@ class IODescriptorAppStore(IODescriptorBase):
         # download and unzip
         try:
             shotgun.download_and_unpack_attachment(sg, attachment_id, target)
-        except ShotgunAttachmentDownloadError:
+        except ShotgunAttachmentDownloadError, e:
             raise TankAppStoreError(
-                "Failed to download %s from the Toolkit App Store (%s)" % (self, sg.base_url)
+                "Failed to download %s from the Toolkit App Store (%s). Error: %s" % (self, sg.base_url, e)
             )
 
         # write a stats record to the tank app store

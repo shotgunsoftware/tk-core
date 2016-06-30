@@ -12,6 +12,7 @@
 Shotgun utilities
 
 """
+from __future__ import with_statement
 
 import os
 import sys
@@ -271,9 +272,8 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
             bundle_content = sg.download_attachment(attachment_id)
 
             log.debug("Download complete. Saving into %s" % zip_tmp)
-            fh = open(zip_tmp, "wb")
-            fh.write(bundle_content)
-            fh.close()
+            with open(zip_tmp, "wb") as fh:
+                fh.write(bundle_content)
 
             log.debug("Unpacking %s bytes to %s..." % (os.path.getsize(zip_tmp), target))
             filesystem.ensure_folder_exists(target)
@@ -281,7 +281,9 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
 
         except Exception, e:
             # retry once
-            log.debug("Attempt %s: Attachment download failed: %s" % (attempt, e))
+            log.warning(
+                "Attempt %s: Attachment download of id %s from %s failed: %s" % (attempt, attachment_id, sg.base_url, e)
+            )
             attempt += 1
         else:
             done = True
@@ -292,7 +294,7 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
     if not done:
         # we were not successful
         raise ShotgunAttachmentDownloadError(
-            "Could not download attachment id %s from %s" % (attachment_id, sg.base_url)
+            "Failed to download attachment after %s retries. See error log for details." % retries
         )
 
     else:

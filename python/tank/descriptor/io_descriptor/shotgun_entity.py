@@ -130,9 +130,9 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         try:
             shotgun.download_and_unpack_attachment(self._sg_connection, self._version, target)
-        except ShotgunAttachmentDownloadError:
+        except ShotgunAttachmentDownloadError, e:
             raise TankDescriptorError(
-                "Failed to download %s from %s!" % (self, self._sg_connection.base_url)
+                "Failed to download %s from %s. Error: %s" % (self, self._sg_connection.base_url, e)
             )
 
 
