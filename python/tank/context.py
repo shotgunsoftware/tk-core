@@ -23,7 +23,6 @@ from . import authentication
 from .util import login
 from .util import shotgun_entity
 from .util import shotgun
-from . import constants
 from .errors import TankError
 from .path_cache import PathCache
 from .template import TemplatePath
@@ -1565,8 +1564,8 @@ def _context_data_from_cache(tk, entity_type, entity_id):
             # in the local storage defs and in the pipeline_configuration.yml file.
             raise TankError("The path '%s' associated with %s id %s does not " 
                             "resolve correctly. This may be an indication of an issue "
-                            "with the local storage setup. Please contact %s." 
-                            % (curr_path, entity_type, entity_id, constants.SUPPORT_EMAIL))
+                            "with the local storage setup. Please contact " 
+                            "support@shotgunsoftware.com" % (curr_path, entity_type, entity_id))
 
         # grab the name for the context entity
         if curr_entity["type"] == entity_type and curr_entity["id"] == entity_id:
