@@ -45,7 +45,7 @@ class TankBundle(object):
         self.__context = context
         self.__settings = settings
         self.__sg = None
-        self.__cache_location = None
+        self.__cache_location = {}
         self.__module_uid = None
         self.__descriptor = descriptor    
         self.__frameworks = {}
@@ -227,19 +227,8 @@ class TankBundle(object):
             stored_query_data_path = os.path.join(self.cache_location, "query.dat")
 
         """
-        # this method is memoized for performance since it is being called a lot!
-        if self.__cache_location is None:
-
-            self.__cache_location = self.__tk.execute_core_hook_method(
-                constants.CACHE_LOCATION_HOOK_NAME,
-                "get_bundle_data_cache_path",
-                project_id=self.__tk.pipeline_configuration.get_project_id(),
-                entry_point=self.__tk.pipeline_configuration.get_entry_point(),
-                pipeline_configuration_id=self.__tk.pipeline_configuration.get_shotgun_id(),
-                bundle=self
-            )
-        
-        return self.__cache_location
+        project_id = self.__tk.pipeline_configuration.get_project_id()
+        return self.get_project_cache_location(project_id)
 
     @property
     def context(self):
@@ -415,6 +404,29 @@ class TankBundle(object):
         
         return sys.modules[mod_name]
 
+    def get_project_cache_location(self, project_id):
+        """
+        Gets the bundle's cache-location path for the given project id.
+
+        :param project_id:  The project Entity id number.
+        :type project_id:   int
+
+        :returns:           Cache location directory path.
+        :rtype str:
+        """
+        # this method is memoized for performance since it is being called a lot!
+        if self.__cache_location.get(project_id) is None:
+
+            self.__cache_location[project_id] = self.__tk.execute_core_hook_method(
+                constants.CACHE_LOCATION_HOOK_NAME,
+                "get_bundle_data_cache_path",
+                project_id=project_id,
+                entry_point=self.__tk.pipeline_configuration.get_entry_point(),
+                pipeline_configuration_id=self.__tk.pipeline_configuration.get_shotgun_id(),
+                bundle=self
+            )
+
+        return self.__cache_location[project_id]
 
     def get_setting(self, key, default=None):
         """

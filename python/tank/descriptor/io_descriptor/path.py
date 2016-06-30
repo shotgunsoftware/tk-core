@@ -70,8 +70,9 @@ class IODescriptorPath(IODescriptorBase):
                 "descriptor dict %s." % (platform_key, descriptor_dict)
             )
 
-        # lastly, resolve environment variables
+        # lastly, resolve environment variables and ~
         self._path = os.path.expandvars(self._path)
+        self._path = os.path.expanduser(self._path)
 
         # and normalize:
         self._path = os.path.normpath(self._path)

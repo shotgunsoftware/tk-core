@@ -18,6 +18,8 @@ import sys
 import uuid
 import urllib2
 import urlparse
+import pprint
+import threading
 import tempfile
 
 # use api json to cover py 2.5
@@ -202,42 +204,6 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
 
     return config_data
 
-
-def __create_sg_connection(config_data=None, user=None):
-    """
-    Creates a standard Toolkit shotgun connection.
-
-    :param config_data: Configuration data dictionary. Keys host, api_script and api_key are
-                        expected, while http_proxy is optional. If None, the user parameter will be
-                        used to determine which credentials to use.
-    :param user: Shotgun user from the authentication module to use to create the
-                 connection. Won't be used if config_data is set. Can be None.
-
-    :raises TankError: Raised if both config_data and user are None.
-
-    :returns: A Shotgun connection.
-    """
-
-    if config_data:
-        # Credentials were passed in, so let's run the legacy authentication
-        # mechanism for script user.
-        sg = shotgun_api3.Shotgun(
-            config_data["host"],
-            script_name=config_data["api_script"],
-            api_key=config_data["api_key"],
-            http_proxy=config_data.get("http_proxy")
-        )
-    elif user:
-        sg = user.create_sg_connection()
-    else:
-        raise TankError("No Shotgun user available.")
-
-    # bolt on our custom user agent manager
-    sg.tk_user_agent_handler = ToolkitUserAgentHandler(sg)
-
-    return sg
-
-
 @LogManager.log_timing
 def download_url(sg, url, location):
     """
@@ -384,33 +350,28 @@ def get_deferred_sg_connection():
     return DeferredInitShotgunProxy()
 
 
-g_sg_cached_connection = None
+_g_sg_cached_connections = threading.local()
 def get_sg_connection():
     """
-    Returns a shotgun connection and maintains a global, cached connection so that only one
-    object is ever returned, no matter how many times this call is made.
-    
-    If you have access to a tk API handle, DO NOT USE THIS METHOD! Instead, use the 
-    tk.shotgun handle, which is also optimal and doesn't keep creating new instances.
-    
-    For all methods where no tk API handle is available (pre-init stuff and global 
-    tk commands for example), this method is useful for performance reasons.
-    
-    Whenever a Shotgun API instance is created, it pings the server to check that 
-    it is running the right versions etc. This is slow and inefficient and means that
-    there will be a delay every time create_sg_connection is called.
+    Returns a shotgun connection and maintains a global cache of connections
+    so that only one API instance is ever returned per thread, no matter how many
+    times this call is made.
 
-    This method caches a global (non-threadsafe!) sg instance and thereby avoids
-    the penalty of connecting to sg every single time the method is called.
-    
+        .. note:: Because Shotgun API instances are not safe to share across
+                  threads, this method caches SG Instances per-thread.
+
     :return: SG API handle    
     """
-    
-    global g_sg_cached_connection
-    if g_sg_cached_connection is None:
-        g_sg_cached_connection = create_sg_connection()
-    return g_sg_cached_connection
+    global _g_sg_cached_connections
+    sg = getattr(_g_sg_cached_connections, "sg", None)
 
+    if sg is None:
+        sg = create_sg_connection()
+        _g_sg_cached_connections.sg = sg
+
+    return sg
+
+@LogManager.log_timing
 def create_sg_connection(user="default"):
     """
     Creates a standard tank shotgun connection.
@@ -423,7 +384,9 @@ def create_sg_connection(user="default"):
     it is running the right versions etc. This is slow and inefficient and means that
     there will be a delay every time create_sg_connection is called.
     
-    :param user: Optional shotgun config user to use when connecting to shotgun, as defined in shotgun.yml
+    :param user: Optional shotgun config user to use when connecting to shotgun,
+                 as defined in shotgun.yml. This is a deprecated flag and should not
+                 be used.
     :returns: SG API instance
     """
 
@@ -440,12 +403,45 @@ def create_sg_connection(user="default"):
             "creating a shotgun API instance based on script based credentials in the "
             "shotgun.yml configuration file."
         )
-        config_data = __get_sg_config_data_with_script_user(__get_sg_config(), user)
-        api_handle = __create_sg_connection(config_data)
+
+        # try to find the shotgun.yml path
+        try:
+            config_file_path = __get_sg_config()
+        except TankError, e:
+            log.error(
+                "Trying to create a shotgun connection but this tk session does not have "
+                "an associated authenticated user. Therefore attempted to fall back on "
+                "a legacy authentication method where script based credentials are "
+                "located in a file relative to the location of the core API code. This "
+                "lookup in turn failed. No credentials can be determined and no connection "
+                "to Shotgun can be made. Details: %s" % e
+            )
+            raise TankError("Cannot connect to Shotgun - this tk session does not have "
+                            "an associated user and attempts to determine a valid shotgun "
+                            "via legacy configuration files failed. Details: %s" % e)
+
+        log.debug("Creating shotgun connection based on details in %s" % config_file_path)
+        config_data = __get_sg_config_data_with_script_user(config_file_path, user)
+
+        # Credentials were passed in, so let's run the legacy authentication
+        # mechanism for script user.
+        api_handle = shotgun_api3.Shotgun(
+            config_data["host"],
+            script_name=config_data["api_script"],
+            api_key=config_data["api_key"],
+            http_proxy=config_data.get("http_proxy"),
+            connect=False
+        )
+
     else:
         # Otherwise use the authenticated user to create the connection.
-        log.debug("Creating shotgun connection from %r" % sg_user)
-        api_handle = __create_sg_connection(None, sg_user)
+        log.debug("Creating shotgun connection from %r..." % sg_user)
+        api_handle = sg_user.create_sg_connection()
+
+    # bolt on our custom user agent manager so that we can
+    # send basic version metrics back via http headers.
+    api_handle.tk_user_agent_handler = ToolkitUserAgentHandler(api_handle)
+
     return api_handle
 
 
@@ -824,6 +820,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
     :returns: The created entity dictionary
     """
+    log.debug("Publish: Begin register publish")
+
     # get the task from the optional args, fall back on context task if not set
     task = kwargs.get("task")
     if task is None:
@@ -849,6 +847,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
     published_file_entity_type = get_published_file_entity_type(tk)
 
+    log.debug("Publish: Resolving the published file type")
     sg_published_file_type = None
     # query shotgun for the published_file_type
     if published_file_type:
@@ -871,7 +870,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                 sg_published_file_type = tk.shotgun.create("TankType", {"code": published_file_type, "project": context.project})
 
     # create the publish
-    entity = _create_published_file(tk, 
+    log.debug("Publish: Creating publish in Shotgun")
+    entity = _create_published_file(tk,
                                     context, 
                                     path, 
                                     name, 
@@ -885,6 +885,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                                     sg_fields)
 
     # upload thumbnails
+    log.debug("Publish: Uploading thumbnails")
     if thumbnail_path and os.path.exists(thumbnail_path):
 
         # publish
@@ -908,8 +909,10 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
 
     # register dependencies
+    log.debug("Publish: Register dependencies")
     _create_dependencies(tk, entity, dependency_paths, dependency_ids)
 
+    log.debug("Publish: Complete")
     return entity
 
 def _translate_abstract_fields(tk, path):
@@ -1060,13 +1063,50 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         "version_number": version_number,
         })
 
+    # handle the path definition
     if path_is_url:
         data["path"] = { "url":path }
     else:
         # Make path platform agnostic.
-        _, path_cache = _calc_path_cache(tk, path)
-        
-        data["path"] = { "local_path": path }
+        storage_name, path_cache = _calc_path_cache(tk, path)
+
+        # check if the shotgun server supports the storage and relative_path parameters
+        # which allows us to specify exactly which storage to bind a publish to rather
+        # than relying on Shotgun to compute this
+        supports_specific_storage_syntax = (
+            hasattr(tk.shotgun, "server_caps") and
+            tk.shotgun.server_caps.version and
+            tk.shotgun.server_caps.version >= (6, 3, 17)
+        )
+
+        if supports_specific_storage_syntax:
+            # explicitly pass relative path and storage to shotgun
+            storage = tk.shotgun.find_one("LocalStorage", [["code", "is", storage_name]])
+
+            if storage is None:
+                # there is no storage in Shotgun that matches the one toolkit expects.
+                # this *may* be ok because there may be another storage in Shotgun that
+                # magically picks up the publishes and associates with them. In this case,
+                # issue a warning and fall back on the server-side functionality
+                log.warning(
+                    "Could not find the expected storage '%s' in Shotgun to associate "
+                    "publish '%s' with - falling back to Shotgun's built-in storage "
+                    "resolution logic. It is recommended that you add the '%s' storage "
+                    "to Shotgun" % (storage_name, path, storage_name))
+                data["path"] = {"local_path": path}
+
+            else:
+                data["path"] = {"relative_path": path_cache, "local_storage": storage}
+
+        else:
+            # use previous syntax where we pass the whole path to Shotgun
+            # and shotgun will do the storage/relative path split server side.
+            # This operation may do unexpected things if you have multiple
+            # storages that are identical or overlapping
+            data["path"] = {"local_path": path}
+
+        # fill in the path cache field which is used for filtering in Shotgun
+        # (because SG does not support
         data["path_cache"] = path_cache        
 
     if created_by_user:
@@ -1092,6 +1132,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     # now call out to hook just before publishing
     data = tk.execute_core_hook(constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context)
 
+    log.debug("Registering publish in Shotgun: %s" % pprint.pformat(data))
     return tk.shotgun.create(published_file_entity_type, data)
 
 def _calc_path_cache(tk, path):
@@ -1119,8 +1160,13 @@ def _calc_path_cache(tk, path):
             # Remove parent dir plus "/" - be careful to handle the case where
             # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
             path_cache = norm_path[len(norm_parent_dir):].lstrip("/")
+            log.debug(
+                "Split up path '%s' into storage %s and relative path '%s'" % (path, root_name, path_cache)
+            )
             return root_name, path_cache
+
     # not found, return None values
+    log.debug("Unable to split path '%s' into a storage and a relative path." % path)
     return None, None
 
 

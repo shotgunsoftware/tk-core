@@ -794,7 +794,7 @@ def _list_commands(tk, ctx):
     # engine is initialized.
 
     by_category.setdefault("Login", []).append(
-        Action("logout", "unused", "Log out of the current user (no need for a contex).", "Login")
+        Action("logout", "unused", "Log out of the current user (no need for a context).", "Login")
     )
 
     num_engine_commands = 0

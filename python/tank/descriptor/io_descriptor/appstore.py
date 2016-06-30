@@ -631,7 +631,10 @@ class IODescriptorAppStore(IODescriptorBase):
                     raise TankAppStoreConnectionError(
                         "Connection to %s timed out: %s" % (app_store_sg.config.server, e)
                     )
-            except Exception:
+                else:
+                    # other type of ssl error
+                    raise TankAppStoreError(e)
+            except Exception, e:
                 raise TankAppStoreError(e)
 
             if script_user is None:
