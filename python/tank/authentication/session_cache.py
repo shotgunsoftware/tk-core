@@ -404,7 +404,7 @@ def set_current_host(host):
     current_host_file[_CURRENT_HOST] = host.strip()
     _write_yaml_file(file_path, current_host_file)
 
-
+@LogManager.log_timing
 def generate_session_token(hostname, login, password, http_proxy, auth_token=None):
     """
     Generates a session token for a given username/password on a given site.
@@ -424,6 +424,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     """
     try:
         # Create the instance that does not connect right away for speed...
+        logger.debug("Connecting to Shotgun to generate session token...")
         sg = Shotgun(
             hostname,
             login=login,

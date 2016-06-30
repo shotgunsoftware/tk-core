@@ -17,6 +17,7 @@ import os
 import time
 import shutil
 import pprint
+import threading
 import logging
 import tempfile
 
@@ -298,7 +299,7 @@ class TankTestBase(unittest.TestCase):
             os.remove(path_cache_file)
             
         # clear global shotgun accessor
-        tank.util.shotgun.g_sg_cached_connection = None
+        tank.util.shotgun._g_sg_cached_connections = threading.local()
             
         # get rid of init cache
         if os.path.exists(self.init_cache_location):

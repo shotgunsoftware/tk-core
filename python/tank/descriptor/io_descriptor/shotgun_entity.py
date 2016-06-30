@@ -9,12 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import uuid
-import tempfile
 
 from .base import IODescriptorBase
-from ...util.zip import unzip_file
-from ...util import filesystem
+from ...util import filesystem, shotgun
+from ...util.errors import ShotgunAttachmentDownloadError
 from ..errors import TankDescriptorError
 from ... import LogManager
 
@@ -129,30 +127,14 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         # cache into the primary location
         target = self._get_cache_paths()[0]
-        filesystem.ensure_folder_exists(target)
 
-        # and now for the download.
-        # @todo: progress feedback here - when the SG api supports it!
-        # sometimes people report that this download fails (because of flaky connections etc)
-        log.debug("Downloading attachment %s..." % self._version)
         try:
-            bundle_content = self._sg_connection.download_attachment(self._version)
-        except Exception, e:
-            # retry once
-            log.debug("Downloading failed, retrying. Error: %s" % e)
-            bundle_content = self._sg_connection.download_attachment(self._version)
+            shotgun.download_and_unpack_attachment(self._sg_connection, self._version, target)
+        except ShotgunAttachmentDownloadError:
+            raise TankDescriptorError(
+                "Failed to download %s from %s!" % (self, self._sg_connection.base_url)
+            )
 
-        zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
-        fh = open(zip_tmp, "wb")
-        fh.write(bundle_content)
-        fh.close()
-
-        # unzip core zip file to app target location
-        log.debug("Unpacking %s bytes to %s..." % (os.path.getsize(zip_tmp), target))
-        unzip_file(zip_tmp, target)
-
-        # clear temp file
-        filesystem.safe_delete_file(zip_tmp)
 
     def get_latest_version(self, constraint_pattern=None):
         """
