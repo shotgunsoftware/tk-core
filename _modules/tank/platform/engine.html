@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.1 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.2 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.2 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.1.<br>
+    <b>tk-core</b> v0.18.2.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1004,15 +1004,54 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Register a command with a name and a callback function.</span>
 
-<span class="sd">        Each engine implements its own command handling, so the way</span>
-<span class="sd">        commands are exposed to the user can differ. Typically, they</span>
-<span class="sd">        appear as items on a Shotgun menu somewhere in the user interface</span>
-<span class="sd">        of the DCC that is being integrated into.</span>
+<span class="sd">        A *command* refers to an access point for some functionality.</span>
+<span class="sd">        In most cases, commands will appear as items on a Shotgun dropdown</span>
+<span class="sd">        menu, but it ultimately depends on the engine - in the Shell engine,</span>
+<span class="sd">        commands are instead represented as a text base listing and in the</span>
+<span class="sd">        Shotgun Desktop it is a scrollable list of larger icons.</span>
 
-<span class="sd">        Properties can store</span>
-<span class="sd">        implementation specific configuration, like if a tooltip is supported.</span>
-<span class="sd">        Typically called from the :meth:`Application.init_app()` method of an app::</span>
+<span class="sd">        An arbitrary list of properties can be passed into the engine</span>
+<span class="sd">        in the form of a properties dictionary. The interpretation of</span>
+<span class="sd">        the properties dictionary is engine specific, but in general</span>
+<span class="sd">        the following properties are supported:</span>
 
+<span class="sd">        - ``short_name`` - A shorter name, typically intended for console use (e.g. &#39;import_cut&#39;)</span>
+
+<span class="sd">        - ``icon`` - A path to a 256x256 png app icon. If not specified, the icon for the app will be used.</span>
+
+<span class="sd">        - ``description`` - a one line description of the command, suitable for a tooltip.</span>
+<span class="sd">          If no description is passed, the one provided in the app manifest will be used.</span>
+
+<span class="sd">        - ``type`` - The type of command - hinting where it should appear. Options vary between</span>
+<span class="sd">          engines and the following three are supported:</span>
+
+<span class="sd">            - ``context_menu`` - Supported on all engines. Place item on</span>
+<span class="sd">              the context menu (first item on the shotgun menu).</span>
+<span class="sd">            - ``panel`` - This command is associated with a panel app if the target</span>
+<span class="sd">              environment supports a special notion of panel related actions, place</span>
+<span class="sd">              the command there. (supported by for example Nuke)</span>
+<span class="sd">            - ``node`` - For applications that have a specific node menu (like Nuke),</span>
+<span class="sd">              place the command there.</span>
+
+<span class="sd">        Specifically for the Shotgun engine, the following parameters are supported:</span>
+
+<span class="sd">        - ``title`` - Title to appear on shotgun action menu (e.g. &quot;Create Folders&quot;)</span>
+
+<span class="sd">        - ``deny_permissions`` - List of permission groups to exclude this</span>
+<span class="sd">          menu item for (e.g. ``[&quot;Artist&quot;]``)</span>
+
+<span class="sd">        - ``deny_platforms`` - List of platforms for which not to show the menu</span>
+<span class="sd">          (e.g. ``[&quot;windows&quot;, &quot;mac&quot;, &quot;linux&quot;]``). Please note that there are</span>
+<span class="sd">          other ways to achieve this same result.</span>
+
+<span class="sd">        - ``supports_multiple_selection`` - a special flag that allows multiple objects</span>
+<span class="sd">          in Shotgun to be selected and operated on. An example showing how to write a</span>
+<span class="sd">          multi select shotgun app is provided in a special branch in the sample starter</span>
+<span class="sd">          app: https://github.com/shotgunsoftware/tk-multi-starterapp/tree/shotgun_multi_select</span>
+
+
+<span class="sd">        Typical usage normally looks something like this -</span>
+<span class="sd">        register_command is called from the :meth:`Application.init_app()` method of an app::</span>
 
 <span class="sd">            self.engine.register_command(</span>
 <span class="sd">                &quot;Work Area Info...&quot;,</span>
@@ -2836,7 +2875,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.1',
+            VERSION:'v0.18.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

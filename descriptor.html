@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.1 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.2 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.1 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.2 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -137,7 +137,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.1.<br>
+    <b>tk-core</b> v0.18.2.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -355,6 +355,11 @@ development. This is when you use the <code class="docutils literal"><span class
 
 {
     type: dev,
+    path: ~/path/to/app
+}
+
+{
+    type: dev,
     windows_path: c:\path\to\app,
     linux_path: /path/to/app,
     mac_path: /path/to/app
@@ -363,7 +368,8 @@ development. This is when you use the <code class="docutils literal"><span class
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The path and dev descriptors support environment variable resolution on the form <code class="docutils literal"><span class="pre">${MYENVVAR}</span></code></p>
+<p class="last">The path and dev descriptors support environment variable resolution on the form <code class="docutils literal"><span class="pre">${MYENVVAR}</span></code>
+as well as user directory resolution if the path starts with <cite>~</cite>.</p>
 </div>
 <p>Sometimes it can be handy to organize your development sandbox relative to a pipeline configuration.
 If all developers in the studio share a convention where they for example have a <code class="docutils literal"><span class="pre">dev</span></code> folder inside
@@ -2307,7 +2313,7 @@ If not url has been defined, None is returned.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.1',
+            VERSION:'v0.18.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
