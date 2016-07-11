@@ -630,7 +630,6 @@ class Context(object):
         ctx_copy.__user = user
         return ctx_copy
 
-
     ################################################################################################
     # serialization
 
@@ -1332,6 +1331,7 @@ def from_path(tk, path, previous_context=None):
         context["entity"] = None
 
     return Context(**context)
+
 
 ################################################################################################
 # serialization
