@@ -634,7 +634,7 @@ class Context(object):
     ################################################################################################
     # serialization
 
-    def serialize(self):
+    def serialize(self, with_user_credentials=True):
         """
         Serializes the context into a string.
 
@@ -647,10 +647,16 @@ class Context(object):
             >>> import sgtk
             >>> tk = sgtk.sgtk_from_path("/studio.08/demo_project")
             >>> ctx = tk.context_from_path("/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work")
-            >>> context_str = sgtk.context.serialize(ctx)
-            >>> new_ctx = sgtk.context.deserialize(context_str)
+            >>> context_str = ctx.serialize(ctx)
+            >>> new_ctx = sgtk.Context.deserialize(context_str)
 
-        .. note:: The currently authenticated user is also serialized together with the Context.
+        :param with_user_credentials: If ``True``, the currently authenticated user's credentials, as
+            returned by :meth:`sgtk.get_authenticated_user`, will also be serialized with the context.
+
+        .. note:: For example, credentials should be omitted (``with_user_credentials=False``) when
+            serializing the context from a user's current session to send it to a render farm. By doing
+            so, invoking :meth:`sgtk.Context.deserialize` on the render farm will only restore the
+            context and not the authenticated user.
 
         :returns: String representation
         """
@@ -667,12 +673,13 @@ class Context(object):
             "_pc_path": self.tank.pipeline_configuration.get_path()
         }
 
-        # If there is an authenticated user.
-        user = get_authenticated_user()
-        if user:
-            # We should serialize it as well so that the next process knows who to
-            # run as.
-            data["_current_user"] = authentication.serialize_user(user)
+        if with_user_credentials:
+            # If there is an authenticated user.
+            user = get_authenticated_user()
+            if user:
+                # We should serialize it as well so that the next process knows who to
+                # run as.
+                data["_current_user"] = authentication.serialize_user(user)
         return pickle.dumps(data)
 
     @classmethod
@@ -680,7 +687,11 @@ class Context(object):
         """
         The inverse of :meth:`Context.serialize`.
 
-        :param context_str: String representation of context, created with :meth:`serialize`
+        :param context_str: String representation of context, created with :meth:`Context.serialize`
+
+        .. note:: If the context was serialized with the user credentials, the currently authenticated
+            user will be updated with these credentials.
+
         :returns: :class:`Context`
         """
         # lazy load this to avoid cyclic dependencies
@@ -1352,8 +1363,10 @@ def context_yaml_representer(dumper, context):
     Custom serializer.
     Creates yaml code for a context object.
 
-    Legacy, kept for compatibility reasons,
-    can probably be removed at this point.
+    Legacy, kept for compatibility reasons, can probably be removed at this point.
+
+    .. note:: Contrary to :meth:`sgtk.Context.serialize`, this method doesn't serialize the
+        currently authenticated user.
     """
     
     # first get the stuff which represents all the Context() 
@@ -1379,8 +1392,10 @@ def context_yaml_constructor(loader, node):
     Custom deserializer.
     Constructs a context object given the yaml data provided.
 
-    Legacy, kept for compatibility reasons,
-    can probably be removed at this point.
+    Legacy, kept for compatibility reasons, can probably be removed at this point.
+
+    .. note:: Contrary to :meth:`sgtk.Context.deserialize`, this method doesn't can't restore the
+        currently authenticated user.
     """
     # lazy load this to avoid cyclic dependencies
     from .api import Tank
