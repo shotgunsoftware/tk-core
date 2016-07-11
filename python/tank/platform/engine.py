@@ -1524,6 +1524,17 @@ class Engine(TankBundle):
         """
         Shows a non-modal dialog window in a way suitable for this engine. 
         The engine will attempt to parent the dialog nicely to the host application.
+        The dialog will be created with a standard Toolkit window title bar where
+        the title will be displayed.
+
+        .. note:: In some cases, it is necessary to hide the standard Toolkit title
+                  bar. You can do this by adding a property to the widget class you are
+                  displaying::
+
+                        @property
+                        def hide_tk_title_bar(self):
+                            "Tell the system to not show the standard toolkit toolbar"
+                            return True
 
         **Notes for engine developers**
 
@@ -1550,7 +1561,7 @@ class Engine(TankBundle):
         Finally, if the application you are writing an engine for is Qt based then you may not need
         to override any of these methods (e.g. the tk-nuke engine).
 
-        :param title: The title of the window
+        :param title: The title of the window. This will appear in the Toolkit title bar.
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         :type widget_class: :class:`PySide.QtGui.QWidget`
@@ -1578,6 +1589,17 @@ class Engine(TankBundle):
         Shows a modal dialog window in a way suitable for this engine. The engine will attempt to
         integrate it as seamlessly as possible into the host application. This call is blocking 
         until the user closes the dialog.
+        The dialog will be created with a standard Toolkit window title bar where
+        the title will be displayed.
+
+        .. note:: In some cases, it is necessary to hide the standard Toolkit title
+                  bar. You can do this by adding a property to the widget class you are
+                  displaying::
+
+                        @property
+                        def hide_tk_title_bar(self):
+                            "Tell the system to not show the standard toolkit toolbar"
+                            return True
         
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
@@ -1611,8 +1633,20 @@ class Engine(TankBundle):
         
         If the engine does not specifically implement panel support, the window will 
         be shown as a modeless dialog instead and the call is equivalent to 
-        calling show_dialog().
-        
+        calling :meth:`show_dialog()`.
+
+        The dialog will be created with a standard Toolkit window title bar where
+        the title will be displayed.
+
+        .. note:: In some cases, it is necessary to hide the standard Toolkit title
+                  bar. You can do this by adding a property to the widget class you are
+                  displaying::
+
+                        @property
+                        def hide_tk_title_bar(self):
+                            "Tell the system to not show the standard toolkit toolbar"
+                            return True
+
         :param panel_id: Unique identifier for the panel, as obtained by register_panel().
         :param title: The title of the panel
         :param bundle: The app, engine or framework object that is associated with this window
