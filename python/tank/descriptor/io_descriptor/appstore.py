@@ -675,13 +675,11 @@ class IODescriptorAppStore(IODescriptorBase):
         """
         config_data = shotgun.get_associated_sg_config_data()
         if config_data and constants.APP_STORE_HTTP_PROXY in config_data:
-            # Cast any falsy value (e.g. "") from the settings into None.
-            return config_data[constants.APP_STORE_HTTP_PROXY] or None
+            return config_data[constants.APP_STORE_HTTP_PROXY]
 
         settings = UserSettings()
-        if settings.is_default_app_store_http_proxy_set():
-            # Cast any falsy value (e.g. "") from the settings into None.
-            return settings.app_store_http_proxy or None
+        if settings.is_app_store_proxy_set():
+            return settings.app_store_proxy
 
         # Use the http proxy from the connection so we don't have to run
         # the connection hook again.

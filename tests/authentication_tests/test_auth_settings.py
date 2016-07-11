@@ -59,10 +59,10 @@ class DefaultsManagerTest(TankTestBase):
         Test the behaviour of the defaults manager when there are no global settings.
         """
         instance = UserSettings._instance = Mock()
-        instance.default_http_proxy = None
+        instance.shotgun_proxy = None
         instance.default_site = self._CONFIG_HOST
         instance.default_login = self._CONFIG_USER
-        instance.default_app_store_http_proxy = None
+        instance.app_store_proxy = None
 
         dm = DefaultsManager()
         self.assertEqual(dm.get_host(), self._SESSION_CACHE_HOST)
@@ -83,7 +83,7 @@ class DefaultsManagerTest(TankTestBase):
         and the config file is set.
         """
         instance = UserSettings._instance = Mock()
-        instance.default_http_proxy = self._CONFIG_HTTP_PROXY
+        instance.shotgun_proxy = self._CONFIG_HTTP_PROXY
         instance.default_site = self._CONFIG_HOST
         instance.default_login = self._CONFIG_USER
 
@@ -104,7 +104,7 @@ class DefaultsManagerTest(TankTestBase):
         Make sure that shotgun.yml always overrides config.ini
         """
         instance = UserSettings._instance = Mock()
-        instance.default_http_proxy = self._CONFIG_HTTP_PROXY
+        instance.shotgun_proxy = self._CONFIG_HTTP_PROXY
         instance.default_site = self._CONFIG_HOST
         instance.default_login = self._CONFIG_USER
 
@@ -124,7 +124,7 @@ class DefaultsManagerTest(TankTestBase):
         Make sure that no proxy in shogun.yml means proxy in shotgun.yml will be picked.
         """
         instance = UserSettings._instance = Mock()
-        instance.default_http_proxy = self._CONFIG_HTTP_PROXY
+        instance.shotgun_proxy = self._CONFIG_HTTP_PROXY
 
         dm = CoreDefaultsManager()
         self.assertIs(dm.get_http_proxy(), self._CONFIG_HTTP_PROXY)

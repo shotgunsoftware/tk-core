@@ -15,9 +15,11 @@ User settings management.
 import os
 import ConfigParser
 
+from .local_file_storage import LocalFileStorageManager
 from .errors import EnvironmentVariableFileLookupError
 from .. import LogManager
 from .singleton import Singleton
+
 
 logger = LogManager.get_logger(__name__)
 
@@ -40,32 +42,32 @@ class UserSettings(Singleton):
 
         # Log the default settings
         logger.debug("Default site: %s" % (self.default_site or "<missing>",))
-        logger.debug("Default proxy: %s" % (self._get_filtered_proxy(self.default_http_proxy or "<missing>"),))
-        proxy = self._get_filtered_proxy(self.default_app_store_http_proxy)
-        if self.is_default_app_store_http_proxy_set():
-            logger.debug("Default app store proxy: %s" % (proxy or "<empty>",))
-        else:
-            logger.debug("Default app store proxy: <missing>")
         logger.debug("Default login: %s" % (self.default_login or "<missing>",))
+        logger.debug("Shotgun proxy: %s" % (self._get_filtered_proxy(self.shotgun_proxy or "<missing>"),))
+        proxy = self._get_filtered_proxy(self.app_store_proxy)
+        if self.is_app_store_proxy_set():
+            logger.debug("App Store proxy: %s" % (proxy or "<empty>",))
+        else:
+            logger.debug("App Store proxy: <missing>")
 
     @property
-    def default_http_proxy(self):
+    def shotgun_proxy(self):
         """
         :returns: The default proxy.
         """
         return self._get_value("http_proxy")
 
-    def is_default_app_store_http_proxy_set(self):
+    def is_app_store_proxy_set(self):
         """
         :returns: ``True`` if ``app_store_http_proxy`` is set, ``False`` otherwise.
         """
         return self._is_setting_found("app_store_http_proxy")
 
     @property
-    def default_app_store_http_proxy(self):
+    def app_store_proxy(self):
         """
-        :returns: The app store specific proxy or None is not set or set to an empty value.
-            Use is_default_app_store_http_proxy_set to disambiguate.
+        :returns: The app store specific proxy. If ``None``, it means the setting is absent from the
+            file or set to an empty value. Use `is_app_store_proxy_set` to disambiguate.
         """
         # If the config parser returned a falsy value, it meant that the app_store_http_proxy
         # setting was present but empty. We'll advertise that fact as None instead.
@@ -87,18 +89,17 @@ class UserSettings(Singleton):
 
     def _get_value(self, key):
         """
-        Retrieves a value from the config.ini file. If the value is not set, returns the default.
+        Retrieves a value from the ``config.ini`` file. If the value is not set, returns the default.
         Since all values are strings inside the file, you can optionally cast the data to another type.
 
-        :param default: If the value is not found, returns this default value. Defaults to None.
+        :param key: Name of the setting within the Login section.
 
         :returns: The appropriately type casted value if the value is found, default otherwise.
         """
         if not self._is_setting_found(key):
             return None
         else:
-            # Read the value, remove any extra whitespace. If the string is empty,
-            # or None will set value to None
+            # Read the value, remove any extra whitespace.
             value = os.path.expandvars(self._user_config.get(self._LOGIN, key))
             return value.strip()
 
@@ -116,32 +117,39 @@ class UserSettings(Singleton):
             return False
         return True
 
+    def _evaluate_env_var(self, var_name):
+        """
+        Evaluates an environment variable.
+
+        :param var_name: Variable to evaluate.
+
+        :returns: Value if set, None otherwise.
+
+        :raises EnvironmentVariableFileLookupError: Raised if the variable is set, but the file doesn't
+                                                    exist.
+        """
+        if var_name not in os.environ:
+            return None
+
+        # If the path doesn't exist, raise an error.
+        path = os.environ[var_name]
+        if not os.path.exists(path):
+            raise EnvironmentVariableFileLookupError(var_name, path)
+
+        # Path is set and exist, we've found it!
+        return path
+
     def _compute_config_location(self):
         """
         Retrieves the location of the ``config.ini`` file. It will look in multiple locations:
 
-            - The ``SGTK_CONFIG_LOCATION`` environment variable,
+            - The ``SGTK_CONFIG_LOCATION`` environment variable.
             - The ``SGTK_DESKTOP_CONFIG_LOCATION`` environment variable.
-            - The ``~/Library/Application Support/Shotgun/config.ini`` file
-            - The ``~/Library/Caches/Shotgun/desktop/config/config.ini`` file
+            - The Shotgun folder.
+            - The Shotgun Desktop folder.
 
         :returns: The location where to read the configuration file from.
         """
-        for var_name in ["SGTK_CONFIG_LOCATION", "SGTK_DESKTOP_CONFIG_LOCATION"]:
-            # If environment variable is not set, move to the next one.
-            if var_name not in os.environ:
-                continue
-
-            # If the path doesn't exist, raise an error.
-            path = os.environ[var_name]
-            if not os.path.exists(path):
-                raise EnvironmentVariableFileLookupError(var_name, path)
-
-            # Path is set and exist, we've found it!
-            return path
-
-        # Breaks circular dependency...
-        from ..util import LocalFileStorageManager
 
         # This is the default location.
         default_location = os.path.join(
@@ -151,6 +159,8 @@ class UserSettings(Singleton):
 
         # This is the complete list of paths we need to test.
         file_locations = [
+            self._evaluate_env_var("SGTK_CONFIG_LOCATION"),
+            self._evaluate_env_var("SGTK_DESKTOP_CONFIG_LOCATION"),
             # Default location first
             default_location,
             # This is the location set by users of the Shotgun Desktop in the past.
@@ -165,7 +175,7 @@ class UserSettings(Singleton):
 
         # Search for the first path that exists and then use it.
         for loc in file_locations:
-            if os.path.exists(loc):
+            if loc and os.path.exists(loc):
                 return loc
 
         # Nothing was found, just use the default location even tough it's empty.

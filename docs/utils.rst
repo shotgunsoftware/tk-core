@@ -80,10 +80,14 @@ following order:
 
     The Shotgun Desktop user folder is located at:
 
-    - Windows: `%APPDATA%\Shotgun\desktop\config.ini``
+    - Windows: ``%APPDATA%\Shotgun\desktop\config.ini``
     - macOS: ``~/Library/Caches/Shotgun/desktop/config.ini``
     - Linux: ``~/shotgun/desktop/config.ini``
 
+
+Incorrectly configuring this file may raise an exception:
+
+.. autoclass:: sgtk.util.EnvironmentVariableFileLookupError
 
 
 File System Utilities

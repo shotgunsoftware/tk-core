@@ -8,19 +8,21 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+Utilities related errors.
+"""
+
 from ..errors import TankError
 
 
 class EnvironmentVariableFileLookupError(TankError):
     """
-    Thrown when an environment variable specific a location for a configuration
+    Raised when an environment variable specifying a location points to configuration
     file that doesn't exist.
     """
 
     def __init__(self, var_name, path):
         """
-        Constructor.
-
         :param str var_name: Name of the environment variable used.
         :param str path: Path to the configuration file that doesn't exist.
         """
