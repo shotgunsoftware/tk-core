@@ -38,7 +38,8 @@ class LoginDialog(QtGui.QDialog):
         """
         Constructs a dialog.
 
-        :param is_session_renewal: Boolean indicating if we are renewing a session or authenticating a user from scratch.
+        :param is_session_renewal: Boolean indicating if we are renewing a session or authenticating a user from
+            scratch.
         :param hostname: The string to populate the site field with. Defaults to "".
         :param login: The string to populate the login field with. Defaults to "".
         :param fixed_host: Indicates if the hostname can be changed. Defaults to False.
@@ -182,7 +183,10 @@ class LoginDialog(QtGui.QDialog):
 
         # the trick of activating + raising does not seem to be enough for
         # modal dialogs. So force put them on top as well.
-        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | self.windowFlags())
+        # On PySide2, or-ring the current window flags with WindowStaysOnTopHint causes the dialog
+        # to freeze, so only set the WindowStaysOnTopHint flag as this appears to not disable the
+        # other flags.
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         return QtGui.QDialog.exec_(self)
 
     def result(self):
@@ -252,6 +256,7 @@ class LoginDialog(QtGui.QDialog):
         :raises MissingTwoFactorAuthenticationFault: Raised if auth_code was None but was required
             by the server.
         """
+        success = False
         try:
             # set the wait cursor
             QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
@@ -265,12 +270,16 @@ class LoginDialog(QtGui.QDialog):
             # authentication did not succeed
             self._set_error_message(error_label, e)
         else:
-            self.accept()
+            success = True
         finally:
             # restore the cursor
             QtGui.QApplication.restoreOverrideCursor()
             # dialog is done
             QtGui.QApplication.processEvents()
+
+        # Do not accept while the cursor is overriden, if freezes the dialog.
+        if success:
+            self.accept()
 
     def _verify_2fa_pressed(self):
         """
