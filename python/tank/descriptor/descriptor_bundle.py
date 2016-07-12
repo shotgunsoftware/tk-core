@@ -186,32 +186,54 @@ class BundleDescriptor(Descriptor):
         sg_fields_def = manifest.get("requires_shotgun_fields")
 
         if sg_fields_def:  # can be defined as None from yml file
+
+            log.debug("Processing requires_shotgun_fields manifest directive")
+
             for sg_entity_type in sg_fields_def:
+
                 for field in sg_fields_def.get(sg_entity_type, []):
+
                     # attempt to create field!
                     sg_data_type = field["type"]
                     sg_field_name = field["system_name"]
 
-                    # sg_my_awesome_field -> My Awesome Field
-                    if not sg_field_name.startswith("sg_"):
-                        # invalid field name
-                        raise TankDescriptorError(
-                            "Invalid field name '%s' in app manifest. "
-                            "Must start with sg_" % sg_field_name
-                        )
-
-                    ui_field_name = " ".join(
-                        word.capitalize() for word in sg_field_name[3:].split("_")
+                    log.debug(
+                        "Field %s.%s (type %s) is required." % (sg_entity_type, sg_field_name, sg_data_type)
                     )
 
                     # now check that the field exists
                     sg_field_schema = tk.shotgun.schema_field_read(sg_entity_type)
                     if sg_field_name not in sg_field_schema:
+
+                        log.debug("Field does not exist - attempting to create it.")
+
+                        if not sg_field_name.startswith("sg_"):
+                            # the schema_field_create has got some magic when it creates
+                            # fields. It for example always prefixes custom fields with sg_...
+                            # any fields defined in the manifest that don't already exist
+                            # can therefore not be created.
+                            raise TankDescriptorError(
+                                "Cannot create field '%s.%s' as required by app manifest. "
+                                "Only fields starting with sg_ can be created" % (sg_entity_type, sg_field_name)
+                            )
+
+                        # sg_my_awesome_field -> My Awesome Field
+                        ui_field_name = " ".join(
+                            word.capitalize() for word in sg_field_name[3:].split("_")
+                        )
+
+                        log.debug("Computed the field display name to be '%s'" % ui_field_name)
+
+                        log.debug("Creating field...")
                         tk.shotgun.schema_field_create(
                             sg_entity_type,
                             sg_data_type,
                             ui_field_name
                         )
+                        log.debug("...field creation complete.")
+
+                    else:
+                        log.debug("Field %s.%s already exists in Shotgun." % (sg_entity_type, sg_field_name))
 
     def run_post_install(self, tk=None):
         """
