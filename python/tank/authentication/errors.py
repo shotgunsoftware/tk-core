@@ -34,8 +34,6 @@ class IncompleteCredentials(ShotgunAuthenticationError):
 
     def __init__(self, msg):
         """
-        Constructor.
-
         :param str msg: Reason why the credentials are incomplete.
         """
         ShotgunAuthenticationError.__init__(
@@ -49,9 +47,6 @@ class AuthenticationCancelled(ShotgunAuthenticationError):
     """
 
     def __init__(self):
-        """
-        Constructor.
-        """
         ShotgunAuthenticationError.__init__(
             self, "Authentication was cancelled by the user."
         )
