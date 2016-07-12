@@ -669,10 +669,10 @@ class IODescriptorAppStore(IODescriptorBase):
     def __get_app_store_proxy_setting(self):
         """
         Retrieve the app store proxy settings. If the key app_store_http_proxy is not found in the
-        ``shotgun.yml`` file, the proxy settings from the client site connection will be used. If the key
-        is found, than its value will be used. Note that if the ``app_store_http_proxy`` setting is set
-        to ``null`` or an empty string in the configuration file, it means that the app store proxy is being forced to ``None``
-        and therefore won't be inherited from the http proxy setting.
+        ``shotgun.yml`` file, the proxy settings from the client site connection will be used. If the
+        key is found, than its value will be used. Note that if the ``app_store_http_proxy`` setting
+        is set to ``null`` or an empty string in the configuration file, it means that the app store
+        proxy is being forced to ``None`` and therefore won't be inherited from the http proxy setting.
 
         :returns: The http proxy connection string.
         """
