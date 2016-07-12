@@ -1005,45 +1005,55 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
     # handle the path definition
     if path_is_url:
-        data["path"] = { "url":path }
+        data["path"] = {"url": path}
     else:
+
         # Make path platform agnostic.
         storage_name, path_cache = _calc_path_cache(tk, path)
 
-        # check if the shotgun server supports the storage and relative_path parameters
-        # which allows us to specify exactly which storage to bind a publish to rather
-        # than relying on Shotgun to compute this
-        supports_specific_storage_syntax = (
-            hasattr(tk.shotgun, "server_caps") and
-            tk.shotgun.server_caps.version and
-            tk.shotgun.server_caps.version >= (6, 3, 17)
-        )
+        # specify the full path in shotgun
+        data["path"] = {"local_path": path}
 
-        if supports_specific_storage_syntax:
-            # explicitly pass relative path and storage to shotgun
-            storage = tk.shotgun.find_one("LocalStorage", [["code", "is", storage_name]])
+        # note - #30005 - there appears to be an issue on the serverside
+        # related to the explicit storage format and paths containing
+        # sequence tokens such as %04d. Commenting out the logic to handle
+        # the new explicit storage format for the time being while this is
+        # being investigated.
 
-            if storage is None:
-                # there is no storage in Shotgun that matches the one toolkit expects.
-                # this *may* be ok because there may be another storage in Shotgun that
-                # magically picks up the publishes and associates with them. In this case,
-                # issue a warning and fall back on the server-side functionality
-                log.warning(
-                    "Could not find the expected storage '%s' in Shotgun to associate "
-                    "publish '%s' with - falling back to Shotgun's built-in storage "
-                    "resolution logic. It is recommended that you add the '%s' storage "
-                    "to Shotgun" % (storage_name, path, storage_name))
-                data["path"] = {"local_path": path}
-
-            else:
-                data["path"] = {"relative_path": path_cache, "local_storage": storage}
-
-        else:
-            # use previous syntax where we pass the whole path to Shotgun
-            # and shotgun will do the storage/relative path split server side.
-            # This operation may do unexpected things if you have multiple
-            # storages that are identical or overlapping
-            data["path"] = {"local_path": path}
+        # # check if the shotgun server supports the storage and relative_path parameters
+        # # which allows us to specify exactly which storage to bind a publish to rather
+        # # than relying on Shotgun to compute this
+        # supports_specific_storage_syntax = (
+        #     hasattr(tk.shotgun, "server_caps") and
+        #     tk.shotgun.server_caps.version and
+        #     tk.shotgun.server_caps.version >= (6, 3, 17)
+        # )
+        #
+        # if supports_specific_storage_syntax:
+        #     # explicitly pass relative path and storage to shotgun
+        #     storage = tk.shotgun.find_one("LocalStorage", [["code", "is", storage_name]])
+        #
+        #     if storage is None:
+        #         # there is no storage in Shotgun that matches the one toolkit expects.
+        #         # this *may* be ok because there may be another storage in Shotgun that
+        #         # magically picks up the publishes and associates with them. In this case,
+        #         # issue a warning and fall back on the server-side functionality
+        #         log.warning(
+        #             "Could not find the expected storage '%s' in Shotgun to associate "
+        #             "publish '%s' with - falling back to Shotgun's built-in storage "
+        #             "resolution logic. It is recommended that you add the '%s' storage "
+        #             "to Shotgun" % (storage_name, path, storage_name))
+        #         data["path"] = {"local_path": path}
+        #
+        #     else:
+        #         data["path"] = {"relative_path": path_cache, "local_storage": storage}
+        #
+        # else:
+        #     # use previous syntax where we pass the whole path to Shotgun
+        #     # and shotgun will do the storage/relative path split server side.
+        #     # This operation may do unexpected things if you have multiple
+        #     # storages that are identical or overlapping
+        #     data["path"] = {"local_path": path}
 
         # fill in the path cache field which is used for filtering in Shotgun
         # (because SG does not support
@@ -1058,7 +1068,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
             data["created_by"] = sg_user
 
     if created_at:
-        data['created_at'] = created_at
+        data["created_at"] = created_at
 
     if published_file_type:
         if published_file_entity_type == "PublishedFile":
