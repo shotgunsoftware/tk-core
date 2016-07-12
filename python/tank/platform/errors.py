@@ -12,18 +12,22 @@
 All custom exceptions that the tank platform module emits are defined here.
 """
 
-from ..errors import TankError
+from .. import errors
 
-class TankContextChangeNotSupportedError(TankError):
+
+class TankContextChangeNotSupportedError(errors.TankError):
     """
     Exception that indicates that a requested context change is not allowed
     based on a check of the current engine and all of its active apps.
     """
-    pass
 
-class TankEngineInitError(TankError):
+
+class TankEngineInitError(errors.TankError):
     """
     Exception that indicates that an engine could not start up.
     """
-    pass
 
+
+# backwards compatibility to ensure code that was calling internal
+# parts of the API will still work.
+errors.TankEngineInitError = TankEngineInitError

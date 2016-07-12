@@ -60,7 +60,7 @@ may be useful:
     # identifies a Shotgun user or script and also wraps around
     # a Shotgun API instance which is associated with that user.
     user = sa.create_script_user(api_script="myscript",
-                                 api_key="xxxxx",
+                                 api_key="xxxxx", 
                                  host="https://myhost.shotgunstudio.com")
 
     # tell the Toolkit Core API which user to use
@@ -68,8 +68,6 @@ may be useful:
 
 
 - If you want to use a standard UI to prompt a user for a host, username and password.
-
-
 
 
 API Reference
