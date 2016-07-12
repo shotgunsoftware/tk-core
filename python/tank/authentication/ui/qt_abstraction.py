@@ -9,14 +9,12 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Imports Qt without having to worry which version of Qt we are using.
+Imports Qt without having to worry whether we are using PyQt4 or PySide.
 """
-
-from ...util.qt_importer import QtImporter
-
 try:
-    _importer = QtImporter()
-    QtCore = _importer.QtCore
-    QtGui = _importer.QtGui
+    from PySide import QtCore, QtGui
 except ImportError:
-    pass
+    try:
+        from PyQt4 import QtCore, QtGui
+    except:
+        pass

@@ -651,7 +651,10 @@ class IODescriptorAppStore(IODescriptorBase):
                     raise TankAppStoreConnectionError(
                         "Connection to %s timed out: %s" % (app_store_sg.config.server, e)
                     )
-            except Exception:
+                else:
+                    # other type of ssl error
+                    raise TankAppStoreError(e)
+            except Exception, e:
                 raise TankAppStoreError(e)
 
             if script_user is None:
@@ -673,7 +676,14 @@ class IODescriptorAppStore(IODescriptorBase):
 
         :returns: The http proxy connection string.
         """
-        config_data = shotgun.get_associated_sg_config_data()
+        try:
+            config_data = shotgun.get_associated_sg_config_data()
+        except UnresolvableCoreConfigurationError:
+            # This core is not part of a pipeline configuration, we're probably bootstrapping,
+            # so skip the check and simply return the regular proxy settings.
+            log.debug("No core configuration was found, using the current connection's proxy setting.")
+            return self._sg_connection.config.raw_http_proxy
+
         if config_data and constants.APP_STORE_HTTP_PROXY in config_data:
             return config_data[constants.APP_STORE_HTTP_PROXY]
 

@@ -46,6 +46,8 @@ class Application(TankBundle):
         # init base class
         TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env, logger)
 
+        self.log_debug("App init: Instantiating %s" % self)
+
         # now if a folder named python is defined in the app, add it to the pythonpath
         app_path = os.path.dirname(sys.modules[self.__module__].__file__)
         python_path = os.path.join(app_path, constants.BUNDLE_PYTHON_FOLDER)

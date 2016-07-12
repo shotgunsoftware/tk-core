@@ -582,7 +582,7 @@ class LogManager(object):
         self._std_file_handler = logging.handlers.RotatingFileHandler(
             log_file,
             maxBytes=1024*1024*5,  # 5 MiB
-            backupCount=0
+            backupCount=1          # Need at least one backup in order to rotate
         )
 
         # set the level based on global debug flag
