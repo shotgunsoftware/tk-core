@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.18.2 documentation</title>
+  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.18.5 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.2 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.2.<br>
+    <b>tk-core</b> v0.18.5.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -356,32 +356,54 @@
         <span class="n">sg_fields_def</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_fields&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">sg_fields_def</span><span class="p">:</span>  <span class="c1"># can be defined as None from yml file</span>
+
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Processing requires_shotgun_fields manifest directive&quot;</span><span class="p">)</span>
+
             <span class="k">for</span> <span class="n">sg_entity_type</span> <span class="ow">in</span> <span class="n">sg_fields_def</span><span class="p">:</span>
+
                 <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">sg_fields_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="p">[]):</span>
+
                     <span class="c1"># attempt to create field!</span>
                     <span class="n">sg_data_type</span> <span class="o">=</span> <span class="n">field</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
                     <span class="n">sg_field_name</span> <span class="o">=</span> <span class="n">field</span><span class="p">[</span><span class="s2">&quot;system_name&quot;</span><span class="p">]</span>
 
-                    <span class="c1"># sg_my_awesome_field -&gt; My Awesome Field</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">sg_field_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sg_&quot;</span><span class="p">):</span>
-                        <span class="c1"># invalid field name</span>
-                        <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
-                            <span class="s2">&quot;Invalid field name &#39;</span><span class="si">%s</span><span class="s2">&#39; in app manifest. &quot;</span>
-                            <span class="s2">&quot;Must start with sg_&quot;</span> <span class="o">%</span> <span class="n">sg_field_name</span>
-                        <span class="p">)</span>
-
-                    <span class="n">ui_field_name</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                        <span class="n">word</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">sg_field_name</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                        <span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2"> (type </span><span class="si">%s</span><span class="s2">) is required.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">,</span> <span class="n">sg_data_type</span><span class="p">)</span>
                     <span class="p">)</span>
 
                     <span class="c1"># now check that the field exists</span>
                     <span class="n">sg_field_schema</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">schema_field_read</span><span class="p">(</span><span class="n">sg_entity_type</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">sg_field_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sg_field_schema</span><span class="p">:</span>
+
+                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Field does not exist - attempting to create it.&quot;</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">sg_field_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sg_&quot;</span><span class="p">):</span>
+                            <span class="c1"># the schema_field_create has got some magic when it creates</span>
+                            <span class="c1"># fields. It for example always prefixes custom fields with sg_...</span>
+                            <span class="c1"># any fields defined in the manifest that don&#39;t already exist</span>
+                            <span class="c1"># can therefore not be created.</span>
+                            <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
+                                <span class="s2">&quot;Cannot create field &#39;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&#39; as required by app manifest. &quot;</span>
+                                <span class="s2">&quot;Only fields starting with sg_ can be created&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">)</span>
+                            <span class="p">)</span>
+
+                        <span class="c1"># sg_my_awesome_field -&gt; My Awesome Field</span>
+                        <span class="n">ui_field_name</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                            <span class="n">word</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">sg_field_name</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+                        <span class="p">)</span>
+
+                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Computed the field display name to be &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">ui_field_name</span><span class="p">)</span>
+
+                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating field...&quot;</span><span class="p">)</span>
                         <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">schema_field_create</span><span class="p">(</span>
                             <span class="n">sg_entity_type</span><span class="p">,</span>
                             <span class="n">sg_data_type</span><span class="p">,</span>
                             <span class="n">ui_field_name</span>
                         <span class="p">)</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;...field creation complete.&quot;</span><span class="p">)</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2"> already exists in Shotgun.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">run_post_install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -507,7 +529,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.2',
+            VERSION:'v0.18.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.authentication.defaults_manager &mdash; tk-core v0.18.2 documentation</title>
+  <title>tank.authentication.defaults_manager &mdash; tk-core v0.18.5 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.2 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.2.<br>
+    <b>tk-core</b> v0.18.5.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -185,40 +185,29 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The defaults manager allows a client of the Shotgun Authenticator class</span>
 <span class="sd">    to customize various behaviors around data storage and settings.</span>
-<span class="sd">    </span>
+
 <span class="sd">    By default, when you construct a :class:`ShotgunAuthenticator` object, it will be</span>
-<span class="sd">    instantiated with a standard defaults manager implementation. This will </span>
+<span class="sd">    instantiated with a standard defaults manager implementation. This will</span>
 <span class="sd">    work for most cases - user session credentials will be stored in a file</span>
-<span class="sd">    on disk and the system maintains a concept of a current user and a current </span>
+<span class="sd">    on disk and the system maintains a concept of a current user and a current</span>
 <span class="sd">    host.</span>
-<span class="sd">    </span>
+
 <span class="sd">    If, however, you want to implement a custom behavior around how defaults</span>
-<span class="sd">    are managed, simply derive from this class and pass your custom instance </span>
+<span class="sd">    are managed, simply derive from this class and pass your custom instance</span>
 <span class="sd">    to the :class:`ShotgunAuthenticator` object when you construct it.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Reads the default host and login from disk.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_host</span> <span class="o">=</span> <span class="n">session_cache</span><span class="o">.</span><span class="n">get_current_host</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_host</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_login</span> <span class="o">=</span> <span class="n">session_cache</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_host</span><span class="p">())</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_login</span> <span class="o">=</span> <span class="bp">None</span>
-
 <div class="viewcode-block" id="DefaultsManager.is_host_fixed"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.is_host_fixed">[docs]</a>    <span class="k">def</span> <span class="nf">is_host_fixed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When doing an interactive login, this indicates if the user can decide</span>
 <span class="sd">        the host to connect to. In its default implementation, the :class:`DefaultsManager`</span>
 <span class="sd">        will indicate that the host is not fixed, meaning that the user will be</span>
 <span class="sd">        presented with an option to pick a site at login time.</span>
-<span class="sd">        </span>
+
 <span class="sd">        With something like Toolkit, where each project already have a specific</span>
 <span class="sd">        site association, you typically want to override this to return True,</span>
-<span class="sd">        indicating to the authenticator not to ask the user which site they want </span>
+<span class="sd">        indicating to the authenticator not to ask the user which site they want</span>
 <span class="sd">        to log in to.</span>
-<span class="sd">        </span>
+
 <span class="sd">        :returns: False if the user should be given an option to decide which host</span>
 <span class="sd">                  to log in to, True if the host is already predetermined and cannot</span>
 <span class="sd">                  be changed by the user.</span>
@@ -228,13 +217,13 @@
 <div class="viewcode-block" id="DefaultsManager.get_host"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.get_host">[docs]</a>    <span class="k">def</span> <span class="nf">get_host</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The default host is used as a useful starting point when doing</span>
-<span class="sd">        interactive authentication. When the host is not fixed (see the </span>
+<span class="sd">        interactive authentication. When the host is not fixed (see the</span>
 <span class="sd">        :meth:`is_host_fixed` method), the return value of get_host is what is</span>
-<span class="sd">        used to implement single sign-on between all Toolkit desktop </span>
+<span class="sd">        used to implement single sign-on between all Toolkit desktop</span>
 <span class="sd">        applications (at the moment, tank and Shotgun Desktop).</span>
 
 <span class="sd">        The default implementation maintains a concept of a &quot;current host&quot;</span>
-<span class="sd">        which will be presented as a default to users when they are </span>
+<span class="sd">        which will be presented as a default to users when they are</span>
 <span class="sd">        logging in.</span>
 
 <span class="sd">        When the host is fixed, this must return a value and this value will</span>
@@ -242,25 +231,24 @@
 
 <span class="sd">        :returns: A string containing the default host name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_host</span></div>
+        <span class="k">return</span> <span class="n">session_cache</span><span class="o">.</span><span class="n">get_current_host</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.set_host"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.set_host">[docs]</a>    <span class="k">def</span> <span class="nf">set_host</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Called by the authentication system when a new host has been defined.  </span>
+<span class="sd">        Called by the authentication system when a new host has been defined.</span>
 
 <span class="sd">        :param host: The new default host.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Host is fixed, don&#39;t update the default host.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_host_fixed</span><span class="p">():</span>
             <span class="k">return</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_host</span> <span class="o">=</span> <span class="n">host</span>
         <span class="n">session_cache</span><span class="o">.</span><span class="n">set_current_host</span><span class="p">(</span><span class="n">host</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.get_http_proxy"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.get_http_proxy">[docs]</a>    <span class="k">def</span> <span class="nf">get_http_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Called by the authentication system when it needs to retrieve the </span>
+<span class="sd">        Called by the authentication system when it needs to retrieve the</span>
 <span class="sd">        proxy settings to use for a Shotgun connection.</span>
-<span class="sd">        </span>
+
 <span class="sd">        The format should be the same as is being used in the Shotgun API.</span>
 <span class="sd">        For more information, see the Shotgun API documentation:</span>
 <span class="sd">        https://github.com/shotgunsoftware/python-api/wiki/Reference%3A-Methods#shotgun</span>
@@ -274,28 +262,28 @@
 <span class="sd">        Called by the authentication system when it needs to get a</span>
 <span class="sd">        value for the login. Typically this is used to populate UI</span>
 <span class="sd">        fields with defaults.</span>
-<span class="sd">        </span>
-<span class="sd">        :returns: Default implementation returns the login for the </span>
+
+<span class="sd">        :returns: Default implementation returns the login for the</span>
 <span class="sd">                  currently stored user.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_login</span></div>
+        <span class="k">return</span> <span class="n">session_cache</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_host</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.get_user_credentials"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.get_user_credentials">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called by the authentication system when it requests a default or current user.</span>
-<span class="sd">        </span>
+
 <span class="sd">        A dictionary with a login and a session token should be returned, which will</span>
 <span class="sd">        allow the authentication system to authenticate the user.</span>
-<span class="sd">        </span>
-<span class="sd">        The default implementation maintains a concept where it stores the currently </span>
-<span class="sd">        authenticated user and its session token and tries to return this if possible, </span>
+
+<span class="sd">        The default implementation maintains a concept where it stores the currently</span>
+<span class="sd">        authenticated user and its session token and tries to return this if possible,</span>
 <span class="sd">        effectively meaning that the user will be automatically logged in without having</span>
 <span class="sd">        to be prompted.</span>
-<span class="sd">        </span>
+
 <span class="sd">        This is typically subclassed if you want to track the notion of a current</span>
 <span class="sd">        user in an alternative way or maintain a separate notion of the &quot;current&quot; user,</span>
 <span class="sd">        separate from the default user maintained by the default implementation.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Toolkit uses the default implementation and will therefore remember the user&#39;s</span>
 <span class="sd">        credentials across all DCCs and tools.</span>
 
@@ -311,12 +299,12 @@
 <div class="viewcode-block" id="DefaultsManager.set_login"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.set_login">[docs]</a>    <span class="k">def</span> <span class="nf">set_login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">login</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called by the authentication system when a new user is being logged in.</span>
-<span class="sd">        </span>
-<span class="sd">        The default implementation maintains a concept of a default user </span>
+
+<span class="sd">        The default implementation maintains a concept of a default user</span>
 <span class="sd">        (returned via the get_user_credentials) and whenever the login is set</span>
-<span class="sd">        via this method, the default user will change to be this login instead. </span>
-<span class="sd">        </span>
-<span class="sd">        :param login: login as string </span>
+<span class="sd">        via this method, the default user will change to be this login instead.</span>
+
+<span class="sd">        :param login: login as string</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_login</span> <span class="o">=</span> <span class="n">login</span>
         <span class="n">session_cache</span><span class="o">.</span><span class="n">set_current_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_host</span><span class="p">(),</span> <span class="n">login</span><span class="p">)</span></div></div>
@@ -352,7 +340,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.2',
+            VERSION:'v0.18.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

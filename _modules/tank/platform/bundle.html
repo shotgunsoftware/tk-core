@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.bundle &mdash; tk-core v0.18.2 documentation</title>
+  <title>tank.platform.bundle &mdash; tk-core v0.18.5 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.2 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.2.<br>
+    <b>tk-core</b> v0.18.5.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -215,7 +215,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__context</span> <span class="o">=</span> <span class="n">context</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__settings</span> <span class="o">=</span> <span class="n">settings</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__sg</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__module_uid</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__descriptor</span> <span class="o">=</span> <span class="n">descriptor</span>    
         <span class="bp">self</span><span class="o">.</span><span class="n">__frameworks</span> <span class="o">=</span> <span class="p">{}</span>
@@ -397,19 +397,8 @@
 <span class="sd">            stored_query_data_path = os.path.join(self.cache_location, &quot;query.dat&quot;)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># this method is memoized for performance since it is being called a lot!</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">execute_core_hook_method</span><span class="p">(</span>
-                <span class="n">constants</span><span class="o">.</span><span class="n">CACHE_LOCATION_HOOK_NAME</span><span class="p">,</span>
-                <span class="s2">&quot;get_bundle_data_cache_path&quot;</span><span class="p">,</span>
-                <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_project_id</span><span class="p">(),</span>
-                <span class="n">entry_point</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_entry_point</span><span class="p">(),</span>
-                <span class="n">pipeline_configuration_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_shotgun_id</span><span class="p">(),</span>
-                <span class="n">bundle</span><span class="o">=</span><span class="bp">self</span>
-            <span class="p">)</span>
-        
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_project_id</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_project_cache_location</span><span class="p">(</span><span class="n">project_id</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -585,6 +574,29 @@
         
         <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">mod_name</span><span class="p">]</span>
 
+    <span class="k">def</span> <span class="nf">get_project_cache_location</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the bundle&#39;s cache-location path for the given project id.</span>
+
+<span class="sd">        :param project_id:  The project Entity id number.</span>
+<span class="sd">        :type project_id:   int</span>
+
+<span class="sd">        :returns:           Cache location directory path.</span>
+<span class="sd">        :rtype str:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># this method is memoized for performance since it is being called a lot!</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">project_id</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="p">[</span><span class="n">project_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">execute_core_hook_method</span><span class="p">(</span>
+                <span class="n">constants</span><span class="o">.</span><span class="n">CACHE_LOCATION_HOOK_NAME</span><span class="p">,</span>
+                <span class="s2">&quot;get_bundle_data_cache_path&quot;</span><span class="p">,</span>
+                <span class="n">project_id</span><span class="o">=</span><span class="n">project_id</span><span class="p">,</span>
+                <span class="n">entry_point</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_entry_point</span><span class="p">(),</span>
+                <span class="n">pipeline_configuration_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_shotgun_id</span><span class="p">(),</span>
+                <span class="n">bundle</span><span class="o">=</span><span class="bp">self</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="p">[</span><span class="n">project_id</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1263,7 +1275,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.2',
+            VERSION:'v0.18.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

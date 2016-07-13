@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.api &mdash; tk-core v0.18.2 documentation</title>
+  <title>tank.api &mdash; tk-core v0.18.5 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.2 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.5 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.2.<br>
+    <b>tk-core</b> v0.18.5.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -184,7 +184,6 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">glob</span>
-<span class="kn">import</span> <span class="nn">threading</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">folder</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">context</span>
@@ -214,9 +213,6 @@
 <span class="sd">        Instances of this class should be created via the factory methods</span>
 <span class="sd">        :meth:`sgtk_from_path` and :meth:`sgtk_from_entity`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">__threadlocal_storage</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
-
         <span class="c1"># special stuff to make sure we maintain backwards compatibility in the constructor</span>
         <span class="c1"># if the &#39;project_path&#39; parameter contains a pipeline config object,</span>
         <span class="c1"># just use this straight away. If the param contains a string, assume</span>
@@ -369,13 +365,8 @@
 <span class="sd">        concurrency issues and add a layer of basic protection around the </span>
 <span class="sd">        Shotgun API, which isn&#39;t threadsafe.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sg</span> <span class="o">=</span> <span class="n">shotgun</span><span class="o">.</span><span class="n">get_sg_connection</span><span class="p">()</span>
         
-        <span class="n">sg</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__threadlocal_storage</span><span class="p">,</span> <span class="s2">&quot;sg&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-        
-        <span class="k">if</span> <span class="n">sg</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">sg</span> <span class="o">=</span> <span class="n">shotgun</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__threadlocal_storage</span><span class="o">.</span><span class="n">sg</span> <span class="o">=</span> <span class="n">sg</span>
-
         <span class="c1"># pass on information to the user agent manager which core version is returning</span>
         <span class="c1"># this sg handle. This information will be passed to the web server logs</span>
         <span class="c1"># in the shotgun data centre and makes it easy to track which core versions</span>
@@ -1044,7 +1035,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.2',
+            VERSION:'v0.18.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

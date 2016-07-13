@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.2 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.5 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.2 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.5 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -166,7 +166,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.2.<br>
+    <b>tk-core</b> v0.18.5.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1247,7 +1247,21 @@ instead sublcass <a class="reference internal" href="#sgtk.platform.Engine._emit
 <dt id="sgtk.platform.Engine.show_dialog">
 <code class="descname">show_dialog</code><span class="sig-paren">(</span><em>title</em>, <em>bundle</em>, <em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_dialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_dialog" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shows a non-modal dialog window in a way suitable for this engine. 
-The engine will attempt to parent the dialog nicely to the host application.</p>
+The engine will attempt to parent the dialog nicely to the host application.
+The dialog will be created with a standard Toolkit window title bar where
+the title will be displayed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>In some cases, it is necessary to hide the standard Toolkit title
+bar. You can do this by adding a property to the widget class you are
+displaying:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="nd">@property</span>
+<span class="k">def</span> <span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="s2">&quot;Tell the system to not show the standard toolkit toolbar&quot;</span>
+    <span class="k">return</span> <span class="kc">True</span>
+</pre></div>
+</div>
+</div>
 <p><strong>Notes for engine developers</strong></p>
 <p>Qt dialog &amp; widget management can be quite tricky in different engines/applications.
 Because of this, Sgtk provides a few overridable methods with the idea being that when
@@ -1274,7 +1288,7 @@ to override any of these methods (e.g. the tk-nuke engine).</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>title</strong> &#8211; The title of the window</li>
+<li><strong>title</strong> &#8211; The title of the window. This will appear in the Toolkit title bar.</li>
 <li><strong>bundle</strong> &#8211; The app, engine or framework object that is associated with this window</li>
 <li><strong>widget_class</strong> (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>) &#8211; The class of the UI to be constructed. This must derive from QWidget.</li>
 </ul>
@@ -1298,7 +1312,21 @@ to override any of these methods (e.g. the tk-nuke engine).</p>
 <code class="descname">show_modal</code><span class="sig-paren">(</span><em>title</em>, <em>bundle</em>, <em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_modal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_modal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shows a modal dialog window in a way suitable for this engine. The engine will attempt to
 integrate it as seamlessly as possible into the host application. This call is blocking 
-until the user closes the dialog.</p>
+until the user closes the dialog.
+The dialog will be created with a standard Toolkit window title bar where
+the title will be displayed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>In some cases, it is necessary to hide the standard Toolkit title
+bar. You can do this by adding a property to the widget class you are
+displaying:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="nd">@property</span>
+<span class="k">def</span> <span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="s2">&quot;Tell the system to not show the standard toolkit toolbar&quot;</span>
+    <span class="k">return</span> <span class="kc">True</span>
+</pre></div>
+</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1331,7 +1359,21 @@ integrate panel support as seamlessly as possible into the host application.
 Some engines have extensive panel support and workflows, others have none at all.</p>
 <p>If the engine does not specifically implement panel support, the window will 
 be shown as a modeless dialog instead and the call is equivalent to 
-calling show_dialog().</p>
+calling <a class="reference internal" href="#sgtk.platform.Engine.show_dialog" title="sgtk.platform.Engine.show_dialog"><code class="xref py py-meth docutils literal"><span class="pre">show_dialog()</span></code></a>.</p>
+<p>The dialog will be created with a standard Toolkit window title bar where
+the title will be displayed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>In some cases, it is necessary to hide the standard Toolkit title
+bar. You can do this by adding a property to the widget class you are
+displaying:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="nd">@property</span>
+<span class="k">def</span> <span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="s2">&quot;Tell the system to not show the standard toolkit toolbar&quot;</span>
+    <span class="k">return</span> <span class="kc">True</span>
+</pre></div>
+</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1624,6 +1666,24 @@ parameters without breaking backwards compatibility, for example
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of framework objects</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.get_project_cache_location">
+<code class="descname">get_project_cache_location</code><span class="sig-paren">(</span><em>project_id</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.get_project_cache_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the bundle&#8217;s cache-location path for the given project id.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The project Entity id number.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Cache location directory path.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Rtype str:</th><td class="field-body"></td>
 </tr>
 </tbody>
 </table>
@@ -2388,6 +2448,24 @@ parameters without breaking backwards compatibility, for example
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of framework objects</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.get_project_cache_location">
+<code class="descname">get_project_cache_location</code><span class="sig-paren">(</span><em>project_id</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.get_project_cache_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the bundle&#8217;s cache-location path for the given project id.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The project Entity id number.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Cache location directory path.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Rtype str:</th><td class="field-body"></td>
 </tr>
 </tbody>
 </table>
@@ -3188,6 +3266,24 @@ parameters without breaking backwards compatibility, for example
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of framework objects</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Framework.get_project_cache_location">
+<code class="descname">get_project_cache_location</code><span class="sig-paren">(</span><em>project_id</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.get_project_cache_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the bundle&#8217;s cache-location path for the given project id.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The project Entity id number.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Cache location directory path.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Rtype str:</th><td class="field-body"></td>
 </tr>
 </tbody>
 </table>
@@ -4202,7 +4298,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.2',
+            VERSION:'v0.18.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

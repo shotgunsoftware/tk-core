@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Authentication &mdash; tk-core v0.18.2 documentation</title>
+  <title>Authentication &mdash; tk-core v0.18.5 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.2 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.5 documentation" href="index.html"/>
         <link rel="prev" title="Descriptor API" href="descriptor.html"/> 
 
   
@@ -127,7 +127,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.2.<br>
+    <b>tk-core</b> v0.18.5.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -573,12 +573,12 @@ If they are expired, you will be prompted for the user&#8217;s password.</p>
 <dd><p>The defaults manager allows a client of the Shotgun Authenticator class
 to customize various behaviors around data storage and settings.</p>
 <p>By default, when you construct a <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> object, it will be
-instantiated with a standard defaults manager implementation. This will 
+instantiated with a standard defaults manager implementation. This will
 work for most cases - user session credentials will be stored in a file
-on disk and the system maintains a concept of a current user and a current 
+on disk and the system maintains a concept of a current user and a current
 host.</p>
 <p>If, however, you want to implement a custom behavior around how defaults
-are managed, simply derive from this class and pass your custom instance 
+are managed, simply derive from this class and pass your custom instance
 to the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> object when you construct it.</p>
 <dl class="method">
 <dt id="sgtk.authentication.DefaultsManager.is_host_fixed">
@@ -589,7 +589,7 @@ will indicate that the host is not fixed, meaning that the user will be
 presented with an option to pick a site at login time.</p>
 <p>With something like Toolkit, where each project already have a specific
 site association, you typically want to override this to return True,
-indicating to the authenticator not to ask the user which site they want 
+indicating to the authenticator not to ask the user which site they want
 to log in to.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -607,12 +607,12 @@ be changed by the user.</td>
 <dt id="sgtk.authentication.DefaultsManager.get_host">
 <code class="descname">get_host</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.get_host"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.get_host" title="Permalink to this definition">¶</a></dt>
 <dd><p>The default host is used as a useful starting point when doing
-interactive authentication. When the host is not fixed (see the 
+interactive authentication. When the host is not fixed (see the
 <a class="reference internal" href="#sgtk.authentication.DefaultsManager.is_host_fixed" title="sgtk.authentication.DefaultsManager.is_host_fixed"><code class="xref py py-meth docutils literal"><span class="pre">is_host_fixed()</span></code></a> method), the return value of get_host is what is
-used to implement single sign-on between all Toolkit desktop 
+used to implement single sign-on between all Toolkit desktop
 applications (at the moment, tank and Shotgun Desktop).</p>
 <p>The default implementation maintains a concept of a &#8220;current host&#8221;
-which will be presented as a default to users when they are 
+which will be presented as a default to users when they are
 logging in.</p>
 <p>When the host is fixed, this must return a value and this value will
 be used as an absolute rather than a default suggested to the user.</p>
@@ -643,7 +643,7 @@ be used as an absolute rather than a default suggested to the user.</p>
 <dl class="method">
 <dt id="sgtk.authentication.DefaultsManager.get_http_proxy">
 <code class="descname">get_http_proxy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.get_http_proxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.get_http_proxy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called by the authentication system when it needs to retrieve the 
+<dd><p>Called by the authentication system when it needs to retrieve the
 proxy settings to use for a Shotgun connection.</p>
 <p>The format should be the same as is being used in the Shotgun API.
 For more information, see the Shotgun API documentation:
@@ -668,7 +668,7 @@ fields with defaults.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Default implementation returns the login for the 
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Default implementation returns the login for the
 currently stored user.</td>
 </tr>
 </tbody>
@@ -681,8 +681,8 @@ currently stored user.</td>
 <dd><p>Called by the authentication system when it requests a default or current user.</p>
 <p>A dictionary with a login and a session token should be returned, which will
 allow the authentication system to authenticate the user.</p>
-<p>The default implementation maintains a concept where it stores the currently 
-authenticated user and its session token and tries to return this if possible, 
+<p>The default implementation maintains a concept where it stores the currently
+authenticated user and its session token and tries to return this if possible,
 effectively meaning that the user will be automatically logged in without having
 to be prompted.</p>
 <p>This is typically subclassed if you want to track the notion of a current
@@ -706,7 +706,7 @@ User or None in case no credentials could be established.</td>
 <dt id="sgtk.authentication.DefaultsManager.set_login">
 <code class="descname">set_login</code><span class="sig-paren">(</span><em>login</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.set_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.set_login" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called by the authentication system when a new user is being logged in.</p>
-<p>The default implementation maintains a concept of a default user 
+<p>The default implementation maintains a concept of a default user
 (returned via the get_user_credentials) and whenever the login is set
 via this method, the default user will change to be this login instead.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -826,7 +826,7 @@ derived instance.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.2',
+            VERSION:'v0.18.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
