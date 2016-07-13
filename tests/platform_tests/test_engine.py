@@ -113,7 +113,7 @@ class TestStartEngine(TestEngineBase):
         engine = tank.platform.start_engine("test_engine", self.tk, self.context)
         self.assertEqual(engine.name, "test_engine")
         self.assertEqual(engine.display_name, "test_engine")
-        self.assertEqual(engine.version, "v0.0.0")
+        self.assertEqual(engine.version, "Undefined")
         self.assertEqual(engine.documentation_url, None)
         self.assertEqual(engine.instance_name, "test_engine")
         self.assertEqual(engine.context, self.context)

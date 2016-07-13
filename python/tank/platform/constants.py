@@ -115,7 +115,8 @@ BUNDLE_STYLESHEET_FILE = "style.qss"
 # define our standard stylesheet constants 
 SG_STYLESHEET_CONSTANTS = { "SG_HIGHLIGHT_COLOR": "#18A7E3",
                             "SG_ALERT_COLOR": "#FC6246",
-                            "SG_FOREGROUND_COLOR": "#C8C8C8"}
+                            "SG_FOREGROUND_COLOR": "#C8C8C8",
+                            "SG_LINK_COLOR": "#CCCED2"}
 
 # the file to look for that defines and bootstraps a framework
 FRAMEWORK_FILE = "framework.py"
@@ -126,6 +127,10 @@ UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"
+
+# Shotgun: The entity that represents Pipeline Configurations in Shotgun
+# (defined here for backwards compatibility with the admin-ui framework)
+PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 
 # the shell engine is assumed to always have this name
 SHELL_ENGINE_NAME = "tk-shell"

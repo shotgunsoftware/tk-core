@@ -78,6 +78,7 @@ Several different descriptor types are supported by Toolkit:
 - A **git_branch** descriptor represents a commit in a git branch
 - A **path** descriptor represents a location on disk
 - A **dev** descriptor represents a developer sandbox
+- A **manual** descriptor gives raw access to the bundle caching structure
 
 The descriptor API knows how to access and locally cache each of the types above.
 You can control the location where the API caches items and supply additional lookup
@@ -90,11 +91,7 @@ The Toolkit app store is used to release and distribute versions of Apps, Engine
 tested and approved by Shotgun. App store descriptors should include a name and version token and
 are on the following form::
 
-    {
-        type: app_store,
-        name: tk-core,
-        version: v12.3.4
-    }
+    { type: app_store, name: tk-core, version: v12.3.4 }
 
 Shotgun
 ============
@@ -126,8 +123,11 @@ versions of something. You can use any syntax that git supports, with a path key
 to the git repository::
 
     {type: git, path: /path/to/repo.git, version: v0.2.1}
+
     {type: git, path: user@remotehost:/path_to/repo.git, version: v0.1.0}
+
     {type: git, path: git://github.com/user/tk-multi-publish.git, version: v0.1.0}
+
     {type: git, path: https://github.com/user/tk-multi-publish.git, version: v0.1.0}
 
 The latest version for a descriptor is determined by retrieving the list of tags for
@@ -139,8 +139,11 @@ The ``git_branch`` descriptor type is typically used during development and allo
 a commit in a particular branch::
 
     {type: git_branch, branch: master, path: /path/to/repo.git, version: 17fedd8}
+
     {type: git_branch, branch: master, path: user@remotehost:/path_to/repo.git, version: 17fedd8}
+
     {type: git_branch, branch: master, path: git://github.com/user/tk-multi-publish.git, version: 17fedd8}
+
     {type: git_branch, branch: master, path: https://github.com/user/tk-multi-publish.git, version: 17fedd8}
 
 You can use both long and short hash formats for the version token. The latest version for a git_branch
@@ -174,16 +177,53 @@ development. This is when you use the ``dev`` descriptor::
 
     {
         type: dev,
+        path: ~/path/to/app
+    }
+
+    {
+        type: dev,
         windows_path: c:\path\to\app,
         linux_path: /path/to/app,
         mac_path: /path/to/app
     }
 
-.. note:: The path and dev descriptors support environment variable resolution.
+.. note:: The path and dev descriptors support environment variable resolution on the form ``${MYENVVAR}``
+          as well as user directory resolution if the path starts with `~`.
+
+Sometimes it can be handy to organize your development sandbox relative to a pipeline configuration.
+If all developers in the studio share a convention where they for example have a ``dev`` folder inside
+their pipeline configuration dev sandboxes, it becomes easy to exchange environment configs.
+You can achieve this by using the special token ``{PIPELINE_CONFIG}`` which will resolve into the
+local path to the pipeline configuration::
+
+    {"type": "dev", "path": "{PIPELINE_CONFIG}/dev/tk-nuke-myapp"}
+
+Since Sgtk does not know what version of the app is being run, it will return ``Undefined`` for
+an app referenced using the dev type. Sometimes, especially when doing framework development,
+it can be useful to be able to specify a version number. In that case, you can specify
+a specific version number and Toolkit will associate this version number with the app::
+
+
+    {"type": "dev", "path": "/path/to/app", "version": "v0.2.1"}
+
 
 If you needed to point Toolkit at a path, but intend to use the setup for non-dev purposes, use a ``path``
 descriptor rather than a dev descriptor. These have identical syntax.
 
+
+
+Manual
+=======================
+
+Toolkit also provides a ``manual`` mode to make it easy to manage production installations of apps
+and engines without any automation. When you use the manual descriptor, it is up to you to install the code in the right
+location and no automated update checks will ever take place. The manual mode uses the following syntax::
+
+    {"type": "manual", "name": "tk-nuke-publish", "version": "v0.5.0"}
+
+
+It will look for the code in a `manual` folder in the bundle cache, so with the example above, Toolkit would look
+for the code in the ``CACHE_ROOT/manual/tk-nuke-publish/v0.5.0`` folder.
 
 
 API reference

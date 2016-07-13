@@ -203,6 +203,525 @@ access and load other objects.
 
 
 
+Configuration and ``info.yml`` manifest
+---------------------------------------
+
+Apps, engines and frameworks each have a metadata file. It always resides in the root of the app or engine
+and is always named ``info.yml``. This metadata file contains important information about the item:
+
+- Configuration settings available for an app or engine.
+- Display name, documentation and support links for the app and other user facing metadata.
+- All custom Shotgun fields that are required by the app or engine code.
+- Which frameworks that are required in order for this app to run. You can specify
+  an exact framework version to use (e.g. ``v1.2.3``) or you can track against a subset of
+  versions (e.g. ``v1.x.x`` or ``v1.2.x``).
+
+For real-world examples, see for example
+the `Shotgun Loader <https://github.com/shotgunsoftware/tk-multi-loader2/blob/master/info.yml>`_
+or the `Shotgun Nuke Write Node <https://github.com/shotgunsoftware/tk-nuke-writenode/blob/master/info.yml>`_.
+
+
+Display name and Description
+====================================================
+
+The optional ``display_name`` field defines the name that the user will see for the app.
+The optional ``description`` field is a brief one line description of what the app does::
+
+    # More verbose description of this item
+    display_name: "Write Node"
+    description: "Support for the Shotgun Write Node in Nuke."
+
+
+Frameworks
+====================================================
+
+If a framework is being used by the app, declare it in the ``info.yml`` and Toolkit will keep track
+and make sure that it is installed and available. Once inside the app, use the call
+``module_name = sgtk.platform.import_framework("tk-framework-name", "module_name")``. For more
+information, see :meth:`~sgtk.platform.import_framework`.
+
+The frameworks section is a list of dictionaries, for example::
+
+    # the frameworks required to run this app
+    frameworks:
+        - {"name": "tk-framework-shotgunutils", "version": "v2.x.x"}
+        - {"name": "tk-framework-qtwidgets", "version": "v1.x.x"}
+
+Version numbers are typically supplied on the form ``v1.x.x``, meaning that it will try to use
+the most recent approved major version one of the framework. Toolkit uses semantic versioning
+(http://semver.org/) for its versioning, meaning that major version numbers indicate breaking changes,
+minor version number increments indicates added features and patch version numbers indicates backwards
+compatible bug fixes. We therefore recommend to have framework dependencies track against a
+major version number.
+
+Version constraints
+====================================================
+
+If your app or engine requires specific versions of shotgun, the core or other things,
+you can specify this using the three parameters ``requires_shotgun_version``, ``requires_core_verson``
+and (for apps only) ``requires_engine_version``::
+
+    # Required minimum versions for this item to run
+    requires_shotgun_version:
+    requires_core_version: "v0.14.37"
+    requires_engine_version: "v0.2.3"
+
+Supported Engines and operating systems
+====================================================
+
+If your app is not a multi-app that has been designed to run in *any* engine, use
+this option to specify which engines are supported::
+
+    supported_engines: [tk-nuke]
+
+If your app or engine only supports a particular operating system, you can define this
+using a ``supported_platforms`` parameter. Valid values are ``linux``, ``windows`` and ``mac``.
+This is an optional setting - omitting it or leaving it blank means that the app
+or engine will work on all platforms.
+
+
+Documentation and Support
+====================================================
+
+If you are developing an app for the Toolkit app store, no need to fill this in - the Sgtk Store
+manages documentation separately! But if you are building an in-house app for your studio,
+it can be useful to link it up to a wiki page or similar, so that it is easy for users to
+jump straight from the app to the documentation. In this case, just add a ``documentation_url``
+setting::
+
+    documentation_url: "http://intranet/path/to/sgtk_app_docs.html"
+
+This will be picked up and displayed in various locations in the Toolkit UI.
+
+Similar to the documentation url above, it can be useful to connect an app to a url
+which lets users know how to get help when they have questions. If you have a separate
+system in your studio, (like an Request Tracker setup), and you want to make it easy for
+users to reach out from the app to this system, just define a ``support_url`` url::
+
+    support_url: "http://intranet/pipeline_team/support.html"
+
+This setting is optional, and if left blank, the support url will automatically
+be the standard Toolkit support location.
+
+Required Context Fields
+====================================================
+
+Toolkit has a :class:`~sgtk.Context` which it uses to determine what the current Shot, Project or Asset is.
+Apps may require a particular feature to be present in the context - for example, a
+Loader App may require an entity to be present in order to show a list of items for the
+current Asset or Shot. The ``required_context`` settings help defining what fields are needed.
+Possible values are ``project``, ``entity``, ``step``, ``task`` and ``user``.
+
+Shotgun fields
+====================================================
+
+If your app requires a particular custom field in Shotgun to operate correctly, you can add this to the
+``info.yml`` manifest. Whenever the app is installed into a setup, toolkit will ensure that this custom field exists in shotgun.
+
+Just create a ``requires_shotgun_fields`` in your manifest and add entries on the following form::
+
+
+    requires_shotgun_fields:
+        # Shotgun fields that this app expects
+        Version:
+            - { "system_name": "sg_movie_type", "type": "text" }
+
+Note how the fields are grouped by Shotgun entity type (in the example above ``Version``). For a list of
+which field types are supported,
+see the `Shotgun API documentation <http://developer.shotgunsoftware.com/python-api/data_types.html>`_.
+
+.. note:: For more complex field types (such as entity and multi entity links), you need to set up creation via
+          the **post-install hook** instead. (The post install hook is a special hook which runs at installation time
+          and allows you to execute arbitrary code as part of the app installation process.)
+
+.. warning:: This functionality requires administrative privileges in Shotgun. Apps using this functionality
+             therefore requires a workflow where an admin is required to update or install such apps. For general
+             purpose apps, we therefore recommend not relying on this functionality.
+
+
+The configuration section
+====================================================
+
+If an app requires a setting in its code, it should be defined in the info.yml.
+Toolkit will validate all requested settings and make sure that they
+have all been defined (or have default values) and are valid before apps are
+launched. It will also use this metadata when performing upgrades and installations.
+
+A single configuration entry typically looks like this::
+
+    setting_name:
+        type: some_type
+        description: "description of the setting"
+        default_value: general_default
+        default_value_tk-nuke: nuke_default
+        default_value_tk-maya: maya_default
+        option1: option_value1
+        option2: option_value2
+
+Data types typically have specific optional settings. All data types and their options are
+outlines in the following sections.
+
+A full configuration section inside an ``info.yml`` manifest may look like this::
+
+    configuration:
+
+        shotgun_fields_hook:
+            type: hook
+            default_value: "{self}/shotgun_fields.py"
+            description: Hook which controls how values are presented
+
+        action_mappings:
+            type: dict
+            description: Associates shotgun objects with actions. The actions are all defined
+                         inside the actions hook, so a number of actions are available by default
+                         and in addition to this you can add your own actions if you like.
+            default_value:
+                Task:
+                    - { actions: [assign_task, task_to_ip], filters: {} }
+                Version:
+                    - { actions: [quicktime_clipboard, sequence_clipboard], filters: {} }
+                PublishedFile:
+                    - { actions: [publish_clipboard], filters: {} }
+
+            default_value_tk-nuke:
+                Task:
+                    - { actions: [assign_task, task_to_ip], filters: {} }
+                Version:
+                    - { actions: [quicktime_clipboard, sequence_clipboard], filters: {} }
+                PublishedFile:
+                    - { actions: [publish_clipboard], filters: {} }
+                    - { actions: [read_node], filters: { published_file_type: Rendered Image} }
+                    - { actions: [script_import], filters: { published_file_type: Nuke Script} }
+
+Sparse configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the configuration you can define default value for the various app settings that you define.
+As of ``v0.18.x``, these values will be read at run-time if the setting is not
+specified in the environment. Prior to ``v0.18.x``, configuration files were required to be
+non-sparse, meaning that all parameters needed to be populated in the configuration.
+
+Default values per engine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is possible to define defaults per engine using the following syntax::
+
+    setting_name:
+        type: some_type
+        description: "description of the setting"
+        default_value: general_default
+        default_value_tk-nuke: nuke_default
+        default_value_tk-maya: maya_default
+
+When the app is being installed or updated, toolkit will first look for a default value
+for the engine which the app is being installed into. If that is not found, it will look
+for a general ``default_value`` setting. If that is not found, the user will be prompted to
+manually supply a value to populate in the environment. As of ``v0.18.x``,
+settings with a default value will not be explicitly added to the installed/updated
+app's settings.
+
+Values that are procedurally populated by hooks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For advanced use cases, it is possible to specify a configuration value as a special hook evaluator
+rather than as a template setting. This means that when you configure your environment,
+rather than specifying an actual value for a setting to use with your app, you can specify a piece of
+code that returns the value to use. This makes it possible to create very complex
+settings logic. For more information, see
+the `example_template_hook.py hook <https://github.com/shotgunsoftware/tk-core/blob/master/hooks/example_template_hook.py>`_
+located in the core hooks area.
+
+
+
+
+Simple Data Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A number of simple data types are supported. These do not have any special options.
+
+* ``str`` - a string value
+* ``int`` - an integer
+* ``float`` - a floating point value
+* ``bool`` - a boolean, expecting values true or false
+
+An example declaration for a simple data type may look like this::
+
+    debug_logging:
+        type: bool
+        default_value: false
+        description: Controls whether debug messages should be emitted to the logger
+
+
+The config_path data type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use this when your app requires an external file that is part of the configuration.
+Typically, this settings type is used when you want to allow for a user to associate
+files with a configuration. These files can be icons or other resource files that
+should be part of the configuration. These paths should always be defined without an initial
+slash and using slashes as its path separator. Sgtk will translate it into a valid windows path::
+
+
+    output_icon:
+        type: config_path
+        description: A config centric path that points to a square icon png file.
+
+
+The tank_type data type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use this when you want a setting which expects a **Tank Type** - these are typically used
+when publishing data to Shotgun. Value is a string matching TankType.code::
+
+
+    published_script_tank_type:
+        type: tank_type
+        description: The string value of the TankType used for published Nuke scripts.
+
+The shotgun_entity_type data type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Value is a string that represents a Shotgun entity type like Task, Sequence, Shot::
+
+    entity_type:
+        type: shotgun_entity_type
+        default_value: Shot
+        description: "The entity type to attach to"
+
+The shotgun_permission_group data type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Value is a string that represents the display name of a Shotgun permission group like Admin,
+Artist::
+
+    permissions_group:
+        type: shotgun_permission_group
+        default_value: Artist
+        description: "Permissions group to use when performing the operation"
+
+The shotgun_filter data type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Value is a filter that will be passed to the shotgun api when performing a query (e.g. ``["sg_status_list", "is", "cmpt"]``).
+As shotgun filters can take multiple forms, no additional validation will be done on values of this type::
+
+    publish_filters:
+        type: list
+        values:
+            type: shotgun_filter
+
+The template data type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Value is a string matching an entry in ``templates.yml``. Using the fields option
+you specify how Toolkit should validate the template that the user specifies::
+
+    output_render:
+        description: Render output location
+        type: template
+        fields: "context, name, channel, version, [width], [height], [eye]"
+
+When you specify which fields your app requires, it must be strict. Toolkit will ensure
+that the template that the user has chosen to configure the app with exactly matches the
+values specified in the fields string. Typically, the app will also pull in fields
+via the context object - you can specify this by using the special ``context`` parameter.
+Optional parameters are represented with ``[brackets]`` and the special token ``*`` indicates
+that an arbitrary number of fields is okay. For example:
+
+* ``fields: name`` - only templates containing a single field name will be valid
+* ``fields: context, name`` - templates containing exactly the number of fields that the context
+  is able to resolve, and name, will be valid.
+* ``fields: context, name, [width], [height]`` - same as previous but the two fields width and height
+  can be present in the template at the user's discression.
+* ``fields: name, *`` - name is required, the rest of the fields can be arbitrary.
+
+A typical example illustrating the use of ``*`` is when you need to look for things in the
+scene which do not belong to the current context - for example if you are working on a shot
+and wants to scan for assets that have been imported into the scene. In this case, you cannot
+use the context since this is pointing at the current Shot::
+
+
+    input_templates_to_look_for:
+        type: list
+        description: List of templates to look for when scanning the scene for inputs.
+                     A template listed here only needs to have a field called version. This field
+                     will be used in the comparison to determine what is out of date.
+        values:
+            type: template
+            fields: "version, *"
+
+
+**Empty settings**
+
+By default, all template settings require the user to specify a valid template when
+they are added to the environment configuration. If you want to define a template
+setting that can be set to ``None``, specify the **allows_empty** option and set it to True::
+
+    output_render:
+        description: Render output location, Leave blank for default output.
+        type: template
+        fields: "context, name, channel, version, [width], [height], [eye]"
+        allows_empty: True
+
+
+The hook data type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Hooks makes it possible to create flexible and powerful configurations for toolkit apps.
+A hook is a python file which contains a single class (deriving from a Hook base class or
+from other hook classes) and a number of pre-defined methods.
+
+Hooks takes configuration beyond the retrival of a simple string or int value and allows
+apps to break out parts of the code that are likely to vary across facilities into
+code that can be customized, either by completely overriding it or by deriving from
+another hook class.
+
+For hook documentation, see :ref:`sgtk_hook_docs`.
+
+**Typical Workflow for hooks**
+
+If you are using a Toolkit app and want to customize the behaviour that is defined in a hook,
+you can typically follow these steps:
+
+1. Identify the hook file and copy it into the ``hooks`` folder in your Toolkit project
+   configuration. For example, if your hook is named ``validation.py``, copy it to the
+   configuration folder as ``CONFIG_ROOT/hooks/validation.py``.
+
+2. In your environment configuration, find the app config and tell the app to use your
+   new file instead of the default one::
+
+        # change the default value in your env config:
+        validation_hook: {self}/validation.py
+
+        # to this new value:
+        validation_hook: {config}/validation.py
+
+3. Now we have a bunch of duplicated code in our config folder which isn't great. Because we are inheriting
+   from the default hook, our custom hook only really needs to contain the *modifications* that we are making
+   and not the entire logic. So go in and strip back our custom hook in the config folder::
+
+
+        # customized validation hook in CONFIG_ROOT/hooks/validation.py
+        import sgtk
+
+        HookBaseClass = sgtk.get_hook_baseclass()
+
+        class Validator(HookBaseClass):
+
+            def validate_string(self, value):
+                # call the built-in hook that comes with the app first
+                HookBaseClass.validate_string(self, value)
+
+                # now add our extra bit of validation
+                if "LOLCAT" in value:
+                    raise Exception("No lol-cats in my pipeline!")
+
+This makes it possible to customize parts of hooks, while leaving a lot of the hook code
+in tact. This keeps customizations lightweight, avoids code duplication and allows an app
+developer to push out bug fixes much more easily.
+
+
+**Multiple levels of inheritance in hooks**
+
+For even more complex scenarios, it is possible to declare an inheritance chain in the
+environment config::
+
+    validation_hook: {$STUDIO_ROOT}/studio_validation.py:{config}/project_validation.py.
+
+This example will have three levels of inheritance: first the built in hook, after that a studio
+level implementation defined by an environment variable and lastly a project level implementation.
+
+**Accessing a framework inside a hook**
+
+For even more complex hook setups, you can also access frameworks from inside your hooks::
+
+
+    class SomeHook(HookBaseClass):
+
+        def some_method(self):
+
+            # first get a framework handle. This object is similar to an app or engine object
+            fw = self.load_framework("my-framework-library_v123.x.x")
+
+            # now just like with an app or an engine, if you want to access code in the python
+            # folder, you can do import_plugin
+            module = fw.import_module("some_module")
+
+Note how we are accessing the framework instance `my-framework-library_v123.x.x` above. This needs
+to be defined in the currently running environment, as part of the frameworks section::
+
+    engines:
+      # all engine and app defs here...
+
+    frameworks:
+     # define the framework that we are using in the hook
+     my-framework-library_v123.x.x:
+        location: {type: dev, path: /some/path}
+
+
+
+
+
+The list data type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Value is a list, all values in the list must be of the same data type.
+You must supply values dict that describes the data type of the list items::
+
+    entity_types:
+        type: list
+        values: {type: shotgun_entity_type}
+        default_value: [Sequence, Shot, Asset, Task]
+        description: List of Shotgun entity types where this
+                     Sgtk action should be visible on the Actions menu.
+
+Optionally you can also specify an **allows_empty** option if an empty list is a valid value::
+
+    tank_types:
+        type: list
+        allows_empty: True
+        values: {type: tank_type}
+
+You would then be able to specify an empty list in your environment configuration::
+
+    apps:
+        tk-multi-loader:
+            tank_types: []
+
+The dict data type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Value is a dictionary, keys are always strings, values can be of mixed types.
+
+In info.yml, optionally provide an **items** dict. Used to mark what keys must be in the config,
+default values, and type info for the values which will be used for validation::
+
+
+    write_nodes:
+        type: list
+        description: "A list of dictionaries in which you define the Sgtk write nodes that
+                     are supported in this configuration."
+        allows_empty: True
+        values:
+            type: dict
+            items:
+                name: { type: str }
+                file_type: { type: str }
+                publish_type: { type: tank_type }
+                render_template:
+                    type: template
+                    fields: "context, name, channel, version, SEQ, [width], [height], [eye]"
+
+
+A valid setting could look like this::
+
+    movies:
+    - {name: Exr Render, file_type: exr, publish_type: Quicktime, render_template: exr_shot_render}
+    - {name: Dpx Render, file_type: dpx, publish_type: Quicktime, render_template: dpx_shot_render}
+
+
+
+
 Using QT inside your Toolkit App
 ---------------------------------------
 
@@ -218,7 +737,8 @@ In order to use QT, import it from Sgtk::
 Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many applications (for example Nuke)
 may not have a functional Qt that can be imported when they run in batch mode.
 
-**Creating Dialogs**
+Creating Dialogs
+========================================
 
 When creating a dialog, it is important to parent it properly to the host environment. There is nothing stopping
 you from managing this by yourself, but for maximum compatibility and portabilty, we strongly suggest that you l
@@ -247,7 +767,8 @@ What happens in the above calls is that your app widget is parented inside of a 
 Sgtk will add additional potential window constructs, menus etc. Whenever the app widget is closed (for example
 using the close() method), the parent window that is used to wrap the widget will automatically close too.
 
-**Modal dialogs and exit codes**
+Modal dialogs and exit codes
+========================================
 
 If you want to run your widget as a modal dialog, it may be useful to signal success or failure.
 This is normally done in QT using the methods QDialog.accepted() and QDialog.rejected(), however since the app
@@ -266,7 +787,8 @@ property called ``exit_code``. Typically, your code for a modal dialog would loo
 
 The call to self.engine.show_modal() will return the appropriate status code depending on which button was clicked.
 
-**Hiding the default Toolkit title bar**
+Hiding the default Toolkit title bar
+========================================
 
 By default, the standard Toolkit UI dialog includes a title bar at the top. However, sometimes this is not desirable,
 especially when the contained widget is quite small. To hide the title bar, just add a property called
