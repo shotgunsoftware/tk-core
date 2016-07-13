@@ -62,14 +62,12 @@ def with_cleared_umask(func):
     def wrapper(*args, **kwargs):
         # set umask to zero, store old umask
         old_umask = os.umask(0)
-        #log.debug("Umask cleared")
         try:
             # execute method payload
             return func(*args, **kwargs)
         finally:
             # set mask back to previous value
             os.umask(old_umask)
-            #log.debug("Umask reset back to %o" % old_umask)
     return wrapper
 
 @with_cleared_umask
@@ -78,7 +76,8 @@ def touch_file(path, permissions=0666):
     Touch a file and optionally set its permissions.
 
     :param path: path to touch
-    :param permissions: Optional permissions to set on the file.
+    :param permissions: Optional permissions to set on the file. Default value is 0666,
+                        creating a file that is readable and writable for all users.
 
     :raises: OSError - if there was a problem reading/writing the file
     """
@@ -130,13 +129,14 @@ def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
                 raise
 
 @with_cleared_umask
-def copy_file(src, dst, permissions=0555):
+def copy_file(src, dst, permissions=0666):
     """
-    Copy file with permissions
+    Copy file and sets its permissions.
 
     :param src: Source file
     :param dst: Target destination
-    :param permissions: Permissions to use for target file
+    :param permissions: Permissions to use for target file. Default permissions will
+                        be readable and writable for all users.
     """
     shutil.copy(src, dst)
     os.chmod(dst, permissions)
