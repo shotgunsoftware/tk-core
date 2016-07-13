@@ -15,5 +15,5 @@ class EngineEvent(object):
     """
     def __repr__(self):
         class_name = self.__class__.__name__
-        return "<%s 0x%08x %s>" % (class_name, id(self))
+        return "<%s 0x%08x>" % (class_name, id(self))
 
