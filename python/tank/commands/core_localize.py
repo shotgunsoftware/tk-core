@@ -89,7 +89,7 @@ def do_localize(log, pc_root_path, suppress_prompts):
     :param suppress_prompts: Boolean to indicate if no questions should be asked.
     """
 
-`    pipeline_config = pipelineconfig_factory.from_path(pc_root_path)
+    pipeline_config = pipelineconfig_factory.from_path(pc_root_path)
 
     log.info("")
     if pipeline_config.is_localized():
