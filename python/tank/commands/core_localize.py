@@ -89,13 +89,13 @@ def do_localize(log, pc_root_path, suppress_prompts):
     :param suppress_prompts: Boolean to indicate if no questions should be asked.
     """
 
-    pc = pipelineconfig_factory.from_path(pc_root_path)
+`    pipeline_config = pipelineconfig_factory.from_path(pc_root_path)
 
     log.info("")
-    if pc.is_localized():
+    if pipeline_config.is_localized():
         raise TankError("Looks like your current pipeline configuration already has a local install of the core!")
 
-    core_api_root = pc.get_install_location()
+    core_api_root = pipeline_config.get_install_location()
 
     log.info("This will copy the Core API in %s \ninto the Pipeline configuration %s." % (core_api_root, pc_root_path))
     log.info("")
