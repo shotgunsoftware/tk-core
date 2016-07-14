@@ -103,8 +103,9 @@ class IODescriptorGitTag(IODescriptorGit):
                 name,
                 self.get_version()
             )
-        except RuntimeError:
-            pass
+        except RuntimeError, e:
+            # warn and continue
+            log.warning("Could not add legacy location to bundle search path: %s" % e)
         else:
             paths.append(legacy_folder)
 
