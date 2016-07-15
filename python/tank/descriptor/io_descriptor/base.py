@@ -556,13 +556,19 @@ class IODescriptorBase(object):
         """
         # compute new location
         new_cache_path = self._get_bundle_cache_path(cache_root)
-        log.debug("Clone cache for %r: Copying to '%s'" % new_cache_path)
+        log.debug("Clone cache for %r: Copying to '%s'" % (self, new_cache_path))
 
         # make sure we have something to copy
         self.ensure_local()
 
+        # check that we aren't trying to copy onto ourself
+        if new_cache_path == self.get_path():
+            log.debug("Clone cache for %r: No need to copy, source and target are same." % self)
+            return
+
         # and to the actual I/O
         # pass an empty skip list to ensure we copy things like the .git folder
+        filesystem.ensure_folder_exists(new_cache_path, permissions=0777)
         filesystem.copy_folder(self.get_path(), new_cache_path, skip_list=[])
 
     ###############################################################################################

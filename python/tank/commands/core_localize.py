@@ -88,7 +88,6 @@ def do_localize(log, pc_root_path, suppress_prompts):
     :param pc_root_path: Path to the config that should be localized.
     :param suppress_prompts: Boolean to indicate if no questions should be asked.
     """
-
     pipeline_config = pipelineconfig_factory.from_path(pc_root_path)
 
     log.info("")
@@ -110,36 +109,38 @@ def do_localize(log, pc_root_path, suppress_prompts):
     log.info("")
 
     try:
+        # Step 1: First get a list of all bundle descriptors
+        # key by descriptor repr, which ensures uniqueness
+        # at this point we also store the path to each descriptor
+        # before we make any changes to any config files
+        descriptors = {}
+        for env_name in pipeline_config.get_environments():
 
-        ######################################################################
-        #
-        # step one - copy all the contents of the install location across except
-        # for the contents in the core and core.backup folders - these are handled
-        # explicitly
+            env_obj = pipeline_config.get_environment(env_name)
 
-        source_install_path = os.path.join(core_api_root, "install")
-        target_install_path = os.path.join(pc_root_path, "install")
+            for engine in env_obj.get_engines():
+                descriptor = env_obj.get_engine_descriptor(engine)
+                descriptors[descriptor.get_uri()] = descriptor
 
-        names = os.listdir(source_install_path)
-        for name in names:
+                for app in env_obj.get_apps(engine):
+                    descriptor = env_obj.get_app_descriptor(engine, app)
+                    descriptors[descriptor.get_uri()] = descriptor
 
-            if name in ["core", "core.backup"]:
-                # skip now and handle separately
-                continue
+            for framework in env_obj.get_frameworks():
+                descriptor = env_obj.get_framework_descriptor(framework)
+                descriptors[descriptor.get_uri()] = descriptor
 
-            if name.startswith(".") or name.startswith("_"):
-                # skip system directories such as __MACOSX and .DS_store
-                continue
 
-            source = os.path.join(source_install_path, name)
-            target = os.path.join(target_install_path, name)
-            log.info("Localizing the %s folder..." % name)
-            filesystem.copy_folder(source, target)
+        # Step 2: Now re-cache all the relevant apps into the new install location
+        target_bundle_cache_root = os.path.join(pc_root_path, "install")
 
-        ######################################################################
-        #
-        # step two - backup the target core and copy the new core across
+        for idx, descriptor in enumerate(descriptors.values()):
+            # print one based indices for more human friendly output
+            log.info("%s/%s: Copying %s..." % (idx+1, len(descriptors), descriptor))
+            descriptor.clone_cache(target_bundle_cache_root)
 
+
+        # Step 3: Backup the target core and copy the new core across
         source_core = os.path.join(core_api_root, "install", "core")
         target_core = os.path.join(pc_root_path, "install", "core")
         backup_location = os.path.join(pc_root_path, "install", "core.backup")
@@ -157,10 +158,7 @@ def do_localize(log, pc_root_path, suppress_prompts):
         filesystem.copy_folder(source_core, target_core)
 
 
-        ######################################################################
-        #
-        # step three - copy some core config files across
-
+        # Step 4: Copy some core config files across
         log.info("Copying Core configuration files...")
         for fn in CORE_FILES_FOR_LOCALIZE:
             src = os.path.join(core_api_root, "config", "core", fn)
@@ -175,16 +173,15 @@ def do_localize(log, pc_root_path, suppress_prompts):
             if fn != "app_store.yml" or os.path.exists(src):
                 filesystem.copy_file(src, tgt, permissions=0666)
 
+
     except Exception, e:
-        log.exception("Could not perform localize operation.")
-        raise TankError("Could not localize: %s" % e)
+        log.exception("Could not localize Toolkit API.")
+        raise TankError("Could not localize Toolkit API: %s" % e)
 
     log.info("The Core API was successfully localized.")
 
     log.info("")
-    log.info("Localize complete! This pipeline configuration now has an independent API. "
-             "If you upgrade the API for this configuration (using the 'tank core' command), "
-             "no other configurations or projects will be affected.")
+    log.info("Localize complete! This pipeline configuration now has an independent API.")
     log.info("")
     log.info("")
 
@@ -590,5 +587,4 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
 
     log.info("The Core API was successfully processed.")
     log.info("")
-
 
