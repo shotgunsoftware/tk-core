@@ -169,8 +169,9 @@ def safe_delete_file(path):
 def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
     """
     Alternative implementation to ``shutil.copytree``
+
     Copies recursively and creates folders if they don't already exist.
-    Skips a fixed list of system files such as .svn, .git, etc.
+    Always skips system files such as ``"__MACOSX"``, ``".DS_Store"``, etc.
     Files will the extension ``.sh``, ``.bat`` or ``.exe`` will be given
     executable permissions.
 
@@ -179,10 +180,20 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
     :param src: Source path to copy from
     :param dst: Destination to copy to
     :param folder_permissions: permissions to use for new folders
-    :param skip_list: List of file names to skip
+    :param skip_list: List of file names to skip. If this parameter is
+                      omitted or set to None, common files such as ``.git``,
+                      ``.gitignore`` etc will be ignored.
     :returns: List of files copied
     """
-    SKIP_LIST = [".svn", ".git", ".gitignore", "__MACOSX", ".DS_Store"]
+    # files or directories to always skip
+    SKIP_LIST_ALWAYS = ["__MACOSX", ".DS_Store"]
+
+    # files or directories to skip if no skip_list is specified
+    SKIP_LIST_DEFAULT = [".svn", ".git", ".gitignore"]
+
+    # compute full skip list
+    actual_skip_list = skip_list or SKIP_LIST_DEFAULT
+    actual_skip_list.extend(SKIP_LIST_ALWAYS)
 
     files = []
 
@@ -193,12 +204,8 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
     names = os.listdir(src)
     for name in names:
 
-        if skip_list and name in skip_list:
-            # skip!
-            continue
-
         # get rid of system files
-        if name in SKIP_LIST:
+        if name in actual_skip_list:
             continue
 
         srcname = os.path.join(src, name)
