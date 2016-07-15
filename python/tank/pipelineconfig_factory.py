@@ -19,7 +19,6 @@ from . import LogManager
 from .util import shotgun
 from .util import filesystem
 from .util import ShotgunPath
-from . import constants
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
 from .util import LocalFileStorageManager
@@ -130,8 +129,8 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
             raise TankError("More than one primary pipeline configuration is associated "
                             "with the entity %s %s. This happens if more than one pipeline configuration "
                             "is using the same path. The paths that are matching are: %s. "
-                            "For more information, please contact "
-                            "%s." % (entity_type, entity_id, pcs_msg, constants.SUPPORT_EMAIL))
+                            "For more information, please contact Shotgun support at "
+                            "support@shotgunsoftware.com." % (entity_type, entity_id, pcs_msg))
 
         # looks good, we got a primary pipeline config that exists
         return PipelineConfiguration(primary_pc_data[0]["path"])

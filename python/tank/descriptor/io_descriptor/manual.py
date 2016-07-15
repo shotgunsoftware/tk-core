@@ -10,6 +10,7 @@
 import os
 from .base import IODescriptorBase
 from ... import LogManager
+from ...util import filesystem
 from ..errors import TankDescriptorError
 
 log = LogManager.get_logger(__name__)
@@ -42,6 +43,21 @@ class IODescriptorManual(IODescriptorBase):
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")
 
+    def _get_bundle_cache_path(self, bundle_cache_root):
+        """
+        Given a cache root, compute a cache path suitable
+        for this descriptor, using the 0.18+ path format.
+
+        :param bundle_cache_root: Bundle cache root path
+        :return: Path to bundle cache location
+        """
+        return os.path.join(
+            bundle_cache_root,
+            "manual",
+            self._name,
+            self._version
+        )
+
     def _get_cache_paths(self):
         """
         Get a list of resolved paths, starting with the primary and
@@ -51,17 +67,8 @@ class IODescriptorManual(IODescriptorBase):
 
         :return: List of path strings
         """
-        paths = []
-
-        for root in [self._bundle_cache_root] + self._fallback_roots:
-            paths.append(
-                os.path.join(
-                    root,
-                    "manual",
-                    self._name,
-                    self._version
-                )
-            )
+        # get default cache paths from base class
+        paths = super(IODescriptorManual, self)._get_cache_paths()
 
         # for compatibility with older versions of core, prior to v0.18.x,
         # add the old-style bundle cache path as a fallback. As of v0.18.x,
@@ -80,8 +87,9 @@ class IODescriptorManual(IODescriptorBase):
                 self._name,
                 self._version
             )
-        except RuntimeError:
-            pass
+        except RuntimeError, e:
+            # warn and continue
+            log.warning("Could not add legacy location to bundle search path: %s" % e)
         else:
             paths.append(legacy_folder)
 

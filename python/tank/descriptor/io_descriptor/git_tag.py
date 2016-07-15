@@ -68,6 +68,25 @@ class IODescriptorGitTag(IODescriptorGit):
         # git@github.com:manneohrstrom/tk-hiero-publish.git, tag v1.2.3
         return "%s, Tag %s" % (self._path, self._version)
 
+    def _get_bundle_cache_path(self, bundle_cache_root):
+        """
+        Given a cache root, compute a cache path suitable
+        for this descriptor, using the 0.18+ path format.
+
+        :param bundle_cache_root: Bundle cache root path
+        :return: Path to bundle cache location
+        """
+        # git@github.com:manneohrstrom/tk-hiero-publish.git -> tk-hiero-publish.git
+        # /full/path/to/local/repo.git -> repo.git
+        name = os.path.basename(self._path)
+
+        return os.path.join(
+            bundle_cache_root,
+            "git",
+            name,
+            self.get_version()
+        )
+
     def _get_cache_paths(self):
         """
         Get a list of resolved paths, starting with the primary and
@@ -77,21 +96,8 @@ class IODescriptorGitTag(IODescriptorGit):
 
         :return: List of path strings
         """
-        paths = []
-
-        # git@github.com:manneohrstrom/tk-hiero-publish.git -> tk-hiero-publish.git
-        # /full/path/to/local/repo.git -> repo.git
-        name = os.path.basename(self._path)
-
-        for root in [self._bundle_cache_root] + self._fallback_roots:
-            paths.append(
-                os.path.join(
-                    root,
-                    "git",
-                    name,
-                    self.get_version()
-                )
-            )
+        # get default cache paths from base class
+        paths = super(IODescriptorGitTag, self)._get_cache_paths()
 
         # for compatibility with older versions of core, prior to v0.18.x,
         # add the old-style bundle cache path as a fallback. As of v0.18.x,
@@ -102,6 +108,11 @@ class IODescriptorGitTag(IODescriptorGit):
         # cache root didn't change (when use_bundle_cache is set to False).
         # If the bundle cache root changes across core versions, then this will
         # need to be refactored.
+
+        # git@github.com:manneohrstrom/tk-hiero-publish.git -> tk-hiero-publish.git
+        # /full/path/to/local/repo.git -> repo.git
+        name = os.path.basename(self._path)
+
         try:
             legacy_folder = self._get_legacy_bundle_install_folder(
                 "git",
@@ -110,8 +121,9 @@ class IODescriptorGitTag(IODescriptorGit):
                 name,
                 self.get_version()
             )
-        except RuntimeError:
-            pass
+        except RuntimeError, e:
+            # warn and continue
+            log.warning("Could not add legacy location to bundle search path: %s" % e)
         else:
             paths.append(legacy_folder)
 
