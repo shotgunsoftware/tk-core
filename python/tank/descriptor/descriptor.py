@@ -185,6 +185,23 @@ class Descriptor(object):
         """
         self._io_descriptor.copy(target_folder)
 
+    def clone_cache(self, cache_root):
+        """
+        The descriptor system maintains an internal cache where it downloads
+        the payload that is associated with the descriptor. Toolkit supports
+        complex cache setups, where you can specify a series of path where toolkit
+        should go and look for cached items.
+
+        This is an advanced method that helps in cases where a user wishes to
+        administer such a setup, allowing a cached payload to be copied from
+        its current location into a new cache structure.
+
+        If the descriptor's payload doesn't exist on disk, it will be downloaded.
+
+        :param cache_root: Root point of the cache location to copy to.
+        """
+        return self._io_descriptor.clone_cache(cache_root)
+
     @property
     def display_name(self):
         """
