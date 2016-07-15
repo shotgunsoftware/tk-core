@@ -550,7 +550,7 @@ class IODescriptorBase(object):
         administer such a setup, allowing a cached payload to be copied from
         its current location into a new cache structure.
 
-        If the descriptor doesn't exist on disk yet, it will be downloaded.
+        If the descriptor's payload doesn't exist on disk, it will be downloaded.
 
         :param cache_root: Root point of the cache location to copy to.
         """

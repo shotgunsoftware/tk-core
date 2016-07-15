@@ -189,7 +189,7 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
     SKIP_LIST_ALWAYS = ["__MACOSX", ".DS_Store"]
 
     # files or directories to skip if no skip_list is specified
-    SKIP_LIST_DEFAULT = [".svn", ".git", ".gitignore"]
+    SKIP_LIST_DEFAULT = [".svn", ".git", ".gitignore", ".hg", ".hgignore"]
 
     # compute full skip list
     actual_skip_list = skip_list or SKIP_LIST_DEFAULT

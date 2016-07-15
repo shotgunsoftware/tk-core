@@ -109,10 +109,8 @@ def do_localize(log, pc_root_path, suppress_prompts):
     log.info("")
 
     try:
-        # Step 1: First get a list of all bundle descriptors
-        # key by descriptor repr, which ensures uniqueness
-        # at this point we also store the path to each descriptor
-        # before we make any changes to any config files
+        # Step 1: First get a list of all bundle descriptors.
+        # Key by descriptor uri, which ensures no repetition.
         descriptors = {}
         for env_name in pipeline_config.get_environments():
 
@@ -131,16 +129,16 @@ def do_localize(log, pc_root_path, suppress_prompts):
                 descriptors[descriptor.get_uri()] = descriptor
 
 
-        # Step 2: Now re-cache all the relevant apps into the new install location
+        # Step 2: Now re-cache all the relevant apps into the new install location.
         target_bundle_cache_root = os.path.join(pc_root_path, "install")
 
-        for idx, descriptor in enumerate(descriptors.values()):
+        for idx, descriptor in enumerate(descriptors.itervalues()):
             # print one based indices for more human friendly output
-            log.info("%s/%s: Copying %s..." % (idx+1, len(descriptors), descriptor))
+            log.info("%s/%s: Copying %s..." % (idx + 1, len(descriptors), descriptor))
             descriptor.clone_cache(target_bundle_cache_root)
 
 
-        # Step 3: Backup the target core and copy the new core across
+        # Step 3: Backup the target core and copy the new core across.
         source_core = os.path.join(core_api_root, "install", "core")
         target_core = os.path.join(pc_root_path, "install", "core")
         backup_location = os.path.join(pc_root_path, "install", "core.backup")
@@ -158,7 +156,7 @@ def do_localize(log, pc_root_path, suppress_prompts):
         filesystem.copy_folder(source_core, target_core)
 
 
-        # Step 4: Copy some core config files across
+        # Step 4: Copy some core config files across.
         log.info("Copying Core configuration files...")
         for fn in CORE_FILES_FOR_LOCALIZE:
             src = os.path.join(core_api_root, "config", "core", fn)
