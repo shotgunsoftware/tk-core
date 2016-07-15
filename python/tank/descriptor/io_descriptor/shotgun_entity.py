@@ -79,26 +79,19 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         self._project_id = descriptor_dict.get("project_id")
 
-    def _get_cache_paths(self):
+    def _get_bundle_cache_path(self, bundle_cache_root):
         """
-        Get a list of resolved paths, starting with the primary and
-        continuing with alternative locations where it may reside.
+        Given a cache root, compute a cache path suitable
+        for this descriptor, using the 0.18+ path format.
 
-        Note: This method only computes paths and does not perform any I/O ops.
-
-        :return: List of path strings
+        :param bundle_cache_root: Bundle cache root path
+        :return: Path to bundle cache location
         """
-        paths = []
-
-        for root in [self._bundle_cache_root] + self._fallback_roots:
-            paths.append(
-                os.path.join(
-                    root,
-                    "sg_upload",
-                    self.get_version()
-                )
-            )
-        return paths
+        return os.path.join(
+            bundle_cache_root,
+            "sg_upload",
+            self.get_version()
+        )
 
     def get_system_name(self):
         """
@@ -227,3 +220,4 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         log.debug("Latest version resolved to %s" % desc)
         return desc
+

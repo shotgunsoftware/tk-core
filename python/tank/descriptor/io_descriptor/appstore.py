@@ -233,6 +233,21 @@ class IODescriptorAppStore(IODescriptorBase):
 
         return metadata
 
+    def _get_bundle_cache_path(self, bundle_cache_root):
+        """
+        Given a cache root, compute a cache path suitable
+        for this descriptor, using the 0.18+ path format.
+
+        :param bundle_cache_root: Bundle cache root path
+        :return: Path to bundle cache location
+        """
+        return os.path.join(
+            bundle_cache_root,
+            "app_store",
+            self.get_system_name(),
+            self.get_version()
+        )
+
     def _get_cache_paths(self):
         """
         Get a list of resolved paths, starting with the primary and
@@ -242,17 +257,8 @@ class IODescriptorAppStore(IODescriptorBase):
 
         :return: List of path strings
         """
-        paths = []
-
-        for root in [self._bundle_cache_root] + self._fallback_roots:
-            paths.append(
-                os.path.join(
-                    root,
-                    "app_store",
-                    self.get_system_name(),
-                    self.get_version()
-                )
-            )
+        # get default cache paths from base class
+        paths = super(IODescriptorAppStore, self)._get_cache_paths()
 
         # for compatibility with older versions of core, prior to v0.18.x,
         # add the old-style bundle cache path as a fallback. As of v0.18.x,
