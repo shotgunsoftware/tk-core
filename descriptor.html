@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.5 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.5 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.7 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -137,7 +137,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.5.<br>
+    <b>tk-core</b> v0.18.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -510,6 +510,27 @@ creating new descriptor objects.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
 to indicate that no changelog exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.clone_cache">
+<code class="descname">clone_cache</code><span class="sig-paren">(</span><em>cache_root</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.clone_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>The descriptor system maintains an internal cache where it downloads
+the payload that is associated with the descriptor. Toolkit supports
+complex cache setups, where you can specify a series of path where toolkit
+should go and look for cached items.</p>
+<p>This is an advanced method that helps in cases where a user wishes to
+administer such a setup, allowing a cached payload to be copied from
+its current location into a new cache structure.</p>
+<p>If the descriptor&#8217;s payload doesn&#8217;t exist on disk, it will be downloaded.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> &#8211; Root point of the cache location to copy to.</td>
 </tr>
 </tbody>
 </table>
@@ -904,6 +925,27 @@ creating new descriptor objects.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
 to indicate that no changelog exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.clone_cache">
+<code class="descname">clone_cache</code><span class="sig-paren">(</span><em>cache_root</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.clone_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>The descriptor system maintains an internal cache where it downloads
+the payload that is associated with the descriptor. Toolkit supports
+complex cache setups, where you can specify a series of path where toolkit
+should go and look for cached items.</p>
+<p>This is an advanced method that helps in cases where a user wishes to
+administer such a setup, allowing a cached payload to be copied from
+its current location into a new cache structure.</p>
+<p>If the descriptor&#8217;s payload doesn&#8217;t exist on disk, it will be downloaded.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> &#8211; Root point of the cache location to copy to.</td>
 </tr>
 </tbody>
 </table>
@@ -1314,6 +1356,27 @@ current environment.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
 to indicate that no changelog exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.clone_cache">
+<code class="descname">clone_cache</code><span class="sig-paren">(</span><em>cache_root</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.clone_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>The descriptor system maintains an internal cache where it downloads
+the payload that is associated with the descriptor. Toolkit supports
+complex cache setups, where you can specify a series of path where toolkit
+should go and look for cached items.</p>
+<p>This is an advanced method that helps in cases where a user wishes to
+administer such a setup, allowing a cached payload to be copied from
+its current location into a new cache structure.</p>
+<p>If the descriptor&#8217;s payload doesn&#8217;t exist on disk, it will be downloaded.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> &#8211; Root point of the cache location to copy to.</td>
 </tr>
 </tbody>
 </table>
@@ -1776,6 +1839,27 @@ to indicate that no changelog exists.</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.clone_cache">
+<code class="descname">clone_cache</code><span class="sig-paren">(</span><em>cache_root</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.clone_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>The descriptor system maintains an internal cache where it downloads
+the payload that is associated with the descriptor. Toolkit supports
+complex cache setups, where you can specify a series of path where toolkit
+should go and look for cached items.</p>
+<p>This is an advanced method that helps in cases where a user wishes to
+administer such a setup, allowing a cached payload to be copied from
+its current location into a new cache structure.</p>
+<p>If the descriptor&#8217;s payload doesn&#8217;t exist on disk, it will be downloaded.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> &#8211; Root point of the cache location to copy to.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="sgtk.descriptor.ConfigDescriptor.copy">
 <code class="descname">copy</code><span class="sig-paren">(</span><em>target_folder</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Copy the config descriptor into the specified target location</p>
@@ -2031,6 +2115,27 @@ min_engine, min_desktop</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
 to indicate that no changelog exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.clone_cache">
+<code class="descname">clone_cache</code><span class="sig-paren">(</span><em>cache_root</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.clone_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>The descriptor system maintains an internal cache where it downloads
+the payload that is associated with the descriptor. Toolkit supports
+complex cache setups, where you can specify a series of path where toolkit
+should go and look for cached items.</p>
+<p>This is an advanced method that helps in cases where a user wishes to
+administer such a setup, allowing a cached payload to be copied from
+its current location into a new cache structure.</p>
+<p>If the descriptor&#8217;s payload doesn&#8217;t exist on disk, it will be downloaded.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> &#8211; Root point of the cache location to copy to.</td>
 </tr>
 </tbody>
 </table>
@@ -2313,7 +2418,7 @@ If not url has been defined, None is returned.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.5',
+            VERSION:'v0.18.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

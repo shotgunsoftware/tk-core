@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.filesystem &mdash; tk-core v0.18.5 documentation</title>
+  <title>tank.util.filesystem &mdash; tk-core v0.18.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.5 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.7 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.5.<br>
+    <b>tk-core</b> v0.18.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -232,14 +232,12 @@
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># set umask to zero, store old umask</span>
         <span class="n">old_umask</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">umask</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="c1">#log.debug(&quot;Umask cleared&quot;)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># execute method payload</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="c1"># set mask back to previous value</span>
             <span class="n">os</span><span class="o">.</span><span class="n">umask</span><span class="p">(</span><span class="n">old_umask</span><span class="p">)</span>
-            <span class="c1">#log.debug(&quot;Umask reset back to %o&quot; % old_umask)</span>
     <span class="k">return</span> <span class="n">wrapper</span></div>
 
 <span class="nd">@with_cleared_umask</span>
@@ -248,7 +246,8 @@
 <span class="sd">    Touch a file and optionally set its permissions.</span>
 
 <span class="sd">    :param path: path to touch</span>
-<span class="sd">    :param permissions: Optional permissions to set on the file.</span>
+<span class="sd">    :param permissions: Optional permissions to set on the file. Default value is 0666,</span>
+<span class="sd">                        creating a file that is readable and writable for all users.</span>
 
 <span class="sd">    :raises: OSError - if there was a problem reading/writing the file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -300,13 +299,14 @@
                 <span class="k">raise</span></div>
 
 <span class="nd">@with_cleared_umask</span>
-<div class="viewcode-block" id="copy_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_file">[docs]</a><span class="k">def</span> <span class="nf">copy_file</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mo">0555</span><span class="p">):</span>
+<div class="viewcode-block" id="copy_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_file">[docs]</a><span class="k">def</span> <span class="nf">copy_file</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mo">0666</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Copy file with permissions</span>
+<span class="sd">    Copy file and sets its permissions.</span>
 
 <span class="sd">    :param src: Source file</span>
 <span class="sd">    :param dst: Target destination</span>
-<span class="sd">    :param permissions: Permissions to use for target file</span>
+<span class="sd">    :param permissions: Permissions to use for target file. Default permissions will</span>
+<span class="sd">                        be readable and writable for all users.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
     <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span></div>
@@ -339,8 +339,9 @@
 <div class="viewcode-block" id="copy_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_folder">[docs]</a><span class="k">def</span> <span class="nf">copy_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="o">=</span><span class="mo">0775</span><span class="p">,</span> <span class="n">skip_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Alternative implementation to ``shutil.copytree``</span>
+
 <span class="sd">    Copies recursively and creates folders if they don&#39;t already exist.</span>
-<span class="sd">    Skips a fixed list of system files such as .svn, .git, etc.</span>
+<span class="sd">    Always skips system files such as ``&quot;__MACOSX&quot;``, ``&quot;.DS_Store&quot;``, etc.</span>
 <span class="sd">    Files will the extension ``.sh``, ``.bat`` or ``.exe`` will be given</span>
 <span class="sd">    executable permissions.</span>
 
@@ -349,10 +350,20 @@
 <span class="sd">    :param src: Source path to copy from</span>
 <span class="sd">    :param dst: Destination to copy to</span>
 <span class="sd">    :param folder_permissions: permissions to use for new folders</span>
-<span class="sd">    :param skip_list: List of file names to skip</span>
+<span class="sd">    :param skip_list: List of file names to skip. If this parameter is</span>
+<span class="sd">                      omitted or set to None, common files such as ``.git``,</span>
+<span class="sd">                      ``.gitignore`` etc will be ignored.</span>
 <span class="sd">    :returns: List of files copied</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">SKIP_LIST</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.svn&quot;</span><span class="p">,</span> <span class="s2">&quot;.git&quot;</span><span class="p">,</span> <span class="s2">&quot;.gitignore&quot;</span><span class="p">,</span> <span class="s2">&quot;__MACOSX&quot;</span><span class="p">,</span> <span class="s2">&quot;.DS_Store&quot;</span><span class="p">]</span>
+    <span class="c1"># files or directories to always skip</span>
+    <span class="n">SKIP_LIST_ALWAYS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__MACOSX&quot;</span><span class="p">,</span> <span class="s2">&quot;.DS_Store&quot;</span><span class="p">]</span>
+
+    <span class="c1"># files or directories to skip if no skip_list is specified</span>
+    <span class="n">SKIP_LIST_DEFAULT</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.svn&quot;</span><span class="p">,</span> <span class="s2">&quot;.git&quot;</span><span class="p">,</span> <span class="s2">&quot;.gitignore&quot;</span><span class="p">,</span> <span class="s2">&quot;.hg&quot;</span><span class="p">,</span> <span class="s2">&quot;.hgignore&quot;</span><span class="p">]</span>
+
+    <span class="c1"># compute full skip list</span>
+    <span class="n">actual_skip_list</span> <span class="o">=</span> <span class="n">skip_list</span> <span class="ow">or</span> <span class="n">SKIP_LIST_DEFAULT</span>
+    <span class="n">actual_skip_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">SKIP_LIST_ALWAYS</span><span class="p">)</span>
 
     <span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -363,12 +374,8 @@
     <span class="n">names</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
 
-        <span class="k">if</span> <span class="n">skip_list</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">skip_list</span><span class="p">:</span>
-            <span class="c1"># skip!</span>
-            <span class="k">continue</span>
-
         <span class="c1"># get rid of system files</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">SKIP_LIST</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">actual_skip_list</span><span class="p">:</span>
             <span class="k">continue</span>
 
         <span class="n">srcname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
@@ -486,7 +493,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.5',
+            VERSION:'v0.18.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

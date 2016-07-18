@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.5 documentation</title>
+  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.5 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.7 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.5.<br>
+    <b>tk-core</b> v0.18.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -355,6 +355,23 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">target_folder</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">clone_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_root</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The descriptor system maintains an internal cache where it downloads</span>
+<span class="sd">        the payload that is associated with the descriptor. Toolkit supports</span>
+<span class="sd">        complex cache setups, where you can specify a series of path where toolkit</span>
+<span class="sd">        should go and look for cached items.</span>
+
+<span class="sd">        This is an advanced method that helps in cases where a user wishes to</span>
+<span class="sd">        administer such a setup, allowing a cached payload to be copied from</span>
+<span class="sd">        its current location into a new cache structure.</span>
+
+<span class="sd">        If the descriptor&#39;s payload doesn&#39;t exist on disk, it will be downloaded.</span>
+
+<span class="sd">        :param cache_root: Root point of the cache location to copy to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">clone_cache</span><span class="p">(</span><span class="n">cache_root</span><span class="p">)</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">display_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -569,7 +586,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.5',
+            VERSION:'v0.18.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.5 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.5 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.7 documentation" href="index.html"/>
         <link rel="next" title="Descriptor API" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -145,7 +145,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.5.<br>
+    <b>tk-core</b> v0.18.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -671,7 +671,8 @@ by the umask:</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>path</strong> &#8211; path to touch</li>
-<li><strong>permissions</strong> &#8211; Optional permissions to set on the file.</li>
+<li><strong>permissions</strong> &#8211; Optional permissions to set on the file. Default value is 0666,
+creating a file that is readable and writable for all users.</li>
 </ul>
 </td>
 </tr>
@@ -706,8 +707,8 @@ by the umask:</p>
 
 <dl class="function">
 <dt id="sgtk.util.filesystem.copy_file">
-<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">copy_file</code><span class="sig-paren">(</span><em>src</em>, <em>dst</em>, <em>permissions=0555</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#copy_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.copy_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Copy file with permissions</p>
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">copy_file</code><span class="sig-paren">(</span><em>src</em>, <em>dst</em>, <em>permissions=0666</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#copy_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.copy_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy file and sets its permissions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -715,7 +716,8 @@ by the umask:</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>src</strong> &#8211; Source file</li>
 <li><strong>dst</strong> &#8211; Target destination</li>
-<li><strong>permissions</strong> &#8211; Permissions to use for target file</li>
+<li><strong>permissions</strong> &#8211; Permissions to use for target file. Default permissions will
+be readable and writable for all users.</li>
 </ul>
 </td>
 </tr>
@@ -744,9 +746,9 @@ be skipped over.</p>
 <dl class="function">
 <dt id="sgtk.util.filesystem.copy_folder">
 <code class="descclassname">sgtk.util.filesystem.</code><code class="descname">copy_folder</code><span class="sig-paren">(</span><em>src</em>, <em>dst</em>, <em>folder_permissions=0775</em>, <em>skip_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#copy_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.copy_folder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alternative implementation to <code class="docutils literal"><span class="pre">shutil.copytree</span></code>
-Copies recursively and creates folders if they don&#8217;t already exist.
-Skips a fixed list of system files such as .svn, .git, etc.
+<dd><p>Alternative implementation to <code class="docutils literal"><span class="pre">shutil.copytree</span></code></p>
+<p>Copies recursively and creates folders if they don&#8217;t already exist.
+Always skips system files such as <code class="docutils literal"><span class="pre">&quot;__MACOSX&quot;</span></code>, <code class="docutils literal"><span class="pre">&quot;.DS_Store&quot;</span></code>, etc.
 Files will the extension <code class="docutils literal"><span class="pre">.sh</span></code>, <code class="docutils literal"><span class="pre">.bat</span></code> or <code class="docutils literal"><span class="pre">.exe</span></code> will be given
 executable permissions.</p>
 <p>Returns a list of files that were copied.</p>
@@ -758,7 +760,9 @@ executable permissions.</p>
 <li><strong>src</strong> &#8211; Source path to copy from</li>
 <li><strong>dst</strong> &#8211; Destination to copy to</li>
 <li><strong>folder_permissions</strong> &#8211; permissions to use for new folders</li>
-<li><strong>skip_list</strong> &#8211; List of file names to skip</li>
+<li><strong>skip_list</strong> &#8211; List of file names to skip. If this parameter is
+omitted or set to None, common files such as <code class="docutils literal"><span class="pre">.git</span></code>,
+<code class="docutils literal"><span class="pre">.gitignore</span></code> etc will be ignored.</li>
 </ul>
 </td>
 </tr>
@@ -1547,7 +1551,7 @@ with the following fields: id, type, email, login, name, image, firstname, lastn
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.5',
+            VERSION:'v0.18.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
