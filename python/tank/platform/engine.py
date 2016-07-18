@@ -22,7 +22,8 @@ import traceback
 import inspect
 import weakref
 import threading
-        
+
+from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
 from .. import hook
 from ..errors import TankError
@@ -157,7 +158,6 @@ class Engine(TankBundle):
                 self.log_debug("Appending to PYTHONPATH: %s" % python_path)
                 sys.path.append(python_path)
 
-
         # Note, 'init_engine()' is now deprecated and all derived initialisation should be
         # done in either 'pre_app_init()' or 'post_app_init()'.  'init_engine()' is left
         # in here to provide backwards compatibility with any legacy code. 
@@ -174,7 +174,7 @@ class Engine(TankBundle):
         from ..authentication.ui import qt_abstraction
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
-        
+
         # create invoker to allow execution of functions on the
         # main thread:
         self._invoker, self._async_invoker = self.__create_invokers()
@@ -1713,30 +1713,35 @@ class Engine(TankBundle):
 
     def _define_qt_base(self):
         """
-        This will be called at initialisation time and will allow 
+        This will be called at initialisation time and will allow
         a user to control various aspects of how QT is being used
         by Tank. The method should return a dictionary with a number
-        of specific keys, outlined below. 
-        
+        of specific keys, outlined below.
+
         * qt_core - the QtCore module to use
         * qt_gui - the QtGui module to use
+        * wrapper - the Qt wrapper root module, e.g. PySide
         * dialog_base - base class for to use for Tank's dialog factory
-        
+
         :returns: dict
         """
-        # default to None
         base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
         try:
-            from PySide import QtCore, QtGui
-            base["qt_core"] = QtCore
-            base["qt_gui"] = QtGui
-            base["dialog_base"] = QtGui.QDialog
+            importer = QtImporter()
+            base["qt_core"] = importer.QtCore
+            base["qt_gui"] = importer.QtGui
+            if importer.QtGui:
+                base["dialog_base"] = importer.QtGui.QDialog
+            else:
+                base["dialog_base"] = None
+            base["wrapper"] = importer.wrapper
         except:
-            self.log_debug("Default engine QT definition failed to find QT. "
-                           "This may need to be subclassed.")
-        
+
+            self.log_exception("Default engine QT definition failed to find QT. "
+                               "This may need to be subclassed.")
+
         return base
-        
+
     def _initialize_dark_look_and_feel(self):
         """
         Initializes a standard toolkit look and feel using a combination of
