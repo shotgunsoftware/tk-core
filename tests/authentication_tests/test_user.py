@@ -28,6 +28,35 @@ class UserTests(TankTestBase):
             http_proxy="http_proxy"
         ))
 
+    def test_login_value(self):
+        session_user = user.ShotgunUser(user_impl.SessionUser(
+            host="https://tank.shotgunstudio.com",
+            login="session_user",
+            session_token="session_token",
+            http_proxy="http_proxy"
+        ))
+        self.assertEquals(session_user.login, "session_user")
+
+        script_user = user.ShotgunUser(user_impl.ScriptUser(
+            host="host",
+            api_script="api_script",
+            api_key="api_key",
+            http_proxy="http_proxy"
+        ))
+        self.assertIsNone(script_user.login)
+
+        class CustomUser(user_impl.ShotgunUserImpl):
+
+            def __init__(self):
+                super(CustomUser, self).__init__("https://test.shotgunstudio.com", None)
+
+            def get_login(self):
+                return "custom_user"
+
+        custom_user = user.ShotgunUser(CustomUser())
+
+        self.assertEquals(custom_user.login, "custom_user")
+
     def test_serialize_deserialize(self):
         """
         Makes sure serialization and deserialization works for users
