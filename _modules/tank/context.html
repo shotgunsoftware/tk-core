@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.context &mdash; tk-core v0.18.7 documentation</title>
+  <title>tank.context &mdash; tk-core v0.18.8 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.7 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.8 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.7.<br>
+    <b>tk-core</b> v0.18.8.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -193,6 +193,7 @@
 <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">login</span>
 <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">shotgun_entity</span>
 <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">shotgun</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span>
 <span class="kn">from</span> <span class="nn">.path_cache</span> <span class="kn">import</span> <span class="n">PathCache</span>
 <span class="kn">from</span> <span class="nn">.template</span> <span class="kn">import</span> <span class="n">TemplatePath</span>
@@ -1734,8 +1735,8 @@
             <span class="c1"># in the local storage defs and in the pipeline_configuration.yml file.</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;The path &#39;</span><span class="si">%s</span><span class="s2">&#39; associated with </span><span class="si">%s</span><span class="s2"> id </span><span class="si">%s</span><span class="s2"> does not &quot;</span> 
                             <span class="s2">&quot;resolve correctly. This may be an indication of an issue &quot;</span>
-                            <span class="s2">&quot;with the local storage setup. Please contact &quot;</span> 
-                            <span class="s2">&quot;support@shotgunsoftware.com&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curr_path</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">))</span>
+                            <span class="s2">&quot;with the local storage setup. Please contact </span><span class="si">%s</span><span class="s2">.&quot;</span> 
+                            <span class="o">%</span> <span class="p">(</span><span class="n">curr_path</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">SUPPORT_EMAIL</span><span class="p">))</span>
 
         <span class="c1"># grab the name for the context entity</span>
         <span class="k">if</span> <span class="n">curr_entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">entity_type</span> <span class="ow">and</span> <span class="n">curr_entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">entity_id</span><span class="p">:</span>
@@ -1856,7 +1857,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.7',
+            VERSION:'v0.18.8',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

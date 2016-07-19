@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.7 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.8 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.7 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.8 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -166,7 +166,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.7.<br>
+    <b>tk-core</b> v0.18.8.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -480,13 +480,14 @@ has been instantiated.</p>
 <dl class="method">
 <dt id="sgtk.platform.Engine._define_qt_base">
 <code class="descname">_define_qt_base</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._define_qt_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._define_qt_base" title="Permalink to this definition">¶</a></dt>
-<dd><p>This will be called at initialisation time and will allow 
+<dd><p>This will be called at initialisation time and will allow
 a user to control various aspects of how QT is being used
 by Tank. The method should return a dictionary with a number
 of specific keys, outlined below.</p>
 <ul class="simple">
 <li>qt_core - the QtCore module to use</li>
 <li>qt_gui - the QtGui module to use</li>
+<li>wrapper - the Qt wrapper root module, e.g. PySide</li>
 <li>dialog_base - base class for to use for Tank&#8217;s dialog factory</li>
 </ul>
 <table class="docutils field-list" frame="void" rules="none">
@@ -4298,7 +4299,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.7',
+            VERSION:'v0.18.8',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

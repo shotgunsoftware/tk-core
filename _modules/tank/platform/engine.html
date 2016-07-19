@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.7 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.8 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.8 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.7.<br>
+    <b>tk-core</b> v0.18.8.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -192,7 +192,8 @@
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">weakref</span>
 <span class="kn">import</span> <span class="nn">threading</span>
-        
+
+<span class="kn">from</span> <span class="nn">..util.qt_importer</span> <span class="kn">import</span> <span class="n">QtImporter</span>
 <span class="kn">from</span> <span class="nn">..util.loader</span> <span class="kn">import</span> <span class="n">load_plugin</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">hook</span>
 <span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
@@ -327,7 +328,6 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Appending to PYTHONPATH: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">python_path</span><span class="p">)</span>
                 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">python_path</span><span class="p">)</span>
 
-
         <span class="c1"># Note, &#39;init_engine()&#39; is now deprecated and all derived initialisation should be</span>
         <span class="c1"># done in either &#39;pre_app_init()&#39; or &#39;post_app_init()&#39;.  &#39;init_engine()&#39; is left</span>
         <span class="c1"># in here to provide backwards compatibility with any legacy code. </span>
@@ -344,7 +344,7 @@
         <span class="kn">from</span> <span class="nn">..authentication.ui</span> <span class="kn">import</span> <span class="n">qt_abstraction</span>
         <span class="n">qt_abstraction</span><span class="o">.</span><span class="n">QtCore</span> <span class="o">=</span> <span class="n">qt</span><span class="o">.</span><span class="n">QtCore</span>
         <span class="n">qt_abstraction</span><span class="o">.</span><span class="n">QtGui</span> <span class="o">=</span> <span class="n">qt</span><span class="o">.</span><span class="n">QtGui</span>
-        
+
         <span class="c1"># create invoker to allow execution of functions on the</span>
         <span class="c1"># main thread:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_invoker</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_invoker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__create_invokers</span><span class="p">()</span>
@@ -1883,30 +1883,35 @@
 
 <div class="viewcode-block" id="Engine._define_qt_base"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._define_qt_base">[docs]</a>    <span class="k">def</span> <span class="nf">_define_qt_base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This will be called at initialisation time and will allow </span>
+<span class="sd">        This will be called at initialisation time and will allow</span>
 <span class="sd">        a user to control various aspects of how QT is being used</span>
 <span class="sd">        by Tank. The method should return a dictionary with a number</span>
-<span class="sd">        of specific keys, outlined below. </span>
-<span class="sd">        </span>
+<span class="sd">        of specific keys, outlined below.</span>
+
 <span class="sd">        * qt_core - the QtCore module to use</span>
 <span class="sd">        * qt_gui - the QtGui module to use</span>
+<span class="sd">        * wrapper - the Qt wrapper root module, e.g. PySide</span>
 <span class="sd">        * dialog_base - base class for to use for Tank&#39;s dialog factory</span>
-<span class="sd">        </span>
+
 <span class="sd">        :returns: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># default to None</span>
         <span class="n">base</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;qt_core&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;qt_gui&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;dialog_base&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">PySide</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
-            <span class="n">base</span><span class="p">[</span><span class="s2">&quot;qt_core&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">QtCore</span>
-            <span class="n">base</span><span class="p">[</span><span class="s2">&quot;qt_gui&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">QtGui</span>
-            <span class="n">base</span><span class="p">[</span><span class="s2">&quot;dialog_base&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span>
+            <span class="n">importer</span> <span class="o">=</span> <span class="n">QtImporter</span><span class="p">()</span>
+            <span class="n">base</span><span class="p">[</span><span class="s2">&quot;qt_core&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">QtCore</span>
+            <span class="n">base</span><span class="p">[</span><span class="s2">&quot;qt_gui&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">QtGui</span>
+            <span class="k">if</span> <span class="n">importer</span><span class="o">.</span><span class="n">QtGui</span><span class="p">:</span>
+                <span class="n">base</span><span class="p">[</span><span class="s2">&quot;dialog_base&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">base</span><span class="p">[</span><span class="s2">&quot;dialog_base&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">base</span><span class="p">[</span><span class="s2">&quot;wrapper&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">wrapper</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Default engine QT definition failed to find QT. &quot;</span>
-                           <span class="s2">&quot;This may need to be subclassed.&quot;</span><span class="p">)</span>
-        
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_exception</span><span class="p">(</span><span class="s2">&quot;Default engine QT definition failed to find QT. &quot;</span>
+                               <span class="s2">&quot;This may need to be subclassed.&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">base</span></div>
-        
+
 <div class="viewcode-block" id="Engine._initialize_dark_look_and_feel"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._initialize_dark_look_and_feel">[docs]</a>    <span class="k">def</span> <span class="nf">_initialize_dark_look_and_feel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes a standard toolkit look and feel using a combination of</span>
@@ -2909,7 +2914,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.7',
+            VERSION:'v0.18.8',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.commands.tank_command &mdash; tk-core v0.18.7 documentation</title>
+  <title>tank.commands.tank_command &mdash; tk-core v0.18.8 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.7 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.8 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.7.<br>
+    <b>tk-core</b> v0.18.8.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -212,6 +212,7 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">get_entity_commands</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">constants_global</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span> <span class="nn">..platform.engine</span> <span class="kn">import</span> <span class="n">start_engine</span><span class="p">,</span> <span class="n">get_environment_from_context</span>
 <span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
@@ -430,7 +431,7 @@
         <span class="c1"># only commands of type GLOBAL, TK_INSTANCE are currently supported</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Action</span><span class="o">.</span><span class="n">GLOBAL</span><span class="p">,</span> <span class="n">Action</span><span class="o">.</span><span class="n">TK_INSTANCE</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;The command </span><span class="si">%r</span><span class="s2"> is not of a type which is supported by Toolkit. &quot;</span>
-                            <span class="s2">&quot;Please contact support on support@shotgunsoftware.com&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="p">)</span>
+                            <span class="s2">&quot;Please contact </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="p">,</span> <span class="n">constants_global</span><span class="o">.</span><span class="n">SUPPORT_EMAIL</span><span class="p">))</span>
         
         <span class="c1"># make sure we pass a tk api for actions that require it</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">Action</span><span class="o">.</span><span class="n">TK_INSTANCE</span> <span class="ow">and</span> <span class="n">tk</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -722,7 +723,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.7',
+            VERSION:'v0.18.8',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
