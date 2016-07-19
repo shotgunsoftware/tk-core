@@ -36,6 +36,7 @@ from . import application
 from . import constants
 from . import validation
 from . import qt
+from . import qt5
 from .bundle import TankBundle
 from .framework import setup_frameworks
 from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
@@ -168,6 +169,12 @@ class Engine(TankBundle):
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
         qt.TankDialogBase = base_def.get("dialog_base")
+
+        qt5_root = self.__define_qt5()
+
+        if qt5_root:
+            for name, value in qt5_root.iteritems():
+                setattr(qt5, name, value)
 
         # Update the authentication module to use the engine's Qt.
         # @todo: can this import be untangled? Code references internal part of the auth module
@@ -1741,6 +1748,29 @@ class Engine(TankBundle):
                                "This may need to be subclassed.")
 
         return base
+
+    def __define_qt5(self):
+        sub_modules = [
+            "QtCore", "QtGui", "QtHelp", "QtNetwork", "QtPrintSupport", "QtQml", "QtQuick", "QtQuickWidgets",
+            "QtScript", "QtSvg", "QtTest", "QtUiTools", "QtWebChannel", "QtWebEngineWidgets",
+            "QtWebKit", "QtWebKitWidgets", "QtWidgets", "QtWebSockets", "QtXml", "QtXmlPatterns"
+        ]
+        try:
+            wrapper = __import__("PySide2", globals(), locals(), sub_modules)
+            module_dict = {name: getattr(wrapper, name) for name in sub_modules}
+            module_dict["__version__"] = wrapper.__version__
+            module_dict["__name__"] = wrapper.__name__
+            module_dict["__file__"] = wrapper.__file__
+            return module_dict
+        except ImportError:
+            return None
+
+# >>> from PySide2 import QtScriptSql
+# >>> from PySide2 import QtScriptTools
+# >>> from PySide2 import QtOpenGL
+# >>> from PySide2 import QtMultimedia
+        
+
 
     def _initialize_dark_look_and_feel(self):
         """
