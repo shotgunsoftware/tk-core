@@ -152,7 +152,7 @@ class AltCustomFormatter(logging.Formatter):
 
                 if sys.version_info < (2,6):
                     # python 2.5 doesn't support all params
-                    wrapped_lines = textwrap.wrap(record.msg, width=78)
+                    wrapped_lines = textwrap.wrap(record.msg, width=78, break_long_words=False)
                 else:
                     wrapped_lines = textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False)
 
