@@ -89,6 +89,7 @@ class Engine(TankBundle):
         self.__qt_widget_trash = []
         self.__created_qt_dialogs = []
         self.__qt_debug_info = {}
+        self.__has_qt5 = False
         
         self.__commands_that_need_prefixing = []
         
@@ -173,6 +174,7 @@ class Engine(TankBundle):
         qt5_root = self.__define_qt5()
 
         if qt5_root:
+            self.__has_qt5 = True
             for name, value in qt5_root.iteritems():
                 setattr(qt5, name, value)
 
@@ -602,6 +604,16 @@ class Engine(TankBundle):
         # default implementation is to assume a UI exists
         # this is since most engines are supporting a graphical application
         return True
+
+    @property
+    def has_qt5(self):
+        """
+        Indicates that the host application has access to Qt5 and that the sgtk.platform.qt5 module
+        has been populated with the Qt5 modules and information.
+
+        :returns bool: boolean value indicating if a UI currently exists
+        """
+        return self.__has_qt5
 
     @property
     def metrics_dispatch_allowed(self):
@@ -1757,10 +1769,12 @@ class Engine(TankBundle):
         ]
         try:
             wrapper = __import__("PySide2", globals(), locals(), sub_modules)
-            module_dict = {name: getattr(wrapper, name) for name in sub_modules}
-            module_dict["__version__"] = wrapper.__version__
-            module_dict["__name__"] = wrapper.__name__
-            module_dict["__file__"] = wrapper.__file__
+
+            # No dictionary comprehension in Python < 2.7, sadly.
+            module_dict = {}
+            for name in sub_modules + ["__version__", "__name__", "__file__"]:
+                module_dict[name] = getattr(wrapper, name)
+
             return module_dict
         except ImportError:
             return None
