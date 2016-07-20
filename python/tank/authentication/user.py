@@ -59,14 +59,11 @@ class ShotgunUser(object):
     def login(self):
         """
         The login for this current user. For Shotgun user types that don't have a concept
-        of a login (like API scripts), None is returned. 
+        of a login (like API scripts), None is returned.
 
         :returns: The login string or None.
         """
-        if isinstance(self._impl, user_impl.SessionUser):
-            return self._impl.get_login()
-        else:
-            return None
+        return self._impl.get_login()
 
     def create_sg_connection(self):
         """
