@@ -15,11 +15,13 @@ from tank_test.tank_test_base import *
 
 from mock import Mock, patch
 
+import tank
 from tank import context
 from tank.errors import TankError
 from tank.template import TemplatePath
 from tank.templatekey import StringKey, IntegerKey
 from tank_vendor import yaml
+from tank.authentication import ShotgunAuthenticator
 
 
 class  TestContext(TankTestBase):
@@ -970,7 +972,7 @@ class TestAsTemplateFields(TestContext):
         template_def = "/sequence/{Sequence}/{Shot}/{Step}/{HumanUser}"
         template = TemplatePath(template_def, self.keys, self.project_root)
 
-        # pull out fields and test that we have everythign we expect
+        # pull out fields and test that we have everything we expect
         fields = ctx.as_template_fields(template)
 
         self.assertEquals(fields["HumanUser"], "user_login")
@@ -981,10 +983,9 @@ class TestAsTemplateFields(TestContext):
 
 
 
-
-class TestSerailize(TestContext):
+class TestSerialize(TestContext):
     def setUp(self):
-        super(TestSerailize, self).setUp()
+        super(TestSerialize, self).setUp()
         # params used in creating contexts
         self.kws = {}
         self.kws["tk"] = self.tk
@@ -992,6 +993,10 @@ class TestSerailize(TestContext):
         self.kws["entity"] = self.shot
         self.kws["step"] = self.step
         self.kws["task"] = {"id": 45, "type": "Task"}
+
+        self._user =  ShotgunAuthenticator().create_script_user(
+            "script_user", "script_key", "https://abc.shotgunstudio.com"
+        )
 
     def test_equal_yml(self):
         context_1 = context.Context(**self.kws)
@@ -1001,6 +1006,46 @@ class TestSerailize(TestContext):
 
     def test_equal_custom(self):
         context_1 = context.Context(**self.kws)
-        serialized = tank.context.serialize(context_1)
-        context_2 = tank.context.deserialize(serialized)
+        serialized = context_1.serialize(context_1)
+        context_2 = tank.Context.deserialize(serialized)
         self.assertTrue(context_1 == context_2)
+
+    def _assert_same_user(self, user_1, user_2):
+        """
+        Asserts that the two users are both script users with the same name.
+        """
+        self.assertEqual(user_1.impl.get_script(), user_2.impl.get_script())
+
+    def test_serialize_with_user(self):
+        """
+        Make sure the user is serialized and restored.
+        """
+        tank.set_authenticated_user(self._user)
+        ctx = context.Context(**self.kws)
+        ctx_str = tank.Context.serialize(ctx)
+
+        # Reset the current user to later check if it is restored.
+        tank.set_authenticated_user(None)
+
+        # Unserializing should restore the user.
+        tank.Context.deserialize(ctx_str)
+        self._assert_same_user(tank.get_authenticated_user(), self._user)
+
+    def test_serialize_without_user(self):
+        """
+        Make sure the user is not serialized and not restored.
+        """
+        tank.set_authenticated_user(self._user)
+        ctx = context.Context(**self.kws)
+        ctx_str = tank.Context.serialize(ctx)
+
+        # Change the current user to make sure that the deserialize operation doesn't
+        # change it back to the original user.
+        other_user = ShotgunAuthenticator().create_script_user(
+            "script_user", "script_key", "https://abc.shotgunstudio.com"
+        )
+        tank.set_authenticated_user(other_user)
+
+        # The unserialized context shouldn't have changed the current user.
+        tank.Context.deserialize(ctx_str)
+        self._assert_same_user(tank.get_authenticated_user(), other_user)
