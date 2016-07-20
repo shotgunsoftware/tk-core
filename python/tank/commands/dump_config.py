@@ -94,7 +94,7 @@ class DumpConfigAction(Action):
         """
 
         # validate params and seed default values
-        return self._run(log, self._validate_parameters(parameters))
+        return self._run(log, self._validate_parameters(parameters, log))
 
     def run_interactive(self, log, args):
         """
@@ -106,13 +106,17 @@ class DumpConfigAction(Action):
 
         self._is_interactive = True
 
+        if len(args) == 0:
+            self._log_usage(log)
+            return
+
         parameters = {}
 
         # look for a --file argument
         parameters["file"] = ""
         for arg in args:
             if arg == "--file":
-                print "\nUsage: %s\n" % (self._usage(),)
+                self._log_usage(log)
                 raise TankError(
                     "Must specify a path: --file=/path/to/write/to.yml"
                 )
@@ -122,7 +126,7 @@ class DumpConfigAction(Action):
                 # from '--file=/path/to/my config' get '/path/to/my config'
                 parameters["file"] = arg[len("--file="):]
                 if parameters["file"] == "":
-                    print "\nUsage: %s\n" % (self._usage(),)
+                    self._log_usage(log)
                     raise TankError(
                         "Must specify a path: --file=/path/to/write/to.yml"
                     )
@@ -142,23 +146,23 @@ class DumpConfigAction(Action):
             parameters["sparse"] = False
 
         # debug
-        if "--no-debug-comments" in args:
+        if "--no_debug_comments" in args:
             parameters["no_debug_comments"] = True
-            args.remove("--no-debug-comments")
+            args.remove("--no_debug_comments")
         else:
             parameters["no_debug_comments"] = False
 
         # if there are any options left, bail
         for arg in args:
             if arg.startswith("-"):
-                print "\nUsage: %s\n" % (self._usage(),)
+                self._log_usage(log)
                 raise TankError("Unknown argument: %s" % (arg,))
 
         # everything left should be the env argument
         parameters["env"] = " ".join(args)
 
         # do work after validating
-        return self._run(log, self._validate_parameters(parameters))
+        return self._run(log, self._validate_parameters(parameters, log))
 
     def _run(self, log, params):
         """
@@ -167,8 +171,6 @@ class DumpConfigAction(Action):
         :param log: A logger instance.
         :param params: parameter dict.
         """
-
-        log.info("Dumping config...")
 
         # the env to dump
         env = self.tk.pipeline_configuration.get_environment(
@@ -182,10 +184,15 @@ class DumpConfigAction(Action):
         # determine the transform to use when dumping
         if params["sparse"]:
             transform = env.STRIP_DEFAULTS
+            log.info("Dumping sparse config...")
         elif params["full"]:
             transform = env.INCLUDE_DEFAULTS
+            log.info("Dumping full config...")
         else:
             transform = env.NONE
+            log.info("Dumping config...")
+
+        log.info("")
 
         # map the command line debug comments arg to the expected arg.
         if params["no_debug_comments"]:
@@ -197,7 +204,13 @@ class DumpConfigAction(Action):
             env.dump(env_fh, transform, include_debug_comments)
             if not params["file"]:
                 # no file, write the in-memory file contents to <stdout>
+                log.info("=" * 70)
+                log.info("")
                 print env_fh.getvalue()
+                log.info("")
+                log.info("=" * 70)
+            else:
+                log.info("Environment written to: %s" % (os.path.abspath(params["file"])),)
         except Exception, e:
             import traceback
             traceback.print_exc()
@@ -241,7 +254,7 @@ class DumpConfigAction(Action):
 
         return fh
 
-    def _validate_parameters(self, parameters):
+    def _validate_parameters(self, parameters, log):
         """
         Do validation of the parameters that arse specific to this action.
 
@@ -256,7 +269,8 @@ class DumpConfigAction(Action):
         # make sure we don't have too many dump types
         if parameters["full"] and parameters["sparse"]:
             if self._is_interactive:
-                print "\nUsage: %s\n" % (self._usage(),)
+                self._log_usage(log)
+
             raise TankError(
                 "The 'full' and 'sparse' options are mutually exclusive.")
 
@@ -277,7 +291,7 @@ class DumpConfigAction(Action):
         # make sure the supplied environment name is valid
         if parameters["env"] not in valid_env_names:
             if self._is_interactive:
-                print "\nUsage: %s\n" % (self._usage(),)
+                self._log_usage(log)
 
             raise TankError(
                 "Could not find an environment named: '%s'. "
@@ -285,7 +299,63 @@ class DumpConfigAction(Action):
 
         return parameters
 
-    def _usage(self):
+    def _log_usage(self, log):
         """Return a string displaying the usage of this command."""
-        return "./tank dump_config env_name [--sparse | --full] [--debug-comments] [--file=/path/to/output/file.yml]"
+
+        log.info("Usage details:")
+        log.info("--------------")
+        log.info("")
+        log.info("This command was introduced in conjunction with tk-core v0.18 and support for "
+                 "sparse configurations. Sparse configuration files do not require explicit "
+                 "specification of settings that match the default values in an app, engine, or "
+                 "framework's manifest file.")
+        log.info("")
+        log.info("This command allows the user to write an existing configuration file as-is, as a "
+                 "full representation of the environment (all settings are explicitly defined) or "
+                 "as a sparse representation of the environment (only non-default settings are "
+                 "explicitly defined). By default, the environment is written as-is. The "
+                 "`--sparse` and `--full` flags can be used to dump sparse and full "
+                 "representations respectively.")
+        log.info("")
+        log.info("The input environment configuration is written to STDOUT by default or to "
+                 "a new file when used with the `--file` option. The command will not allow writing "
+                 "to an existing file. This is to prevent overwriting existing environment "
+                 "configuration files.")
+        log.info("")
+        log.info("By default, the output of this command will include debug comments for each "
+                 "setting identifying the manifest where the setting is defined as well as the "
+                 "default value if it differs from the value in the environment. To turn off these "
+                 "debug comments, use the `--no_debug_comments` flag.")
+        log.info("")
+        log.info("Examples:")
+        log.info("---------")
+        log.info("")
+        log.info("The primary use of this tool is for debugging. If you're using a sparse "
+                 "configuration, you can use this tool to write out a full representation of the "
+                 "environment to see what default values you have overridden and what those values "
+                 "are. This information will be written in the debug comments for each setting.")
+        log.info("")
+        log.info("An example usage for this scenario might look like this:")
+        log.info("")
+        log.info("  ./tank dump_config shot_step --full --file=/tmp/shot_step_full.yml")
+        log.info("")
+        log.info("The above command dumps a full representation of your project's shot_step "
+                 "environment to a temp file.")
+        log.info("")
+        log.info("Another usage of this command is to help transition from a legacy, fully "
+                 "evaluated configuration to a sparse representation. Here is an example:")
+        log.info("")
+        log.info("  ./tank dump_config asset_step --sparse --file=/tmp/asset_step.yml")
+        log.info("")
+        log.info("The above command writes a sparse representation of the asset_step environment "
+                 "to a temp file. It is recommended that you verify the results of the command and "
+                 "make a backup of your existing environment before replacing it with the output "
+                 ".yml file.")
+        log.info("")
+        log.info("Full usage:")
+        log.info("-----------")
+        log.info("")
+        log.info("  ./tank dump_config env_name [--sparse | --full] [--no_debug_comments] [--file=/path/to/output/file.yml]")
+        log.info("")
+
 
