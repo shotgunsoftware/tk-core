@@ -1762,29 +1762,57 @@ class Engine(TankBundle):
         return base
 
     def __define_qt5(self):
+        """
+        This will be called at initialization to discover every PySide 2 modules, if available.
+
+        :returns: A dictionary of Qt5 all modules in addition to __file__, __version__ and __name__.
+            If Qt5 is not available, an empty dictionary is returned.
+        """
+
+        # Quick check if PySide 2 is available. If not, simply return an empty dictionary.
+        try:
+            import PySide2
+        except ImportError:
+            return {}
+
+        # List of all Qt5 modules.
         sub_modules = [
             "QtCore", "QtGui", "QtHelp", "QtNetwork", "QtPrintSupport", "QtQml", "QtQuick", "QtQuickWidgets",
             "QtScript", "QtSvg", "QtTest", "QtUiTools", "QtWebChannel", "QtWebEngineWidgets",
-            "QtWebKit", "QtWebKitWidgets", "QtWidgets", "QtWebSockets", "QtXml", "QtXmlPatterns"
+            "QtWebKit", "QtWebKitWidgets", "QtWidgets", "QtWebSockets", "QtXml", "QtXmlPatterns",
+            "QtScriptSql", "QtScriptTools", "QtOpenGL", "QtMultimedia"
         ]
-        try:
-            wrapper = __import__("PySide2", globals(), locals(), sub_modules)
 
-            # No dictionary comprehension in Python < 2.7, sadly.
-            module_dict = {}
-            for name in sub_modules + ["__version__", "__name__", "__file__"]:
+        module_dict = {}
+
+        # We do not test for PyQt5 since it is supported on Python 3 only at the moment. No
+        # DCC ships with it anyway.
+        #
+        # Depending on the build of PySide 2 being used, more or less modules are supported. Instead
+        # of assuming a base set of functionality, simply try every module one at a time.
+        #
+        # First, if a module is missing the __import__ function doesn't raise an exception.
+        # This is why we have to test for existence of the attribute on the PySide 2 module.
+        #
+        # Second, if the library couldn't load because of missing symbols with in Qt (e.g.
+        # both Maya 2017 and the PySide 2 built on my machine are missing some symbols in order to load
+        # QtScriptTools), it will raise an ImportError.
+        #
+        # Testing each module like this individually helps get as many as possible.
+        for module_name in sub_modules:
+            try:
+                wrapper = __import__("PySide2", globals(), locals(), [module_name])
+                if hasattr(wrapper, module_name):
+                    module_dict[module_name] = getattr(wrapper, module_name)
+            except:
+                pass
+
+        # If some modules were successfully imported, add PySide 2 build information.
+        if module_dict:
+            for name in ["__version__", "__name__", "__file__"]:
                 module_dict[name] = getattr(wrapper, name)
 
-            return module_dict
-        except ImportError:
-            return None
-
-# >>> from PySide2 import QtScriptSql
-# >>> from PySide2 import QtScriptTools
-# >>> from PySide2 import QtOpenGL
-# >>> from PySide2 import QtMultimedia
-        
-
+        return module_dict
 
     def _initialize_dark_look_and_feel(self):
         """

@@ -8,4 +8,5 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# from tank.platform.qt import QtCore, QtGui
+# This module will be populated during engine initialization with modules available for Qt 5 if
+# PySide 2 is accessible.
