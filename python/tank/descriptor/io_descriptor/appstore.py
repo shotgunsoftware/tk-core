@@ -583,6 +583,7 @@ class IODescriptorAppStore(IODescriptorBase):
 
         return desc
 
+    @LogManager.log_timing
     def __create_sg_app_store_connection(self):
         """
         Creates a shotgun connection that can be used to access the Toolkit app store.
@@ -620,6 +621,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 else:
                     raise
 
+            log.debug("Connecting to %s..." % constants.SGTK_APP_STORE)
             # Connect to the app store and resolve the script user id we are connecting with.
             # Set the timeout explicitly so we ensure the connection won't hang in cases where
             # a response is not returned in a reasonable amount of time.
@@ -695,6 +697,7 @@ class IODescriptorAppStore(IODescriptorBase):
             # the connection hook again.
             return self._sg_connection.config.raw_http_proxy
 
+    @LogManager.log_timing
     def __get_app_store_key_from_shotgun(self):
         """
         Given a Shotgun url and script credentials, fetch the app store key
@@ -704,6 +707,8 @@ class IODescriptorAppStore(IODescriptorBase):
         :returns: tuple of strings with contents (script_name, script_key)
         """
         sg = self._sg_connection
+
+        log.debug("Retrieving app store credentials from %s" % sg.base_url)
 
         # handle proxy setup by pulling the proxy details from the main shotgun connection
         if sg.config.proxy_handler:
@@ -716,5 +721,7 @@ class IODescriptorAppStore(IODescriptorBase):
         response = urllib2.urlopen("%s/api3/sgtk_install_script" % sg.base_url, urllib.urlencode(post_data))
         html = response.read()
         data = json.loads(html)
+
+        log.debug("Retrieved app store credentials for account '%s'." % data["script_name"])
 
         return data["script_name"], data["script_key"]
