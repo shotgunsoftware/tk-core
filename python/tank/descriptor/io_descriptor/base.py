@@ -128,8 +128,8 @@ class IODescriptorBase(object):
             ex: "tk-multi-shotgunpanel"
         :param bundle_version: The version of the bundle on disk. ex: "v1.2.5"
         :rtype: str
-        :return: The path to the cache in the legacy bundle structure.
-        :raises: RuntimeError - if the bundle_type is not recognized.
+        :return: The path to the cache in the legacy bundle structure. None
+                 if the bundle type is not supported by the 0.17 legacy structure.
 
         This method is provided for compatibility with older versions of core,
         prior to v0.18.x. As of v0.18.x, the bundle cache subdirectory names
@@ -156,10 +156,9 @@ class IODescriptorBase(object):
         elif bundle_type == Descriptor.FRAMEWORK:
             legacy_dir = "frameworks"
         else:
-            raise RuntimeError(
-                "Unknown bundle type '%s'. Can not determine legacy cache path." %
-                (bundle_type,)
-            )
+            # 0.17 structure does not support any other
+            # bundle types
+            return None
 
         # build and return the path.
         # example: <root>/apps/app_store/tk-multi-shotgunpanel/v1.2.5
