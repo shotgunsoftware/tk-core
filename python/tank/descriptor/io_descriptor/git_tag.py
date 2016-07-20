@@ -113,18 +113,14 @@ class IODescriptorGitTag(IODescriptorGit):
         # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
 
-        try:
-            legacy_folder = self._get_legacy_bundle_install_folder(
-                "git",
-                self._bundle_cache_root,
-                self._type,
-                name,
-                self.get_version()
-            )
-        except RuntimeError, e:
-            # warn and continue
-            log.warning("Could not add legacy location to bundle search path: %s" % e)
-        else:
+        legacy_folder = self._get_legacy_bundle_install_folder(
+            "git",
+            self._bundle_cache_root,
+            self._type,
+            name,
+            self.get_version()
+        )
+        if legacy_folder:
             paths.append(legacy_folder)
 
         return paths
