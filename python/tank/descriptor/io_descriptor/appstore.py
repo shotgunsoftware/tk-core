@@ -85,7 +85,7 @@ class IODescriptorAppStore(IODescriptorBase):
         Descriptor.FRAMEWORK: "TankAppStore_Framework_Download",
         Descriptor.ENGINE: "TankAppStore_Engine_Download",
         Descriptor.CONFIG: "TankAppStore_Config_Download",
-        Descriptor.CORE: "TankAppStore_Core_Download",
+        Descriptor.CORE: "TankAppStore_CoreApi_Download",
     }
 
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
