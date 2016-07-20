@@ -79,18 +79,14 @@ class IODescriptorManual(IODescriptorBase):
         # cache root didn't change (when use_bundle_cache is set to False).
         # If the bundle cache root changes across core versions, then this will
         # need to be refactored.
-        try:
-            legacy_folder = self._get_legacy_bundle_install_folder(
-                "manual",
-                self._bundle_cache_root,
-                self._type,
-                self._name,
-                self._version
-            )
-        except RuntimeError, e:
-            # warn and continue
-            log.warning("Could not add legacy location to bundle search path: %s" % e)
-        else:
+        legacy_folder = self._get_legacy_bundle_install_folder(
+            "manual",
+            self._bundle_cache_root,
+            self._type,
+            self._name,
+            self._version
+        )
+        if legacy_folder:
             paths.append(legacy_folder)
 
         return paths
