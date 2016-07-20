@@ -73,6 +73,15 @@ class IODescriptorBase(object):
         self._bundle_cache_root = primary_root
         self._fallback_roots = fallback_roots
 
+    def __str__(self):
+        """
+        Human readable representation
+        """
+        # fall back onto uri which is semi-human-readable
+        # it is recommended that each class implements its own
+        # operator in order to better customize the ux.
+        return self.get_uri()
+
     def __repr__(self):
         """
         Low level representation
@@ -128,8 +137,8 @@ class IODescriptorBase(object):
             ex: "tk-multi-shotgunpanel"
         :param bundle_version: The version of the bundle on disk. ex: "v1.2.5"
         :rtype: str
-        :return: The path to the cache in the legacy bundle structure.
-        :raises: RuntimeError - if the bundle_type is not recognized.
+        :return: The path to the cache in the legacy bundle structure. None
+                 if the bundle type is not supported by the 0.17 legacy structure.
 
         This method is provided for compatibility with older versions of core,
         prior to v0.18.x. As of v0.18.x, the bundle cache subdirectory names
@@ -156,10 +165,9 @@ class IODescriptorBase(object):
         elif bundle_type == Descriptor.FRAMEWORK:
             legacy_dir = "frameworks"
         else:
-            raise RuntimeError(
-                "Unknown bundle type '%s'. Can not determine legacy cache path." %
-                (bundle_type,)
-            )
+            # 0.17 structure does not support any other
+            # bundle types
+            return None
 
         # build and return the path.
         # example: <root>/apps/app_store/tk-multi-shotgunpanel/v1.2.5
@@ -511,6 +519,21 @@ class IODescriptorBase(object):
         """
         return self.get_path() is not None
 
+    def _get_cache_paths(self):
+        """
+        Get a list of resolved paths, starting with the primary and
+        continuing with alternative locations.
+
+        Note: This method only computes paths and does not perform any I/O ops.
+
+        :return: List of path strings
+        """
+        paths = []
+
+        for root in [self._bundle_cache_root] + self._fallback_roots:
+            paths.append(self._get_bundle_cache_path(root))
+        return paths
+
     def get_path(self):
         """
         Returns the path to the folder where this item resides. If no
@@ -524,18 +547,48 @@ class IODescriptorBase(object):
 
         return None
 
+    def clone_cache(self, cache_root):
+        """
+        The descriptor system maintains an internal cache where it downloads
+        the payload that is associated with the descriptor. Toolkit supports
+        complex cache setups, where you can specify a series of path where toolkit
+        should go and look for cached items.
+
+        This is an advanced method that helps in cases where a user wishes to
+        administer such a setup, allowing a cached payload to be copied from
+        its current location into a new cache structure.
+
+        If the descriptor's payload doesn't exist on disk, it will be downloaded.
+
+        :param cache_root: Root point of the cache location to copy to.
+        """
+        # compute new location
+        new_cache_path = self._get_bundle_cache_path(cache_root)
+        log.debug("Clone cache for %r: Copying to '%s'" % (self, new_cache_path))
+
+        # make sure we have something to copy
+        self.ensure_local()
+
+        # check that we aren't trying to copy onto ourself
+        if new_cache_path == self.get_path():
+            log.debug("Clone cache for %r: No need to copy, source and target are same." % self)
+            return
+
+        # and to the actual I/O
+        # pass an empty skip list to ensure we copy things like the .git folder
+        filesystem.ensure_folder_exists(new_cache_path, permissions=0777)
+        filesystem.copy_folder(self.get_path(), new_cache_path, skip_list=[])
 
     ###############################################################################################
-    # stuff typically implemented by deriving classes
+    # implemented by deriving classes
 
-    def _get_cache_paths(self):
+    def _get_bundle_cache_path(self, bundle_cache_root):
         """
-        Get a list of resolved paths, starting with the primary and
-        continuing with alternative locations where it may reside
+        Given a cache root, compute a cache path suitable
+        for this descriptor, using the 0.18+ path format.
 
-        Note: This method only computes paths and does not perform any I/O ops.
-
-        :return: List of path strings
+        :param bundle_cache_root: Bundle cache root path
+        :return: Path to bundle cache location
         """
         raise NotImplementedError
 

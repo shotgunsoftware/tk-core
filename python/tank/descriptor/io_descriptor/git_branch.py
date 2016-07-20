@@ -70,17 +70,21 @@ class IODescriptorGitBranch(IODescriptorGit):
         self._version = descriptor_dict.get("version")
         self._branch = descriptor_dict.get("branch")
 
-    def _get_cache_paths(self):
+    def __str__(self):
         """
-        Get a list of resolved paths, starting with the primary and
-        continuing with alternative locations where it may reside.
-
-        Note: This method only computes paths and does not perform any I/O ops.
-
-        :return: List of path strings
+        Human readable representation
         """
-        paths = []
+        # git@github.com:manneohrstrom/tk-hiero-publish.git, branch master, commit 12313123
+        return "%s, Branch %s, Commit %s" % (self._path, self._branch, self._version)
 
+    def _get_bundle_cache_path(self, bundle_cache_root):
+        """
+        Given a cache root, compute a cache path suitable
+        for this descriptor, using the 0.18+ path format.
+
+        :param bundle_cache_root: Bundle cache root path
+        :return: Path to bundle cache location
+        """
         # to be MAXPATH-friendly, we only use the first seven chars
         short_hash = self._version[:7]
 
@@ -88,16 +92,12 @@ class IODescriptorGitBranch(IODescriptorGit):
         # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
 
-        for root in [self._bundle_cache_root] + self._fallback_roots:
-            paths.append(
-                os.path.join(
-                    root,
-                    "git",
-                    name,
-                    short_hash
-                )
-            )
-        return paths
+        return os.path.join(
+            bundle_cache_root,
+            "git",
+            name,
+            short_hash
+        )
 
     def _clone_into(self, target_path):
         """

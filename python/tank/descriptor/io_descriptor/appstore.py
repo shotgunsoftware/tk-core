@@ -13,17 +13,14 @@ Toolkit App Store Descriptor.
 """
 
 import os
-import uuid
-import tempfile
 import urllib
 import urllib2
 import httplib
 from tank_vendor.shotgun_api3.lib import httplib2
 import cPickle as pickle
 
-from ...util.zip import unzip_file
-from ...util import filesystem, shotgun
-from ...util import UnresolvableCoreConfigurationError
+from ...util import shotgun, filesystem
+from ...util import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
 from ..descriptor import Descriptor
 from ..errors import TankAppStoreConnectionError
 from ..errors import TankAppStoreError
@@ -88,7 +85,7 @@ class IODescriptorAppStore(IODescriptorBase):
         Descriptor.FRAMEWORK: "TankAppStore_Framework_Download",
         Descriptor.ENGINE: "TankAppStore_Engine_Download",
         Descriptor.CONFIG: "TankAppStore_Config_Download",
-        Descriptor.CORE: "TankAppStore_Core_Download",
+        Descriptor.CORE: "TankAppStore_CoreApi_Download",
     }
 
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
@@ -114,6 +111,27 @@ class IODescriptorAppStore(IODescriptorBase):
         self._version = descriptor_dict.get("version")
         # cached metadata - loaded on demand
         self.__cached_metadata = None
+
+    def __str__(self):
+        """
+        Human readable representation
+        """
+        display_name_lookup = {
+            Descriptor.APP: "App",
+            Descriptor.FRAMEWORK: "Framework",
+            Descriptor.ENGINE: "Engine",
+            Descriptor.CONFIG: "Config",
+            Descriptor.CORE: "Core",
+        }
+
+        # Toolkit App Store App tk-multi-loader2 v1.2.3
+        # Toolkit App Store Framework tk-framework-shotgunutils v1.2.3
+        # Toolkit App Store Core v1.2.3
+        if self._type == Descriptor.CORE:
+            return "Toolkit App Store Core %s" % self._version
+        else:
+            display_name = display_name_lookup[self._type]
+            return "Toolkit App Store %s %s %s" % (display_name, self._name, self._version)
 
     def _get_app_store_metadata(self):
         """
@@ -224,6 +242,7 @@ class IODescriptorAppStore(IODescriptorBase):
             "sg_version_data": sg_version_data
         }
 
+        filesystem.ensure_folder_exists(os.path.dirname(path))
         fp = open(path, "wt")
         try:
             pickle.dump(metadata, fp)
@@ -232,6 +251,21 @@ class IODescriptorAppStore(IODescriptorBase):
             fp.close()
 
         return metadata
+
+    def _get_bundle_cache_path(self, bundle_cache_root):
+        """
+        Given a cache root, compute a cache path suitable
+        for this descriptor, using the 0.18+ path format.
+
+        :param bundle_cache_root: Bundle cache root path
+        :return: Path to bundle cache location
+        """
+        return os.path.join(
+            bundle_cache_root,
+            "app_store",
+            self.get_system_name(),
+            self.get_version()
+        )
 
     def _get_cache_paths(self):
         """
@@ -242,17 +276,8 @@ class IODescriptorAppStore(IODescriptorBase):
 
         :return: List of path strings
         """
-        paths = []
-
-        for root in [self._bundle_cache_root] + self._fallback_roots:
-            paths.append(
-                os.path.join(
-                    root,
-                    "app_store",
-                    self.get_system_name(),
-                    self.get_version()
-                )
-            )
+        # get default cache paths from base class
+        paths = super(IODescriptorAppStore, self)._get_cache_paths()
 
         # for compatibility with older versions of core, prior to v0.18.x,
         # add the old-style bundle cache path as a fallback. As of v0.18.x,
@@ -263,17 +288,14 @@ class IODescriptorAppStore(IODescriptorBase):
         # cache root didn't change (when use_bundle_cache is set to False).
         # If the bundle cache root changes across core versions, then this will
         # need to be refactored.
-        try:
-            legacy_folder = self._get_legacy_bundle_install_folder(
-                "app_store",
-                self._bundle_cache_root,
-                self._type,
-                self.get_system_name(),
-                self.get_version()
-            )
-        except RuntimeError:
-            pass
-        else:
+        legacy_folder = self._get_legacy_bundle_install_folder(
+            "app_store",
+            self._bundle_cache_root,
+            self._type,
+            self.get_system_name(),
+            self.get_version()
+        )
+        if legacy_folder:
             paths.append(legacy_folder)
 
         return paths
@@ -338,7 +360,6 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # cache into the primary location
         target = self._get_cache_paths()[0]
-        filesystem.ensure_folder_exists(target)
 
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
@@ -359,30 +380,13 @@ class IODescriptorAppStore(IODescriptorBase):
         #  'link_type': 'upload'}
         attachment_id = version[constants.TANK_CODE_PAYLOAD_FIELD]["id"]
 
-        # and now for the download.
-        # @todo: progress feedback here - when the SG api supports it!
-        # sometimes people report that this download fails (because of flaky connections etc)
-        # engines can often be 30-50MiB - as a quick fix, just retry the download once
-        # if it fails.
-        log.debug("Downloading attachment %s..." % self._version)
+        # download and unzip
         try:
-            bundle_content = sg.download_attachment(attachment_id)
-        except Exception, e:
-            # retry once
-            log.debug("Downloading failed, retrying. Error: %s" % e)
-            bundle_content = sg.download_attachment(attachment_id)
-
-        zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
-        fh = open(zip_tmp, "wb")
-        fh.write(bundle_content)
-        fh.close()
-
-        # unzip core zip file to app target location
-        log.debug("Unpacking %s bytes to %s..." % (os.path.getsize(zip_tmp), target))
-        unzip_file(zip_tmp, target)
-
-        # remove zip file
-        filesystem.safe_delete_file(zip_tmp)
+            shotgun.download_and_unpack_attachment(sg, attachment_id, target)
+        except ShotgunAttachmentDownloadError, e:
+            raise TankAppStoreError(
+                "Failed to download %s. Error: %s" % (self, e)
+            )
 
         # write a stats record to the tank app store
         data = {}

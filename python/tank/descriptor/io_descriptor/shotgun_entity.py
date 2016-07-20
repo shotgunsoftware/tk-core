@@ -9,12 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import uuid
-import tempfile
 
 from .base import IODescriptorBase
-from ...util.zip import unzip_file
-from ...util import filesystem
+from ...util import filesystem, shotgun
+from ...util.errors import ShotgunAttachmentDownloadError
 from ..errors import TankDescriptorError
 from ... import LogManager
 
@@ -79,26 +77,19 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         self._project_id = descriptor_dict.get("project_id")
 
-    def _get_cache_paths(self):
+    def _get_bundle_cache_path(self, bundle_cache_root):
         """
-        Get a list of resolved paths, starting with the primary and
-        continuing with alternative locations where it may reside.
+        Given a cache root, compute a cache path suitable
+        for this descriptor, using the 0.18+ path format.
 
-        Note: This method only computes paths and does not perform any I/O ops.
-
-        :return: List of path strings
+        :param bundle_cache_root: Bundle cache root path
+        :return: Path to bundle cache location
         """
-        paths = []
-
-        for root in [self._bundle_cache_root] + self._fallback_roots:
-            paths.append(
-                os.path.join(
-                    root,
-                    "sg_upload",
-                    self.get_version()
-                )
-            )
-        return paths
+        return os.path.join(
+            bundle_cache_root,
+            "sg_upload",
+            self.get_version()
+        )
 
     def get_system_name(self):
         """
@@ -129,30 +120,14 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         # cache into the primary location
         target = self._get_cache_paths()[0]
-        filesystem.ensure_folder_exists(target)
 
-        # and now for the download.
-        # @todo: progress feedback here - when the SG api supports it!
-        # sometimes people report that this download fails (because of flaky connections etc)
-        log.debug("Downloading attachment %s..." % self._version)
         try:
-            bundle_content = self._sg_connection.download_attachment(self._version)
-        except Exception, e:
-            # retry once
-            log.debug("Downloading failed, retrying. Error: %s" % e)
-            bundle_content = self._sg_connection.download_attachment(self._version)
+            shotgun.download_and_unpack_attachment(self._sg_connection, self._version, target)
+        except ShotgunAttachmentDownloadError, e:
+            raise TankDescriptorError(
+                "Failed to download %s from %s. Error: %s" % (self, self._sg_connection.base_url, e)
+            )
 
-        zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
-        fh = open(zip_tmp, "wb")
-        fh.write(bundle_content)
-        fh.close()
-
-        # unzip core zip file to app target location
-        log.debug("Unpacking %s bytes to %s..." % (os.path.getsize(zip_tmp), target))
-        unzip_file(zip_tmp, target)
-
-        # clear temp file
-        filesystem.safe_delete_file(zip_tmp)
 
     def get_latest_version(self, constraint_pattern=None):
         """
@@ -227,3 +202,4 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         log.debug("Latest version resolved to %s" % desc)
         return desc
+

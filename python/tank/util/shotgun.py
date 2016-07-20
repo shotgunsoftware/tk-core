@@ -12,24 +12,29 @@
 Shotgun utilities
 
 """
+from __future__ import with_statement
 
 import os
 import sys
+import uuid
 import urllib2
 import urlparse
 import pprint
 import threading
+import tempfile
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
 
-from .errors import UnresolvableCoreConfigurationError
+from .errors import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
 from ..errors import TankError
 from ..log import LogManager
 from .. import hook
 from . import constants
 from . import login
 from . import yaml_cache
+from .zip import unzip_file
+from . import filesystem
 
 log = LogManager.get_logger(__name__)
 
@@ -238,7 +243,64 @@ def download_url(sg, url, location):
             f.close()
     except Exception, e:
         raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
-    
+
+@LogManager.log_timing
+def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
+    """
+    Downloads the given attachment from Shotgun, assumes it is a zip file
+    and attempts to unpack it into the given location.
+
+    :param sg: Shotgun API instance
+    :param attachment_id: Attachment to download
+    :param target: Folder to unpack zip to. if not created, the method will
+                   try to create it.
+    :param retries: Number of times to retry before giving up
+    :raises: ShotgunAttachmentDownloadError on failure
+    """
+    # @todo: progress feedback here - when the SG api supports it!
+    # sometimes people report that this download fails (because of flaky connections etc)
+    # engines can often be 30-50MiB - as a quick fix, just retry the download once
+    # if it fails.
+    attempt = 0
+    done = False
+
+    while not done and attempt < retries:
+
+        zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
+        try:
+            log.debug("Downloading attachment id %s..." % attachment_id)
+            bundle_content = sg.download_attachment(attachment_id)
+
+            log.debug("Download complete. Saving into %s" % zip_tmp)
+            with open(zip_tmp, "wb") as fh:
+                fh.write(bundle_content)
+
+            log.debug("Unpacking %s bytes to %s..." % (os.path.getsize(zip_tmp), target))
+            filesystem.ensure_folder_exists(target)
+            unzip_file(zip_tmp, target)
+
+        except Exception, e:
+            # retry once
+            log.warning(
+                "Attempt %s: Attachment download of id %s from %s failed: %s" % (attempt, attachment_id, sg.base_url, e)
+            )
+            attempt += 1
+        else:
+            done = True
+        finally:
+            # remove zip file
+            filesystem.safe_delete_file(zip_tmp)
+
+    if not done:
+        # we were not successful
+        raise ShotgunAttachmentDownloadError(
+            "Failed to download from '%s' after %s retries. See error log for details." % (sg.base_url, retries)
+        )
+
+    else:
+        log.debug("Attachment download and unpack complete.")
+
+
     
 def get_associated_sg_base_url():
     """
@@ -1005,45 +1067,55 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
     # handle the path definition
     if path_is_url:
-        data["path"] = { "url":path }
+        data["path"] = {"url": path}
     else:
+
         # Make path platform agnostic.
         storage_name, path_cache = _calc_path_cache(tk, path)
 
-        # check if the shotgun server supports the storage and relative_path parameters
-        # which allows us to specify exactly which storage to bind a publish to rather
-        # than relying on Shotgun to compute this
-        supports_specific_storage_syntax = (
-            hasattr(tk.shotgun, "server_caps") and
-            tk.shotgun.server_caps.version and
-            tk.shotgun.server_caps.version >= (6, 3, 17)
-        )
+        # specify the full path in shotgun
+        data["path"] = {"local_path": path}
 
-        if supports_specific_storage_syntax:
-            # explicitly pass relative path and storage to shotgun
-            storage = tk.shotgun.find_one("LocalStorage", [["code", "is", storage_name]])
+        # note - #30005 - there appears to be an issue on the serverside
+        # related to the explicit storage format and paths containing
+        # sequence tokens such as %04d. Commenting out the logic to handle
+        # the new explicit storage format for the time being while this is
+        # being investigated.
 
-            if storage is None:
-                # there is no storage in Shotgun that matches the one toolkit expects.
-                # this *may* be ok because there may be another storage in Shotgun that
-                # magically picks up the publishes and associates with them. In this case,
-                # issue a warning and fall back on the server-side functionality
-                log.warning(
-                    "Could not find the expected storage '%s' in Shotgun to associate "
-                    "publish '%s' with - falling back to Shotgun's built-in storage "
-                    "resolution logic. It is recommended that you add the '%s' storage "
-                    "to Shotgun" % (storage_name, path, storage_name))
-                data["path"] = {"local_path": path}
-
-            else:
-                data["path"] = {"relative_path": path_cache, "local_storage": storage}
-
-        else:
-            # use previous syntax where we pass the whole path to Shotgun
-            # and shotgun will do the storage/relative path split server side.
-            # This operation may do unexpected things if you have multiple
-            # storages that are identical or overlapping
-            data["path"] = {"local_path": path}
+        # # check if the shotgun server supports the storage and relative_path parameters
+        # # which allows us to specify exactly which storage to bind a publish to rather
+        # # than relying on Shotgun to compute this
+        # supports_specific_storage_syntax = (
+        #     hasattr(tk.shotgun, "server_caps") and
+        #     tk.shotgun.server_caps.version and
+        #     tk.shotgun.server_caps.version >= (6, 3, 17)
+        # )
+        #
+        # if supports_specific_storage_syntax:
+        #     # explicitly pass relative path and storage to shotgun
+        #     storage = tk.shotgun.find_one("LocalStorage", [["code", "is", storage_name]])
+        #
+        #     if storage is None:
+        #         # there is no storage in Shotgun that matches the one toolkit expects.
+        #         # this *may* be ok because there may be another storage in Shotgun that
+        #         # magically picks up the publishes and associates with them. In this case,
+        #         # issue a warning and fall back on the server-side functionality
+        #         log.warning(
+        #             "Could not find the expected storage '%s' in Shotgun to associate "
+        #             "publish '%s' with - falling back to Shotgun's built-in storage "
+        #             "resolution logic. It is recommended that you add the '%s' storage "
+        #             "to Shotgun" % (storage_name, path, storage_name))
+        #         data["path"] = {"local_path": path}
+        #
+        #     else:
+        #         data["path"] = {"relative_path": path_cache, "local_storage": storage}
+        #
+        # else:
+        #     # use previous syntax where we pass the whole path to Shotgun
+        #     # and shotgun will do the storage/relative path split server side.
+        #     # This operation may do unexpected things if you have multiple
+        #     # storages that are identical or overlapping
+        #     data["path"] = {"local_path": path}
 
         # fill in the path cache field which is used for filtering in Shotgun
         # (because SG does not support
@@ -1058,7 +1130,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
             data["created_by"] = sg_user
 
     if created_at:
-        data['created_at'] = created_at
+        data["created_at"] = created_at
 
     if published_file_type:
         if published_file_entity_type == "PublishedFile":

@@ -90,7 +90,15 @@ class IODescriptorPath(IODescriptorBase):
             bn = os.path.basename(self._path)
             self._name, _ = os.path.splitext(bn)
 
+    def _get_bundle_cache_path(self, bundle_cache_root):
+        """
+        Given a cache root, compute a cache path suitable
+        for this descriptor, using the 0.18+ path format.
 
+        :param bundle_cache_root: Bundle cache root path
+        :return: Path to bundle cache location
+        """
+        return self._path
 
     def _get_cache_paths(self):
         """
@@ -148,4 +156,20 @@ class IODescriptorPath(IODescriptorBase):
         # we are always the latest version :)
         return self
 
+    def clone_cache(self, cache_root):
+        """
+        The descriptor system maintains an internal cache where it downloads
+        the payload that is associated with the descriptor. Toolkit supports
+        complex cache setups, where you can specify a series of path where toolkit
+        should go and look for cached items.
 
+        This is an advanced method that helps in cases where a user wishes to
+        administer such a setup, allowing a cached payload to be copied from
+        its current location into a new cache structure.
+
+        If the descriptor's payload doesn't exist on disk, it will be downloaded.
+
+        :param cache_root: Root point of the cache location to copy to.
+        """
+        # no payload is cached at all, so nothing to do
+        log.debug("Clone cache for %r: Not copying anything for this descriptor type")

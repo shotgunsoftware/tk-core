@@ -27,3 +27,9 @@ class TankEngineInitError(TankError):
     """
     pass
 
+class TankEngineEventError(TankError):
+    """
+    Exception that is raised when there is a problem during engine event emission.
+    """
+    pass
+
