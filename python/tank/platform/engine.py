@@ -608,10 +608,10 @@ class Engine(TankBundle):
     @property
     def has_qt5(self):
         """
-        Indicates that the host application has access to Qt5 and that the sgtk.platform.qt5 module
-        has been populated with the Qt5 modules and information.
+        Indicates that the host application has access to Qt 5 and that the ``sgtk.platform.qt5``  module
+        has been populated with the Qt 5 modules and information.
 
-        :returns bool: boolean value indicating if a UI currently exists
+        :returns bool: boolean value indicating if Qt 5 is available.
         """
         return self.__has_qt5
 
@@ -1765,8 +1765,8 @@ class Engine(TankBundle):
         """
         This will be called at initialization to discover every PySide 2 modules, if available.
 
-        :returns: A dictionary of Qt5 all modules in addition to __file__, __version__ and __name__.
-            If Qt5 is not available, an empty dictionary is returned.
+        :returns: A dictionary of Qt 5 all modules in addition to __file__, __version__ and __name__.
+            If Qt 5 is not available, an empty dictionary is returned.
         """
 
         # Quick check if PySide 2 is available. If not, simply return an empty dictionary.
@@ -1775,7 +1775,7 @@ class Engine(TankBundle):
         except ImportError:
             return {}
 
-        # List of all Qt5 modules.
+        # List of all Qt 5 modules.
         sub_modules = [
             "QtCore", "QtGui", "QtHelp", "QtNetwork", "QtPrintSupport", "QtQml", "QtQuick", "QtQuickWidgets",
             "QtScript", "QtSvg", "QtTest", "QtUiTools", "QtWebChannel", "QtWebEngineWidgets",
