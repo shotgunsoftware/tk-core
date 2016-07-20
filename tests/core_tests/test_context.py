@@ -1,12 +1,14 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+
+from __future__ import with_statement
 
 import os
 import copy
@@ -17,7 +19,7 @@ from mock import Mock, patch
 
 import tank
 from tank import context
-from tank.errors import TankError
+from tank.errors import TankError, TankContextDeserializationError
 from tank.template import TemplatePath
 from tank.templatekey import StringKey, IntegerKey
 from tank_vendor import yaml
@@ -1049,3 +1051,10 @@ class TestSerialize(TestContext):
         # The unserialized context shouldn't have changed the current user.
         tank.Context.deserialize(ctx_str)
         self._assert_same_user(tank.get_authenticated_user(), other_user)
+
+    def test_deserialized_invalid_data(self):
+        """
+        Expects the deserialize method to raise an error.
+        """
+        with self.assertRaises(TankContextDeserializationError):
+            tank.Context.deserialize("ajkadshadsjkhadsjkasd")

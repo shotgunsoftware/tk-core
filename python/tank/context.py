@@ -24,7 +24,7 @@ from .util import login
 from .util import shotgun_entity
 from .util import shotgun
 from . import constants
-from .errors import TankError
+from .errors import TankError, TankContextDeserializationError
 from .path_cache import PathCache
 from .template import TemplatePath
 
@@ -697,7 +697,10 @@ class Context(object):
         # lazy load this to avoid cyclic dependencies
         from .api import Tank, set_authenticated_user
 
-        data = pickle.loads(context_str)
+        try:
+            data = pickle.loads(context_str)
+        except Exception, e:
+            raise TankContextDeserializationError(str(e))
 
         # first get the pipeline config path out of the dict
         pipeline_config_path = data["_pc_path"]
