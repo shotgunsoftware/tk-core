@@ -502,14 +502,7 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
         )
 
     # execute the method
-    try:
-        ret_val = hook_method(**kwargs)
-    except:
-        # log the full callstack to make sure that whatever the
-        # calling code is doing, this error is logged to help
-        # with troubleshooting and support
-        log.exception("Exception raised while executing hook '%s'" % hook_paths[-1])
-        raise
+    ret_val = hook_method(**kwargs)
 
     return ret_val
 

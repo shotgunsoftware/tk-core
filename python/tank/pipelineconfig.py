@@ -859,7 +859,16 @@ class PipelineConfiguration(object):
                hook_name not in constants.TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST):
                 parent.log_metric("custom hook %s" % (hook_name,))
 
-        return hook.execute_hook(hook_path, parent, **kwargs)
+        try:
+            return_value = hook.execute_hook(hook_path, parent, **kwargs)
+        except:
+            # log the full callstack to make sure that whatever the
+            # calling code is doing, this error is logged to help
+            # with troubleshooting and support
+            log.exception("Exception raised while executing hook '%s'" % hook_path)
+            raise
+
+        return return_value
 
     def execute_core_hook_method_internal(self, hook_name, method_name, parent, **kwargs):
         """
@@ -890,5 +899,15 @@ class PipelineConfiguration(object):
             if hasattr(parent, 'log_metric'):
                 parent.log_metric("custom hook %s" % (hook_name,))
 
-        return hook.execute_hook_method(hook_paths, parent, method_name, **kwargs)
+        try:
+            return_value = hook.execute_hook_method(hook_paths, parent, method_name, **kwargs)
+        except:
+            # log the full callstack to make sure that whatever the
+            # calling code is doing, this error is logged to help
+            # with troubleshooting and support
+            log.exception("Exception raised while executing hook '%s'" % hook_paths[-1])
+            raise
+
+        return return_value
+
 
