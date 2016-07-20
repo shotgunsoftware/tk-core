@@ -285,12 +285,16 @@ class TankTestBase(unittest.TestCase):
                                 "mac_path": self.tank_temp }
         
         self.add_to_sg_mock_db(self.primary_storage)
-        
-        
+
+        # back up the authenticated user in case a unit test doesn't clean up correctly.
+        self._authenticated_user = sgtk.get_authenticated_user()
+
     def tearDown(self):
         """
         Cleans up after tests.
         """
+        sgtk.set_authenticated_user(self._authenticated_user)
+
         # get rid of path cache from local ~/.shotgun storage
         pc = path_cache.PathCache(self.tk)
         path_cache_file = pc._get_path_cache_location()
