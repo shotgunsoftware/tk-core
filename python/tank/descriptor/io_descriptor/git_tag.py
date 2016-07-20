@@ -61,6 +61,13 @@ class IODescriptorGitTag(IODescriptorGit):
 
         self._type = bundle_type
 
+    def __str__(self):
+        """
+        Human readable representation
+        """
+        # git@github.com:manneohrstrom/tk-hiero-publish.git, tag v1.2.3
+        return "%s, Tag %s" % (self._path, self._version)
+
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
         Given a cache root, compute a cache path suitable

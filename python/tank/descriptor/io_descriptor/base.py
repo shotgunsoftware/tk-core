@@ -73,6 +73,15 @@ class IODescriptorBase(object):
         self._bundle_cache_root = primary_root
         self._fallback_roots = fallback_roots
 
+    def __str__(self):
+        """
+        Human readable representation
+        """
+        # fall back onto uri which is semi-human-readable
+        # it is recommended that each class implements its own
+        # operator in order to better customize the ux.
+        return self.get_uri()
+
     def __repr__(self):
         """
         Low level representation

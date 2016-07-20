@@ -70,6 +70,13 @@ class IODescriptorGitBranch(IODescriptorGit):
         self._version = descriptor_dict.get("version")
         self._branch = descriptor_dict.get("branch")
 
+    def __str__(self):
+        """
+        Human readable representation
+        """
+        # git@github.com:manneohrstrom/tk-hiero-publish.git, branch master, commit 12313123
+        return "%s, Branch %s, Commit %s" % (self._path, self._branch, self._version)
+
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
         Given a cache root, compute a cache path suitable
