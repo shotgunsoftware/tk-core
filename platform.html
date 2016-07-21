@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.8 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.12 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.8 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.12 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -166,7 +166,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.8.<br>
+    <b>tk-core</b> v0.18.12.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -619,6 +619,31 @@ for all TankQDialog&#8217;s.</p>
 </table>
 <p>Derived implementations of this method should be sure to call
 the base implementation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine._emit_event">
+<code class="descname">_emit_event</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._emit_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._emit_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by the engine whenever an event is to be emitted to child
+apps of this engine.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Events will be emitted and child apps notified immediately.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Some event types might be triggered quite frequently. Apps
+that react to events should do so in a way that is aware of
+the potential performance impact of their actions.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> (<code class="xref py py-class docutils literal"><span class="pre">EngineEvent</span></code>) &#8211; The event object that will be emitted.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2079,6 +2104,61 @@ all loaded apps have been fully initialized and validated.</p>
 <code class="descname">destroy_app</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.destroy_app"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.destroy_app" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implemented by deriving classes in order to tear down the app
 Called by the engine as it is being destroyed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.event_engine">
+<code class="descname">event_engine</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.event_engine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.event_engine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the parent engine emits an event. This method
+is intended to be overridden by deriving classes in order to
+implement event-specific behavior.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method is called for all engine event types. If
+overriding this method to implement an event handler
+in a specific app, the event object received will need
+to be checked via isinstance (or via its event_type
+property) to know what event has been triggered. As
+there are also type specific event handlers available,
+it is considered best practice to use those in all
+cases except those where a generic handler is absolutely
+required.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is possible that events will be triggered quite
+frequently. It is important to keep performance in
+mind when writing an event handler.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> (<code class="xref py py-class docutils literal"><span class="pre">EngineEvent</span></code>) &#8211; The event object that was emitted.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.event_file_open">
+<code class="descname">event_file_open</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.event_file_open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.event_file_open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the parent engine emits a file-open event. This method
+is intended to be overridden by deriving classes.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is possible that events will be triggered quite
+frequently. It is important to keep performance in
+mind when writing an event handler.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> (<code class="xref py py-class docutils literal"><span class="pre">FileOpenEvent</span></code>) &#8211; The event object that was emitted.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -3753,7 +3833,7 @@ major version number.</p>
 <div class="section" id="version-constraints">
 <h3>Version constraints<a class="headerlink" href="#version-constraints" title="Permalink to this headline">¶</a></h3>
 <p>If your app or engine requires specific versions of shotgun, the core or other things,
-you can specify this using the three parameters <code class="docutils literal"><span class="pre">requires_shotgun_version</span></code>, <code class="docutils literal"><span class="pre">requires_core_verson</span></code>
+you can specify this using the three parameters <code class="docutils literal"><span class="pre">requires_shotgun_version</span></code>, <code class="docutils literal"><span class="pre">requires_core_version</span></code>
 and (for apps only) <code class="docutils literal"><span class="pre">requires_engine_version</span></code>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Required minimum versions for this item to run</span>
 <span class="n">requires_shotgun_version</span><span class="p">:</span>
@@ -4299,7 +4379,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.8',
+            VERSION:'v0.18.12',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

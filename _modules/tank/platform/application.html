@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.application &mdash; tk-core v0.18.8 documentation</title>
+  <title>tank.platform.application &mdash; tk-core v0.18.12 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.8 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.12 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.8.<br>
+    <b>tk-core</b> v0.18.12.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -259,7 +259,7 @@
         <span class="c1"># in the shotgun data centre and makes it easy to track which app and engine versions</span>
         <span class="c1"># are being used by clients</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">tk_user_agent_handler</span><span class="o">.</span><span class="n">set_current_app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">tk_user_agent_handler</span><span class="o">.</span><span class="n">set_current_app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                                                     <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
                                                                     <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                                                     <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
@@ -314,6 +314,48 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Implemented by deriving classes in order to tear down the app</span>
 <span class="sd">        Called by the engine as it is being destroyed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    <span class="c1">##########################################################################################</span>
+    <span class="c1"># event handling</span>
+
+<div class="viewcode-block" id="Application.event_engine"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.event_engine">[docs]</a>    <span class="k">def</span> <span class="nf">event_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when the parent engine emits an event. This method</span>
+<span class="sd">        is intended to be overridden by deriving classes in order to</span>
+<span class="sd">        implement event-specific behavior.</span>
+
+<span class="sd">        .. note:: This method is called for all engine event types. If</span>
+<span class="sd">                  overriding this method to implement an event handler</span>
+<span class="sd">                  in a specific app, the event object received will need</span>
+<span class="sd">                  to be checked via isinstance (or via its event_type</span>
+<span class="sd">                  property) to know what event has been triggered. As</span>
+<span class="sd">                  there are also type specific event handlers available,</span>
+<span class="sd">                  it is considered best practice to use those in all</span>
+<span class="sd">                  cases except those where a generic handler is absolutely</span>
+<span class="sd">                  required.</span>
+
+<span class="sd">        .. warning:: It is possible that events will be triggered quite</span>
+<span class="sd">                     frequently. It is important to keep performance in</span>
+<span class="sd">                     mind when writing an event handler.</span>
+
+<span class="sd">        :param event:   The event object that was emitted.</span>
+<span class="sd">        :type event:    :class:`~sgtk.platform.events.EngineEvent`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Application.event_file_open"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.event_file_open">[docs]</a>    <span class="k">def</span> <span class="nf">event_file_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when the parent engine emits a file-open event. This method</span>
+<span class="sd">        is intended to be overridden by deriving classes.</span>
+
+<span class="sd">        .. warning:: It is possible that events will be triggered quite</span>
+<span class="sd">                     frequently. It is important to keep performance in</span>
+<span class="sd">                     mind when writing an event handler.</span>
+
+<span class="sd">        :param event:   The event object that was emitted.</span>
+<span class="sd">        :type event:    :class:`~sgtk.platform.events.FileOpenEvent`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
     
@@ -457,7 +499,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.8',
+            VERSION:'v0.18.12',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
