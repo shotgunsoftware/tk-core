@@ -125,12 +125,13 @@ class Engine(TankBundle):
         # (and the rest of the sgtk logging ) to the user
         self.__log_handler = self.__initialize_logging()
 
-        # check general debug log setting and if this flag is turned on,
-        # adjust the global setting
-
-        if self.get_setting("debug_logging", False):
-            LogManager().global_debug = True
+        # check general debug log setting and update the global debug flag accordingly. Do not set this
+        # flag only when the debug_logging is "true" because the global_debug flag is... global... and it
+        # needs to be reset during engine instantiation if the debug_logging setting suddenly turns false.
+        global_debug = self.get_setting("debug_logging", False)
+        if global_debug:
             self.log_debug("Engine config flag 'debug_logging' detected, turning on debug output.")
+        LogManager().global_debug = global_debug
 
         # check that the context contains all the info that the app needs
         validation.validate_context(descriptor, context)
