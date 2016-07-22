@@ -96,7 +96,10 @@ class DefaultsManager(object):
         :returns: Default implementation returns the login for the
                   currently stored user.
         """
-        return session_cache.get_current_user(self.get_host())
+        if self.get_host():
+            return session_cache.get_current_user(self.get_host())
+        else:
+            return None
 
     def get_user_credentials(self):
         """
