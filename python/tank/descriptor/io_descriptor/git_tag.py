@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
+import re
 import copy
 import uuid
 import tempfile
@@ -28,6 +29,10 @@ class IODescriptorGitTag(IODescriptorGit):
     Represents a tag in a git repository.
 
     location: {"type": "git", "path": "/path/to/repo.git", "version": "v0.2.1"}
+
+    The payload cached in the bundle cache is not a git repo
+    but only contains the tag given by the version pass with
+    the descriptor.
 
     path can be on the form:
 
@@ -125,102 +130,6 @@ class IODescriptorGitTag(IODescriptorGit):
 
         return paths
 
-    def _get_latest_by_pattern(self, pattern):
-        """
-        Returns a descriptor object that represents the latest
-        version, but based on a version pattern.
-
-        :param pattern: Version patterns are on the following forms:
-
-            - v1.2.3 (can return this v1.2.3 but also any forked version under, eg. v1.2.3.2)
-            - v1.2.x (examples: v1.2.4, or a forked version v1.2.4.2)
-            - v1.x.x (examples: v1.3.2, a forked version v1.3.2.2)
-            - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
-
-        :returns: IODescriptorGitTag object
-        """
-        # now first clone the repo into a tmp location
-        clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
-        filesystem.ensure_folder_exists(clone_tmp)
-
-        # get the most recent tag hash
-        cwd = os.getcwd()
-        try:
-            # clone the repo
-            self._clone_repo(clone_tmp)
-            os.chdir(clone_tmp)
-
-            try:
-                # get list of tags from git
-                git_tags = subprocess_check_output(
-                    "git tag",
-                    shell=True
-                ).split("\n")
-            except Exception, e:
-                raise TankDescriptorError("Could not get list of tags for %s: %s" % (self, e))
-
-        finally:
-            os.chdir(cwd)
-
-        if len(git_tags) == 0:
-            raise TankDescriptorError(
-                "Git repository %s doesn't seem to have any tags!" % self._path
-            )
-
-        version_to_use = self._find_latest_tag_by_pattern(git_tags, pattern)
-
-        new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = version_to_use
-
-        # create new descriptor to represent this tag
-        desc = IODescriptorGitTag(new_loc_dict, self._type)
-        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
-        return desc
-
-    def _get_latest_version(self):
-        """
-        Returns a descriptor object that represents the latest version.
-
-        :returns: IODescriptorGitTag object
-        """
-        # now first clone the repo into a tmp location
-        clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
-        filesystem.ensure_folder_exists(clone_tmp)
-
-        # get the most recent tag hash
-        cwd = os.getcwd()
-        try:
-            # clone the repo
-            self._clone_repo(clone_tmp)
-            os.chdir(clone_tmp)
-
-            try:
-                git_hash = subprocess_check_output(
-                    "git rev-list --tags --max-count=1",
-                    shell=True
-                ).strip()
-            except Exception, e:
-                raise TankDescriptorError("Could not get list of tags for %s: %s" % (self, e))
-
-            try:
-                latest_version = subprocess_check_output(
-                    "git describe --tags %s" % git_hash,
-                    shell=True
-                ).strip()
-            except Exception, e:
-                raise TankDescriptorError("Could not get tag for hash %s: %s" % (hash, e))
-
-        finally:
-            os.chdir(cwd)
-
-        new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = latest_version
-
-        # create new descriptor to represent this tag
-        desc = IODescriptorGitTag(new_loc_dict, self._type)
-        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
-        return desc
-
     def get_version(self):
         """
         Returns the version number string for this item, .e.g 'v1.2.3'
@@ -231,6 +140,17 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         Retrieves this version to local repo.
         Will exit early if app already exists local.
+
+        This will connect to remote git repositories.
+
+        The git tag descriptor type will perform the following
+        sequence of operations to perform a download local:
+
+        - git clone repo into temp folder
+        - extracting the associated tag from temp repo into zip file
+          using git archive command
+        - unpack zip file into final tk bundle cache location
+        - cleans up temp data
         """
         if self.exists_local():
             # nothing to do!
@@ -245,8 +165,8 @@ class IODescriptorGitTag(IODescriptorGit):
         # now first clone the repo into a tmp location
         # then zip up the tag we are looking for
         # finally, move that zip file into the target location
-        zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
-        clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tank_clone" % uuid.uuid4().hex)
+        zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tk.zip" % uuid.uuid4().hex)
+        clone_tmp = os.path.join(tempfile.gettempdir(), "%s_tk_git" % uuid.uuid4().hex)
         filesystem.ensure_folder_exists(clone_tmp)
 
         # now clone and archive
@@ -269,38 +189,11 @@ class IODescriptorGitTag(IODescriptorGit):
         # clear temp file
         filesystem.safe_delete_file(zip_tmp)
 
-    def copy(self, target_path, connected=False):
-        """
-        Copy the contents of the descriptor to an external location
-
-        :param target_path: target path to copy the descriptor to.
-        :param connected: For descriptor types that supports it, attempt
-                          to create a 'connected' copy that has a relationship
-                          with the descriptor. This is typically useful for SCMs
-                          such as git, where rather than copying the content in
-                          its raw form, you clone the repository, thereby creating
-                          a setup where changes can be made and pushed back to the
-                          connected server side repository.
-        """
-        if connected:
-            # git repos are cloned into place to retain their
-            # repository status
-            log.debug("Copying %r -> %s" % (self, target_path))
-            # now clone and archive
-            cwd = os.getcwd()
-            try:
-                # clone the repo
-                self._clone_repo(target_path)
-                os.chdir(target_path)
-                execute_git_command("checkout %s -q" % self._version)
-            finally:
-                os.chdir(cwd)
-        else:
-            super(IODescriptorGitTag, self).copy(target_path, connected)
-
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
+
+        Communicates with the remote repository using git ls-remote.
 
         :param constraint_pattern: If this is specified, the query will be constrained
                by the given pattern. Version patterns are on the following forms:
@@ -311,8 +204,53 @@ class IODescriptorGitTag(IODescriptorGit):
 
         :returns: IODescriptorGitTag object
         """
-        if constraint_pattern:
-            return self._get_latest_by_pattern(constraint_pattern)
-        else:
-            return self._get_latest_version()
+        # figure out the latest commit for the given repo and branch
+        # 'git ls-remote --tags repo_url' returns
+        #
+        # 32862181fa982aba99af1e518c51117309009023	refs/tags/v0.18.5rv
+        # f08d7e0e5f5bf1402d21a653510c8be77b184f93	refs/tags/v0.18.5rv^{}
+        # 5c612bd01cc0db46408e715aca360a133d4eefeb	refs/tags/v0.18.6
+        # 4ecc15ac7045eef0d5ab205dede3c5c5f513ec09	refs/tags/v0.18.6^{}
+        # 6519356b7f4a829205a1cb71be9ec5b5e4e10409	refs/tags/v0.18.7
+        # a8e5ceaa4222b0d8b35cff0a0d2ef1bd680c1a1e	refs/tags/v0.18.7^{}
+        # 3c9494743cf7c8e07806b1ae9f1af152994c1fe6	refs/tags/v0.18.8
+        # b92f3cc69060b73c26e6236ef2c65859794f1f4e	refs/tags/v0.18.8^{}
+        # 5e7014ca28e94f7baf2cea5ca9ba103414095897	refs/tags/v0.18.9
+        # 17041e87070354a7c221e33d5a4edd02fd0159a6	refs/tags/v0.18.9^{}
+        #
+        try:
+            command = "ls-remote --tags \"%s\"" % self._sanitized_repo_path
+            all_tag_chunks = execute_git_command(command).split("\n")
+            log.debug("ls-remote returned: '%s'" % all_tag_chunks)
+
+            # get first chunk of return data
+            tags = []
+            for tag_chunk_line in all_tag_chunks:
+                # 4ecc15ac7045eef0d5ab205dede3c5c5f513ec09	refs/tags/v0.18.6^{}
+                tag_match = re.match("^.*refs/tags/([^\^]+)$", tag_chunk_line)
+                if tag_match:
+                    tags.append(tag_match.group(1))
+
+            if len(tags) == 0:
+                raise TankDescriptorError("No tags defined!")
+
+            if constraint_pattern is None:
+                # get latest tag
+                version_to_use = tags[-1]
+            else:
+                # get based on constraint patter
+                version_to_use = self._find_latest_tag_by_pattern(tags, constraint_pattern)
+
+        except Exception, e:
+            raise TankDescriptorError(
+                "Could not get tags for %s: %s" % (self._path, e)
+            )
+
+        new_loc_dict = copy.deepcopy(self._descriptor_dict)
+        new_loc_dict["version"] = version_to_use
+
+        # create new descriptor to represent this tag
+        desc = IODescriptorGitTag(new_loc_dict, self._type)
+        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+        return desc
 
