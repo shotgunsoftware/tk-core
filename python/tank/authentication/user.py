@@ -53,7 +53,7 @@ class ShotgunUser(object):
 
         :returns: The HTTP proxy string.
         """
-        return self._impl.get_host()
+        return self._impl.get_http_proxy()
 
     @property
     def login(self):
