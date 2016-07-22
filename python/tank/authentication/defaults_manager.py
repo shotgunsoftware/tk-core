@@ -10,7 +10,6 @@
 
 from . import session_cache
 
-
 class DefaultsManager(object):
     """
     The defaults manager allows a client of the Shotgun Authenticator class
@@ -22,10 +21,19 @@ class DefaultsManager(object):
     on disk and the system maintains a concept of a current user and a current
     host.
 
+    If a setting isn't found, the DefaultsManager will fall back to the value stored inside
+    ``config.ini`` See :ref:`centralizing_settings` for more information.
+
     If, however, you want to implement a custom behavior around how defaults
     are managed, simply derive from this class and pass your custom instance
     to the :class:`ShotgunAuthenticator` object when you construct it.
     """
+
+    def __init__(self):
+        # Breaks circular dependency between util and authentication framework
+        from ..util.user_settings import UserSettings
+        self._user_settings = UserSettings()
+
     def is_host_fixed(self):
         """
         When doing an interactive login, this indicates if the user can decide
@@ -61,7 +69,7 @@ class DefaultsManager(object):
 
         :returns: A string containing the default host name.
         """
-        return session_cache.get_current_host()
+        return session_cache.get_current_host() or self._user_settings.default_site
 
     def set_host(self, host):
         """
@@ -85,7 +93,7 @@ class DefaultsManager(object):
 
         :returns: String containing the default http proxy, None by default.
         """
-        return None
+        return self._user_settings.shotgun_proxy
 
     def get_login(self):
         """
@@ -99,9 +107,9 @@ class DefaultsManager(object):
         # Make sure there is a current host. There could be none if no-one has
         # logged in with Toolkit yet.
         if self.get_host():
-            return session_cache.get_current_user(self.get_host())
+            return session_cache.get_current_user(self.get_host()) or self._user_settings.default_login
         else:
-            return None
+            return self._user_settings.default_login
 
     def get_user_credentials(self):
         """

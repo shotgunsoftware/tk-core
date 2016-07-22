@@ -70,8 +70,6 @@ may be useful:
 - If you want to use a standard UI to prompt a user for a host, username and password.
 
 
-
-
 API Reference
 ----------------------------------------
 

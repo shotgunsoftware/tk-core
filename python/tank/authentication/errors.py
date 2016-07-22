@@ -14,25 +14,28 @@ All custom exceptions that this module emits are defined here.
 
 # @todo - what should ShotgunAuthenticationError derive from? TankError?
 
+
 class ShotgunAuthenticationError(Exception):
     """
     Base class for all exceptions coming out from this module.
     """
-    pass
 
 
 class AuthenticationError(ShotgunAuthenticationError):
     """
     Thrown when credentials are rejected by the server.
     """
-    pass
 
 
 class IncompleteCredentials(ShotgunAuthenticationError):
     """
     Thrown when credentials are provided but are incomplete.
     """
+
     def __init__(self, msg):
+        """
+        :param str msg: Reason why the credentials are incomplete.
+        """
         ShotgunAuthenticationError.__init__(
             self, "Incomplete credentials: %s" % msg
         )
@@ -42,6 +45,7 @@ class AuthenticationCancelled(ShotgunAuthenticationError):
     """
     Thrown when the user cancels authentication or session renewal.
     """
+
     def __init__(self):
         ShotgunAuthenticationError.__init__(
             self, "Authentication was cancelled by the user."

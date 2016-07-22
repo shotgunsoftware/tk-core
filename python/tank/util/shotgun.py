@@ -203,6 +203,11 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
     if not config_data.get("api_script") and config_data.get("api_key"):
         _raise_missing_key("api_script")
 
+    # If the appstore proxy is set, but the value is falsy.
+    if "app_store_http_proxy" in config_data and not config_data["app_store_http_proxy"]:
+        # Make sure it is None.
+        config_data["app_store_http_proxy"] = None
+
     return config_data
 
 @LogManager.log_timing
