@@ -96,6 +96,8 @@ class DefaultsManager(object):
         :returns: Default implementation returns the login for the
                   currently stored user.
         """
+        # Make sure there is a current host. There could be none if no-one has
+        # logged in with Toolkit yet.
         if self.get_host():
             return session_cache.get_current_user(self.get_host())
         else:
