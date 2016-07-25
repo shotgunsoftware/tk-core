@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.log &mdash; tk-core v0.18.12 documentation</title>
+  <title>tank.log &mdash; tk-core v0.18.14 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.12 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.14 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.12.<br>
+    <b>tk-core</b> v0.18.14.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -421,7 +421,7 @@
             <span class="c1"># a global and standard rotating log file handler</span>
             <span class="c1"># for writing generic toolkit logs to disk</span>
             <span class="n">instance</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="o">=</span> <span class="bp">None</span>
-            <span class="n">instance</span><span class="o">.</span><span class="n">_std_file_handler_log_name</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">_std_file_handler_log_file</span> <span class="o">=</span> <span class="bp">None</span>
 
             <span class="c1"># collection of weak references to handlers</span>
             <span class="c1"># that were created via the log manager.</span>
@@ -683,25 +683,24 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Uninitialize base file handler created with :meth:`initialize_base_file_handler`.</span>
 
-<span class="sd">        :returns: The name of the previous log_name that is being switched away from,</span>
+<span class="sd">        :returns: The path to the previous log file that is being switched away from,</span>
 <span class="sd">                  None if no base logger was previously active.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">base_log_name</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">return</span> <span class="bp">None</span>
 
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">base_log_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler_log_name</span>
+        <span class="n">base_log_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler_log_file</span>
 
-            <span class="c1"># there is a log handler, so terminate it</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="s2">&quot;Tearing down existing log handler &#39;</span><span class="si">%s</span><span class="s2">&#39; (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base_log_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="p">)</span>
-            <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_root_logger</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="o">=</span> <span class="bp">None</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler_log_name</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c1"># there is a log handler, so terminate it</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Tearing down existing log handler &#39;</span><span class="si">%s</span><span class="s2">&#39; (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base_log_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_root_logger</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler_log_file</span> <span class="o">=</span> <span class="bp">None</span>
 
-        <span class="c1"># return the previous base log name</span>
-        <span class="k">return</span> <span class="n">base_log_name</span></div>
+        <span class="c1"># return the previous base log file path.</span>
+        <span class="k">return</span> <span class="n">base_log_file</span></div>
 
 <div class="viewcode-block" id="LogManager.initialize_base_file_handler"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.initialize_base_file_handler">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_base_file_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -724,28 +723,48 @@
 
 <span class="sd">        :param log_name: Name of logger to create. This will form the</span>
 <span class="sd">                         filename of the log file.</span>
-<span class="sd">        :returns: The name of the previous log_name that is being switched away from,</span>
+
+<span class="sd">        :returns: The path to the previous log file that is being switched away from,</span>
+<span class="sd">                  None if no base logger was previously active.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># avoid cyclic references</span>
+        <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">filesystem</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_base_file_handler_from_path</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log_folder</span><span class="p">,</span>
+                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.log&quot;</span> <span class="o">%</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">create_valid_filename</span><span class="p">(</span><span class="n">log_name</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="LogManager.initialize_base_file_handler_from_path"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.initialize_base_file_handler_from_path">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_base_file_handler_from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a file handler and attach it to the sgtk base logger.</span>
+
+<span class="sd">        This method is there for legacy Toolkit applications and shouldn&#39;t be used. Use</span>
+<span class="sd">        ``initialize_base_file_handler`` instead.</span>
+
+<span class="sd">        :param log_file: Path of the file to write the logs to.</span>
+
+<span class="sd">        :returns: The path to the previous log file that is being switched away from,</span>
 <span class="sd">                  None if no base logger was previously active.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># shut down any previous logger</span>
-        <span class="n">previous_log_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uninitialize_base_file_handler</span><span class="p">()</span>
+        <span class="n">previous_log_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uninitialize_base_file_handler</span><span class="p">()</span>
 
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Switching file based std logger from </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">previous_log_name</span><span class="p">,</span> <span class="n">log_name</span><span class="p">))</span>
+        <span class="n">log_folder</span><span class="p">,</span> <span class="n">log_file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">log_file</span><span class="p">)</span>
+        <span class="n">log_name</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">log_file_name</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Switching file based std logger from &#39;</span><span class="si">%s</span><span class="s2">&#39; to &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span><span class="p">,</span> <span class="n">previous_log_file</span><span class="p">,</span> <span class="n">log_file</span><span class="p">)</span>
 
         <span class="c1"># store new log name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler_log_name</span> <span class="o">=</span> <span class="n">log_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler_log_file</span> <span class="o">=</span> <span class="n">log_file</span>
 
         <span class="c1"># avoid cyclic references</span>
         <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">filesystem</span>
 
         <span class="c1"># set up logging root folder</span>
-        <span class="n">filesystem</span><span class="o">.</span><span class="n">ensure_folder_exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_folder</span><span class="p">)</span>
-
-        <span class="c1"># generate log path</span>
-        <span class="n">log_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log_folder</span><span class="p">,</span>
-            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.log&quot;</span> <span class="o">%</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">create_valid_filename</span><span class="p">(</span><span class="n">log_name</span><span class="p">)</span>
-        <span class="p">)</span>
+        <span class="n">filesystem</span><span class="o">.</span><span class="n">ensure_folder_exists</span><span class="p">(</span><span class="n">log_folder</span><span class="p">)</span>
 
         <span class="c1"># create a rotating log file with a max size of 5 megs -</span>
         <span class="c1"># this should make all log files easily attachable to support tickets.</span>
@@ -774,8 +793,7 @@
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Writing to log standard log file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">log_file</span><span class="p">)</span>
 
         <span class="c1"># return previous log name</span>
-        <span class="k">return</span> <span class="n">previous_log_name</span></div></div>
-
+        <span class="k">return</span> <span class="n">previous_log_file</span></div></div>
 
 <span class="c1"># the logger for logging messages from this file :)</span>
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
@@ -838,7 +856,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.12',
+            VERSION:'v0.18.14',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

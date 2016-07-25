@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.12 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.14 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.12 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.14 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.12.<br>
+    <b>tk-core</b> v0.18.14.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -295,11 +295,11 @@
         <span class="c1"># (and the rest of the sgtk logging ) to the user</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__log_handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__initialize_logging</span><span class="p">()</span>
 
-        <span class="c1"># check general debug log setting and if this flag is turned on,</span>
-        <span class="c1"># adjust the global setting</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;debug_logging&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
-            <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">global_debug</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="c1"># check general debug log setting and update the global debug flag accordingly. Do not set this</span>
+        <span class="c1"># flag only when the debug_logging is &quot;true&quot; because the global_debug flag is... global... and it</span>
+        <span class="c1"># needs to be reset during engine instantiation if the debug_logging setting suddenly turns false.</span>
+        <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">global_debug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;debug_logging&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">global_debug</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Engine config flag &#39;debug_logging&#39; detected, turning on debug output.&quot;</span><span class="p">)</span>
 
         <span class="c1"># check that the context contains all the info that the app needs</span>
@@ -2954,7 +2954,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.12',
+            VERSION:'v0.18.14',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

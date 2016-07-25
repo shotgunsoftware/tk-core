@@ -69,10 +69,6 @@ Context
     :members:
     :exclude-members: tank
 
-
-
-
-
 Executing Tank commands
 ---------------------------------------------------------
 

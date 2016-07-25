@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.context &mdash; tk-core v0.18.12 documentation</title>
+  <title>tank.context &mdash; tk-core v0.18.14 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.12 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.14 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.12.<br>
+    <b>tk-core</b> v0.18.14.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -194,7 +194,7 @@
 <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">shotgun_entity</span>
 <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">shotgun</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">TankContextDeserializationError</span>
 <span class="kn">from</span> <span class="nn">.path_cache</span> <span class="kn">import</span> <span class="n">PathCache</span>
 <span class="kn">from</span> <span class="nn">.template</span> <span class="kn">import</span> <span class="n">TemplatePath</span>
 
@@ -799,7 +799,105 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ctx_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">ctx_copy</span><span class="o">.</span><span class="n">__user</span> <span class="o">=</span> <span class="n">user</span>
-        <span class="k">return</span> <span class="n">ctx_copy</span>       </div>
+        <span class="k">return</span> <span class="n">ctx_copy</span></div>
+
+    <span class="c1">################################################################################################</span>
+    <span class="c1"># serialization</span>
+
+<div class="viewcode-block" id="Context.serialize"><a class="viewcode-back" href="../../core.html#sgtk.Context.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_user_credentials</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serializes the context into a string.</span>
+
+<span class="sd">        Any Context object can be serialized to/deserialized from a string.</span>
+<span class="sd">        This can be useful if you need to pass a Context between different processes.</span>
+<span class="sd">        As an example, the ``tk-multi-launchapp`` uses this mechanism to pass the Context</span>
+<span class="sd">        from the launch process (e.g. for example Shotgun Desktop) to the</span>
+<span class="sd">        Application (e.g. Maya) being launched. Example:</span>
+
+<span class="sd">            &gt;&gt;&gt; import sgtk</span>
+<span class="sd">            &gt;&gt;&gt; tk = sgtk.sgtk_from_path(&quot;/studio.08/demo_project&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; ctx = tk.context_from_path(&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; context_str = ctx.serialize(ctx)</span>
+<span class="sd">            &gt;&gt;&gt; new_ctx = sgtk.Context.deserialize(context_str)</span>
+
+<span class="sd">        :param with_user_credentials: If ``True``, the currently authenticated user&#39;s credentials, as</span>
+<span class="sd">            returned by :meth:`sgtk.get_authenticated_user`, will also be serialized with the context.</span>
+
+<span class="sd">        .. note:: For example, credentials should be omitted (``with_user_credentials=False``) when</span>
+<span class="sd">            serializing the context from a user&#39;s current session to send it to a render farm. By doing</span>
+<span class="sd">            so, invoking :meth:`sgtk.Context.deserialize` on the render farm will only restore the</span>
+<span class="sd">            context and not the authenticated user.</span>
+
+<span class="sd">        :returns: String representation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Avoids cyclic imports</span>
+        <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">get_authenticated_user</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">,</span>
+            <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="p">,</span>
+            <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+            <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span>
+            <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="p">,</span>
+            <span class="s2">&quot;additional_entities&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">additional_entities</span><span class="p">,</span>
+            <span class="s2">&quot;_pc_path&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">with_user_credentials</span><span class="p">:</span>
+            <span class="c1"># If there is an authenticated user.</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">get_authenticated_user</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+                <span class="c1"># We should serialize it as well so that the next process knows who to</span>
+                <span class="c1"># run as.</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;_current_user&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">authentication</span><span class="o">.</span><span class="n">serialize_user</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Context.deserialize"><a class="viewcode-back" href="../../core.html#sgtk.Context.deserialize">[docs]</a>    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">context_str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The inverse of :meth:`Context.serialize`.</span>
+
+<span class="sd">        :param context_str: String representation of context, created with :meth:`Context.serialize`</span>
+
+<span class="sd">        .. note:: If the context was serialized with the user credentials, the currently authenticated</span>
+<span class="sd">            user will be updated with these credentials.</span>
+
+<span class="sd">        :returns: :class:`Context`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># lazy load this to avoid cyclic dependencies</span>
+        <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">Tank</span><span class="p">,</span> <span class="n">set_authenticated_user</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">context_str</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankContextDeserializationError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+        <span class="c1"># first get the pipeline config path out of the dict</span>
+        <span class="n">pipeline_config_path</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;_pc_path&quot;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;_pc_path&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Authentication in Toolkit requires that credentials are passed from</span>
+        <span class="c1"># one process to another so the currently authenticated user is carried</span>
+        <span class="c1"># from one process to another. The current user needs to be part of the</span>
+        <span class="c1"># context because multiple DCCs can run at the same time under different</span>
+        <span class="c1"># users, e.g. launching Maya from the site as user A and Nuke from the tank</span>
+        <span class="c1"># command as user B.</span>
+        <span class="n">user_string</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_current_user&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">user_string</span><span class="p">:</span>
+            <span class="c1"># Remove it from the data</span>
+            <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;_current_user&quot;</span><span class="p">]</span>
+            <span class="c1"># and set the authenticated user user.</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">authentication</span><span class="o">.</span><span class="n">deserialize_user</span><span class="p">(</span><span class="n">user_string</span><span class="p">)</span>
+            <span class="n">set_authenticated_user</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+
+        <span class="c1"># create a Sgtk API instance.</span>
+        <span class="n">tk</span> <span class="o">=</span> <span class="n">Tank</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span>
+
+        <span class="c1"># add it to the constructor instance</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;tk&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tk</span>
+
+        <span class="c1"># and lastly make the obejct</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">)</span></div>
 
     <span class="c1">################################################################################################</span>
     <span class="c1"># private methods</span>
@@ -1408,6 +1506,7 @@
 
     <span class="k">return</span> <span class="n">Context</span><span class="p">(</span><span class="o">**</span><span class="n">context</span><span class="p">)</span>
 
+
 <span class="c1">################################################################################################</span>
 <span class="c1"># serialization</span>
 
@@ -1415,84 +1514,20 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Serializes the context into a string.</span>
 
-<span class="sd">    Any Context object can be serialized to/deserialized from a string.</span>
-<span class="sd">    This can be useful if you need to pass a Context between different processes.</span>
-<span class="sd">    As an example, the ``tk-multi-launchapp`` uses this mechanism to pass the Context</span>
-<span class="sd">    from the launch process (e.g. for example Shotgun Desktop) to the</span>
-<span class="sd">    Application (e.g. Maya) being launched. Example:</span>
-
-<span class="sd">        &gt;&gt;&gt; import sgtk</span>
-<span class="sd">        &gt;&gt;&gt; tk = sgtk.sgtk_from_path(&quot;/studio.08/demo_project&quot;)</span>
-<span class="sd">        &gt;&gt;&gt; ctx = tk.context_from_path(&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work&quot;)</span>
-<span class="sd">        &gt;&gt;&gt; context_str = sgtk.context.serialize(ctx)</span>
-<span class="sd">        &gt;&gt;&gt; new_ctx = sgtk.context.deserialize(context_str)</span>
-
-<span class="sd">    .. info:: The currently authenticated user is also serialized together with the Context.</span>
-
-<span class="sd">    :param context: :class:`Context` instance to serialize</span>
-<span class="sd">    :returns: String representation</span>
+<span class="sd">    .. deprecated:: v0.18.12</span>
+<span class="sd">       Use :meth:`Context.serialize`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Avoids cyclic imports</span>
-    <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">get_authenticated_user</span>
-
-    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span><span class="p">,</span>
-        <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span><span class="p">,</span>
-        <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-        <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">step</span><span class="p">,</span>
-        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">task</span><span class="p">,</span>
-        <span class="s2">&quot;additional_entities&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">additional_entities</span><span class="p">,</span>
-        <span class="s2">&quot;_pc_path&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
-    <span class="p">}</span>
-
-    <span class="c1"># If there is an authenticated user.</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">get_authenticated_user</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
-        <span class="c1"># We should serialize it as well so that the next process knows who to</span>
-        <span class="c1"># run as.</span>
-        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;_current_user&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">authentication</span><span class="o">.</span><span class="n">serialize_user</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
 
 
 <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="n">context_str</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The inverse of :meth:`serialize`.</span>
 
-<span class="sd">    :param context_str: String representation of context, created with :meth:`serialize`</span>
-<span class="sd">    :returns: :class:`Context`</span>
+<span class="sd">    .. deprecated:: v0.18.12</span>
+<span class="sd">       Use :meth:`Context.deserialize`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># lazy load this to avoid cyclic dependencies</span>
-    <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">Tank</span><span class="p">,</span> <span class="n">set_authenticated_user</span>
-
-    <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">context_str</span><span class="p">)</span>
-
-    <span class="c1"># first get the pipeline config path out of the dict</span>
-    <span class="n">pipeline_config_path</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;_pc_path&quot;</span><span class="p">]</span>
-    <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;_pc_path&quot;</span><span class="p">]</span>
-
-    <span class="c1"># Authentication in Toolkit requires that credentials are passed from</span>
-    <span class="c1"># one process to another so the currently authenticated user is carried</span>
-    <span class="c1"># from one process to another. The current user needs to be part of the</span>
-    <span class="c1"># context because multiple DCCs can run at the same time under different</span>
-    <span class="c1"># users, e.g. launching Maya from the site as user A and Nuke from the tank</span>
-    <span class="c1"># command as user B.</span>
-    <span class="n">user_string</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_current_user&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">user_string</span><span class="p">:</span>
-        <span class="c1"># Remove it from the data</span>
-        <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;_current_user&quot;</span><span class="p">]</span>
-        <span class="c1"># and set the authenticated user user.</span>
-        <span class="n">user</span> <span class="o">=</span> <span class="n">authentication</span><span class="o">.</span><span class="n">deserialize_user</span><span class="p">(</span><span class="n">user_string</span><span class="p">)</span>
-        <span class="n">set_authenticated_user</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-
-    <span class="c1"># create a Sgtk API instance.</span>
-    <span class="n">tk</span> <span class="o">=</span> <span class="n">Tank</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span>
-
-    <span class="c1"># add it to the constructor instance</span>
-    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;tk&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tk</span>
-
-    <span class="c1"># and lastly make the obejct</span>
-    <span class="k">return</span> <span class="n">Context</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">)</span>
-
+    <span class="k">return</span> <span class="n">Context</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">context_str</span><span class="p">)</span>
 
 <span class="c1">################################################################################################</span>
 <span class="c1"># YAML representer/constructor</span>
@@ -1502,8 +1537,10 @@
 <span class="sd">    Custom serializer.</span>
 <span class="sd">    Creates yaml code for a context object.</span>
 
-<span class="sd">    Legacy, kept for compatibility reasons,</span>
-<span class="sd">    can probably be removed at this point.</span>
+<span class="sd">    Legacy, kept for compatibility reasons, can probably be removed at this point.</span>
+
+<span class="sd">    .. note:: Contrary to :meth:`sgtk.Context.serialize`, this method doesn&#39;t serialize the</span>
+<span class="sd">        currently authenticated user.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="c1"># first get the stuff which represents all the Context() </span>
@@ -1529,8 +1566,10 @@
 <span class="sd">    Custom deserializer.</span>
 <span class="sd">    Constructs a context object given the yaml data provided.</span>
 
-<span class="sd">    Legacy, kept for compatibility reasons,</span>
-<span class="sd">    can probably be removed at this point.</span>
+<span class="sd">    Legacy, kept for compatibility reasons, can probably be removed at this point.</span>
+
+<span class="sd">    .. note:: Contrary to :meth:`sgtk.Context.deserialize`, this method doesn&#39;t can&#39;t restore the</span>
+<span class="sd">        currently authenticated user.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># lazy load this to avoid cyclic dependencies</span>
     <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">Tank</span>
@@ -1857,7 +1896,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.12',
+            VERSION:'v0.18.14',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
