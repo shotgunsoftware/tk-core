@@ -133,6 +133,8 @@ class UserSettings(Singleton):
 
         # If the path doesn't exist, raise an error.
         path = os.environ[var_name]
+        path = os.path.expanduser(path)
+        path = os.path.expandvars(path)
         if not os.path.exists(path):
             raise EnvironmentVariableFileLookupError(var_name, path)
 
