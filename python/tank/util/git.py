@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import subprocess
 
 from ..log import LogManager
 
@@ -58,8 +59,9 @@ def execute_git_command(cmd):
 
     log.debug("...success! Now executing command...")
     command = "git %s" % cmd
+    
     try:
-        output = subprocess_check_output(command, shell=True)
+        output = subprocess_check_output(command, stderr=subprocess.STDOUT, shell=True)
     except SubprocessCalledProcessError, e:
         raise TankGitError(
             "Error executing git operation '%s': %s (Return code %s)" % (command, e.output, e.returncode)
