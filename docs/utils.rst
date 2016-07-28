@@ -66,17 +66,17 @@ Here's an example:
 This file can be configured through multiple means and Toolkit will try to resolve the file in the
 following order:
 
-1. The ``SGTK_CONFIG_LOCATION`` environment variable,
+1. The ``SGTK_PREFERENCES_LOCATION`` environment variable,
 2. The ``SGTK_DESKTOP_CONFIG_LOCATION`` environment variable, for compatibility with the Shotgun Desktop. (deprecated)
-3. Inside the Shotgun user folder
+3. Inside the Shotgun preferences folder
 4. Inside the Shotgun Desktop user folder, for compatibility with the Shotgun Desktop. (deprecated)
 
 .. note::
-    The Shotgun user folder is located at:
+    The Shotgun preferences folder is located at:
 
-    - Windows: ``%APPDATA%\Shotgun\config.ini``
-    - macOS: ``~/Library/Application Support/Shotgun/config.ini``
-    - Linux: ``~/shotgun/config.ini``
+    - Windows: ``%APPDATA%\Shotgun\Preferences\toolkit.ini``
+    - macOS: ``~/Library/Preferences/Shotgun/toolkit.ini``
+    - Linux: ``~/.shotgun/preferences/toolkit.ini``
 
     The Shotgun Desktop user folder is located at:
 
