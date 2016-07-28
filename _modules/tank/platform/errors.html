@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.errors &mdash; tk-core v0.18.14 documentation</title>
+  <title>tank.platform.errors &mdash; tk-core v0.18.16 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.14 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.16 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.14.<br>
+    <b>tk-core</b> v0.18.16.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -182,27 +182,31 @@
 <span class="sd">All custom exceptions that the tank platform module emits are defined here.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">errors</span>
 
-<div class="viewcode-block" id="TankContextChangeNotSupportedError"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.TankContextChangeNotSupportedError">[docs]</a><span class="k">class</span> <span class="nc">TankContextChangeNotSupportedError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TankContextChangeNotSupportedError"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.TankContextChangeNotSupportedError">[docs]</a><span class="k">class</span> <span class="nc">TankContextChangeNotSupportedError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that a requested context change is not allowed</span>
 <span class="sd">    based on a check of the current engine and all of its active apps.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+<span class="sd">    &quot;&quot;&quot;</span></div>
 
-<div class="viewcode-block" id="TankEngineInitError"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.TankEngineInitError">[docs]</a><span class="k">class</span> <span class="nc">TankEngineInitError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TankEngineInitError"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.TankEngineInitError">[docs]</a><span class="k">class</span> <span class="nc">TankEngineInitError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that an engine could not start up.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+<span class="sd">    &quot;&quot;&quot;</span></div>
 
-<span class="k">class</span> <span class="nc">TankEngineEventError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">TankEngineEventError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that is raised when there is a problem during engine event emission.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 
+
+<span class="c1"># backwards compatibility to ensure code that was calling internal</span>
+<span class="c1"># parts of the API will still work.</span>
+<span class="n">errors</span><span class="o">.</span><span class="n">TankEngineInitError</span> <span class="o">=</span> <span class="n">TankEngineInitError</span>
 </pre></div>
 
            </div>
@@ -235,7 +239,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.14',
+            VERSION:'v0.18.16',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.authentication.defaults_manager &mdash; tk-core v0.18.14 documentation</title>
+  <title>tank.authentication.defaults_manager &mdash; tk-core v0.18.16 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.14 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.16 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.14.<br>
+    <b>tk-core</b> v0.18.16.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -180,7 +180,6 @@
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">session_cache</span>
 
-
 <div class="viewcode-block" id="DefaultsManager"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager">[docs]</a><span class="k">class</span> <span class="nc">DefaultsManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The defaults manager allows a client of the Shotgun Authenticator class</span>
@@ -192,10 +191,19 @@
 <span class="sd">    on disk and the system maintains a concept of a current user and a current</span>
 <span class="sd">    host.</span>
 
+<span class="sd">    If a setting isn&#39;t found, the DefaultsManager will fall back to the value stored inside</span>
+<span class="sd">    ``config.ini`` See :ref:`centralizing_settings` for more information.</span>
+
 <span class="sd">    If, however, you want to implement a custom behavior around how defaults</span>
 <span class="sd">    are managed, simply derive from this class and pass your custom instance</span>
 <span class="sd">    to the :class:`ShotgunAuthenticator` object when you construct it.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Breaks circular dependency between util and authentication framework</span>
+        <span class="kn">from</span> <span class="nn">..util.user_settings</span> <span class="kn">import</span> <span class="n">UserSettings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span> <span class="o">=</span> <span class="n">UserSettings</span><span class="p">()</span>
+
 <div class="viewcode-block" id="DefaultsManager.is_host_fixed"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.is_host_fixed">[docs]</a>    <span class="k">def</span> <span class="nf">is_host_fixed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When doing an interactive login, this indicates if the user can decide</span>
@@ -231,7 +239,7 @@
 
 <span class="sd">        :returns: A string containing the default host name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">session_cache</span><span class="o">.</span><span class="n">get_current_host</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="n">session_cache</span><span class="o">.</span><span class="n">get_current_host</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">default_site</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.set_host"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.set_host">[docs]</a>    <span class="k">def</span> <span class="nf">set_host</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -255,7 +263,7 @@
 
 <span class="sd">        :returns: String containing the default http proxy, None by default.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">None</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">shotgun_proxy</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.get_login"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.get_login">[docs]</a>    <span class="k">def</span> <span class="nf">get_login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -269,9 +277,9 @@
         <span class="c1"># Make sure there is a current host. There could be none if no-one has</span>
         <span class="c1"># logged in with Toolkit yet.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_host</span><span class="p">():</span>
-            <span class="k">return</span> <span class="n">session_cache</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_host</span><span class="p">())</span>
+            <span class="k">return</span> <span class="n">session_cache</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_host</span><span class="p">())</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">default_login</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">default_login</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.get_user_credentials"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.get_user_credentials">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -345,7 +353,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.14',
+            VERSION:'v0.18.16',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

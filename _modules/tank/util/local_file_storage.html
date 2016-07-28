@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.local_file_storage &mdash; tk-core v0.18.14 documentation</title>
+  <title>tank.util.local_file_storage &mdash; tk-core v0.18.16 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.14 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.16 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.14.<br>
+    <b>tk-core</b> v0.18.16.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -214,7 +214,7 @@
     <span class="p">(</span><span class="n">CORE_V17</span><span class="p">,</span> <span class="n">CORE_V18</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
     <span class="c1"># supported types of paths</span>
-    <span class="p">(</span><span class="n">LOGGING</span><span class="p">,</span> <span class="n">CACHE</span><span class="p">,</span> <span class="n">PERSISTENT</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">LOGGING</span><span class="p">,</span> <span class="n">CACHE</span><span class="p">,</span> <span class="n">PERSISTENT</span><span class="p">,</span> <span class="n">PREFERENCES</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="LocalFileStorageManager.get_global_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_global_root">[docs]</a>    <span class="k">def</span> <span class="nf">get_global_root</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
@@ -249,18 +249,23 @@
                     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/Library/Caches/Shotgun&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/Library/Application Support/Shotgun&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">PREFERENCES</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/Library/Preferences/Shotgun&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">LOGGING</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/Library/Logs/Shotgun&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
 
             <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+                <span class="n">app_data</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">app_data</span><span class="p">,</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">,</span> <span class="s2">&quot;Data&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">app_data</span><span class="p">,</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">,</span> <span class="s2">&quot;Data&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">PREFERENCES</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">app_data</span><span class="p">,</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">,</span> <span class="s2">&quot;Preferences&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">LOGGING</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">,</span> <span class="s2">&quot;Logs&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">app_data</span><span class="p">,</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">,</span> <span class="s2">&quot;Logs&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
 
@@ -269,6 +274,8 @@
                     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.shotgun&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.shotgun/data&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">PREFERENCES</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.shotgun/preferences&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="n">cls</span><span class="o">.</span><span class="n">LOGGING</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.shotgun/logs&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -475,7 +482,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.14',
+            VERSION:'v0.18.16',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

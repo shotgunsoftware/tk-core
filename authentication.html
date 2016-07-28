@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Authentication &mdash; tk-core v0.18.14 documentation</title>
+  <title>Authentication &mdash; tk-core v0.18.16 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.14 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.16 documentation" href="index.html"/>
         <link rel="prev" title="Descriptor API" href="descriptor.html"/> 
 
   
@@ -127,7 +127,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.14.<br>
+    <b>tk-core</b> v0.18.16.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -577,6 +577,8 @@ instantiated with a standard defaults manager implementation. This will
 work for most cases - user session credentials will be stored in a file
 on disk and the system maintains a concept of a current user and a current
 host.</p>
+<p>If a setting isn&#8217;t found, the DefaultsManager will fall back to the value stored inside
+<code class="docutils literal"><span class="pre">config.ini</span></code> See <a class="reference internal" href="utils.html#centralizing-settings"><span class="std std-ref">Centralizing your settings</span></a> for more information.</p>
 <p>If, however, you want to implement a custom behavior around how defaults
 are managed, simply derive from this class and pass your custom instance
 to the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> object when you construct it.</p>
@@ -733,7 +735,7 @@ derived instance.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Params payload:</th><td class="field-body">Pickled dictionary of values</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>payload</strong> &#8211; Pickled dictionary of values</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A ShotgunUser derived instance.</td>
 </tr>
@@ -776,6 +778,14 @@ derived instance.</p>
 <dt id="sgtk.authentication.IncompleteCredentials">
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">IncompleteCredentials</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/errors.html#IncompleteCredentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.IncompleteCredentials" title="Permalink to this definition">¶</a></dt>
 <dd><p>Thrown when credentials are provided but are incomplete.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Reason why the credentials are incomplete.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="class">
@@ -826,7 +836,7 @@ derived instance.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.14',
+            VERSION:'v0.18.16',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

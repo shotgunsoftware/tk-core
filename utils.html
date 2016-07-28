@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.14 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.16 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.14 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.16 documentation" href="index.html"/>
         <link rel="next" title="Descriptor API" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -112,6 +112,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#logmanager">LogManager</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#centralizing-your-settings">Centralizing your settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#file-system-utilities">File System Utilities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk-util-filesystem">sgtk.util.filesystem</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#shotgunpath">ShotgunPath</a></li>
@@ -145,7 +146,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.14.<br>
+    <b>tk-core</b> v0.18.16.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -209,7 +210,7 @@ namespace. This has been &#8220;sealed&#8221; so that log messages
 from Toolkit do not propagate up to the root logger. This
 is to ensure that Toolkit doesn&#8217;t interfere with other logging
 that has been already configured.</p>
-<p>The following sub-heirarchies exist:</p>
+<p>The following sub-hierarchies exist:</p>
 <ul class="simple">
 <li>Each app, engine and bundle provides access to logging and
 these log streams are collected and organized under the
@@ -629,6 +630,94 @@ None if no base logger was previously active.</td>
 </dd></dl>
 
 </div>
+</div>
+<div class="section" id="centralizing-your-settings">
+<span id="centralizing-settings"></span><h2>Centralizing your settings<a class="headerlink" href="#centralizing-your-settings" title="Permalink to this headline">¶</a></h2>
+<p>Instead of customizing your proxy settings on each of your project, it is possible to configure them once in a file
+and have your projects inherit these values, unless the project overrides itself the setting
+inside <code class="docutils literal"><span class="pre">shotgun.yml</span></code>.</p>
+<p>Here&#8217;s an example:</p>
+<blockquote>
+<div><div class="highlight-ini"><div class="highlight"><pre><span></span><span class="c1"># Login related settings</span>
+<span class="c1">#</span>
+<span class="k">[Login]</span>
+
+<span class="c1"># If specified, the username text input on the login screen will be populated</span>
+<span class="c1"># with this value when logging into Toolkit for the very first time.</span>
+<span class="c1"># Defaults to the user&#39;s OS login. Environment variables are actually resolved for</span>
+<span class="c1"># all values in this file, which allows greater flexibility when sharing this configuration</span>
+<span class="c1"># file with multiple users.</span>
+<span class="c1">#</span>
+<span class="na">default_login</span><span class="o">=</span><span class="s">$USERNAME</span>
+
+<span class="c1"># If specified, the site text input on the login screen will be populated with</span>
+<span class="c1"># this value when logging into Toolkit the very first time.</span>
+<span class="c1"># Defaults to https://mystudio.shotgunstudio.com.</span>
+<span class="c1">#</span>
+<span class="na">default_site</span><span class="o">=</span><span class="s">https://your-site-here.shotgunstudio.com</span>
+
+<span class="c1"># If specified, the Toolkit will use these proxy settings to connect to</span>
+<span class="c1"># the Shotgun site and the Toolkit App Store. The proxy string should be of the</span>
+<span class="c1"># forms 123.123.123.123, 123.123.123.123:8888 or</span>
+<span class="c1"># username:pass@123.123.123.123:8888.</span>
+<span class="c1"># Empty by default.</span>
+<span class="c1">#</span>
+<span class="na">http_proxy</span><span class="o">=</span><span class="s">123.234.345.456:8888</span>
+
+<span class="c1"># If specified, the Shotgun API will use these proxy settings to connect</span>
+<span class="c1"># to the Toolkit App Store. The proxy string format is the same as http_proxy.</span>
+<span class="c1"># If the setting is present in the file but not set, then no proxy will be used</span>
+<span class="c1"># to connect to the Toolkit App Store, regardless of the value of the http_proxy</span>
+<span class="c1"># setting.</span>
+<span class="c1"># Empty by default.</span>
+<span class="c1">#</span>
+<span class="na">app_store_http_proxy</span><span class="o">=</span><span class="s">123.234.345.456:8888</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>This file can be configured through multiple means and Toolkit will try to resolve the file in the
+following order:</p>
+<ol class="arabic simple">
+<li>The <code class="docutils literal"><span class="pre">SGTK_PREFERENCES_LOCATION</span></code> environment variable,</li>
+<li>The <code class="docutils literal"><span class="pre">SGTK_DESKTOP_CONFIG_LOCATION</span></code> environment variable, for compatibility with the Shotgun Desktop. (deprecated)</li>
+<li>Inside the Shotgun Toolkit preferences file</li>
+<li>Inside the Shotgun Desktop preferences file, for compatibility with the Shotgun Desktop. (deprecated)</li>
+</ol>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The Shotgun Toolkit preferences file is located at:</p>
+<ul class="simple">
+<li>Windows: <code class="docutils literal"><span class="pre">%APPDATA%\Shotgun\Preferences\toolkit.ini</span></code></li>
+<li>macOS: <code class="docutils literal"><span class="pre">~/Library/Preferences/Shotgun/toolkit.ini</span></code></li>
+<li>Linux: <code class="docutils literal"><span class="pre">~/.shotgun/preferences/toolkit.ini</span></code></li>
+</ul>
+<p>The Shotgun Desktop preferences file is located at:</p>
+<ul class="last simple">
+<li>Windows: <code class="docutils literal"><span class="pre">%APPDATA%\Shotgun\desktop\config\config.ini</span></code></li>
+<li>macOS: <code class="docutils literal"><span class="pre">~/Library/Caches/Shotgun/desktop/config/config.ini</span></code></li>
+<li>Linux: <code class="docutils literal"><span class="pre">~/shotgun/desktop/config/config.ini</span></code></li>
+</ul>
+</div>
+<p>Incorrectly configuring this file may raise an exception:</p>
+<dl class="class">
+<dt id="sgtk.util.EnvironmentVariableFileLookupError">
+<em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">EnvironmentVariableFileLookupError</code><span class="sig-paren">(</span><em>var_name</em>, <em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/errors.html#EnvironmentVariableFileLookupError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.EnvironmentVariableFileLookupError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised when an environment variable specifying a location points to configuration
+file that doesn&#8217;t exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>var_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the environment variable used.</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Path to the configuration file that doesn&#8217;t exist.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 <div class="section" id="file-system-utilities">
 <h2>File System Utilities<a class="headerlink" href="#file-system-utilities" title="Permalink to this headline">¶</a></h2>
@@ -1570,7 +1659,7 @@ with the following fields: id, type, email, login, name, image, firstname, lastn
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.14',
+            VERSION:'v0.18.16',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
