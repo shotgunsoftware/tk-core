@@ -21,7 +21,7 @@ Centralizing your settings
 ==========================
 
 Instead of customizing your proxy settings on each of your project, it is possible to configure them once in a file
-called `config.ini` and have your projects inherit these values, unless the project overrides itself the setting
+and have your projects inherit these values, unless the project overrides itself the setting
 inside ``shotgun.yml``.
 
 Here's an example:
@@ -35,7 +35,7 @@ Here's an example:
         # If specified, the username text input on the login screen will be populated
         # with this value when logging into Toolkit for the very first time.
         # Defaults to the user's OS login. Environment variables are actually resolved for
-        # all values in this file, which allows greater flexibility when sharing the config.ini
+        # all values in this file, which allows greater flexibility when sharing this configuration
         # file with multiple users.
         #
         default_login=$USERNAME
@@ -66,23 +66,23 @@ Here's an example:
 This file can be configured through multiple means and Toolkit will try to resolve the file in the
 following order:
 
-1. The ``SGTK_CONFIG_LOCATION`` environment variable,
+1. The ``SGTK_PREFERENCES_LOCATION`` environment variable,
 2. The ``SGTK_DESKTOP_CONFIG_LOCATION`` environment variable, for compatibility with the Shotgun Desktop. (deprecated)
-3. Inside the Shotgun user folder
-4. Inside the Shotgun Desktop user folder, for compatibility with the Shotgun Desktop. (deprecated)
+3. Inside the Shotgun Toolkit preferences file
+4. Inside the Shotgun Desktop preferences file, for compatibility with the Shotgun Desktop. (deprecated)
 
 .. note::
-    The Shotgun user folder is located at:
+    The Shotgun Toolkit preferences file is located at:
 
-    - Windows: ``%APPDATA%\Shotgun\config.ini``
-    - macOS: ``~/Library/Application Support/Shotgun/config.ini``
-    - Linux: ``~/shotgun/config.ini``
+    - Windows: ``%APPDATA%\Shotgun\Preferences\toolkit.ini``
+    - macOS: ``~/Library/Preferences/Shotgun/toolkit.ini``
+    - Linux: ``~/.shotgun/preferences/toolkit.ini``
 
-    The Shotgun Desktop user folder is located at:
+    The Shotgun Desktop preferences file is located at:
 
-    - Windows: ``%APPDATA%\Shotgun\desktop\config.ini``
-    - macOS: ``~/Library/Caches/Shotgun/desktop/config.ini``
-    - Linux: ``~/shotgun/desktop/config.ini``
+    - Windows: ``%APPDATA%\Shotgun\desktop\config\config.ini``
+    - macOS: ``~/Library/Caches/Shotgun/desktop/config/config.ini``
+    - Linux: ``~/shotgun/desktop/config/config.ini``
 
 
 Incorrectly configuring this file may raise an exception:

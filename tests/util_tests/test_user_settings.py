@@ -70,7 +70,7 @@ class UserSettingsTests(unittest.TestCase):
         UserSettings.clear_singleton()
         self.addCleanup(UserSettings.clear_singleton)
 
-    @patch("tank.settings.user.UserSettings._load_config", return_value=MockConfigParser({}))
+    @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({}))
     def test_empty_file(self, mock):
         """
         Tests a complete yaml file.
@@ -81,7 +81,7 @@ class UserSettingsTests(unittest.TestCase):
         self.assertIsNone(settings.shotgun_proxy)
         self.assertFalse(settings.is_app_store_proxy_set())
 
-    @patch("tank.settings.user.UserSettings._load_config", return_value=MockConfigParser({
+    @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({
         "default_site": "site",
         "default_login": "login",
         "http_proxy": "http_proxy",
@@ -98,7 +98,7 @@ class UserSettingsTests(unittest.TestCase):
         self.assertTrue(settings.is_app_store_proxy_set())
         self.assertEqual(settings.app_store_proxy, "app_store_http_proxy")
 
-    @patch("tank.settings.user.UserSettings._load_config", return_value=MockConfigParser({
+    @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({
         # Config parser represent empty settings as empty strings
         "app_store_http_proxy": ""
     }))
@@ -110,7 +110,7 @@ class UserSettingsTests(unittest.TestCase):
         self.assertTrue(settings.is_app_store_proxy_set())
         self.assertEqual(settings.app_store_proxy, None)
 
-    @patch("tank.settings.user.UserSettings._load_config", return_value=MockConfigParser({
+    @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({
         # Config parser represent empty settings as empty strings
         "default_site": "https://${SGTK_TEST_SHOTGUN_SITE}.shotgunstudio.com"
     }))
@@ -126,7 +126,7 @@ class UserSettingsTests(unittest.TestCase):
         """
         Test environment variables being set to files that don't exist.
         """
-        with patch.dict(os.environ, {"SGTK_CONFIG_LOCATION": "/a/b/c"}):
+        with patch.dict(os.environ, {"SGTK_PREFERENCES_LOCATION": "/a/b/c"}):
             with self.assertRaisesRegexp(EnvironmentVariableFileLookupError, "/a/b/c"):
                 UserSettings()
 

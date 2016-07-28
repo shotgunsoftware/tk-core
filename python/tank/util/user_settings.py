@@ -132,9 +132,11 @@ class UserSettings(Singleton):
             return None
 
         # If the path doesn't exist, raise an error.
-        path = os.environ[var_name]
+        raw_path = os.environ[var_name]
+        path = os.path.expanduser(raw_path)
+        path = os.path.expandvars(path)
         if not os.path.exists(path):
-            raise EnvironmentVariableFileLookupError(var_name, path)
+            raise EnvironmentVariableFileLookupError(var_name, raw_path)
 
         # Path is set and exist, we've found it!
         return path
@@ -153,13 +155,13 @@ class UserSettings(Singleton):
 
         # This is the default location.
         default_location = os.path.join(
-            LocalFileStorageManager.get_global_root(LocalFileStorageManager.PERSISTENT),
-            "config.ini"
+            LocalFileStorageManager.get_global_root(LocalFileStorageManager.PREFERENCES),
+            "toolkit.ini"
         )
 
         # This is the complete list of paths we need to test.
         file_locations = [
-            self._evaluate_env_var("SGTK_CONFIG_LOCATION"),
+            self._evaluate_env_var("SGTK_PREFERENCES_LOCATION"),
             self._evaluate_env_var("SGTK_DESKTOP_CONFIG_LOCATION"),
             # Default location first
             default_location,
