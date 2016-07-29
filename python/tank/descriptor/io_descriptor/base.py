@@ -12,6 +12,7 @@ import os
 import re
 import cgi
 import sys
+import urllib
 import urlparse
 
 from .. import constants
@@ -453,7 +454,7 @@ class IODescriptorBase(object):
         for (param, value) in descriptor_dict.iteritems():
             if param == "type":
                 continue
-            qs_chunks.append("%s=%s" % (param, value))
+            qs_chunks.append("%s=%s" % (param, urllib.quote(value)))
         qs = "&".join(qs_chunks)
 
         return "%s?%s" % (uri, qs)
