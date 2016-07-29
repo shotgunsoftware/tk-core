@@ -118,12 +118,17 @@ class IODescriptorGit(IODescriptorBase):
 
                 full_command = "git %s" % command
                 log.debug("Executing '%s'" % full_command)
+
                 try:
                     output = subprocess_check_output(
                         full_command,
                         stderr=subprocess.STDOUT,
                         shell=True
-                    ).strip()
+                    )
+
+                    # note: it seems on windows, the result is sometimes wrapped in single quotes.
+                    output = output.strip().strip("'")
+
                 except SubprocessCalledProcessError, e:
                     raise TankGitError(
                         "Error executing git operation '%s': %s (Return code %s)" % (full_command, e.output, e.returncode)
