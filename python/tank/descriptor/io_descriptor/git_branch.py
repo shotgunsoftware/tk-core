@@ -10,9 +10,6 @@
 import os
 import copy
 
-from ...util.process import subprocess_check_output
-from ...util.git import execute_git_command
-from ...util import filesystem
 from .git import IODescriptorGit
 from ..errors import TankDescriptorError
 from ... import LogManager
@@ -130,29 +127,25 @@ class IODescriptorGitBranch(IODescriptorGit):
         # cache into the primary location
         target = self._get_cache_paths()[0]
 
-        # ensure *parent* folder exists
-        parent_folder = os.path.dirname(target)
-        filesystem.ensure_folder_exists(parent_folder)
-
-        # now clone, set to branch and set to specific commit
-        cwd = os.getcwd()
         try:
-            # clone the repo
-            self._clone_repo(target)
-            os.chdir(target)
-            log.debug("Switching to branch %s..." % self._branch)
-            execute_git_command("checkout -q %s" % self._branch)
-            log.debug("Setting commit to %s..." % self._version)
-            execute_git_command("reset --hard -q %s" % self._version)
-        finally:
-            os.chdir(cwd)
+            # clone the repo, switch to the given branch
+            # then reset to the given commit
+            commands = [
+                "checkout -q \"%s\"" % self._branch,
+                "reset --hard -q \"%s\"" % self._version
+            ]
+            self._clone_then_execute_git_command(target, commands)
+
+        except Exception, e:
+            raise TankDescriptorError(
+                "Could not locally cache %s, branch %s, "
+                "commit %s: %s" % (self._path, self._branch, self._version, e)
+            )
 
 
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
-
-        Communicates with the remote repository using git ls-remote.
 
         :param constraint_pattern: If this is specified, the query will be constrained
                by the given pattern. Version patterns are on the following forms:
@@ -169,16 +162,11 @@ class IODescriptorGitBranch(IODescriptorGit):
                 "Latest version will be used." % self
             )
 
-        # figure out the latest commit for the given repo and branch
-        # git ls-remote repo_url branch_name
-        # returns: 'hash	remote_branch'
         try:
-            cmd = "ls-remote \"%s\" \"%s\"" % (self._sanitized_repo_path, self._branch)
-            branch_info = execute_git_command(cmd).split()
-            log.debug("ls-remote returned: '%s'" % branch_info)
-
-            # get first chunk of return data
-            git_hash = branch_info[0]
+            # clone the repo, get the latest commit hash
+            # for the given branch
+            commands = ["log -n 1 --pretty=format:'%%H' \"%s\"" % self._branch]
+            git_hash = self._tmp_clone_then_execute_git_command(commands)
 
         except Exception, e:
             raise TankDescriptorError(

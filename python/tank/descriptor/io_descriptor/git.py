@@ -8,12 +8,24 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
+import uuid
+import tempfile
+import subprocess
 
-from ...util.git import execute_git_command
 from .base import IODescriptorBase
 from ... import LogManager
+from ...util.process import subprocess_check_output, SubprocessCalledProcessError
+
+from ..errors import TankError
+from ...util import filesystem
 
 log = LogManager.get_logger(__name__)
+
+class TankGitError(TankError):
+    """
+    Errors related to git communication
+    """
+    pass
 
 
 class IODescriptorGit(IODescriptorBase):
@@ -43,17 +55,98 @@ class IODescriptorGit(IODescriptorBase):
         # Note: the git command always uses forward slashes
         self._sanitized_repo_path = self._path.replace(os.path.sep, "/")
 
-    def _clone_repo(self, target_path):
+    @LogManager.log_timing
+    def _clone_then_execute_git_command(self, target, commands):
         """
-        Clone the repo into the target path
+        Clones the git repository into the given location and
+        executes the given list of git commands.
 
-        :param target_path: The target path to clone the repo to
-        :raises:            TankError if the clone command fails
+        The initial clone operation happens via an os.system call, ensuring
+        that there is an initialized shell environment, allowing git
+        to potentially request shell based authentication for repositories
+        which requires credentials.
+
+        The subsequent list of commands are intended to be executed on the
+        recently cloned repository and will the cwd will be set so that they
+        are executed in the directory scope of the newly cloned repository.
+
+        :param target: path to clone into
+        :param commands: list git commands to execute, e.g. ['checkout x']
+        :returns: stdout and stderr of the last command executed as a string
+        :raises: TankGitError on git failure
         """
+        # ensure *parent* folder exists
+        parent_folder = os.path.dirname(target)
+        filesystem.ensure_folder_exists(parent_folder)
+
+        # first probe to check that git exists in our PATH
+        log.debug("Checking that git exists and can be executed...")
+        try:
+            output = subprocess_check_output(["git", "--version"])
+        except:
+            raise TankGitError(
+                "Cannot execute the 'git' command. Please make sure that git is "
+                "installed on your system and that the git executable has been added to the PATH."
+            )
+        log.debug("Git installed: %s" % output)
+
         # Note: git doesn't like paths in single quotes when running on
-        # windows - it also prefers to use forward slashes!
-        log.debug("Git Cloning %r into %s" % (self, target_path))
-        execute_git_command("clone -q \"%s\" \"%s\"" % (self._sanitized_repo_path, target_path))
+        # windows - it also prefers to use forward slashes
+        #
+        # note that we use os.system here to allow for git to pop up (in a terminal
+        # if necessary) authentication prompting. This DOES NOT seem to be possible
+        # with subprocess.
+        #
+        log.debug("Git Cloning %r into %s" % (self, target))
+        cmd = "git clone -q \"%s\" \"%s\"" % (self._path, target)
+        status = os.system(cmd)
+        if status != 0:
+            raise TankGitError(
+                "Error executing git operation. The git command '%s' "
+                "returned error code %s." % (cmd, status)
+            )
+        log.debug("Git clone successful.")
+
+        # clone worked ok! Now execute git commands on this repo
+        cwd = os.getcwd()
+        output = None
+        try:
+            for command in commands:
+
+                full_command = "git %s" % command
+                log.debug("Executing '%s'" % full_command)
+                try:
+                    output = subprocess_check_output(
+                        full_command,
+                        stderr=subprocess.STDOUT,
+                        shell=True
+                    ).strip()
+                except SubprocessCalledProcessError, e:
+                    raise TankGitError(
+                        "Error executing git operation '%s': %s (Return code %s)" % (full_command, e.output, e.returncode)
+                    )
+                log.debug("Execution successful. stderr/stdout: '%s'" % output)
+
+        finally:
+            os.chdir(cwd)
+
+        # return the last returned stdout/stderr
+        return output
+
+    def _tmp_clone_then_execute_git_command(self, commands):
+        """
+        Clone into a temp location and executes the given
+        list of git commands.
+
+        :param commands: list git commands to execute, e.g. ['checkout x']
+        :returns: stdout and stderr of the last command executed as a string
+        """
+        clone_tmp = os.path.join(tempfile.gettempdir(), "sgtk_clone_%s" % uuid.uuid4().hex)
+        filesystem.ensure_folder_exists(clone_tmp)
+        try:
+            return self._clone_then_execute_git_command(clone_tmp, commands)
+        finally:
+            filesystem.safe_delete_file(clone_tmp)
 
     def get_system_name(self):
         """
