@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import uuid
+import shutil
 import tempfile
 import subprocess
 
@@ -105,12 +106,14 @@ class IODescriptorGit(IODescriptorBase):
                 "Error executing git operation. The git command '%s' "
                 "returned error code %s." % (cmd, status)
             )
-        log.debug("Git clone successful.")
+        log.debug("Git clone into '%s' successful." % target)
 
         # clone worked ok! Now execute git commands on this repo
         cwd = os.getcwd()
         output = None
         try:
+            log.debug("Setting cwd to '%s'" % target)
+            os.chdir(target)
             for command in commands:
 
                 full_command = "git %s" % command
@@ -128,6 +131,7 @@ class IODescriptorGit(IODescriptorBase):
                 log.debug("Execution successful. stderr/stdout: '%s'" % output)
 
         finally:
+            log.debug("Restoring cwd (to '%s')" % cwd)
             os.chdir(cwd)
 
         # return the last returned stdout/stderr
@@ -146,7 +150,8 @@ class IODescriptorGit(IODescriptorBase):
         try:
             return self._clone_then_execute_git_command(clone_tmp, commands)
         finally:
-            filesystem.safe_delete_file(clone_tmp)
+            log.debug("Cleaning up temp location '%s'" % clone_tmp)
+            shutil.rmtree(clone_tmp, ignore_errors=True)
 
     def get_system_name(self):
         """
