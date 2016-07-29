@@ -172,7 +172,10 @@ class IODescriptorGitBranch(IODescriptorGit):
         try:
             # clone the repo, get the latest commit hash
             # for the given branch
-            commands = ["log -n 1 --pretty=format:'%%H' \"%s\"" % self._branch]
+            commands = [
+                "checkout -q \"%s\"" % self._branch,
+                "log -n 1 \"%s\" --pretty=format:'%%H'" % self._branch
+            ]
             git_hash = self._tmp_clone_then_execute_git_command(commands)
 
         except Exception, e:

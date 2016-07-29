@@ -99,7 +99,7 @@ class IODescriptorGit(IODescriptorBase):
         # with subprocess.
         #
         log.debug("Git Cloning %r into %s" % (self, target))
-        cmd = "git clone \"%s\" \"%s\"" % (self._path, target)
+        cmd = "git clone -q \"%s\" \"%s\"" % (self._path, target)
         status = os.system(cmd)
         if status != 0:
             raise TankGitError(
