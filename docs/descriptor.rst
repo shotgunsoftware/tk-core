@@ -158,28 +158,6 @@ correctly. On Windows, it is recommended that you use forward slashes.
           app download. The git executable is, however, not needed during descriptor
           resolve and normal operation.
 
-Toolkit does not support git credentials. If you are using authenticated git repositories,
-you need to configure these externally. We strongly recommend SSH-style urls for your
-repositories, e.g. on the form ``git@github.com:shotgunsoftware/tk-config-default.git``. When using
-these, the operating system will handle all authentication.
-
-If you have to use http or https based git urls with credentials, you may get an error from Toolkit
-looking something like this::
-
-    TankDescriptorError: Could not get tags for https://github.com/shotgunsoftware/tk-config-xyz.git:
-    Error executing git operation 'git ls-remote --tags "https://github.com/shotgunsoftware/tk-config-xyz.git"':
-    bash: /dev/tty: No such device or address
-    error: failed to execute prompt script (exit code 1)
-    fatal: could not read Username for 'https://github.com': Invalid argument
-    (Return code 128)
-
-In this case, you need to configure external authentication for your git setup. The easiest way to do this
-is to set up a default authentication popup by executing the following in a command shell::
-
-    git config --system core.askpass git-gui--askpass
-
-For more information, see https://git-scm.com/docs/gitcredentials.
-
 
 Path and Dev
 =======================
