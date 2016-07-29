@@ -135,15 +135,12 @@ class IODescriptorGitTag(IODescriptorGit):
         Will exit early if app already exists local.
 
         This will connect to remote git repositories.
+        Depending on how git is configured, https repositories
+        requiring credentials may result in a shell opening up
+        requesting username and password.
 
-        The git tag descriptor type will perform the following
-        sequence of operations to perform a download local:
-
-        - git clone repo into temp folder
-        - extracting the associated tag from temp repo into zip file
-          using git archive command
-        - unpack zip file into final tk bundle cache location
-        - cleans up temp data
+        The git repo will be cloned into the local cache and
+        will then be adjusted to point at the relevant tag.
         """
         if self.exists_local():
             # nothing to do!
@@ -166,6 +163,14 @@ class IODescriptorGitTag(IODescriptorGit):
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
+
+        This will connect to remote git repositories.
+        Depending on how git is configured, https repositories
+        requiring credentials may result in a shell opening up
+        requesting username and password.
+
+        This will clone the git repository into a temporary location in order to
+        introspect its properties.
 
         :param constraint_pattern: If this is specified, the query will be constrained
                by the given pattern. Version patterns are on the following forms:
@@ -193,6 +198,7 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         Returns a descriptor object that represents the latest
         version, but based on a version pattern.
+
         :param pattern: Version patterns are on the following forms:
             - v1.2.3 (can return this v1.2.3 but also any forked version under, eg. v1.2.3.2)
             - v1.2.x (examples: v1.2.4, or a forked version v1.2.4.2)

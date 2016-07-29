@@ -112,13 +112,12 @@ class IODescriptorGitBranch(IODescriptorGit):
         Will exit early if app already exists local.
 
         This will connect to remote git repositories.
+        Depending on how git is configured, https repositories
+        requiring credentials may result in a shell opening up
+        requesting username and password.
 
-        The git tag descriptor type will perform the following
-        sequence of operations to perform a download local:
-
-        - git clone repo into the bundle cache location
-        - git checkout of the specified branch
-        - git reset --hard to the specified commit
+        The git repo will be cloned into the local cache and
+        will then be adjusted to point at the relevant commit.
         """
         if self.exists_local():
             # nothing to do!
@@ -146,6 +145,14 @@ class IODescriptorGitBranch(IODescriptorGit):
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
+
+        This will connect to remote git repositories.
+        Depending on how git is configured, https repositories
+        requiring credentials may result in a shell opening up
+        requesting username and password.
+
+        This will clone the git repository into a temporary location in order to
+        introspect its properties.
 
         :param constraint_pattern: If this is specified, the query will be constrained
                by the given pattern. Version patterns are on the following forms:
