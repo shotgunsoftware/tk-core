@@ -624,6 +624,18 @@ class Engine(TankBundle):
         return self.__has_qt5
 
     @property
+    def has_qt4(self):
+        """
+        Indicates that the host application has access to Qt 4 and that the ``sgtk.platform.qt``  module
+        has been populated with the Qt 4 modules and information.
+
+        :returns bool: boolean value indicating if Qt 4 is available.
+        """
+        # Having a ui but not Qt5 implies Qt4. This implementation allows the method to return a valid
+        # value without having to actually modify the engines. Until Qt 6 comes out I guess.
+        return self.has_ui and not self.has_qt5
+
+    @property
     def metrics_dispatch_allowed(self):
         """
         Indicates this engine will allow the metrics worker threads to forward
@@ -1804,6 +1816,8 @@ class Engine(TankBundle):
     def __define_qt5(self):
         """
         This will be called at initialization to discover every PySide 2 modules, if available.
+        PyQt5 is not supported at the moment, since no DCC ships with it and the official maintainer of
+        PyQt5 doesn't provide a Python 2 version.
 
         :returns: A dictionary of Qt 5 all modules in addition to __file__, __version__ and __name__.
             If Qt 5 is not available, an empty dictionary is returned.
