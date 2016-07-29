@@ -45,7 +45,7 @@ class LocalFileStorageManager(object):
     (CORE_V17, CORE_V18) = range(2)
 
     # supported types of paths
-    (LOGGING, CACHE, PERSISTENT) = range(3)
+    (LOGGING, CACHE, PERSISTENT, PREFERENCES) = range(4)
 
     @classmethod
     def get_global_root(cls, path_type, generation=CORE_V18):
@@ -80,18 +80,23 @@ class LocalFileStorageManager(object):
                     return os.path.expanduser("~/Library/Caches/Shotgun")
                 elif path_type == cls.PERSISTENT:
                     return os.path.expanduser("~/Library/Application Support/Shotgun")
+                elif path_type == cls.PREFERENCES:
+                    return os.path.expanduser("~/Library/Preferences/Shotgun")
                 elif path_type == cls.LOGGING:
                     return os.path.expanduser("~/Library/Logs/Shotgun")
                 else:
                     raise ValueError("Unsupported path type!")
 
             elif sys.platform == "win32":
+                app_data = os.environ.get("APPDATA", "APPDATA_NOT_SET")
                 if path_type == cls.CACHE:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+                    return os.path.join(app_data, "Shotgun")
                 elif path_type == cls.PERSISTENT:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun", "Data")
+                    return os.path.join(app_data, "Shotgun", "Data")
+                elif path_type == cls.PREFERENCES:
+                    return os.path.join(app_data, "Shotgun", "Preferences")
                 elif path_type == cls.LOGGING:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun", "Logs")
+                    return os.path.join(app_data, "Shotgun", "Logs")
                 else:
                     raise ValueError("Unsupported path type!")
 
@@ -100,6 +105,8 @@ class LocalFileStorageManager(object):
                     return os.path.expanduser("~/.shotgun")
                 elif path_type == cls.PERSISTENT:
                     return os.path.expanduser("~/.shotgun/data")
+                elif path_type == cls.PREFERENCES:
+                    return os.path.expanduser("~/.shotgun/preferences")
                 elif path_type == cls.LOGGING:
                     return os.path.expanduser("~/.shotgun/logs")
                 else:

@@ -24,7 +24,7 @@ from Toolkit do not propagate up to the root logger. This
 is to ensure that Toolkit doesn't interfere with other logging
 that has been already configured.
 
-The following sub-heirarchies exist:
+The following sub-hierarchies exist:
 
 - Each app, engine and bundle provides access to logging and
   these log streams are collected and organized under the

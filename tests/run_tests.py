@@ -12,6 +12,10 @@ import sys
 import os
 from optparse import OptionParser
 
+print
+print "Using Python version \"%s\"" % (".".join(
+    str(i) for i in sys.version_info[0:3]
+),)
 
 # prepend tank_vendor location to PYTHONPATH to make sure we are running
 # the tests against the vendor libs, not local libs on the machine

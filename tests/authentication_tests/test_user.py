@@ -28,6 +28,12 @@ class UserTests(TankTestBase):
             http_proxy="http_proxy"
         ))
 
+    def test_attributes_valid(self):
+        user = self._create_test_user()
+        self.assertEqual(user.host, "https://tank.shotgunstudio.com")
+        self.assertEqual(user.login, "login")
+        self.assertEqual(user.http_proxy, "http_proxy")
+
     def test_login_value(self):
         session_user = user.ShotgunUser(user_impl.SessionUser(
             host="https://tank.shotgunstudio.com",

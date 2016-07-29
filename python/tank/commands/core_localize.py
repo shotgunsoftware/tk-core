@@ -105,40 +105,83 @@ def do_localize(log, pc_root_path, suppress_prompts):
             log.info("Operation cancelled.")
             return
 
+    # see what version of core is bundled with this config
+    core_version = pipeline_config.get_associated_core_version()
+
+    log.debug("About to localize '%s'" % pc_root_path)
+    log.debug("Associated core is '%s', version %s" % (core_api_root, core_version))
+    log.debug("The version of core running this code is %s" % pipelineconfig_utils.get_currently_running_api_version())
+
     # proceed with setup
     log.info("")
 
     try:
-        # Step 1: First get a list of all bundle descriptors.
-        # Key by descriptor uri, which ensures no repetition.
-        descriptors = {}
-        for env_name in pipeline_config.get_environments():
 
-            env_obj = pipeline_config.get_environment(env_name)
+        # step one - localize all bundles
 
-            for engine in env_obj.get_engines():
-                descriptor = env_obj.get_engine_descriptor(engine)
-                descriptors[descriptor.get_uri()] = descriptor
+        if is_version_older(core_version, "v0.18.0"):
+            # now if we are localizing a pre-0.18 core, it means we are using modern
+            # (post 0.18) core code to copy a 0.17 core across into the configuration
+            # in this case, the old storage logic for descriptors applies. We handle this
+            # by brute forcing it and copying all items across in the install folder.
 
-                for app in env_obj.get_apps(engine):
-                    descriptor = env_obj.get_app_descriptor(engine, app)
+            log.debug("Using a 0.18 core to localize a 0.17 core. Falling back on blanket copy of install.")
+
+            # copy all the contents of the install location across except
+            # for the contents in the core and core.backup folders - these are handled
+            # explicitly later on
+
+            source_install_path = os.path.join(core_api_root, "install")
+            target_install_path = os.path.join(pc_root_path, "install")
+
+            names = os.listdir(source_install_path)
+            for name in names:
+
+                if name in ["core", "core.backup"]:
+                    # skip now and handle separately
+                    continue
+
+                if name.startswith(".") or name.startswith("_"):
+                    # skip system directories such as __MACOSX and .DS_store
+                    continue
+
+                source = os.path.join(source_install_path, name)
+                target = os.path.join(target_install_path, name)
+                log.info("Localizing the %s folder..." % name)
+                filesystem.copy_folder(source, target)
+
+        else:
+            # 0.18 descriptor based API implementation
+
+            # First get a list of all bundle descriptors.
+            # Key by descriptor uri, which ensures no repetition.
+            descriptors = {}
+            for env_name in pipeline_config.get_environments():
+
+                env_obj = pipeline_config.get_environment(env_name)
+
+                for engine in env_obj.get_engines():
+                    descriptor = env_obj.get_engine_descriptor(engine)
                     descriptors[descriptor.get_uri()] = descriptor
 
-            for framework in env_obj.get_frameworks():
-                descriptor = env_obj.get_framework_descriptor(framework)
-                descriptors[descriptor.get_uri()] = descriptor
+                    for app in env_obj.get_apps(engine):
+                        descriptor = env_obj.get_app_descriptor(engine, app)
+                        descriptors[descriptor.get_uri()] = descriptor
+
+                for framework in env_obj.get_frameworks():
+                    descriptor = env_obj.get_framework_descriptor(framework)
+                    descriptors[descriptor.get_uri()] = descriptor
+
+            # Now re-cache all the relevant apps into the new install location.
+            target_bundle_cache_root = os.path.join(pc_root_path, "install")
+
+            for idx, descriptor in enumerate(descriptors.itervalues()):
+                # print one based indices for more human friendly output
+                log.info("%s/%s: Copying %s..." % (idx + 1, len(descriptors), descriptor))
+                descriptor.clone_cache(target_bundle_cache_root)
 
 
-        # Step 2: Now re-cache all the relevant apps into the new install location.
-        target_bundle_cache_root = os.path.join(pc_root_path, "install")
-
-        for idx, descriptor in enumerate(descriptors.itervalues()):
-            # print one based indices for more human friendly output
-            log.info("%s/%s: Copying %s..." % (idx + 1, len(descriptors), descriptor))
-            descriptor.clone_cache(target_bundle_cache_root)
-
-
-        # Step 3: Backup the target core and copy the new core across.
+        # Step 2: Backup the target core and copy the new core across.
         source_core = os.path.join(core_api_root, "install", "core")
         target_core = os.path.join(pc_root_path, "install", "core")
         backup_location = os.path.join(pc_root_path, "install", "core.backup")
@@ -155,8 +198,7 @@ def do_localize(log, pc_root_path, suppress_prompts):
         log.info("Copying Core %s \nto %s" % (source_core, target_core))
         filesystem.copy_folder(source_core, target_core)
 
-
-        # Step 4: Copy some core config files across.
+        # Step 3: Copy some core config files across.
         log.info("Copying Core configuration files...")
         for fn in CORE_FILES_FOR_LOCALIZE:
             src = os.path.join(core_api_root, "config", "core", fn)
@@ -170,7 +212,6 @@ def do_localize(log, pc_root_path, suppress_prompts):
             # AppStore credentials to be saved on disk.
             if fn != "app_store.yml" or os.path.exists(src):
                 filesystem.copy_file(src, tgt, permissions=0666)
-
 
     except Exception, e:
         log.exception("Could not localize Toolkit API.")

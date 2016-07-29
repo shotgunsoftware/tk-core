@@ -63,6 +63,3 @@ class TankContextDeserializationError(TankError):
     Exception that indicates that something went wrong while deserializating a context.
     """
 
-# backwards compatibility to ensure code that was calling internal
-# parts of the API will still work.
-from .platform.errors import TankEngineInitError

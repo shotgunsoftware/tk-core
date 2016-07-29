@@ -75,6 +75,13 @@ class ShotgunAuthenticatorTests(TankTestBase):
         self.assertEqual(connection.config.script_name, "api_script")
         self.assertEqual(connection.config.api_key, "api_key")
 
+    @patch("tank.authentication.session_cache.get_current_host", return_value=None)
+    def test_no_current_host(self, _):
+        """
+        Makes sure the login is None when there is no host.
+        """
+        self.assertIsNone(DefaultsManager().get_login())
+
     @patch("tank.authentication.session_cache.generate_session_token")
     @patch("tank.util.LocalFileStorageManager.get_global_root")
     def test_get_default_user(self, get_global_root, generate_session_token_mock):
