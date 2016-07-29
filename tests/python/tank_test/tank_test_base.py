@@ -51,6 +51,30 @@ def interactive(func):
     )(func)
 
 
+def _is_git_missing():
+    """
+    Tests is git is available in PATH
+    :returns: True is git is available, False otherwise.
+    """
+    git_missing = True
+    try:
+        output = sgtk.util.process.subprocess_check_output(["git", "--version"])
+        git_missing = False
+    except:
+        # no git!
+        pass
+    return git_missing
+
+
+def skip_if_git_missing(func):
+    """
+    Decorated that allows to skips a test if PySide is missing.
+    :param func: Function to be decorated.
+    :returns: The decorated function.
+    """
+    return unittest.skipIf(_is_git_missing(), "git is missing from PATH")(func)
+
+
 def _is_pyside_missing():
     """
     Tests is PySide is available.
