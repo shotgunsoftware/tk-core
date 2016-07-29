@@ -965,7 +965,7 @@ class TemplateConfiguration(object):
             descriptor = create_descriptor(
                 self._sg,
                 Descriptor.CONFIG,
-                {"type": "git", "path": config_uri},
+                {"type": "git_branch", "path": config_uri, "branch": "master"},
                 resolve_latest=True
             )
             descriptor.ensure_local()

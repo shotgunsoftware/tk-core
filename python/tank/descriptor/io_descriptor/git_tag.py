@@ -61,6 +61,13 @@ class IODescriptorGitTag(IODescriptorGit):
 
         self._type = bundle_type
 
+    def __str__(self):
+        """
+        Human readable representation
+        """
+        # git@github.com:manneohrstrom/tk-hiero-publish.git, tag v1.2.3
+        return "%s, Tag %s" % (self._path, self._version)
+
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
         Given a cache root, compute a cache path suitable
@@ -106,18 +113,14 @@ class IODescriptorGitTag(IODescriptorGit):
         # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
 
-        try:
-            legacy_folder = self._get_legacy_bundle_install_folder(
-                "git",
-                self._bundle_cache_root,
-                self._type,
-                name,
-                self.get_version()
-            )
-        except RuntimeError, e:
-            # warn and continue
-            log.warning("Could not add legacy location to bundle search path: %s" % e)
-        else:
+        legacy_folder = self._get_legacy_bundle_install_folder(
+            "git",
+            self._bundle_cache_root,
+            self._type,
+            name,
+            self.get_version()
+        )
+        if legacy_folder:
             paths.append(legacy_folder)
 
         return paths

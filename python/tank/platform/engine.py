@@ -26,8 +26,14 @@ import threading
 from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
 from .. import hook
+
 from ..errors import TankError
-from .errors import TankEngineInitError, TankContextChangeNotSupportedError
+from .errors import (
+    TankEngineInitError,
+    TankContextChangeNotSupportedError,
+    TankEngineEventError,
+)
+
 from ..util import log_user_activity_metric, log_user_attribute_metric
 from ..util.metrics import MetricsDispatcher
 from ..log import LogManager
@@ -35,6 +41,7 @@ from ..log import LogManager
 from . import application
 from . import constants
 from . import validation
+from . import events
 from . import qt
 from . import qt5
 from .bundle import TankBundle
@@ -73,6 +80,7 @@ class Engine(TankBundle):
         .. automethod:: _create_dialog_with_widget
         .. automethod:: _get_dialog_parent
         .. automethod:: _on_dialog_closed
+        .. automethod:: _emit_event
         .. automethod:: _emit_log_message
         """
         
@@ -119,11 +127,11 @@ class Engine(TankBundle):
         # (and the rest of the sgtk logging ) to the user
         self.__log_handler = self.__initialize_logging()
 
-        # check general debug log setting and if this flag is turned on,
-        # adjust the global setting
-
-        if self.get_setting("debug_logging", False):
-            LogManager().global_debug = True
+        # check general debug log setting and update the global debug flag accordingly. Do not set this
+        # flag only when the debug_logging is "true" because the global_debug flag is... global... and it
+        # needs to be reset during engine instantiation if the debug_logging setting suddenly turns false.
+        LogManager().global_debug = self.get_setting("debug_logging", False)
+        if LogManager().global_debug:
             self.log_debug("Engine config flag 'debug_logging' detected, turning on debug output.")
 
         # check that the context contains all the info that the app needs
@@ -1332,6 +1340,38 @@ class Engine(TankBundle):
         
     ##########################################################################################
     # private and protected methods
+
+    def _emit_event(self, event):
+        """
+        Called by the engine whenever an event is to be emitted to child
+        apps of this engine.
+
+        .. note:: Events will be emitted and child apps notified immediately.
+
+        .. warning:: Some event types might be triggered quite frequently. Apps
+                     that react to events should do so in a way that is aware of
+                     the potential performance impact of their actions.
+
+        :param event: The event object that will be emitted.
+        :type event:  :class:`~sgtk.platform.events.EngineEvent`
+        """
+        if not isinstance(event, events.EngineEvent):
+            raise TankEngineEventError(
+                "Given object does not derive from EngineEvent: %r" % event
+            )
+
+        self.log_debug("Emitting event: %r" % event)
+
+        for app_instance_name, app in self.__applications.iteritems():
+            self.log_debug("Sending event to %r..." % app)
+
+            # We send the event to the generic engine event handler
+            # as well as to the type-specific handler when we have
+            # one. This mirror's Qt's event system's structure.
+            app.event_engine(event)
+
+            if isinstance(event, events.FileOpenEvent):
+                app.event_file_open(event)
 
     def _emit_log_message(self, handler, record):
         """

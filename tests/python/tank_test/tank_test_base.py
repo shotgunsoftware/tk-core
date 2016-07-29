@@ -30,6 +30,7 @@ import sgtk
 import tank
 from tank import path_cache
 from tank_vendor import yaml
+from tank.util.user_settings import UserSettings
 
 TANK_TEMP = None
 
@@ -113,8 +114,8 @@ class TankTestBase(unittest.TestCase):
     
     def __init__(self, *args, **kws):
          
-        super(TankTestBase, self).__init__(*args, **kws)        
-        
+        super(TankTestBase, self).__init__(*args, **kws)
+
         # Below are attributes which will be set during setUp
 
         # Path to temp directory
@@ -157,7 +158,11 @@ class TankTestBase(unittest.TestCase):
                                                                
         
         """
-        
+
+        # Make sure the global settings instance has been reset so anything from a previous test doesn't
+        # leak into the next one.
+        UserSettings.clear_singleton()
+
         parameters = parameters or {}
         
         if "project_tank_name" in parameters:
@@ -285,12 +290,16 @@ class TankTestBase(unittest.TestCase):
                                 "mac_path": self.tank_temp }
         
         self.add_to_sg_mock_db(self.primary_storage)
-        
-        
+
+        # back up the authenticated user in case a unit test doesn't clean up correctly.
+        self._authenticated_user = sgtk.get_authenticated_user()
+
     def tearDown(self):
         """
         Cleans up after tests.
         """
+        sgtk.set_authenticated_user(self._authenticated_user)
+
         # get rid of path cache from local ~/.shotgun storage
         pc = path_cache.PathCache(self.tk)
         path_cache_file = pc._get_path_cache_location()

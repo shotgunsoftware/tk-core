@@ -12,24 +12,29 @@
 Shotgun utilities
 
 """
+from __future__ import with_statement
 
 import os
 import sys
+import uuid
 import urllib2
 import urlparse
 import pprint
 import threading
+import tempfile
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
 
-from .errors import UnresolvableCoreConfigurationError
+from .errors import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
 from ..errors import TankError
 from ..log import LogManager
 from .. import hook
 from . import constants
 from . import login
 from . import yaml_cache
+from .zip import unzip_file
+from . import filesystem
 
 log = LogManager.get_logger(__name__)
 
@@ -198,6 +203,11 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
     if not config_data.get("api_script") and config_data.get("api_key"):
         _raise_missing_key("api_script")
 
+    # If the appstore proxy is set, but the value is falsy.
+    if "app_store_http_proxy" in config_data and not config_data["app_store_http_proxy"]:
+        # Make sure it is None.
+        config_data["app_store_http_proxy"] = None
+
     return config_data
 
 @LogManager.log_timing
@@ -238,7 +248,64 @@ def download_url(sg, url, location):
             f.close()
     except Exception, e:
         raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
-    
+
+@LogManager.log_timing
+def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
+    """
+    Downloads the given attachment from Shotgun, assumes it is a zip file
+    and attempts to unpack it into the given location.
+
+    :param sg: Shotgun API instance
+    :param attachment_id: Attachment to download
+    :param target: Folder to unpack zip to. if not created, the method will
+                   try to create it.
+    :param retries: Number of times to retry before giving up
+    :raises: ShotgunAttachmentDownloadError on failure
+    """
+    # @todo: progress feedback here - when the SG api supports it!
+    # sometimes people report that this download fails (because of flaky connections etc)
+    # engines can often be 30-50MiB - as a quick fix, just retry the download once
+    # if it fails.
+    attempt = 0
+    done = False
+
+    while not done and attempt < retries:
+
+        zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
+        try:
+            log.debug("Downloading attachment id %s..." % attachment_id)
+            bundle_content = sg.download_attachment(attachment_id)
+
+            log.debug("Download complete. Saving into %s" % zip_tmp)
+            with open(zip_tmp, "wb") as fh:
+                fh.write(bundle_content)
+
+            log.debug("Unpacking %s bytes to %s..." % (os.path.getsize(zip_tmp), target))
+            filesystem.ensure_folder_exists(target)
+            unzip_file(zip_tmp, target)
+
+        except Exception, e:
+            # retry once
+            log.warning(
+                "Attempt %s: Attachment download of id %s from %s failed: %s" % (attempt, attachment_id, sg.base_url, e)
+            )
+            attempt += 1
+        else:
+            done = True
+        finally:
+            # remove zip file
+            filesystem.safe_delete_file(zip_tmp)
+
+    if not done:
+        # we were not successful
+        raise ShotgunAttachmentDownloadError(
+            "Failed to download from '%s' after %s retries. See error log for details." % (sg.base_url, retries)
+        )
+
+    else:
+        log.debug("Attachment download and unpack complete.")
+
+
     
 def get_associated_sg_base_url():
     """

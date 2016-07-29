@@ -258,7 +258,7 @@ Version constraints
 ====================================================
 
 If your app or engine requires specific versions of shotgun, the core or other things,
-you can specify this using the three parameters ``requires_shotgun_version``, ``requires_core_verson``
+you can specify this using the three parameters ``requires_shotgun_version``, ``requires_core_version``
 and (for apps only) ``requires_engine_version``::
 
     # Required minimum versions for this item to run

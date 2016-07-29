@@ -95,6 +95,14 @@ class ShotgunUserImpl(object):
         """
         self.__class__._not_implemented("are_credentials_expired")
 
+    def get_login(self):
+        """
+        Returns the login name for this user.
+
+        :returns: The login name string.
+        """
+        self.__class__._not_implemented("get_login")
+
     def to_dict(self):
         """
         Converts the user into a dictionary object.
@@ -369,6 +377,15 @@ class ScriptUser(ShotgunUserImpl):
         :returns: The script user key.
         """
         return self._api_key
+
+    def get_login(self):
+        """
+        Returns the login name for this user.
+
+        :returns: The login name string.
+        """
+        # Script user has no login.
+        return None
 
     def to_dict(self):
         """
