@@ -41,6 +41,7 @@ from . import desktop_migration
 from . import cache_yaml
 from . import get_entity_commands
 from . import constants
+from . import copy_apps_local
 
 from .. import constants as constants_global
 from .. import LogManager
@@ -82,7 +83,8 @@ BUILT_IN_ACTIONS = [setup_project.SetupProjectAction,
                     copy_apps.CopyAppsAction,
                     desktop_migration.DesktopMigration,
                     cache_yaml.CacheYamlAction,
-                    get_entity_commands.GetEntityCommandsAction
+                    get_entity_commands.GetEntityCommandsAction,
+                    copy_apps_local.CopyAppsLocalAction
                     ]
 
 
