@@ -524,13 +524,13 @@ class IODescriptorBase(object):
         Get a list of resolved paths, starting with the primary and
         continuing with alternative locations.
 
-        Note: This method only computes paths and does not perform any I/O ops.
+        .. note:: This method only computes paths and does not perform any I/O ops.
 
         :return: List of path strings
         """
         paths = []
 
-        for root in [self._bundle_cache_root] + self._fallback_roots:
+        for root in self._fallback_roots + [self._bundle_cache_root]:
             paths.append(self._get_bundle_cache_path(root))
         return paths
 
