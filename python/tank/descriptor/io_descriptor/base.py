@@ -558,13 +558,21 @@ class IODescriptorBase(object):
         administer such a setup, allowing a cached payload to be copied from
         its current location into a new cache structure.
 
+        If the cache already exists in the target location, nothing will happen.
+
         If the descriptor's payload doesn't exist on disk, it will be downloaded.
 
         :param cache_root: Root point of the cache location to copy to.
+        :returns: True if the cache was copied, false if not
         """
         # compute new location
         new_cache_path = self._get_bundle_cache_path(cache_root)
         log.debug("Clone cache for %r: Copying to '%s'" % (self, new_cache_path))
+
+        if os.path.exists(new_cache_path):
+            # we already have a cache
+            log.debug("Bundle cache already exists in '%s'. Nothing to do." % new_cache_path)
+            return False
 
         # make sure we have something to copy
         self.ensure_local()
@@ -578,6 +586,7 @@ class IODescriptorBase(object):
         # pass an empty skip list to ensure we copy things like the .git folder
         filesystem.ensure_folder_exists(new_cache_path, permissions=0777)
         filesystem.copy_folder(self.get_path(), new_cache_path, skip_list=[])
+        return True
 
     ###############################################################################################
     # implemented by deriving classes
