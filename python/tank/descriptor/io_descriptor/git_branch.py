@@ -209,4 +209,19 @@ class IODescriptorGitBranch(IODescriptorGit):
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
 
+    def get_latest_cached_version(self, constraint_pattern=None):
+        """
+        Returns a descriptor object that represents the latest version
+        that is locally available in the bundle cache search path.
 
+        :param constraint_pattern: If this is specified, the query will be constrained
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
+
+        :returns: instance deriving from IODescriptorBase
+        """
+        # not possible to determine what 'latest' means in this case
+        return self

@@ -129,5 +129,21 @@ class IODescriptorManual(IODescriptorBase):
         # what is latest, just return our own version as representing the latest version.
         return self
 
+    def get_latest_cached_version(self, constraint_pattern=None):
+        """
+        Returns a descriptor object that represents the latest version
+        that is locally available in the bundle cache search path.
+
+        :param constraint_pattern: If this is specified, the query will be constrained
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
+
+        :returns: instance deriving from IODescriptorBase
+        """
+        # manual descriptor is always manually managed
+        return self
 
 
