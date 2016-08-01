@@ -94,7 +94,7 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         return os.path.join(
             bundle_cache_root,
-            "git",
+            "gitbranch",
             name,
             short_hash
         )
