@@ -20,7 +20,6 @@ from ..util import shotgun
 from ..util import filesystem
 from ..util.version import is_version_newer
 from ..util.zip import unzip_file
-from ..util.git import execute_git_command
 
 from .. import hook
 from ..errors import TankError, TankErrorProjectIsSetup
@@ -866,6 +865,23 @@ class TemplateConfiguration(object):
     ################################################################################################
     # Helper methods
 
+    def _create_git_descriptor(self, git_uri):
+        """
+        Given a config git uri, create a descriptor object
+        to be used for the project setup.
+
+        :param git_uri: Git repository uri for config
+        :return: :class:`sgtk.descriptor.Descriptor` object.
+        """
+        # the default logic when passing a git url to the project
+        # setup is to return back the last commit on master.
+        return create_descriptor(
+            self._sg,
+            Descriptor.CONFIG,
+            {"type": "git_branch", "path": git_uri, "branch": "master"},
+            resolve_latest=True
+        )
+
     def _read_roots_file(self):
         """
         Read, validate and return the roots data from the config.
@@ -961,16 +977,9 @@ class TemplateConfiguration(object):
         if config_uri.endswith(".git"):
             # this is a git repository!
             self._log.info("Hang on, loading configuration from git...")
-
-            descriptor = create_descriptor(
-                self._sg,
-                Descriptor.CONFIG,
-                {"type": "git_branch", "path": config_uri, "branch": "master"},
-                resolve_latest=True
-            )
+            descriptor = self._create_git_descriptor(config_uri)
             descriptor.ensure_local()
-
-            return (descriptor.get_path(), "git")
+            return descriptor.get_path(), "git"
 
         elif os.path.sep in config_uri:
             # probably a file path!
@@ -1001,21 +1010,6 @@ class TemplateConfiguration(object):
 
         else:
             raise TankError("Don't know how to handle config '%s'" % config_uri)
-
-    def _clone_git_repo(self, repo_path, target_path):
-        """
-        Clone the specified git repo into the target path
-
-        :param repo_path:   The git repo path to clone
-        :param target_path: The target path to clone the repo to
-        :raises:            TankError if the clone command fails
-        """
-        # Note: git doesn't like paths in single quotes when running on
-        # windows - it also prefers to use forward slashes!
-        sanitized_repo_path = repo_path.replace(os.path.sep, "/")
-        cmd = "clone \"%s\" \"%s\"" % (sanitized_repo_path, target_path)
-        execute_git_command(cmd)
-
 
     ################################################################################################
     # Public interface
@@ -1188,11 +1182,13 @@ class TemplateConfiguration(object):
     def create_configuration(self, target_path):
         """
         Creates the configuration folder in the target path
+
+        :param target_path: Path where config will be copied
         """
         if self._config_mode == "git":
-            # clone the config into place
-            self._log.info("Cloning git configuration into '%s'..." % target_path)
-            self._clone_git_repo(self._config_uri, target_path)
+            descriptor = self._create_git_descriptor(self._config_uri)
+            descriptor.copy(target_path)
+
         else:
             # copy the config from its source location into place
             filesystem.copy_folder(self._cfg_folder, target_path)

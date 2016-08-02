@@ -52,8 +52,33 @@ class TestApi(TankTestBase):
         )
 
         self._touch_info_yaml(app_root_path)
-
         self.assertEqual(app_root_path, d.get_path())
+
+        d1 = sgtk.descriptor.create_descriptor(
+            self.tk.shotgun,
+            sgtk.descriptor.Descriptor.CONFIG,
+            "sgtk:descriptor:git?path=https%3A//github.com/shotgunsoftware/tk-core.git&version=v0.1.2"
+        )
+
+        d2 = sgtk.descriptor.create_descriptor(
+            self.tk.shotgun,
+            sgtk.descriptor.Descriptor.CONFIG,
+            "sgtk:descriptor:git?path=https://github.com/shotgunsoftware/tk-core.git&version=v0.1.2"
+        )
+
+        d3 = sgtk.descriptor.create_descriptor(
+            self.tk.shotgun,
+            sgtk.descriptor.Descriptor.CONFIG,
+            {"type": "git", "version": "v0.1.2", "path": "https://github.com/shotgunsoftware/tk-core.git"}
+        )
+
+        self.assertEqual(d1, d2)
+        self.assertEqual(d2, d3)
+        self.assertEqual(d1, d3)
+
+
+
+
 
 
     def test_alt_cache_root(self):
@@ -105,3 +130,18 @@ class TestApi(TankTestBase):
         uri = "sgtk:descriptor:path?path=/foo/bar"
         dict = {"type": "path", "path": "/foo/bar"}
         self._test_uri(uri, dict)
+
+        uri = "sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle"
+        dict = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
+        self._test_uri(uri, dict)
+
+        uri = "sgtk:descriptor:git?path=https%3A//github.com/shotgunsoftware/tk-core.git&version=v0.1.2"
+        dict = {"type": "git", "version": "v0.1.2", "path": "https://github.com/shotgunsoftware/tk-core.git"}
+        self._test_uri(uri, dict)
+
+        uri = "sgtk:descriptor:git?path=git%40github.com%3Ashotgunsoftware/tk-core.git&version=v0.1.2"
+        dict = {"type": "git", "version": "v0.1.2", "path": "git@github.com:shotgunsoftware/tk-core.git"}
+        self._test_uri(uri, dict)
+
+
+
