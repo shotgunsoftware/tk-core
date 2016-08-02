@@ -218,7 +218,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         }
 
         if self._project_link:
-            descriptor_dict[self._project_id] = self._project_id
+            descriptor_dict["project_id"] = self._project_id
 
         # and return a descriptor instance
         desc = IODescriptorShotgunEntity(descriptor_dict, self._sg_connection)
@@ -269,7 +269,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         }
 
         if self._project_link:
-            descriptor_dict[self._project_id] = self._project_id
+            descriptor_dict["project_id"] = self._project_id
 
         # and return a descriptor instance
         desc = IODescriptorShotgunEntity(descriptor_dict, self._sg_connection)
