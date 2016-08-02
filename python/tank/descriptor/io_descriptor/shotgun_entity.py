@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import urlparse
 
 from .base import IODescriptorBase
 from ...util import filesystem, shotgun
@@ -85,9 +86,33 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         :param bundle_cache_root: Bundle cache root path
         :return: Path to bundle cache location
         """
+        #
+        # format for these paths will be
+        #
+        # bundle_cache/sg/SITE_NAME/EntityType.AttachmentField/[ProjectId_]NameField/AttachmentId
+        #
+        # bundle_cache/sg/wintermute/PipelineConfiguration.sg_config/p509_Primary/v25283
+        #
+        # note: readability is promoted here - if in the future we discover issues with MAXPATH,
+        #       we turn the wintermute/PipelineConfiguration.sg_config/p509_Primary part into
+        #       a hash.
+
+
+        # Firstly, because the bundle cache can be global, make sure we include the sg site name.
+        # first, get site only; https://www.FOO.com:8080 -> www.foo.com
+        base_url = urlparse.urlparse(self._sg_connection.base_url).netloc.split(":")[0].lower()
+        # make it as short as possible for hosted sites
+        base_url = base_url.replace(".shotgunstudio.com", "")
+
+        # the name field and project id
+        name_field = self._name if self._project_id is None else "p%d_%s" % (self._project_id, self._name)
+
         return os.path.join(
             bundle_cache_root,
-            "sg_upload",
+            "sg",
+            base_url,
+            "%s.%s" % (self._entity_type, self._field),
+            name_field,
             self.get_version()
         )
 
@@ -127,7 +152,6 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             raise TankDescriptorError(
                 "Failed to download %s from %s. Error: %s" % (self, self._sg_connection.base_url, e)
             )
-
 
     def get_latest_version(self, constraint_pattern=None):
         """
@@ -203,3 +227,53 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         log.debug("Latest version resolved to %s" % desc)
         return desc
 
+    def get_latest_cached_version(self, constraint_pattern=None):
+        """
+        Returns a descriptor object that represents the latest version
+        that is locally avaiable in the bundle cache search path.
+
+        :param constraint_pattern: If this is specified, the query will be constrained
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
+
+        :returns: instance deriving from IODescriptorBase
+        """
+        if constraint_pattern:
+            log.warning("%s does not support version constraint patterns." % self)
+
+        log.debug("Looking for cached versions of %r..." % self)
+        # for each of the cache paths, look one level above
+        # and enumerate all items
+        all_versions = []
+
+        for possible_cache_path in self._get_cache_paths():
+            parent_folder = os.path.dirname(possible_cache_path)
+            log.debug("looking in '%s'" % parent_folder)
+            if os.path.exists(parent_folder):
+                for version_folder in os.listdir(parent_folder):
+                    if version_folder.startswith("v") and version_folder[1:].isdigit():
+                        all_versions.append(int(version_folder[1:]))
+
+        log.debug("Found %d versions" % len(all_versions))
+
+        # make a descriptor dict
+        descriptor_dict = {
+            "type": "shotgun",
+            "entity_type": self._entity_type,
+            "field": self._field,
+            "name": self._name,
+            "version": max(all_versions)
+        }
+
+        if self._project_link:
+            descriptor_dict[self._project_id] = self._project_id
+
+        # and return a descriptor instance
+        desc = IODescriptorShotgunEntity(descriptor_dict, self._sg_connection)
+        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+
+        log.debug("Latest cached version resolved to %s" % desc)
+        return desc
