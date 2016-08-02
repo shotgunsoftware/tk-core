@@ -12,6 +12,17 @@
 PySide 2 backwards compatibility layer for use with PySide 1 code.
 """
 
+from __future__ import with_statement
+
+import os
+import functools
+import imp
+import subprocess
+import sys
+import webbrowser
+
+from .. import constants
+
 
 class PySide2Patcher(object):
     """
@@ -26,14 +37,14 @@ class PySide2Patcher(object):
     # These classes have been moved from QtGui in Qt4 to QtCore in Qt5 and we're
     # moving them back from QtCore to QtGui to preserve backward compability with
     # PySide 1.
-    _core_to_qtgui = (
+    _core_to_qtgui = set([
         "QAbstractProxyModel",
         "QItemSelection",
         "QItemSelectionModel",
         "QItemSelectionRange",
         "QSortFilterProxyModel",
         "QStringListModel"
-    )
+    ])
 
     # Flag that will be set at the module level so that if an engine is reloaded
     # the PySide 2 API won't be monkey patched twice.
@@ -51,27 +62,29 @@ class PySide2Patcher(object):
                 setattr(dst, name, getattr(src, name))
 
     @classmethod
-    def _patch_QTextCodec(cls, QTextCodec):
+    def _patch_QTextCodec(cls, QtCore):
         """
         Patches in QTextCodec.
 
         :param QTextCodec: The QTextCodec class.
         """
-        @staticmethod
-        def setCodecForCStrings(codec):
-            # Empty stub, doesn't exist in Qt5.
-            pass
+        original_QTextCodec = QtCore.QTextCodec
 
-        QTextCodec.setCodecForCStrings = setCodecForCStrings
+        class QTextCodec(original_QTextCodec):
+            @staticmethod
+            def setCodecForCStrings(codec):
+                # Empty stub, doesn't exist in Qt5.
+                pass
+
+        QtCore.QTextCodec = QTextCodec
 
     @classmethod
-    def _patch_QCoreApplication(cls, QCoreApplication):
-        """
-        Patches QCoreApplication.
+    def _fix_QCoreApplication_api(cls, wrapper_class, original_class):
 
-        :param QCoreApplication: The QCoreApplication class.
-        """
-        original_translate = QCoreApplication.translate
+        # Enum values for QCoreApplication.translate's encode parameter.
+        wrapper_class.CodecForTr = 0
+        wrapper_class.UnicodeUTF8 = 1
+        wrapper_class.DefaultCodec = wrapper_class.CodecForTr
 
         @staticmethod
         def translate(context, source_text, disambiguation=None, encoding=None, n=None):
@@ -80,16 +93,25 @@ class PySide2Patcher(object):
             # in PySide. So if n has been set to something, let's pass it down,
             # otherwise Qt5 has a default value for it, so we'll use that instead.
             if n is not None:
-                return original_translate(context, source_text, disambiguation, n)
+                return original_class.translate(context, source_text, disambiguation, n)
             else:
-                return original_translate(context, source_text, disambiguation)
+                return original_class.translate(context, source_text, disambiguation)
 
-        QCoreApplication.translate = translate
+        wrapper_class.translate = translate
 
-        # Enum values for QCoreApplication.translate's encode parameter.
-        QCoreApplication.CodecForTr = 0
-        QCoreApplication.UnicodeUTF8 = 1
-        QCoreApplication.DefaultCodec = QCoreApplication.CodecForTr
+    @classmethod
+    def _patch_QCoreApplication(cls, QtCore):
+        """
+        Patches QCoreApplication.
+
+        :param QtCore: The QtCore module.
+        """
+        original_QCoreApplication = QtCore.QCoreApplication
+
+        class QCoreApplication(original_QCoreApplication):
+            pass
+        cls._fix_QCoreApplication_api(QCoreApplication, original_QCoreApplication)
+        QtCore.QCoreApplication = QCoreApplication
 
     @classmethod
     def _patch_QApplication(cls, QtGui):
@@ -112,6 +134,9 @@ class PySide2Patcher(object):
                 # PySide 1 didn't take a parameter for this method.
                 # Retrieve the application palette by passing no widget.
                 return original_QApplication.palette(widget)
+
+        # The some methods from the base class also need fixing, so do it.
+        cls._fix_QCoreApplication_api(QApplication, original_QApplication)
 
         QtGui.QApplication = QApplication
 
@@ -160,8 +185,8 @@ class PySide2Patcher(object):
                 return getattr(self._signal, name)
 
         class QStandardItemModel(original_QStandardItemModel):
-            def original_QStandardItemModel(self, *args):
-                QStandardItemModel.__init__(self, *args)
+            def __init__(self, *args):
+                original_QStandardItemModel.__init__(self, *args)
                 # Ideally we would only wrap the emit method but that attibute
                 # is read only so we end up wrapping the whole object.
                 self.dataChanged = SignalWrapper(self.dataChanged)
@@ -169,39 +194,39 @@ class PySide2Patcher(object):
         QtGui.QStandardItemModel = QStandardItemModel
 
     @classmethod
-    def _patch_QMessageBox(cls, QMessageBox):
+    def _patch_QMessageBox(cls, QtGui):
 
         # Map for all the button types
         button_list = [
-            QMessageBox.Ok,
-            QMessageBox.Open,
-            QMessageBox.Save,
-            QMessageBox.Cancel,
-            QMessageBox.Close,
-            QMessageBox.Discard,
-            QMessageBox.Apply,
-            QMessageBox.Reset,
-            QMessageBox.RestoreDefaults,
-            QMessageBox.Help,
-            QMessageBox.SaveAll,
-            QMessageBox.Yes,
-            QMessageBox.YesAll,
-            QMessageBox.YesToAll,
-            QMessageBox.No,
-            QMessageBox.NoAll,
-            QMessageBox.NoToAll,
-            QMessageBox.Abort,
-            QMessageBox.Retry,
-            QMessageBox.Ignore
+            QtGui.QMessageBox.Ok,
+            QtGui.QMessageBox.Open,
+            QtGui.QMessageBox.Save,
+            QtGui.QMessageBox.Cancel,
+            QtGui.QMessageBox.Close,
+            QtGui.QMessageBox.Discard,
+            QtGui.QMessageBox.Apply,
+            QtGui.QMessageBox.Reset,
+            QtGui.QMessageBox.RestoreDefaults,
+            QtGui.QMessageBox.Help,
+            QtGui.QMessageBox.SaveAll,
+            QtGui.QMessageBox.Yes,
+            QtGui.QMessageBox.YesAll,
+            QtGui.QMessageBox.YesToAll,
+            QtGui.QMessageBox.No,
+            QtGui.QMessageBox.NoAll,
+            QtGui.QMessageBox.NoToAll,
+            QtGui.QMessageBox.Abort,
+            QtGui.QMessageBox.Retry,
+            QtGui.QMessageBox.Ignore
         ]
 
         # PySide2 is currently broken and doesn't accept union of values in, so
         # we're building the UI ourselves as an interim solution.
-        def _patch_factory(icon):
+        def _method_factory(icon, original_method):
             """
             Creates a patch for one of the static methods to pop a QMessageBox.
             """
-            def patch(parent, title, text, buttons=QMessageBox.Ok, defaultButton=QMessageBox.NoButton):
+            def patch(parent, title, text, buttons=QtGui.QMessageBox.Ok, defaultButton=QtGui.QMessageBox.NoButton):
                 """
                 Shows the dialog with, just like QMessageBox.{critical,question,warning,information} would do.
 
@@ -212,7 +237,7 @@ class PySide2Patcher(object):
 
                 :returns: Code of the button selected.
                 """
-                msg_box = QMessageBox(parent)
+                msg_box = QtGui.QMessageBox(parent)
                 msg_box.setWindowTitle(title)
                 msg_box.setText(text)
                 msg_box.setIcon(icon)
@@ -222,12 +247,77 @@ class PySide2Patcher(object):
                 msg_box.setDefaultButton(defaultButton)
                 msg_box.exec_()
                 return msg_box.standardButton(msg_box.clickedButton())
+
+            functools.update_wrapper(patch, original_method)
+
             return staticmethod(patch)
 
-        QMessageBox.critical = _patch_factory(QMessageBox.Critical)
-        QMessageBox.information = _patch_factory(QMessageBox.Information)
-        QMessageBox.question = _patch_factory(QMessageBox.Question)
-        QMessageBox.warning = _patch_factory(QMessageBox.Warning)
+        original_QMessageBox = QtGui.QMessageBox
+
+        class QMessageBox(original_QMessageBox):
+
+            critical = _method_factory(QtGui.QMessageBox.Critical, QtGui.QMessageBox.critical)
+            information = _method_factory(QtGui.QMessageBox.Information, QtGui.QMessageBox.information)
+            question = _method_factory(QtGui.QMessageBox.Question, QtGui.QMessageBox.question)
+            warning = _method_factory(QtGui.QMessageBox.Warning, QtGui.QMessageBox.warning)
+
+        QtGui.QMessageBox = QMessageBox
+
+    @classmethod
+    def _patch_QDesktopServices(cls, QtGui, QtCore):
+
+        # This is missing in certain versions of PySide 2. Add it in.
+        if hasattr(QtGui, "QDesktopServices"):
+            return
+
+        class QDesktopServices(object):
+
+            @classmethod
+            def openUrl(cls, url):
+                # Make sure we have a QUrl object.
+                if not isinstance(url, QtCore.QUrl):
+                    url = QtCore.QUrl(url)
+
+                if url.isLocalFile():
+                    url = url.toLocalFile().encode("utf-8")
+
+                    if sys.platform == "darwin":
+                        return subprocess.call(["open", url]) == 0
+                    elif sys.platform == "win32":
+                        os.startfile(url)
+                        # Start file returns None, so this is the best we can do.
+                        return os.path.exists(url)
+                    elif sys.platform.startswith("linux"):
+                        return subprocess.call(["xdg-open", url]) == 0
+                    else:
+                        raise ValueError("Unknown platform: %s" % sys.platform)
+                else:
+                    webbrowser.open_new_tab(url.toString().encode("utf-8"))
+
+            @classmethod
+            def displayName(cls, type):
+                cls.__not_implemented_error(cls.displayName)
+
+            @classmethod
+            def storageLocation(cls, type):
+                cls.__not_implemented_error(cls.storageLocation)
+
+            @classmethod
+            def setUrlHandler(cls, scheme, receiver, method_name=None):
+                cls.__not_implemented_error(cls.setUrlHandler)
+
+            @classmethod
+            def unsetUrlHandler(cls, scheme):
+                cls.__not_implemented_error(cls.unsetUrlHandler)
+
+            @classmethod
+            def __not_implemented_error(cls, method):
+                raise NotImplementedError(
+                    "PySide2 and Toolkit don't support 'QDesktopServices.%s' yet. Please contact %s" %
+                    (method.im_func, constants.SUPPORT_EMAIL)
+                )
+
+        QtGui.QDesktopServices = QDesktopServices
 
     @classmethod
     def patch(cls, QtCore, QtGui, QtWidgets, PySide2):
@@ -238,20 +328,25 @@ class PySide2Patcher(object):
         :param QtGui: The QtGui module.
         :param QtWidgets: The QtWidgets module.
         """
-        # Make sure the API hasn't already been patched.
-        if hasattr(PySide2, cls._TOOLKIT_COMPATIBLE):
-            return
+        qt_core_shim = imp.new_module("PySide.QtCore")
+        qt_gui_shim = imp.new_module("PySide.QtGui")
 
-        # Qt5 has moved some classes around, move them back into place.
-        cls._move_attributes(QtGui, QtWidgets, dir(QtWidgets))
-        cls._move_attributes(QtGui, QtCore, cls._core_to_qtgui)
+        # Move everything from QtGui and QtWidgets unto the QtGui shim since
+        # they belonged there in Qt 4.
+        cls._move_attributes(qt_gui_shim, QtWidgets, dir(QtWidgets))
+        cls._move_attributes(qt_gui_shim, QtGui, dir(QtGui))
 
-        cls._patch_QTextCodec(QtCore.QTextCodec)
-        cls._patch_QCoreApplication(QtCore.QCoreApplication)
-        cls._patch_QApplication(QtGui)
-        cls._patch_QAbstractItemView(QtGui)
-        cls._patch_QStandardItemModel(QtGui)
-        cls._patch_QMessageBox(QtGui.QMessageBox)
+        # Some classes from QtGui have been moved to QtCore, so put them back into QtGui
+        cls._move_attributes(qt_gui_shim, QtCore, cls._core_to_qtgui)
+        # Move the rest of QtCore in the new core shim.
+        cls._move_attributes(qt_core_shim, QtCore, set(dir(QtCore)) - cls._core_to_qtgui)
 
-        # Indicate the API has been patched.
-        setattr(PySide2, cls._TOOLKIT_COMPATIBLE, True)
+        cls._patch_QTextCodec(qt_core_shim)
+        cls._patch_QCoreApplication(qt_core_shim)
+        cls._patch_QApplication(qt_gui_shim)
+        cls._patch_QAbstractItemView(qt_gui_shim)
+        cls._patch_QStandardItemModel(qt_gui_shim)
+        cls._patch_QMessageBox(qt_gui_shim)
+        cls._patch_QDesktopServices(qt_gui_shim, qt_core_shim)
+
+        return qt_core_shim, qt_gui_shim, PySide2

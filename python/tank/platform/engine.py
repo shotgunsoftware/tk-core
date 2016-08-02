@@ -22,11 +22,18 @@ import traceback
 import inspect
 import weakref
 import threading
-        
+
+from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
 from .. import hook
+
 from ..errors import TankError
-from .errors import TankEngineInitError, TankContextChangeNotSupportedError
+from .errors import (
+    TankEngineInitError,
+    TankContextChangeNotSupportedError,
+    TankEngineEventError,
+)
+
 from ..util import log_user_activity_metric, log_user_attribute_metric
 from ..util.metrics import MetricsDispatcher
 from ..log import LogManager
@@ -34,6 +41,7 @@ from ..log import LogManager
 from . import application
 from . import constants
 from . import validation
+from . import events
 from . import qt
 from .bundle import TankBundle
 from .framework import setup_frameworks
@@ -71,6 +79,7 @@ class Engine(TankBundle):
         .. automethod:: _create_dialog_with_widget
         .. automethod:: _get_dialog_parent
         .. automethod:: _on_dialog_closed
+        .. automethod:: _emit_event
         .. automethod:: _emit_log_message
         """
         
@@ -116,11 +125,11 @@ class Engine(TankBundle):
         # (and the rest of the sgtk logging ) to the user
         self.__log_handler = self.__initialize_logging()
 
-        # check general debug log setting and if this flag is turned on,
-        # adjust the global setting
-
-        if self.get_setting("debug_logging", False):
-            LogManager().global_debug = True
+        # check general debug log setting and update the global debug flag accordingly. Do not set this
+        # flag only when the debug_logging is "true" because the global_debug flag is... global... and it
+        # needs to be reset during engine instantiation if the debug_logging setting suddenly turns false.
+        LogManager().global_debug = self.get_setting("debug_logging", False)
+        if LogManager().global_debug:
             self.log_debug("Engine config flag 'debug_logging' detected, turning on debug output.")
 
         # check that the context contains all the info that the app needs
@@ -166,7 +175,6 @@ class Engine(TankBundle):
         base_def = self._define_qt_base()
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
-        qt.QtWidgets = base_def.get("qt_widgets")
         qt.TankDialogBase = base_def.get("dialog_base")
 
         # Update the authentication module to use the engine's Qt.
@@ -174,8 +182,7 @@ class Engine(TankBundle):
         from ..authentication.ui import qt_abstraction
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
-        qt_abstraction.QtWidgets = qt.QtWidgets
-        
+
         # create invoker to allow execution of functions on the
         # main thread:
         self._invoker, self._async_invoker = self.__create_invokers()
@@ -835,15 +842,54 @@ class Engine(TankBundle):
         """
         Register a command with a name and a callback function.
 
-        Each engine implements its own command handling, so the way
-        commands are exposed to the user can differ. Typically, they
-        appear as items on a Shotgun menu somewhere in the user interface
-        of the DCC that is being integrated into.
+        A *command* refers to an access point for some functionality.
+        In most cases, commands will appear as items on a Shotgun dropdown
+        menu, but it ultimately depends on the engine - in the Shell engine,
+        commands are instead represented as a text base listing and in the
+        Shotgun Desktop it is a scrollable list of larger icons.
 
-        Properties can store
-        implementation specific configuration, like if a tooltip is supported.
-        Typically called from the :meth:`Application.init_app()` method of an app::
+        An arbitrary list of properties can be passed into the engine
+        in the form of a properties dictionary. The interpretation of
+        the properties dictionary is engine specific, but in general
+        the following properties are supported:
 
+        - ``short_name`` - A shorter name, typically intended for console use (e.g. 'import_cut')
+
+        - ``icon`` - A path to a 256x256 png app icon. If not specified, the icon for the app will be used.
+
+        - ``description`` - a one line description of the command, suitable for a tooltip.
+          If no description is passed, the one provided in the app manifest will be used.
+
+        - ``type`` - The type of command - hinting where it should appear. Options vary between
+          engines and the following three are supported:
+
+            - ``context_menu`` - Supported on all engines. Place item on
+              the context menu (first item on the shotgun menu).
+            - ``panel`` - This command is associated with a panel app if the target
+              environment supports a special notion of panel related actions, place
+              the command there. (supported by for example Nuke)
+            - ``node`` - For applications that have a specific node menu (like Nuke),
+              place the command there.
+
+        Specifically for the Shotgun engine, the following parameters are supported:
+
+        - ``title`` - Title to appear on shotgun action menu (e.g. "Create Folders")
+
+        - ``deny_permissions`` - List of permission groups to exclude this
+          menu item for (e.g. ``["Artist"]``)
+
+        - ``deny_platforms`` - List of platforms for which not to show the menu
+          (e.g. ``["windows", "mac", "linux"]``). Please note that there are
+          other ways to achieve this same result.
+
+        - ``supports_multiple_selection`` - a special flag that allows multiple objects
+          in Shotgun to be selected and operated on. An example showing how to write a
+          multi select shotgun app is provided in a special branch in the sample starter
+          app: https://github.com/shotgunsoftware/tk-multi-starterapp/tree/shotgun_multi_select
+
+
+        Typical usage normally looks something like this -
+        register_command is called from the :meth:`Application.init_app()` method of an app::
 
             self.engine.register_command(
                 "Work Area Info...",
@@ -1276,6 +1322,38 @@ class Engine(TankBundle):
     ##########################################################################################
     # private and protected methods
 
+    def _emit_event(self, event):
+        """
+        Called by the engine whenever an event is to be emitted to child
+        apps of this engine.
+
+        .. note:: Events will be emitted and child apps notified immediately.
+
+        .. warning:: Some event types might be triggered quite frequently. Apps
+                     that react to events should do so in a way that is aware of
+                     the potential performance impact of their actions.
+
+        :param event: The event object that will be emitted.
+        :type event:  :class:`~sgtk.platform.events.EngineEvent`
+        """
+        if not isinstance(event, events.EngineEvent):
+            raise TankEngineEventError(
+                "Given object does not derive from EngineEvent: %r" % event
+            )
+
+        self.log_debug("Emitting event: %r" % event)
+
+        for app_instance_name, app in self.__applications.iteritems():
+            self.log_debug("Sending event to %r..." % app)
+
+            # We send the event to the generic engine event handler
+            # as well as to the type-specific handler when we have
+            # one. This mirror's Qt's event system's structure.
+            app.event_engine(event)
+
+            if isinstance(event, events.FileOpenEvent):
+                app.event_file_open(event)
+
     def _emit_log_message(self, handler, record):
         """
         Called by the engine whenever a new log message is available.
@@ -1484,6 +1562,17 @@ class Engine(TankBundle):
         """
         Shows a non-modal dialog window in a way suitable for this engine. 
         The engine will attempt to parent the dialog nicely to the host application.
+        The dialog will be created with a standard Toolkit window title bar where
+        the title will be displayed.
+
+        .. note:: In some cases, it is necessary to hide the standard Toolkit title
+                  bar. You can do this by adding a property to the widget class you are
+                  displaying::
+
+                        @property
+                        def hide_tk_title_bar(self):
+                            "Tell the system to not show the standard toolkit toolbar"
+                            return True
 
         **Notes for engine developers**
 
@@ -1510,7 +1599,7 @@ class Engine(TankBundle):
         Finally, if the application you are writing an engine for is Qt based then you may not need
         to override any of these methods (e.g. the tk-nuke engine).
 
-        :param title: The title of the window
+        :param title: The title of the window. This will appear in the Toolkit title bar.
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         :type widget_class: :class:`PySide.QtGui.QWidget`
@@ -1538,6 +1627,17 @@ class Engine(TankBundle):
         Shows a modal dialog window in a way suitable for this engine. The engine will attempt to
         integrate it as seamlessly as possible into the host application. This call is blocking 
         until the user closes the dialog.
+        The dialog will be created with a standard Toolkit window title bar where
+        the title will be displayed.
+
+        .. note:: In some cases, it is necessary to hide the standard Toolkit title
+                  bar. You can do this by adding a property to the widget class you are
+                  displaying::
+
+                        @property
+                        def hide_tk_title_bar(self):
+                            "Tell the system to not show the standard toolkit toolbar"
+                            return True
         
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
@@ -1571,8 +1671,20 @@ class Engine(TankBundle):
         
         If the engine does not specifically implement panel support, the window will 
         be shown as a modeless dialog instead and the call is equivalent to 
-        calling show_dialog().
-        
+        calling :meth:`show_dialog()`.
+
+        The dialog will be created with a standard Toolkit window title bar where
+        the title will be displayed.
+
+        .. note:: In some cases, it is necessary to hide the standard Toolkit title
+                  bar. You can do this by adding a property to the widget class you are
+                  displaying::
+
+                        @property
+                        def hide_tk_title_bar(self):
+                            "Tell the system to not show the standard toolkit toolbar"
+                            return True
+
         :param panel_id: Unique identifier for the panel, as obtained by register_panel().
         :param title: The title of the panel
         :param bundle: The app, engine or framework object that is associated with this window
@@ -1655,13 +1767,13 @@ class Engine(TankBundle):
         """
         base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
         try:
-            # Local import since Qt might not be available.
-            from .qt.qt_importer import QtImporter
             importer = QtImporter()
             base["qt_core"] = importer.QtCore
             base["qt_gui"] = importer.QtGui
-            base["qt_widgets"] = importer.QtWidgets
-            base["dialog_base"] = importer.QtGui.QDialog
+            if importer.QtGui:
+                base["dialog_base"] = importer.QtGui.QDialog
+            else:
+                base["dialog_base"] = None
             base["wrapper"] = importer.wrapper
         except:
 

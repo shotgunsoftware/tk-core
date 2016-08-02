@@ -69,10 +69,6 @@ Context
     :members:
     :exclude-members: tank
 
-
-
-
-
 Executing Tank commands
 ---------------------------------------------------------
 
@@ -94,6 +90,8 @@ SgtkSystemCommand
     :members:
 
 
+.. _sgtk_hook_docs:
+
 Hooks
 ---------------------------------------------------------
 
@@ -103,6 +101,7 @@ engine or core itself. You can use hooks with the Core API (we call those core h
 apps and engines. Hooks are a central concept in the configuration of Toolkit. We use hooks whenever
 there is a need to expose code and allow it to be customized. Examples
 of when this is useful is Disk I/O, launching of applications, DCC-specific logic and permissions control.
+
 
 Hook
 =========================================

@@ -149,7 +149,14 @@ class AltCustomFormatter(logging.Formatter):
                 # do not wrap exceptions and debug
                 # wrap other log levels on an 80 char wide boundary
                 lines = []
-                for x in textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False):
+
+                if sys.version_info < (2,6):
+                    # python 2.5 doesn't support all params
+                    wrapped_lines = textwrap.wrap(record.msg, width=78, break_long_words=False)
+                else:
+                    wrapped_lines = textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False)
+
+                for x in wrapped_lines:
                     lines.append(x)
                 record.msg = "\n".join(lines)
 
@@ -794,7 +801,7 @@ def _list_commands(tk, ctx):
     # engine is initialized.
 
     by_category.setdefault("Login", []).append(
-        Action("logout", "unused", "Log out of the current user (no need for a contex).", "Login")
+        Action("logout", "unused", "Log out of the current user (no need for a context).", "Login")
     )
 
     num_engine_commands = 0

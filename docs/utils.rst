@@ -15,6 +15,80 @@ LogManager
     :members:
 
 
+.. _centralizing_settings:
+
+Centralizing your settings
+==========================
+
+Instead of customizing your proxy settings on each of your project, it is possible to configure them once in a file
+and have your projects inherit these values, unless the project overrides itself the setting
+inside ``shotgun.yml``.
+
+Here's an example:
+
+    .. code-block:: ini
+
+        # Login related settings
+        #
+        [Login]
+
+        # If specified, the username text input on the login screen will be populated
+        # with this value when logging into Toolkit for the very first time.
+        # Defaults to the user's OS login. Environment variables are actually resolved for
+        # all values in this file, which allows greater flexibility when sharing this configuration
+        # file with multiple users.
+        #
+        default_login=$USERNAME
+
+        # If specified, the site text input on the login screen will be populated with
+        # this value when logging into Toolkit the very first time.
+        # Defaults to https://mystudio.shotgunstudio.com.
+        #
+        default_site=https://your-site-here.shotgunstudio.com
+
+        # If specified, the Toolkit will use these proxy settings to connect to
+        # the Shotgun site and the Toolkit App Store. The proxy string should be of the
+        # forms 123.123.123.123, 123.123.123.123:8888 or
+        # username:pass@123.123.123.123:8888.
+        # Empty by default.
+        #
+        http_proxy=123.234.345.456:8888
+
+        # If specified, the Shotgun API will use these proxy settings to connect
+        # to the Toolkit App Store. The proxy string format is the same as http_proxy.
+        # If the setting is present in the file but not set, then no proxy will be used
+        # to connect to the Toolkit App Store, regardless of the value of the http_proxy
+        # setting.
+        # Empty by default.
+        #
+        app_store_http_proxy=123.234.345.456:8888
+
+This file can be configured through multiple means and Toolkit will try to resolve the file in the
+following order:
+
+1. The ``SGTK_PREFERENCES_LOCATION`` environment variable,
+2. The ``SGTK_DESKTOP_CONFIG_LOCATION`` environment variable, for compatibility with the Shotgun Desktop. (deprecated)
+3. Inside the Shotgun Toolkit preferences file
+4. Inside the Shotgun Desktop preferences file, for compatibility with the Shotgun Desktop. (deprecated)
+
+.. note::
+    The Shotgun Toolkit preferences file is located at:
+
+    - Windows: ``%APPDATA%\Shotgun\Preferences\toolkit.ini``
+    - macOS: ``~/Library/Preferences/Shotgun/toolkit.ini``
+    - Linux: ``~/.shotgun/preferences/toolkit.ini``
+
+    The Shotgun Desktop preferences file is located at:
+
+    - Windows: ``%APPDATA%\Shotgun\desktop\config\config.ini``
+    - macOS: ``~/Library/Caches/Shotgun/desktop/config/config.ini``
+    - Linux: ``~/shotgun/desktop/config/config.ini``
+
+
+Incorrectly configuring this file may raise an exception:
+
+.. autoclass:: sgtk.util.EnvironmentVariableFileLookupError
+
 
 File System Utilities
 ============================================
@@ -38,7 +112,7 @@ sgtk.util.filesystem
 .. autofunction:: with_cleared_umask
 .. autofunction:: touch_file(path, permissions=0666)
 .. autofunction:: ensure_folder_exists(path, permissions=0775, create_placeholder_file=False)
-.. autofunction:: copy_file(src, dst, permissions=0555)
+.. autofunction:: copy_file(src, dst, permissions=0666)
 .. autofunction:: safe_delete_file
 .. autofunction:: copy_folder(src, dst, folder_permissions=0775, skip_list=None)
 .. autofunction:: move_folder(src, dst, folder_permissions=0775)

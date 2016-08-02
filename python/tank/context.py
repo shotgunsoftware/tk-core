@@ -23,7 +23,8 @@ from . import authentication
 from .util import login
 from .util import shotgun_entity
 from .util import shotgun
-from .errors import TankError
+from . import constants
+from .errors import TankError, TankContextDeserializationError
 from .path_cache import PathCache
 from .template import TemplatePath
 
@@ -628,7 +629,105 @@ class Context(object):
         """
         ctx_copy = copy.deepcopy(self)
         ctx_copy.__user = user
-        return ctx_copy       
+        return ctx_copy
+
+    ################################################################################################
+    # serialization
+
+    def serialize(self, with_user_credentials=True):
+        """
+        Serializes the context into a string.
+
+        Any Context object can be serialized to/deserialized from a string.
+        This can be useful if you need to pass a Context between different processes.
+        As an example, the ``tk-multi-launchapp`` uses this mechanism to pass the Context
+        from the launch process (e.g. for example Shotgun Desktop) to the
+        Application (e.g. Maya) being launched. Example:
+
+            >>> import sgtk
+            >>> tk = sgtk.sgtk_from_path("/studio.08/demo_project")
+            >>> ctx = tk.context_from_path("/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work")
+            >>> context_str = ctx.serialize(ctx)
+            >>> new_ctx = sgtk.Context.deserialize(context_str)
+
+        :param with_user_credentials: If ``True``, the currently authenticated user's credentials, as
+            returned by :meth:`sgtk.get_authenticated_user`, will also be serialized with the context.
+
+        .. note:: For example, credentials should be omitted (``with_user_credentials=False``) when
+            serializing the context from a user's current session to send it to a render farm. By doing
+            so, invoking :meth:`sgtk.Context.deserialize` on the render farm will only restore the
+            context and not the authenticated user.
+
+        :returns: String representation
+        """
+        # Avoids cyclic imports
+        from .api import get_authenticated_user
+
+        data = {
+            "project": self.project,
+            "entity": self.entity,
+            "user": self.user,
+            "step": self.step,
+            "task": self.task,
+            "additional_entities": self.additional_entities,
+            "_pc_path": self.tank.pipeline_configuration.get_path()
+        }
+
+        if with_user_credentials:
+            # If there is an authenticated user.
+            user = get_authenticated_user()
+            if user:
+                # We should serialize it as well so that the next process knows who to
+                # run as.
+                data["_current_user"] = authentication.serialize_user(user)
+        return pickle.dumps(data)
+
+    @classmethod
+    def deserialize(cls, context_str):
+        """
+        The inverse of :meth:`Context.serialize`.
+
+        :param context_str: String representation of context, created with :meth:`Context.serialize`
+
+        .. note:: If the context was serialized with the user credentials, the currently authenticated
+            user will be updated with these credentials.
+
+        :returns: :class:`Context`
+        """
+        # lazy load this to avoid cyclic dependencies
+        from .api import Tank, set_authenticated_user
+
+        try:
+            data = pickle.loads(context_str)
+        except Exception, e:
+            raise TankContextDeserializationError(str(e))
+
+        # first get the pipeline config path out of the dict
+        pipeline_config_path = data["_pc_path"]
+        del data["_pc_path"]
+
+        # Authentication in Toolkit requires that credentials are passed from
+        # one process to another so the currently authenticated user is carried
+        # from one process to another. The current user needs to be part of the
+        # context because multiple DCCs can run at the same time under different
+        # users, e.g. launching Maya from the site as user A and Nuke from the tank
+        # command as user B.
+        user_string = data.get("_current_user")
+        if user_string:
+            # Remove it from the data
+            del data["_current_user"]
+            # and set the authenticated user user.
+            user = authentication.deserialize_user(user_string)
+            set_authenticated_user(user)
+
+        # create a Sgtk API instance.
+        tk = Tank(pipeline_config_path)
+
+        # add it to the constructor instance
+        data["tk"] = tk
+
+        # and lastly make the obejct
+        return cls(**data)
 
     ################################################################################################
     # private methods
@@ -1237,6 +1336,7 @@ def from_path(tk, path, previous_context=None):
 
     return Context(**context)
 
+
 ################################################################################################
 # serialization
 
@@ -1244,84 +1344,20 @@ def serialize(context):
     """
     Serializes the context into a string.
 
-    Any Context object can be serialized to/deserialized from a string.
-    This can be useful if you need to pass a Context between different processes.
-    As an example, the ``tk-multi-launchapp`` uses this mechanism to pass the Context
-    from the launch process (e.g. for example Shotgun Desktop) to the
-    Application (e.g. Maya) being launched. Example:
-
-        >>> import sgtk
-        >>> tk = sgtk.sgtk_from_path("/studio.08/demo_project")
-        >>> ctx = tk.context_from_path("/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work")
-        >>> context_str = sgtk.context.serialize(ctx)
-        >>> new_ctx = sgtk.context.deserialize(context_str)
-
-    .. info:: The currently authenticated user is also serialized together with the Context.
-
-    :param context: :class:`Context` instance to serialize
-    :returns: String representation
+    .. deprecated:: v0.18.12
+       Use :meth:`Context.serialize`
     """
-    # Avoids cyclic imports
-    from .api import get_authenticated_user
-
-    data = {
-        "project": context.project,
-        "entity": context.entity,
-        "user": context.user,
-        "step": context.step,
-        "task": context.task,
-        "additional_entities": context.additional_entities,
-        "_pc_path": context.tank.pipeline_configuration.get_path()
-    }
-
-    # If there is an authenticated user.
-    user = get_authenticated_user()
-    if user:
-        # We should serialize it as well so that the next process knows who to
-        # run as.
-        data["_current_user"] = authentication.serialize_user(user)
-    return pickle.dumps(data)
+    return context.serialize()
 
 
 def deserialize(context_str):
     """
     The inverse of :meth:`serialize`.
 
-    :param context_str: String representation of context, created with :meth:`serialize`
-    :returns: :class:`Context`
+    .. deprecated:: v0.18.12
+       Use :meth:`Context.deserialize`
     """
-    # lazy load this to avoid cyclic dependencies
-    from .api import Tank, set_authenticated_user
-
-    data = pickle.loads(context_str)
-
-    # first get the pipeline config path out of the dict
-    pipeline_config_path = data["_pc_path"]
-    del data["_pc_path"]
-
-    # Authentication in Toolkit requires that credentials are passed from
-    # one process to another so the currently authenticated user is carried
-    # from one process to another. The current user needs to be part of the
-    # context because multiple DCCs can run at the same time under different
-    # users, e.g. launching Maya from the site as user A and Nuke from the tank
-    # command as user B.
-    user_string = data.get("_current_user")
-    if user_string:
-        # Remove it from the data
-        del data["_current_user"]
-        # and set the authenticated user user.
-        user = authentication.deserialize_user(user_string)
-        set_authenticated_user(user)
-
-    # create a Sgtk API instance.
-    tk = Tank(pipeline_config_path)
-
-    # add it to the constructor instance
-    data["tk"] = tk
-
-    # and lastly make the obejct
-    return Context(**data)
-
+    return Context.deserialize(context_str)
 
 ################################################################################################
 # YAML representer/constructor
@@ -1331,8 +1367,10 @@ def context_yaml_representer(dumper, context):
     Custom serializer.
     Creates yaml code for a context object.
 
-    Legacy, kept for compatibility reasons,
-    can probably be removed at this point.
+    Legacy, kept for compatibility reasons, can probably be removed at this point.
+
+    .. note:: Contrary to :meth:`sgtk.Context.serialize`, this method doesn't serialize the
+        currently authenticated user.
     """
     
     # first get the stuff which represents all the Context() 
@@ -1358,8 +1396,10 @@ def context_yaml_constructor(loader, node):
     Custom deserializer.
     Constructs a context object given the yaml data provided.
 
-    Legacy, kept for compatibility reasons,
-    can probably be removed at this point.
+    Legacy, kept for compatibility reasons, can probably be removed at this point.
+
+    .. note:: Contrary to :meth:`sgtk.Context.deserialize`, this method doesn't can't restore the
+        currently authenticated user.
     """
     # lazy load this to avoid cyclic dependencies
     from .api import Tank
@@ -1564,8 +1604,8 @@ def _context_data_from_cache(tk, entity_type, entity_id):
             # in the local storage defs and in the pipeline_configuration.yml file.
             raise TankError("The path '%s' associated with %s id %s does not " 
                             "resolve correctly. This may be an indication of an issue "
-                            "with the local storage setup. Please contact " 
-                            "support@shotgunsoftware.com" % (curr_path, entity_type, entity_id))
+                            "with the local storage setup. Please contact %s." 
+                            % (curr_path, entity_type, entity_id, constants.SUPPORT_EMAIL))
 
         # grab the name for the context entity
         if curr_entity["type"] == entity_type and curr_entity["id"] == entity_id:

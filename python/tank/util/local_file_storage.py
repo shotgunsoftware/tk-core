@@ -11,6 +11,10 @@
 import os
 import sys
 import urlparse
+from . import filesystem
+from .. import LogManager
+
+log = LogManager.get_logger(__name__)
 
 
 class LocalFileStorageManager(object):
@@ -40,7 +44,7 @@ class LocalFileStorageManager(object):
     (CORE_V17, CORE_V18) = range(2)
 
     # supported types of paths
-    (LOGGING, CACHE, PERSISTENT) = range(3)
+    (LOGGING, CACHE, PERSISTENT, PREFERENCES) = range(4)
 
     @classmethod
     def get_global_root(cls, path_type, generation=CORE_V18):
@@ -75,18 +79,23 @@ class LocalFileStorageManager(object):
                     return os.path.expanduser("~/Library/Caches/Shotgun")
                 elif path_type == cls.PERSISTENT:
                     return os.path.expanduser("~/Library/Application Support/Shotgun")
+                elif path_type == cls.PREFERENCES:
+                    return os.path.expanduser("~/Library/Preferences/Shotgun")
                 elif path_type == cls.LOGGING:
                     return os.path.expanduser("~/Library/Logs/Shotgun")
                 else:
                     raise ValueError("Unsupported path type!")
 
             elif sys.platform == "win32":
+                app_data = os.environ.get("APPDATA", "APPDATA_NOT_SET")
                 if path_type == cls.CACHE:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+                    return os.path.join(app_data, "Shotgun")
                 elif path_type == cls.PERSISTENT:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun", "Data")
+                    return os.path.join(app_data, "Shotgun", "Data")
+                elif path_type == cls.PREFERENCES:
+                    return os.path.join(app_data, "Shotgun", "Preferences")
                 elif path_type == cls.LOGGING:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun", "Logs")
+                    return os.path.join(app_data, "Shotgun", "Logs")
                 else:
                     raise ValueError("Unsupported path type!")
 
@@ -95,6 +104,8 @@ class LocalFileStorageManager(object):
                     return os.path.expanduser("~/.shotgun")
                 elif path_type == cls.PERSISTENT:
                     return os.path.expanduser("~/.shotgun/data")
+                elif path_type == cls.PREFERENCES:
+                    return os.path.expanduser("~/.shotgun/preferences")
                 elif path_type == cls.LOGGING:
                     return os.path.expanduser("~/.shotgun/logs")
                 else:
@@ -179,16 +190,44 @@ class LocalFileStorageManager(object):
         )
 
     @classmethod
-    def get_configuration_root(cls, hostname, project_id, pipeline_config_id, path_type, generation=CORE_V18):
+    def get_configuration_root(
+            cls,
+            hostname,
+            project_id,
+            entry_point,
+            pipeline_config_id,
+            path_type,
+            generation=CORE_V18):
         """
         Returns the storage root for any data that is project and config specific.
 
+        - A well defined project id should always be passed. Passing None as the project
+          id indicates that the *site* configuration, a special toolkit configuration
+          that represents the non-project state in Shotgun.
+
+        - Configurations that have a pipeline configuration in Shotgun should pass in
+          a pipeline configuration id. When a pipeline configuration is not registered
+          in Shotgun, this value should be None.
+
+        - If the configuration has been bootstrapped or has a known entry point, this
+          should be specified via the entry point parameter.
+
         For more details, see :meth:`LocalFileStorageManager.get_global_root`.
+
+        Examples of paths that will be generated:
+
+        - Site config: ``ROOT/shotgunsite/p0``
+        - Project 123, config 33: ``ROOT/shotgunsite/p123c33``
+        - project 123, no config, entry point rv_review: ``ROOT/shotgunsite/p123.rv_review``
 
         .. note:: This method does not ensure that the folder exists.
 
         :param hostname: Shotgun hostname as string, e.g. 'https://foo.shotgunstudio.com'
         :param project_id: Shotgun project id as integer. For the site config, this should be None.
+        :param entry_point: Entry point string to identify the scope for a particular plugin
+                            or integration. For more information,
+                            see :meth:`~sgtk.bootstrap.ToolkitManager.entry_point`. For
+                            non-plugin based toolkit projects, this value is None.
         :param pipeline_config_id: Shotgun pipeline config id. None for bootstraped configs.
         :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,
                           ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where
@@ -202,6 +241,11 @@ class LocalFileStorageManager(object):
         :return: Path as string
         """
         if generation == cls.CORE_V17:
+            # in order to be backwards compatible with pre-0.18 cache locations,
+            # handle the site configuration (e.g. when project id is None)
+            # as project id zero.
+            if project_id is None:
+                project_id = 0
 
             # older paths are on the form root/mysite.shotgunstudio.com/project_123/config_123
             return os.path.join(
@@ -213,17 +257,21 @@ class LocalFileStorageManager(object):
         else:
 
             # new paths are on the form
-            # project 123, config 33:     root/mysite/p123c33
-            # project 123 without config: root/mysite/p123
-            # site project:               root/mysite/site
-            if pipeline_config_id is None:
-                # unmanaged config
-                pc_suffix = ""
-            else:
+            # project 123, config 33:       root/mysite/p123c33
+            # project 123 with entry point: root/mysite/p123.rv_review
+            # site project:                 root/mysite/p0
+            if pipeline_config_id:
+                # a config that has a shotgun counterpart
                 pc_suffix = "c%d" % pipeline_config_id
+            elif entry_point:
+                # no pc id but instead an entry point string
+                pc_suffix = ".%s" % filesystem.create_valid_filename(entry_point)
+            else:
+                # this is a possible, however not recommended state
+                pc_suffix = ""
 
             if project_id is None:
-                # site configuration
+                # site config
                 project_config_folder = "site%s" % pc_suffix
             else:
                 project_config_folder = "p%d%s" % (project_id, pc_suffix)

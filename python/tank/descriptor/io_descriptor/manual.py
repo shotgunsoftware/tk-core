@@ -10,6 +10,7 @@
 import os
 from .base import IODescriptorBase
 from ... import LogManager
+from ...util import filesystem
 from ..errors import TankDescriptorError
 
 log = LogManager.get_logger(__name__)
@@ -42,6 +43,21 @@ class IODescriptorManual(IODescriptorBase):
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")
 
+    def _get_bundle_cache_path(self, bundle_cache_root):
+        """
+        Given a cache root, compute a cache path suitable
+        for this descriptor, using the 0.18+ path format.
+
+        :param bundle_cache_root: Bundle cache root path
+        :return: Path to bundle cache location
+        """
+        return os.path.join(
+            bundle_cache_root,
+            "manual",
+            self._name,
+            self._version
+        )
+
     def _get_cache_paths(self):
         """
         Get a list of resolved paths, starting with the primary and
@@ -51,17 +67,8 @@ class IODescriptorManual(IODescriptorBase):
 
         :return: List of path strings
         """
-        paths = []
-
-        for root in [self._bundle_cache_root] + self._fallback_roots:
-            paths.append(
-                os.path.join(
-                    root,
-                    "manual",
-                    self._name,
-                    self._version
-                )
-            )
+        # get default cache paths from base class
+        paths = super(IODescriptorManual, self)._get_cache_paths()
 
         # for compatibility with older versions of core, prior to v0.18.x,
         # add the old-style bundle cache path as a fallback. As of v0.18.x,
@@ -72,17 +79,14 @@ class IODescriptorManual(IODescriptorBase):
         # cache root didn't change (when use_bundle_cache is set to False).
         # If the bundle cache root changes across core versions, then this will
         # need to be refactored.
-        try:
-            legacy_folder = self._get_legacy_bundle_install_folder(
-                "manual",
-                self._bundle_cache_root,
-                self._type,
-                self._name,
-                self._version
-            )
-        except RuntimeError:
-            pass
-        else:
+        legacy_folder = self._get_legacy_bundle_install_folder(
+            "manual",
+            self._bundle_cache_root,
+            self._type,
+            self._name,
+            self._version
+        )
+        if legacy_folder:
             paths.append(legacy_folder)
 
         return paths

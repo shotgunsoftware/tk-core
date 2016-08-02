@@ -24,7 +24,7 @@ from Toolkit do not propagate up to the root logger. This
 is to ensure that Toolkit doesn't interfere with other logging
 that has been already configured.
 
-The following sub-heirarchies exist:
+The following sub-hierarchies exist:
 
 - Each app, engine and bundle provides access to logging and
   these log streams are collected and organized under the
@@ -251,7 +251,7 @@ class LogManager(object):
             # a global and standard rotating log file handler
             # for writing generic toolkit logs to disk
             instance._std_file_handler = None
-            instance._std_file_handler_log_name = None
+            instance._std_file_handler_log_file = None
 
             # collection of weak references to handlers
             # that were created via the log manager.
@@ -513,25 +513,24 @@ class LogManager(object):
         """
         Uninitialize base file handler created with :meth:`initialize_base_file_handler`.
 
-        :returns: The name of the previous log_name that is being switched away from,
+        :returns: The path to the previous log file that is being switched away from,
                   None if no base logger was previously active.
         """
         if self._std_file_handler is None:
-            base_log_name = None
+            return None
 
-        else:
-            base_log_name = self._std_file_handler_log_name
+        base_log_file = self._std_file_handler_log_file
 
-            # there is a log handler, so terminate it
-            log.debug(
-                "Tearing down existing log handler '%s' (%s)" % (base_log_name, self._std_file_handler)
-            )
-            self._root_logger.removeHandler(self._std_file_handler)
-            self._std_file_handler = None
-            self._std_file_handler_log_name = None
+        # there is a log handler, so terminate it
+        log.debug(
+            "Tearing down existing log handler '%s' (%s)" % (base_log_file, self._std_file_handler)
+        )
+        self._root_logger.removeHandler(self._std_file_handler)
+        self._std_file_handler = None
+        self._std_file_handler_log_file = None
 
-        # return the previous base log name
-        return base_log_name
+        # return the previous base log file path.
+        return base_log_file
 
     def initialize_base_file_handler(self, log_name):
         """
@@ -554,35 +553,55 @@ class LogManager(object):
 
         :param log_name: Name of logger to create. This will form the
                          filename of the log file.
-        :returns: The name of the previous log_name that is being switched away from,
+
+        :returns: The path to the previous log file that is being switched away from,
+                  None if no base logger was previously active.
+        """
+        # avoid cyclic references
+        from .util import filesystem
+
+        return self.initialize_base_file_handler_from_path(
+            os.path.join(
+                self.log_folder,
+                "%s.log" % filesystem.create_valid_filename(log_name)
+            )
+        )
+
+    def initialize_base_file_handler_from_path(self, log_file):
+        """
+        Create a file handler and attach it to the sgtk base logger.
+
+        This method is there for legacy Toolkit applications and shouldn't be used. Use
+        ``initialize_base_file_handler`` instead.
+
+        :param log_file: Path of the file to write the logs to.
+
+        :returns: The path to the previous log file that is being switched away from,
                   None if no base logger was previously active.
         """
         # shut down any previous logger
-        previous_log_name = self.uninitialize_base_file_handler()
+        previous_log_file = self.uninitialize_base_file_handler()
 
-        log.debug("Switching file based std logger from %s to %s" % (previous_log_name, log_name))
+        log_folder, log_file_name = os.path.split(log_file)
+        log_name, _ = os.path.splitext(log_file_name)
+
+        log.debug("Switching file based std logger from '%s' to '%s'.", previous_log_file, log_file)
 
         # store new log name
-        self._std_file_handler_log_name = log_name
+        self._std_file_handler_log_file = log_file
 
         # avoid cyclic references
         from .util import filesystem
 
         # set up logging root folder
-        filesystem.ensure_folder_exists(self.log_folder)
-
-        # generate log path
-        log_file = os.path.join(
-            self.log_folder,
-            "%s.log" % filesystem.create_valid_filename(log_name)
-        )
+        filesystem.ensure_folder_exists(log_folder)
 
         # create a rotating log file with a max size of 5 megs -
         # this should make all log files easily attachable to support tickets.
         self._std_file_handler = logging.handlers.RotatingFileHandler(
             log_file,
             maxBytes=1024*1024*5,  # 5 MiB
-            backupCount=0
+            backupCount=1          # Need at least one backup in order to rotate
         )
 
         # set the level based on global debug flag
@@ -604,8 +623,7 @@ class LogManager(object):
         log.debug("Writing to log standard log file %s" % log_file)
 
         # return previous log name
-        return previous_log_name
-
+        return previous_log_file
 
 # the logger for logging messages from this file :)
 log = LogManager.get_logger(__name__)

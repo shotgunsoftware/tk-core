@@ -32,7 +32,7 @@ class QtImporter(object):
         Imports the Qt modules and sets the QtCore, QtGui and wrapper attributes
         on this object.
         """
-        self.QtCore, self.QtGui, self.QtWidgets, self.wrapper = self._import_modules()
+        self.QtCore, self.QtGui, self.wrapper = self._import_modules()
 
     def _import_pyside(self):
         """
@@ -48,7 +48,7 @@ class QtImporter(object):
         if not hasattr(PySide, "__version__"):
             PySide.__version__ = "<unknown>"
 
-        return QtCore, QtGui, None, PySide
+        return QtCore, QtGui, PySide
 
     def _import_pyside2(self):
         """
@@ -60,9 +60,7 @@ class QtImporter(object):
         from PySide2 import QtCore, QtGui, QtWidgets
         from .pyside2_patcher import PySide2Patcher
 
-        PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
-
-        return QtCore, QtGui, QtWidgets, PySide2
+        return PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
 
     def _import_pyqt4(self):
         """
@@ -78,7 +76,10 @@ class QtImporter(object):
         QtCore.Slot = QtCore.pyqtSlot
         QtCore.Property = QtCore.pyqtProperty
 
-        return QtCore, QtGui, None, PyQt4
+        from PyQt4.Qt import PYQT_VERSION_STR
+        PyQt4.__version__ = PYQT_VERSION_STR
+
+        return QtCore, QtGui, PyQt4
 
     def _import_modules(self):
         """
@@ -99,4 +100,7 @@ class QtImporter(object):
         except ImportError:
             pass
 
-        return self._import_pyqt4()
+        try:
+            return self._import_pyqt4()
+        except ImportError:
+            return (None, None, None)

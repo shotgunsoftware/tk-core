@@ -90,6 +90,7 @@ class PipelineConfiguration(object):
         self._project_name = pipeline_config_metadata.get("project_name")
         self._project_id = pipeline_config_metadata.get("project_id")
         self._pc_id = pipeline_config_metadata.get("pc_id")
+        self._entry_point = pipeline_config_metadata.get("entry_point")
         self._pc_name = pipeline_config_metadata.get("pc_name")
         self._published_file_entity_type = pipeline_config_metadata.get("published_file_entity_type", "TankPublishedFile")        
         self._use_shotgun_path_cache = pipeline_config_metadata.get("use_shotgun_path_cache", False)
@@ -324,6 +325,12 @@ class PipelineConfiguration(object):
         Returns the shotgun id for this PC.
         """
         return self._pc_id
+
+    def get_entry_point(self):
+        """
+        Returns the entry point for this PC.
+        """
+        return self._entry_point
 
     def get_project_id(self):
         """
@@ -852,7 +859,16 @@ class PipelineConfiguration(object):
                hook_name not in constants.TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST):
                 parent.log_metric("custom hook %s" % (hook_name,))
 
-        return hook.execute_hook(hook_path, parent, **kwargs)
+        try:
+            return_value = hook.execute_hook(hook_path, parent, **kwargs)
+        except:
+            # log the full callstack to make sure that whatever the
+            # calling code is doing, this error is logged to help
+            # with troubleshooting and support
+            log.exception("Exception raised while executing hook '%s'" % hook_path)
+            raise
+
+        return return_value
 
     def execute_core_hook_method_internal(self, hook_name, method_name, parent, **kwargs):
         """
@@ -883,5 +899,15 @@ class PipelineConfiguration(object):
             if hasattr(parent, 'log_metric'):
                 parent.log_metric("custom hook %s" % (hook_name,))
 
-        return hook.execute_hook_method(hook_paths, parent, method_name, **kwargs)
+        try:
+            return_value = hook.execute_hook_method(hook_paths, parent, method_name, **kwargs)
+        except:
+            # log the full callstack to make sure that whatever the
+            # calling code is doing, this error is logged to help
+            # with troubleshooting and support
+            log.exception("Exception raised while executing hook '%s'" % hook_paths[-1])
+            raise
+
+        return return_value
+
 
