@@ -146,4 +146,15 @@ class IODescriptorManual(IODescriptorBase):
         # we also assume that the manual descriptor always exists
         return self
 
+    def has_remote(self):
+        """
+        Probes if the current descriptor is able to handle
+        remote requests. If this method returns, true, operations
+        such as :meth:`download_local` and :meth:`get_latest_version`
+        can be expected to succeed.
+
+        :return: True if a remote is accessible, false if not.
+        """
+        # the remote is the same as the cache for manual descriptors
+        return True
 

@@ -280,3 +280,23 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         log.debug("Latest cached version resolved to %r" % desc)
         return desc
+
+    def has_remote(self):
+        """
+        Probes if the current descriptor is able to handle
+        remote requests. If this method returns, true, operations
+        such as :meth:`download_local` and :meth:`get_latest_version`
+        can be expected to succeed.
+
+        :return: True if a remote is accessible, false if not.
+        """
+        # check if we can connect to Shotgun
+        can_connect = True
+        try:
+            log.debug("%r: Probing if a connection to Shotgun can be established..." % self)
+            self._sg_connection.connect()
+            log.debug("...connection established!")
+        except Exception, e:
+            log.debug("...could not establish connection: %s" % e)
+            can_connect = False
+        return can_connect

@@ -191,3 +191,15 @@ class IODescriptorPath(IODescriptorBase):
         """
         # no payload is cached at all, so nothing to do
         log.debug("Clone cache for %r: Not copying anything for this descriptor type")
+
+    def has_remote(self):
+        """
+        Probes if the current descriptor is able to handle
+        remote requests. If this method returns, true, operations
+        such as :meth:`download_local` and :meth:`get_latest_version`
+        can be expected to succeed.
+
+        :return: True if a remote is accessible, false if not.
+        """
+        # the remote is the same as the cache for path descriptors
+        return True
