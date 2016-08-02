@@ -473,7 +473,7 @@ class IODescriptorBase(object):
         for (param, value) in descriptor_dict.iteritems():
             if param == "type":
                 continue
-            qs_chunks.append("%s=%s" % (param, urllib.quote(value)))
+            qs_chunks.append("%s=%s" % (param, urllib.quote(str(value))))
         qs = "&".join(qs_chunks)
 
         return "%s?%s" % (uri, qs)

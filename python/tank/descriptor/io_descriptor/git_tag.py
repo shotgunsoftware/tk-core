@@ -293,4 +293,3 @@ class IODescriptorGitTag(IODescriptorGit):
 
         log.debug("Latest cached version resolved to %r" % desc)
         return desc
-
