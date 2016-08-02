@@ -10,41 +10,39 @@
 
 # Basic setup.py so tk-core could be installed as
 # a standard Python package
-from distutils.core import setup
+from setuptools import setup, find_packages
+
+# Retrieve long description and licence from external files
+try:
+    f = open("README.md")
+    readme = f.read().strip()
+finally:
+    if f:
+        f.close()
+try:
+    f = open("LICENSE")
+    license = f.read().strip()
+finally:
+    if f:
+        f.close()
+
 setup(
     name="sgtk",
     version="0.18",
-    # These are the pure Python packages we ship
-    packages=[
-        "sgtk",
-        "tank",
-        "tank.authentication",
-        "tank.bootstrap",
-        "tank.commands",
-        "tank.deploy",
-        "tank.descriptor",
-        "tank.descriptor.io_descriptor",
-        "tank.folder",
-        "tank.platform",
-        "tank.platform.qt",
-        "tank.util",
-        "tank_vendor",
-        "tank_vendor.ruamel_yaml",
-        "tank_vendor.shotgun_api3",
-        "tank_vendor.shotgun_api3.lib",
-        "tank_vendor.shotgun_api3.lib.httplib2",
-        "tank_vendor.shotgun_authentication",
-        "tank_vendor.yaml",
-    ],
+    description="Shotgun Pipeline Toolkit Core API",
+    long_description=readme,
+    author="Shotgun Software",
+    author_email="support@shotgunsoftware.com",
+    url="https://github.com/shotgunsoftware/tk-core",
+    license=license,
+    # Recursively discover all packages in python folder, excluding any tests
+    packages=find_packages("python", exclude=("*.tests", "*.tests.*", "tests.*", "tests")),
+
     # Additional data which must sit in packages folders
     package_data={
-        "tank.descriptor": ["resources/*"],
-        "tank.util": ["resources/*"],
-        "tank.platform.qt": [
-            "*.png", "*.sh", "*.ui", "*.qrc", "*.css", "*.qpalette",
-        ],
-        "tank_vendor.shotgun_api3.lib.httplib2": ["cacerts.txt"],
+        # If any package contains data files, include them:
+        "": ["resources/*", ".txt", "*.png", "*.sh", "*.ui", "*.qrc", "*.css", "*.qpalette"],
     },
-    # Everything can be found under the python folder
+    # Everything can be found under the python folder, but installed without it
     package_dir = {"": "python"}
 )
