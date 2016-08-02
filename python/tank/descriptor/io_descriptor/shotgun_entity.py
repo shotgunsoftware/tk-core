@@ -133,6 +133,11 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         """
         Returns a descriptor object that represents the latest version.
 
+        .. note:: The concept of constraint patterns doesn't apply to
+                  shotgun attachment ids and any data passed via the
+                  constraint_pattern argument will be ignored by this
+                  method implementation.
+
         :param constraint_pattern: If this is specified, the query will be constrained
                by the given pattern. Version patterns are on the following forms:
 

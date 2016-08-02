@@ -156,7 +156,7 @@ class IODescriptorGitTag(IODescriptorGit):
 
         except Exception, e:
             raise TankDescriptorError(
-                "Could not locally cache %s, "
+                "Could not download %s, "
                 "tag %s: %s" % (self._path, self._version, e)
             )
 

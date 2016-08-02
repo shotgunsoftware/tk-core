@@ -137,7 +137,7 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         except Exception, e:
             raise TankDescriptorError(
-                "Could not locally cache %s, branch %s, "
+                "Could not download %s, branch %s, "
                 "commit %s: %s" % (self._path, self._branch, self._version, e)
             )
 
@@ -153,6 +153,11 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         This will clone the git repository into a temporary location in order to
         introspect its properties.
+
+        .. note:: The concept of constraint patterns doesn't apply to
+                  git commit hashes and any data passed via the
+                  constraint_pattern argument will be ignored by this
+                  method implementation.
 
         :param constraint_pattern: If this is specified, the query will be constrained
                by the given pattern. Version patterns are on the following forms:

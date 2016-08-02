@@ -57,27 +57,36 @@ class IODescriptorGit(IODescriptorBase):
         self._sanitized_repo_path = self._path.replace(os.path.sep, "/")
 
     @LogManager.log_timing
-    def _clone_then_execute_git_commands(self, target, commands):
+    def _clone_then_execute_git_commands(self, target_path, commands):
         """
         Clones the git repository into the given location and
-        executes the given list of git commands.
+        executes the given list of git commands::
 
-        The initial clone operation happens via an os.system call, ensuring
+            # this will clone the associated git repo into
+            # /tmp/foo and then execute the given commands
+            # in order in a shell environment
+            commands = [
+                "checkout -q my_feature_branch",
+                "reset -q --hard -q a6512356a"
+            ]
+            self._clone_then_execute_git_commands("/tmp/foo", commands)
+
+        The initial clone operation happens via an `os.system` call, ensuring
         that there is an initialized shell environment, allowing git
         to potentially request shell based authentication for repositories
-        which requires credentials.
+        which require credentials.
 
         The subsequent list of commands are intended to be executed on the
         recently cloned repository and will the cwd will be set so that they
         are executed in the directory scope of the newly cloned repository.
 
-        :param target: path to clone into
+        :param target_path: path to clone into
         :param commands: list git commands to execute, e.g. ['checkout x']
         :returns: stdout and stderr of the last command executed as a string
         :raises: TankGitError on git failure
         """
         # ensure *parent* folder exists
-        parent_folder = os.path.dirname(target)
+        parent_folder = os.path.dirname(target_path)
         filesystem.ensure_folder_exists(parent_folder)
 
         # first probe to check that git exists in our PATH
@@ -93,27 +102,26 @@ class IODescriptorGit(IODescriptorBase):
 
         # Note: git doesn't like paths in single quotes when running on
         # windows - it also prefers to use forward slashes
-        #
-        # note that we use os.system here to allow for git to pop up (in a terminal
+        log.debug("Git Cloning %r into %s" % (self, target_path))
+        cmd = "git clone -q \"%s\" \"%s\"" % (self._path, target_path)
+
+        # Note that we use os.system here to allow for git to pop up (in a terminal
         # if necessary) authentication prompting. This DOES NOT seem to be possible
         # with subprocess.
-        #
-        log.debug("Git Cloning %r into %s" % (self, target))
-        cmd = "git clone -q \"%s\" \"%s\"" % (self._path, target)
         status = os.system(cmd)
         if status != 0:
             raise TankGitError(
                 "Error executing git operation. The git command '%s' "
                 "returned error code %s." % (cmd, status)
             )
-        log.debug("Git clone into '%s' successful." % target)
+        log.debug("Git clone into '%s' successful." % target_path)
 
         # clone worked ok! Now execute git commands on this repo
         cwd = os.getcwd()
         output = None
         try:
-            log.debug("Setting cwd to '%s'" % target)
-            os.chdir(target)
+            log.debug("Setting cwd to '%s'" % target_path)
+            os.chdir(target_path)
             for command in commands:
 
                 full_command = "git %s" % command
