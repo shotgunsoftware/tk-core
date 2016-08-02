@@ -201,6 +201,12 @@ class IODescriptorBase(object):
         :returns: The most appropriate tag in the given list of tags
         :raises: TankDescriptorError if parsing fails
         """
+        if len(version_numbers) == 0:
+            raise TankDescriptorError(
+                "'%s' does not have a version matching the pattern '%s'. "
+                "There are no available versions." % (self.get_system_name(), pattern)
+            )
+
         # first handle case where pattern is None
         if pattern is None:
             # iterate over versions in list and find latest

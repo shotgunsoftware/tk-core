@@ -143,11 +143,9 @@ class TestDescriptorSupport(TankTestBase):
         # simple matches
         self.assertEqual(desc._io_descriptor._find_latest_tag_by_pattern(v1, "v1.2.x"), "v1.2.3")
         self.assertEqual(desc._io_descriptor._find_latest_tag_by_pattern(v2, "v1.2.x"), "v1.2.3")
-        self.assertEqual(desc._io_descriptor._find_latest_tag_by_pattern(v3, "v1.2.x"), "v1.3.233")
+        self.assertEqual(desc._io_descriptor._find_latest_tag_by_pattern(v3, "v1.2.x"), "v1.2.233")
         self.assertEqual(desc._io_descriptor._find_latest_tag_by_pattern(v4, "v1.2.x"), "v1.2.233.34")
         self.assertEqual(desc._io_descriptor._find_latest_tag_by_pattern(v5, "v1.2.x"), "v1.2.233")
-
-
 
         self.assertEqual(desc._io_descriptor._find_latest_tag_by_pattern(["v1.2.3", "v1.2.233", "v1.3.1"], "v1.3.x"), "v1.3.1")
         self.assertEqual(desc._io_descriptor._find_latest_tag_by_pattern(["v1.2.3", "v1.2.233", "v1.3.1", "v2.3.1"], "v1.x.x"), "v1.3.1")
@@ -162,3 +160,15 @@ class TestDescriptorSupport(TankTestBase):
                                 desc._io_descriptor._find_latest_tag_by_pattern,
                                 ["v1.2.3", "v1.2.233", "v1.3.1"],
                                 "v1.x.2")
+
+        self.assertRaisesRegexp(TankError,
+                                "'.*' does not have a version matching the pattern 'v3.x.x'. Available versions are: .*",
+                                desc._io_descriptor._find_latest_tag_by_pattern,
+                                v3,
+                                "v3.x.x")
+
+        self.assertRaisesRegexp(TankError,
+                                "'.*' does not have a version matching the pattern 'v3.x.x'. There are no available versions.",
+                                desc._io_descriptor._find_latest_tag_by_pattern,
+                                [],
+                                "v3.x.x")
