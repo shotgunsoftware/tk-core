@@ -224,4 +224,11 @@ class IODescriptorGitBranch(IODescriptorGit):
         :returns: instance deriving from IODescriptorBase
         """
         # not possible to determine what 'latest' means in this case
-        return self
+        # so check if the current descriptor exists on disk and in this
+        # case return it
+        if self.get_path():
+            return self
+        else:
+            # no cached version exists
+            raise TankDescriptorError("No cached versions of %s found." % self)
+

@@ -143,6 +143,7 @@ class IODescriptorManual(IODescriptorBase):
         :returns: instance deriving from IODescriptorBase
         """
         # manual descriptor is always manually managed
+        # we also assume that the manual descriptor always exists
         return self
 
 

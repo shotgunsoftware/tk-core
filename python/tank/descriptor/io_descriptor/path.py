@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -36,7 +36,7 @@ class IODescriptorPath(IODescriptorBase):
     Name is optional and if not specified will be determined based on folder path.
     If name is not specified and path is /tmp/foo/bar, the name will set to 'bar'
     """
-    
+
     def __init__(self, descriptor_dict):
         """
         Constructor
@@ -170,7 +170,8 @@ class IODescriptorPath(IODescriptorBase):
 
         :returns: instance deriving from IODescriptorBase
         """
-        # we are always the latest version :)
+        # we are always the latest version
+        # also assume that the payload always exists on disk.
         return self
 
     def clone_cache(self, cache_root):

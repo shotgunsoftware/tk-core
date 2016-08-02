@@ -432,6 +432,9 @@ class IODescriptorAppStore(IODescriptorBase):
 
         log.debug("Found %d versions" % len(all_versions))
 
+        if len(all_versions) == 0:
+            raise TankDescriptorError("No cached versions of %s found." % self)
+
         version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
 
         # make a descriptor dict

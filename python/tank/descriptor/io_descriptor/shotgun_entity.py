@@ -259,6 +259,9 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         log.debug("Found %d versions" % len(all_versions))
 
+        if len(all_versions) == 0:
+            raise TankDescriptorError("No cached versions of %s found." % self)
+
         # make a descriptor dict
         descriptor_dict = {
             "type": "shotgun",
