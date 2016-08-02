@@ -47,6 +47,10 @@ def create_io_descriptor(
                            the descriptor dictionary/uri. Please note that setting this flag
                            to true will typically affect performance - an external connection
                            is often required in order to establish what the latest version is.
+
+                           If a remote connection cannot be established when attempting to determine
+                           the latest version, a local scan will be carried out and the highest
+                           version number that is cached locally will be returned.
     :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain
                            the search for latest to only take part over a subset of versions.
                            This is a string that can be on the following form:
@@ -131,11 +135,17 @@ def create_io_descriptor(
     descriptor.set_cache_roots(bundle_cache_root, fallback_roots)
 
     if resolve_latest:
-        #@todo - in the future, attempt to get "remote" latest first
-        #        and if that fails, fall back on the latest item
-        #        available in the local cache.
-        log.debug("Searching for latest version...")
-        descriptor = descriptor.get_latest_version(constraint_pattern)
+        # attempt to get "remote" latest first
+        # and if that fails, fall back on the latest item
+        # available in the local cache.
+        log.debug("Trying to resolve latest version...")
+        if descriptor.has_remote():
+            log.debug("Remote connection is available - attempting to get latest version from remote...")
+            descriptor = descriptor.get_latest_version(constraint_pattern)
+        else:
+            log.debug("Remote connection is not available - falling back on getting latest version from cache...")
+            descriptor = descriptor.get_latest_cached_version(constraint_pattern)
+
         log.debug("Resolved latest to be %r" % descriptor)
 
     # Now see if we should cache it. Only cache descriptors that represent immutable
