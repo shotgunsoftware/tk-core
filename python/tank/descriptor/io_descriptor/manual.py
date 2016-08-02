@@ -10,7 +10,6 @@
 import os
 from .base import IODescriptorBase
 from ... import LogManager
-from ...util import filesystem
 from ..errors import TankDescriptorError
 
 log = LogManager.get_logger(__name__)

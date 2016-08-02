@@ -17,6 +17,7 @@ import urlparse
 from .. import constants
 from ... import LogManager
 from ...util import filesystem
+from ...util.version import is_version_newer
 from ..errors import TankDescriptorError
 
 from tank_vendor import yaml
@@ -186,6 +187,8 @@ class IODescriptorBase(object):
 
         Version numbers passed in that don't match the pattern v1.2.3... will be ignored.
 
+        If pattern is None, the highest version number is returned.
+
         :param version_numbers: List of version number strings, e.g. ``['v1.2.3', 'v1.2.5']``
         :param pattern: Version pattern string, e.g. 'v1.x.x'. Patterns are on the following forms:
 
@@ -193,10 +196,20 @@ class IODescriptorBase(object):
             - v1.2.x (examples: v1.2.4, or a forked version v1.2.4.2)
             - v1.x.x (examples: v1.3.2, a forked version v1.3.2.2)
             - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
+            - None (latest version is returned)
 
         :returns: The most appropriate tag in the given list of tags
         :raises: TankDescriptorError if parsing fails
         """
+        # first handle case where pattern is None
+        if pattern is None:
+            # iterate over versions in list and find latest
+            latest_version = None
+            for version_number in version_numbers:
+                if is_version_newer(version_number, latest_version):
+                    latest_version = version_number
+            return latest_version
+
         # now put all version number strings which match the form
         # vX.Y.Z(.*) into a nested dictionary where it is keyed recursively
         # by each digit (ie. major, minor, increment, then any additional

@@ -20,7 +20,6 @@ from tank_vendor.shotgun_api3.lib import httplib2
 import cPickle as pickle
 
 from ...util import shotgun, filesystem
-from ...util.version import is_version_newer
 from ...util import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
 from ...util.user_settings import UserSettings
 
@@ -433,15 +432,7 @@ class IODescriptorAppStore(IODescriptorBase):
 
         log.debug("Found %d versions" % len(all_versions))
 
-        if constraint_pattern:
-            version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
-
-        else:
-            # find highest version number
-            version_to_use = None
-            for version in all_versions:
-                if is_version_newer(version, version_to_use):
-                    version_to_use = version
+        version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
 
         # make a descriptor dict
         descriptor_dict = {"type": "app_store", "name": self._name, "version": version_to_use}

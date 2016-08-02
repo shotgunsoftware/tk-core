@@ -13,7 +13,6 @@ import uuid
 import tempfile
 
 from ...util.git import execute_git_command
-from ...util.version import is_version_newer
 from ...util.process import subprocess_check_output
 from ...util import filesystem
 from .git import IODescriptorGit
@@ -346,20 +345,12 @@ class IODescriptorGitTag(IODescriptorGit):
 
         log.debug("Found %d versions" % len(all_versions))
 
-        if constraint_pattern:
-            version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
-
-        else:
-            # find highest version number
-            version_to_use = None
-            for version in all_versions:
-                if is_version_newer(version, version_to_use):
-                    version_to_use = version
-
-        new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = version_to_use
+        # get latest
+        version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
 
         # create new descriptor to represent this tag
+        new_loc_dict = copy.deepcopy(self._descriptor_dict)
+        new_loc_dict["version"] = version_to_use
         desc = IODescriptorGitTag(new_loc_dict, self._type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 

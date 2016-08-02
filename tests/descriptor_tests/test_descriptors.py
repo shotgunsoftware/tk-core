@@ -123,6 +123,9 @@ class TestDescriptorSupport(TankTestBase):
                 {"type": "git", "path": "git@github.com:dummy/tk-multi-dummy.git", "version": "v1.2.3"}
         )
 
+        # just latest version
+        self.assertEqual(desc._io_descriptor._find_latest_tag_by_pattern(["v1.2.3", "v1.2.2"], None), "v1.2.3")
+
         # absolute match
         self.assertEqual(desc._io_descriptor._find_latest_tag_by_pattern(["v1.2.3"], "v1.2.3"), "v1.2.3")
         self.assertEqual(desc._io_descriptor._find_latest_tag_by_pattern(["v1.2.3", "v1.2.2"], "v1.2.3"), "v1.2.3")
