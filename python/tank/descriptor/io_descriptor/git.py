@@ -57,7 +57,7 @@ class IODescriptorGit(IODescriptorBase):
         self._sanitized_repo_path = self._path.replace(os.path.sep, "/")
 
     @LogManager.log_timing
-    def _clone_then_execute_git_command(self, target, commands):
+    def _clone_then_execute_git_commands(self, target, commands):
         """
         Clones the git repository into the given location and
         executes the given list of git commands.
@@ -142,12 +142,12 @@ class IODescriptorGit(IODescriptorBase):
         # return the last returned stdout/stderr
         return output
 
-    def _tmp_clone_then_execute_git_command(self, commands):
+    def _tmp_clone_then_execute_git_commands(self, commands):
         """
         Clone into a temp location and executes the given
         list of git commands.
 
-        For more details, see :meth:`_clone_then_execute_git_command`.
+        For more details, see :meth:`_clone_then_execute_git_commands`.
 
         :param commands: list git commands to execute, e.g. ['checkout x']
         :returns: stdout and stderr of the last command executed as a string
@@ -155,7 +155,7 @@ class IODescriptorGit(IODescriptorBase):
         clone_tmp = os.path.join(tempfile.gettempdir(), "sgtk_clone_%s" % uuid.uuid4().hex)
         filesystem.ensure_folder_exists(clone_tmp)
         try:
-            return self._clone_then_execute_git_command(clone_tmp, commands)
+            return self._clone_then_execute_git_commands(clone_tmp, commands)
         finally:
             log.debug("Cleaning up temp location '%s'" % clone_tmp)
             shutil.rmtree(clone_tmp, ignore_errors=True)

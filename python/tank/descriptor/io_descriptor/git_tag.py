@@ -152,7 +152,7 @@ class IODescriptorGitTag(IODescriptorGit):
         try:
             # clone the repo, checkout the given tag
             commands = ["checkout -q \"%s\"" % self._version]
-            self._clone_then_execute_git_command(target, commands)
+            self._clone_then_execute_git_commands(target, commands)
 
         except Exception, e:
             raise TankDescriptorError(
@@ -210,7 +210,7 @@ class IODescriptorGitTag(IODescriptorGit):
             # clone the repo, list all tags
             # for the repository, across all branches
             commands = ["tag"]
-            git_tags = self._tmp_clone_then_execute_git_command(commands).split("\n")
+            git_tags = self._tmp_clone_then_execute_git_commands(commands).split("\n")
 
         except Exception, e:
             raise TankDescriptorError(
@@ -236,7 +236,7 @@ class IODescriptorGitTag(IODescriptorGit):
             commands = [
                 "for-each-ref refs/tags --sort=-taggerdate --format='%(refname:short)' --count=1"
             ]
-            latest_tag = self._tmp_clone_then_execute_git_command(commands)
+            latest_tag = self._tmp_clone_then_execute_git_commands(commands)
 
         except Exception, e:
             raise TankDescriptorError(

@@ -133,7 +133,7 @@ class IODescriptorGitBranch(IODescriptorGit):
                 "checkout -q \"%s\"" % self._branch,
                 "reset --hard -q \"%s\"" % self._version
             ]
-            self._clone_then_execute_git_command(target, commands)
+            self._clone_then_execute_git_commands(target, commands)
 
         except Exception, e:
             raise TankDescriptorError(
@@ -176,7 +176,7 @@ class IODescriptorGitBranch(IODescriptorGit):
                 "checkout -q \"%s\"" % self._branch,
                 "log -n 1 \"%s\" --pretty=format:'%%H'" % self._branch
             ]
-            git_hash = self._tmp_clone_then_execute_git_command(commands)
+            git_hash = self._tmp_clone_then_execute_git_commands(commands)
 
         except Exception, e:
             raise TankDescriptorError(
