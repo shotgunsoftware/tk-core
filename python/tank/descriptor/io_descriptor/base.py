@@ -12,6 +12,7 @@ import os
 import re
 import cgi
 import sys
+import urllib
 import urlparse
 
 from .. import constants
@@ -284,18 +285,11 @@ class IODescriptorBase(object):
 
         return version_to_use
 
-    def copy(self, target_path, connected=False):
+    def copy(self, target_path):
         """
         Copy the contents of the descriptor to an external location
 
         :param target_path: target path to copy the descriptor to.
-        :param connected: For descriptor types that supports it, attempt
-                          to create a 'connected' copy that has a relationship
-                          with the descriptor. This is typically useful for SCMs
-                          such as git, where rather than copying the content in
-                          its raw form, you clone the repository, thereby creating
-                          a setup where changes can be made and pushed back to the
-                          connected server side repository.
         """
         log.debug("Copying %r -> %s" % (self, target_path))
         # base class implementation does a straight copy
@@ -460,7 +454,7 @@ class IODescriptorBase(object):
         for (param, value) in descriptor_dict.iteritems():
             if param == "type":
                 continue
-            qs_chunks.append("%s=%s" % (param, value))
+            qs_chunks.append("%s=%s" % (param, urllib.quote(value)))
         qs = "&".join(qs_chunks)
 
         return "%s?%s" % (uri, qs)

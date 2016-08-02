@@ -1,0 +1,4 @@
+0000000000000000000000000000000000000000 30c293f29a50b1e58d2580522656695825523dba Manne Öhrström <manne@shotgunsoftware.com> 1469816416 +0100	clone: from https://github.com/shotgunsoftware/tk-config-default.git
+30c293f29a50b1e58d2580522656695825523dba 7fa75a749c1dfdbd9ad93ee3497c7eaa8e1a488d Manne Öhrström <manne@shotgunsoftware.com> 1469816439 +0100	checkout: moving from master to 018_test
+7fa75a749c1dfdbd9ad93ee3497c7eaa8e1a488d e1c03faed94346ad77fad2e700edcff1e449f6f4 Manne Öhrström <manne@shotgunsoftware.com> 1469816453 +0100	checkout: moving from 018_test to 33014_nuke_studio
+e1c03faed94346ad77fad2e700edcff1e449f6f4 30c293f29a50b1e58d2580522656695825523dba Manne Öhrström <manne@shotgunsoftware.com> 1469816456 +0100	checkout: moving from 33014_nuke_studio to master
