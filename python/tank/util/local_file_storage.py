@@ -13,6 +13,7 @@ import sys
 import urlparse
 from . import filesystem
 from .. import LogManager
+from ..errors import TankError
 
 log = LogManager.get_logger(__name__)
 
@@ -171,6 +172,11 @@ class LocalFileStorageManager(object):
                            which is the current generation of paths.
         :return: Path as string
         """
+        if hostname is None:
+            raise TankError(
+                "Cannot compute path for local site specific storage - no shotgun hostname specified!"
+            )
+
         # get site only; https://www.FOO.com:8080 -> www.foo.com
         base_url = urlparse.urlparse(hostname).netloc.split(":")[0].lower()
 

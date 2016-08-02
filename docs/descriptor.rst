@@ -155,7 +155,7 @@ correctly. On Windows, it is recommended that you use forward slashes.
 
 .. Note:: When using the git descriptor, you need to have the git executable in
           the ``PATH`` in order for the API to be able to do a latest check or
-          app download. The git exeuctable is, however, not needed during descriptor
+          app download. The git executable is, however, not needed during descriptor
           resolve and normal operation.
 
 
