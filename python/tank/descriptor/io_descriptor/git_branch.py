@@ -10,9 +10,6 @@
 import os
 import copy
 
-from ...util.process import subprocess_check_output
-from ...util.git import execute_git_command
-from ...util import filesystem
 from .git import IODescriptorGit
 from ..errors import TankDescriptorError
 from ... import LogManager
@@ -46,6 +43,9 @@ class IODescriptorGitBranch(IODescriptorGit):
     The hash can be short, as long as it is unique, e.g. it follows the same logic
     that git is using for shortening its hashes. A recommendation is to use the first
     seven digits to describe a hash that is unique within a repository.
+
+    The payload cached in the bundle cache represents the entire git repo,
+    adjusted to point at the given branch and commit.
     """
 
     def __init__(self, descriptor_dict):
@@ -99,30 +99,6 @@ class IODescriptorGitBranch(IODescriptorGit):
             short_hash
         )
 
-    def _clone_into(self, target_path):
-        """
-        Clone a repo into the given path, switch branch and position it at a commit.
-
-        :param target_path: Path to clone into. This cannot exist on disk.
-        """
-
-        # ensure *parent* folder exists
-        parent_folder = os.path.dirname(target_path)
-        filesystem.ensure_folder_exists(parent_folder)
-
-        # now clone, set to branch and set to specific commit
-        cwd = os.getcwd()
-        try:
-            # clone the repo
-            self._clone_repo(target_path)
-            os.chdir(target_path)
-            log.debug("Switching to branch %s..." % self._branch)
-            execute_git_command("checkout -q %s" % self._branch)
-            log.debug("Setting commit to %s..." % self._version)
-            execute_git_command("reset --hard -q %s" % self._version)
-        finally:
-            os.chdir(cwd)
-
     def get_version(self):
         """
         Returns the version number string for this item, .e.g 'v1.2.3'
@@ -134,6 +110,14 @@ class IODescriptorGitBranch(IODescriptorGit):
         """
         Retrieves this version to local repo.
         Will exit early if app already exists local.
+
+        This will connect to remote git repositories.
+        Depending on how git is configured, https repositories
+        requiring credentials may result in a shell opening up
+        requesting username and password.
+
+        The git repo will be cloned into the local cache and
+        will then be adjusted to point at the relevant commit.
         """
         if self.exists_local():
             # nothing to do!
@@ -141,29 +125,39 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         # cache into the primary location
         target = self._get_cache_paths()[0]
-        self._clone_into(target)
 
-    def copy(self, target_path, connected=False):
-        """
-        Copy the contents of the descriptor to an external location
+        try:
+            # clone the repo, switch to the given branch
+            # then reset to the given commit
+            commands = [
+                "checkout -q \"%s\"" % self._branch,
+                "reset --hard -q \"%s\"" % self._version
+            ]
+            self._clone_then_execute_git_commands(target, commands)
 
-        :param target_path: target path to copy the descriptor to.
-        :param connected: For descriptor types that supports it, attempt
-                          to create a 'connected' copy that has a relationship
-                          with the descriptor. This is typically useful for SCMs
-                          such as git, where rather than copying the content in
-                          its raw form, you clone the repository, thereby creating
-                          a setup where changes can be made and pushed back to the
-                          connected server side repository.
-        """
-        if connected:
-            self._clone_into(target_path)
-        else:
-            super(IODescriptorGitBranch, self).copy(target_path, connected)
+        except Exception, e:
+            raise TankDescriptorError(
+                "Could not download %s, branch %s, "
+                "commit %s: %s" % (self._path, self._branch, self._version, e)
+            )
+
 
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
+
+        This will connect to remote git repositories.
+        Depending on how git is configured, https repositories
+        requiring credentials may result in a shell opening up
+        requesting username and password.
+
+        This will clone the git repository into a temporary location in order to
+        introspect its properties.
+
+        .. note:: The concept of constraint patterns doesn't apply to
+                  git commit hashes and any data passed via the
+                  constraint_pattern argument will be ignored by this
+                  method implementation.
 
         :param constraint_pattern: If this is specified, the query will be constrained
                by the given pattern. Version patterns are on the following forms:
@@ -176,31 +170,24 @@ class IODescriptorGitBranch(IODescriptorGit):
         """
         if constraint_pattern:
             log.warning(
-                "%s does not handle constraint patters. "
+                "%s does not handle constraint patterns. "
                 "Latest version will be used." % self
             )
 
-        # figure out the latest commit for the given repo and branch
-        # git ls-remote repo_url branch_name
-        # returns: 'hash	remote_branch'
         try:
-            log.debug(
-                "Calling ls-remote to find latest remote "
-                "commit for %s branch %s" % (self._path, self._branch)
-            )
-            cmd = "git ls-remote \"%s\" \"%s\"" % (self._sanitized_repo_path, self._branch)
-            branch_info = subprocess_check_output(cmd, shell=True).strip()
-            log.debug("ls-remote returned: '%s'" % branch_info)
-
-            # get first chunk of return data
-            git_hash = branch_info.split()[0]
+            # clone the repo, get the latest commit hash
+            # for the given branch
+            commands = [
+                "checkout -q \"%s\"" % self._branch,
+                "log -n 1 \"%s\" --pretty=format:'%%H'" % self._branch
+            ]
+            git_hash = self._tmp_clone_then_execute_git_commands(commands)
 
         except Exception, e:
             raise TankDescriptorError(
                 "Could not get latest commit for %s, "
                 "branch %s: %s" % (self._path, self._branch, e)
             )
-
 
         # make a new descriptor
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
