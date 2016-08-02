@@ -13,6 +13,7 @@ import uuid
 import tempfile
 
 from ...util.git import execute_git_command
+from ...util.version import is_version_newer
 from ...util.process import subprocess_check_output
 from ...util import filesystem
 from .git import IODescriptorGit
@@ -315,4 +316,53 @@ class IODescriptorGitTag(IODescriptorGit):
             return self._get_latest_by_pattern(constraint_pattern)
         else:
             return self._get_latest_version()
+
+    def get_latest_cached_version(self, constraint_pattern=None):
+        """
+        Returns a descriptor object that represents the latest version
+        that is locally available in the bundle cache search path.
+
+        :param constraint_pattern: If this is specified, the query will be constrained
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
+
+        :returns: instance deriving from IODescriptorBase
+        """
+        log.debug("Looking for cached versions of %r..." % self)
+        # for each of the cache paths, look one level above
+        # and enumerate all items
+        all_versions = []
+
+        for possible_cache_path in self._get_cache_paths():
+            parent_folder = os.path.dirname(possible_cache_path)
+            log.debug("looking in '%s'" % parent_folder)
+            if os.path.exists(parent_folder):
+                for version_folder in os.listdir(parent_folder):
+                    if version_folder.startswith("v"):
+                        all_versions.append(version_folder)
+
+        log.debug("Found %d versions" % len(all_versions))
+
+        if constraint_pattern:
+            version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
+
+        else:
+            # find highest version number
+            version_to_use = None
+            for version in all_versions:
+                if is_version_newer(version, version_to_use):
+                    version_to_use = version
+
+        new_loc_dict = copy.deepcopy(self._descriptor_dict)
+        new_loc_dict["version"] = version_to_use
+
+        # create new descriptor to represent this tag
+        desc = IODescriptorGitTag(new_loc_dict, self._type)
+        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+
+        log.debug("Latest cached version resolved to %r" % desc)
+        return desc
 

@@ -275,5 +275,5 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         desc = IODescriptorShotgunEntity(descriptor_dict, self._sg_connection)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
-        log.debug("Latest cached version resolved to %s" % desc)
+        log.debug("Latest cached version resolved to %r" % desc)
         return desc
