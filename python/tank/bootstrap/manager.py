@@ -185,10 +185,6 @@ class ToolkitManager(object):
 
     def _set_bundle_cache_fallback_paths(self, paths):
         # setter for bundle_cache_fallback_paths
-
-        # @todo - maybe here we can add support for environment variables in the
-        #         future so that studios can easily add their own 'primed cache'
-        #         locations for performance or to save space.
         self._bundle_cache_fallback_paths = paths
 
     bundle_cache_fallback_paths = property(

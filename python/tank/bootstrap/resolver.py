@@ -15,7 +15,7 @@ on disk.
 
 import os
 
-from ..descriptor import Descriptor, create_descriptor
+from ..descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
 from .errors import TankBootstrapError
 from .configuration import Configuration
 from ..util import filesystem
@@ -74,21 +74,33 @@ class ConfigurationResolver(object):
                 "No config descriptor specified - Cannot create a configuration object."
             )
 
-        # note how we currently always prefer latest as part of the resolve.
-        # later on, it will be possible to specify an update policy as part of
-        # the descriptor system, allowing a user to specify what latest means -
-        # does it actually mean that the version is frozen to a particular version,
-        # the latest release on a conservative release track, the latest alpha etc.
+        # now probe for a version token in the given descriptor.
+        # if that exists, a fixed version workflow will be used where
+        # that exact version of the config is used.
         #
-        # for installations bundled with manual descriptors, latest currently
-        # means the same version that the descriptor is pointing at, so for
-        # these installations, version numbers are effectively fixed.
+        # if a version token is omitted, we request that the latest version
+        # should be resolved.
+        if isinstance(config_descriptor, str):
+            # convert to dict so we can introspect
+            config_descriptor = descriptor_uri_to_dict(config_descriptor)
+
+        if "version" in config_descriptor:
+            log.debug("Base configuration has a version token defined. "
+                      "Will use this fixed version for the bootstrap.")
+            resolve_latest = False
+
+        else:
+            log.debug("Base configuration descriptor does not have a "
+                      "version token defined. Will attempt to determine "
+                      "the latest version available.")
+            resolve_latest = True
+
         cfg_descriptor = create_descriptor(
             sg_connection,
             Descriptor.CONFIG,
             config_descriptor,
             fallback_roots=self._bundle_cache_fallback_paths,
-            resolve_latest=True
+            resolve_latest=resolve_latest
         )
 
         log.debug("Configuration resolved to %r." % cfg_descriptor)
