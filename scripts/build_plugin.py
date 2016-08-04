@@ -127,13 +127,17 @@ def _process_configuration(sg_connection, manifest_data):
     # if the descriptor in the config contains a version number
     # we will go into a fixed update mode.
     if "version" in base_config_def:
-        logger.info("Your configuration definition contains a version number. "
-                    "This means that the plugin will be frozen and no automatic updates "
-                    "will be performed at startup.")
+        logger.info(
+            "Your configuration definition contains a version number. "
+            "This means that the plugin will be frozen and no automatic updates "
+            "will be performed at startup."
+        )
         using_latest_config = False
     else:
-        logger.info("Your configuration definition does not contain a version number. "
-                     "This means that the plugin will attempt to auto update at startup.")
+        logger.info(
+            "Your configuration definition does not contain a version number. "
+            "This means that the plugin will attempt to auto update at startup."
+        )
         using_latest_config = True
 
     cfg_descriptor = create_descriptor(
@@ -144,7 +148,6 @@ def _process_configuration(sg_connection, manifest_data):
     )
 
     logger.info("Resolved config %r" % cfg_descriptor)
-
     return cfg_descriptor
 
 def _validate_manifest(source_path):
@@ -260,7 +263,7 @@ def build_plugin(sg_connection, source_path, target_path):
     logger.info("- Plugin uses config %s" % cfg_descriptor)
     logger.info("- A bootstrap core has been installed into bundle_cache/tk-core")
     logger.info("- Bootstrap core is %s" % latest_core_desc)
-    logger.info("- All dependencies have been written out to bundle_cache")
+    logger.info("- All dependencies have been written out to the bundle_cache folder")
     logger.info("")
     logger.info("")
     logger.info("")
@@ -278,27 +281,14 @@ def main():
 
     usage = "%prog source_path target_path (run with --help for more information)"
 
-    desc = "One line description"
+    desc = "Builds a standard toolkit plugin structure ready for testing and deploy"
 
     epilog = """
 Examples:
 
-Building docs for a tag named 'v1.2.3':
-
-Shotgun API:       python api_docs_to_github.py -r python-api -l v1.2.3 --preview
-Toolkit Core API:  python api_docs_to_github.py -r tk-core -l v1.2.3 --preview
-Toolkit Framework: python api_docs_to_github.py -c /path/to/tk-core -r tk-framework-xyz -l v1.2.3 --preview
-
-Building docs for a branch named 'branch_abc':
-
-Shotgun API:       python api_docs_to_github.py -r python-api -l branch_abc --preview
-Toolkit Core API:  python api_docs_to_github.py -r tk-core -l branch_abc --preview
-Toolkit Framework: python api_docs_to_github.py -c /path/to/tk-core -r tk-framework-xyz -l branch_abc --preview
-
-(Just omit the --preview flag to release)
+> python build_plugin.py ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
 
 """
-
     parser = OptionParserLineBreakingEpilog(usage=usage, description=desc, epilog=epilog)
 
     parser.add_option("-d", "--debug",
