@@ -30,7 +30,7 @@ from sgtk.descriptor.io_descriptor.base import IODescriptorBase
 from sgtk.descriptor.descriptor import create_descriptor
 
 from tank import TankError
-from tank.platform.environment import Environment
+from tank.platform.environment import InstalledEnvironment
 from distutils.version import LooseVersion
 
 
@@ -524,7 +524,7 @@ class TestSimpleUpdates(TankTestBase):
         """
         Make sure we can instantiate an environment and get information about the installed apps and their descriptors.
         """
-        env = Environment(os.path.join(self.project_config, "env", "simple.yml"), self.pipeline_configuration)
+        env = InstalledEnvironment(os.path.join(self.project_config, "env", "simple.yml"), self.pipeline_configuration)
 
         self.assertListEqual(env.get_engines(), ["tk-test"])
         self.assertListEqual(env.get_apps("tk-test"), ["tk-multi-nodep"])
@@ -555,7 +555,7 @@ class TestSimpleUpdates(TankTestBase):
         command.execute({"environment_filter": "simple"})
 
         # Make sure we are v2.
-        env = Environment(os.path.join(self.project_config, "env", "simple.yml"), self.pipeline_configuration)
+        env = InstalledEnvironment(os.path.join(self.project_config, "env", "simple.yml"), self.pipeline_configuration)
 
         desc = env.get_app_descriptor("tk-test", "tk-multi-nodep")
         self.assertEqual(desc.version, "v2.0.0")
@@ -597,7 +597,7 @@ class TestIncludeUpdates(TankTestBase):
         """
         Retrieves the environment file specified.
         """
-        return Environment(
+        return InstalledEnvironment(
             os.path.join(self.project_config, "env", "%s.yml" % env_name), self.pipeline_configuration
         )
 

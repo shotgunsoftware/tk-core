@@ -1,10 +1,6 @@
-import tank
-import tank.platform.constants
-from tank.errors import TankError
 from tank.templatekey import StringKey
 from tank_test.tank_test_base import *
 from tank.platform.validation import *
-from tank.platform.environment import Environment
 
 class TestValidateSchema(TankTestBase):
     def setUp(self):
