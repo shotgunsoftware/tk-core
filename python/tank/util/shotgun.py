@@ -20,6 +20,7 @@ import uuid
 import urllib2
 import urlparse
 import pprint
+import time
 import threading
 import tempfile
 
@@ -269,10 +270,13 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
     attempt = 0
     done = False
 
+
+
     while not done and attempt < retries:
 
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
         try:
+            time_before = time.time()
             log.debug("Downloading attachment id %s..." % attachment_id)
             bundle_content = sg.download_attachment(attachment_id)
 
@@ -280,7 +284,15 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
             with open(zip_tmp, "wb") as fh:
                 fh.write(bundle_content)
 
-            log.debug("Unpacking %s bytes to %s..." % (os.path.getsize(zip_tmp), target))
+            file_size = os.path.getsize(zip_tmp)
+
+            # log connection speed
+            time_to_download = time.time() - time_before
+            broadband_speed_bps = file_size * 8.0 / time_to_download
+            broadband_speed_mibps = broadband_speed_bps / (1024 * 1024)
+            log.debug("Download speed: %4f Mbit/s" % broadband_speed_mibps)
+
+            log.debug("Unpacking %s bytes to %s..." % (file_size, target))
             filesystem.ensure_folder_exists(target)
             unzip_file(zip_tmp, target)
 
