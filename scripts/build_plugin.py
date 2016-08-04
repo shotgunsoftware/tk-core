@@ -132,7 +132,7 @@ def _process_configuration(sg_connection, manifest_data):
                     "will be performed at startup.")
         using_latest_config = False
     else:
-        logger.debug("Your configuration definition does not contain a version number. "
+        logger.info("Your configuration definition does not contain a version number. "
                      "This means that the plugin will attempt to auto update at startup.")
         using_latest_config = True
 

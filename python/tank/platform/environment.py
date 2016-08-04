@@ -493,7 +493,7 @@ class Environment(object):
 
 
 
-class InstalledEnvironment(object):
+class InstalledEnvironment(Environment):
     """
     Represents an :class:`Environment` that has been installed
     and has an associated pipeline configuration.
