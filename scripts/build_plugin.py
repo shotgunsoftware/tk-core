@@ -8,10 +8,20 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+Helper script to generate a toolkit plugin given a plugin source location.
+
+This will analyse the info.yml found in the plugin source location
+and create a plugin scaffold, complete with standard helpers and
+a primed bundle cache.
+"""
+
+# system imports
 from __future__ import with_statement
 import os
 import sys
 import socket
+import shutil
 import optparse
 import datetime
 import getpass
@@ -21,30 +31,27 @@ this_folder = os.path.abspath(os.path.dirname(__file__))
 python_folder = os.path.abspath(os.path.join(this_folder, "..", "python"))
 sys.path.append(python_folder)
 
+# sgtk imports
 from tank import LogManager
 from tank.util import filesystem
 from tank.errors import TankError
 from tank.platform import environment
 from tank.descriptor import Descriptor, descriptor_uri_to_dict, create_descriptor
 from tank.authentication import ShotgunAuthenticator
-
 from tank_vendor import yaml
 
 # set up logging
 logger = LogManager.get_logger("build_plugin")
 
 # required keys in the info.yml plugin manifest file
-REQUIRED_MANIFEST_PARAMETERS = [
-    "base_configuration",
-    "entry_point"
-]
+REQUIRED_MANIFEST_PARAMETERS = ["base_configuration", "entry_point"]
 
 # the folder where all items will be cached
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
+# when we are baking a config, use these settings
 BAKED_BUNDLE_NAME = "tk-config-plugin"
 BAKED_BUNDLE_VERSION = "v1.0.0"
-
 
 
 class OptionParserLineBreakingEpilog(optparse.OptionParser):
@@ -110,7 +117,7 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
             logger.info("Caching %s..." % desc)
             desc.clone_cache(bundle_cache_root)
 
-def _process_configuration(sg_connection, source_path, bundle_cache_root, manifest_data):
+def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
     """
     Given data in the plugin manifest, download resolve and
     cache the configuration.
@@ -118,6 +125,7 @@ def _process_configuration(sg_connection, source_path, bundle_cache_root, manife
     :param sg_connection: Shotgun connection
     :param manifest_data: Manifest data as a dictionary
     :param source_path: Root path of plugin source.
+    :param target_path: Build target path
     :param bundle_cache_root: Bundle cache root
     :return: Resolved config descriptor object
     """
@@ -133,14 +141,29 @@ def _process_configuration(sg_connection, source_path, bundle_cache_root, manife
     # and process it
     if base_config_def["type"] == "baked":
         logger.info("Baked descriptor detected.")
+
         baked_path = os.path.expanduser(os.path.expandvars(base_config_def["path"]))
+
+        # if it's a relative path, expand it
         if not os.path.isabs(baked_path):
-            baked_path = os.path.join(source_path, baked_path)
-        logger.info("Will bake config from '%s'" % baked_path)
+            full_baked_path = os.path.abspath(os.path.join(source_path, baked_path))
+
+            # if it's a relative path, we have already copied it to the build
+            # target location. In this case, attempt to locate it and remove it.
+            baked_target_path = os.path.abspath(os.path.join(target_path, baked_path))
+            if baked_target_path.startswith(baked_target_path):
+                logger.debug("Removing '%s' from build" % baked_target_path)
+                shutil.rmtree(baked_target_path)
+        else:
+            # path is absolute
+            full_baked_path = os.path.abspath(baked_path)
+
+        logger.info("Will bake config from '%s'" % full_baked_path)
 
         manual_location = os.path.join(bundle_cache_root, "manual", BAKED_BUNDLE_NAME, BAKED_BUNDLE_VERSION)
+        logger.info("Copying %s -> %s" % (full_baked_path, manual_location))
         filesystem.ensure_folder_exists(manual_location)
-        filesystem.copy_folder(baked_path, manual_location)
+        filesystem.copy_folder(full_baked_path, manual_location)
 
         # now make a manual descriptor
         descriptor = {
@@ -300,7 +323,7 @@ def build_plugin(sg_connection, source_path, target_path):
     filesystem.ensure_folder_exists(bundle_cache_root)
 
     # resolve config descriptor
-    cfg_descriptor = _process_configuration(sg_connection, source_path, bundle_cache_root, manifest_data)
+    cfg_descriptor = _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data)
 
     # cache config in bundle cache
     logger.info("Downloading and caching config...")
