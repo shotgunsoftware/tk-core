@@ -234,13 +234,13 @@ def _validate_manifest(source_path):
 
 def _bake_manifest(manifest_data, cfg_descriptor, python_bundle_cache):
     """
-    Bake manifest into python files
+    Bake the info.yml manifest into a python file.
 
-    :param manifest_data:
-    :param cfg_descriptor:
-    :param sgtk_plugin_path:
+    :param manifest_data: info.yml manifest data
+    :param cfg_descriptor: descriptor object pointing at the config to use
+    :param sgtk_plugin_path: path to std bundle_cache/python location
     """
-    # the name of the module will encode the entry point
+    # add entry point to our module to ensure multiple plugins can live side by side
     module_name = "sgtk_plugin_%s" % manifest_data["entry_point"]
     full_module_path = os.path.join(python_bundle_cache, module_name)
     filesystem.ensure_folder_exists(full_module_path)
@@ -262,17 +262,15 @@ def _bake_manifest(manifest_data, cfg_descriptor, python_bundle_cache):
         for (parameter, value) in manifest_data.iteritems():
 
             if parameter == "base_configuration":
+                # configuration is processed separately
                 continue
 
             if isinstance(value, str):
                fh.write("%s=\"%s\"\n" % (parameter, value.replace("\"", "'")))
-
             elif isinstance(value, int):
                 fh.write("%s=%d\n" % (parameter, value))
-
             elif isinstance(value, bool):
                 fh.write("%s=%s\n" % (parameter, value))
-
             else:
                 raise ValueError(
                     "Invalid manifest value %s: %s - data type not supported!" % (parameter, value)
@@ -390,12 +388,10 @@ def build_plugin(sg_connection, source_path, target_path):
     logger.info("- Plugin uses config %s" % cfg_descriptor)
     logger.info("- A bootstrap core has been installed into bundle_cache/tk-core")
     logger.info("- Bootstrap core is %s" % latest_core_desc)
-    logger.info("- All dependencies have been written out to the bundle_cache folder")
+    logger.info("- All dependencies have been baked out into the bundle_cache folder")
     logger.info("")
     logger.info("")
     logger.info("")
-
-
 
 
 
