@@ -232,7 +232,7 @@ def _validate_manifest(source_path):
 
     return manifest_data
 
-def _bake_manifest(manifest_data, cfg_descriptor, sgtk_plugin_path):
+def _bake_manifest(manifest_data, cfg_descriptor, python_bundle_cache):
     """
     Bake manifest into python files
 
@@ -240,14 +240,19 @@ def _bake_manifest(manifest_data, cfg_descriptor, sgtk_plugin_path):
     :param cfg_descriptor:
     :param sgtk_plugin_path:
     """
+    # the name of the module will encode the entry point
+    module_name = "sgtk_plugin_%s" % manifest_data["entry_point"]
+    full_module_path = os.path.join(python_bundle_cache, module_name)
+    filesystem.ensure_folder_exists(full_module_path)
+
     # write init.py
-    with open(os.path.join(sgtk_plugin_path, "__init__.py"), "wt") as fh:
+    with open(os.path.join(full_module_path, "__init__.py"), "wt") as fh:
         fh.write("# this file was auto generated.\n")
         fh.write("from . import manifest\n")
         fh.write("# end of file.\n")
 
     # now bake out the manifest into code
-    params_path = os.path.join(sgtk_plugin_path, "manifest.py")
+    params_path = os.path.join(full_module_path, "manifest.py")
     with open(params_path, "wt") as fh:
 
         fh.write("# this file was auto generated.\n")
@@ -350,16 +355,16 @@ def build_plugin(sg_connection, source_path, target_path):
 
     # copy into bundle_cache/tk-core
     logger.info("Copying raw core libs into fixed bootstrap location bundle_cache/python...")
+
+    python_bundle_cache = os.path.join(target_path, "bundle_cache", "python")
+
     filesystem.copy_folder(
         os.path.join(latest_core_desc.get_path(), "python"),
-        os.path.join(target_path, "bundle_cache", "python")
+        python_bundle_cache
     )
     logger.info("Copying sgtk_plugin module into bundle_cache/python...")
-    sgtk_plugin_path = os.path.join(target_path, "bundle_cache", "python", "sgtk_plugin")
-    filesystem.ensure_folder_exists(sgtk_plugin_path)
-
     # bake out the manifest into python files.
-    _bake_manifest(manifest_data, cfg_descriptor, sgtk_plugin_path)
+    _bake_manifest(manifest_data, cfg_descriptor, python_bundle_cache)
 
     # now analyze what core the config needs
     if cfg_descriptor.associated_core_descriptor:
