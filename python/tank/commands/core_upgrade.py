@@ -161,13 +161,13 @@ class CoreUpdateAction(Action):
         log.info("You are currently running version %s of the Shotgun Pipeline Toolkit" % current_version)
 
         status = installer.get_update_status()
-        req_sg = installer.get_required_sg_version_for_update()
 
         if status == TankCoreUpdater.UP_TO_DATE:
             log.info("No need to update the Toolkit Core API at this time!")
             return_status = {"status": "up_to_date"}
 
         elif status == TankCoreUpdater.UPDATE_BLOCKED_BY_SG:
+            req_sg = installer.get_required_sg_version_for_update()
             msg = (
                 "%s version of core requires a more recent version (%s) of Shotgun!" % (
                     "The newest" if core_version is None else "The requested",
