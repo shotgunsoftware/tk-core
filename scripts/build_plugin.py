@@ -11,8 +11,10 @@
 from __future__ import with_statement
 import os
 import sys
+import socket
 import optparse
 import datetime
+import getpass
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -34,19 +36,14 @@ logger = LogManager.get_logger("build_plugin")
 # required keys in the info.yml plugin manifest file
 REQUIRED_MANIFEST_PARAMETERS = [
     "base_configuration",
-    "entry_point",
-    "name",
-    "author",
-    "organization",
-    "contact",
-    "url",
-    "version",
-    "description",
-    "configuration"
+    "entry_point"
 ]
 
 # the folder where all items will be cached
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
+
+BAKED_BUNDLE_NAME = "tk-config-plugin"
+BAKED_BUNDLE_VERSION = "v1.0.0"
 
 
 
@@ -113,13 +110,15 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
             logger.info("Caching %s..." % desc)
             desc.clone_cache(bundle_cache_root)
 
-def _process_configuration(sg_connection, manifest_data):
+def _process_configuration(sg_connection, source_path, bundle_cache_root, manifest_data):
     """
     Given data in the plugin manifest, download resolve and
     cache the configuration.
 
     :param sg_connection: Shotgun connection
     :param manifest_data: Manifest data as a dictionary
+    :param source_path: Root path of plugin source.
+    :param bundle_cache_root: Bundle cache root
     :return: Resolved config descriptor object
     """
     logger.info("Analyzing configuration")
@@ -130,28 +129,57 @@ def _process_configuration(sg_connection, manifest_data):
         # convert to dict so we can introspect
         base_config_def = descriptor_uri_to_dict(base_config_def)
 
-    # if the descriptor in the config contains a version number
-    # we will go into a fixed update mode.
-    if "version" in base_config_def:
-        logger.info(
-            "Your configuration definition contains a version number. "
-            "This means that the plugin will be frozen and no automatic updates "
-            "will be performed at startup."
-        )
-        using_latest_config = False
-    else:
-        logger.info(
-            "Your configuration definition does not contain a version number. "
-            "This means that the plugin will attempt to auto update at startup."
-        )
-        using_latest_config = True
+    # special case - check for the 'baked' descriptor type
+    # and process it
+    if base_config_def["type"] == "baked":
+        logger.info("Baked descriptor detected.")
+        baked_path = os.path.expanduser(os.path.expandvars(base_config_def["path"]))
+        if not os.path.isabs(baked_path):
+            baked_path = os.path.join(source_path, baked_path)
+        logger.info("Will bake config from '%s'" % baked_path)
 
-    cfg_descriptor = create_descriptor(
-        sg_connection,
-        Descriptor.CONFIG,
-        base_config_def,
-        resolve_latest=using_latest_config
-    )
+        manual_location = os.path.join(bundle_cache_root, "manual", BAKED_BUNDLE_NAME, BAKED_BUNDLE_VERSION)
+        filesystem.ensure_folder_exists(manual_location)
+        filesystem.copy_folder(baked_path, manual_location)
+
+        # now make a manual descriptor
+        descriptor = {
+            "type": "manual",
+            "version": BAKED_BUNDLE_VERSION,
+            "name": BAKED_BUNDLE_NAME
+        }
+
+        cfg_descriptor = create_descriptor(
+            sg_connection,
+            Descriptor.CONFIG,
+            descriptor,
+            fallback_roots=[bundle_cache_root]
+        )
+
+    else:
+
+        # if the descriptor in the config contains a version number
+        # we will go into a fixed update mode.
+        if "version" in base_config_def:
+            logger.info(
+                "Your configuration definition contains a version number. "
+                "This means that the plugin will be frozen and no automatic updates "
+                "will be performed at startup."
+            )
+            using_latest_config = False
+        else:
+            logger.info(
+                "Your configuration definition does not contain a version number. "
+                "This means that the plugin will attempt to auto update at startup."
+            )
+            using_latest_config = True
+
+        cfg_descriptor = create_descriptor(
+            sg_connection,
+            Descriptor.CONFIG,
+            base_config_def,
+            resolve_latest=using_latest_config
+        )
 
     logger.info("Resolved config %r" % cfg_descriptor)
     return cfg_descriptor
@@ -180,6 +208,52 @@ def _validate_manifest(source_path):
             )
 
     return manifest_data
+
+def _bake_manifest(manifest_data, cfg_descriptor, sgtk_plugin_path):
+    """
+    Bake manifest into python files
+
+    :param manifest_data:
+    :param cfg_descriptor:
+    :param sgtk_plugin_path:
+    """
+    # write init.py
+    with open(os.path.join(sgtk_plugin_path, "__init__.py"), "wt") as fh:
+        fh.write("# this file was auto generated.\n")
+
+    # now bake out the manifest into code
+    params_path = os.path.join(sgtk_plugin_path, "manifest.py")
+    with open(params_path, "wt") as fh:
+
+        fh.write("# this file was auto generated.\n")
+
+        fh.write("\nbase_configuration=\"%s\"\n\n" % cfg_descriptor.get_uri())
+
+        for (parameter, value) in manifest_data.iteritems():
+
+            if parameter == "base_configuration":
+                continue
+
+            if isinstance(value, str):
+               fh.write("%s=\"%s\"\n" % (parameter, value.replace("\"", "'")))
+
+            elif isinstance(value, int):
+                fh.write("%s=%d\n" % (parameter, value))
+
+            elif isinstance(value, bool):
+                fh.write("%s=%s\n" % (parameter, value))
+
+            else:
+                raise ValueError(
+                    "Invalid manifest value %s: %s - data type not supported!" % (parameter, value)
+                )
+
+        fh.write("\n\n# system generated parameters\n")
+        fh.write("BUILD_DATE=\"%s\"\n" % datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+        fh.write("BUILD_FQDN=\"%s\"\n" % socket.getfqdn())
+        fh.write("BUILD_USER=\"%s\"\n" % getpass.getuser())
+
+        fh.write("# end of file.\n")
 
 def build_plugin(sg_connection, source_path, target_path):
     """
@@ -216,8 +290,9 @@ def build_plugin(sg_connection, source_path, target_path):
     manifest_data = _validate_manifest(source_path)
 
     # copy all plugin data across
+    # skip info.yml, this is baked into the manifest python code
     logger.info("Copying plugin data across...")
-    filesystem.copy_folder(source_path, target_path)
+    filesystem.copy_folder(source_path, target_path, skip_list=["info.yml"])
 
     # create bundle cache
     logger.info("Creating bundle cache folder...")
@@ -225,7 +300,7 @@ def build_plugin(sg_connection, source_path, target_path):
     filesystem.ensure_folder_exists(bundle_cache_root)
 
     # resolve config descriptor
-    cfg_descriptor = _process_configuration(sg_connection, manifest_data)
+    cfg_descriptor = _process_configuration(sg_connection, source_path, bundle_cache_root, manifest_data)
 
     # cache config in bundle cache
     logger.info("Downloading and caching config...")
@@ -246,9 +321,17 @@ def build_plugin(sg_connection, source_path, target_path):
     latest_core_desc.ensure_local()
 
     # copy into bundle_cache/tk-core
-    logger.info("Copying into fixed bootstrap location bundle_cache/tk-core...")
-    fixed_core_path = os.path.join(target_path, "bundle_cache", "tk-core")
-    latest_core_desc.copy(fixed_core_path)
+    logger.info("Copying raw core libs into fixed bootstrap location bundle_cache/python...")
+    filesystem.copy_folder(
+        os.path.join(latest_core_desc.get_path(), "python"),
+        os.path.join(target_path, "bundle_cache", "python")
+    )
+    logger.info("Copying sgtk_plugin module into bundle_cache/python...")
+    sgtk_plugin_path = os.path.join(target_path, "bundle_cache", "python", "sgtk_plugin")
+    filesystem.ensure_folder_exists(sgtk_plugin_path)
+
+    # bake out the manifest into python files.
+    _bake_manifest(manifest_data, cfg_descriptor, sgtk_plugin_path)
 
     # now analyze what core the config needs
     if cfg_descriptor.associated_core_descriptor:
