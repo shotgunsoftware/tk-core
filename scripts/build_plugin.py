@@ -243,6 +243,8 @@ def _bake_manifest(manifest_data, cfg_descriptor, sgtk_plugin_path):
     # write init.py
     with open(os.path.join(sgtk_plugin_path, "__init__.py"), "wt") as fh:
         fh.write("# this file was auto generated.\n")
+        fh.write("from . import manifest\n")
+        fh.write("# end of file.\n")
 
     # now bake out the manifest into code
     params_path = os.path.join(sgtk_plugin_path, "manifest.py")
@@ -272,11 +274,14 @@ def _bake_manifest(manifest_data, cfg_descriptor, sgtk_plugin_path):
                 )
 
         fh.write("\n\n# system generated parameters\n")
-        fh.write("BUILD_DATE=\"%s\"\n" % datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
-        fh.write("BUILD_FQDN=\"%s\"\n" % socket.getfqdn())
-        fh.write("BUILD_USER=\"%s\"\n" % getpass.getuser())
-
-        fh.write("# end of file.\n")
+        fh.write(
+            "BUILD_INFO=\"%s %s@%s\"\n" % (
+                datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
+                socket.getfqdn(),
+                getpass.getuser()
+            )
+        )
+        fh.write("\n# end of file.\n")
 
 def build_plugin(sg_connection, source_path, target_path):
     """
