@@ -49,6 +49,10 @@ REQUIRED_MANIFEST_PARAMETERS = ["base_configuration", "entry_point"]
 # the folder where all items will be cached
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
+# when we are baking a config, use these settings
+BAKED_BUNDLE_NAME = "tk-config-plugin"
+BAKED_BUNDLE_VERSION = "v1.0.0"
+
 
 class OptionParserLineBreakingEpilog(optparse.OptionParser):
     """
@@ -90,7 +94,6 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
                 sg_connection,
                 Descriptor.ENGINE,
                 env.get_engine_descriptor_dict(eng),
-                fallback_roots=[bundle_cache_root]
             )
             logger.info("Caching %s..." % desc)
             desc.clone_cache(bundle_cache_root)
@@ -101,7 +104,6 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
                     sg_connection,
                     Descriptor.APP,
                     env.get_app_descriptor_dict(eng, app),
-                    fallback_roots=[bundle_cache_root]
                 )
                 logger.info("Caching %s..." % desc)
                 desc.clone_cache(bundle_cache_root)
@@ -111,7 +113,6 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
                 sg_connection,
                 Descriptor.FRAMEWORK,
                 env.get_framework_descriptor_dict(framework),
-                fallback_roots=[bundle_cache_root]
             )
             logger.info("Caching %s..." % desc)
             desc.clone_cache(bundle_cache_root)
@@ -136,34 +137,72 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
         # convert to dict so we can introspect
         base_config_def = descriptor_uri_to_dict(base_config_def)
 
-    # if the descriptor in the config contains a version number
-    # we will go into a fixed update mode.
-    if "version" in base_config_def:
-        logger.info(
-            "Your configuration definition contains a version number. "
-            "This means that the plugin will be frozen and no automatic updates "
-            "will be performed at startup."
+    # special case - check for the 'baked' descriptor type
+    # and process it
+    if base_config_def["type"] == "baked":
+        logger.info("Baked descriptor detected.")
+
+        baked_path = os.path.expanduser(os.path.expandvars(base_config_def["path"]))
+
+        # if it's a relative path, expand it
+        if not os.path.isabs(baked_path):
+            full_baked_path = os.path.abspath(os.path.join(source_path, baked_path))
+
+            # if it's a relative path, we have already copied it to the build
+            # target location. In this case, attempt to locate it and remove it.
+            baked_target_path = os.path.abspath(os.path.join(target_path, baked_path))
+            if baked_target_path.startswith(baked_target_path):
+                logger.debug("Removing '%s' from build" % baked_target_path)
+                shutil.rmtree(baked_target_path)
+        else:
+            # path is absolute
+            full_baked_path = os.path.abspath(baked_path)
+
+        logger.info("Will bake config from '%s'" % full_baked_path)
+
+        manual_location = os.path.join(bundle_cache_root, "manual", BAKED_BUNDLE_NAME, BAKED_BUNDLE_VERSION)
+        logger.info("Copying %s -> %s" % (full_baked_path, manual_location))
+        filesystem.ensure_folder_exists(manual_location)
+        filesystem.copy_folder(full_baked_path, manual_location)
+
+        # now make a manual descriptor
+        descriptor = {
+            "type": "manual",
+            "version": BAKED_BUNDLE_VERSION,
+            "name": BAKED_BUNDLE_NAME
+        }
+
+        cfg_descriptor = create_descriptor(
+            sg_connection,
+            Descriptor.CONFIG,
+            descriptor,
+            fallback_roots=[bundle_cache_root]
         )
-        using_latest_config = False
+
     else:
-        logger.info(
-            "Your configuration definition does not contain a version number. "
-            "This means that the plugin will attempt to auto update at startup."
+
+        # if the descriptor in the config contains a version number
+        # we will go into a fixed update mode.
+        if "version" in base_config_def:
+            logger.info(
+                "Your configuration definition contains a version number. "
+                "This means that the plugin will be frozen and no automatic updates "
+                "will be performed at startup."
+            )
+            using_latest_config = False
+        else:
+            logger.info(
+                "Your configuration definition does not contain a version number. "
+                "This means that the plugin will attempt to auto update at startup."
+            )
+            using_latest_config = True
+
+        cfg_descriptor = create_descriptor(
+            sg_connection,
+            Descriptor.CONFIG,
+            base_config_def,
+            resolve_latest=using_latest_config
         )
-        using_latest_config = True
-
-    # resolve cfg descriptor
-    # note how we set the fallback roots to the bundle cache root
-    # this is in case there are any manual descriptors that are
-    # part of the config payload, to ensure that these are located correctly.
-    cfg_descriptor = create_descriptor(
-        sg_connection,
-        Descriptor.CONFIG,
-        base_config_def,
-        fallback_roots=[bundle_cache_root],
-        resolve_latest=using_latest_config
-
-    )
 
     logger.info("Resolved config %r" % cfg_descriptor)
     return cfg_descriptor
@@ -331,8 +370,7 @@ def build_plugin(sg_connection, source_path, target_path):
         associated_core_desc = create_descriptor(
             sg_connection,
             Descriptor.CORE,
-            cfg_descriptor.associated_core_descriptor,
-            fallback_roots=[bundle_cache_root]
+            cfg_descriptor.associated_core_descriptor
         )
         logger.info("Caching %s" % associated_core_desc)
         associated_core_desc.clone_cache(bundle_cache_root)
