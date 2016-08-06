@@ -51,7 +51,7 @@ BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
 # when we are baking a config, use these settings
 BAKED_BUNDLE_NAME = "tk-config-plugin"
-BAKED_BUNDLE_VERSION = "v1.0.0"
+BAKED_BUNDLE_VERSION = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
 class OptionParserLineBreakingEpilog(optparse.OptionParser):
