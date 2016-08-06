@@ -94,6 +94,7 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
                 sg_connection,
                 Descriptor.ENGINE,
                 env.get_engine_descriptor_dict(eng),
+                fallback_roots=[bundle_cache_root]
             )
             logger.info("Caching %s..." % desc)
             desc.clone_cache(bundle_cache_root)
@@ -104,6 +105,7 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
                     sg_connection,
                     Descriptor.APP,
                     env.get_app_descriptor_dict(eng, app),
+                    fallback_roots=[bundle_cache_root]
                 )
                 logger.info("Caching %s..." % desc)
                 desc.clone_cache(bundle_cache_root)
@@ -113,6 +115,7 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
                 sg_connection,
                 Descriptor.FRAMEWORK,
                 env.get_framework_descriptor_dict(framework),
+                fallback_roots=[bundle_cache_root]
             )
             logger.info("Caching %s..." % desc)
             desc.clone_cache(bundle_cache_root)
@@ -201,6 +204,7 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             sg_connection,
             Descriptor.CONFIG,
             base_config_def,
+            fallback_roots=[bundle_cache_root],
             resolve_latest=using_latest_config
         )
 
@@ -370,7 +374,8 @@ def build_plugin(sg_connection, source_path, target_path):
         associated_core_desc = create_descriptor(
             sg_connection,
             Descriptor.CORE,
-            cfg_descriptor.associated_core_descriptor
+            cfg_descriptor.associated_core_descriptor,
+            fallback_roots=[bundle_cache_root]
         )
         logger.info("Caching %s" % associated_core_desc)
         associated_core_desc.clone_cache(bundle_cache_root)
