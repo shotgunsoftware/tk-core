@@ -361,7 +361,7 @@ class IODescriptorAppStore(IODescriptorBase):
             return
 
         # cache into the primary location
-        target = self._get_cache_paths()[0]
+        target = self._get_primary_cache_path()
 
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
