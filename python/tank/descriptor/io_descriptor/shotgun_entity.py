@@ -119,7 +119,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             return
 
         # cache into the primary location
-        target = self._get_cache_paths()[0]
+        target = self._get_primary_cache_path()
 
         try:
             shotgun.download_and_unpack_attachment(self._sg_connection, self._version, target)
