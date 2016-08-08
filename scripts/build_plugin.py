@@ -467,8 +467,6 @@ if __name__ == "__main__":
     try:
         main()
         exit_code = 0
-    except TankError, e:
-        logger.error(str(e))
     except Exception, e:
         logger.exception("An exception was raised: %s" % e)
 
