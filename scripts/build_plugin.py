@@ -53,6 +53,8 @@ BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 BAKED_BUNDLE_NAME = "tk-config-plugin"
 BAKED_BUNDLE_VERSION = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
+# generation of the build syntax
+BUILD_GENERATION = 1
 
 class OptionParserLineBreakingEpilog(optparse.OptionParser):
     """
@@ -236,17 +238,18 @@ def _validate_manifest(source_path):
 
     return manifest_data
 
-def _bake_manifest(manifest_data, cfg_descriptor, python_bundle_cache):
+def _bake_manifest(manifest_data, cfg_descriptor, core_descriptor, plugin_root):
     """
     Bake the info.yml manifest into a python file.
 
     :param manifest_data: info.yml manifest data
     :param cfg_descriptor: descriptor object pointing at the config to use
-    :param sgtk_plugin_path: path to std bundle_cache/python location
+    :param core_descriptor: descriptor object pointing at core to use for bootstrap
+    :param plugin_root: Root path for plugin
     """
     # add entry point to our module to ensure multiple plugins can live side by side
     module_name = "sgtk_plugin_%s" % manifest_data["entry_point"]
-    full_module_path = os.path.join(python_bundle_cache, module_name)
+    full_module_path = os.path.join(plugin_root, "python", module_name)
     filesystem.ensure_folder_exists(full_module_path)
 
     # write init.py
@@ -284,10 +287,23 @@ def _bake_manifest(manifest_data, cfg_descriptor, python_bundle_cache):
         fh.write(
             "BUILD_INFO=\"%s %s@%s\"\n" % (
                 datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
+                getpass.getuser(),
                 socket.getfqdn(),
-                getpass.getuser()
             )
         )
+        fh.write("BUILD_GENERATION=%d\n" % BUILD_GENERATION)
+
+        # write out helper method add_sgtk_to_pythonpath()
+        core_python_path = os.path.join(core_descriptor.get_path(), "python")
+        core_python_path_relative = core_python_path[len(plugin_root)+1:]
+
+
+        fh.write("def add_sgtk_to_pythonpath(plugin_root):\n")
+        fh.write("    import sys\n")
+        fh.write("    sys.path.append(plugin_root, '%s')\n" % core_python_path_relative)
+        fh.write("\n\n")
+
+
         fh.write("\n# end of file.\n")
 
 def build_plugin(sg_connection, source_path, target_path):
@@ -345,45 +361,38 @@ def build_plugin(sg_connection, source_path, target_path):
     _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root)
 
     # get latest core
+    logger.info("Caching latest official core...")
     latest_core_desc = create_descriptor(
         sg_connection,
         Descriptor.CORE,
         {"type": "app_store", "name": "tk-core"},
-        resolve_latest=True
+        resolve_latest=True,
+        fallback_roots=[bundle_cache_root]
     )
 
-    logger.info("Downloading latest official core %s" % latest_core_desc)
-    latest_core_desc.ensure_local()
+    latest_core_desc.clone_cache(bundle_cache_root)
 
-    # copy into bundle_cache/tk-core
-    logger.info("Copying raw core libs into fixed bootstrap location bundle_cache/python...")
+    # make a python folder where we put our manifest
+    logger.info("Creating configuration manifest...")
 
-    python_bundle_cache = os.path.join(target_path, "bundle_cache", "python")
-
-    filesystem.copy_folder(
-        os.path.join(latest_core_desc.get_path(), "python"),
-        python_bundle_cache
-    )
-    logger.info("Copying sgtk_plugin module into bundle_cache/python...")
     # bake out the manifest into python files.
-    _bake_manifest(manifest_data, cfg_descriptor, python_bundle_cache)
+    _bake_manifest(
+        manifest_data,
+        cfg_descriptor,
+        latest_core_desc,
+        target_path
+    )
 
     # now analyze what core the config needs
     if cfg_descriptor.associated_core_descriptor:
-        logger.info("Config is using a custom core...")
+        logger.info("Config is using a custom core. Caching it...")
         associated_core_desc = create_descriptor(
             sg_connection,
             Descriptor.CORE,
             cfg_descriptor.associated_core_descriptor,
             fallback_roots=[bundle_cache_root]
         )
-        logger.info("Caching %s" % associated_core_desc)
         associated_core_desc.clone_cache(bundle_cache_root)
-
-    else:
-        # config requires latest core
-        logger.info("Caching latest core %s" % latest_core_desc)
-        latest_core_desc.clone_cache(bundle_cache_root)
 
 
     logger.info("")
@@ -391,7 +400,6 @@ def build_plugin(sg_connection, source_path, target_path):
     logger.info("")
     logger.info("- Your plugin is ready in '%s'" % target_path)
     logger.info("- Plugin uses config %s" % cfg_descriptor)
-    logger.info("- A bootstrap core has been installed into bundle_cache/tk-core")
     logger.info("- Bootstrap core is %s" % latest_core_desc)
     logger.info("- All dependencies have been baked out into the bundle_cache folder")
     logger.info("")
