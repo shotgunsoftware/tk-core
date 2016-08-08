@@ -300,7 +300,10 @@ def _bake_manifest(manifest_data, cfg_descriptor, core_descriptor, plugin_root):
 
         fh.write("def add_sgtk_to_pythonpath(plugin_root):\n")
         fh.write("    import sys\n")
-        fh.write("    sys.path.append(plugin_root, '%s')\n" % core_python_path_relative)
+        fh.write("    import os\n")
+        fh.write("    core_path = os.path.join(plugin_root, '%s')\n" % core_python_path_relative)
+        fh.write("    sys.path.append(core_path)\n")
+        fh.write("    return core_path\n")
         fh.write("\n\n")
 
 
