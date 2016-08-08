@@ -140,7 +140,7 @@ class IODescriptorManual(IODescriptorBase):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: instance deriving from IODescriptorBase
+        :returns: instance deriving from IODescriptorBase or None if not found
         """
         # manual descriptor is always manually managed
         # we also assume that the manual descriptor always exists

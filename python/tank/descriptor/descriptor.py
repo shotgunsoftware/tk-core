@@ -396,12 +396,17 @@ class Descriptor(object):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: instance derived from :class:`Descriptor`
+        :returns: Instance derived from :class:`Descriptor` or None if no cached version
+                  is available.
         """
+        io_desc = self._io_descriptor.get_latest_cached_version(constraint_pattern)
+        if io_desc is None:
+            return None
+
         # make a copy of the descriptor
         latest = copy.copy(self)
         # find latest I/O descriptor
-        latest._io_descriptor = self._io_descriptor.get_latest_cached_version(constraint_pattern)
+        latest._io_descriptor = io_desc
         return latest
 
 

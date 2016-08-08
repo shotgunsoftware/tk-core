@@ -244,7 +244,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: instance deriving from IODescriptorBase
+        :returns: instance deriving from IODescriptorBase or None if not found
         """
         if constraint_pattern:
             log.warning("%s does not support version constraint patterns." % self)
@@ -265,7 +265,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         log.debug("Found %d versions" % len(all_versions))
 
         if len(all_versions) == 0:
-            raise TankDescriptorError("No cached versions of %s found." % self)
+            return None
 
         # make a descriptor dict
         descriptor_dict = {

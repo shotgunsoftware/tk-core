@@ -222,8 +222,12 @@ class IODescriptorGitTag(IODescriptorGit):
                 "Git repository %s doesn't have any tags!" % self._path
             )
 
-        return self._find_latest_tag_by_pattern(git_tags, pattern)
-
+        latest_tag = self._find_latest_tag_by_pattern(git_tags, pattern)
+        if latest_tag is None:
+            raise TankDescriptorError(
+                "'%s' does not have a version matching the pattern '%s'. "
+                "Available versions are: %s" % (self.get_system_name(), pattern, ", ".join(git_tags))
+            )
 
     def _get_latest_version(self):
         """
@@ -262,7 +266,7 @@ class IODescriptorGitTag(IODescriptorGit):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: instance deriving from IODescriptorBase
+        :returns: instance deriving from IODescriptorBase or None if not found
         """
         log.debug("Looking for cached versions of %r..." % self)
         # for each of the cache paths, look one level above
@@ -280,10 +284,12 @@ class IODescriptorGitTag(IODescriptorGit):
         log.debug("Found %d versions" % len(all_versions))
 
         if len(all_versions) == 0:
-            raise TankDescriptorError("No cached versions of %s found." % self)
+            return None
 
         # get latest
         version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
+        if version_to_use is None:
+            return None
 
         # create new descriptor to represent this tag
         new_loc_dict = copy.deepcopy(self._descriptor_dict)

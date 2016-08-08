@@ -168,7 +168,7 @@ class IODescriptorPath(IODescriptorBase):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: instance deriving from IODescriptorBase
+        :returns: instance deriving from IODescriptorBase or None if not found
         """
         # we are always the latest version
         # also assume that the payload always exists on disk.

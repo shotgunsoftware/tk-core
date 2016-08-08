@@ -415,7 +415,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: instance deriving from IODescriptorBase
+        :returns: instance deriving from IODescriptorBase or None if not found
         """
         log.debug("Looking for cached versions of %r..." % self)
         # for each of the cache paths, look one level above
@@ -433,9 +433,11 @@ class IODescriptorAppStore(IODescriptorBase):
         log.debug("Found %d versions" % len(all_versions))
 
         if len(all_versions) == 0:
-            raise TankDescriptorError("No cached versions of %s found." % self)
+            return None
 
         version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
+        if version_to_use is None:
+            return None
 
         # make a descriptor dict
         descriptor_dict = {"type": "app_store", "name": self._name, "version": version_to_use}
@@ -528,6 +530,11 @@ class IODescriptorAppStore(IODescriptorBase):
 
         version_numbers = [x.get("code") for x in sg_data]
         version_to_use = self._find_latest_tag_by_pattern(version_numbers, version_pattern)
+        if version_to_use is None:
+            raise TankDescriptorError(
+                "'%s' does not have a version matching the pattern '%s'. "
+                "Available versions are: %s" % (self.get_system_name(), version_pattern, ", ".join(version_numbers))
+            )
 
         # make a descriptor dict
         descriptor_dict = {"type": "app_store", "name": self._name, "version": version_to_use}

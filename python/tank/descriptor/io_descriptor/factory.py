@@ -144,7 +144,12 @@ def create_io_descriptor(
             descriptor = descriptor.get_latest_version(constraint_pattern)
         else:
             log.debug("Remote connection is not available - falling back on getting latest version from cache...")
-            descriptor = descriptor.get_latest_cached_version(constraint_pattern)
+            latest_cached_descriptor = descriptor.get_latest_cached_version(constraint_pattern)
+            if descriptor is None:
+                raise TankDescriptorError("No cached versions of %r cached locally on disk." % descriptor)
+
+            log.debug("Latest cached descriptor is %r" % latest_cached_descriptor)
+            descriptor = latest_cached_descriptor
 
         log.debug("Resolved latest to be %r" % descriptor)
 

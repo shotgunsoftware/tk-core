@@ -199,14 +199,11 @@ class IODescriptorBase(object):
             - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
             - None (latest version is returned)
 
-        :returns: The most appropriate tag in the given list of tags
+        :returns: The most appropriate tag in the given list of tags or None if no tag matches
         :raises: TankDescriptorError if parsing fails
         """
         if len(version_numbers) == 0:
-            raise TankDescriptorError(
-                "'%s' does not have a version matching the pattern '%s'. "
-                "There are no available versions." % (self.get_system_name(), pattern)
-            )
+            return None
 
         # first handle case where pattern is None
         if pattern is None:
@@ -284,10 +281,8 @@ class IODescriptorBase(object):
                 version_digit = max(current.keys(), key=int)
             version_digit = int(version_digit)
             if version_digit not in current:
-                raise TankDescriptorError(
-                    "'%s' does not have a version matching the pattern '%s'. "
-                    "Available versions are: %s" % (self.get_system_name(), pattern, ", ".join(version_numbers))
-                )
+                # no matches
+                return None
             current = current[version_digit]
             if version_to_use is None:
                 version_to_use = "v%d" % version_digit
@@ -672,7 +667,7 @@ class IODescriptorBase(object):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: instance deriving from IODescriptorBase
+        :returns: instance deriving from IODescriptorBase or None if not found
         """
         raise NotImplementedError
 

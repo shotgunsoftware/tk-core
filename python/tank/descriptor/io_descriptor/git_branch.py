@@ -208,7 +208,7 @@ class IODescriptorGitBranch(IODescriptorGit):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: instance deriving from IODescriptorBase
+        :returns: instance deriving from IODescriptorBase or None if not found
         """
         # not possible to determine what 'latest' means in this case
         # so check if the current descriptor exists on disk and in this
@@ -217,5 +217,5 @@ class IODescriptorGitBranch(IODescriptorGit):
             return self
         else:
             # no cached version exists
-            raise TankDescriptorError("No cached versions of %s found." % self)
+            return None
 
