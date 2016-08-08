@@ -532,19 +532,31 @@ class IODescriptorBase(object):
         """
         return self.get_path() is not None
 
+    def _get_primary_cache_path(self):
+        """
+        Get the path to the cache location in the bundle cache.
+
+        This is the location where new app content should be
+        downloaded to. This path is always returned as part
+        of :meth:`_get_cache_paths`.
+
+        .. note:: This method only computes paths and does not perform any I/O ops.
+
+        :return: Path to the bundle cache location for this item.
+        """
+        return self._get_bundle_cache_path(self._bundle_cache_root)
+
     def _get_cache_paths(self):
         """
-        Get a list of resolved paths, starting with the primary and
-        continuing with alternative locations.
+        Get a list of resolved paths, starting with the fallback roots
+        in order and finishing with the bundle cache location.
 
         .. note:: This method only computes paths and does not perform any I/O ops.
 
         :return: List of path strings
         """
-        paths = []
-
-        for root in self._fallback_roots + [self._bundle_cache_root]:
-            paths.append(self._get_bundle_cache_path(root))
+        paths = [self._get_bundle_cache_path(x) for x in self._fallback_roots]
+        paths.append(self._get_primary_cache_path())
         return paths
 
     def get_path(self):

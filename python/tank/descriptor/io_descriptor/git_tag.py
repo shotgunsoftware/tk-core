@@ -147,7 +147,7 @@ class IODescriptorGitTag(IODescriptorGit):
             return
 
         # cache into the primary location
-        target = self._get_cache_paths()[0]
+        target = self._get_primary_cache_path()
 
         try:
             # clone the repo, checkout the given tag
