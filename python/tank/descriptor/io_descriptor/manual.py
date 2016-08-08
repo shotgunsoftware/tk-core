@@ -110,7 +110,7 @@ class IODescriptorManual(IODescriptorBase):
         """
         # ensure that this exists on disk
         if not self.exists_local():
-            raise TankDescriptorError("%s does not exist on disk!")
+            raise TankDescriptorError("%s does not exist on disk!" % self)
 
     def get_latest_version(self, constraint_pattern=None):
         """
