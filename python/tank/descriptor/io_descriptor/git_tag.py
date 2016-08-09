@@ -229,6 +229,8 @@ class IODescriptorGitTag(IODescriptorGit):
                 "Available versions are: %s" % (self.get_system_name(), pattern, ", ".join(git_tags))
             )
 
+        return latest_tag
+
     def _get_latest_version(self):
         """
         Returns a descriptor object that represents the latest version.

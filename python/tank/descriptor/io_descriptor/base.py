@@ -257,7 +257,6 @@ class IODescriptorBase(object):
                 current = current[number]
 
         # now search for the latest version matching our pattern
-        version_to_use = None
         if not re.match("^v([0-9]+|x)(.([0-9]+|x)){2,}$", pattern):
             raise TankDescriptorError("Cannot parse version expression '%s'!" % pattern)
 
