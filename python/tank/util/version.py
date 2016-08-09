@@ -31,6 +31,10 @@ def is_version_newer(a, b):
     a=master b=0.13.4 -- Returns False
 
     """
+    if b is None:
+        # a is always newer than None
+        return True
+
     if is_version_head(a):
         # our version is latest
         return True
