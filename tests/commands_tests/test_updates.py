@@ -314,6 +314,12 @@ class TankMockStoreDescriptor(IODescriptorBase):
 
         return {"frameworks": bundle.required_frameworks}
 
+    def has_remote_access(self):
+        """
+        Do we have a remote connection?
+        """
+        return True
+
 
 class _Patcher(object):
     """

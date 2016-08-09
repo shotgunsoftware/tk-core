@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -36,7 +36,7 @@ class IODescriptorPath(IODescriptorBase):
     Name is optional and if not specified will be determined based on folder path.
     If name is not specified and path is /tmp/foo/bar, the name will set to 'bar'
     """
-    
+
     def __init__(self, descriptor_dict):
         """
         Constructor
@@ -156,6 +156,24 @@ class IODescriptorPath(IODescriptorBase):
         # we are always the latest version :)
         return self
 
+    def get_latest_cached_version(self, constraint_pattern=None):
+        """
+        Returns a descriptor object that represents the latest version
+        that is locally available in the bundle cache search path.
+
+        :param constraint_pattern: If this is specified, the query will be constrained
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
+
+        :returns: instance deriving from IODescriptorBase or None if not found
+        """
+        # we are always the latest version
+        # also assume that the payload always exists on disk.
+        return self
+
     def clone_cache(self, cache_root):
         """
         The descriptor system maintains an internal cache where it downloads
@@ -173,3 +191,15 @@ class IODescriptorPath(IODescriptorBase):
         """
         # no payload is cached at all, so nothing to do
         log.debug("Clone cache for %r: Not copying anything for this descriptor type")
+
+    def has_remote_access(self):
+        """
+        Probes if the current descriptor is able to handle
+        remote requests. If this method returns, true, operations
+        such as :meth:`download_local` and :meth:`get_latest_version`
+        can be expected to succeed.
+
+        :return: True if a remote is accessible, false if not.
+        """
+        # the remote is the same as the cache for path descriptors
+        return True

@@ -403,6 +403,41 @@ class IODescriptorAppStore(IODescriptorBase):
     #############################################################################
     # searching for other versions
 
+    def get_latest_cached_version(self, constraint_pattern=None):
+        """
+        Returns a descriptor object that represents the latest version
+        that is locally available in the bundle cache search path.
+
+        :param constraint_pattern: If this is specified, the query will be constrained
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
+
+        :returns: instance deriving from IODescriptorBase or None if not found
+        """
+        log.debug("Looking for cached versions of %r..." % self)
+        all_versions = self._get_locally_cached_versions()
+        log.debug("Found %d versions" % len(all_versions))
+
+        if len(all_versions) == 0:
+            return None
+
+        version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
+        if version_to_use is None:
+            return None
+
+        # make a descriptor dict
+        descriptor_dict = {"type": "app_store", "name": self._name, "version": version_to_use}
+
+        # and return a descriptor instance
+        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
+        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+
+        log.debug("Latest cached version resolved to %r" % desc)
+        return desc
+
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
@@ -484,6 +519,11 @@ class IODescriptorAppStore(IODescriptorBase):
 
         version_numbers = [x.get("code") for x in sg_data]
         version_to_use = self._find_latest_tag_by_pattern(version_numbers, version_pattern)
+        if version_to_use is None:
+            raise TankDescriptorError(
+                "'%s' does not have a version matching the pattern '%s'. "
+                "Available versions are: %s" % (self.get_system_name(), version_pattern, ", ".join(version_numbers))
+            )
 
         # make a descriptor dict
         descriptor_dict = {"type": "app_store", "name": self._name, "version": version_to_use}
@@ -731,3 +771,25 @@ class IODescriptorAppStore(IODescriptorBase):
         log.debug("Retrieved app store credentials for account '%s'." % data["script_name"])
 
         return data["script_name"], data["script_key"]
+
+    def has_remote_access(self):
+        """
+        Probes if the current descriptor is able to handle
+        remote requests. If this method returns, true, operations
+        such as :meth:`download_local` and :meth:`get_latest_version`
+        can be expected to succeed.
+
+        :return: True if a remote is accessible, false if not.
+        """
+        # check if we can connect to Shotgun
+        can_connect = True
+        try:
+            log.debug("%r: Probing if a connection to the App Store can be established..." % self)
+            # connect to the app store
+            (sg, _) = self.__create_sg_app_store_connection()
+            log.debug("...connection established: %s" % sg)
+        except Exception, e:
+            log.debug("...could not establish connection: %s" % e)
+            can_connect = False
+        return can_connect
+

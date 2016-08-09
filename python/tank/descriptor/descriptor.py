@@ -43,6 +43,11 @@ def create_descriptor(
                            the descriptor dictionary/uri. Please note that setting this flag
                            to true will typically affect performance - an external connection
                            is often required in order to establish what the latest version is.
+
+                           If a remote connection cannot be established when attempting to determine
+                           the latest version, a local scan will be carried out and the highest
+                           version number that is cached locally will be returned.
+
     :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain
                            the search for latest to only take part over a subset of versions.
                            This is a string that can be on the following form:
@@ -376,6 +381,50 @@ class Descriptor(object):
         # find latest I/O descriptor
         latest._io_descriptor = self._io_descriptor.get_latest_version(constraint_pattern)
         return latest
+
+    def find_latest_cached_version(self, constraint_pattern=None):
+        """
+        Returns a descriptor object that represents the latest version
+        that can be found in the local bundle caches.
+
+        .. note:: Different descriptor types implements this logic differently,
+                  but general good practice is to follow the semantic version numbering
+                  standard for any versions used in conjunction with toolkit. This ensures
+                  that toolkit can track and correctly determine not just the latest version
+                  but also apply constraint pattern matching such as looking for the latest
+                  version matching the pattern ``v1.x.x``. You can read more about semantic
+                  versioning here: http://semver.org/
+
+        :param constraint_pattern: If this is specified, the query will be constrained
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
+
+        :returns: Instance derived from :class:`Descriptor` or None if no cached version
+                  is available.
+        """
+        io_desc = self._io_descriptor.get_latest_cached_version(constraint_pattern)
+        if io_desc is None:
+            return None
+
+        # make a copy of the descriptor
+        latest = copy.copy(self)
+        # find latest I/O descriptor
+        latest._io_descriptor = io_desc
+        return latest
+
+    def has_remote_access(self):
+        """
+        Probes if the current descriptor is able to handle
+        remote requests. If this method returns, true, operations
+        such as :meth:`download_local` and :meth:`find_latest_version`
+        can be expected to succeed.
+
+        :return: True if a remote is accessible, false if not.
+        """
+        return self._io_descriptor.has_remote_access()
 
     # compatibility accessors to ensure that all systems
     # calling this (previously internal!) parts of toolkit
