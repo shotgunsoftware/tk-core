@@ -159,6 +159,8 @@ class ConfigurationResolver(object):
         fields = [
             "code",
             "users",
+            "entry_point",
+            "sg_entry_point",
             "windows_path",
             "linux_path",
             "mac_path",
@@ -183,15 +185,6 @@ class ConfigurationResolver(object):
                         {
                             "filter_operator": "any",
                             "filters": [
-                                ["entry_point", "is", self._entry_point],
-                                ["sg_entry_point", "is", self._entry_point],
-                            ]
-                        },
-
-
-                        {
-                            "filter_operator": "any",
-                            "filters": [
                                 ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
                                 ["users.HumanUser.login", "contains", current_login]
                             ]
@@ -210,6 +203,11 @@ class ConfigurationResolver(object):
             primary_config = None
             user_config = None
             for pc in pipeline_configs:
+
+                # make sure configuration matches our entry point
+                if pc.get("entry_point") != self._entry_point and pc.get("sg_entry_point") != self._entry_point:
+                    continue
+
                 if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
                     primary_config = pc
                 else:
@@ -233,40 +231,30 @@ class ConfigurationResolver(object):
 
             pipeline_configs = sg_connection.find(
                 "PipelineConfiguration",
-
-                [{
-                    "filter_operator": "all",
-                    "filters": [
-                        ["project", "is", self._project_id],
-                        ["code", "is", pipeline_config_name],
-                        {
-                            "filter_operator": "any",
-                            "filters": [
-                                ["entry_point", "is", self._entry_point],
-                                ["sg_entry_point", "is", self._entry_point],
-                            ]
-                        }
-                    ]
-                }],
-
+                [
+                    ["project", "is", self._project_id],
+                    ["code", "is", pipeline_config_name],
+                ],
                 fields,
-                order=[{"field_name": "updated_at", "direction": "desc"}]
+                order=[{"field_name": "updated_at", "direction": "asc"}]
             )
 
             log.debug(
                 "The following pipeline configurations were found: %s" % pprint.pformat(pipeline_configs)
             )
 
-            if len(pipeline_configs) > 1:
-                log.warning(
-                    "More than one shotgun pipeline configuration found in Shotgun "
-                    "for project id %s, name '%s'. Will pick the first item out of "
-                    "the result." % (self._project_id, pipeline_config_name)
-                )
-                pipeline_config = pipeline_configs[0]
+            for pc in pipeline_configs:
 
-            elif len(pipeline_configs) == 1:
-                pipeline_config = pipeline_configs[0]
+                # make sure configuration matches our entry point
+                if pc.get("entry_point") != self._entry_point and pc.get("sg_entry_point") != self._entry_point:
+                    continue
+
+                if pipeline_config:
+                    log.warning(
+                        "More than one user config detected. Will use the most "
+                        "recently updated one."
+                    )
+                pipeline_config = pc
 
 
         # now resolve the descriptor to use based on the pipeline config record

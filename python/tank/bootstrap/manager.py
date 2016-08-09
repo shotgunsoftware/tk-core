@@ -318,11 +318,13 @@ class ToolkitManager(object):
 
         if self._do_shotgun_config_lookup:
             # do the full resolve where we connect to shotgun etc.
+            log.debug("Checking for pipeline configuration overrides in Shotgun.")
+            log.debug("In order to turn this off, set do_shotgun_config_lookup to False")
             config = resolver.resolve_shotgun_configuration(
                 self._pipeline_configuration_name,
                 self._base_config_descriptor,
                 self._sg_connection,
-                self._sg_user.get_login()
+                self._sg_user.login
             )
 
         else:
