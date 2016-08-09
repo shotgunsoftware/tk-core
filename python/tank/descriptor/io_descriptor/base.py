@@ -299,6 +299,36 @@ class IODescriptorBase(object):
 
         return version_to_use
 
+    def _get_locally_cached_versions(self):
+        """
+        Given all cache locations, try to establish a list of versions
+        available on disk.
+
+        note that this logic is not applicable to all descriptor types,
+        one ones which are listing all its versions as subfolders under
+        a root location.
+
+        :return: list of version strings
+        """
+        all_versions = set()
+        for possible_cache_path in self._get_cache_paths():
+            # get the parent folder for the current version path
+            parent_folder = os.path.dirname(possible_cache_path)
+            # now look for child folders here - these are all the
+            # versions stored in this cache area
+            log.debug("Scanning for versions in '%s'" % parent_folder)
+            if os.path.exists(parent_folder):
+                for version_folder in os.listdir(parent_folder):
+                    version_full_path = os.path.join(parent_folder, version_folder)
+                    # check that it's a folder and not a system folder
+                    if os.path.isdir(version_full_path) and \
+                            not version_folder.startswith("_") and \
+                            not version_folder.startswith("."):
+                        all_versions.add(version_folder)
+
+        return list(all_versions)
+
+
     def copy(self, target_path):
         """
         Copy the contents of the descriptor to an external location
@@ -671,7 +701,7 @@ class IODescriptorBase(object):
         """
         raise NotImplementedError
 
-    def has_remote(self):
+    def has_remote_access(self):
         """
         Probes if the current descriptor is able to handle
         remote requests. If this method returns, true, operations

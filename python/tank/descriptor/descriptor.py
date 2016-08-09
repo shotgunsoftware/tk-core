@@ -409,6 +409,16 @@ class Descriptor(object):
         latest._io_descriptor = io_desc
         return latest
 
+    def has_remote_access(self):
+        """
+        Probes if the current descriptor is able to handle
+        remote requests. If this method returns, true, operations
+        such as :meth:`download_local` and :meth:`find_latest_version`
+        can be expected to succeed.
+
+        :return: True if a remote is accessible, false if not.
+        """
+        return self._io_descriptor.has_remote_access()
 
     # compatibility accessors to ensure that all systems
     # calling this (previously internal!) parts of toolkit

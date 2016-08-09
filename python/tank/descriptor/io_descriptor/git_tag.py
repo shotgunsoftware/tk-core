@@ -269,18 +269,7 @@ class IODescriptorGitTag(IODescriptorGit):
         :returns: instance deriving from IODescriptorBase or None if not found
         """
         log.debug("Looking for cached versions of %r..." % self)
-        # for each of the cache paths, look one level above
-        # and enumerate all items
-        all_versions = []
-
-        for possible_cache_path in self._get_cache_paths():
-            parent_folder = os.path.dirname(possible_cache_path)
-            log.debug("looking in '%s'" % parent_folder)
-            if os.path.exists(parent_folder):
-                for version_folder in os.listdir(parent_folder):
-                    if version_folder.startswith("v"):
-                        all_versions.append(version_folder)
-
+        all_versions = self._get_locally_cached_versions()
         log.debug("Found %d versions" % len(all_versions))
 
         if len(all_versions) == 0:

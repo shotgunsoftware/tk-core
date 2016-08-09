@@ -250,18 +250,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             log.warning("%s does not support version constraint patterns." % self)
 
         log.debug("Looking for cached versions of %r..." % self)
-        # for each of the cache paths, look one level above
-        # and enumerate all items
-        all_versions = []
-
-        for possible_cache_path in self._get_cache_paths():
-            parent_folder = os.path.dirname(possible_cache_path)
-            log.debug("looking in '%s'" % parent_folder)
-            if os.path.exists(parent_folder):
-                for version_folder in os.listdir(parent_folder):
-                    if version_folder.startswith("v") and version_folder[1:].isdigit():
-                        all_versions.append(int(version_folder[1:]))
-
+        all_versions = self._get_locally_cached_versions()
         log.debug("Found %d versions" % len(all_versions))
 
         if len(all_versions) == 0:
@@ -286,7 +275,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         log.debug("Latest cached version resolved to %r" % desc)
         return desc
 
-    def has_remote(self):
+    def has_remote_access(self):
         """
         Probes if the current descriptor is able to handle
         remote requests. If this method returns, true, operations

@@ -192,7 +192,7 @@ class IODescriptorPath(IODescriptorBase):
         # no payload is cached at all, so nothing to do
         log.debug("Clone cache for %r: Not copying anything for this descriptor type")
 
-    def has_remote(self):
+    def has_remote_access(self):
         """
         Probes if the current descriptor is able to handle
         remote requests. If this method returns, true, operations

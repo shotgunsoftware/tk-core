@@ -146,7 +146,7 @@ class IODescriptorManual(IODescriptorBase):
         # we also assume that the manual descriptor always exists
         return self
 
-    def has_remote(self):
+    def has_remote_access(self):
         """
         Probes if the current descriptor is able to handle
         remote requests. If this method returns, true, operations

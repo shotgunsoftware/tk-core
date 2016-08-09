@@ -177,7 +177,7 @@ class IODescriptorGit(IODescriptorBase):
         (name, ext) = os.path.splitext(bn)
         return name
 
-    def has_remote(self):
+    def has_remote_access(self):
         """
         Probes if the current descriptor is able to handle
         remote requests. If this method returns, true, operations

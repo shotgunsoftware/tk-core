@@ -139,7 +139,7 @@ def create_io_descriptor(
         # and if that fails, fall back on the latest item
         # available in the local cache.
         log.debug("Trying to resolve latest version...")
-        if descriptor.has_remote():
+        if descriptor.has_remote_access():
             log.debug("Remote connection is available - attempting to get latest version from remote...")
             descriptor = descriptor.get_latest_version(constraint_pattern)
         else:
