@@ -84,7 +84,7 @@ The typical things an engine needs to handle are:
 
 
 Engine Events
-++++++++++++++++++++++++++++
+============================
 
 Engines have the ability to emit events that can then be handled by Toolkit Apps. The design follows closely
 that of Qt's events, where event handler methods can be implemented in a Toolkit App to execute custom
