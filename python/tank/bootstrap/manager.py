@@ -44,7 +44,7 @@ class ToolkitManager(object):
 
         # defaults
         self._bundle_cache_fallback_paths = []
-        self._pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
+        self._pipeline_configuration_name = None
         self._base_config_descriptor = None
         self._progress_cb = None
         self._do_shotgun_config_lookup = True
@@ -64,15 +64,13 @@ class ToolkitManager(object):
     def _get_pipeline_configuration(self):
         """
         The pipeline configuration that is being operated on.
-        By default, the primary pipeline config will be used.
+        By default, the manager will attempt to automatically determine
+        which pipeline configuration to use based on the data in Shotgun,
+        taking into account the assigned users field.
         """
         return self._pipeline_configuration_name
 
     def _set_pipeline_configuration(self, name):
-        """
-        The pipeline configuration that is being operated on.
-        By default, the primary pipeline config will be used.
-        """
         self._pipeline_configuration_name = name
 
     pipeline_configuration = property(_get_pipeline_configuration, _set_pipeline_configuration)
@@ -323,7 +321,8 @@ class ToolkitManager(object):
             config = resolver.resolve_shotgun_configuration(
                 self._pipeline_configuration_name,
                 self._base_config_descriptor,
-                self._sg_connection
+                self._sg_connection,
+                self._sg_user.get_login()
             )
 
         else:
