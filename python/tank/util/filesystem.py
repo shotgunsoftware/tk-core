@@ -18,6 +18,7 @@ import sys
 import errno
 import stat
 import shutil
+import datetime
 import functools
 from .. import LogManager
 
@@ -261,6 +262,22 @@ def move_folder(src, dst, folder_permissions=0775):
                 os.remove(f)
             except Exception, e:
                 log.error("Could not delete file %s: %s" % (f, e))
+
+@with_cleared_umask
+def backup_folder(src, dst=None):
+    """
+    Moves the given directory into
+    :param src:
+    :param dst:
+    :return:
+    """
+    if os.path.exists(src):
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        if dst is None:
+            backup_path = "%s.%s" % (src, timestamp)
+        else:
+            backup_path = os.path.join(dst, "%s.%s" % (os.path.basename(src), timestamp))
+        move_folder(src, backup_path)
 
 def create_valid_filename(value):
     """

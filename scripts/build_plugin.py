@@ -350,11 +350,8 @@ def build_plugin(sg_connection, source_path, target_path):
 
     # check that target path doesn't exist
     if os.path.exists(target_path):
-        logger.info("The folder '%s' already exists on disk." % target_path)
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_path = "%s.%s" % (target_path, timestamp)
-        filesystem.move_folder(target_path, backup_path)
-        logger.info("...moved it to '%s'" % backup_path)
+        logger.info("The folder '%s' already exists on disk. Moving it to backup location" % target_path)
+        filesystem.backup_folder(target_path)
 
     # try to create target path
     filesystem.ensure_folder_exists(target_path)
