@@ -257,7 +257,7 @@ def _bake_manifest(manifest_data, cfg_descriptor, core_descriptor, plugin_root):
     :param plugin_root: Root path for plugin
     """
     # add entry point to our module to ensure multiple plugins can live side by side
-    module_name = "sgtk_plugin_%s" % manifest_data["entry_point"]
+    module_name = "tk_plugin_%s" % manifest_data["entry_point"]
     full_module_path = os.path.join(plugin_root, "python", module_name)
     filesystem.ensure_folder_exists(full_module_path)
 
