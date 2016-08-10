@@ -362,7 +362,7 @@ def build_plugin(sg_connection, source_path, target_path):
     # copy all plugin data across
     # skip info.yml, this is baked into the manifest python code
     logger.info("Copying plugin data across...")
-    filesystem.copy_folder(source_path, target_path, skip_list=["info.yml"])
+    filesystem.copy_folder(source_path, target_path, skip_list=["info.yml", ".git"])
 
     # create bundle cache
     logger.info("Creating bundle cache folder...")
