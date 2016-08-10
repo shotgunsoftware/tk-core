@@ -503,7 +503,11 @@ class InstalledEnvironment(Environment):
     """
     def __init__(self, env_path, pipeline_config, context=None):
         """
-        Constructor
+        :param env_path: Path to the environment file
+        :param pipeline_config: Pipeline configuration assocaited with the installed environment
+        :param context: Optional context object. If this is omitted,
+                        context-based include file resolve will be
+                        skipped.
         """
         super(InstalledEnvironment, self).__init__(env_path, context)
         self.__pipeline_config = pipeline_config
@@ -573,7 +577,11 @@ class WritableEnvironment(InstalledEnvironment):
 
     def __init__(self, env_path, pipeline_config, context=None):
         """
-        Constructor
+        :param env_path: Path to the environment file
+        :param pipeline_config: Pipeline configuration assocaited with the installed environment
+        :param context: Optional context object. If this is omitted,
+                        context-based include file resolve will be
+                        skipped.
         """
         self.set_yaml_preserve_mode(True)
         super(WritableEnvironment, self).__init__(env_path, pipeline_config, context)

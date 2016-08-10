@@ -142,8 +142,14 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
         # convert to dict so we can introspect
         base_config_def = descriptor_uri_to_dict(base_config_def)
 
-    # special case - check for the 'baked' descriptor type
-    # and process it
+    # Special case - check for the 'baked' descriptor type
+    # and process it. A baked descriptor is a special concept
+    # that only exists in the build script. The baked descriptor
+    # takes a single path parameter which can be a local or absolute
+    # path. The path is copied across by the build script into a
+    # manual descriptor, with a version number based on the current date.
+    # This ensures that the manual descriptor will be correctly
+    # re-cached at bootstrap time.
     if base_config_def["type"] == "baked":
         logger.info("Baked descriptor detected.")
 
@@ -226,8 +232,11 @@ def _validate_manifest(source_path):
         raise TankError("Cannot find plugin manifest '%s'" % manifest_path)
 
     logger.debug("Reading %s" % manifest_path)
-    with open(manifest_path, "rt") as fh:
-        manifest_data = yaml.load(fh)
+    try:
+        with open(manifest_path, "rt") as fh:
+            manifest_data = yaml.load(fh)
+    except Exception, e:
+        raise TankError("Cannot parse info.yml manifest: %s" % e)
 
     logger.debug("Validating manifest...")
     for parameter in REQUIRED_MANIFEST_PARAMETERS:
@@ -252,62 +261,72 @@ def _bake_manifest(manifest_data, cfg_descriptor, core_descriptor, plugin_root):
     full_module_path = os.path.join(plugin_root, "python", module_name)
     filesystem.ensure_folder_exists(full_module_path)
 
-    # write init.py
-    with open(os.path.join(full_module_path, "__init__.py"), "wt") as fh:
-        fh.write("# this file was auto generated.\n")
-        fh.write("from . import manifest\n")
-        fh.write("# end of file.\n")
+    # write __init__.py
+    try:
+        with open(os.path.join(full_module_path, "__init__.py"), "wt") as fh:
+            fh.write("# this file was auto generated.\n")
+            fh.write("from . import manifest\n")
+            fh.write("# end of file.\n")
+    except Exception, e:
+        raise TankError("Cannot write __init__.py file: %s" % e)
+
 
     # now bake out the manifest into code
     params_path = os.path.join(full_module_path, "manifest.py")
-    with open(params_path, "wt") as fh:
 
-        fh.write("# this file was auto generated.\n")
+    try:
 
-        fh.write("\nbase_configuration=\"%s\"\n\n" % cfg_descriptor.get_uri())
+        with open(params_path, "wt") as fh:
 
-        for (parameter, value) in manifest_data.iteritems():
+            fh.write("# this file was auto generated.\n")
 
-            if parameter == "base_configuration":
-                # configuration is processed separately
-                continue
+            fh.write("\nbase_configuration=\"%s\"\n\n" % cfg_descriptor.get_uri())
 
-            if isinstance(value, str):
-               fh.write("%s=\"%s\"\n" % (parameter, value.replace("\"", "'")))
-            elif isinstance(value, int):
-                fh.write("%s=%d\n" % (parameter, value))
-            elif isinstance(value, bool):
-                fh.write("%s=%s\n" % (parameter, value))
-            else:
-                raise ValueError(
-                    "Invalid manifest value %s: %s - data type not supported!" % (parameter, value)
+            for (parameter, value) in manifest_data.iteritems():
+
+                if parameter == "base_configuration":
+                    # configuration is processed separately
+                    continue
+
+                if isinstance(value, str):
+                   fh.write("%s=\"%s\"\n" % (parameter, value.replace("\"", "'")))
+                elif isinstance(value, int):
+                    fh.write("%s=%d\n" % (parameter, value))
+                elif isinstance(value, bool):
+                    fh.write("%s=%s\n" % (parameter, value))
+                else:
+                    raise ValueError(
+                        "Invalid manifest value %s: %s - data type not supported!" % (parameter, value)
+                    )
+
+            fh.write("\n\n# system generated parameters\n")
+            fh.write(
+                "BUILD_INFO=\"%s %s@%s\"\n" % (
+                    datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
+                    getpass.getuser(),
+                    socket.getfqdn(),
                 )
-
-        fh.write("\n\n# system generated parameters\n")
-        fh.write(
-            "BUILD_INFO=\"%s %s@%s\"\n" % (
-                datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
-                getpass.getuser(),
-                socket.getfqdn(),
             )
-        )
-        fh.write("BUILD_GENERATION=%d\n" % BUILD_GENERATION)
+            fh.write("BUILD_GENERATION=%d\n" % BUILD_GENERATION)
 
-        # write out helper method add_sgtk_to_pythonpath()
-        core_python_path = os.path.join(core_descriptor.get_path(), "python")
-        core_python_path_relative = core_python_path[len(plugin_root)+1:]
+            # write out helper method add_sgtk_to_pythonpath()
+            core_python_path = os.path.join(core_descriptor.get_path(), "python")
+            core_python_path_relative = core_python_path[len(plugin_root)+1:]
 
+            fh.write("\n\n")
+            fh.write("def add_sgtk_to_pythonpath(plugin_root):\n")
+            fh.write("    import sys\n")
+            fh.write("    import os\n")
+            fh.write("    core_path = os.path.join(plugin_root, '%s')\n" % core_python_path_relative)
+            fh.write("    sys.path.append(core_path)\n")
+            fh.write("    return core_path\n")
+            fh.write("\n\n")
 
-        fh.write("def add_sgtk_to_pythonpath(plugin_root):\n")
-        fh.write("    import sys\n")
-        fh.write("    import os\n")
-        fh.write("    core_path = os.path.join(plugin_root, '%s')\n" % core_python_path_relative)
-        fh.write("    sys.path.append(core_path)\n")
-        fh.write("    return core_path\n")
-        fh.write("\n\n")
+            fh.write("\n# end of file.\n")
 
+    except Exception, e:
+        raise TankError("Cannot write manifest file: %s" % e)
 
-        fh.write("\n# end of file.\n")
 
 def build_plugin(sg_connection, source_path, target_path):
     """
