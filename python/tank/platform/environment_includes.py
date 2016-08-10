@@ -36,10 +36,13 @@ import copy
 from ..errors import TankError
 from ..template import TemplatePath
 from ..templatekey import StringKey
+from ..log import LogManager
 
 from . import constants
 
 from ..util.yaml_cache import g_yaml_cache
+
+log = LogManager.get_logger(__name__)
 
 def _resolve_includes(file_name, data, context):
     """
@@ -62,6 +65,10 @@ def _resolve_includes(file_name, data, context):
             # it's a template path
             if context is None:
                 # skip - these paths are optional always
+                log.debug(
+                    "%s: Skipping template based include '%s' "
+                    "because there is no active context." % (file_name, include)
+                )
                 continue
             
             # extract all {tokens}

@@ -66,8 +66,14 @@ def create_descriptor(
     if bundle_cache_root_override is None:
         bundle_cache_root_override = _get_default_bundle_cache_root()
         filesystem.ensure_folder_exists(bundle_cache_root_override)
+    else:
+        # expand environment variables
+        bundle_cache_root_override = os.path.expandvars(os.path.expanduser(bundle_cache_root_override))
 
     fallback_roots = fallback_roots or []
+
+    # expand environment variables
+    fallback_roots = [os.path.expandvars(os.path.expanduser(x)) for x in fallback_roots]
 
     # first construct a low level IO descriptor
     io_descriptor = create_io_descriptor(

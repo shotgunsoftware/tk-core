@@ -21,7 +21,7 @@ from tank_vendor import yaml
 from .errors import TankError, TankUnreadableFileError
 from .util.version import is_version_older
 from . import constants
-from .platform.environment import Environment, WritableEnvironment
+from .platform.environment import InstalledEnvironment, WritableEnvironment
 from .util import shotgun, yaml_cache
 from .util import ShotgunPath
 from . import hook
@@ -793,7 +793,7 @@ class PipelineConfiguration(object):
         :returns:           An environment object
         """        
         env_file = self.get_environment_path(env_name)
-        EnvClass = WritableEnvironment if writable else Environment
+        EnvClass = WritableEnvironment if writable else InstalledEnvironment
         env_obj = EnvClass(env_file, self, context)
         return env_obj
 
