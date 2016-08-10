@@ -220,10 +220,7 @@ class ConfigurationResolver(object):
                     user_config = pc
 
             # user pc takes precedence if available.
-            if user_config:
-                pipeline_config = user_config
-            else:
-                pipeline_config = primary_config
+            pipeline_config = user_config if user_config else primary_config
 
         else:
             # there is a fixed pipeline configuration name specified.
