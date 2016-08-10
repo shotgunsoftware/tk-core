@@ -44,7 +44,7 @@ class ToolkitManager(object):
 
         # defaults
         self._bundle_cache_fallback_paths = []
-        self._pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
+        self._pipeline_configuration_name = None
         self._base_config_descriptor = None
         self._progress_cb = None
         self._do_shotgun_config_lookup = True
@@ -63,16 +63,25 @@ class ToolkitManager(object):
 
     def _get_pipeline_configuration(self):
         """
-        The pipeline configuration that is being operated on.
-        By default, the primary pipeline config will be used.
+        The pipeline configuration that is should be operated on.
+
+        By default, this value is set to ``None``, indicating to the Manager
+        that it should attempt to find the most suitable Shotgun pipeline configuration
+        given the project and entry point. In this case, it will look for all pipeline
+        configurations associated with the project who are associated with the current
+        user. If no user-tagged pipeline configuration exists, it will look for
+        the primary configuration, and in case this is not found, it will fall back on the
+        :meth:`base_configuration`. If you don't want this check to be carried out in
+        Shotgun, please set :meth:`do_shotgun_config_lookup` to False.
+
+        Alternatively, you can set this to a specific pipeline configuration. In that
+        case, the Manager will look for a pipeline configuration that matches that name
+        and the associated project and entry point. If such a config cannot be found in
+        Shotgun, it falls back on the :meth:`base_configuration`.
         """
         return self._pipeline_configuration_name
 
     def _set_pipeline_configuration(self, name):
-        """
-        The pipeline configuration that is being operated on.
-        By default, the primary pipeline config will be used.
-        """
         self._pipeline_configuration_name = name
 
     pipeline_configuration = property(_get_pipeline_configuration, _set_pipeline_configuration)
@@ -316,10 +325,13 @@ class ToolkitManager(object):
 
         if self._do_shotgun_config_lookup:
             # do the full resolve where we connect to shotgun etc.
+            log.debug("Checking for pipeline configuration overrides in Shotgun.")
+            log.debug("In order to turn this off, set do_shotgun_config_lookup to False")
             config = resolver.resolve_shotgun_configuration(
                 self._pipeline_configuration_name,
                 self._base_config_descriptor,
-                self._sg_connection
+                self._sg_connection,
+                self._sg_user.login
             )
 
         else:

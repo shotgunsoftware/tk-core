@@ -14,6 +14,7 @@ on disk.
 """
 
 import os
+import pprint
 
 from ..descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
 from .errors import TankBootstrapError
@@ -22,6 +23,7 @@ from ..util import filesystem
 from ..util import ShotgunPath
 from ..util import LocalFileStorageManager
 from .. import LogManager
+from . import constants
 
 log = LogManager.get_logger(__name__)
 
@@ -143,36 +145,160 @@ class ConfigurationResolver(object):
         self,
         pipeline_config_name,
         fallback_config_descriptor,
-        sg_connection
+        sg_connection,
+        current_login
     ):
         """
         Return a configuration object by requesting a pipeline configuration
         in Shotgun. If no suitable configuration is found, return a configuration
         for the given fallback config.
 
-            .. note:: The current implementation for this is a pass-through
-                      to the base configuration resolver. In the future, business
-                      logic will be added to handle this.
-
-        :param pipeline_config_name: Name of configuration branch (e.g Primary)
+        :param pipeline_config_name: Name of configuration branch (e.g Primary).
+                                     if None, the method will automatically attempt
+                                     to resolve the right configuration based on the
+                                     current user and the users field on the pipeline
+                                     configuration.
         :param fallback_config_descriptor: descriptor dict or string for fallback config.
         :param sg_connection: Shotgun API instance
+        :param current_login: The login of the currently logged in user.
+
         :return: :class:`Configuration` instance
         """
         log.debug(
             "%s resolving configuration from Shotgun Pipeline Configuration %s" % (self, pipeline_config_name)
         )
 
-        log.warning(
-            "Shotgun pipeline configuration resolve has not been implemented yet. "
-            "Falling back on the base configuration resolver."
-        )
+        fields = [
+            "code",
+            "users",
+            "entry_point",
+            "sg_entry_point",
+            "windows_path",
+            "linux_path",
+            "mac_path",
+            "sg_descriptor",
+            "descriptor"
+        ]
 
-        # TODO: add shotgun resolve logic
-        # - find pipeline config record that matches both
-        #   name and entry point
-        # - if found, bootstrap into it
-        # - if not found, try the fallback
+        pipeline_config = None
 
-        return self.resolve_configuration(fallback_config_descriptor, sg_connection)
+        if pipeline_config_name is None:
+            log.debug("Will auto-detect which pipeline configuration to use.")
+
+            # get the pipeline configs for the current project which are
+            # either the primary or is associated with the currently logged in user.
+            pipeline_configs = sg_connection.find(
+                "PipelineConfiguration",
+                [{
+                    "filter_operator": "all",
+                    "filters": [
+                        ["project", "is", self._project_id],
+
+                        {
+                            "filter_operator": "any",
+                            "filters": [
+                                ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
+                                ["users.HumanUser.login", "contains", current_login]
+                            ]
+                        }
+                    ]
+                }],
+                fields,
+                order=[{"field_name": "updated_at", "direction": "asc"}]
+            )
+
+            log.debug(
+                "The following pipeline configurations were found: %s" % pprint.pformat(pipeline_configs)
+            )
+
+            # resolve primary and user config
+            primary_config = None
+            user_config = None
+            for pc in pipeline_configs:
+
+                # make sure configuration matches our entry point
+                if pc.get("entry_point") != self._entry_point and pc.get("sg_entry_point") != self._entry_point:
+                    continue
+
+                if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                    primary_config = pc
+                else:
+                    # user config
+                    if user_config:
+                        log.warning(
+                            "More than one user config detected. Will use the most "
+                            "recently updated one."
+                        )
+                    user_config = pc
+
+            # user pc takes precedence if available.
+            pipeline_config = user_config if user_config else primary_config
+
+        else:
+            # there is a fixed pipeline configuration name specified.
+            log.debug("Will use pipeline configuration '%s'" % pipeline_config_name)
+
+            pipeline_configs = sg_connection.find(
+                "PipelineConfiguration",
+                [
+                    ["project", "is", self._project_id],
+                    ["code", "is", pipeline_config_name],
+                ],
+                fields,
+                order=[{"field_name": "updated_at", "direction": "asc"}]
+            )
+
+            log.debug(
+                "The following pipeline configurations were found: %s" % pprint.pformat(pipeline_configs)
+            )
+
+            for pc in pipeline_configs:
+
+                # make sure configuration matches our entry point
+                if pc.get("entry_point") != self._entry_point and pc.get("sg_entry_point") != self._entry_point:
+                    continue
+
+                if pipeline_config:
+                    log.warning(
+                        "More than one user config detected. Will use the most "
+                        "recently updated one."
+                    )
+                pipeline_config = pc
+
+
+        # now resolve the descriptor to use based on the pipeline config record
+
+        # default to the fallback descriptor
+        descriptor = fallback_config_descriptor
+
+        if pipeline_config is None:
+            log.debug("No pipeline configuration found. Using fallback descriptor")
+
+        else:
+            log.debug(
+                "The following pipeline configuration will be used: %s" % pprint.pformat(pipeline_config)
+            )
+
+            # now create a descriptor based on the data in the fields.
+            # the following priority order exists:
+            #
+            # 1 windows/linux/mac path
+            # 2 descriptor
+            # 3 sg_descriptor
+
+            path = ShotgunPath.from_shotgun_dict(pipeline_config)
+
+            if path.current_os:
+                log.debug("Descriptor will be based off the path in the pipeline configuration")
+                descriptor = {"type": "path", "path": path.current_os}
+            elif pipeline_config.get("descriptor"):
+                log.debug("Descriptor will be based off the descriptor field in the pipeline configuration")
+                descriptor = pipeline_config.get("descriptor")
+            elif pipeline_config.get("sg_descriptor"):
+                log.debug("Descriptor will be based off the sg_descriptor field in the pipeline configuration")
+                descriptor = pipeline_config.get("sg_descriptor")
+
+        log.debug("The descriptor representing the config is %s" % descriptor)
+
+        return self.resolve_configuration(descriptor, sg_connection)
 
