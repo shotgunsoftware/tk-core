@@ -309,20 +309,19 @@ def _bake_manifest(manifest_data, cfg_descriptor, core_descriptor, plugin_root):
             )
             fh.write("BUILD_GENERATION=%d\n" % BUILD_GENERATION)
 
-            # write out helper method add_sgtk_to_pythonpath()
-            core_python_path = os.path.join(core_descriptor.get_path(), "python")
-            core_python_path_relative = core_python_path[len(plugin_root)+1:]
+            # Write out helper function 'get_sgtk_pythonpath()'.
+            core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
+            core_path_relative_parts = core_path_parts[core_path_parts.index("bundle_cache"):]
+            core_path_relative_parts.append("python")
 
             fh.write("\n\n")
-            fh.write("def add_sgtk_to_pythonpath(plugin_root):\n")
-            fh.write("    import sys\n")
+            fh.write("def get_sgtk_pythonpath(plugin_root):\n")
             fh.write("    import os\n")
-            fh.write("    core_path = os.path.join(plugin_root, '%s')\n" % core_python_path_relative)
-            fh.write("    sys.path.append(core_path)\n")
-            fh.write("    return core_path\n")
+            fh.write("    return os.path.join(plugin_root, %s)\n" %
+                     ", ".join('"%s"' % dir for dir in core_path_relative_parts))
             fh.write("\n\n")
 
-            fh.write("\n# end of file.\n")
+            fh.write("# end of file.\n")
 
     except Exception, e:
         raise TankError("Cannot write manifest file: %s" % e)
