@@ -311,7 +311,7 @@ def _bake_manifest(manifest_data, cfg_descriptor, core_descriptor, plugin_root):
 
             # Write out helper function 'get_sgtk_pythonpath()'.
             core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
-            core_path_relative_parts = core_path_parts[core_path_parts.index("bundle_cache"):]
+            core_path_relative_parts = core_path_parts[core_path_parts.index(BUNDLE_CACHE_ROOT_FOLDER_NAME):]
             core_path_relative_parts.append("python")
 
             fh.write("\n\n")
