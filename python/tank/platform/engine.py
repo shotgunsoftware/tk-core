@@ -130,7 +130,10 @@ class Engine(TankBundle):
         # needs to be reset during engine instantiation if the debug_logging setting suddenly turns false.
         LogManager().global_debug = self.get_setting("debug_logging", False)
         if LogManager().global_debug:
-            self.log_debug("Engine config flag 'debug_logging' detected, turning on debug output.")
+            self.log_debug(
+                "Detected setting 'config/env/%s.yml:%s.debug_logging: true' "
+                "in your environment configuration. Turning on debug output." % (env.name, engine_instance_name)
+            )
 
         # check that the context contains all the info that the app needs
         validation.validate_context(descriptor, context)

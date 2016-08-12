@@ -99,6 +99,8 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
                 fallback_roots=[bundle_cache_root]
             )
             logger.info("Caching %s..." % desc)
+            if not desc._io_descriptor.is_immutable():
+                logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
             desc.clone_cache(bundle_cache_root)
 
             for app in env.get_apps(eng):
@@ -110,6 +112,8 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
                     fallback_roots=[bundle_cache_root]
                 )
                 logger.info("Caching %s..." % desc)
+                if not desc._io_descriptor.is_immutable():
+                    logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
                 desc.clone_cache(bundle_cache_root)
 
         for framework in env.get_frameworks():
@@ -120,6 +124,8 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
                 fallback_roots=[bundle_cache_root]
             )
             logger.info("Caching %s..." % desc)
+            if not desc._io_descriptor.is_immutable():
+                logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
             desc.clone_cache(bundle_cache_root)
 
 def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
