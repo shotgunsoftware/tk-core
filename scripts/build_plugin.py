@@ -36,7 +36,7 @@ from tank import LogManager
 from tank.util import filesystem
 from tank.errors import TankError
 from tank.platform import environment
-from tank.descriptor import Descriptor, descriptor_uri_to_dict, create_descriptor
+from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri, create_descriptor
 from tank.authentication import ShotgunAuthenticator
 from tank_vendor import yaml
 
@@ -253,12 +253,11 @@ def _validate_manifest(source_path):
 
     return manifest_data
 
-def _bake_manifest(manifest_data, cfg_descriptor, core_descriptor, plugin_root):
+def _bake_manifest(manifest_data, core_descriptor, plugin_root):
     """
     Bake the info.yml manifest into a python file.
 
     :param manifest_data: info.yml manifest data
-    :param cfg_descriptor: descriptor object pointing at the config to use
     :param core_descriptor: descriptor object pointing at core to use for bootstrap
     :param plugin_root: Root path for plugin
     """
@@ -284,17 +283,17 @@ def _bake_manifest(manifest_data, cfg_descriptor, core_descriptor, plugin_root):
 
         with open(params_path, "wt") as fh:
 
-            fh.write("# this file was auto generated.\n")
-
-            fh.write("\nbase_configuration=\"%s\"\n\n" % cfg_descriptor.get_uri())
+            fh.write("# this file was auto generated.\n\n\n")
 
             for (parameter, value) in manifest_data.iteritems():
 
                 if parameter == "base_configuration":
-                    # configuration is processed separately
-                    continue
-
-                if isinstance(value, str):
+                    # make sure we have it on string form
+                    if isinstance(value, dict):
+                        fh.write("base_configuration=\"%s\"\n" % descriptor_dict_to_uri(value))
+                    else:
+                        fh.write("base_configuration=\"%s\"\n" % value)
+                elif isinstance(value, str):
                    fh.write("%s=\"%s\"\n" % (parameter, value.replace("\"", "'")))
                 elif isinstance(value, int):
                     fh.write("%s=%d\n" % (parameter, value))
@@ -402,7 +401,6 @@ def build_plugin(sg_connection, source_path, target_path):
     # bake out the manifest into python files.
     _bake_manifest(
         manifest_data,
-        cfg_descriptor,
         latest_core_desc,
         target_path
     )

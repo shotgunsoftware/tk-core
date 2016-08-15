@@ -342,8 +342,11 @@ class ToolkitManager(object):
                 self._sg_connection,
             )
 
+        self._report_progress("Using %s" % config)
+        log.info("Using %s" % config)
+        log.debug("Bootstrapping into configuration %r" % config)
+
         # see what we have locally
-        self._report_progress("Checking if config is out of date...")
         status = config.status()
 
         self._report_progress("Updating configuration...")

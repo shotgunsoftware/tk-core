@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import copy
+
 from ..errors import TankDescriptorError
 
 from ... import LogManager
@@ -73,7 +75,8 @@ def create_io_descriptor(
         descriptor_dict = IODescriptorBase.dict_from_uri(dict_or_uri)
         descriptor_uri = dict_or_uri
     else:
-        descriptor_dict = dict_or_uri
+        # make a copy to make sure the original object is never altered
+        descriptor_dict = copy.deepcopy(dict_or_uri)
         descriptor_uri = IODescriptorBase.uri_from_dict(dict_or_uri)
 
     # first check if we already have this in our cache
@@ -92,7 +95,6 @@ def create_io_descriptor(
 
     # at this point we didn't have a cache hit,
     # so construct the object manually
-
     if resolve_latest:
         # if someone is requesting a latest descriptor and not providing a version token
         # make sure to add an artificial one so that we can resolve it.

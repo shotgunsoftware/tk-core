@@ -76,7 +76,16 @@ class Configuration(object):
         self._pipeline_config_id = pipeline_config_id
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths
 
+    def __str__(self):
+        """
+        User friendly representation of the config
+        """
+        return str(self._descriptor)
+
     def __repr__(self):
+        """
+        Low level representation of the config.
+        """
         return "<Config with id %s, project id %s, ep %s and base %r>" % (
             self._pipeline_config_id,
             self._project_id,
