@@ -128,6 +128,7 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
                 logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
             desc.clone_cache(bundle_cache_root)
 
+
 def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
     """
     Given data in the plugin manifest, download resolve and
@@ -138,15 +139,20 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
     :param source_path: Root path of plugin source.
     :param target_path: Build target path
     :param bundle_cache_root: Bundle cache root
-    :return: Resolved config descriptor object
+    :return: (Resolved config descriptor object, config descriptor uri to use at runtime)
     """
     logger.info("Analyzing configuration")
 
+    # get config def from info yml and generate both
+    # dict and string uris.
     base_config_def = manifest_data["base_configuration"]
-
     if isinstance(base_config_def, str):
         # convert to dict so we can introspect
-        base_config_def = descriptor_uri_to_dict(base_config_def)
+        base_config_uri_dict = descriptor_uri_to_dict(base_config_def)
+        base_config_uri_str = base_config_def
+    else:
+        base_config_uri_dict = base_config_def
+        base_config_uri_str = descriptor_dict_to_uri(base_config_def)
 
     # Special case - check for the 'baked' descriptor type
     # and process it. A baked descriptor is a special concept
@@ -156,10 +162,10 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
     # manual descriptor, with a version number based on the current date.
     # This ensures that the manual descriptor will be correctly
     # re-cached at bootstrap time.
-    if base_config_def["type"] == "baked":
+    if base_config_uri_dict["type"] == "baked":
         logger.info("Baked descriptor detected.")
 
-        baked_path = os.path.expanduser(os.path.expandvars(base_config_def["path"]))
+        baked_path = os.path.expanduser(os.path.expandvars(base_config_uri_dict["path"]))
 
         # if it's a relative path, expand it
         if not os.path.isabs(baked_path):
@@ -183,16 +189,17 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
         filesystem.copy_folder(full_baked_path, manual_location)
 
         # now make a manual descriptor
-        descriptor = {
+        base_config_uri_dict = {
             "type": "manual",
             "version": BAKED_BUNDLE_VERSION,
             "name": BAKED_BUNDLE_NAME
         }
+        base_config_uri_str = descriptor_dict_to_uri(base_config_uri_dict)
 
         cfg_descriptor = create_descriptor(
             sg_connection,
             Descriptor.CONFIG,
-            descriptor,
+            base_config_uri_dict,
             fallback_roots=[bundle_cache_root]
         )
 
@@ -200,7 +207,7 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
 
         # if the descriptor in the config contains a version number
         # we will go into a fixed update mode.
-        if "version" in base_config_def:
+        if "version" in base_config_uri_dict:
             logger.info(
                 "Your configuration definition contains a version number. "
                 "This means that the plugin will be frozen and no automatic updates "
@@ -217,13 +224,14 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
         cfg_descriptor = create_descriptor(
             sg_connection,
             Descriptor.CONFIG,
-            base_config_def,
+            base_config_uri_dict,
             fallback_roots=[bundle_cache_root],
             resolve_latest=using_latest_config
         )
 
     logger.info("Resolved config %r" % cfg_descriptor)
-    return cfg_descriptor
+    logger.info("Runtime config descriptor uri will be %s" % base_config_uri_str)
+    return cfg_descriptor, base_config_uri_str
 
 def _validate_manifest(source_path):
     """
@@ -253,11 +261,12 @@ def _validate_manifest(source_path):
 
     return manifest_data
 
-def _bake_manifest(manifest_data, core_descriptor, plugin_root):
+def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
     """
     Bake the info.yml manifest into a python file.
 
     :param manifest_data: info.yml manifest data
+    :param config_uri: Configuration descriptor uri string to use at runtime
     :param core_descriptor: descriptor object pointing at core to use for bootstrap
     :param plugin_root: Root path for plugin
     """
@@ -275,7 +284,6 @@ def _bake_manifest(manifest_data, core_descriptor, plugin_root):
     except Exception, e:
         raise TankError("Cannot write __init__.py file: %s" % e)
 
-
     # now bake out the manifest into code
     params_path = os.path.join(full_module_path, "manifest.py")
 
@@ -285,16 +293,15 @@ def _bake_manifest(manifest_data, core_descriptor, plugin_root):
 
             fh.write("# this file was auto generated.\n\n\n")
 
+            fh.write("base_configuration=\"%s\"\n" % config_uri)
+
             for (parameter, value) in manifest_data.iteritems():
 
                 if parameter == "base_configuration":
-                    # make sure we have it on string form
-                    if isinstance(value, dict):
-                        fh.write("base_configuration=\"%s\"\n" % descriptor_dict_to_uri(value))
-                    else:
-                        fh.write("base_configuration=\"%s\"\n" % value)
-                elif isinstance(value, str):
-                   fh.write("%s=\"%s\"\n" % (parameter, value.replace("\"", "'")))
+                    continue
+
+                if isinstance(value, str):
+                    fh.write("%s=\"%s\"\n" % (parameter, value.replace("\"", "'")))
                 elif isinstance(value, int):
                     fh.write("%s=%d\n" % (parameter, value))
                 elif isinstance(value, bool):
@@ -374,7 +381,16 @@ def build_plugin(sg_connection, source_path, target_path):
     filesystem.ensure_folder_exists(bundle_cache_root)
 
     # resolve config descriptor
-    cfg_descriptor = _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data)
+    # the config_uri_str returned by the method contains the fully resolved
+    # uri to use at runtime - in the case of baked descriptors, the config_uri_str
+    # contains a manual descriptor uri.
+    (cfg_descriptor, config_uri_str) = _process_configuration(
+        sg_connection,
+        source_path,
+        target_path,
+        bundle_cache_root,
+        manifest_data
+    )
 
     # cache config in bundle cache
     logger.info("Downloading and caching config...")
@@ -401,6 +417,7 @@ def build_plugin(sg_connection, source_path, target_path):
     # bake out the manifest into python files.
     _bake_manifest(
         manifest_data,
+        config_uri_str,
         latest_core_desc,
         target_path
     )
