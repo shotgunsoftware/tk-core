@@ -14,6 +14,7 @@ on disk.
 """
 
 import os
+import fnmatch
 import pprint
 
 from ..descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
@@ -171,8 +172,8 @@ class ConfigurationResolver(object):
         fields = [
             "code",
             "users",
-            "entry_point",
-            "sg_entry_point",
+            "plugin_ids",
+            "sg_plugin_ids",
             "windows_path",
             "linux_path",
             "mac_path",
@@ -192,7 +193,7 @@ class ConfigurationResolver(object):
                 [{
                     "filter_operator": "all",
                     "filters": [
-                        ["project", "is", self._project_id],
+                        ["project", "is", {"type": "Project", "id": self._project_id} ],
 
                         {
                             "filter_operator": "any",
@@ -217,19 +218,25 @@ class ConfigurationResolver(object):
             for pc in pipeline_configs:
 
                 # make sure configuration matches our entry point
-                if pc.get("entry_point") != self._entry_point and pc.get("sg_entry_point") != self._entry_point:
-                    continue
 
-                if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-                    primary_config = pc
-                else:
-                    # user config
-                    if user_config:
-                        log.warning(
-                            "More than one user config detected. Will use the most "
-                            "recently updated one."
-                        )
-                    user_config = pc
+                if self.__match_plugin_id(pc.get("plugin_ids")) or self.__match_plugin_id(pc.get("sg_plugin_ids")):
+                    # we have a matching pipeline configuration!
+
+                    if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                        if primary_config:
+                            log.warning(
+                                "More than one pipeline config detected. Will use the most "
+                                "recently updated one."
+                            )
+                        primary_config = pc
+                    else:
+                        # user config
+                        if user_config:
+                            log.warning(
+                                "More than one user config detected. Will use the most "
+                                "recently updated one."
+                            )
+                        user_config = pc
 
             # user pc takes precedence if available.
             pipeline_config = user_config if user_config else primary_config
@@ -241,7 +248,7 @@ class ConfigurationResolver(object):
             pipeline_configs = sg_connection.find(
                 "PipelineConfiguration",
                 [
-                    ["project", "is", self._project_id],
+                    ["project", "is", {"type": "Project", "id": self._project_id} ],
                     ["code", "is", pipeline_config_name],
                 ],
                 fields,
@@ -254,17 +261,15 @@ class ConfigurationResolver(object):
 
             for pc in pipeline_configs:
 
-                # make sure configuration matches our entry point
-                if pc.get("entry_point") != self._entry_point and pc.get("sg_entry_point") != self._entry_point:
-                    continue
+                if self.__match_plugin_id(pc.get("plugin_ids")) or self.__match_plugin_id(pc.get("sg_plugin_ids")):
+                    # we have a matching pipeline configuration!
 
-                if pipeline_config:
-                    log.warning(
-                        "More than one user config detected. Will use the most "
-                        "recently updated one."
-                    )
-                pipeline_config = pc
-
+                    if pipeline_config:
+                        log.warning(
+                            "More than one pipeline config detected. Will use the most "
+                            "recently updated one."
+                        )
+                    pipeline_config = pc
 
         # now resolve the descriptor to use based on the pipeline config record
 
@@ -301,4 +306,32 @@ class ConfigurationResolver(object):
         log.debug("The descriptor representing the config is %s" % descriptor)
 
         return self.resolve_configuration(descriptor, sg_connection)
+
+    def __match_plugin_id(self, value):
+        """
+        Given a plugin id pattern, determine if the current
+        plugin id (entry point) matches.
+
+        Patterns can be comma separated and glob style patterns.
+        Examples:
+
+            - basic.nuke, basic.maya
+            - basic.*, rv_review
+
+        :param value: pattern string to check or None
+        :return: True if matching false if not
+        """
+        if value is None:
+            return False
+
+        # first split by comma and strip whitespace
+        patterns = [chunk.strip() for chunk in value.split(",")]
+
+        # glob match each item
+        for pattern in patterns:
+            if fnmatch.fnmatch(self._entry_point, pattern):
+                log.debug("Our entry point '%s' matches pattern '%s'" % (self._entry_point, value))
+                return True
+
+        return False
 
