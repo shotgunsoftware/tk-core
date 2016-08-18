@@ -78,19 +78,27 @@ class ConfigurationResolver(object):
                 "No config descriptor specified - Cannot create a configuration object."
             )
 
-
-
         # convert to dictionary form
         if isinstance(config_descriptor, str):
             # convert to dict so we can introspect
             config_descriptor = descriptor_uri_to_dict(config_descriptor)
+
 
         if config_descriptor["type"] == "baked_configuration":
             # special case yay!
             baked_config_path = config_descriptor["path"]
             # only handle current os platform
             config_root = ShotgunPath.from_current_os_path(baked_config_path)
-            return BakedConfiguration(config_root)
+
+            # create an object to represent our configuration install
+            return BakedConfiguration(
+                config_root,
+                sg_connection,
+                self._project_id,
+                self._entry_point,
+                None,  # pipeline config id
+                self._bundle_cache_fallback_paths
+            )
 
         else:
             # now probe for a version token in the given descriptor.

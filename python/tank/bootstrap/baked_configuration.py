@@ -23,14 +23,40 @@ class BakedConfiguration(Configuration):
     object and may or may not exist on disk.
     """
 
-    def __init__(self, path):
+    def __init__(
+            self,
+            path,
+            sg,
+            project_id,
+            entry_point,
+            pipeline_config_id,
+            bundle_cache_fallback_paths
+    ):
         """
         Constructor.
 
         :param path: ShotgunPath object describing the path to this configuration
+        :param sg: Shotgun API instance
+        :param project_id: Project id for the shotgun project associated with the
+                           configuration. For a site-level configuration, this
+                           can be set to None.
+        :param entry_point: Entry point string to identify the scope for a particular plugin
+                            or integration. For more information,
+                            see :meth:`~sgtk.bootstrap.ToolkitManager.entry_point`. For
+                            non-plugin based toolkit projects, this value is None.
+        :param pipeline_config_id: Pipeline Configuration id for the shotgun
+                                   pipeline config id associated. If a config does
+                                   not have an associated entity in Shotgun, this
+                                   should be set to None.
+        :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
         super(BakedConfiguration, self).__init__(path)
         self._path = path
+        self._sg_connection = sg
+        self._project_id = project_id
+        self._entry_point = entry_point
+        self._pipeline_config_id = pipeline_config_id
+        self._bundle_cache_fallback_paths = bundle_cache_fallback_paths
 
     def __str__(self):
         """
@@ -78,4 +104,14 @@ class BakedConfiguration(Configuration):
         config_writer.install_core(config_descriptor, bundle_cache_fallback_paths=[])
         config_writer.write_bare_pipeline_config_file(entry_point)
 
+    def get_tk_instance(self, sg_user):
+        """
+        Returns a tk instance for this configuration.
 
+        :param sg_user: Authenticated Shotgun user to associate
+                        the tk instance with.
+        """
+        # set up the environment
+
+        # call base class
+        return super(BakedConfiguration, self).get_tk_instance(sg_user)
