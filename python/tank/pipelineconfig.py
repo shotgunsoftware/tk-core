@@ -109,6 +109,8 @@ class PipelineConfiguration(object):
         else:
             self._bundle_cache_fallback_paths = []
 
+        #TODO: pick up bundle cache fallback paths from env vars.
+
         # Populate the global yaml_cache if we find a pickled cache
         # on disk.
         # TODO: For immutable configs, move this into bootstrap

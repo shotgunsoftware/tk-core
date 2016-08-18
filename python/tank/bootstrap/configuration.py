@@ -172,6 +172,41 @@ class Configuration(object):
             log.debug("Local config is up to date")
             return self.LOCAL_CFG_UP_TO_DATE
 
+
+    @classmethod
+    def create_configuration(cls, path, config_descriptor, entry_point, sg_connection):
+        """
+        Create configuration scaffold in the given location
+
+        :param path:
+        :return:
+        """
+        # make sure a scaffold is in place
+        cls._ensure_project_scaffold(path)
+
+        # install the configuration
+        config_descriptor.copy(os.path.join(path, "config"))
+
+        # write out config files
+        cls._write_pipeline_config_file_data(
+            path,
+            pipeline_config_id=None,
+            pipeline_config_name="Undefined",
+            project_id=None,
+            project_name="Undefined",
+            entry_point=entry_point,
+            bundle_cache_fallback_paths=[]
+        )
+
+        # and lastly install core
+        cls._install_core(
+            config_descriptor,
+            path,
+            sg_connection,
+            bundle_cache_fallback_paths=[]
+        )
+
+
     def update_configuration(self):
         """
         Ensure that the configuration is up to date with the one
@@ -181,7 +216,7 @@ class Configuration(object):
         stable state on failure.
         """
         # make sure a scaffold is in place
-        self._ensure_project_scaffold()
+        self._ensure_project_scaffold(self._path.current_os)
 
         # stow away any previous versions of core and config folders
         (config_backup_path, core_backup_path) = self._move_to_backup()
@@ -189,7 +224,6 @@ class Configuration(object):
         # copy the configuration into place
         try:
             self._descriptor.copy(os.path.join(self._path.current_os, "config"))
-
 
             # write out config files
             self._write_install_location_file()
@@ -201,7 +235,12 @@ class Configuration(object):
             self._update_roots_file()
 
             # and lastly install core
-            self._install_core()
+            self._install_core(
+                self._descriptor,
+                self._path.current_os,
+                self._sg_connection,
+                self._bundle_cache_fallback_paths
+            )
 
         except Exception, e:
             log.exception("Failed to update configuration. Attempting Rollback. Error Traceback:")
@@ -306,11 +345,13 @@ class Configuration(object):
         filesystem.ensure_folder_exists(os.path.dirname(path))
         return path
 
-    def _ensure_project_scaffold(self):
+    @classmethod
+    def _ensure_project_scaffold(cls, config_path):
         """
         Creates all the necessary files on disk for a basic config scaffold.
+
+        :param config_path: Path where scaffold should be created.
         """
-        config_path = self._path.current_os
         log.info("Ensuring project scaffold in '%s'..." % config_path)
 
         filesystem.ensure_folder_exists(config_path)
@@ -396,6 +437,7 @@ class Configuration(object):
 
         return (config_backup_path, core_backup_path)
 
+    @classmethod
     @filesystem.with_cleared_umask
     def _create_tank_command(self, win_python=None, mac_python=None, linux_python=None):
         """
@@ -445,15 +487,15 @@ class Configuration(object):
             log.debug("Installing tank command %s -> %s" % (src_file, tgt_file))
             filesystem.copy_file(src_file, tgt_file, 0775)
 
-
-    def _install_core(self):
+    @classmethod
+    def _install_core(cls, config_descriptor, config_path, sg_connection, bundle_cache_fallback_paths):
         """
         Install a core into the given configuration.
 
         This will copy the core API from the given location into
         the configuration, effectively mimicing a localized setup.
         """
-        core_uri_or_dict = self._descriptor.associated_core_descriptor
+        core_uri_or_dict = config_descriptor.associated_core_descriptor
 
         if core_uri_or_dict is None:
             # we don't have a core descriptor specified. Get latest from app store.
@@ -468,17 +510,16 @@ class Configuration(object):
             use_latest = False
 
         core_descriptor = create_descriptor(
-            self._sg_connection,
+            sg_connection,
             Descriptor.CORE,
             core_uri_or_dict,
-            fallback_roots=self._bundle_cache_fallback_paths,
+            fallback_roots=bundle_cache_fallback_paths,
             resolve_latest=use_latest
         )
 
         # make sure we have our core on disk
         core_descriptor.ensure_local()
-        config_root_path = self._path.current_os
-        core_target_path = os.path.join(config_root_path, "install", "core")
+        core_target_path = os.path.join(config_path, "install", "core")
 
         log.debug("Copying core into place")
         core_descriptor.copy(core_target_path)
@@ -594,21 +635,52 @@ class Configuration(object):
             project_name = "Site"
             pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
+        return self._write_pipeline_config_file_data(
+            self._path.current_os,
+            self._pipeline_config_id,
+            pipeline_config_name,
+            self._project_id,
+            project_name,
+            self._entry_point,
+            self._bundle_cache_fallback_paths
+        )
+
+    @classmethod
+    def _write_pipeline_config_file_data(
+        cls,
+        path,
+        pipeline_config_id,
+        pipeline_config_name,
+        project_id,
+        project_name,
+        entry_point,
+        bundle_cache_fallback_paths
+    ):
+        """
+
+        :param pipeline_config_id:
+        :param pipeline_config_name:
+        :param project_id:
+        :param project_name:
+        :param entry_point:
+        :param bundle_cache_fallback_paths:
+        :return:
+        """
         pipeline_config_content = {
-            "pc_id": self._pipeline_config_id,
+            "pc_id": pipeline_config_id,
             "pc_name": pipeline_config_name,
-            "project_id": self._project_id,
+            "project_id": project_id,
             "project_name": project_name,
-            "entry_point": self._entry_point,
+            "entry_point": entry_point,
             "published_file_entity_type": "PublishedFile",
             "use_bundle_cache": True,
-            "bundle_cache_fallback_roots": self._bundle_cache_fallback_paths,
+            "bundle_cache_fallback_roots": bundle_cache_fallback_paths,
             "use_shotgun_path_cache": True
         }
 
         # write pipeline_configuration.yml
         pipeline_config_path = os.path.join(
-            self._path.current_os,
+            path,
             "config",
             "core",
             constants.PIPELINECONFIG_FILE
@@ -661,8 +733,9 @@ class Configuration(object):
             fh.write("\n")
             fh.write("# End of file.\n")
 
+    @classmethod
     @filesystem.with_cleared_umask
-    def __open_auto_created_yml(self, path):
+    def __open_auto_created_yml(cls, path):
         """
         Open a standard auto generated yml for writing.
 

@@ -399,6 +399,13 @@ def build_plugin(sg_connection, source_path, target_path):
     # cache all apps, engines and frameworks
     _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root)
 
+    # temp: install core scaffold
+    logger.info("HACK: adding core scaffold...")
+    from tank.bootstrap.configuration import Configuration
+    install_path = os.path.join(target_path, "install")
+    Configuration.create_configuration(install_path, cfg_descriptor, sg_connection)
+
+
     # get latest core
     logger.info("Caching latest official core...")
     latest_core_desc = create_descriptor(

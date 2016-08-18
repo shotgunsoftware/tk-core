@@ -335,7 +335,15 @@ def get_associated_sg_base_url():
     
     :returns: The base url for the associated Shotgun site
     """
-    return get_associated_sg_config_data()["host"]
+    # Avoids cyclic imports.
+    from .. import api
+    sg_user = api.get_authenticated_user()
+
+    if sg_user:
+        return sg_user.host
+    else:
+        # look up in core/shotgun.yml
+        return get_associated_sg_config_data()["host"]
 
 
 def get_associated_sg_config_data():
