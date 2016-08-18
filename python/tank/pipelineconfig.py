@@ -81,7 +81,6 @@ class PipelineConfiguration(object):
                                                                               our_associated_api_version, 
                                                                               self.get_install_location()))            
 
-
         self._roots = pipelineconfig_utils.get_roots_metadata(self._pc_root)
 
         # get the project tank disk name (Project.tank_name),
@@ -109,10 +108,21 @@ class PipelineConfiguration(object):
         else:
             self._bundle_cache_fallback_paths = []
 
-        #TODO: pick up bundle cache fallback paths from env vars.
+        # look for environment variables
+        if "SGTK_PROJECT_ID" in os.environ:
+            self._project_id = os.environ["SGTK_PROJECT_ID"]
+            log.debug("%s: Setting project id to %s based on env var SGTK_PROJECT_ID" % (self, self._project_id))
 
-        # Populate the global yaml_cache if we find a pickled cache
-        # on disk.
+        if "SGTK_PIPELINE_CONFIGURATION_ID" in os.environ:
+            self._pc_id = os.environ["SGTK_PIPELINE_CONFIGURATION_ID"]
+            log.debug("%s: Setting pipeline config id to %s based on env var SGTK_PIPELINE_CONFIGURATION_ID" % (self, self._pc_id))
+
+        if "SGTK_BUNDLE_CACHE_FALLBACK_PATHS" in os.environ:
+            self._bundle_cache_fallback_paths = os.environ["SGTK_BUNDLE_CACHE_FALLBACK_PATHS"]
+            log.debug("%s: Setting bundle cache fallback roots to %s based on "
+                      "env var SGTK_BUNDLE_CACHE_FALLBACK_PATHS" % (self, self._bundle_cache_fallback_paths))
+
+        # Populate the global yaml_cache if we find a pickled cache on disk.
         # TODO: For immutable configs, move this into bootstrap
         self._populate_yaml_cache()
 

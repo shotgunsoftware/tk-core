@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import os
+
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
 
@@ -112,6 +114,9 @@ class BakedConfiguration(Configuration):
                         the tk instance with.
         """
         # set up the environment
+        os.environ["SGTK_PROJECT_ID"] = self._project_id
+        os.environ["SGTK_PIPELINE_CONFIGURATION_ID"] = self._pipeline_config_id
+        os.environ["SGTK_BUNDLE_CACHE_FALLBACK_PATHS"] = self._bundle_cache_fallback_paths
 
         # call base class
         return super(BakedConfiguration, self).get_tk_instance(sg_user)
