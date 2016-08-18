@@ -8,17 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
-import inspect
-
-from .import_handler import CoreImportHandler
+from .configuration import Configuration
+from .configuration_writer import ConfigurationWriter
 
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
-
-class Configuration(object):
+class BakedConfiguration(Configuration):
     """
     An abstraction around a toolkit configuration.
 
@@ -26,15 +23,26 @@ class Configuration(object):
     object and may or may not exist on disk.
     """
 
-    (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_DIFFERENT, LOCAL_CFG_INVALID) = range(4)
-
     def __init__(self, path):
         """
         Constructor.
 
         :param path: ShotgunPath object describing the path to this configuration
         """
+        super(BakedConfiguration, self).__init__(path)
         self._path = path
+
+    def __str__(self):
+        """
+        User friendly representation of the config
+        """
+        return "Pre-baked config '%s'" % self._path
+
+    def __repr__(self):
+        """
+        Low level representation of the config.
+        """
+        return "<Pre-baked config '%s'>" % self._path
 
     def status(self):
         """
@@ -45,7 +53,7 @@ class Configuration(object):
         :returns: LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING,
                   LOCAL_CFG_DIFFERENT, or LOCAL_CFG_INVALID
         """
-        raise NotImplementedError
+        return self.LOCAL_CFG_UP_TO_DATE
 
     def update_configuration(self):
         """
@@ -55,32 +63,19 @@ class Configuration(object):
         This method fails gracefully and attempts to roll back to a
         stable state on failure.
         """
-        raise NotImplementedError
+        # the baked configuration gets updated at build time
 
-    def get_tk_instance(self, sg_user):
+    @classmethod
+    def bake_config_scaffold(cls, path, sg_connection, entry_point, config_descriptor):
         """
-        Returns a tk instance for this configuration.
+        Generate config
 
-        :param sg_user: Authenticated Shotgun user to associate
-                        the tk instance with.
+        :param path:
+        :return:
         """
-        path = self._path.current_os
-        core_path = os.path.join(path, "install", "core", "python")
-
-        # swap the core out
-        CoreImportHandler.swap_core(core_path)
-
-        # perform a local import here to make sure we are getting
-        # the newly swapped in core code
-        from .. import api
-        api.set_authenticated_user(sg_user)
-        tk = api.tank_from_path(path)
-
-        log.debug("Bootstrapped into tk instance %r" % tk)
-        log.debug("Core API code located here: %s" % inspect.getfile(tk.__class__))
-
-        return tk
-
-
+        config_writer = ConfigurationWriter(path, sg_connection)
+        config_writer.ensure_project_scaffold()
+        config_writer.install_core(config_descriptor, bundle_cache_fallback_paths=[])
+        config_writer.write_bare_pipeline_config_file(entry_point)
 
 
