@@ -14,7 +14,7 @@ across storages, configurations etc.
 """
 import os
 import glob
-import cPickle
+import cPickle as pickle
 
 from tank_vendor import yaml
 
@@ -109,18 +109,25 @@ class PipelineConfiguration(object):
             self._bundle_cache_fallback_paths = []
 
         # look for environment variables
-        if "SGTK_PROJECT_ID" in os.environ:
-            self._project_id = os.environ["SGTK_PROJECT_ID"]
-            log.debug("%s: Setting project id to %s based on env var SGTK_PROJECT_ID" % (self, self._project_id))
+        if constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
+            try:
+                external_data = pickle.loads(os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA])
+            except Exception, e:
+                log.warning("Could not load external config data from: %s" % e)
 
-        if "SGTK_PIPELINE_CONFIGURATION_ID" in os.environ:
-            self._pc_id = os.environ["SGTK_PIPELINE_CONFIGURATION_ID"]
-            log.debug("%s: Setting pipeline config id to %s based on env var SGTK_PIPELINE_CONFIGURATION_ID" % (self, self._pc_id))
+            if "project_id" in external_data:
+                self._project_id = external_data["project_id"]
+                log.debug("%s: Setting project id to %s from external config data" % (self, self._project_id))
 
-        if "SGTK_BUNDLE_CACHE_FALLBACK_PATHS" in os.environ:
-            self._bundle_cache_fallback_paths = os.environ["SGTK_BUNDLE_CACHE_FALLBACK_PATHS"]
-            log.debug("%s: Setting bundle cache fallback roots to %s based on "
-                      "env var SGTK_BUNDLE_CACHE_FALLBACK_PATHS" % (self, self._bundle_cache_fallback_paths))
+            if "pipeline_config_id" in external_data:
+                self._pc_id = external_data["pipeline_config_id"]
+                log.debug("%s: Setting pipeline config id to %s from external config data" % (self, self._pc_id))
+
+            if "bundle_cache_paths" in external_data:
+                self._bundle_cache_fallback_paths = external_data["bundle_cache_paths"]
+                log.debug(
+                    "%s: Setting bundle cache fallbacks to %s from external config data" % (self, self._bundle_cache_fallback_paths)
+                )
 
         # Populate the global yaml_cache if we find a pickled cache on disk.
         # TODO: For immutable configs, move this into bootstrap
@@ -233,7 +240,7 @@ class PipelineConfiguration(object):
             return
 
         try:
-            cache_items = cPickle.load(fh)
+            cache_items = pickle.load(fh)
             yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
         except Exception, e:
             log.warning("Could not merge yaml cache %s: %s" % (cache_file, e))

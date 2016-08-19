@@ -74,6 +74,7 @@ class Configuration(object):
         # the newly swapped in core code
         from .. import api
         api.set_authenticated_user(sg_user)
+        log.debug("Executing tank_from_path('%s')" % path)
         tk = api.tank_from_path(path)
 
         log.debug("Bootstrapped into tk instance %r" % tk)

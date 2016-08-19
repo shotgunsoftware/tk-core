@@ -14,6 +14,8 @@ from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
 
 from .. import LogManager
+from .. import constants
+import cPickle as pickle
 
 from ..util import ShotgunPath
 
@@ -102,10 +104,15 @@ class BakedConfiguration(Configuration):
         :param sg_user: Authenticated Shotgun user to associate
                         the tk instance with.
         """
-        # set up the environment
-        os.environ["SGTK_PROJECT_ID"] = self._project_id
-        os.environ["SGTK_PIPELINE_CONFIGURATION_ID"] = self._pipeline_config_id
-        os.environ["SGTK_BUNDLE_CACHE_FALLBACK_PATHS"] = self._bundle_cache_fallback_paths
+        # set up the environment to pass on to the tk instance
+        pipeline_config = {
+            "project_id": self._project_id,
+            "pipeline_config_id": self._pipeline_config_id,
+            "bundle_cache_paths": self._bundle_cache_fallback_paths
+        }
+
+        log.debug("Setting External config data: %s" % pipeline_config)
+        os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA] = pickle.dumps(pipeline_config)
 
         # call base class
         return super(BakedConfiguration, self).get_tk_instance(sg_user)
