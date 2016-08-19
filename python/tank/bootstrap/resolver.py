@@ -83,8 +83,7 @@ class ConfigurationResolver(object):
             # convert to dict so we can introspect
             config_descriptor = descriptor_uri_to_dict(config_descriptor)
 
-
-        if config_descriptor["type"] == "baked_configuration":
+        if config_descriptor["type"] == "baked":
             # special case yay!
             baked_config_path = config_descriptor["path"]
             # only handle current os platform

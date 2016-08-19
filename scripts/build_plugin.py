@@ -54,7 +54,7 @@ BAKED_BUNDLE_NAME = "tk-config-plugin"
 BAKED_BUNDLE_VERSION = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 # generation of the build syntax
-BUILD_GENERATION = 1
+BUILD_GENERATION = 2
 
 class OptionParserLineBreakingEpilog(optparse.OptionParser):
     """
@@ -183,25 +183,25 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
 
         logger.info("Will bake config from '%s'" % full_baked_path)
 
-        manual_location = os.path.join(bundle_cache_root, "manual", BAKED_BUNDLE_NAME, BAKED_BUNDLE_VERSION)
-        logger.info("Copying %s -> %s" % (full_baked_path, manual_location))
-        filesystem.ensure_folder_exists(manual_location)
-        filesystem.copy_folder(full_baked_path, manual_location)
-
-        # now make a manual descriptor
-        base_config_uri_dict = {
-            "type": "manual",
-            "version": BAKED_BUNDLE_VERSION,
-            "name": BAKED_BUNDLE_NAME
-        }
-        base_config_uri_str = descriptor_dict_to_uri(base_config_uri_dict)
+        from tank.bootstrap.baked_configuration import BakedConfiguration
+        install_path = os.path.join(target_path, "bundle_cache", "baked")
 
         cfg_descriptor = create_descriptor(
             sg_connection,
             Descriptor.CONFIG,
-            base_config_uri_dict,
+            {"type": "path", "path": full_baked_path},
             fallback_roots=[bundle_cache_root]
         )
+
+        BakedConfiguration.bake_config_scaffold(
+            install_path,
+            sg_connection,
+            manifest_data["entry_point"],
+            cfg_descriptor
+        )
+
+        base_config_uri_str = descriptor_dict_to_uri({"type": "baked", "path": install_path})
+
 
     else:
 
@@ -398,13 +398,6 @@ def build_plugin(sg_connection, source_path, target_path):
 
     # cache all apps, engines and frameworks
     _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root)
-
-    # temp: install core scaffold
-    logger.info("HACK: adding core scaffold...")
-    from tank.bootstrap.configuration import Configuration
-    install_path = os.path.join(target_path, "install")
-    Configuration.create_configuration(install_path, cfg_descriptor, sg_connection)
-
 
     # get latest core
     logger.info("Caching latest official core...")

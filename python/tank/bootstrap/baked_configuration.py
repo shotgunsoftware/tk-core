@@ -15,6 +15,8 @@ from .configuration_writer import ConfigurationWriter
 
 from .. import LogManager
 
+from ..util import ShotgunPath
+
 log = LogManager.get_logger(__name__)
 
 class BakedConfiguration(Configuration):
@@ -93,19 +95,6 @@ class BakedConfiguration(Configuration):
         """
         # the baked configuration gets updated at build time
 
-    @classmethod
-    def bake_config_scaffold(cls, path, sg_connection, entry_point, config_descriptor):
-        """
-        Generate config
-
-        :param path:
-        :return:
-        """
-        config_writer = ConfigurationWriter(path, sg_connection)
-        config_writer.ensure_project_scaffold()
-        config_writer.install_core(config_descriptor, bundle_cache_fallback_paths=[])
-        config_writer.write_bare_pipeline_config_file(entry_point)
-
     def get_tk_instance(self, sg_user):
         """
         Returns a tk instance for this configuration.
@@ -120,3 +109,20 @@ class BakedConfiguration(Configuration):
 
         # call base class
         return super(BakedConfiguration, self).get_tk_instance(sg_user)
+
+    @classmethod
+    def bake_config_scaffold(cls, path, sg_connection, entry_point, config_descriptor):
+        """
+        Generate config
+
+        :param path:
+        :return:
+        """
+        config_writer = ConfigurationWriter(ShotgunPath.from_current_os_path(path), sg_connection)
+        config_writer.ensure_project_scaffold()
+
+        config_descriptor.copy(os.path.join(path, "config"))
+
+        config_writer.install_core(config_descriptor, bundle_cache_fallback_paths=[])
+        config_writer.write_bare_pipeline_config_file(entry_point)
+
