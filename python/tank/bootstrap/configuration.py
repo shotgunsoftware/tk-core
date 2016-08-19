@@ -20,19 +20,14 @@ log = LogManager.get_logger(__name__)
 
 class Configuration(object):
     """
-    An abstraction around a toolkit configuration.
-
-    The configuration is identified by a ConfigurationDescriptor
-    object and may or may not exist on disk.
+    An abstraction represenation around a toolkit configuration.
     """
 
     (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_DIFFERENT, LOCAL_CFG_INVALID) = range(4)
 
     def __init__(self, path):
         """
-        Constructor.
-
-        :param path: ShotgunPath object describing the path to this configuration
+        :param path: :class:`~sgtk.util.ShotgunPath` object describing the path to this configuration
         """
         self._path = path
 

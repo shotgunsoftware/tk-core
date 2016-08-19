@@ -70,6 +70,7 @@ class ConfigurationWriter(object):
         the configuration, effectively mimicing a localized setup.
 
         :param config_descriptor: Config descriptor to use to determine core version
+        :param bundle_cache_fallback_paths: bundle cache search path
         """
         core_uri_or_dict = config_descriptor.associated_core_descriptor
 
@@ -103,7 +104,8 @@ class ConfigurationWriter(object):
 
     def get_descriptor_metadata_file(self):
         """
-        Returns the path to the metadata file holding descriptor information
+        Returns the path to the metadata file holding descriptor information.
+
         :return: path
         """
         path = os.path.join(

@@ -23,10 +23,9 @@ log = LogManager.get_logger(__name__)
 
 class BakedConfiguration(Configuration):
     """
-    An abstraction around a toolkit configuration.
-
-    The configuration is identified by a ConfigurationDescriptor
-    object and may or may not exist on disk.
+    Represents a configuration that has been baked out at build time,
+    containing incomplete state data - at bake time we don't yet know
+    what project id, what site, configuration id etc. will be required.
     """
 
     def __init__(
@@ -120,10 +119,12 @@ class BakedConfiguration(Configuration):
     @classmethod
     def bake_config_scaffold(cls, path, sg_connection, entry_point, config_descriptor):
         """
-        Generate config
+        Helper method that can be used to generate a baked scaffold in a given path.
 
-        :param path:
-        :return:
+        :param path: Path to generate scaffold in.
+        :param sg_connection: Shotgun API instance
+        :param entry_point: Config entry point
+        :param config_descriptor: Descriptor object describing the configuration.
         """
         config_writer = ConfigurationWriter(ShotgunPath.from_current_os_path(path), sg_connection)
         config_writer.ensure_project_scaffold()

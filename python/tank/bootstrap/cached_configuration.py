@@ -27,10 +27,9 @@ log = LogManager.get_logger(__name__)
 
 class CachedConfiguration(Configuration):
     """
-    An abstraction around a toolkit configuration.
-
-    The configuration is identified by a ConfigurationDescriptor
-    object and may or may not exist on disk.
+    Represents a configuration which is cached in temp space at runtime
+    and kept continously up to date, usually through the means of
+    automatic updates.
     """
 
     def __init__(
@@ -44,8 +43,6 @@ class CachedConfiguration(Configuration):
             bundle_cache_fallback_paths
     ):
         """
-        Constructor.
-
         :param path: ShotgunPath object describing the path to this configuration
         :param sg: Shotgun API instance
         :param descriptor: ConfigDescriptor for the associated config
