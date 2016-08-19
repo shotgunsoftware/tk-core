@@ -65,6 +65,37 @@ class OptionParserLineBreakingEpilog(optparse.OptionParser):
     def format_epilog(self, formatter):
         return self.epilog
 
+def _compute_size_kbytes(path):
+    """
+    Computes and returns the size of a directory
+
+    :param path: Path to compute
+    :return: size in bytes
+    """
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+    return total_size / 1024
+
+def _cache_descriptor(sg, desc_type, desc_dict, target_path):
+    """
+    Cache the given descriptor into a new bundle cache.
+
+    :param sg: Shotgun API instance
+    :param desc_type: Descriptor.ENGINE | Descriptor.APP | Descriptor.FRAMEWORK
+    :param desc_dict: descriptor dict or uri
+    :param target_path: bundle cache root to cache into
+    """
+    desc = create_descriptor(sg, desc_type, desc_dict)
+    desc.ensure_local()
+    desc_size_kb = _compute_size_kbytes(desc.get_path())
+    logger.info("Caching %s into plugin bundle cache (size %d KiB)" % (desc, desc_size_kb))
+    if not desc._io_descriptor.is_immutable():
+        logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
+    desc.clone_cache(target_path)
+
 def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
     """
     Iterates over all environments within the given configuration descriptor
@@ -93,41 +124,31 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
 
         for eng in env.get_engines():
             # resolve descriptor and clone cache into bundle cache
-            desc = create_descriptor(
+            _cache_descriptor(
                 sg_connection,
                 Descriptor.ENGINE,
                 env.get_engine_descriptor_dict(eng),
-                fallback_roots=[bundle_cache_root]
+                bundle_cache_root
             )
-            logger.info("Caching %s..." % desc)
-            if not desc._io_descriptor.is_immutable():
-                logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
-            desc.clone_cache(bundle_cache_root)
 
             for app in env.get_apps(eng):
                 # resolve descriptor and clone cache into bundle cache
-                desc = create_descriptor(
+                _cache_descriptor(
                     sg_connection,
                     Descriptor.APP,
                     env.get_app_descriptor_dict(eng, app),
-                    fallback_roots=[bundle_cache_root]
+                    bundle_cache_root
                 )
-                logger.info("Caching %s..." % desc)
-                if not desc._io_descriptor.is_immutable():
-                    logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
-                desc.clone_cache(bundle_cache_root)
 
         for framework in env.get_frameworks():
-            desc = create_descriptor(
+            _cache_descriptor(
                 sg_connection,
                 Descriptor.FRAMEWORK,
                 env.get_framework_descriptor_dict(framework),
-                fallback_roots=[bundle_cache_root]
+                bundle_cache_root
             )
-            logger.info("Caching %s..." % desc)
-            if not desc._io_descriptor.is_immutable():
-                logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
-            desc.clone_cache(bundle_cache_root)
+
+    logger.info("Total size of bundle cache: %d KiB" % _compute_size_kbytes(bundle_cache_root))
 
 
 def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
