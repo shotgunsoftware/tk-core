@@ -57,3 +57,7 @@ DESKTOP_PYTHON_MAC = "/Applications/Shotgun.app/Contents/Resources/Python/bin/py
 DESKTOP_PYTHON_WIN = "C:\\Program Files\\Shotgun\\Python\\python.exe"
 DESKTOP_PYTHON_LINUX = "/opt/Shotgun/Python/bin/python"
 
+# name of the special baked descriptor that is used to
+# avoid locally cache immutable bootstrap setups
+BAKED_DESCRIPTOR_TYPE = "baked"
+BAKED_DESCRIPTOR_FOLDER_NAME = "baked"

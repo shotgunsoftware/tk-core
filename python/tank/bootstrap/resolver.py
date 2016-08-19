@@ -83,14 +83,18 @@ class ConfigurationResolver(object):
             # convert to dict so we can introspect
             config_descriptor = descriptor_uri_to_dict(config_descriptor)
 
-        if config_descriptor["type"] == "baked":
-            # special case yay!
+        if config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
+
+            # special case -- this is a full configuration scaffold that
+            # has been pre-baked and can be used directly at runtime
+            # without having to do lots of copying into temp space.
+
             baked_config_root = None
             log.debug("Searching for baked config %s" % config_descriptor)
             for root_path in self._bundle_cache_fallback_paths:
                 baked_config_path = os.path.join(
                     root_path,
-                    "baked",
+                    constants.BAKED_DESCRIPTOR_FOLDER_NAME,
                     config_descriptor["name"],
                     config_descriptor["version"]
                 )

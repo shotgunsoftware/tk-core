@@ -39,6 +39,7 @@ from tank.platform import environment
 from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri, create_descriptor
 from tank.authentication import ShotgunAuthenticator
 from tank.bootstrap.baked_configuration import BakedConfiguration
+from tank.bootstrap import constants as bootstrap_constants
 from tank_vendor import yaml
 
 # set up logging
@@ -184,7 +185,7 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
     # manual descriptor, with a version number based on the current date.
     # This ensures that the manual descriptor will be correctly
     # re-cached at bootstrap time.
-    if base_config_uri_dict["type"] == "baked":
+    if base_config_uri_dict["type"] == bootstrap_constants.BAKED_DESCRIPTOR_TYPE:
         logger.info("Baked descriptor detected.")
 
         baked_path = os.path.expanduser(os.path.expandvars(base_config_uri_dict["path"]))
@@ -205,13 +206,17 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
 
         logger.info("Will bake config from '%s'" % full_baked_path)
 
-        install_path = os.path.join(target_path, "bundle_cache", "baked", BAKED_BUNDLE_NAME, BAKED_BUNDLE_VERSION)
+        install_path = os.path.join(
+            bundle_cache_root,
+            bootstrap_constants.BAKED_DESCRIPTOR_FOLDER_NAME,
+            BAKED_BUNDLE_NAME,
+            BAKED_BUNDLE_VERSION
+        )
 
         cfg_descriptor = create_descriptor(
             sg_connection,
             Descriptor.CONFIG,
-            {"type": "path", "path": full_baked_path},
-            fallback_roots=[bundle_cache_root]
+            {"type": "path", "path": full_baked_path}
         )
 
         BakedConfiguration.bake_config_scaffold(
@@ -223,7 +228,11 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
 
         # now lastly,
         base_config_uri_str = descriptor_dict_to_uri(
-            {"type": "baked", "name": BAKED_BUNDLE_NAME, "version": BAKED_BUNDLE_VERSION}
+            {
+                "type": bootstrap_constants.BAKED_DESCRIPTOR_TYPE,
+                "name": BAKED_BUNDLE_NAME,
+                "version": BAKED_BUNDLE_VERSION
+             }
         )
 
     else:
@@ -248,7 +257,6 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             sg_connection,
             Descriptor.CONFIG,
             base_config_uri_dict,
-            fallback_roots=[bundle_cache_root],
             resolve_latest=using_latest_config
         )
 
