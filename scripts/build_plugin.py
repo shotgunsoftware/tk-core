@@ -38,6 +38,7 @@ from tank.errors import TankError
 from tank.platform import environment
 from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri, create_descriptor
 from tank.authentication import ShotgunAuthenticator
+from tank.bootstrap.baked_configuration import BakedConfiguration
 from tank_vendor import yaml
 
 # set up logging
@@ -183,8 +184,7 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
 
         logger.info("Will bake config from '%s'" % full_baked_path)
 
-        from tank.bootstrap.baked_configuration import BakedConfiguration
-        install_path = os.path.join(target_path, "bundle_cache", "baked")
+        install_path = os.path.join(target_path, "bundle_cache", "baked", BAKED_BUNDLE_NAME, BAKED_BUNDLE_VERSION)
 
         cfg_descriptor = create_descriptor(
             sg_connection,
@@ -200,8 +200,10 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             cfg_descriptor
         )
 
-        base_config_uri_str = descriptor_dict_to_uri({"type": "baked", "path": install_path})
-
+        # now lastly,
+        base_config_uri_str = descriptor_dict_to_uri(
+            {"type": "baked", "name": BAKED_BUNDLE_NAME, "version": BAKED_BUNDLE_VERSION}
+        )
 
     else:
 

@@ -85,13 +85,27 @@ class ConfigurationResolver(object):
 
         if config_descriptor["type"] == "baked":
             # special case yay!
-            baked_config_path = config_descriptor["path"]
-            # only handle current os platform
-            config_root = ShotgunPath.from_current_os_path(baked_config_path)
+            baked_config_root = None
+            log.debug("Searching for baked config %s" % config_descriptor)
+            for root_path in self._bundle_cache_fallback_paths:
+                baked_config_path = os.path.join(
+                    root_path,
+                    "baked",
+                    config_descriptor["name"],
+                    config_descriptor["version"]
+                )
+                if os.path.exists(baked_config_path):
+                    log.debug("Located baked config in %s" % baked_config_path)
+                    # only handle current os platform
+                    baked_config_root = ShotgunPath.from_current_os_path(baked_config_path)
+                    break
+
+            if baked_config_root is None:
+                raise TankBootstrapError("Cannot locate %s!" % config_descriptor)
 
             # create an object to represent our configuration install
             return BakedConfiguration(
-                config_root,
+                baked_config_root,
                 sg_connection,
                 self._project_id,
                 self._entry_point,
