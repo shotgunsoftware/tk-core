@@ -68,11 +68,17 @@ class Configuration(object):
         # perform a local import here to make sure we are getting
         # the newly swapped in core code
         from .. import api
+        from .. import pipelineconfig
         api.set_authenticated_user(sg_user)
         log.debug("Executing tank_from_path('%s')" % path)
-        tk = api.tank_from_path(path)
 
-        log.debug("Bootstrapped into tk instance %r" % tk)
+        # now bypass some of the very extensive validation going on
+        # by creating a pipeline configuration object directly
+        # and pass that into the factory method.
+        pc = pipelineconfig.PipelineConfiguration(path)
+        tk = api.tank_from_path(pc)
+
+        log.debug("Bootstrapped into tk instance %r (%r)" % (tk, tk.pipeline_configuration))
         log.debug("Core API code located here: %s" % inspect.getfile(tk.__class__))
 
         return tk
