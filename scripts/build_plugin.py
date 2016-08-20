@@ -353,16 +353,29 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
             fh.write("BUILD_GENERATION=%d\n" % BUILD_GENERATION)
 
             # Write out helper function 'get_sgtk_pythonpath()'.
-            core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
-            core_path_relative_parts = core_path_parts[core_path_parts.index(BUNDLE_CACHE_ROOT_FOLDER_NAME):]
-            core_path_relative_parts.append("python")
 
-            fh.write("\n\n")
-            fh.write("def get_sgtk_pythonpath(plugin_root):\n")
-            fh.write("    import os\n")
-            fh.write("    return os.path.join(plugin_root, %s)\n" %
-                     ", ".join('"%s"' % dir for dir in core_path_relative_parts))
-            fh.write("\n\n")
+            if core_descriptor.get_path().startswith(plugin_root):
+                # the core descriptor is cached inside our plugin
+                core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
+                core_path_relative_parts = core_path_parts[core_path_parts.index(BUNDLE_CACHE_ROOT_FOLDER_NAME):]
+                core_path_relative_parts.append("python")
+
+                fh.write("\n\n")
+                fh.write("def get_sgtk_pythonpath(plugin_root):\n")
+                fh.write("    import os\n")
+                fh.write("    return os.path.join(plugin_root, %s)\n" %
+                         ", ".join('"%s"' % dir for dir in core_path_relative_parts))
+                fh.write("\n\n")
+
+            else:
+                # the core descriptor is outside of bundle cache
+                logger.warning("Your core %r has its payload outside the plugin bundle cache. "
+                               "This plugin cannot be distributed to others." % core_descriptor)
+
+                fh.write("\n\n")
+                fh.write("def get_sgtk_pythonpath(plugin_root):\n")
+                fh.write("    return '%s'\n" % core_descriptor.get_path())
+                fh.write("\n\n")
 
             fh.write("# end of file.\n")
 
@@ -370,7 +383,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
         raise TankError("Cannot write manifest file: %s" % e)
 
 
-def build_plugin(sg_connection, source_path, target_path):
+def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=None):
     """
     Perform a build of a plugin.
 
@@ -432,15 +445,21 @@ def build_plugin(sg_connection, source_path, target_path):
 
     # get latest core
     logger.info("Caching latest official core...")
-    latest_core_desc = create_descriptor(
-        sg_connection,
-        Descriptor.CORE,
-        {"type": "app_store", "name": "tk-core"},
-        resolve_latest=True,
-        fallback_roots=[bundle_cache_root]
-    )
 
-    latest_core_desc.clone_cache(bundle_cache_root)
+    if bootstrap_core_uri:
+        bootstrap_core_desc = create_descriptor(sg_connection, Descriptor.CORE, bootstrap_core_uri)
+
+    else:
+        # by default, use latest core for bootstrap
+        bootstrap_core_desc = create_descriptor(
+            sg_connection,
+            Descriptor.CORE,
+            {"type": "app_store", "name": "tk-core"},
+            resolve_latest=True,
+            fallback_roots=[bundle_cache_root]
+        )
+
+    bootstrap_core_desc.clone_cache(bundle_cache_root)
 
     # make a python folder where we put our manifest
     logger.info("Creating configuration manifest...")
@@ -449,7 +468,7 @@ def build_plugin(sg_connection, source_path, target_path):
     _bake_manifest(
         manifest_data,
         config_uri_str,
-        latest_core_desc,
+        bootstrap_core_desc,
         target_path
     )
 
@@ -470,7 +489,7 @@ def build_plugin(sg_connection, source_path, target_path):
     logger.info("")
     logger.info("- Your plugin is ready in '%s'" % target_path)
     logger.info("- Plugin uses config %s" % cfg_descriptor)
-    logger.info("- Bootstrap core is %s" % latest_core_desc)
+    logger.info("- Bootstrap core is %s" % bootstrap_core_desc)
     logger.info("- All dependencies have been baked out into the bundle_cache folder")
     logger.info("")
     logger.info("")
@@ -494,6 +513,12 @@ Examples:
 
 > python build_plugin.py ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
 
+By default, the build script will use the latest app store core for its bootstrapping.
+If you want to use a specific core for the bootstrap, this can be specified via the
+--bootstrap-core-uri option. This can be useful if you want to do development:
+
+> python build_plugin.py ~/dev/tk-maya/plugins/basic /tmp/maya-plugin --bootstrap-core-uri=sgtk:descriptor:dev?path=~/dev/tk-core
+
 """
     parser = OptionParserLineBreakingEpilog(usage=usage, description=desc, epilog=epilog)
 
@@ -501,6 +526,13 @@ Examples:
                       default=False,
                       action="store_true",
                       help="Enable debug logging"
+                      )
+
+    parser.add_option("-c", "--bootstrap-core-uri",
+                      default=None,
+                      action="store",
+                      help=("Specify which version of core to be used by the bootstrap process. "
+                            "If not specified, defaults to the most recently released core.")
                       )
 
     # parse cmd line
@@ -511,6 +543,12 @@ Examples:
 
     if options.debug:
         LogManager().global_debug = True
+
+    if options.bootstrap_core_uri:
+        bootstrap_core_uri = options.bootstrap_core_uri
+    else:
+        # default
+        bootstrap_core_uri = None
 
     if len(remaining_args) != 2:
         parser.print_help()
@@ -530,7 +568,7 @@ Examples:
     sg_connection = sg_user.create_sg_connection()
 
     # we are all set.
-    build_plugin(sg_connection, source_path, target_path)
+    build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri)
 
 
 if __name__ == "__main__":
