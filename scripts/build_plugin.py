@@ -372,9 +372,12 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
                 logger.warning("Your core %r has its payload outside the plugin bundle cache. "
                                "This plugin cannot be distributed to others." % core_descriptor)
 
+                core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
+                core_path_parts.append("python")
+
                 fh.write("\n\n")
                 fh.write("def get_sgtk_pythonpath(plugin_root):\n")
-                fh.write("    return '%s'\n" % core_descriptor.get_path())
+                fh.write("    return '%s'\n" % os.path.sep.join(core_path_parts))
                 fh.write("\n\n")
 
             fh.write("# end of file.\n")
