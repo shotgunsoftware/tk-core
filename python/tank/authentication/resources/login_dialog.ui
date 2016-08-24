@@ -132,7 +132,7 @@ QLineEdit:Disabled {
            <number>0</number>
           </property>
           <item>
-           <widget class="QLineEdit" name="site">
+           <widget class="Qt5LikeLineEdit" name="site">
             <property name="minimumSize">
              <size>
               <width>308</width>
@@ -145,7 +145,7 @@ QLineEdit:Disabled {
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="login">
+           <widget class="Qt5LikeLineEdit" name="login">
             <property name="minimumSize">
              <size>
               <width>308</width>
@@ -158,7 +158,7 @@ QLineEdit:Disabled {
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="password">
+           <widget class="Qt5LikeLineEdit" name="password">
             <property name="minimumSize">
              <size>
               <width>308</width>
@@ -359,7 +359,7 @@ background-color: rgb(35, 165, 225);</string>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="_2fa_code">
+              <widget class="Qt5LikeLineEdit" name="_2fa_code">
                <property name="placeholderText">
                 <string>Enter code</string>
                </property>
@@ -530,7 +530,7 @@ background-color: rgb(35, 165, 225);</string>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="backup_code">
+              <widget class="Qt5LikeLineEdit" name="backup_code">
                <property name="text">
                 <string/>
                </property>
@@ -657,6 +657,11 @@ background-color: rgb(35, 165, 225);</string>
    <class>AspectPreservingLabel</class>
    <extends>QLabel</extends>
    <header>.aspect_preserving_label</header>
+  </customwidget>
+  <customwidget>
+   <class>Qt5LikeLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>.qt5_like_line_edit</header>
   </customwidget>
  </customwidgets>
  <resources>
