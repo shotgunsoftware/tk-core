@@ -183,6 +183,7 @@ class TestExecuteInMainThread(TestEngineBase):
     # have heard of, since the background task manager uses this feature extensively)
     # The error string is: python[37236] <Warning>: void CGSUpdateManager::log() const: conn 0x1fd93: spurious update.
     # No amount og Googling could figure it out. Converting to QThreads doesn't fix it either.
+    # Also, it seems the test only fails if it is run with all the other tests. On its own it appears to be fine.
     @skip_if_pyside_missing
     def _test_thead_safe_exec_in_main_thread(self):
         """
