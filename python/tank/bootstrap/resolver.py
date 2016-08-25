@@ -223,23 +223,32 @@ class ConfigurationResolver(object):
         if pipeline_config_name is None:
             log.debug("Will auto-detect which pipeline configuration to use.")
 
+            if self._project_id is None:
+                # no project id, don't filter by project (all site configs)
+                filters = []
+            else:
+                # project id supplied. limit to the project configs
+                filters = [["project", "is", {"type": "Project", "id": self._project_id} ]]
+
+            # add the complex filter to include configs matching the config name
+            # or the current user
+            filters.append(
+                {
+                            "filter_operator": "any",
+                            "filters": [
+                                ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
+                                ["users.HumanUser.login", "contains", current_login]
+                            ]
+                }
+            )
+
             # get the pipeline configs for the current project which are
             # either the primary or is associated with the currently logged in user.
             pipeline_configs = sg_connection.find(
                 "PipelineConfiguration",
                 [{
                     "filter_operator": "all",
-                    "filters": [
-                        ["project", "is", {"type": "Project", "id": self._project_id} ],
-
-                        {
-                            "filter_operator": "any",
-                            "filters": [
-                                ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
-                                ["users.HumanUser.login", "contains", current_login]
-                            ]
-                        }
-                    ]
+                    "filters": filters,
                 }],
                 fields,
                 order=[{"field_name": "updated_at", "direction": "asc"}]
@@ -282,13 +291,20 @@ class ConfigurationResolver(object):
             # there is a fixed pipeline configuration name specified.
             log.debug("Will use pipeline configuration '%s'" % pipeline_config_name)
 
+            if self._project_id is None:
+                # no project id, don't filter by project
+                filters = []
+            else:
+                # project id, filter configs based on project id
+                filters = ["project", "is", {"type": "Project", "id": self._project_id} ]
+
+            # always filter by pipeline config name
+            filters.append(["code", "is", pipeline_config_name])
+
             pipeline_configs = sg_connection.find(
                 "PipelineConfiguration",
-                [
-                    ["project", "is", {"type": "Project", "id": self._project_id} ],
-                    ["code", "is", pipeline_config_name],
-                ],
-                fields,
+                filters=filters,
+                fields=fields,
                 order=[{"field_name": "updated_at", "direction": "asc"}]
             )
 
