@@ -73,7 +73,7 @@ def _get_qt_state():
         from .ui.qt_abstraction import QtGui, QtCore
         qt_core = QtCore
         qt_gui = QtGui
-        qapp_instance_active = (QtGui.QApplication.instance() is not None)
+        qapp_instance_active = (QtGui.qApp is not None)
     except:
         pass
     return (qt_core, qt_gui, qapp_instance_active)

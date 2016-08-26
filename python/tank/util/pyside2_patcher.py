@@ -349,4 +349,4 @@ class PySide2Patcher(object):
         cls._patch_QMessageBox(qt_gui_shim)
         cls._patch_QDesktopServices(qt_gui_shim, qt_core_shim)
 
-        return qt_core_shim, qt_gui_shim, PySide2
+        return qt_core_shim, qt_gui_shim

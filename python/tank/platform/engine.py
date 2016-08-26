@@ -179,12 +179,10 @@ class Engine(TankBundle):
         qt.QtGui = base_def.get("qt_gui")
         qt.TankDialogBase = base_def.get("dialog_base")
 
-        qt5_root = self.__define_qt5()
-
-        if qt5_root:
-            self.__has_qt5 = True
-            for name, value in qt5_root.iteritems():
-                setattr(qt5, name, value)
+        qt5_base = self.__define_qt5_base()
+        self.__has_qt5 = len(qt5_base) > 0
+        for name, value in qt5_base.iteritems():
+            setattr(qt5, name, value)
 
         # Update the authentication module to use the engine's Qt.
         # @todo: can this import be untangled? Code references internal part of the auth module
@@ -1805,7 +1803,6 @@ class Engine(TankBundle):
                 base["dialog_base"] = importer.QtGui.QDialog
             else:
                 base["dialog_base"] = None
-            base["wrapper"] = importer.wrapper
         except:
 
             self.log_exception("Default engine QT definition failed to find QT. "
@@ -1813,60 +1810,19 @@ class Engine(TankBundle):
 
         return base
 
-    def __define_qt5(self):
+    def __define_qt5_base(self):
         """
-        This will be called at initialization to discover every PySide 2 modules, if available.
-        PyQt5 is not supported at the moment, since no DCC ships with it and the official maintainer of
-        PyQt5 doesn't provide a Python 2 version.
+        This will be called at initialization to discover every PySide 2 modules. It should provide
+        every Qt modules available as well as two extra attributes, ``__binding_name__`` and
+        ``__binding_version__``, which refer to the name of the binding and it's version, e.g.
+        PySide2 and 2.0.1.
 
-        :returns: A dictionary of Qt 5 all modules in addition to __file__, __version__ and __name__.
-            If Qt 5 is not available, an empty dictionary is returned.
+        .. note:: PyQt5 not supported since it runs only on Python 3.
+
+        :returns: A dictionary with all the modules as well as the __binding_name__ and
+            __binding_version__ keys.
         """
-
-        # Quick check if PySide 2 is available. If not, simply return an empty dictionary.
-        try:
-            import PySide2
-        except ImportError:
-            return {}
-
-        # List of all Qt 5 modules.
-        sub_modules = [
-            "QtCore", "QtGui", "QtHelp", "QtNetwork", "QtPrintSupport", "QtQml", "QtQuick", "QtQuickWidgets",
-            "QtScript", "QtSvg", "QtTest", "QtUiTools", "QtWebChannel", "QtWebEngineWidgets",
-            "QtWebKit", "QtWebKitWidgets", "QtWidgets", "QtWebSockets", "QtXml", "QtXmlPatterns",
-            "QtScriptSql", "QtScriptTools", "QtOpenGL", "QtMultimedia"
-        ]
-
-        module_dict = {}
-
-        # We do not test for PyQt5 since it is supported on Python 3 only at the moment. No
-        # DCC ships with it anyway.
-        #
-        # Depending on the build of PySide 2 being used, more or less modules are supported. Instead
-        # of assuming a base set of functionality, simply try every module one at a time.
-        #
-        # First, if a module is missing the __import__ function doesn't raise an exception.
-        # This is why we have to test for existence of the attribute on the PySide 2 module.
-        #
-        # Second, if the library couldn't load because of missing symbols with in Qt (e.g.
-        # both Maya 2017 and the PySide 2 built on my machine are missing some symbols in order to load
-        # QtScriptTools), it will raise an ImportError.
-        #
-        # Testing each module like this individually helps get as many as possible.
-        for module_name in sub_modules:
-            try:
-                wrapper = __import__("PySide2", globals(), locals(), [module_name])
-                if hasattr(wrapper, module_name):
-                    module_dict[module_name] = getattr(wrapper, module_name)
-            except:
-                pass
-
-        # If some modules were successfully imported, add PySide 2 build information.
-        if module_dict:
-            for name in ["__version__", "__name__", "__file__"]:
-                module_dict[name] = getattr(wrapper, name)
-
-        return module_dict
+        return QtImporter(interface_version_requested=QtImporter.Qt5).base
 
     def _initialize_dark_look_and_feel(self):
         """
