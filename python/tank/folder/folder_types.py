@@ -652,6 +652,9 @@ class ListField(Folder):
             # render field expression 
             folder_name = self._field_expr_obj.generate_name({self._field_name: sg_value})
             
+            if self._config_metadata.get("lowercase", False):
+                folder_name = folder_name.lower()
+            
             # construct folder
             my_path = os.path.join(parent_path, folder_name)
             io_receiver.make_folder(my_path, self._config_metadata)
@@ -1049,6 +1052,9 @@ class Entity(Folder):
             # now for the case where the project name is encoded with slashes,
             # we need to translate those into a native representation
             folder_name = folder_name.replace("/", os.path.sep)
+            
+            if self._config_metadata.get("lowercase", False):
+                folder_name = folder_name.lower()
             
             my_path = os.path.join(parent_path, folder_name)
                         
