@@ -111,6 +111,7 @@ class QtImporter(object):
         # Some old versions of PySide don't include version information
         # so add something here so that we can use PySide.__version__
         # later without having to check!
+
         # Note: Do not remove this. It was briefly introduced so that engines
         # could introspec the wrapper for all sorts of things, but we've moving
         # away from modifying the modules themselves, so keep this is for now and
@@ -192,17 +193,21 @@ class QtImporter(object):
 
         :returns: The (binding name, binding version, modules) tuple.
         """
-        from PyQt4 import QtCore, QtGui
+        from PyQt4 import QtCore, QtGui, Qt
 
         # hot patch the library to make it compatible with PySide-based apps.
         QtCore.Signal = QtCore.pyqtSignal
         QtCore.Slot = QtCore.pyqtSlot
         QtCore.Property = QtCore.pyqtProperty
 
-        from PyQt4.Qt import PYQT_VERSION_STR
-        PyQt4.__version__ = PYQT_VERSION_STR
+        # Note: Do not remove this. It was briefly introduced so that engines
+        # could introspec the wrapper for all sorts of things, but we've moving
+        # away from modifying the modules themselves, so keep this is for now and
+        # we'll be able to deprecate it at some point in the future.
+        import PyQt4
+        PyQt4.__version__ = Qt.PYQT_VERSION_STR
 
-        return "PyQt4", PYQT_VERSION_STR, PyQt4, {
+        return "PyQt4", PyQt4.__version__, PyQt4, {
             "QtCore": QtCore,
             "QtGui": QtGui
         }
