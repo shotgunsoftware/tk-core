@@ -86,7 +86,7 @@ class QtImporter(object):
     def base(self):
         """
         :returns: A dictionary representing the base of the Qt binding. The name and version of the
-            binding are stored as __binding_name__ and __binding_version__ respectively.
+            binding are stored as __name__ and __version__ respectively.
         """
         if not self._modules:
             return {}
@@ -94,8 +94,8 @@ class QtImporter(object):
         qt_base = {}
 
         qt_base.update(self._modules)
-        qt_base["__binding_name__"] = self._binding_name
-        qt_base["__binding_version__"] = self._binding_version
+        qt_base["__name__"] = self._binding_name
+        qt_base["__version__"] = self._binding_version
 
         return qt_base
 

@@ -1813,14 +1813,13 @@ class Engine(TankBundle):
     def __define_qt5_base(self):
         """
         This will be called at initialization to discover every PySide 2 modules. It should provide
-        every Qt modules available as well as two extra attributes, ``__binding_name__`` and
-        ``__binding_version__``, which refer to the name of the binding and it's version, e.g.
+        every Qt modules available as well as two extra attributes, ``__name__`` and
+        ``__version__``, which refer to the name of the binding and it's version, e.g.
         PySide2 and 2.0.1.
 
         .. note:: PyQt5 not supported since it runs only on Python 3.
 
-        :returns: A dictionary with all the modules as well as the __binding_name__ and
-            __binding_version__ keys.
+        :returns: A dictionary with all the modules, __version__ and __name__.
         """
         return QtImporter(interface_version_requested=QtImporter.Qt5).base
 
