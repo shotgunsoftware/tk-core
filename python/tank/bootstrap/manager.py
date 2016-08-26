@@ -49,6 +49,7 @@ class ToolkitManager(object):
         self._progress_cb = None
         self._do_shotgun_config_lookup = True
         self._entry_point = None
+        self._async_bootstrap = False
 
         log.debug("%s instantiated" % self)
 
@@ -202,6 +203,28 @@ class ToolkitManager(object):
     )
 
 
+    def _get_async_bootstrap(self):
+        """
+        Boolean property that specifies how the engine bootstrap logic should be executed.
+
+        By default, when ```async_bootstrap`` is false, the whole engine bootstrap logic
+        will be executed synchronously in the main application thread.
+
+        When ``async_bootstrap` is true, an :class:`sgtk.Sgtk` instance will be bootstrapped asynchronously
+        in a background thread, followed by launching the engine synchronously
+        in the main application thread. This will allow the main application to continue
+        its execution and remain responsive when bootstrapping the toolkit involves
+        downloading files and installing apps from the toolkit app store.
+        """
+        return self._async_bootstrap
+
+    def _set_async_bootstrap(self, value):
+        # Setter for async_bootstrap.
+        self._async_bootstrap = value
+
+    async_bootstrap = property(_get_async_bootstrap, _set_async_bootstrap)
+
+
     def set_progress_callback(self, callback):
         """
         Specify a method to call whenever progress should be reported back.
@@ -221,10 +244,49 @@ class ToolkitManager(object):
         """
         self._progress_cb = callback
 
-    def bootstrap_engine(self, engine_name, entity=None):
+    def bootstrap_engine(self,
+                         engine_name,
+                         entity=None,
+                         progress_callback=None,
+                         completed_callback=None,
+                         failed_callback=None):
         """
         Create an sgtk instance for the given project or site,
         then launch into the given engine.
+
+        When property ``async_bootstrap`` is false, the whole engine bootstrap logic
+        will be executed synchronously in the main application thread. When true,
+        an :class:`sgtk.Sgtk` instance will be bootstrapped asynchronously in a background thread,
+        followed by launching the engine synchronously in the main application thread.
+
+        When property ``async_bootstrap`` is true, 3 callback functions should be provided.
+
+        A callback function that reports back on the bootstrap progress
+        with the following signature::
+
+            progress_callback(message, current_index, maximum_index)
+
+        where:
+        - ``message`` is the progress message to report.
+        - ``current_index`` is an optional current item number being looped over.
+        - ``maximum_index`` is an optional maximum item number being looped over.
+
+        A callback function that handles cleanup after successful completion of the bootstrap
+        with the following signature::
+
+            completed_callback(engine)
+
+        where:
+        - ``engine``is the launched :class:`sgtk.platform.Engine` instance.
+
+        A callback function that handles cleanup after failed completion of the bootstrap
+        with the following signature::
+
+            failed_callback(step, exception)
+
+        where:
+        - ``step``is the bootstrap step ("sgtk" or "engine") that raised the exception.
+        - ``exception``is the python exception raised while bootstrapping.
 
         If entity is None, the method will bootstrap into the site
         config. This method will attempt to resolve the config according
@@ -236,17 +298,62 @@ class ToolkitManager(object):
         the engine may not be the same as the API version that was
         executed during the bootstrap.
 
-        :param entity: Shotgun entity to launch engine for
-        :type entity: Dictionary with keys type and id
+        :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
+        :param entity: Shotgun entity to launch engine for.
+        :param progress_callback: Callback function that reports back on the toolkit and engine bootstrap progress.
+        :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
+        :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
+        :returns: :class:`sgtk.platform.Engine` instance when ``async_bootstrap` is false; otherwise None.
+        """
+
+        log.info("Bootstrapping engine %s for entity %s." % (engine_name, entity))
+
+        bootstrap_asynchronously = self.async_bootstrap
+
+        if bootstrap_asynchronously:
+            try:
+                import threading
+            except ImportError:
+                log.warning("Cannot bootstrap asynchronously in a background thread.")
+                # Since Qt is not available, fall back on synchronous boostraping.
+                bootstrap_asynchronously = False
+
+        if bootstrap_asynchronously:
+
+            # Bootstrap an Sgtk instance asynchronously in a background thread,
+            # followed by launching the engine synchronously in the main application thread.
+            self._bootstrapper = threading.BootstrapSupervisor(self, engine_name, entity)
+            self._bootstrapper.set_callbacks(progress_callback, completed_callback, failed_callback)
+            self._bootstrapper.bootstrap()
+
+            # At this point, the engine has not yet been started.
+            engine = None
+
+        else:
+
+            # Execute the whole engine bootstrap logic synchronously in the main application thread.
+            tk = self.bootstrap_sgtk(engine_name, entity)
+            engine = self.start_engine(tk, engine_name, entity)
+
+        return engine
+
+    def start_engine(self, tk, engine_name, entity):
+        """
+        Launch into the given engine.
+
+        If entity is None, the method will bootstrap into the site config.
+
+        Please note that the API version of the tk instance that hosts
+        the engine may not be the same as the API version that was
+        executed during the bootstrap.
+
+        :param tk: :class:`sgtk.Sgtk` instance
         :param engine_name: name of engine to launch (e.g. ``tk-nuke``)
+        :param entity: Shotgun entity to launch engine for
         :returns: :class:`sgtk.platform.Engine` instance
         """
-        log.info("Bootstrapping into engine %s for entity %s." % (engine_name, entity))
 
-        log.debug("Bootstrapping into environment.")
-        tk = self._bootstrap_sgtk(engine_name, entity)
-
-        log.debug("Resolving context.")
+        self._report_progress("Resolving context...")
         if entity is None:
             ctx = tk.context_empty()
         else:
@@ -260,10 +367,10 @@ class ToolkitManager(object):
         engine = tank.platform.start_engine(engine_name, tk, ctx)
 
         log.debug("Launched engine %r" % engine)
+
         return engine
 
-
-    def _bootstrap_sgtk(self, engine_name, entity):
+    def bootstrap_sgtk(self, engine_name, entity):
         """
         Create an sgtk instance for the given engine and entity.
 
