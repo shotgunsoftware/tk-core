@@ -107,7 +107,8 @@ def setUpModule():
     temp_dir = tempfile.gettempdir()
     # make a unique test dir for each file
     temp_dir_name = "tankTemporaryTestData"
-    # Append time to the temp directory name
+    # Append a random string to the temp directory name to make it unique. time.time
+    # doesn't have enough resolution!!!
     temp_dir_name += "_%s" % (uuid.uuid4(),)
 
     TANK_TEMP = os.path.join(temp_dir, temp_dir_name)
@@ -214,7 +215,7 @@ class TankTestBase(unittest.TestCase):
 
         self.cache_root = os.path.join(self.tank_temp, "cache_root")
 
-        self._configure_process_sandbox()
+        self._sandbox_test_case()
 
         # Mock this so that authentication manager works even tough we are not in a config.
         # If we don't mock it than the path cache calling get_current_user will fail.
@@ -329,7 +330,7 @@ class TankTestBase(unittest.TestCase):
         patch.start()
         self.addCleanup(patch.stop)
 
-    def _configure_process_sandbox(self):
+    def _sandbox_test_case(self):
         """
         Configures locations on disk that are read/writable by a unit test and that need to be sandboxed.
         """
