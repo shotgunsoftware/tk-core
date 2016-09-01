@@ -74,9 +74,11 @@ class BootstrapSupervisor(QtCore.QObject):
 
         These functions must have the following signatures:
 
-            ``progress_callback(message, current_index, maximum_index)``
+            ``progress_callback(step_number, message, current_index, maximum_index)``
 
             where:
+            - ``step_number`` is the current progress step number,
+                              from 1 to ``ToolkitManager.MAX_PROGRESS_STEP_NUMBER``.
             - ``message`` is the progress message to report.
             - ``current_index`` is an optional current item number being looped over.
             - ``maximum_index`` is an optional maximum item number being looped over.
@@ -84,13 +86,13 @@ class BootstrapSupervisor(QtCore.QObject):
             ``completed_callback(engine)``
 
             where:
-            - ``engine``is the launched :class:`sgtk.platform.Engine` instance.
+            - ``engine`` is the launched :class:`sgtk.platform.Engine` instance.
 
             ``failed_callback(step, exception)``
 
             where:
-            - ``step``is the bootstrap step ("sgtk" or "engine") that raised the exception.
-            - ``exception``is the python exception raised while bootstrapping.
+            - ``step`` is the bootstrap step ("sgtk" or "engine") that raised the exception.
+            - ``exception`` is the python exception raised while bootstrapping.
 
         :param progress_callback: Callback function that reports back on the toolkit and engine bootstrap progress.
         :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
@@ -109,20 +111,21 @@ class BootstrapSupervisor(QtCore.QObject):
         # Start the QThread object event loop in its new thread context.
         self._thread.start()
 
-    @QtCore.Slot()
-    def _progress_bootstrap(self, message, current_index, maximum_index):
+    @QtCore.Slot(int, str, int, int)
+    def _progress_bootstrap(self, step_number, message, current_index, maximum_index):
         """
         Callback slot that reports back on the toolkit and engine bootstrap progress.
 
+        :param step_number: Current progress step number, from 1 to ``ToolkitManager.MAX_PROGRESS_STEP_NUMBER``.
         :param message: Progress message to report.
         :param current_index: Optional current item number being looped over, or None.
         :param maximum_index: Optional maximum item number being looped over, or None.
         """
 
         if self._progress_callback:
-            self._progress_callback(message, current_index, maximum_index)
+            self._progress_callback(step_number, message, current_index, maximum_index)
 
-    @QtCore.Slot()
+    @QtCore.Slot(Sgtk)
     def _complete_bootstrap(self, toolkit):
         """
         Callback slot that handles cleanup after successful completion of the toolkit bootstrap.
@@ -160,7 +163,7 @@ class BootstrapSupervisor(QtCore.QObject):
             # Remove the bootstrap progress reporting callback.
             self._toolkit_manager.set_progress_callback(None)
 
-    @QtCore.Slot()
+    @QtCore.Slot(Exception)
     def _fail_bootstrap(self, exception):
         """
         Callback slot that handles cleanup after failed completion of the toolkit bootstrap.
@@ -186,7 +189,7 @@ class BootstrapWorker(QtCore.QObject):
     """
 
     # Qt signal emitted while the bootstrap worker is progressing in its work in the background.
-    progressing = QtCore.Signal(str, int, int)
+    progressing = QtCore.Signal(int, str, int, int)
 
     # Qt signal emitted when the bootstrap worker successfully completes its work in the background.
     completed = QtCore.Signal(Sgtk)
@@ -237,17 +240,18 @@ class BootstrapWorker(QtCore.QObject):
             # Remove the bootstrap progress reporting callback.
             self._toolkit_manager.set_progress_callback(None)
 
-    def _report_progress(self, message, current_index, maximum_index):
+    def _report_progress(self, step_number, message, current_index, maximum_index):
         """
         Callback function that reports back on the toolkit bootstrap progress.
 
+        :param step_number: Current progress step number, from 1 to ``ToolkitManager.MAX_PROGRESS_STEP_NUMBER``.
         :param message: Progress message to report.
         :param current_index: Optional current item number being looped over.
         :param maximum_index: Optional maximum item number being looped over.
         """
 
         # Signal the toolkit bootstrap progress.
-        self.progressing.emit(message, current_index, maximum_index)
+        self.progressing.emit(step_number, message, current_index, maximum_index)
 
 
 def get_thread_info_msg(caller):

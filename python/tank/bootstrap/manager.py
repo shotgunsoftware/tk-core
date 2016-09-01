@@ -23,6 +23,9 @@ class ToolkitManager(object):
     and installations.
     """
 
+    # Maximum progress step number that can be passed to a progress callback.
+    MAX_PROGRESS_STEP_NUMBER = 8  # "Launching Engine..."
+
     def __init__(self, sg_user=None):
         """
         :param sg_user: Authenticated Shotgun User object. If you pass in None,
@@ -259,14 +262,22 @@ class ToolkitManager(object):
         an :class:`sgtk.Sgtk` instance will be bootstrapped asynchronously in a background thread,
         followed by launching the engine synchronously in the main application thread.
 
-        When property ``async_bootstrap`` is true, 3 callback functions should be provided.
+        If entity is None, the method will bootstrap into the site
+        config. This method will attempt to resolve the config according
+        to business logic set in the associated resolver class and based
+        on this launch a configuration. This may involve downloading new
+        apps from the toolkit app store and installing files on disk.
+
+        3 callback functions can be provided.
 
         A callback function that reports back on the bootstrap progress
         with the following signature::
 
-            progress_callback(message, current_index, maximum_index)
+            progress_callback(step_number, message, current_index, maximum_index)
 
         where:
+        - ``step_number`` is the current progress step number,
+                          from 1 to ``ToolkitManager.MAX_PROGRESS_STEP_NUMBER``.
         - ``message`` is the progress message to report.
         - ``current_index`` is an optional current item number being looped over.
         - ``maximum_index`` is an optional maximum item number being looped over.
@@ -287,12 +298,6 @@ class ToolkitManager(object):
         where:
         - ``step``is the bootstrap step ("sgtk" or "engine") that raised the exception.
         - ``exception``is the python exception raised while bootstrapping.
-
-        If entity is None, the method will bootstrap into the site
-        config. This method will attempt to resolve the config according
-        to business logic set in the associated resolver class and based
-        on this launch a configuration. This may involve downloading new
-        apps from the toolkit app store and installing files on disk.
 
         Please note that the API version of the tk instance that hosts
         the engine may not be the same as the API version that was
@@ -318,6 +323,8 @@ class ToolkitManager(object):
                 # Since Qt is not available, fall back on synchronous boostraping.
                 bootstrap_asynchronously = False
 
+        engine = None
+
         if bootstrap_asynchronously:
 
             # Bootstrap an Sgtk instance asynchronously in a background thread,
@@ -326,14 +333,37 @@ class ToolkitManager(object):
             self._bootstrapper.set_callbacks(progress_callback, completed_callback, failed_callback)
             self._bootstrapper.bootstrap()
 
-            # At this point, the engine has not yet been started.
-            engine = None
-
         else:
 
-            # Execute the whole engine bootstrap logic synchronously in the main application thread.
-            tk = self.bootstrap_sgtk(engine_name, entity)
-            engine = self.start_engine(tk, engine_name, entity)
+            bootstrap_step = None
+
+            try:
+
+                # Install the bootstrap progress reporting callback.
+                self.set_progress_callback(progress_callback)
+
+                # Execute the whole engine bootstrap logic synchronously in the main application thread.
+                bootstrap_step = "sgtk"
+                tk = self.bootstrap_sgtk(engine_name, entity)
+                bootstrap_step = "engine"
+                engine = self.start_engine(tk, engine_name, entity)
+
+                if completed_callback:
+                    # Handle cleanup after successful completion of the engine bootstrap.
+                    completed_callback(engine)
+
+            except Exception as exception:
+
+                if failed_callback:
+                    # Handle cleanup after failed completion of the engine bootstrap.
+                    failed_callback(bootstrap_step, exception)
+
+                raise
+
+            finally:
+
+                # Remove the bootstrap progress reporting callback.
+                self.set_progress_callback(None)
 
         return engine
 
@@ -353,13 +383,13 @@ class ToolkitManager(object):
         :returns: :class:`sgtk.platform.Engine` instance
         """
 
-        self._report_progress("Resolving context...")
+        self._report_progress(step_number=7, message="Resolving context...")
         if entity is None:
             ctx = tk.context_empty()
         else:
             ctx = tk.context_from_entity_dictionary(entity)
 
-        self._report_progress("Launching Engine...")
+        self._report_progress(step_number=8, message="Launching Engine...")  # 8 is the MAX_PROGRESS_STEP_NUMBER
         log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
 
         # perform absolute import to ensure we get the new swapped core.
@@ -390,7 +420,7 @@ class ToolkitManager(object):
         """
         log.debug("Begin bootstrapping sgtk.")
 
-        self._report_progress("Resolving Toolkit Context...")
+        self._report_progress(step_number=1, message="Resolving project...")
         if entity is None:
             project_id = None
 
@@ -416,7 +446,7 @@ class ToolkitManager(object):
 
         # get an object to represent the business logic for
         # how a configuration location is being determined
-        self._report_progress("Resolving configuration...")
+        self._report_progress(step_number=2, message="Resolving configuration...")
 
         resolver = ConfigurationResolver(
             self._entry_point,
@@ -449,14 +479,13 @@ class ToolkitManager(object):
                 self._sg_connection,
             )
 
-        self._report_progress("Using %s" % config)
         log.info("Using %s" % config)
         log.debug("Bootstrapping into configuration %r" % config)
 
         # see what we have locally
         status = config.status()
 
-        self._report_progress("Updating configuration...")
+        self._report_progress(step_number=3, message="Updating configuration...")
         if status == Configuration.LOCAL_CFG_UP_TO_DATE:
             log.info("Your locally cached configuration is up to date.")
 
@@ -476,7 +505,7 @@ class ToolkitManager(object):
             raise TankBootstrapError("Unknown configuration update status!")
 
         # we can now boot up this config.
-        self._report_progress("Starting up Toolkit...")
+        self._report_progress(step_number=4, message="Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
         if status != Configuration.LOCAL_CFG_UP_TO_DATE:
@@ -484,20 +513,27 @@ class ToolkitManager(object):
 
         return tk
 
-    def _report_progress(self, message, curr_idx=None, max_idx=None):
+    def _report_progress(self, step_number, message, current_index=None, maximum_index=None):
         """
-        Helper method. Report progress back to
-        any defined progress callback.
+        Helper method that reports back on the bootstrap progress to a defined progress callback.
 
-        :param message: Message to report
-        :param curr_idx: Optional integer denoting progress. This number is
-                         relative to the max_idx which denotes completion
-                         of the current task or subtask.
-        :param max_idx: Max number of items.
+        :param step_number: Current progress step number, from 1 to ``MAX_PROGRESS_STEP_NUMBER``.
+        :param message: Progress message to report.
+        :param current_index: Optional current item number being looped over.
+                              This integer number is relative to maximum_index.
+        :param maximum_index: Optional maximum item number being looped over.
+                              This integer number leads to completion of the current progress step.
         """
+
         log.info("Progress Report: %s" % message)
+
         if self._progress_cb:
-            self._progress_cb(message, curr_idx, max_idx)
+            if self._progress_cb.func_code.co_argcount == 5:
+                # Call the new style progress callback.
+                self._progress_cb(step_number, message, current_index, maximum_index)
+            else:
+                # Call the old style progress callback.
+                self._progress_cb(message, current_index, maximum_index)
 
     def _is_toolkit_activated_in_shotgun(self):
         """
@@ -545,7 +581,10 @@ class ToolkitManager(object):
         for idx, descriptor in enumerate(descriptors):
 
             if not descriptor.exists_local():
-                self._report_progress("Downloading %s..." % descriptor, idx, len(descriptors))
+                self._report_progress(step_number=5,
+                                      message="Downloading %s..." % descriptor,
+                                      current_index=idx,
+                                      maximum_index=len(descriptors)-1)
                 descriptor.download_local()
 
             else:
@@ -554,7 +593,7 @@ class ToolkitManager(object):
         # pass 3 - do post install
         if do_post_install:
             for descriptor in descriptors:
-                self._report_progress("Running post install for %s" % descriptor)
+                self._report_progress(step_number=6, message="Running post install for %s" % descriptor)
                 descriptor.ensure_shotgun_fields_exist(tk)
                 descriptor.run_post_install(tk)
 
