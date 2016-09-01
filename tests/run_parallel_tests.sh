@@ -1,1 +1,1 @@
-PYTHONPATH=../python:./python TK_TEST_FIXTURES=./fixtures nosetests --processes=-1 -e run_integration_tests $*
+PYTHONPATH=../python:python TK_TEST_FIXTURES=fixtures nosetests --processes=-1 --process-timeout=45 -e run_integration_tests $*

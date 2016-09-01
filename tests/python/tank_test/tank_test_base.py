@@ -108,7 +108,7 @@ def setUpModule():
     # make a unique test dir for each file
     temp_dir_name = "tankTemporaryTestData"
     # Append time to the temp directory name
-    temp_dir_name += "_%f-%s" % (time.time(), uuid.uuid4())
+    temp_dir_name += "_%s" % (uuid.uuid4(),)
 
     TANK_TEMP = os.path.join(temp_dir, temp_dir_name)
     # print out the temp data location
