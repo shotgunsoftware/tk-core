@@ -86,7 +86,7 @@ class TestYamlCache(TankTestBase):
         # inspect the cache itself and make sure that the data returned is a copy 
         # of the internal cached data and not the internal cached data itself:
         self.assertEquals(len(yaml_cache._cache), 1)
-        self.assertEquals(yaml_cache._cache.keys()[0], yaml_path)
+        self.assertEquals(os.path.abspath(yaml_cache._cache.keys()[0]), os.path.abspath(yaml_path))
         self.assertEquals(yaml_cache._cache.values()[0]["data"], read_data)
         cached_data_id = id(yaml_cache._cache.values()[0]["data"])
         self.assertNotEquals(cached_data_id, id(read_data))
