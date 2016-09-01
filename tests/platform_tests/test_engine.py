@@ -180,7 +180,7 @@ class TestExecuteInMainThread(TestEngineBase):
         sgtk.platform.current_engine().async_execute_in_main_thread(self._assert_run_in_main_thread_and_quit)
 
     @skip_if_pyside_missing
-    def test_thead_safe_exec_in_main_thread(self):
+    def _test_thead_safe_exec_in_main_thread(self):
         """
         Checks that execute_in_main_thread is itself thread-safe!  It
         runs a simple test a number of times in multiple threads and asserts the result

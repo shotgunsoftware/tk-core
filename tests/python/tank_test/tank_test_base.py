@@ -20,6 +20,7 @@ import pprint
 import threading
 import logging
 import tempfile
+import uuid
 
 from tank_vendor.shotgun_api3.lib import mockgun
 
@@ -107,7 +108,7 @@ def setUpModule():
     # make a unique test dir for each file
     temp_dir_name = "tankTemporaryTestData"
     # Append time to the temp directory name
-    temp_dir_name += "_%f" % time.time()
+    temp_dir_name += "_%f-%s" % (time.time(), uuid.uuid4())
 
     TANK_TEMP = os.path.join(temp_dir, temp_dir_name)
     # print out the temp data location
@@ -214,6 +215,13 @@ class TankTestBase(unittest.TestCase):
         self.cache_root = os.path.join(self.tank_temp, "cache_root")
 
         patch = mock.patch("tank.pipelineconfig_factory._get_cache_location", return_value=self.init_cache_location)
+        patch.start()
+        self.addCleanup(patch.stop)
+
+        if os.path.exists(self.init_cache_location):
+            os.makedirs(self.init_cache_location)
+
+        patch = mock.patch("tank.path_cache.PathCache._get_path_cache_location", return_value=os.path.join(self.tank_temp, "path_cache.db"))
         patch.start()
         self.addCleanup(patch.stop)
 
