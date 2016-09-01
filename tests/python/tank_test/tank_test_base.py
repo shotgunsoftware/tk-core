@@ -214,25 +214,14 @@ class TankTestBase(unittest.TestCase):
 
         self.cache_root = os.path.join(self.tank_temp, "cache_root")
 
-        patch = mock.patch("tank.pipelineconfig_factory._get_cache_location", return_value=self.init_cache_location)
-        patch.start()
-        self.addCleanup(patch.stop)
-
-        if os.path.exists(self.init_cache_location):
-            os.makedirs(self.init_cache_location)
-
-        patch = mock.patch("tank.path_cache.PathCache._get_path_cache_location", return_value=os.path.join(self.tank_temp, "path_cache.db"))
-        patch.start()
-        self.addCleanup(patch.stop)
+        self._configure_process_sandbox()
 
         # Mock this so that authentication manager works even tough we are not in a config.
         # If we don't mock it than the path cache calling get_current_user will fail.
-        patch = mock.patch(
+        self._mock_return_value(
             "tank.util.shotgun.get_associated_sg_config_data",
-            return_value={"host": "https://somewhere.shotguntudio.com"}
+            {"host": "https://somewhere.shotguntudio.com"}
         )
-        patch.start()
-        self.addCleanup(patch.stop)
 
         # define entity for test project
         self.project = {"type": "Project",
@@ -307,13 +296,8 @@ class TankTestBase(unittest.TestCase):
         # fake a version response from the server
         self.mockgun.server_info = {"version": (7, 0, 0)}
 
-        patch = mock.patch("tank.util.shotgun.get_associated_sg_base_url", return_value="http://unit_test_mock_sg")
-        patch.start()
-        self.addCleanup(patch.stop)
-
-        patch = mock.patch("tank.util.shotgun.create_sg_connection", return_value=self.mockgun)
-        patch.start()
-        self.addCleanup(patch.stop)
+        self._mock_return_value("tank.util.shotgun.get_associated_sg_base_url", "http://unit_test_mock_sg")
+        self._mock_return_value("tank.util.shotgun.create_sg_connection", self.mockgun)
 
         # add project to mock sg and path cache db
         self.add_production_path(self.project_root, self.project)
@@ -333,6 +317,32 @@ class TankTestBase(unittest.TestCase):
 
         # back up the authenticated user in case a unit test doesn't clean up correctly.
         self._authenticated_user = sgtk.get_authenticated_user()
+
+    def _mock_return_value(self, to_mock, return_value):
+        """
+        Mocks a method with to return a specified return value.
+
+        :param to_mock: Path to the method to mock
+        :param return_value: Value to return from the mocked method.
+        """
+        patch = mock.patch(to_mock, return_value=return_value)
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def _configure_process_sandbox(self):
+        """
+        Configures locations on disk that are read/writable by a unit test and that need to be sandboxed.
+        """
+        self._mock_return_value("tank.pipelineconfig_factory._get_cache_location", self.init_cache_location)
+        self._mock_return_value("tank.path_cache.PathCache._get_path_cache_location", os.path.join(self.tank_temp, "path_cache.db"))
+        self._mock_return_value("tank.authentication.session_cache._get_global_authentication_file_location", os.path.join(self.tank_temp, "global_authentication.yml"))
+
+        patch = mock.patch(
+            "tank.authentication.session_cache._get_site_authentication_file_location",
+            lambda site: os.path.join(self.tank_temp, site, "authentication.yml")
+        )
+        patch.start()
+        self.addCleanup(patch.stop)
 
     def tearDown(self):
         """
