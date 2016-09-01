@@ -19,4 +19,10 @@ find . -name "*.pyc" -delete
 # inside the TankTestBase can be run in parallel. 60 seconds is double the amount of time it takes to run the
 # tests, so it should be enough.
 # -e run_integration_tests is to prevent nose to pick up that source file for testing.
+
+# In order to be able to run the tests, you need to install nose first. (pip install nose) and make sure nosetests
+# is in your path.
+#
+# FIXME: The tests can't be run in parallel with Python 2.5 for some reason. You need to pip install multiprocessing
+# first and even then it crashes immediately.
 PYTHONPATH=../python:python TK_TEST_FIXTURES=fixtures nosetests --processes=-1 --process-timeout=60 -e run_integration_tests $*
