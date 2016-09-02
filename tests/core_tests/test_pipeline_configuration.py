@@ -8,13 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
-import sys
-import copy
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule
 
-from tank.util import LocalFileStorageManager
 import tank
 
 class TestPipelineConfig(TankTestBase):
