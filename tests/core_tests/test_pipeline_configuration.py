@@ -33,5 +33,3 @@ class TestPipelineConfig(TankTestBase):
         # it from disk.
         tk2 = tank.sgtk_from_path(self.tk.pipeline_configuration.get_path())
         self.assertTrue(tk2.pipeline_configuration.is_site_configuration())
-
-
