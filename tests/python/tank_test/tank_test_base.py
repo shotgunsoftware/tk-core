@@ -21,6 +21,7 @@ import threading
 import logging
 import tempfile
 import uuid
+import urlparse
 
 from tank_vendor.shotgun_api3.lib import mockgun
 
@@ -340,7 +341,11 @@ class TankTestBase(unittest.TestCase):
 
         patch = mock.patch(
             "tank.authentication.session_cache._get_site_authentication_file_location",
-            lambda site: os.path.join(self.tank_temp, site, "authentication.yml")
+            lambda site: os.path.join(
+                self.tank_temp,
+                urlparse.urlparse(site).netloc.split(":")[0].lower(),
+                "authentication.yml"
+            )
         )
         patch.start()
         self.addCleanup(patch.stop)
