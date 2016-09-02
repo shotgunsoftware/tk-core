@@ -42,7 +42,7 @@ class QtImporter(object):
         """
         import PySide
         from PySide import QtCore, QtGui
-        # Some old versions of PySide don't include version infor   tion
+        # Some old versions of PySide don't include version information
         # so add something here so that we can use PySide.__version__
         # later without having to check!
         if not hasattr(PySide, "__version__"):
