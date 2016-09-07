@@ -52,6 +52,7 @@ class ConfigurationResolver(object):
         :param bundle_cache_fallback_paths: Optional list of additional paths where apps are cached.
         """
         self._project_id = project_id
+        self._proj_entity_dict = {"type": "Project", "id": self._project_id} if self._project_id else None
         self._entry_point = entry_point
         self._engine_name = engine_name
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths or []
@@ -225,12 +226,14 @@ class ConfigurationResolver(object):
 
             # get the pipeline configs for the current project which are
             # either the primary or is associated with the currently logged in user.
+            log.debug("Requesting pipeline configurations from Shotgun...")
+
             pipeline_configs = sg_connection.find(
                 "PipelineConfiguration",
                 [{
                     "filter_operator": "all",
                     "filters": [
-                        ["project", "is", {"type": "Project", "id": self._project_id} ],
+                        ["project", "is", self._proj_entity_dict],
 
                         {
                             "filter_operator": "any",
@@ -282,10 +285,12 @@ class ConfigurationResolver(object):
             # there is a fixed pipeline configuration name specified.
             log.debug("Will use pipeline configuration '%s'" % pipeline_config_name)
 
+            log.debug("Requesting pipeline configuration data from Shotgun...")
+
             pipeline_configs = sg_connection.find(
                 "PipelineConfiguration",
                 [
-                    ["project", "is", {"type": "Project", "id": self._project_id} ],
+                    ["project", "is", self._proj_entity_dict],
                     ["code", "is", pipeline_config_name],
                 ],
                 fields,
