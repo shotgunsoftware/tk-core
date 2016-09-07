@@ -556,10 +556,10 @@ class ToolkitManager(object):
         log.info("Progress Report: %s" % message)
 
         if self._progress_cb:
-            if self._progress_cb.func_code.co_argcount == 5:
+            try:
                 # Call the new style progress callback.
                 self._progress_cb(progress_value, message, current_index, maximum_index)
-            else:
+            except TypeError:
                 # Call the old style progress callback.
                 self._progress_cb(message, current_index, maximum_index)
 
