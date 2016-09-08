@@ -331,18 +331,18 @@ class ToolkitManager(object):
         log.info("Bootstrapping engine %s for entity %s." % (engine_name, entity))
 
         try:
-            import threading
+            import async
         except ImportError:
-            threading = None
+            async = None
             log.warning("Cannot bootstrap asynchronously in a background thread;"
                         " falling back on synchronous startup.")
 
-        if threading:
+        if async:
 
             # Bootstrap an Sgtk instance asynchronously in a background thread,
             # followed by launching the engine synchronously in the main application thread.
 
-            self._bootstrapper = threading.AsyncBootstrapWrapper(self, engine_name, entity)
+            self._bootstrapper = async.AsyncBootstrapWrapper(self, engine_name, entity)
             self._bootstrapper.set_callbacks(progress_callback, completed_callback, failed_callback)
             self._bootstrapper.bootstrap()
 
