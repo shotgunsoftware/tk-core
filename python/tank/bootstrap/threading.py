@@ -8,15 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-try:
-    # Import Qt without having to worry about the version to use.
-    from ..util.qt_importer import QtImporter
-    importer = QtImporter()
-    QtCore = importer.QtCore
-    QtGui = importer.QtGui
-except ImportError:
+# Import Qt without having to worry about the version to use.
+from ..util.qt_importer import QtImporter
+importer = QtImporter()
+if importer.wrapper is None:
     # Raise an exception when Qt is not available.
-    raise
+    raise ImportError
+QtCore = importer.QtCore
+QtGui = importer.QtGui
 
 from ..api import Sgtk
 
