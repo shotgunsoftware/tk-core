@@ -22,16 +22,18 @@ from ..api import Sgtk
 
 class AsyncBootstrapWrapper(QtCore.QObject):
     """
-    Wrapper class that can bootstrap an :class:`sgtk.Sgtk` instance
+    Wrapper class that can bootstrap an :class:`~sgtk.Sgtk` instance
     asynchronously in a background thread, followed by the synchronous launching
-    of an :class:`sgtk.platform.Engine` instance in the main application thread.
+    of an :class:`~sgtk.platform.Engine` instance in the main application thread.
     """
 
     def __init__(self, toolkit_manager, engine_name, entity):
         """
         Initializes an instance of the asynchronous bootstrap wrapper.
 
-        :param toolkit_manager: :class:`sgtk.bootstrap.ToolkitManager` instance bootstrapping the engine.
+        This method retrieves the toolkit manager progress reporting callback to use it later.
+
+        :param toolkit_manager: :class:`~sgtk.bootstrap.ToolkitManager` instance bootstrapping the engine.
         :param engine_name: Name of the engine to launch.
         :param entity: Shotgun entity used to resolve a project context.
         """
@@ -42,12 +44,14 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         self._engine_name = engine_name
         self._entity = entity
 
-        self._progress_callback = None
+        # Retrieve the toolkit manager progress reporting callback.
+        self._progress_callback = self._toolkit_manager._progress_cb
+
         self._completed_callback = None
         self._failed_callback = None
 
         # Create a worker that can bootstrap the toolkit asynchronously in a background thread.
-        self._worker = _BootstrapToolkitWorker(toolkit_manager, engine_name, entity)
+        self._worker = _BootstrapToolkitWorker(self._toolkit_manager, engine_name, entity)
 
         # This QThread object will live in the main thread, not in the new thread it will manage.
         self._thread = QtCore.QThread()
@@ -67,29 +71,16 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         # Handle failure of the toolkit bootstrap by the worker.
         self._worker.failed.connect(self._fail_bootstrap)
 
-    def set_callbacks(self, progress_callback, completed_callback, failed_callback):
+    def set_callbacks(self, completed_callback, failed_callback):
         """
-        Sets the callback functions used to signify the progress, the completion and the failure of the bootstrap.
+        Sets the callback functions used to signify the completion and the failure of the bootstrap.
 
         These functions must have the following signatures:
 
-            ``progress_callback(progress_value, message, current_index, maximum_index)``
-
-            where:
-            - ``progress_value`` is the current progress value, a float number ranging from 0.0 to 1.0
-                                 representing the percentage of work completed.
-            - ``message`` is the progress message string to report.
-            - ``current_index`` is an optional current item number being looped over.
-                                This integer number is relative to ``maximum_index``.
-                                Its value is ``None`` when not provided.
-            - ``maximum_index`` is an optional maximum item number being looped over.
-                                This integer number leads to completion of the current progress step.
-                                Its value is ``None`` when not provided.
-`
             ``completed_callback(engine)``
 
             where:
-            - ``engine`` is the launched :class:`sgtk.platform.Engine` instance.
+            - ``engine`` is the launched :class:`~sgtk.platform.Engine` instance.
 
             ``failed_callback(phase, exception)``
 
@@ -100,12 +91,10 @@ class AsyncBootstrapWrapper(QtCore.QObject):
                         to be re-imported to ensure usage of a swapped in version.
             - ``exception`` is the python exception raised while bootstrapping.
 
-        :param progress_callback: Callback function that reports back on the toolkit and engine bootstrap progress.
         :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
         :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
         """
 
-        self._progress_callback = progress_callback
         self._completed_callback = completed_callback
         self._failed_callback = failed_callback
 
@@ -136,7 +125,7 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         """
         Callback slot that handles cleanup after successful completion of the toolkit bootstrap.
 
-        :param toolkit: Bootstrapped :class:`sgtk.Sgtk` instance.
+        :param toolkit: Bootstrapped :class:`~sgtk.Sgtk` instance.
         """
 
         # Make the QThread object exit its event loop.
@@ -145,9 +134,6 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         # Make the worker operate with the main thread affinity
         # where the main event loop can handle its deletion.
         self._worker.moveToThread(self.thread())
-
-        # Install the bootstrap progress reporting callback.
-        self._toolkit_manager.set_progress_callback(self._progress_bootstrap)
 
         try:
 
@@ -160,17 +146,11 @@ class AsyncBootstrapWrapper(QtCore.QObject):
                 # Handle cleanup after failed completion of the engine startup.
                 self._failed_callback(self._toolkit_manager.ENGINE_STARTUP_PHASE, exception)
 
-            # Remove the bootstrap progress reporting callback.
-            self._toolkit_manager.set_progress_callback(None)
-
             return
 
         if self._completed_callback:
             # Handle cleanup after successful completion of the engine startup.
             self._completed_callback(engine)
-
-        # Remove the bootstrap progress reporting callback.
-        self._toolkit_manager.set_progress_callback(None)
 
     @QtCore.Slot(Exception)
     def _fail_bootstrap(self, exception):
@@ -194,7 +174,7 @@ class AsyncBootstrapWrapper(QtCore.QObject):
 
 class _BootstrapToolkitWorker(QtCore.QObject):
     """
-    Bootstrap worker that can bootstrap an :class:`sgtk.Sgtk` instance asynchronously in a background thread.
+    Bootstrap worker that can bootstrap an :class:`~sgtk.Sgtk` instance asynchronously in a background thread.
 
     This class defines 3 Qt signals:
     - ``progressing`` with signature ``(float, str, int, int)``
@@ -203,7 +183,7 @@ class _BootstrapToolkitWorker(QtCore.QObject):
       the current item number being looped over and the maximum item number being looped over.
     - ``completed`` with signature ``(Sgtk)``
       emitted when the bootstrap toolkit worker successfully completes its work in the background,
-      where ``Sgtk`` is the bootstrapped :class:`sgtk.Sgtk` instance.
+      where ``Sgtk`` is the bootstrapped :class:`~sgtk.Sgtk` instance.
     - ``failed`` with signature ``(Exception)``
       emitted when the bootstrap toolkit worker fails to complete its work in the background,
       where ``Exception`` is the python exception raised while bootstrapping.
@@ -222,7 +202,7 @@ class _BootstrapToolkitWorker(QtCore.QObject):
         """
         Initializes an instance of the bootstrap toolkit worker.
 
-        :param toolkit_manager: :class:`sgtk.bootstrap.ToolkitManager` instance bootstrapping the engine.
+        :param toolkit_manager: :class:`~sgtk.bootstrap.ToolkitManager` instance bootstrapping the engine.
         :param engine_name: Name of the engine used to resolve a configuration.
         :param entity: Shotgun entity used to resolve a project context.
         """
@@ -240,26 +220,30 @@ class _BootstrapToolkitWorker(QtCore.QObject):
         signal the progress, and the completion or the failure of this work.
         """
 
+        # Preserve the original toolkit manager progress reporting callback.
+        original_progress_callback = self._toolkit_manager._progress_cb
+
         try:
 
-            # Install the bootstrap progress reporting callback.
+            # Install a local thread-safe progress reporting callback.
             self._toolkit_manager.set_progress_callback(self._report_progress)
 
             # Bootstrap a toolkit instance for the given engine and entity.
             toolkit = self._toolkit_manager._bootstrap_sgtk(self._engine_name, self._entity)
+
+            # Restore the original toolkit manager progress reporting callback.
+            self._toolkit_manager.set_progress_callback(original_progress_callback)
 
             # Signal completion of the toolkit bootstrap.
             self.completed.emit(toolkit)
 
         except Exception, exception:
 
+            # Restore the original toolkit manager progress reporting callback.
+            self._toolkit_manager.set_progress_callback(original_progress_callback)
+
             # Signal failure of the toolkit bootstrap.
             self.failed.emit(exception)
-
-        finally:
-
-            # Remove the bootstrap progress reporting callback.
-            self._toolkit_manager.set_progress_callback(None)
 
     def _report_progress(self, progress_value, message, current_index, maximum_index):
         """

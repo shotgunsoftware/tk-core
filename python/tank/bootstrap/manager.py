@@ -208,28 +208,38 @@ class ToolkitManager(object):
     )
 
 
-    def set_progress_callback(self, callback):
+    def set_progress_callback(self, progress_callback):
         """
-        Specify a method to call whenever progress should be reported back.
+        Sets a function to call whenever progress of the bootstrap should be reported back.
 
-        The method needs to have the following signature::
+        This function should have the following signature::
 
-            progress_callback(message, current_index, max_index)
+            progress_callback(progress_value, message, current_index, maximum_index)
 
-        The two index parameters are used to illustrate progress
-        over time and looping. ``max_index`` is the total number of
-        current progress items, ``current_index`` is the currently
-        processed item. This can be used to compute a percentage.
-        Note that ``max_index`` may change at any time and is not guaranteed
-        to be fixed.
+        where:
+        - ``progress_value`` is the current progress value, a float number ranging from 0.0 to 1.0
+                             representing the percentage of work completed.
+        - ``message`` is the progress message string to report.
+        - ``current_index`` is an optional current item number being looped over.
+                            This integer number is relative to ``maximum_index``.
+                            Its value is ``None`` when not provided.
+        - ``maximum_index`` is an optional maximum item number being looped over.
+                            This integer number leads to completion of the current progress step.
+                            Its value is ``None`` when not provided.
 
-        :param callback: Callback fn. See above for details.
+        The following old-style signature is also accepted::
+
+            progress_callback(message, current_index, maximum_index)
+
+        :param progress_callback: Callback function that reports back on the toolkit and engine bootstrap progress.
+
         """
-        self._progress_cb = callback
+
+        self._progress_cb = progress_callback
 
     def bootstrap_engine(self, engine_name, entity=None):
         """
-        Create an :class:`sgtk.Sgtk` instance for the given engine and entity,
+        Create an :class:`~sgtk.Sgtk` instance for the given engine and entity,
         then launch into the given engine.
 
         The whole engine bootstrap logic will be executed synchronously in the main application thread.
@@ -246,7 +256,8 @@ class ToolkitManager(object):
 
         :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
         :param entity: Shotgun entity to launch engine for.
-        :returns: :class:`sgtk.platform.Engine` instance.
+        :type entity: Dictionary with keys ``type`` and ``id``.
+        :returns: :class:`~sgtk.platform.Engine` instance.
         """
 
         log.info("Bootstrapping engine %s for entity %s." % (engine_name, entity))
@@ -260,14 +271,14 @@ class ToolkitManager(object):
     def bootstrap_engine_async(self,
                                engine_name,
                                entity=None,
-                               progress_callback=None,
                                completed_callback=None,
                                failed_callback=None):
         """
-        Create an :class:`sgtk.Sgtk` instance for the given engine and entity,
+        Create an :class:`~sgtk.Sgtk` instance for the given engine and entity,
         then launch into the given engine.
 
-        The :class:`sgtk.Sgtk` instance will be bootstrapped asynchronously in a background thread,
+        This method launches the bootstrap process and returns immediately.
+        The :class:`~sgtk.Sgtk` instance will be bootstrapped asynchronously in a background thread,
         followed by launching the engine synchronously in the main application thread.
         This will allow the main application to continue its execution and
         remain responsive when bootstrapping the toolkit involves downloading files and
@@ -279,23 +290,7 @@ class ToolkitManager(object):
         on this launch a configuration. This may involve downloading new
         apps from the toolkit app store and installing files on disk.
 
-        3 callback functions can be provided.
-
-        A callback function that reports back on the bootstrap progress
-        with the following signature::
-
-            progress_callback(progress_value, message, current_index, maximum_index)
-
-        where:
-        - ``progress_value`` is the current progress value, a float number ranging from 0.0 to 1.0
-                             representing the percentage of work completed.
-        - ``message`` is the progress message string to report.
-        - ``current_index`` is an optional current item number being looped over.
-                            This integer number is relative to ``maximum_index``.
-                            Its value is ``None`` when not provided.
-        - ``maximum_index`` is an optional maximum item number being looped over.
-                            This integer number leads to completion of the current progress step.
-                            Its value is ``None`` when not provided.
+        2 callback functions can be provided.
 
         A callback function that handles cleanup after successful completion of the bootstrap
         with the following signature::
@@ -303,7 +298,7 @@ class ToolkitManager(object):
             completed_callback(engine)
 
         where:
-        - ``engine``is the launched :class:`sgtk.platform.Engine` instance.
+        - ``engine``is the launched :class:`~sgtk.platform.Engine` instance.
 
         A callback function that handles cleanup after failed completion of the bootstrap
         with the following signature::
@@ -323,7 +318,7 @@ class ToolkitManager(object):
 
         :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
         :param entity: Shotgun entity to launch engine for.
-        :param progress_callback: Callback function that reports back on the toolkit and engine bootstrap progress.
+        :type entity: Dictionary with keys ``type`` and ``id``.
         :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
         :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
         """
@@ -343,7 +338,7 @@ class ToolkitManager(object):
             # followed by launching the engine synchronously in the main application thread.
 
             self._bootstrapper = async.AsyncBootstrapWrapper(self, engine_name, entity)
-            self._bootstrapper.set_callbacks(progress_callback, completed_callback, failed_callback)
+            self._bootstrapper.set_callbacks(completed_callback, failed_callback)
             self._bootstrapper.bootstrap()
 
         else:
@@ -351,9 +346,6 @@ class ToolkitManager(object):
             # Since Qt is not available, fall back on synchronous bootstrapping.
             # Execute the whole engine bootstrap logic synchronously in the main application thread,
             # while still calling the provided callbacks in order for the caller to work as expected.
-
-            # Install the bootstrap progress reporting callback.
-            self.set_progress_callback(progress_callback)
 
             try:
 
@@ -364,9 +356,6 @@ class ToolkitManager(object):
                 if failed_callback:
                     # Handle cleanup after failed completion of the toolkit bootstrap.
                     failed_callback(self.TOOLKIT_BOOTSTRAP_PHASE, exception)
-
-                # Remove the bootstrap progress reporting callback.
-                self.set_progress_callback(None)
 
                 return
 
@@ -380,17 +369,11 @@ class ToolkitManager(object):
                     # Handle cleanup after failed completion of the engine startup.
                     failed_callback(self.ENGINE_STARTUP_PHASE, exception)
 
-                # Remove the bootstrap progress reporting callback.
-                self.set_progress_callback(None)
-
                 return
 
             if completed_callback:
                 # Handle cleanup after successful completion of the engine bootstrap.
                 completed_callback(engine)
-
-            # Remove the bootstrap progress reporting callback.
-            self.set_progress_callback(None)
 
     def _bootstrap_sgtk(self, engine_name, entity):
         """
@@ -515,10 +498,10 @@ class ToolkitManager(object):
         the engine may not be the same as the API version that was
         executed during the bootstrap.
 
-        :param tk: :class:`sgtk.Sgtk` instance
+        :param tk: :class:`~sgtk.Sgtk` instance
         :param engine_name: name of engine to launch (e.g. ``tk-nuke``)
         :param entity: Shotgun entity to launch engine for
-        :returns: :class:`sgtk.platform.Engine` instance
+        :returns: :class:`~sgtk.platform.Engine` instance
         """
 
         self._report_progress(progress_value=0.8, message="Resolving context...")
