@@ -1820,7 +1820,7 @@ class Engine(TankBundle):
 
         :returns: A dictionary with all the modules, __version__ and __name__.
         """
-        return QtImporter(interface_version_requested=QtImporter.Qt5).base
+        return QtImporter(interface_version_requested=QtImporter.QT5).base
 
     def _initialize_dark_look_and_feel(self):
         """

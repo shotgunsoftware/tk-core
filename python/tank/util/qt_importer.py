@@ -30,9 +30,9 @@ class QtImporter(object):
             ...
     """
 
-    Qt4, Qt5 = range(4, 6)
+    QT4, QT5 = range(4, 6)
 
-    def __init__(self, interface_version_requested=Qt4):
+    def __init__(self, interface_version_requested=QT4):
         """
         Imports the Qt modules and sets the QtCore, QtGui and wrapper attributes
         on this object.
@@ -55,7 +55,6 @@ class QtImporter(object):
         :returns: QtGui module, if available.
         """
         return self._modules["QtGui"] if self._modules else None
-
 
     @property
     def binding(self):
@@ -228,17 +227,17 @@ class QtImporter(object):
         """
         logger.debug(
             "Requesting %s-like interface",
-            "Qt4" if interface_version_requested == self.Qt4 else "Qt5"
+            "Qt4" if interface_version_requested == self.QT4 else "Qt5"
         )
         # First try PySide 2.
-        if interface_version_requested == self.Qt4:
+        if interface_version_requested == self.QT4:
             try:
                 pyside2 = self._import_pyside2_as_pyside()
                 logger.debug("Imported PySide2 as PySide.")
                 return pyside2
             except ImportError, e:
                 pass
-        elif interface_version_requested == self.Qt5:
+        elif interface_version_requested == self.QT5:
             try:
                 pyside2 =  self._import_pyside2()
                 logger.debug("Imported PySide2.")
@@ -249,7 +248,7 @@ class QtImporter(object):
         # We do not test for PyQt5 since it is supported on Python 3 only at the moment.
 
         # Now try PySide 1
-        if interface_version_requested == self.Qt4:
+        if interface_version_requested == self.QT4:
             try:
                 pyside = self._import_pyside()
                 logger.debug("Imported PySide1.")
@@ -258,7 +257,7 @@ class QtImporter(object):
                 pass
 
         # Now try PyQt4
-        if interface_version_requested == self.Qt4:
+        if interface_version_requested == self.QT4:
             try:
                 pyqt = self._import_pyqt4()
                 logger.debug("Imported PyQt4.")
