@@ -162,24 +162,29 @@ correctly. On Windows, it is recommended that you use forward slashes.
 Path and Dev
 =======================
 
-Pointing Sgtk to an app that resides in the local file system is typically something you do when you do
-development. This is when you use the ``dev`` descriptor::
+Pointing Sgtk to an app that resides in the local file system is often very useful for managing your own bundles
+or doing development on an app or engine before releasing onto production. To allow for these scenarios, Sgtk 
+provides the ``dev`` and ``path`` descriptors. Here are some examples::
 
+    # locally managed bundle
     {
-        type: dev,
+        type: path,
         path: /path/to/app
     }
 
+    # using environment variables in the paths
     {
         type: dev,
         path: ${HOME}/path/to/app
     }
 
+    # exapanding the user directory
     {
-        type: dev,
+        type: path,
         path: ~/path/to/app
     }
 
+    # use different paths on different operating systems
     {
         type: dev,
         windows_path: c:\path\to\app,
@@ -187,8 +192,15 @@ development. This is when you use the ``dev`` descriptor::
         mac_path: /path/to/app
     }
 
-.. note:: The path and dev descriptors support environment variable resolution on the form ``${MYENVVAR}``
-          as well as user directory resolution if the path starts with `~`.
+.. note:: As noted in the comments above, the ``path`` and ``dev`` descriptors
+    support environment variable resolution on the form ``${MYENVVAR}`` as well
+    as user directory resolution if the path starts with `~`.
+
+The path and dev descriptors are very similar in terms of functionality.  The
+optional and required parameters are the same for each.  The ``dev`` descriptor
+has some additional information associated with it is used to provide more
+developer friendly workflows. An example of this is the **Reload and Restart**
+action that shows up in DCCs when using the ``dev`` descriptor. 
 
 Sometimes it can be handy to organize your development sandbox relative to a pipeline configuration.
 If all developers in the studio share a convention where they for example have a ``dev`` folder inside
@@ -199,16 +211,12 @@ local path to the pipeline configuration::
     {"type": "dev", "path": "{PIPELINE_CONFIG}/dev/tk-nuke-myapp"}
 
 Since Sgtk does not know what version of the app is being run, it will return ``Undefined`` for
-an app referenced using the dev type. Sometimes, especially when doing framework development,
+an app referenced via a ``dev`` or ``path`` descriptor. Sometimes, especially when doing framework development,
 it can be useful to be able to specify a version number. In that case, you can specify
 a specific version number and Toolkit will associate this version number with the app::
 
 
     {"type": "dev", "path": "/path/to/app", "version": "v0.2.1"}
-
-
-If you needed to point Toolkit at a path, but intend to use the setup for non-dev purposes, use a ``path``
-descriptor rather than a dev descriptor. These have identical syntax.
 
 
 
