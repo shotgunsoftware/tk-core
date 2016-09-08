@@ -12,6 +12,9 @@
 Qt version abstraction layer.
 """
 
+from ..log import LogManager
+logger = LogManager.get_logger(__name__)
+
 
 class QtImporter(object):
     """
@@ -165,7 +168,8 @@ class QtImporter(object):
                 wrapper = __import__("PySide2", globals(), locals(), [module_name])
                 if hasattr(wrapper, module_name):
                     modules_dict[module_name] = getattr(wrapper, module_name)
-            except:
+            except Exception, e:
+                logger.debug("'%s' was skipped: %s", module_name, e)
                 pass
 
         import PySide2
@@ -222,15 +226,23 @@ class QtImporter(object):
         :returns: The (binding name, binding version, modules) tuple or (None, None, None) if
             no binding is avaialble.
         """
+        logger.debug(
+            "Requesting %s-like interface",
+            "Qt4" if interface_version_requested == self.Qt4 else "Qt5"
+        )
         # First try PySide 2.
         if interface_version_requested == self.Qt4:
             try:
-                return self._import_pyside2_as_pyside()
-            except ImportError:
+                pyside2 = self._import_pyside2_as_pyside()
+                logger.debug("Imported PySide2 as PySide.")
+                return pyside2
+            except ImportError, e:
                 pass
         elif interface_version_requested == self.Qt5:
             try:
-                return self._import_pyside2()
+                pyside2 =  self._import_pyside2()
+                logger.debug("Imported PySide2.")
+                return pyside2
             except ImportError:
                 pass
 
@@ -239,15 +251,21 @@ class QtImporter(object):
         # Now try PySide 1
         if interface_version_requested == self.Qt4:
             try:
-                return self._import_pyside()
+                pyside = self._import_pyside()
+                logger.debug("Imported PySide1.")
+                return pyside
             except ImportError:
                 pass
 
         # Now try PyQt4
         if interface_version_requested == self.Qt4:
             try:
-                return self._import_pyqt4()
+                pyqt = self._import_pyqt4()
+                logger.debug("Imported PyQt4.")
+                return pyqt
             except ImportError:
                 pass
 
-        return (None, None, None)
+        logger.debug("No Qt matching that interface was found.")
+
+        return (None, None, None, None)

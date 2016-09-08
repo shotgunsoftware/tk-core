@@ -629,9 +629,8 @@ class Engine(TankBundle):
 
         :returns bool: boolean value indicating if Qt 4 is available.
         """
-        # Having a ui but not Qt5 implies Qt4. This implementation allows the method to return a valid
-        # value without having to actually modify the engines. Until Qt 6 comes out I guess.
-        return self.has_ui and not self.has_qt5
+        # Check if Qt was imported. Then checks if a Qt4 compatible api is available.
+        return hasattr(qt, "QtGui") and hasattr(qt.QtGui, "QApplication")
 
     @property
     def metrics_dispatch_allowed(self):
