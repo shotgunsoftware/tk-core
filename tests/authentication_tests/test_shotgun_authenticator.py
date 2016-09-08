@@ -83,22 +83,23 @@ class ShotgunAuthenticatorTests(TankTestBase):
         self.assertIsNone(DefaultsManager().get_login())
 
     @patch("tank.authentication.session_cache.generate_session_token")
-    @patch("tank.util.LocalFileStorageManager.get_global_root")
-    def test_get_default_user(self, get_global_root, generate_session_token_mock):
+    def test_get_default_user(self, generate_session_token_mock):
         """
         Makes sure get_default_user handles all the edge cases.
         :param generate_session_token_mock: Mocked so we can skip communicating
                                             with the Shotgun server.
         """
-        generate_session_token_mock.return_value = "session_token"
-        get_global_root.return_value = os.path.join(self.tank_temp, "session_cache")
-
+        generate_session_token_mock.return_value = "session_token"\
 
         class TestWithUserDefaultManager(TestDefaultManager):
+
+            def get_host(self):
+                return "https://unique_host.shotgunstudio.com"
             def get_user_credentials(self):
                 return self.user
 
         dm = TestWithUserDefaultManager()
+
         # Make sure missing the api_script throws.
         dm.user = {"api_key": "api_key"}
         with self.assertRaises(IncompleteCredentials):
