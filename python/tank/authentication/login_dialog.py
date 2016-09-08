@@ -40,8 +40,8 @@ class LoginDialog(QtGui.QDialog):
 
         :param is_session_renewal: Boolean indicating if we are renewing a session or authenticating a user from
             scratch.
-        :param hostname: The string to populate the site field with. Defaults to "".
-        :param login: The string to populate the login field with. Defaults to "".
+        :param hostname: The string to populate the site field with. If None, the field will be empty.
+        :param login: The string to populate the login field with. If None, the field will be empty.
         :param fixed_host: Indicates if the hostname can be changed. Defaults to False.
         :param http_proxy: The proxy server to use when testing authentication. Defaults to None.
         :param parent: The Qt parent for the dialog (defaults to None)
