@@ -797,6 +797,24 @@ In order to use QT, import it from Sgtk::
 Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many applications (for example Nuke)
 may not have a functional Qt that can be imported when they run in batch mode.
 
+
+Using QT 5 inside your Toolkit App
+---------------------------------------
+
+When running in an environment with PySide 2 , Toolkit will provide under ``sgtk.platform.qt`` an
+emulation layer that mimics the PySide 1 API on top of PySide 2 so that your Toolkit applications don't
+need to be updated to work in those environments. If you need straight access to the PySide 2 API, you
+can access it through the ``sgtk.platform.qt5`` module. Detecting the availability of Qt 5 can be done
+through :meth:`Engine.has_qt5`.
+
+.. warning:: The PySide 1 emulation layer for PySide 2 may be missing some features. It provides enough
+             coverage to run the officially supported Toolkit applications. If you find that something
+             in the PySide 1 emulation layer is not working or missing, please contact support@shotgunsoftware.com
+             so that we may update it.
+
+             To learn more about API discrepancies between Qt 4 and Qt 5, you can visit
+             https://wiki.qt.io/Transition_from_Qt_4.x_to_Qt5.
+
 Creating Dialogs
 ========================================
 

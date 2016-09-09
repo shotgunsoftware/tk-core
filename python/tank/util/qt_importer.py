@@ -12,6 +12,9 @@
 Qt version abstraction layer.
 """
 
+from ..log import LogManager
+logger = LogManager.get_logger(__name__)
+
 
 class QtImporter(object):
     """
@@ -27,80 +30,241 @@ class QtImporter(object):
             ...
     """
 
-    def __init__(self):
+    QT4, QT5 = range(4, 6)
+
+    def __init__(self, interface_version_requested=QT4):
         """
         Imports the Qt modules and sets the QtCore, QtGui and wrapper attributes
         on this object.
+
+        :param interface_version_request: Indicates which version of the Qt API is requested.
         """
-        self.QtCore, self.QtGui, self.wrapper = self._import_modules()
+        self._binding_name, self._binding_version, self._binding, self._modules =\
+            self._import_modules(interface_version_requested)
+
+    @property
+    def QtCore(self):
+        """
+        :returns: QtCore module, if available.
+        """
+        return self._modules["QtCore"] if self._modules else None
+
+    @property
+    def QtGui(self):
+        """
+        :returns: QtGui module, if available.
+        """
+        return self._modules["QtGui"] if self._modules else None
+
+    @property
+    def binding(self):
+        """
+        :returns: The PySide* or PyQt* root module.
+        """
+        return self._binding
+
+    @property
+    def binding_name(self):
+        """
+        :returns: The name of the Qt binding.
+        """
+        return self._binding_name
+
+    @property
+    def binding_version(self):
+        """
+        :returns: The version of the Qt binding.
+        """
+        return self._binding_version
+
+    @property
+    def modules(self):
+        """
+        :returns: A dictionary of all the Python modules available for this Qt binding.
+        """
+        return self._modules
+
+    @property
+    def base(self):
+        """
+        :returns: A dictionary representing the base of the Qt binding. The name and version of the
+            binding are stored as __name__ and __version__ respectively.
+        """
+        if not self._modules:
+            return {}
+
+        qt_base = {}
+
+        qt_base.update(self._modules)
+        qt_base["__name__"] = self._binding_name
+        qt_base["__version__"] = self._binding_version
+
+        return qt_base
 
     def _import_pyside(self):
         """
         Imports PySide.
 
-        :returns: The (QtCore, QtGui, PySide) tuple.
+        :returns: The (binding name, binding version, modules) tuple.
         """
-        import PySide
         from PySide import QtCore, QtGui
+
+        import PySide
         # Some old versions of PySide don't include version information
         # so add something here so that we can use PySide.__version__
         # later without having to check!
+
+        # Note: Do not remove this. It was briefly introduced so that engines
+        # could introspec the wrapper for all sorts of things, but we've moving
+        # away from modifying the modules themselves, so keep this is for now and
+        # we'll be able to deprecate it at some point in the future.
         if not hasattr(PySide, "__version__"):
             PySide.__version__ = "<unknown>"
 
-        return QtCore, QtGui, PySide
+        # PySide stick a \n at the end of the __name__ for some reason. Strip it!
+        return PySide.__name__.strip(), PySide.__version__, PySide, {
+            "QtCore": QtCore,
+            "QtGui": QtGui
+        }
 
     def _import_pyside2(self):
         """
+        This will be called at initialization to discover every PySide 2 modules.
+
+        :returns: The ("PySide2", PySide2 version, PySide2 module, [Qt* modules]) tuple.
+        """
+        # Quick check if PySide 2 is available. Try to import a well known module. If that fails it will
+        # throw an import error which will be handled by the calling code. Note that PySide2 can be
+        # imported even if the Qt binaries are missing, so it's better to try importing QtCore for
+        # testing.
+        from PySide2 import QtCore
+
+        # List of all Qt 5 modules.
+        sub_modules = [
+            "QtGui", "QtHelp", "QtNetwork", "QtPrintSupport", "QtQml", "QtQuick", "QtQuickWidgets",
+            "QtScript", "QtSvg", "QtTest", "QtUiTools", "QtWebChannel", "QtWebEngineWidgets",
+            "QtWebKit", "QtWebKitWidgets", "QtWidgets", "QtWebSockets", "QtXml", "QtXmlPatterns",
+            "QtScriptSql", "QtScriptTools", "QtOpenGL", "QtMultimedia"
+        ]
+
+        modules_dict = {
+            "QtCore": QtCore
+        }
+
+        # Depending on the build of PySide 2 being used, more or less modules are supported. Instead
+        # of assuming a base set of functionality, simply try every module one at a time.
+        #
+        # First, if a module is missing the __import__ function doesn't raise an exception.
+        # This is why we have to test for existence of the attribute on the PySide 2 module.
+        #
+        # Second, if the library couldn't load because of missing symbols with in Qt (e.g.
+        # both Maya 2017 and the PySide 2 built on my machine are missing some symbols in order to load
+        # QtScriptTools), it will raise an ImportError.
+        #
+        # Testing each module like this individually helps get as many as possible.
+        for module_name in sub_modules:
+            try:
+                wrapper = __import__("PySide2", globals(), locals(), [module_name])
+                if hasattr(wrapper, module_name):
+                    modules_dict[module_name] = getattr(wrapper, module_name)
+            except Exception, e:
+                logger.debug("'%s' was skipped: %s", module_name, e)
+                pass
+
+        import PySide2
+        return PySide.__name__, PySide2.__version__, PySide2, modules_dict
+
+    def _import_pyside2_as_pyside(self):
+        """
         Imports PySide2.
 
-        :returns: The (QtCore, QtGui, PySide2) tuple.
+        :returns: The (binding name, binding version, modules) tuple.
         """
         import PySide2
         from PySide2 import QtCore, QtGui, QtWidgets
         from .pyside2_patcher import PySide2Patcher
 
-        return PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
+        QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
+        return "PySide2", PySide2.__version__, PySide2, {
+            "QtCore": QtCore,
+            "QtGui": QtGui
+        }
 
     def _import_pyqt4(self):
         """
         Imports PyQt4.
 
-        :returns: The (QtCore, QtGui, PyQt4) tuple.
+        :returns: The (binding name, binding version, modules) tuple.
         """
-        import PyQt4
-        from PyQt4 import QtCore, QtGui
+        from PyQt4 import QtCore, QtGui, Qt
 
-        # hot patch the library to make it work with pyside code
+        # hot patch the library to make it compatible with PySide-based apps.
         QtCore.Signal = QtCore.pyqtSignal
         QtCore.Slot = QtCore.pyqtSlot
         QtCore.Property = QtCore.pyqtProperty
 
-        from PyQt4.Qt import PYQT_VERSION_STR
-        PyQt4.__version__ = PYQT_VERSION_STR
+        # Note: Do not remove this. It was briefly introduced so that engines
+        # could introspec the wrapper for all sorts of things, but we've moving
+        # away from modifying the modules themselves, so keep this is for now and
+        # we'll be able to deprecate it at some point in the future.
+        import PyQt4
+        PyQt4.__version__ = Qt.PYQT_VERSION_STR
 
-        return QtCore, QtGui, PyQt4
+        return "PyQt4", PyQt4.__version__, PyQt4, {
+            "QtCore": QtCore,
+            "QtGui": QtGui
+        }
 
-    def _import_modules(self):
+    def _import_modules(self, interface_version_requested):
         """
-        Tries to import different Qt wrapper implementation in the following order:
-            - PySide 2
+        Tries to import different Qt binding implementation in the following order:
+            - PySide2
             - PySide
             - PyQt4
 
-        :returns: The (QtCore, QtGui, PySide2|PySide|PyQt4) tuple.
+        :returns: The (binding name, binding version, modules) tuple or (None, None, None) if
+            no binding is avaialble.
         """
-        try:
-            return self._import_pyside2()
-        except ImportError:
-            pass
+        logger.debug(
+            "Requesting %s-like interface",
+            "Qt4" if interface_version_requested == self.QT4 else "Qt5"
+        )
+        # First try PySide 2.
+        if interface_version_requested == self.QT4:
+            try:
+                pyside2 = self._import_pyside2_as_pyside()
+                logger.debug("Imported PySide2 as PySide.")
+                return pyside2
+            except ImportError, e:
+                pass
+        elif interface_version_requested == self.QT5:
+            try:
+                pyside2 =  self._import_pyside2()
+                logger.debug("Imported PySide2.")
+                return pyside2
+            except ImportError:
+                pass
 
-        try:
-            return self._import_pyside()
-        except ImportError:
-            pass
+        # We do not test for PyQt5 since it is supported on Python 3 only at the moment.
 
-        try:
-            return self._import_pyqt4()
-        except ImportError:
-            return (None, None, None)
+        # Now try PySide 1
+        if interface_version_requested == self.QT4:
+            try:
+                pyside = self._import_pyside()
+                logger.debug("Imported PySide1.")
+                return pyside
+            except ImportError:
+                pass
+
+        # Now try PyQt4
+        if interface_version_requested == self.QT4:
+            try:
+                pyqt = self._import_pyqt4()
+                logger.debug("Imported PyQt4.")
+                return pyqt
+            except ImportError:
+                pass
+
+        logger.debug("No Qt matching that interface was found.")
+
+        return (None, None, None, None)
