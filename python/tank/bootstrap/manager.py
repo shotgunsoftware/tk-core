@@ -23,11 +23,10 @@ class ToolkitManager(object):
     and installations.
     """
 
-    # Used to indicate that the manager is bootstrapping the toolkit (with method _bootstrap_sgtk).
-    TOOLKIT_BOOTSTRAP_PHASE = "sgtk"
-
-    # Used to indicate that the manager is starting the engine (with method _start_engine).
-    ENGINE_STARTUP_PHASE = "engine"
+    # Constants used to indicate that the manager is:
+    # - bootstrapping the toolkit (with method _bootstrap_sgtk),
+    # - starting up the engine (with method _start_engine).
+    (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = range(2)
 
     def __init__(self, sg_user=None):
         """
@@ -208,34 +207,39 @@ class ToolkitManager(object):
     )
 
 
-    def set_progress_callback(self, progress_callback):
+    def _get_progress_callback(self):
         """
-        Sets a function to call whenever progress of the bootstrap should be reported back.
+        Callback function property to call whenever progress of the bootstrap should be reported back.
 
         This function should have the following signature::
 
-            progress_callback(progress_value, message, current_index, maximum_index)
+            progress_callback(progress_value, message)
 
         where:
         - ``progress_value`` is the current progress value, a float number ranging from 0.0 to 1.0
                              representing the percentage of work completed.
         - ``message`` is the progress message string to report.
-        - ``current_index`` is an optional current item number being looped over.
-                            This integer number is relative to ``maximum_index``.
-                            Its value is ``None`` when not provided.
-        - ``maximum_index`` is an optional maximum item number being looped over.
-                            This integer number leads to completion of the current progress step.
-                            Its value is ``None`` when not provided.
+        """
+        return self._progress_cb or self._default_progress_callback
 
-        The following old-style signature is also accepted::
+    def _set_progress_callback(self, value):
+        # Setter for progress_callback.
+        self._progress_cb = value
 
-            progress_callback(message, current_index, maximum_index)
+    progress_callback = property(_get_progress_callback, _set_progress_callback)
+
+
+    def set_progress_callback(self, progress_callback):
+        """
+        Sets the function to call whenever progress of the bootstrap should be reported back.
+
+        .. note:: This is a deprecated method. Property ``progress_callback`` should now be used.
 
         :param progress_callback: Callback function that reports back on the toolkit and engine bootstrap progress.
-
         """
 
-        self._progress_cb = progress_callback
+        self.progress_callback = progress_callback
+
 
     def bootstrap_engine(self, engine_name, entity=None):
         """
@@ -256,7 +260,7 @@ class ToolkitManager(object):
 
         :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
         :param entity: Shotgun entity to launch engine for.
-        :type entity: Dictionary with keys ``type`` and ``id``.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :returns: :class:`~sgtk.platform.Engine` instance.
         """
 
@@ -290,7 +294,7 @@ class ToolkitManager(object):
         on this launch a configuration. This may involve downloading new
         apps from the toolkit app store and installing files on disk.
 
-        2 callback functions can be provided.
+        Two callback functions can be provided.
 
         A callback function that handles cleanup after successful completion of the bootstrap
         with the following signature::
@@ -318,27 +322,32 @@ class ToolkitManager(object):
 
         :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
         :param entity: Shotgun entity to launch engine for.
-        :type entity: Dictionary with keys ``type`` and ``id``.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
         :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
         """
 
         log.info("Bootstrapping engine %s for entity %s." % (engine_name, entity))
 
+        if completed_callback is None:
+            completed_callback = self._default_completed_callback
+
+        if failed_callback is None:
+            failed_callback = self._default_failed_callback
+
         try:
-            import async
+            from .async_bootstrap import AsyncBootstrapWrapper
         except ImportError:
-            async = None
+            AsyncBootstrapWrapper = None
             log.warning("Cannot bootstrap asynchronously in a background thread;"
                         " falling back on synchronous startup.")
 
-        if async:
+        if AsyncBootstrapWrapper:
 
             # Bootstrap an Sgtk instance asynchronously in a background thread,
             # followed by launching the engine synchronously in the main application thread.
 
-            self._bootstrapper = async.AsyncBootstrapWrapper(self, engine_name, entity)
-            self._bootstrapper.set_callbacks(completed_callback, failed_callback)
+            self._bootstrapper = AsyncBootstrapWrapper(self, engine_name, entity, completed_callback, failed_callback)
             self._bootstrapper.bootstrap()
 
         else:
@@ -353,9 +362,8 @@ class ToolkitManager(object):
 
             except Exception, exception:
 
-                if failed_callback:
-                    # Handle cleanup after failed completion of the toolkit bootstrap.
-                    failed_callback(self.TOOLKIT_BOOTSTRAP_PHASE, exception)
+                # Handle cleanup after failed completion of the toolkit bootstrap.
+                failed_callback(self.TOOLKIT_BOOTSTRAP_PHASE, exception)
 
                 return
 
@@ -365,17 +373,15 @@ class ToolkitManager(object):
 
             except Exception, exception:
 
-                if failed_callback:
-                    # Handle cleanup after failed completion of the engine startup.
-                    failed_callback(self.ENGINE_STARTUP_PHASE, exception)
+                # Handle cleanup after failed completion of the engine startup.
+                failed_callback(self.ENGINE_STARTUP_PHASE, exception)
 
                 return
 
-            if completed_callback:
-                # Handle cleanup after successful completion of the engine bootstrap.
-                completed_callback(engine)
+            # Handle cleanup after successful completion of the engine bootstrap.
+            completed_callback(engine)
 
-    def _bootstrap_sgtk(self, engine_name, entity):
+    def _bootstrap_sgtk(self, engine_name, entity, progress_callback=None):
         """
         Create an sgtk instance for the given engine and entity.
 
@@ -389,13 +395,20 @@ class ToolkitManager(object):
         the engine may not be the same as the API version that was
         executed during the bootstrap.
 
-        :param entity: Shotgun entity to launch engine for
-        :param engine_name: name of engine to launch (e.g. tk-nuke)
-        :returns: sgtk instance
+        :param engine_name: Name of the engine used to resolve a configuration.
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
+                                  Set to ``None`` to use the default callback function.
+        :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
         """
+
         log.debug("Begin bootstrapping sgtk.")
 
-        self._report_progress(progress_value=0.0, message="Resolving project...")
+        if progress_callback is None:
+            progress_callback = self.progress_callback
+
+        self._report_progress(progress_callback, 0.0, "Resolving project...")
         if entity is None:
             project_id = None
 
@@ -421,7 +434,7 @@ class ToolkitManager(object):
 
         # get an object to represent the business logic for
         # how a configuration location is being determined
-        self._report_progress(progress_value=0.1, message="Resolving configuration...")
+        self._report_progress(progress_callback, 0.1, "Resolving configuration...")
 
         resolver = ConfigurationResolver(
             self._entry_point,
@@ -460,7 +473,7 @@ class ToolkitManager(object):
         # see what we have locally
         status = config.status()
 
-        self._report_progress(progress_value=0.2, message="Updating configuration...")
+        self._report_progress(progress_callback, 0.2, "Updating configuration...")
         if status == Configuration.LOCAL_CFG_UP_TO_DATE:
             log.info("Your locally cached configuration is up to date.")
 
@@ -480,15 +493,15 @@ class ToolkitManager(object):
             raise TankBootstrapError("Unknown configuration update status!")
 
         # we can now boot up this config.
-        self._report_progress(progress_value=0.3, message="Starting up Toolkit...")
+        self._report_progress(progress_callback, 0.3, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
         if status != Configuration.LOCAL_CFG_UP_TO_DATE:
-            self._cache_apps(tk)
+            self._cache_apps(tk, progress_callback)
 
         return tk
 
-    def _start_engine(self, tk, engine_name, entity):
+    def _start_engine(self, tk, engine_name, entity, progress_callback=None):
         """
         Launch into the given engine.
 
@@ -498,19 +511,27 @@ class ToolkitManager(object):
         the engine may not be the same as the API version that was
         executed during the bootstrap.
 
-        :param tk: :class:`~sgtk.Sgtk` instance
-        :param engine_name: name of engine to launch (e.g. ``tk-nuke``)
-        :param entity: Shotgun entity to launch engine for
-        :returns: :class:`~sgtk.platform.Engine` instance
+        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance.
+        :param engine_name: Name of the engine to start up.
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :param progress_callback: Callback function that reports back on the engine startup progress.
+                                  Set to ``None`` to use the default callback function.
+        :returns: Started :class:`~sgtk.platform.Engine` instance.
         """
 
-        self._report_progress(progress_value=0.8, message="Resolving context...")
+        log.debug("Begin starting up engine %s." % engine_name)
+
+        if progress_callback is None:
+            progress_callback = self.progress_callback
+
+        self._report_progress(progress_callback, 0.8, "Resolving context...")
         if entity is None:
             ctx = tk.context_empty()
         else:
             ctx = tk.context_from_entity_dictionary(entity)
 
-        self._report_progress(progress_value=0.9, message="Launching Engine...")
+        self._report_progress(progress_callback, 0.9, "Launching Engine...")
         log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
 
         # perform absolute import to ensure we get the new swapped core.
@@ -521,30 +542,24 @@ class ToolkitManager(object):
 
         return engine
 
-    def _report_progress(self, progress_value, message, current_index=None, maximum_index=None):
+    def _report_progress(self, progress_callback, progress_value, message):
         """
         Helper method that reports back on the bootstrap progress to a defined progress callback.
 
+        :param progress_callback: Callback function to use to report back.
         :param progress_value: Current progress value, a float number ranging from 0.0 to 1.0
                                representing the percentage of work completed.
         :param message: Progress message string to report.
-        :param current_index: Optional current item number being looped over.
-                              This integer number is relative to ``maximum_index``.
-                              Its value is ``None`` when not provided.
-        :param maximum_index: Optional maximum item number being looped over.
-                              This integer number leads to completion of the current progress step.
-                              Its value is ``None`` when not provided.
         """
 
-        log.info("Progress Report: %s" % message)
+        log.info("Progress Report (%s%%): %s" % (int(progress_value*100), message))
 
-        if self._progress_cb:
-            try:
-                # Call the new style progress callback.
-                self._progress_cb(progress_value, message, current_index, maximum_index)
-            except TypeError:
-                # Call the old style progress callback.
-                self._progress_cb(message, current_index, maximum_index)
+        try:
+            # Call the new style progress callback.
+            progress_callback(progress_value, message)
+        except TypeError:
+            # Call the old style progress callback with signature (message, current_index, maximum_index).
+            progress_callback(message, None, None)
 
     def _is_toolkit_activated_in_shotgun(self):
         """
@@ -559,13 +574,15 @@ class ToolkitManager(object):
         log.debug("...enabled: %s" % enabled)
         return enabled
 
-    def _cache_apps(self, tk, do_post_install=False):
+    def _cache_apps(self, tk, progress_callback, do_post_install=False):
         """
-        Caches all apps associated with the given tk instance
+        Caches all apps associated with the given toolkit instance.
 
-        :param tk: Toolkit instance to cache items for
-        :param do_post_install: Set to true for post install triggers to execute
+        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance to cache items for.
+        :param progress_callback: Callback function that reports back on the engine startup progress.
+        :param do_post_install: Set to true to execute the post install triggers.
         """
+
         log.info("Downloading and installing apps...")
 
         # each entry in the config template contains instructions about which version of the app
@@ -592,10 +609,11 @@ class ToolkitManager(object):
         for idx, descriptor in enumerate(descriptors):
 
             if not descriptor.exists_local():
-                self._report_progress(progress_value=0.4 + idx*(0.3/len(descriptors)),
-                                      message="Downloading %s..." % descriptor,
-                                      current_index=idx,
-                                      maximum_index=len(descriptors)-1)
+                # Scale the progress step 0.3 between this value 0.4 and the next one 0.7
+                # to compute a value progressing while looping over the indexes.
+                progress_value = 0.4 + (idx / len(descriptors)) * 0.3
+                message = "Downloading %s (%s of %s)..." % (descriptor, idx+1, len(descriptors))
+                self._report_progress(progress_callback, progress_value, message)
                 descriptor.download_local()
 
             else:
@@ -604,7 +622,38 @@ class ToolkitManager(object):
         # pass 3 - do post install
         if do_post_install:
             for descriptor in descriptors:
-                self._report_progress(progress_value=0.7, message="Running post install for %s" % descriptor)
+                self._report_progress(progress_callback, 0.7, "Running post install for %s" % descriptor)
                 descriptor.ensure_shotgun_fields_exist(tk)
                 descriptor.run_post_install(tk)
 
+    def _default_progress_callback(self, progress_value, message):
+        """
+        Default callback function that reports back on the toolkit and engine bootstrap progress.
+
+        :param progress_value: Current progress value, ranging from 0.0 to 1.0.
+        :param message: Progress message to report.
+        """
+
+        log.debug("Default progress callback (%s): %s" % (progress_value, message))
+
+    def _default_completed_callback(self, engine):
+        """
+        Default callback function that handles cleanup after successful completion of the bootstrap.
+
+        :param engine: Launched :class:`sgtk.platform.Engine` instance.
+        """
+
+        log.debug("Default completed callback: %s" % engine.instance_name)
+
+    def _default_failed_callback(self, phase, exception):
+        """
+        Default callback function that handles cleanup after failed completion of the bootstrap.
+
+        :param phase: Bootstrap phase that raised the exception,
+                      ``ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE`` or ``ToolkitManager.ENGINE_STARTUP_PHASE``.
+        :param exception: Python exception raised while bootstrapping.
+        """
+
+        phase_name = "TOOLKIT_BOOTSTRAP_PHASE" if phase == self.TOOLKIT_BOOTSTRAP_PHASE else "ENGINE_STARTUP_PHASE"
+
+        log.debug("Default failed callback (%s): %s" % (phase_name, exception))
