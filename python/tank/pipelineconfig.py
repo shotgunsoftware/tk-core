@@ -91,8 +91,14 @@ class PipelineConfiguration(object):
         self._pc_id = pipeline_config_metadata.get("pc_id")
         self._entry_point = pipeline_config_metadata.get("entry_point")
         self._pc_name = pipeline_config_metadata.get("pc_name")
-        self._published_file_entity_type = pipeline_config_metadata.get("published_file_entity_type", "TankPublishedFile")        
-        self._use_shotgun_path_cache = pipeline_config_metadata.get("use_shotgun_path_cache", False)
+        self._published_file_entity_type = pipeline_config_metadata.get(
+            "published_file_entity_type",
+            "TankPublishedFile"
+        )
+        self._use_shotgun_path_cache = pipeline_config_metadata.get(
+            "use_shotgun_path_cache",
+            False
+        )
 
         # figure out whether to use the bundle cache or the
         # local pipeline configuration 'install' cache
@@ -108,7 +114,17 @@ class PipelineConfiguration(object):
         else:
             self._bundle_cache_fallback_paths = []
 
-        # look for environment variables
+        #
+        # Now handle the case of a baked and immutable configuration.
+        #
+        # In this case, Toolkit is always started via the bootstrap manager.
+        # A baked config means that the configuration isn't entirely determined
+        # from what is written into the pipeline configuration yaml file but that
+        # certain values, such as the project id, are specified at runtime.
+        #
+        # Such values are determined by the bootstrap process and passed via an
+        # environment variable which is probed and unpacked below.
+        #
         if constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
             try:
                 external_data = pickle.loads(os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA])
@@ -119,9 +135,17 @@ class PipelineConfiguration(object):
                 self._project_id = external_data["project_id"]
                 log.debug("%s: Setting project id to %s from external config data" % (self, self._project_id))
 
+            if "project_name" in external_data:
+                self._project_name = external_data["project_name"]
+                log.debug("%s: Setting project name to %s from external config data" % (self, self._project_name))
+
             if "pipeline_config_id" in external_data:
                 self._pc_id = external_data["pipeline_config_id"]
                 log.debug("%s: Setting pipeline config id to %s from external config data" % (self, self._pc_id))
+
+            if "pipeline_config_name" in external_data:
+                self._pc_name = external_data["pipeline_config_name"]
+                log.debug("%s: Setting pipeline config name to %s from external config data" % (self, self._pc_name))
 
             if "bundle_cache_paths" in external_data:
                 self._bundle_cache_fallback_paths = external_data["bundle_cache_paths"]

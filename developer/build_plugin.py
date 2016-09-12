@@ -66,19 +66,6 @@ class OptionParserLineBreakingEpilog(optparse.OptionParser):
     def format_epilog(self, formatter):
         return self.epilog
 
-def _compute_size_kbytes(path):
-    """
-    Computes and returns the size of a directory
-
-    :param path: Path to compute
-    :return: size in bytes
-    """
-    total_size = 0
-    for dirpath, dirnames, filenames in os.walk(path):
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
-            total_size += os.path.getsize(fp)
-    return total_size / 1024
 
 def _cache_descriptor(sg, desc_type, desc_dict, target_path):
     """
@@ -91,11 +78,12 @@ def _cache_descriptor(sg, desc_type, desc_dict, target_path):
     """
     desc = create_descriptor(sg, desc_type, desc_dict)
     desc.ensure_local()
-    desc_size_kb = _compute_size_kbytes(desc.get_path())
+    desc_size_kb = filesystem.compute_folder_size(desc.get_path()) / 1024
     logger.info("Caching %s into plugin bundle cache (size %d KiB)" % (desc, desc_size_kb))
     if not desc._io_descriptor.is_immutable():
         logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
     desc.clone_cache(target_path)
+
 
 def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
     """
@@ -149,7 +137,7 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
                 bundle_cache_root
             )
 
-    logger.info("Total size of bundle cache: %d KiB" % _compute_size_kbytes(bundle_cache_root))
+    logger.info("Total size of bundle cache: %d KiB" % (filesystem.compute_folder_size(bundle_cache_root) / 1024))
 
 
 def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
@@ -362,21 +350,38 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
 
                 fh.write("\n\n")
                 fh.write("def get_sgtk_pythonpath(plugin_root):\n")
+                fh.write("    \"\"\" \n")
+                fh.write("    Auto generated helper method which returns the \n")
+                fh.write("    path to the core bundled with the plugin.\n")
+                fh.write("    \n")
+                fh.write("    For more information, see the documentation.\n")
+                fh.write("    \"\"\" \n")
                 fh.write("    import os\n")
                 fh.write("    return os.path.join(plugin_root, %s)\n" %
                          ", ".join('"%s"' % dir for dir in core_path_relative_parts))
                 fh.write("\n\n")
 
             else:
-                # the core descriptor is outside of bundle cache
+                # the core descriptor is outside of bundle cache!
                 logger.warning("Your core %r has its payload outside the plugin bundle cache. "
                                "This plugin cannot be distributed to others." % core_descriptor)
 
                 core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
                 core_path_parts.append("python")
 
+                # because we are using an external core, the plugin_root parameter
+                # is simply ignored in any calls from the plugin code to
+                # get_sgtk_pythonpath()
                 fh.write("\n\n")
                 fh.write("def get_sgtk_pythonpath(plugin_root):\n")
+                fh.write("    # NOTE - this was built with a core that is not part of the plugin. \n")
+                fh.write("    # The plugin_root parameter is therefore ignored.\n")
+                fh.write("    # This is normally only done during development and \n")
+                fh.write("    # typically means that the plugin cannot run on other machines \n")
+                fh.write("    # than the one where it was built. \n")
+                fh.write("    # \n")
+                fh.write("    # For more information, see the documentation.\n")
+                fh.write("    # \n")
                 fh.write("    return '%s'\n" % os.path.sep.join(core_path_parts))
                 fh.write("\n\n")
 
@@ -643,6 +648,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
     sg_connection = sg_user.create_sg_connection()
     # make sure we are properly connected
+
     sg_connection.find_one("HumanUser", [])
 
     # we are all set.

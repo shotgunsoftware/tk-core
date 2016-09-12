@@ -91,10 +91,11 @@ class BakedConfiguration(Configuration):
         Ensure that the configuration is up to date with the one
         given by the associated descriptor.
 
-        This method fails gracefully and attempts to roll back to a
-        stable state on failure.
+        In the case of a baked configuration everything has been
+        baked into a static setup at build time so this method
+        does not do anything.
         """
-        # the baked configuration gets updated at build time
+        pass
 
     def get_tk_instance(self, sg_user):
         """
@@ -127,10 +128,17 @@ class BakedConfiguration(Configuration):
         :param config_descriptor: Descriptor object describing the configuration.
         """
         config_writer = ConfigurationWriter(ShotgunPath.from_current_os_path(path), sg_connection)
+
         config_writer.ensure_project_scaffold()
 
         config_descriptor.copy(os.path.join(path, "config"))
 
         config_writer.install_core(config_descriptor, bundle_cache_fallback_paths=[])
-        config_writer.write_bare_pipeline_config_file(entry_point)
+
+        config_writer.write_pipeline_config_file(
+            pipeline_config_id=None,
+            project_id=None,
+            entry_point=entry_point,
+            bundle_cache_fallback_paths=[]
+        )
 

@@ -91,7 +91,13 @@ The Toolkit app store is used to release and distribute versions of Apps, Engine
 tested and approved by Shotgun. App store descriptors should include a name and version token and
 are on the following form::
 
-    { type: app_store, name: tk-core, version: v12.3.4 }
+    {
+        type: app_store,
+        name: tk-core,
+        version: v12.3.4
+    }
+
+    sgtk:descriptor:app_store?name=tk-core&version=v12.3.4
 
 Shotgun
 ============
@@ -112,6 +118,8 @@ that can be easily accessed from any project::
         version: 456                         # attachment id of particular attachment
     }
 
+    sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&name=primary&project_id=123&field=sg_config&version=456
+
 When the attachment field is updated, the attachment id (e.g. version field in the descriptor) changes, resulting in
 a new descriptor. This can be used to determine the latest version for a Shotgun attachment descriptor.
 
@@ -124,11 +132,23 @@ to the git repository::
 
     {type: git, path: /path/to/repo.git, version: v0.2.1}
 
+    sgtk:descriptor:git?path=/path/to/repo.git&version=v12.3.4
+
+
     {type: git, path: user@remotehost:/path_to/repo.git, version: v0.1.0}
+
+    sgtk:descriptor:git?path=user%40remotehost%3A/path_to/repo.git&version=v0.1.0
+
 
     {type: git, path: git://github.com/user/tk-multi-publish.git, version: v0.1.0}
 
+    sgtk:descriptor:git?path=git%3A//github.com/user/tk-multi-publish.git&version=v0.1.0
+
+
     {type: git, path: https://github.com/user/tk-multi-publish.git, version: v0.1.0}
+
+    sgtk:descriptor:git?path=https%3A//github.com/user/tk-multi-publish.git&version=v0.1.0
+
 
 The latest version for a descriptor is determined by retrieving the list of tags for
 the repository and comparing the version numbers in order to determine the highest one.
@@ -140,11 +160,22 @@ a commit in a particular branch::
 
     {type: git_branch, branch: master, path: /path/to/repo.git, version: 17fedd8}
 
+    sgtk:descriptor:git_branch?branch=master&path=/path/to/repo.git&version=17fedd8
+
+
     {type: git_branch, branch: master, path: user@remotehost:/path_to/repo.git, version: 17fedd8}
+
+    sgtk:descriptor:git_branch?branch=master&path=user%40remotehost%3A/path_to/repo.git&version=17fedd8
+
 
     {type: git_branch, branch: master, path: git://github.com/user/tk-multi-publish.git, version: 17fedd8}
 
+    sgtk:descriptor:git_branch?branch=master&path=git%3A//github.com/user/tk-multi-publish.git&version=17fedd8
+
+
     {type: git_branch, branch: master, path: https://github.com/user/tk-multi-publish.git, version: 17fedd8}
+
+    sgtk:descriptor:git_branch?branch=master&path=https%3A//github.com/user/tk-multi-publish.git&version=17fedd8
 
 You can use both long and short hash formats for the version token. The latest version for a git_branch
 descriptor is defined as the most recent commit for a given branch.
@@ -165,10 +196,15 @@ Path and Dev
 Pointing Sgtk to an app that resides in the local file system is typically something you do when you do
 development. This is when you use the ``dev`` descriptor::
 
-    {
-        type: dev,
-        path: /path/to/app
-    }
+    {type: dev, path: /path/to/app}
+
+    sgtk:descriptor:dev?path=/path/to/app
+
+
+    {type: path, path: /path/to/app}
+
+    sgtk:descriptor:path?path=/path/to/app
+
 
     {
         type: dev,
@@ -186,6 +222,7 @@ development. This is when you use the ``dev`` descriptor::
         linux_path: /path/to/app,
         mac_path: /path/to/app
     }
+
 
 .. note:: The path and dev descriptors support environment variable resolution on the form ``${MYENVVAR}``
           as well as user directory resolution if the path starts with `~`.

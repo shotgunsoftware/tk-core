@@ -46,9 +46,6 @@ class Configuration(object):
         """
         Ensure that the configuration is up to date with the one
         given by the associated descriptor.
-
-        This method fails gracefully and attempts to roll back to a
-        stable state on failure.
         """
         raise NotImplementedError
 

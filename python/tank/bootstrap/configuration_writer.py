@@ -315,11 +315,19 @@ class ConfigurationWriter(object):
 
     def write_pipeline_config_file(self, pipeline_config_id, project_id, entry_point, bundle_cache_fallback_paths):
         """
-        Writes out the config/core/pipeline_config.yml
+        Writes out the the pipeline configuration file config/core/pipeline_config.yml
+
+        This will populate all relevant parameters required for a toolkit runtime setup.
+        Project and pipeline configuration names will be resolved from Shotgun.
+
+        :param pipeline_config_id: Pipeline config id or None for an unmanaged config.
+        :param project_id: Project id or None for the site config or for a baked config.
+        :param entry_point: Entry point for the boostrap.
+        :param bundle_cache_fallback_paths: List of bundle cache fallback paths.
         """
         # the pipeline config metadata
         # resolve project name and pipeline config name from shotgun.
-        if self._pipeline_config_id:
+        if pipeline_config_id:
             # look up pipeline config name and project name via the pc
             log.debug("Checking pipeline config in Shotgun...")
 
@@ -346,6 +354,9 @@ class ConfigurationWriter(object):
             pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
         else:
+            # this is either a site config or a baked config.
+            # in the latter case, the project name will be overridden at
+            # runtime (along with many other parameters).
             project_name = "Site"
             pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
@@ -358,35 +369,6 @@ class ConfigurationWriter(object):
             "published_file_entity_type": "PublishedFile",
             "use_bundle_cache": True,
             "bundle_cache_fallback_roots": bundle_cache_fallback_paths,
-            "use_shotgun_path_cache": True
-        }
-
-        # write pipeline_configuration.yml
-        pipeline_config_path = os.path.join(
-            self._path.current_os,
-            "config",
-            "core",
-            constants.PIPELINECONFIG_FILE
-        )
-
-        with self._open_auto_created_yml(pipeline_config_path) as fh:
-            yaml.safe_dump(pipeline_config_content, fh)
-            fh.write("\n")
-            fh.write("# End of file.\n")
-
-    def write_bare_pipeline_config_file(self, entry_point):
-        """
-        Writes out the config/core/pipeline_config.yml
-        """
-        pipeline_config_content = {
-            "pc_id": None,
-            "pc_name": constants.UNMANAGED_PIPELINE_CONFIG_NAME,
-            "project_id": None,
-            "project_name": constants.UNNAMED_PROJECT_NAME,
-            "entry_point": entry_point,
-            "published_file_entity_type": "PublishedFile",
-            "use_bundle_cache": True,
-            "bundle_cache_fallback_roots": [],
             "use_shotgun_path_cache": True
         }
 
