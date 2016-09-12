@@ -507,36 +507,94 @@ def main():
     Handles argument parsing and validation and then calls the script payload.
     """
 
-    usage = "%prog source_path target_path (run with --help for more information)"
+    usage = "%prog source_path [-dskc] target_path (run with --help for more information)"
 
     desc = "Builds a standard toolkit plugin structure ready for testing and deploy"
 
     epilog = """
-Examples:
+
+Details and Examples
+--------------------
+
+In its simplest form, just provide a source and target folder for the build.
 
 > python build_plugin.py ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
 
+For automated build setups, you can provide a specific shotgun API script name and
+and corresponding script key:
+
+> python build_plugin.py
+            --shotgun-host='https://mysite.shotgunstudio.com'
+            --shotgun-script-name='plugin_build'
+            --shotgun-script-key='<script-key-here>'
+            ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
+
 By default, the build script will use the latest app store core for its bootstrapping.
 If you want to use a specific core for the bootstrap, this can be specified via the
---bootstrap-core-uri option. This can be useful if you want to do development:
+--bootstrap-core-uri option:
 
-> python build_plugin.py ~/dev/tk-maya/plugins/basic /tmp/maya-plugin --bootstrap-core-uri=sgtk:descriptor:dev?path=~/dev/tk-core
+> python build_plugin.py
+            --bootstrap-core-uri='sgtk:descriptor:dev?path=~/dev/tk-core'
+            ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
+
+For information about the various descriptors that can be used, see
+http://developer.shotgunsoftware.com/tk-core/descriptor
+
 
 """
     parser = OptionParserLineBreakingEpilog(usage=usage, description=desc, epilog=epilog)
 
-    parser.add_option("-d", "--debug",
-                      default=False,
-                      action="store_true",
-                      help="Enable debug logging"
-                      )
+    parser.add_option(
+        "-d",
+        "--debug",
+        default=False,
+        action="store_true",
+        help="Enable debug logging"
+    )
 
-    parser.add_option("-c", "--bootstrap-core-uri",
-                      default=None,
-                      action="store",
-                      help=("Specify which version of core to be used by the bootstrap process. "
-                            "If not specified, defaults to the most recently released core.")
-                      )
+    parser.add_option(
+        "-c",
+        "--bootstrap-core-uri",
+        default=None,
+        action="store",
+        help=("Specify which version of core to be used by the bootstrap process. "
+            "If not specified, defaults to the most recently released core.")
+    )
+
+    group = optparse.OptionGroup(
+        parser,
+        "Shotgun Authentication",
+        "In order to download content from the Toolkit app store, the script will need to authenticate "
+        "against any shotgun site. By default, it will use the toolkit authentication APIs stored "
+        "credentials, and if such are not found, it will prompt for site, username and password."
+    )
+
+    group.add_option(
+        "-s",
+        "--shotgun-host",
+        default=None,
+        action="store",
+        help="Shotgun Script to use to authenticate to retrieve app store credentials."
+    )
+
+    group.add_option(
+        "-n",
+        "--shotgun-script-name",
+        default=None,
+        action="store",
+        help="Shotgun Script to use to authenticate to retrieve app store credentials."
+    )
+
+    group.add_option(
+        "-k",
+        "--shotgun-script-key",
+        default=None,
+        action="store",
+        help="Shotgun Script key to use to authenticate to retrieve app store crendentials."
+    )
+
+
+    parser.add_option_group(group)
 
     # parse cmd line
     (options, remaining_args) = parser.parse_args()
@@ -567,8 +625,25 @@ If you want to use a specific core for the bootstrap, this can be specified via 
 
     # now authenticate to shotgun
     sg_auth = ShotgunAuthenticator()
-    sg_user = sg_auth.get_user()
+
+    if options.shotgun_host:
+        script_name = options.shotgun_script_name
+        script_key = options.shotgun_script_key
+
+        if script_name is None or script_key is None:
+            logger.error("Need to provide, host, script name and script key! Run with -h for more info.")
+            return
+
+        logger.info("Connecting to %s using script user %s..." % (options.shotgun_host, script_name))
+        sg_user = sg_auth.create_script_user(script_name, script_key, options.shotgun_host)
+
+    else:
+        # get user, prompt if necessary
+        sg_user = sg_auth.get_user()
+
     sg_connection = sg_user.create_sg_connection()
+    # make sure we are properly connected
+    sg_connection.find_one("HumanUser", [])
 
     # we are all set.
     build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri)

@@ -20,7 +20,7 @@ log = LogManager.get_logger(__name__)
 
 class Configuration(object):
     """
-    An abstraction represenation around a toolkit configuration.
+    An abstraction representation around a toolkit configuration.
     """
 
     (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_DIFFERENT, LOCAL_CFG_INVALID) = range(4)
