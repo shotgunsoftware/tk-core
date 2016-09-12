@@ -611,7 +611,7 @@ class ToolkitManager(object):
             if not descriptor.exists_local():
                 # Scale the progress step 0.3 between this value 0.4 and the next one 0.7
                 # to compute a value progressing while looping over the indexes.
-                progress_value = 0.4 + (idx / len(descriptors)) * 0.3
+                progress_value = 0.4 + idx * (0.3 / len(descriptors))
                 message = "Downloading %s (%s of %s)..." % (descriptor, idx+1, len(descriptors))
                 self._report_progress(progress_callback, progress_value, message)
                 descriptor.download_local()
