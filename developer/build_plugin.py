@@ -192,7 +192,7 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             # path is absolute
             full_baked_path = os.path.abspath(baked_path)
 
-        logger.info("Will bake config from '%s'" % full_baked_path)
+        logger.info("Will bake an immutable config into the plugin from '%s'" % full_baked_path)
 
         install_path = os.path.join(
             bundle_cache_root,
@@ -477,13 +477,16 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root)
 
     # get latest core
-    logger.info("Caching latest official core...")
 
     if bootstrap_core_uri:
+        logger.info("Caching custom core for boostrap (%s)" % bootstrap_core_uri)
         bootstrap_core_desc = create_descriptor(sg_connection, Descriptor.CORE, bootstrap_core_uri)
 
     else:
         # by default, use latest core for bootstrap
+        logger.info("Caching latest official core to use when bootstrapping plugin.")
+        logger.info("To use a specific config instead, specify a --bootstrap-core-uri flag.")
+
         bootstrap_core_desc = create_descriptor(
             sg_connection,
             Descriptor.CORE,
@@ -507,7 +510,9 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
 
     # now analyze what core the config needs
     if cfg_descriptor.associated_core_descriptor:
-        logger.info("Config is using a custom core. Caching it...")
+        logger.info("Config is specifying a custom core in config/core/core_api.yml.")
+        logger.info("This will be used when the config is executing.")
+        logger.info("Ensuring this core (%s) is cached..." % cfg_descriptor.associated_core_descriptor)
         associated_core_desc = create_descriptor(
             sg_connection,
             Descriptor.CORE,

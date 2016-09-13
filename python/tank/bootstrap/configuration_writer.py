@@ -76,13 +76,16 @@ class ConfigurationWriter(object):
 
         if core_uri_or_dict is None:
             # we don't have a core descriptor specified. Get latest from app store.
-            log.info("Config does not define which core to use. Will use latest.")
+            log.info(
+                "Config does not have a core/core_api.yml file to define which core to use. "
+                "Will use the latest approved core in the app store."
+            )
             core_uri_or_dict = constants.LATEST_CORE_DESCRIPTOR
             # resolve latest core
             use_latest = True
         else:
             # we have an exact core descriptor. Get a descriptor for it
-            log.debug("Config needs core %s" % core_uri_or_dict)
+            log.debug("Config has a specific core defined in core/core_api.yml: %s" % core_uri_or_dict)
             # when core is specified, it is always a specific version
             use_latest = False
 
