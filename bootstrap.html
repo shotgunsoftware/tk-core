@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Deploy and management &mdash; tk-core v0.18.18 documentation</title>
+  <title>Deploy and management &mdash; tk-core v0.18.22 documentation</title>
   
 
   
@@ -32,9 +32,9 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.18 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.22 documentation" href="index.html"/>
         <link rel="next" title="Foundation" href="core.html"/>
-        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.18" href="index.html"/> 
+        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.22" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -125,7 +125,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.18.<br>
+    <b>tk-core</b> v0.18.22.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -253,8 +253,19 @@ and pass it in.</td>
 <dl class="attribute">
 <dt id="sgtk.bootstrap.ToolkitManager.pipeline_configuration">
 <code class="descname">pipeline_configuration</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="Permalink to this definition">¶</a></dt>
-<dd><p>The pipeline configuration that is being operated on.
-By default, the primary pipeline config will be used.</p>
+<dd><p>The pipeline configuration that is should be operated on.</p>
+<p>By default, this value is set to <code class="docutils literal"><span class="pre">None</span></code>, indicating to the Manager
+that it should attempt to find the most suitable Shotgun pipeline configuration
+given the project and entry point. In this case, it will look for all pipeline
+configurations associated with the project who are associated with the current
+user. If no user-tagged pipeline configuration exists, it will look for
+the primary configuration, and in case this is not found, it will fall back on the
+<a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal"><span class="pre">base_configuration()</span></code></a>. If you don&#8217;t want this check to be carried out in
+Shotgun, please set <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup" title="sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup"><code class="xref py py-meth docutils literal"><span class="pre">do_shotgun_config_lookup()</span></code></a> to False.</p>
+<p>Alternatively, you can set this to a specific pipeline configuration. In that
+case, the Manager will look for a pipeline configuration that matches that name
+and the associated project and entry point. If such a config cannot be found in
+Shotgun, it falls back on the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal"><span class="pre">base_configuration()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -416,7 +427,7 @@ executed during the bootstrap.</p>
         <a href="core.html" class="btn btn-neutral float-right" title="Foundation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.18" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.22" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -446,7 +457,7 @@ executed during the bootstrap.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.18',
+            VERSION:'v0.18.22',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

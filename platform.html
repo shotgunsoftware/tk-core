@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.18 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.22 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.18 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.22 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -95,6 +95,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Apps, Engines and Frameworks</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#launching-and-accessing-engines-and-apps">Launching and accessing Engines and Apps</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#engines">Engines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#engine-events">Engine Events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#engine">Engine</a></li>
 </ul>
 </li>
@@ -166,7 +167,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.18.<br>
+    <b>tk-core</b> v0.18.22.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -436,6 +437,59 @@ the it provides a consistent python/QT interface to the apps. Since all engines 
 same base class, apps can call methods on the engines to for example create UIs. It is up to each
 engine to implement these methods so that they work nicely inside the host application.</li>
 </ul>
+<div class="section" id="engine-events">
+<h3>Engine Events<a class="headerlink" href="#engine-events" title="Permalink to this headline">¶</a></h3>
+<p>Engines have the ability to emit events that can then be handled by Toolkit Apps. The design follows closely
+that of Qt&#8217;s events, where event handler methods can be implemented in a Toolkit App to execute custom
+behavior tied to specific event types.</p>
+<p><strong>Emitting Engine Events</strong></p>
+<p>It is an engine&#8217;s responsibility to monitor its host DCC application&#8217;s event or signalling frameworks to
+then emit its associated event. The example below is listening for a Qt signal from a host&#8217;s &#8220;frontend&#8221;
+handle and then emits a FileOpenEvent:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pre_app_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs before apps are initialized.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">frontend</span><span class="o">.</span><span class="n">file_opened</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle_file_open</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_handle_file_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Emits a file open event that apps can listen for.</span>
+
+<span class="sd">    :param str file_path: The path of the file opened.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">event</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">FileOpenEvent</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Emitting event </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">event</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_emit_event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Handling Engine Events</strong></p>
+<p>Toolkit Apps can receive and handle an event in one of two ways:</p>
+<ul class="simple">
+<li>Override the type specific event handler. The advantages of this approach to event handling is that
+there is no need to type check the event before handling it, and the slight performance benefit of
+only running custom logic when an event of the type you&#8217;re interested in is emitted. In the case of
+a file-open event, the Toolkit App&#8217;s <a class="reference internal" href="#sgtk.platform.Application.event_file_open" title="sgtk.platform.Application.event_file_open"><code class="xref py py-meth docutils literal"><span class="pre">Application.event_file_open()</span></code></a> method would be reimplemented.</li>
+<li>Override the generic event handler. Every engine event that is emitted, regardless of type, will be
+sent to the Toolkit App&#8217;s <code class="xref py py-meth docutils literal"><span class="pre">Application.event_engine(event)()</span></code> method. The approach to handling an
+engine event in this manner would be to type check the given event object using <code class="docutils literal"><span class="pre">isinstance()</span></code> and run
+the appropriate logic according to the results.</li>
+</ul>
+<p>In the example below, the Toolkit App has reimplemented the <a class="reference internal" href="#sgtk.platform.Application.event_file_open" title="sgtk.platform.Application.event_file_open"><code class="xref py py-meth docutils literal"><span class="pre">Application.event_file_open()</span></code></a> method in
+order to execute custom logic when the parent <a class="reference internal" href="#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a> has indicated that a new file has been
+opened by the host DCC application:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">event_file_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles event notifications from the parent engine.</span>
+
+<span class="sd">    :param event: The event object that was emitted.</span>
+<span class="sd">    :type event: :class:`~sgtk.platform.events.FileOpenEvent`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Handling event: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">event</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">set_version_entity_by_file</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">file_path</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="engine">
 <h3>Engine<a class="headerlink" href="#engine" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
@@ -4379,7 +4433,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.18',
+            VERSION:'v0.18.22',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.18 documentation</title>
+  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.22 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.18 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.22 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.18.<br>
+    <b>tk-core</b> v0.18.22.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -213,6 +213,11 @@
 <span class="sd">                           the descriptor dictionary/uri. Please note that setting this flag</span>
 <span class="sd">                           to true will typically affect performance - an external connection</span>
 <span class="sd">                           is often required in order to establish what the latest version is.</span>
+
+<span class="sd">                           If a remote connection cannot be established when attempting to determine</span>
+<span class="sd">                           the latest version, a local scan will be carried out and the highest</span>
+<span class="sd">                           version number that is cached locally will be returned.</span>
+
 <span class="sd">    :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain</span>
 <span class="sd">                           the search for latest to only take part over a subset of versions.</span>
 <span class="sd">                           This is a string that can be on the following form:</span>
@@ -231,8 +236,14 @@
     <span class="k">if</span> <span class="n">bundle_cache_root_override</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">bundle_cache_root_override</span> <span class="o">=</span> <span class="n">_get_default_bundle_cache_root</span><span class="p">()</span>
         <span class="n">filesystem</span><span class="o">.</span><span class="n">ensure_folder_exists</span><span class="p">(</span><span class="n">bundle_cache_root_override</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># expand environment variables</span>
+        <span class="n">bundle_cache_root_override</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">bundle_cache_root_override</span><span class="p">))</span>
 
     <span class="n">fallback_roots</span> <span class="o">=</span> <span class="n">fallback_roots</span> <span class="ow">or</span> <span class="p">[]</span>
+
+    <span class="c1"># expand environment variables</span>
+    <span class="n">fallback_roots</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">fallback_roots</span><span class="p">]</span>
 
     <span class="c1"># first construct a low level IO descriptor</span>
     <span class="n">io_descriptor</span> <span class="o">=</span> <span class="n">create_io_descriptor</span><span class="p">(</span>
@@ -541,6 +552,50 @@
         <span class="n">latest</span><span class="o">.</span><span class="n">_io_descriptor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_latest_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">latest</span>
 
+    <span class="k">def</span> <span class="nf">find_latest_cached_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a descriptor object that represents the latest version</span>
+<span class="sd">        that can be found in the local bundle caches.</span>
+
+<span class="sd">        .. note:: Different descriptor types implements this logic differently,</span>
+<span class="sd">                  but general good practice is to follow the semantic version numbering</span>
+<span class="sd">                  standard for any versions used in conjunction with toolkit. This ensures</span>
+<span class="sd">                  that toolkit can track and correctly determine not just the latest version</span>
+<span class="sd">                  but also apply constraint pattern matching such as looking for the latest</span>
+<span class="sd">                  version matching the pattern ``v1.x.x``. You can read more about semantic</span>
+<span class="sd">                  versioning here: http://semver.org/</span>
+
+<span class="sd">        :param constraint_pattern: If this is specified, the query will be constrained</span>
+<span class="sd">               by the given pattern. Version patterns are on the following forms:</span>
+
+<span class="sd">                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</span>
+<span class="sd">                - v0.12.x - get the highest v0.12 version</span>
+<span class="sd">                - v1.x.x - get the highest v1 version</span>
+
+<span class="sd">        :returns: Instance derived from :class:`Descriptor` or None if no cached version</span>
+<span class="sd">                  is available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">io_desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_latest_cached_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">io_desc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="c1"># make a copy of the descriptor</span>
+        <span class="n">latest</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="c1"># find latest I/O descriptor</span>
+        <span class="n">latest</span><span class="o">.</span><span class="n">_io_descriptor</span> <span class="o">=</span> <span class="n">io_desc</span>
+        <span class="k">return</span> <span class="n">latest</span>
+
+    <span class="k">def</span> <span class="nf">has_remote_access</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Probes if the current descriptor is able to handle</span>
+<span class="sd">        remote requests. If this method returns, true, operations</span>
+<span class="sd">        such as :meth:`download_local` and :meth:`find_latest_version`</span>
+<span class="sd">        can be expected to succeed.</span>
+
+<span class="sd">        :return: True if a remote is accessible, false if not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">has_remote_access</span><span class="p">()</span>
+
     <span class="c1"># compatibility accessors to ensure that all systems</span>
     <span class="c1"># calling this (previously internal!) parts of toolkit</span>
     <span class="c1"># will still work.</span>
@@ -586,7 +641,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.18',
+            VERSION:'v0.18.22',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

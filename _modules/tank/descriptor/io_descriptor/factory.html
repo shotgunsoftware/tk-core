@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.18.18 documentation</title>
+  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.18.22 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.18 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.22 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.18.<br>
+    <b>tk-core</b> v0.18.22.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -178,6 +178,8 @@
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
+<span class="kn">import</span> <span class="nn">copy</span>
+
 <span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span>
 
 <span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">LogManager</span>
@@ -217,6 +219,10 @@
 <span class="sd">                           the descriptor dictionary/uri. Please note that setting this flag</span>
 <span class="sd">                           to true will typically affect performance - an external connection</span>
 <span class="sd">                           is often required in order to establish what the latest version is.</span>
+
+<span class="sd">                           If a remote connection cannot be established when attempting to determine</span>
+<span class="sd">                           the latest version, a local scan will be carried out and the highest</span>
+<span class="sd">                           version number that is cached locally will be returned.</span>
 <span class="sd">    :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain</span>
 <span class="sd">                           the search for latest to only take part over a subset of versions.</span>
 <span class="sd">                           This is a string that can be on the following form:</span>
@@ -239,7 +245,8 @@
         <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">dict_from_uri</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
         <span class="n">descriptor_uri</span> <span class="o">=</span> <span class="n">dict_or_uri</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">dict_or_uri</span>
+        <span class="c1"># make a copy to make sure the original object is never altered</span>
+        <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
         <span class="n">descriptor_uri</span> <span class="o">=</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">uri_from_dict</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
 
     <span class="c1"># first check if we already have this in our cache</span>
@@ -258,7 +265,6 @@
 
     <span class="c1"># at this point we didn&#39;t have a cache hit,</span>
     <span class="c1"># so construct the object manually</span>
-
     <span class="k">if</span> <span class="n">resolve_latest</span><span class="p">:</span>
         <span class="c1"># if someone is requesting a latest descriptor and not providing a version token</span>
         <span class="c1"># make sure to add an artificial one so that we can resolve it.</span>
@@ -301,11 +307,22 @@
     <span class="n">descriptor</span><span class="o">.</span><span class="n">set_cache_roots</span><span class="p">(</span><span class="n">bundle_cache_root</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">resolve_latest</span><span class="p">:</span>
-        <span class="c1">#@todo - in the future, attempt to get &quot;remote&quot; latest first</span>
-        <span class="c1">#        and if that fails, fall back on the latest item</span>
-        <span class="c1">#        available in the local cache.</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Searching for latest version...&quot;</span><span class="p">)</span>
-        <span class="n">descriptor</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_latest_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
+        <span class="c1"># attempt to get &quot;remote&quot; latest first</span>
+        <span class="c1"># and if that fails, fall back on the latest item</span>
+        <span class="c1"># available in the local cache.</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Trying to resolve latest version...&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">has_remote_access</span><span class="p">():</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Remote connection is available - attempting to get latest version from remote...&quot;</span><span class="p">)</span>
+            <span class="n">descriptor</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_latest_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Remote connection is not available - falling back on getting latest version from cache...&quot;</span><span class="p">)</span>
+            <span class="n">latest_cached_descriptor</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_latest_cached_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">latest_cached_descriptor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span><span class="s2">&quot;No cached versions of </span><span class="si">%r</span><span class="s2"> cached locally on disk.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
+
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Latest cached descriptor is </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">latest_cached_descriptor</span><span class="p">)</span>
+            <span class="n">descriptor</span> <span class="o">=</span> <span class="n">latest_cached_descriptor</span>
+
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Resolved latest to be </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
 
     <span class="c1"># Now see if we should cache it. Only cache descriptors that represent immutable</span>
@@ -365,7 +382,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.18',
+            VERSION:'v0.18.22',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

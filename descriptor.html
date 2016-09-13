@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.18 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.22 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.18 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.22 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -137,7 +137,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.18.<br>
+    <b>tk-core</b> v0.18.22.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -425,11 +425,15 @@ cache that is shared across all sites and projects.</li>
 apps will be searched for. Note that when descriptors
 download new content, it always ends up in the
 bundle_cache_root.</li>
-<li><strong>resolve_latest</strong> &#8211; If true, the latest version will be determined and returned.
+<li><strong>resolve_latest</strong> &#8211; <p>If true, the latest version will be determined and returned.
 If set to True, no version information need to be supplied with
 the descriptor dictionary/uri. Please note that setting this flag
 to true will typically affect performance - an external connection
-is often required in order to establish what the latest version is.</li>
+is often required in order to establish what the latest version is.</p>
+<p>If a remote connection cannot be established when attempting to determine
+the latest version, a local scan will be carried out and the highest
+version number that is cached locally will be returned.</p>
+</li>
 <li><strong>constraint_pattern</strong> &#8211; <p>If resolve_latest is True, this pattern can be used to constrain
 the search for latest to only take part over a subset of versions.
 This is a string that can be on the following form:</p>
@@ -649,6 +653,43 @@ the case a None value is passed in, the hook will not execute.</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.find_latest_cached_version">
+<code class="descname">find_latest_cached_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.find_latest_cached_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a descriptor object that represents the latest version
+that can be found in the local bundle caches.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Different descriptor types implements this logic differently,
+but general good practice is to follow the semantic version numbering
+standard for any versions used in conjunction with toolkit. This ensures
+that toolkit can track and correctly determine not just the latest version
+but also apply constraint pattern matching such as looking for the latest
+version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+by the given pattern. Version patterns are on the following forms:</p>
+<blockquote>
+<div><ul class="simple">
+<li>v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</li>
+<li>v0.12.x - get the highest v0.12 version</li>
+<li>v1.x.x - get the highest v1 version</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or None if no cached version
+is available.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="sgtk.descriptor.AppDescriptor.find_latest_version">
 <code class="descname">find_latest_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.find_latest_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a descriptor object that represents the latest version.</p>
@@ -729,6 +770,23 @@ descriptor dictionary returned by the get_dict() method.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Uri string that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.has_remote_access">
+<code class="descname">has_remote_access</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.has_remote_access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Probes if the current descriptor is able to handle
+remote requests. If this method returns, true, operations
+such as <a class="reference internal" href="#sgtk.descriptor.AppDescriptor.download_local" title="sgtk.descriptor.AppDescriptor.download_local"><code class="xref py py-meth docutils literal"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.AppDescriptor.find_latest_version" title="sgtk.descriptor.AppDescriptor.find_latest_version"><code class="xref py py-meth docutils literal"><span class="pre">find_latest_version()</span></code></a>
+can be expected to succeed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if a remote is accessible, false if not.</td>
 </tr>
 </tbody>
 </table>
@@ -1064,6 +1122,43 @@ the case a None value is passed in, the hook will not execute.</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.find_latest_cached_version">
+<code class="descname">find_latest_cached_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.find_latest_cached_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a descriptor object that represents the latest version
+that can be found in the local bundle caches.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Different descriptor types implements this logic differently,
+but general good practice is to follow the semantic version numbering
+standard for any versions used in conjunction with toolkit. This ensures
+that toolkit can track and correctly determine not just the latest version
+but also apply constraint pattern matching such as looking for the latest
+version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+by the given pattern. Version patterns are on the following forms:</p>
+<blockquote>
+<div><ul class="simple">
+<li>v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</li>
+<li>v0.12.x - get the highest v0.12 version</li>
+<li>v1.x.x - get the highest v1 version</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or None if no cached version
+is available.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="sgtk.descriptor.EngineDescriptor.find_latest_version">
 <code class="descname">find_latest_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.find_latest_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a descriptor object that represents the latest version.</p>
@@ -1144,6 +1239,23 @@ descriptor dictionary returned by the get_dict() method.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Uri string that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.has_remote_access">
+<code class="descname">has_remote_access</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.has_remote_access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Probes if the current descriptor is able to handle
+remote requests. If this method returns, true, operations
+such as <a class="reference internal" href="#sgtk.descriptor.EngineDescriptor.download_local" title="sgtk.descriptor.EngineDescriptor.download_local"><code class="xref py py-meth docutils literal"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.EngineDescriptor.find_latest_version" title="sgtk.descriptor.EngineDescriptor.find_latest_version"><code class="xref py py-meth docutils literal"><span class="pre">find_latest_version()</span></code></a>
+can be expected to succeed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if a remote is accessible, false if not.</td>
 </tr>
 </tbody>
 </table>
@@ -1495,6 +1607,43 @@ the case a None value is passed in, the hook will not execute.</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.find_latest_cached_version">
+<code class="descname">find_latest_cached_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.find_latest_cached_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a descriptor object that represents the latest version
+that can be found in the local bundle caches.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Different descriptor types implements this logic differently,
+but general good practice is to follow the semantic version numbering
+standard for any versions used in conjunction with toolkit. This ensures
+that toolkit can track and correctly determine not just the latest version
+but also apply constraint pattern matching such as looking for the latest
+version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+by the given pattern. Version patterns are on the following forms:</p>
+<blockquote>
+<div><ul class="simple">
+<li>v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</li>
+<li>v0.12.x - get the highest v0.12 version</li>
+<li>v1.x.x - get the highest v1 version</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or None if no cached version
+is available.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="sgtk.descriptor.FrameworkDescriptor.find_latest_version">
 <code class="descname">find_latest_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.find_latest_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a descriptor object that represents the latest version.</p>
@@ -1575,6 +1724,23 @@ descriptor dictionary returned by the get_dict() method.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Uri string that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.has_remote_access">
+<code class="descname">has_remote_access</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.has_remote_access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Probes if the current descriptor is able to handle
+remote requests. If this method returns, true, operations
+such as <a class="reference internal" href="#sgtk.descriptor.FrameworkDescriptor.download_local" title="sgtk.descriptor.FrameworkDescriptor.download_local"><code class="xref py py-meth docutils literal"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.FrameworkDescriptor.find_latest_version" title="sgtk.descriptor.FrameworkDescriptor.find_latest_version"><code class="xref py py-meth docutils literal"><span class="pre">find_latest_version()</span></code></a>
+can be expected to succeed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if a remote is accessible, false if not.</td>
 </tr>
 </tbody>
 </table>
@@ -1926,6 +2092,43 @@ If no display name has been defined, the system name will be returned.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.find_latest_cached_version">
+<code class="descname">find_latest_cached_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.find_latest_cached_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a descriptor object that represents the latest version
+that can be found in the local bundle caches.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Different descriptor types implements this logic differently,
+but general good practice is to follow the semantic version numbering
+standard for any versions used in conjunction with toolkit. This ensures
+that toolkit can track and correctly determine not just the latest version
+but also apply constraint pattern matching such as looking for the latest
+version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+by the given pattern. Version patterns are on the following forms:</p>
+<blockquote>
+<div><ul class="simple">
+<li>v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</li>
+<li>v0.12.x - get the highest v0.12 version</li>
+<li>v1.x.x - get the highest v1 version</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or None if no cached version
+is available.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="sgtk.descriptor.ConfigDescriptor.find_latest_version">
 <code class="descname">find_latest_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.find_latest_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a descriptor object that represents the latest version.</p>
@@ -2006,6 +2209,23 @@ descriptor dictionary returned by the get_dict() method.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Uri string that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.has_remote_access">
+<code class="descname">has_remote_access</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.has_remote_access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Probes if the current descriptor is able to handle
+remote requests. If this method returns, true, operations
+such as <a class="reference internal" href="#sgtk.descriptor.ConfigDescriptor.download_local" title="sgtk.descriptor.ConfigDescriptor.download_local"><code class="xref py py-meth docutils literal"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.ConfigDescriptor.find_latest_version" title="sgtk.descriptor.ConfigDescriptor.find_latest_version"><code class="xref py py-meth docutils literal"><span class="pre">find_latest_version()</span></code></a>
+can be expected to succeed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if a remote is accessible, false if not.</td>
 </tr>
 </tbody>
 </table>
@@ -2208,6 +2428,43 @@ If no display name has been defined, the system name will be returned.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.find_latest_cached_version">
+<code class="descname">find_latest_cached_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.find_latest_cached_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a descriptor object that represents the latest version
+that can be found in the local bundle caches.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Different descriptor types implements this logic differently,
+but general good practice is to follow the semantic version numbering
+standard for any versions used in conjunction with toolkit. This ensures
+that toolkit can track and correctly determine not just the latest version
+but also apply constraint pattern matching such as looking for the latest
+version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+by the given pattern. Version patterns are on the following forms:</p>
+<blockquote>
+<div><ul class="simple">
+<li>v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</li>
+<li>v0.12.x - get the highest v0.12 version</li>
+<li>v1.x.x - get the highest v1 version</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or None if no cached version
+is available.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="sgtk.descriptor.CoreDescriptor.find_latest_version">
 <code class="descname">find_latest_version</code><span class="sig-paren">(</span><em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.find_latest_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a descriptor object that represents the latest version.</p>
@@ -2288,6 +2545,23 @@ descriptor dictionary returned by the get_dict() method.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Uri string that can be used to construct the descriptor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.has_remote_access">
+<code class="descname">has_remote_access</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.has_remote_access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Probes if the current descriptor is able to handle
+remote requests. If this method returns, true, operations
+such as <a class="reference internal" href="#sgtk.descriptor.CoreDescriptor.download_local" title="sgtk.descriptor.CoreDescriptor.download_local"><code class="xref py py-meth docutils literal"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.CoreDescriptor.find_latest_version" title="sgtk.descriptor.CoreDescriptor.find_latest_version"><code class="xref py py-meth docutils literal"><span class="pre">find_latest_version()</span></code></a>
+can be expected to succeed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if a remote is accessible, false if not.</td>
 </tr>
 </tbody>
 </table>
@@ -2418,7 +2692,7 @@ If not url has been defined, None is returned.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.18',
+            VERSION:'v0.18.22',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

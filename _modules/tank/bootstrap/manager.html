@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.bootstrap.manager &mdash; tk-core v0.18.18 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.22 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.18 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.22 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.18.<br>
+    <b>tk-core</b> v0.18.22.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -214,7 +214,7 @@
 
         <span class="c1"># defaults</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_PIPELINE_CONFIG_NAME</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span> <span class="o">=</span> <span class="bp">True</span>
@@ -233,16 +233,25 @@
 
     <span class="k">def</span> <span class="nf">_get_pipeline_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The pipeline configuration that is being operated on.</span>
-<span class="sd">        By default, the primary pipeline config will be used.</span>
+<span class="sd">        The pipeline configuration that is should be operated on.</span>
+
+<span class="sd">        By default, this value is set to ``None``, indicating to the Manager</span>
+<span class="sd">        that it should attempt to find the most suitable Shotgun pipeline configuration</span>
+<span class="sd">        given the project and entry point. In this case, it will look for all pipeline</span>
+<span class="sd">        configurations associated with the project who are associated with the current</span>
+<span class="sd">        user. If no user-tagged pipeline configuration exists, it will look for</span>
+<span class="sd">        the primary configuration, and in case this is not found, it will fall back on the</span>
+<span class="sd">        :meth:`base_configuration`. If you don&#39;t want this check to be carried out in</span>
+<span class="sd">        Shotgun, please set :meth:`do_shotgun_config_lookup` to False.</span>
+
+<span class="sd">        Alternatively, you can set this to a specific pipeline configuration. In that</span>
+<span class="sd">        case, the Manager will look for a pipeline configuration that matches that name</span>
+<span class="sd">        and the associated project and entry point. If such a config cannot be found in</span>
+<span class="sd">        Shotgun, it falls back on the :meth:`base_configuration`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span>
 
     <span class="k">def</span> <span class="nf">_set_pipeline_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The pipeline configuration that is being operated on.</span>
-<span class="sd">        By default, the primary pipeline config will be used.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span> <span class="o">=</span> <span class="n">name</span>
 
     <span class="n">pipeline_configuration</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_pipeline_configuration</span><span class="p">,</span> <span class="n">_set_pipeline_configuration</span><span class="p">)</span>
@@ -355,10 +364,6 @@
 
     <span class="k">def</span> <span class="nf">_set_bundle_cache_fallback_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="p">):</span>
         <span class="c1"># setter for bundle_cache_fallback_paths</span>
-
-        <span class="c1"># @todo - maybe here we can add support for environment variables in the</span>
-        <span class="c1">#         future so that studios can easily add their own &#39;primed cache&#39;</span>
-        <span class="c1">#         locations for performance or to save space.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="n">paths</span>
 
     <span class="n">bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span>
@@ -490,10 +495,13 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span><span class="p">:</span>
             <span class="c1"># do the full resolve where we connect to shotgun etc.</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Checking for pipeline configuration overrides in Shotgun.&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;In order to turn this off, set do_shotgun_config_lookup to False&quot;</span><span class="p">)</span>
             <span class="n">config</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">resolve_shotgun_configuration</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="o">.</span><span class="n">login</span>
             <span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -504,8 +512,11 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">,</span>
             <span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Using </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">config</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">config</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Bootstrapping into configuration </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">config</span><span class="p">)</span>
+
         <span class="c1"># see what we have locally</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Checking if config is out of date...&quot;</span><span class="p">)</span>
         <span class="n">status</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">status</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Updating configuration...&quot;</span><span class="p">)</span>
@@ -642,7 +653,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.18',
+            VERSION:'v0.18.22',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
