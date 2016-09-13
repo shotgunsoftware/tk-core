@@ -399,7 +399,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
             # set entry point
             fh.write("    manager.entry_point = '%s'\n" % manifest_data["entry_point"])
 
-            # set shotgun config look flag if defined
+            # set shotgun config lookup flag if defined
             if "do_shotgun_config_lookup" in manifest_data:
                 fh.write("    manager.do_shotgun_config_lookup = %s\n" % manifest_data["do_shotgun_config_lookup"])
 
@@ -537,7 +537,7 @@ def main():
     Handles argument parsing and validation and then calls the script payload.
     """
 
-    usage = "%prog source_path [-dskc] target_path (run with --help for more information)"
+    usage = "%prog [options] source_path target_path"
 
     desc = "Builds a standard toolkit plugin structure ready for testing and deploy"
 
@@ -588,7 +588,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         default=None,
         action="store",
         help=("Specify which version of core to be used by the bootstrap process. "
-            "If not specified, defaults to the most recently released core.")
+              "If not specified, defaults to the most recently released core.")
     )
 
     group = optparse.OptionGroup(
@@ -604,7 +604,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         "--shotgun-host",
         default=None,
         action="store",
-        help="Shotgun Script to use to authenticate to retrieve app store credentials."
+        help="Shotgun host to authenticate with."
     )
 
     group.add_option(
@@ -612,7 +612,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         "--shotgun-script-name",
         default=None,
         action="store",
-        help="Shotgun Script to use to authenticate to retrieve app store credentials."
+        help="Script to use to authenticate with the given host."
     )
 
     group.add_option(
@@ -620,7 +620,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         "--shotgun-script-key",
         default=None,
         action="store",
-        help="Shotgun Script key to use to authenticate to retrieve app store crendentials."
+        help="Script key to use to authenticate with the given host."
     )
 
 
@@ -643,7 +643,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
     if len(remaining_args) != 2:
         parser.print_help()
-        return
+        return 2
 
     # get paths
     source_path = remaining_args[0]
@@ -662,7 +662,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
         if script_name is None or script_key is None:
             logger.error("Need to provide, host, script name and script key! Run with -h for more info.")
-            return
+            return 2
 
         logger.info("Connecting to %s using script user %s..." % (options.shotgun_host, script_name))
         sg_user = sg_auth.create_script_user(script_name, script_key, options.shotgun_host)
@@ -673,11 +673,17 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
     sg_connection = sg_user.create_sg_connection()
     # make sure we are properly connected
-
-    sg_connection.find_one("HumanUser", [])
+    try:
+        sg_connection.find_one("HumanUser", [])
+    except Exception, e:
+        logger.error("Could not communicate with Shotgun: %s" % e)
+        return 3
 
     # we are all set.
     build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri)
+
+    # all good!
+    return 0
 
 
 if __name__ == "__main__":
@@ -690,8 +696,7 @@ if __name__ == "__main__":
 
     exit_code = 1
     try:
-        main()
-        exit_code = 0
+        exit_code = main()
     except Exception, e:
         logger.exception("An exception was raised: %s" % e)
 
