@@ -485,7 +485,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     else:
         # by default, use latest core for bootstrap
         logger.info("Caching latest official core to use when bootstrapping plugin.")
-        logger.info("To use a specific config instead, specify a --bootstrap-core-uri flag.")
+        logger.info("(To use a specific config instead, specify a --bootstrap-core-uri flag.)")
 
         bootstrap_core_desc = create_descriptor(
             sg_connection,
