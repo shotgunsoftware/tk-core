@@ -12,7 +12,7 @@
 
 # The path to output all built .py files to: 
 UI_PYTHON_PATH=../ui
-PYTHON_BASE="/Applications/Shotgun.app/Contents/Frameworks/Python"
+PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
 
 
 # Helper functions to build UI files
