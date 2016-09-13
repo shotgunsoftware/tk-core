@@ -331,17 +331,11 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
                     )
 
             fh.write("\n\n# system generated parameters\n")
-            fh.write(
-                "BUILD_INFO=\"%s %s@%s\"\n" % (
-                    datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
-                    getpass.getuser(),
-                    socket.getfqdn(),
-                )
-            )
+            fh.write("BUILD_DATE=\"%s\"\n" % datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
             fh.write("BUILD_GENERATION=%d\n" % BUILD_GENERATION)
 
             # Write out helper function 'get_sgtk_pythonpath()'.
-
+            # this makes it easy for a plugin to import sgtk
             if core_descriptor.get_path().startswith(plugin_root):
                 # the core descriptor is cached inside our plugin
                 core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
@@ -385,6 +379,37 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
                 fh.write("    return '%s'\n" % os.path.sep.join(core_path_parts))
                 fh.write("\n\n")
 
+            # Write out helper function 'initialize_manager()'.
+            # This method is a convenience method to make it easier to
+            # set up the bootstrap manager given a plugin config
+
+            fh.write("\n\n")
+            fh.write("def initialize_manager(manager, plugin_root):\n")
+            fh.write("    \"\"\" \n")
+            fh.write("    Auto generated helper method which initializes\n")
+            fh.write("    a toolkit manager with common plugin parameters.\n")
+            fh.write("    \n")
+            fh.write("    For more information, see the documentation.\n")
+            fh.write("    \"\"\" \n")
+            fh.write("    import os\n")
+
+            # set base configuration
+            fh.write("    manager.base_configuration = '%s'\n" % config_uri)
+
+            # set entry point
+            fh.write("    manager.entry_point = '%s'\n" % manifest_data["entry_point"])
+
+            # set shotgun config look flag if defined
+            if "do_shotgun_config_lookup" in manifest_data:
+                fh.write("    manager.do_shotgun_config_lookup = %s\n" % manifest_data["do_shotgun_config_lookup"])
+
+            # set bundle cache fallback path
+            fh.write("    bundle_cache_path = os.path.join(plugin_root, 'bundle_cache')\n")
+            fh.write("    manager.bundle_cache_fallback_paths = [bundle_cache_path]\n")
+
+            fh.write("    return manager\n")
+
+            fh.write("\n\n")
             fh.write("# end of file.\n")
 
     except Exception, e:
