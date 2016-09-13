@@ -212,10 +212,15 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
     SKIP_LIST_DEFAULT = [".svn", ".git", ".gitignore", ".hg", ".hgignore"]
 
     # compute full skip list
+    # note: we don't do
+    # actual_skip_list = skip_list or SKIP_LIST_DEFAULT
+    # because we want users to be able to pass in
+    # skip_list=[] in order to clear the default skip list.
     if skip_list is None:
         actual_skip_list = SKIP_LIST_DEFAULT
     else:
         actual_skip_list = skip_list
+
     # add the items we always want to skip
     actual_skip_list.extend(SKIP_LIST_ALWAYS)
 

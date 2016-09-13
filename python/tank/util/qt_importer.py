@@ -32,7 +32,7 @@ class QtImporter(object):
         Imports the Qt modules and sets the QtCore, QtGui and wrapper attributes
         on this object.
         """
-        self.QtCore, self.QtGui, self.wrapper = self._import_modules()
+        self.QtCore, self.QtGui, self.wrapper, self.qt_version_tuple = self._import_modules()
 
     def _import_pyside(self):
         """
@@ -48,7 +48,7 @@ class QtImporter(object):
         if not hasattr(PySide, "__version__"):
             PySide.__version__ = "<unknown>"
 
-        return QtCore, QtGui, PySide
+        return QtCore, QtGui, PySide, self._to_version_tuple(QtCore.qVersion())
 
     def _import_pyside2(self):
         """
@@ -60,7 +60,8 @@ class QtImporter(object):
         from PySide2 import QtCore, QtGui, QtWidgets
         from .pyside2_patcher import PySide2Patcher
 
-        return PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
+        QtCore, QtGui, PySide2 = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
+        return QtCore, QtGui, PySide2, self._to_version_tuple(QtCore.qVersion())
 
     def _import_pyqt4(self):
         """
@@ -79,7 +80,7 @@ class QtImporter(object):
         from PyQt4.Qt import PYQT_VERSION_STR
         PyQt4.__version__ = PYQT_VERSION_STR
 
-        return QtCore, QtGui, PyQt4
+        return QtCore, QtGui, PyQt4, self._to_version_tuple(QtCore.QT_VERSION_STR)
 
     def _import_modules(self):
         """
@@ -103,4 +104,15 @@ class QtImporter(object):
         try:
             return self._import_pyqt4()
         except ImportError:
-            return (None, None, None)
+            return (None, None, None, None)
+
+    def _to_version_tuple(self, version_str):
+        """
+        Converts a version string with the dotted notation into a tuple
+        of integers.
+
+        :param version_str: Version string to convert.
+
+        :returns: A tuple of integer representing the version.
+        """
+        return tuple([int(c) for c in version_str.split(".")])
