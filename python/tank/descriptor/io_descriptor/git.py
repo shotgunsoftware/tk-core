@@ -197,3 +197,25 @@ class IODescriptorGit(IODescriptorBase):
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect
+
+    def copy(self, target_path):
+        """
+        Copy the contents of the descriptor to an external location
+
+        Subclassed git implementation which includes .git folders
+        in the copy.
+
+        :param target_path: target path to copy the descriptor to.
+        """
+        log.debug("Copying %r -> %s" % (self, target_path))
+        # make sure config exists
+        self.ensure_local()
+        # copy descriptor into target.
+        # reset the skip list which by default includes .git folders
+        # in the case of the git descriptor, we want to transfer this folder
+        # as well.
+        filesystem.copy_folder(
+            self.get_path(),
+            target_path,
+            skip_list=[]
+        )
