@@ -201,9 +201,9 @@ class PipelineConfiguration(object):
             fh.close()
             os.umask(old_umask)            
 
-        self._project_id = curr_settings.get("project").get("id")
-        self._pc_id = curr_settings.get("id")
-        self._pc_name = curr_settings.get("code")
+        self._project_id = curr_settings.get("project_id")
+        self._pc_id = curr_settings.get("pc_id")
+        self._pc_name = curr_settings.get("pc_name")
 
     def _populate_yaml_cache(self):
         """
