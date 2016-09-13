@@ -61,3 +61,7 @@ DESKTOP_PYTHON_LINUX = "/opt/Shotgun/Python/bin/python"
 # avoid locally cache immutable bootstrap setups
 BAKED_DESCRIPTOR_TYPE = "baked"
 BAKED_DESCRIPTOR_FOLDER_NAME = "baked"
+
+# environment variable that can be used to override the
+# configuration loaded when a bootstrap/plugin is starting up.
+CONFIG_OVERRIDE_ENV_VAR = "TK_BOOTSTRAP_CONFIG_OVERRIDE"
