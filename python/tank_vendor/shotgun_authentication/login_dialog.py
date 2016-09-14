@@ -34,18 +34,21 @@ class LoginDialog(QtGui.QDialog):
     # Formatting required to display error messages.
     ERROR_MSG_FORMAT = "<font style='color: rgb(252, 98, 70);'>%s</font>"
 
-    def __init__(self, is_session_renewal, hostname="", login="", fixed_host=False, http_proxy=None, parent=None):
+    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None):
         """
         Constructs a dialog.
 
         :param is_session_renewal: Boolean indicating if we are renewing a session or authenticating a user from scratch.
-        :param hostname: The string to populate the site field with. Defaults to "".
-        :param login: The string to populate the login field with. Defaults to "".
+        :param hostname: The string to populate the site field with. If None, the field will be empty.
+        :param login: The string to populate the login field with. If None, the field will be empty.
         :param fixed_host: Indicates if the hostname can be changed. Defaults to False.
         :param http_proxy: The proxy server to use when testing authentication. Defaults to None.
         :param parent: The Qt parent for the dialog (defaults to None)
         """
         QtGui.QDialog.__init__(self, parent)
+
+        hostname = hostname or ""
+        login = login or ""
 
         self._is_session_renewal = is_session_renewal
 
@@ -84,13 +87,6 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
             else:
                 self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
-        else:
-            # If we don't even have a host, pre-fill the field with a friendly
-            # value and selection.
-            self.ui.site.setText("https://mystudio.shotgunstudio.com")
-            # This will select mystudio, making it easy to type something else
-            self.ui.site.setSelection(8, 8)
-            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
 
         if self._is_session_renewal:
             self._set_login_message("Your session has expired. Please enter your password.")
