@@ -50,7 +50,7 @@ class DesktopMigration(Action):
 
         pc = self.tk.pipeline_configuration
 
-        if pc.is_unmanaged:
+        if pc.is_unmanaged():
             log.error("Cannot migrate a setup which does not have a pipeline configuration in Shotgun!")
             return
 
