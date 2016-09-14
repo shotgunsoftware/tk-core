@@ -264,7 +264,7 @@ class ToolkitManager(object):
         :returns: :class:`~sgtk.platform.Engine` instance.
         """
 
-        log.info("Bootstrapping engine %s for entity %s." % (engine_name, entity))
+        log.info("Synchronously bootstrapping engine %s for entity %s." % (engine_name, entity))
 
         tk = self._bootstrap_sgtk(engine_name, entity)
 
@@ -327,7 +327,7 @@ class ToolkitManager(object):
         :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
         """
 
-        log.info("Bootstrapping engine %s for entity %s." % (engine_name, entity))
+        log.info("Asynchronously bootstrapping engine %s for entity %s." % (engine_name, entity))
 
         if completed_callback is None:
             completed_callback = self._default_completed_callback
