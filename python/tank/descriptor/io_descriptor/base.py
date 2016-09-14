@@ -618,7 +618,9 @@ class IODescriptorBase(object):
         new_cache_path = self._get_bundle_cache_path(cache_root)
         log.debug("Clone cache for %r: Copying to '%s'" % (self, new_cache_path))
 
-        if os.path.exists(new_cache_path):
+        # like in get_path(), we determine local existence based on the info.yml
+        info_yml_path = os.path.join(new_cache_path, constants.BUNDLE_METADATA_FILE)
+        if os.path.exists(info_yml_path):
             # we already have a cache
             log.debug("Bundle cache already exists in '%s'. Nothing to do." % new_cache_path)
             return False

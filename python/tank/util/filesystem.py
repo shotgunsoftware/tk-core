@@ -71,6 +71,22 @@ def with_cleared_umask(func):
             os.umask(old_umask)
     return wrapper
 
+
+def compute_folder_size(path):
+    """
+    Computes and returns the size of the given folder.
+
+    :param path: folder to compute size for
+    :return: size in bytes
+    """
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+    return total_size
+
+
 @with_cleared_umask
 def touch_file(path, permissions=0666):
     """
@@ -93,6 +109,7 @@ def touch_file(path, permissions=0666):
             # as they are not really errors!
             if e.errno != errno.EEXIST:
                 raise
+
 
 @with_cleared_umask
 def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
@@ -129,6 +146,7 @@ def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
                 # re-raise
                 raise
 
+
 @with_cleared_umask
 def copy_file(src, dst, permissions=0666):
     """
@@ -141,6 +159,7 @@ def copy_file(src, dst, permissions=0666):
     """
     shutil.copy(src, dst)
     os.chmod(dst, permissions)
+
 
 def safe_delete_file(path):
     """
@@ -201,6 +220,8 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
         actual_skip_list = SKIP_LIST_DEFAULT
     else:
         actual_skip_list = skip_list
+
+    # add the items we always want to skip
     actual_skip_list.extend(SKIP_LIST_ALWAYS)
 
     files = []
@@ -238,6 +259,7 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
 
     return files
 
+
 @with_cleared_umask
 def move_folder(src, dst, folder_permissions=0775):
     """
@@ -270,13 +292,21 @@ def move_folder(src, dst, folder_permissions=0775):
             except Exception, e:
                 log.error("Could not delete file %s: %s" % (f, e))
 
+
 @with_cleared_umask
 def backup_folder(src, dst=None):
     """
-    Moves the given directory into
-    :param src:
-    :param dst:
-    :return:
+    Moves the given directory into a backup location.
+
+    By default, the folder will be renamed by simply giving it a
+    timestamp based suffix. Optionally, it can be moved into a different
+    location.
+
+    - ``backup_folder("/foo/bar")`` will move ``/foo/bar`` to ``/foo/bar.20160912_200426``
+    - ``backup_folder("/foo/bar", "/tmp")`` will move ``/foo/bar`` to ``/tmp/bar.20160912_200426``
+
+    :param src: Folder to move
+    :param dst: Optional backup folder
     """
     if os.path.exists(src):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -285,6 +315,7 @@ def backup_folder(src, dst=None):
         else:
             backup_path = os.path.join(dst, "%s.%s" % (os.path.basename(src), timestamp))
         move_folder(src, backup_path)
+
 
 def create_valid_filename(value):
     """

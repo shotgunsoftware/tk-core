@@ -19,7 +19,8 @@ import pprint
 
 from ..descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
 from .errors import TankBootstrapError
-from .configuration import Configuration
+from .baked_configuration import BakedConfiguration
+from .cached_configuration import CachedConfiguration
 from ..util import filesystem
 from ..util import ShotgunPath
 from ..util import LocalFileStorageManager
@@ -78,70 +79,106 @@ class ConfigurationResolver(object):
                 "No config descriptor specified - Cannot create a configuration object."
             )
 
-        # now probe for a version token in the given descriptor.
-        # if that exists, a fixed version workflow will be used where
-        # that exact version of the config is used.
-        #
-        # if a version token is omitted, we request that the latest version
-        # should be resolved.
+        # convert to dictionary form
         if isinstance(config_descriptor, str):
             # convert to dict so we can introspect
             config_descriptor = descriptor_uri_to_dict(config_descriptor)
 
-        if "version" in config_descriptor:
-            log.debug("Base configuration has a version token defined. "
-                      "Will use this fixed version for the bootstrap.")
-            resolve_latest = False
+        if config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
+
+            # special case -- this is a full configuration scaffold that
+            # has been pre-baked and can be used directly at runtime
+            # without having to do lots of copying into temp space.
+
+            baked_config_root = None
+            log.debug("Searching for baked config %s" % config_descriptor)
+            for root_path in self._bundle_cache_fallback_paths:
+                baked_config_path = os.path.join(
+                    root_path,
+                    constants.BAKED_DESCRIPTOR_FOLDER_NAME,
+                    config_descriptor["name"],
+                    config_descriptor["version"]
+                )
+                if os.path.exists(baked_config_path):
+                    log.debug("Located baked config in %s" % baked_config_path)
+                    # only handle current os platform
+                    baked_config_root = ShotgunPath.from_current_os_path(baked_config_path)
+                    break
+
+            if baked_config_root is None:
+                raise TankBootstrapError("Cannot locate %s!" % config_descriptor)
+
+            # create an object to represent our configuration install
+            return BakedConfiguration(
+                baked_config_root,
+                sg_connection,
+                self._project_id,
+                self._entry_point,
+                None,  # pipeline config id
+                self._bundle_cache_fallback_paths
+            )
 
         else:
-            log.debug("Base configuration descriptor does not have a "
-                      "version token defined. Will attempt to determine "
-                      "the latest version available.")
-            resolve_latest = True
+            # now probe for a version token in the given descriptor.
+            # if that exists, a fixed version workflow will be used where
+            # that exact version of the config is used.
+            #
+            # if a version token is omitted, we request that the latest version
+            # should be resolved.
+            if "version" in config_descriptor:
+                log.debug("Base configuration has a version token defined. "
+                          "Will use this fixed version for the bootstrap.")
+                resolve_latest = False
 
-        cfg_descriptor = create_descriptor(
-            sg_connection,
-            Descriptor.CONFIG,
-            config_descriptor,
-            fallback_roots=self._bundle_cache_fallback_paths,
-            resolve_latest=resolve_latest
-        )
+            else:
+                log.debug("Base configuration descriptor does not have a "
+                          "version token defined. Will attempt to determine "
+                          "the latest version available.")
+                resolve_latest = True
 
-        log.debug("Configuration resolved to %r." % cfg_descriptor)
+            cfg_descriptor = create_descriptor(
+                sg_connection,
+                Descriptor.CONFIG,
+                config_descriptor,
+                fallback_roots=self._bundle_cache_fallback_paths,
+                resolve_latest=resolve_latest
+            )
 
-        # first get the cache root
-        cache_root = LocalFileStorageManager.get_configuration_root(
-            sg_connection.base_url,
-            self._project_id,
-            self._entry_point,
-            None,  # pipeline config id
-            LocalFileStorageManager.CACHE
-        )
+            log.debug("Configuration resolved to %r." % cfg_descriptor)
 
-        # resolve the config location both based on entry point and current engine.
-        #
-        # Example: ~/Library/Caches/Shotgun/mysitename/site.rv_review/cfg
-        #
-        config_cache_root = os.path.join(cache_root, "cfg")
-        filesystem.ensure_folder_exists(config_cache_root)
+            # first get the cache root
+            cache_root = LocalFileStorageManager.get_configuration_root(
+                sg_connection.base_url,
+                self._project_id,
+                self._entry_point,
+                None,  # pipeline config id
+                LocalFileStorageManager.CACHE
+            )
 
-        log.debug("Configuration root resolved to %s." % config_cache_root)
+            # resolve the config location both based on entry point and current engine.
+            #
+            # Example: ~/Library/Caches/Shotgun/mysitename/site.rv_review/cfg
+            #
+            config_cache_root = os.path.join(cache_root, "cfg")
+            filesystem.ensure_folder_exists(config_cache_root)
 
-        # populate current platform, leave rest blank.
-        # this resolver only supports local, on-the-fly
-        # configurations
-        config_root = ShotgunPath.from_current_os_path(config_cache_root)
+            log.debug("Configuration root resolved to %s." % config_cache_root)
 
-        # create an object to represent our configuration install
-        return Configuration(
-            config_root,
-            sg_connection,
-            cfg_descriptor,
-            self._project_id,
-            self._entry_point,
-            None,  # pipeline config id
-            self._bundle_cache_fallback_paths
-        )
+            # populate current platform, leave rest blank.
+            # this resolver only supports local, on-the-fly
+            # configurations
+            config_root = ShotgunPath.from_current_os_path(config_cache_root)
+
+            # create an object to represent our configuration install
+            return CachedConfiguration(
+                config_root,
+                sg_connection,
+                cfg_descriptor,
+                self._project_id,
+                self._entry_point,
+                None,  # pipeline config id
+                self._bundle_cache_fallback_paths
+            )
 
     def resolve_shotgun_configuration(
         self,

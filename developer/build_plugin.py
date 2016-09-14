@@ -38,6 +38,8 @@ from tank.errors import TankError
 from tank.platform import environment
 from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri, create_descriptor
 from tank.authentication import ShotgunAuthenticator
+from tank.bootstrap.baked_configuration import BakedConfiguration
+from tank.bootstrap import constants as bootstrap_constants
 from tank_vendor import yaml
 
 # set up logging
@@ -54,7 +56,7 @@ BAKED_BUNDLE_NAME = "tk-config-plugin"
 BAKED_BUNDLE_VERSION = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 # generation of the build syntax
-BUILD_GENERATION = 1
+BUILD_GENERATION = 2
 
 class OptionParserLineBreakingEpilog(optparse.OptionParser):
     """
@@ -63,6 +65,25 @@ class OptionParserLineBreakingEpilog(optparse.OptionParser):
     """
     def format_epilog(self, formatter):
         return self.epilog
+
+
+def _cache_descriptor(sg, desc_type, desc_dict, target_path):
+    """
+    Cache the given descriptor into a new bundle cache.
+
+    :param sg: Shotgun API instance
+    :param desc_type: Descriptor.ENGINE | Descriptor.APP | Descriptor.FRAMEWORK
+    :param desc_dict: descriptor dict or uri
+    :param target_path: bundle cache root to cache into
+    """
+    desc = create_descriptor(sg, desc_type, desc_dict)
+    desc.ensure_local()
+    desc_size_kb = filesystem.compute_folder_size(desc.get_path()) / 1024
+    logger.info("Caching %s into plugin bundle cache (size %d KiB)" % (desc, desc_size_kb))
+    if not desc._io_descriptor.is_immutable():
+        logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
+    desc.clone_cache(target_path)
+
 
 def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
     """
@@ -92,41 +113,31 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
 
         for eng in env.get_engines():
             # resolve descriptor and clone cache into bundle cache
-            desc = create_descriptor(
+            _cache_descriptor(
                 sg_connection,
                 Descriptor.ENGINE,
                 env.get_engine_descriptor_dict(eng),
-                fallback_roots=[bundle_cache_root]
+                bundle_cache_root
             )
-            logger.info("Caching %s..." % desc)
-            if not desc._io_descriptor.is_immutable():
-                logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
-            desc.clone_cache(bundle_cache_root)
 
             for app in env.get_apps(eng):
                 # resolve descriptor and clone cache into bundle cache
-                desc = create_descriptor(
+                _cache_descriptor(
                     sg_connection,
                     Descriptor.APP,
                     env.get_app_descriptor_dict(eng, app),
-                    fallback_roots=[bundle_cache_root]
+                    bundle_cache_root
                 )
-                logger.info("Caching %s..." % desc)
-                if not desc._io_descriptor.is_immutable():
-                    logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
-                desc.clone_cache(bundle_cache_root)
 
         for framework in env.get_frameworks():
-            desc = create_descriptor(
+            _cache_descriptor(
                 sg_connection,
                 Descriptor.FRAMEWORK,
                 env.get_framework_descriptor_dict(framework),
-                fallback_roots=[bundle_cache_root]
+                bundle_cache_root
             )
-            logger.info("Caching %s..." % desc)
-            if not desc._io_descriptor.is_immutable():
-                logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
-            desc.clone_cache(bundle_cache_root)
+
+    logger.info("Total size of bundle cache: %d KiB" % (filesystem.compute_folder_size(bundle_cache_root) / 1024))
 
 
 def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
@@ -162,7 +173,7 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
     # manual descriptor, with a version number based on the current date.
     # This ensures that the manual descriptor will be correctly
     # re-cached at bootstrap time.
-    if base_config_uri_dict["type"] == "baked":
+    if base_config_uri_dict["type"] == bootstrap_constants.BAKED_DESCRIPTOR_TYPE:
         logger.info("Baked descriptor detected.")
 
         baked_path = os.path.expanduser(os.path.expandvars(base_config_uri_dict["path"]))
@@ -181,26 +192,35 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             # path is absolute
             full_baked_path = os.path.abspath(baked_path)
 
-        logger.info("Will bake config from '%s'" % full_baked_path)
+        logger.info("Will bake an immutable config into the plugin from '%s'" % full_baked_path)
 
-        manual_location = os.path.join(bundle_cache_root, "manual", BAKED_BUNDLE_NAME, BAKED_BUNDLE_VERSION)
-        logger.info("Copying %s -> %s" % (full_baked_path, manual_location))
-        filesystem.ensure_folder_exists(manual_location)
-        filesystem.copy_folder(full_baked_path, manual_location)
-
-        # now make a manual descriptor
-        base_config_uri_dict = {
-            "type": "manual",
-            "version": BAKED_BUNDLE_VERSION,
-            "name": BAKED_BUNDLE_NAME
-        }
-        base_config_uri_str = descriptor_dict_to_uri(base_config_uri_dict)
+        install_path = os.path.join(
+            bundle_cache_root,
+            bootstrap_constants.BAKED_DESCRIPTOR_FOLDER_NAME,
+            BAKED_BUNDLE_NAME,
+            BAKED_BUNDLE_VERSION
+        )
 
         cfg_descriptor = create_descriptor(
             sg_connection,
             Descriptor.CONFIG,
-            base_config_uri_dict,
-            fallback_roots=[bundle_cache_root]
+            {"type": "path", "path": full_baked_path}
+        )
+
+        BakedConfiguration.bake_config_scaffold(
+            install_path,
+            sg_connection,
+            manifest_data["entry_point"],
+            cfg_descriptor
+        )
+
+        # now lastly,
+        base_config_uri_str = descriptor_dict_to_uri(
+            {
+                "type": bootstrap_constants.BAKED_DESCRIPTOR_TYPE,
+                "name": BAKED_BUNDLE_NAME,
+                "version": BAKED_BUNDLE_VERSION
+             }
         )
 
     else:
@@ -225,7 +245,6 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             sg_connection,
             Descriptor.CONFIG,
             base_config_uri_dict,
-            fallback_roots=[bundle_cache_root],
             resolve_latest=using_latest_config
         )
 
@@ -312,34 +331,98 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
                     )
 
             fh.write("\n\n# system generated parameters\n")
-            fh.write(
-                "BUILD_INFO=\"%s %s@%s\"\n" % (
+            fh.write("BUILD_DATE=\"%s\"\n" % datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+            fh.write("BUILD_INFO=\"%s %s@%s\"\n" % (
                     datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
                     getpass.getuser(),
                     socket.getfqdn(),
-                )
+                    )
             )
             fh.write("BUILD_GENERATION=%d\n" % BUILD_GENERATION)
 
             # Write out helper function 'get_sgtk_pythonpath()'.
-            core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
-            core_path_relative_parts = core_path_parts[core_path_parts.index(BUNDLE_CACHE_ROOT_FOLDER_NAME):]
-            core_path_relative_parts.append("python")
+            # this makes it easy for a plugin to import sgtk
+            if core_descriptor.get_path().startswith(plugin_root):
+                # the core descriptor is cached inside our plugin
+                core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
+                core_path_relative_parts = core_path_parts[core_path_parts.index(BUNDLE_CACHE_ROOT_FOLDER_NAME):]
+                core_path_relative_parts.append("python")
+
+                fh.write("\n\n")
+                fh.write("def get_sgtk_pythonpath(plugin_root):\n")
+                fh.write("    \"\"\" \n")
+                fh.write("    Auto generated helper method which returns the \n")
+                fh.write("    path to the core bundled with the plugin.\n")
+                fh.write("    \n")
+                fh.write("    For more information, see the documentation.\n")
+                fh.write("    \"\"\" \n")
+                fh.write("    import os\n")
+                fh.write("    return os.path.join(plugin_root, %s)\n" %
+                         ", ".join('"%s"' % dir for dir in core_path_relative_parts))
+                fh.write("\n\n")
+
+            else:
+                # the core descriptor is outside of bundle cache!
+                logger.warning("Your core %r has its payload outside the plugin bundle cache. "
+                               "This plugin cannot be distributed to others." % core_descriptor)
+
+                core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
+                core_path_parts.append("python")
+
+                # because we are using an external core, the plugin_root parameter
+                # is simply ignored in any calls from the plugin code to
+                # get_sgtk_pythonpath()
+                fh.write("\n\n")
+                fh.write("def get_sgtk_pythonpath(plugin_root):\n")
+                fh.write("    # NOTE - this was built with a core that is not part of the plugin. \n")
+                fh.write("    # The plugin_root parameter is therefore ignored.\n")
+                fh.write("    # This is normally only done during development and \n")
+                fh.write("    # typically means that the plugin cannot run on other machines \n")
+                fh.write("    # than the one where it was built. \n")
+                fh.write("    # \n")
+                fh.write("    # For more information, see the documentation.\n")
+                fh.write("    # \n")
+                fh.write("    return '%s'\n" % os.path.sep.join(core_path_parts))
+                fh.write("\n\n")
+
+            # Write out helper function 'initialize_manager()'.
+            # This method is a convenience method to make it easier to
+            # set up the bootstrap manager given a plugin config
 
             fh.write("\n\n")
-            fh.write("def get_sgtk_pythonpath(plugin_root):\n")
+            fh.write("def initialize_manager(manager, plugin_root):\n")
+            fh.write("    \"\"\" \n")
+            fh.write("    Auto generated helper method which initializes\n")
+            fh.write("    a toolkit manager with common plugin parameters.\n")
+            fh.write("    \n")
+            fh.write("    For more information, see the documentation.\n")
+            fh.write("    \"\"\" \n")
             fh.write("    import os\n")
-            fh.write("    return os.path.join(plugin_root, %s)\n" %
-                     ", ".join('"%s"' % dir for dir in core_path_relative_parts))
-            fh.write("\n\n")
 
+            # set base configuration
+            fh.write("    manager.base_configuration = '%s'\n" % config_uri)
+
+            # set entry point
+            fh.write("    manager.entry_point = '%s'\n" % manifest_data["entry_point"])
+
+            # set shotgun config lookup flag if defined
+            if "do_shotgun_config_lookup" in manifest_data:
+                fh.write("    manager.do_shotgun_config_lookup = %s\n" % manifest_data["do_shotgun_config_lookup"])
+
+            # set bundle cache fallback path
+            fh.write("    bundle_cache_path = os.path.join(plugin_root, 'bundle_cache')\n")
+            fh.write("    manager.bundle_cache_fallback_paths = [bundle_cache_path]\n")
+
+            fh.write("    return manager\n")
+
+            fh.write("\n\n")
             fh.write("# end of file.\n")
 
     except Exception, e:
         raise TankError("Cannot write manifest file: %s" % e)
 
 
-def build_plugin(sg_connection, source_path, target_path):
+def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=None):
     """
     Perform a build of a plugin.
 
@@ -394,22 +477,38 @@ def build_plugin(sg_connection, source_path, target_path):
 
     # cache config in bundle cache
     logger.info("Downloading and caching config...")
+
+    # copy the config payload across to the plugin bundle cache
     cfg_descriptor.clone_cache(bundle_cache_root)
 
     # cache all apps, engines and frameworks
     _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root)
 
-    # get latest core
-    logger.info("Caching latest official core...")
-    latest_core_desc = create_descriptor(
-        sg_connection,
-        Descriptor.CORE,
-        {"type": "app_store", "name": "tk-core"},
-        resolve_latest=True,
-        fallback_roots=[bundle_cache_root]
-    )
+    # get latest core - cache it directly into the plugin root folder
+    if bootstrap_core_uri:
+        logger.info("Caching custom core for boostrap (%s)" % bootstrap_core_uri)
+        bootstrap_core_desc = create_descriptor(
+            sg_connection,
+            Descriptor.CORE,
+            bootstrap_core_uri,
+            bundle_cache_root_override=bundle_cache_root
+        )
 
-    latest_core_desc.clone_cache(bundle_cache_root)
+    else:
+        # by default, use latest core for bootstrap
+        logger.info("Caching latest official core to use when bootstrapping plugin.")
+        logger.info("(To use a specific config instead, specify a --bootstrap-core-uri flag.)")
+
+        bootstrap_core_desc = create_descriptor(
+            sg_connection,
+            Descriptor.CORE,
+            {"type": "app_store", "name": "tk-core"},
+            resolve_latest=True,
+            bundle_cache_root_override=bundle_cache_root
+        )
+
+    # cache it
+    bootstrap_core_desc.ensure_local()
 
     # make a python folder where we put our manifest
     logger.info("Creating configuration manifest...")
@@ -418,28 +517,30 @@ def build_plugin(sg_connection, source_path, target_path):
     _bake_manifest(
         manifest_data,
         config_uri_str,
-        latest_core_desc,
+        bootstrap_core_desc,
         target_path
     )
 
     # now analyze what core the config needs
     if cfg_descriptor.associated_core_descriptor:
-        logger.info("Config is using a custom core. Caching it...")
+        logger.info("Config is specifying a custom core in config/core/core_api.yml.")
+        logger.info("This will be used when the config is executing.")
+        logger.info("Ensuring this core (%s) is cached..." % cfg_descriptor.associated_core_descriptor)
         associated_core_desc = create_descriptor(
             sg_connection,
             Descriptor.CORE,
             cfg_descriptor.associated_core_descriptor,
-            fallback_roots=[bundle_cache_root]
+            bundle_cache_root_override=bundle_cache_root
         )
-        associated_core_desc.clone_cache(bundle_cache_root)
+        associated_core_desc.ensure_local()
 
 
     logger.info("")
     logger.info("Build complete!")
     logger.info("")
     logger.info("- Your plugin is ready in '%s'" % target_path)
-    logger.info("- Plugin uses config %s" % cfg_descriptor)
-    logger.info("- Bootstrap core is %s" % latest_core_desc)
+    logger.info("- Plugin uses config %r" % cfg_descriptor)
+    logger.info("- Bootstrap core is %r" % bootstrap_core_desc)
     logger.info("- All dependencies have been baked out into the bundle_cache folder")
     logger.info("")
     logger.info("")
@@ -454,23 +555,94 @@ def main():
     Handles argument parsing and validation and then calls the script payload.
     """
 
-    usage = "%prog source_path target_path (run with --help for more information)"
+    usage = "%prog [options] source_path target_path"
 
     desc = "Builds a standard toolkit plugin structure ready for testing and deploy"
 
     epilog = """
-Examples:
+
+Details and Examples
+--------------------
+
+In its simplest form, just provide a source and target folder for the build.
 
 > python build_plugin.py ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
+
+For automated build setups, you can provide a specific shotgun API script name and
+and corresponding script key:
+
+> python build_plugin.py
+            --shotgun-host='https://mysite.shotgunstudio.com'
+            --shotgun-script-name='plugin_build'
+            --shotgun-script-key='<script-key-here>'
+            ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
+
+By default, the build script will use the latest app store core for its bootstrapping.
+If you want to use a specific core for the bootstrap, this can be specified via the
+--bootstrap-core-uri option:
+
+> python build_plugin.py
+            --bootstrap-core-uri='sgtk:descriptor:dev?path=~/dev/tk-core'
+            ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
+
+For information about the various descriptors that can be used, see
+http://developer.shotgunsoftware.com/tk-core/descriptor
+
 
 """
     parser = OptionParserLineBreakingEpilog(usage=usage, description=desc, epilog=epilog)
 
-    parser.add_option("-d", "--debug",
-                      default=False,
-                      action="store_true",
-                      help="Enable debug logging"
-                      )
+    parser.add_option(
+        "-d",
+        "--debug",
+        default=False,
+        action="store_true",
+        help="Enable debug logging"
+    )
+
+    parser.add_option(
+        "-c",
+        "--bootstrap-core-uri",
+        default=None,
+        action="store",
+        help=("Specify which version of core to be used by the bootstrap process. "
+              "If not specified, defaults to the most recently released core.")
+    )
+
+    group = optparse.OptionGroup(
+        parser,
+        "Shotgun Authentication",
+        "In order to download content from the Toolkit app store, the script will need to authenticate "
+        "against any shotgun site. By default, it will use the toolkit authentication APIs stored "
+        "credentials, and if such are not found, it will prompt for site, username and password."
+    )
+
+    group.add_option(
+        "-s",
+        "--shotgun-host",
+        default=None,
+        action="store",
+        help="Shotgun host to authenticate with."
+    )
+
+    group.add_option(
+        "-n",
+        "--shotgun-script-name",
+        default=None,
+        action="store",
+        help="Script to use to authenticate with the given host."
+    )
+
+    group.add_option(
+        "-k",
+        "--shotgun-script-key",
+        default=None,
+        action="store",
+        help="Script key to use to authenticate with the given host."
+    )
+
+
+    parser.add_option_group(group)
 
     # parse cmd line
     (options, remaining_args) = parser.parse_args()
@@ -481,9 +653,15 @@ Examples:
     if options.debug:
         LogManager().global_debug = True
 
+    if options.bootstrap_core_uri:
+        bootstrap_core_uri = options.bootstrap_core_uri
+    else:
+        # default
+        bootstrap_core_uri = None
+
     if len(remaining_args) != 2:
         parser.print_help()
-        return
+        return 2
 
     # get paths
     source_path = remaining_args[0]
@@ -495,11 +673,35 @@ Examples:
 
     # now authenticate to shotgun
     sg_auth = ShotgunAuthenticator()
-    sg_user = sg_auth.get_user()
+
+    if options.shotgun_host:
+        script_name = options.shotgun_script_name
+        script_key = options.shotgun_script_key
+
+        if script_name is None or script_key is None:
+            logger.error("Need to provide, host, script name and script key! Run with -h for more info.")
+            return 2
+
+        logger.info("Connecting to %s using script user %s..." % (options.shotgun_host, script_name))
+        sg_user = sg_auth.create_script_user(script_name, script_key, options.shotgun_host)
+
+    else:
+        # get user, prompt if necessary
+        sg_user = sg_auth.get_user()
+
     sg_connection = sg_user.create_sg_connection()
+    # make sure we are properly connected
+    try:
+        sg_connection.find_one("HumanUser", [])
+    except Exception, e:
+        logger.error("Could not communicate with Shotgun: %s" % e)
+        return 3
 
     # we are all set.
-    build_plugin(sg_connection, source_path, target_path)
+    build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri)
+
+    # all good!
+    return 0
 
 
 if __name__ == "__main__":
@@ -512,8 +714,7 @@ if __name__ == "__main__":
 
     exit_code = 1
     try:
-        main()
-        exit_code = 0
+        exit_code = main()
     except Exception, e:
         logger.exception("An exception was raised: %s" % e)
 
