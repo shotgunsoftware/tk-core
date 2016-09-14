@@ -43,6 +43,7 @@ from . import constants
 from . import validation
 from . import events
 from . import qt
+from . import qt5
 from .bundle import TankBundle
 from .framework import setup_frameworks
 from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
@@ -96,6 +97,7 @@ class Engine(TankBundle):
         self.__qt_widget_trash = []
         self.__created_qt_dialogs = []
         self.__qt_debug_info = {}
+        self.__has_qt5 = False
         
         self.__commands_that_need_prefixing = []
         
@@ -179,6 +181,11 @@ class Engine(TankBundle):
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
         qt.TankDialogBase = base_def.get("dialog_base")
+
+        qt5_base = self.__define_qt5_base()
+        self.__has_qt5 = len(qt5_base) > 0
+        for name, value in qt5_base.iteritems():
+            setattr(qt5, name, value)
 
         # Update the authentication module to use the engine's Qt.
         # @todo: can this import be untangled? Code references internal part of the auth module
@@ -606,6 +613,27 @@ class Engine(TankBundle):
         # default implementation is to assume a UI exists
         # this is since most engines are supporting a graphical application
         return True
+
+    @property
+    def has_qt5(self):
+        """
+        Indicates that the host application has access to Qt 5 and that the ``sgtk.platform.qt5``  module
+        has been populated with the Qt 5 modules and information.
+
+        :returns bool: boolean value indicating if Qt 5 is available.
+        """
+        return self.__has_qt5
+
+    @property
+    def has_qt4(self):
+        """
+        Indicates that the host application has access to Qt 4 and that the ``sgtk.platform.qt``  module
+        has been populated with the Qt 4 modules and information.
+
+        :returns bool: boolean value indicating if Qt 4 is available.
+        """
+        # Check if Qt was imported. Then checks if a Qt4 compatible api is available.
+        return hasattr(qt, "QtGui") and hasattr(qt.QtGui, "QApplication")
 
     @property
     def metrics_dispatch_allowed(self):
@@ -1777,13 +1805,26 @@ class Engine(TankBundle):
                 base["dialog_base"] = importer.QtGui.QDialog
             else:
                 base["dialog_base"] = None
-            base["wrapper"] = importer.wrapper
+            base["wrapper"] = importer.binding
         except:
 
             self.log_exception("Default engine QT definition failed to find QT. "
                                "This may need to be subclassed.")
 
         return base
+
+    def __define_qt5_base(self):
+        """
+        This will be called at initialization to discover every PySide 2 modules. It should provide
+        every Qt modules available as well as two extra attributes, ``__name__`` and
+        ``__version__``, which refer to the name of the binding and it's version, e.g.
+        PySide2 and 2.0.1.
+
+        .. note:: PyQt5 not supported since it runs only on Python 3.
+
+        :returns: A dictionary with all the modules, __version__ and __name__.
+        """
+        return QtImporter(interface_version_requested=QtImporter.QT5).base
 
     def _initialize_dark_look_and_feel(self):
         """
