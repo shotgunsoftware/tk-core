@@ -11,13 +11,11 @@
 # Import Qt without having to worry about the version to use.
 from ..util.qt_importer import QtImporter
 importer = QtImporter()
-if importer.wrapper is None:
-    # Raise an exception when Qt is not available.
-    raise ImportError
 QtCore = importer.QtCore
 QtGui = importer.QtGui
-
-from ..api import Sgtk
+if QtCore is None:
+    # Raise an exception when Qt is not available.
+    raise ImportError
 
 
 class AsyncBootstrapWrapper(QtCore.QObject):
