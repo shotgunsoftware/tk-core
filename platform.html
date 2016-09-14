@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.22 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.24 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.22 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.24 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -135,7 +135,8 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#using-qt-inside-your-toolkit-app">Using QT inside your Toolkit App</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-qt-inside-your-toolkit-app">Using QT inside your Toolkit App</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-qt-5-inside-your-toolkit-app">Using QT 5 inside your Toolkit App</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#creating-dialogs">Creating Dialogs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#modal-dialogs-and-exit-codes">Modal dialogs and exit codes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#hiding-the-default-toolkit-title-bar">Hiding the default Toolkit title bar</a></li>
@@ -167,7 +168,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.22.<br>
+    <b>tk-core</b> v0.18.24.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -887,6 +888,36 @@ UI mode.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">boolean value indicating if a UI currently exists</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Engine.has_qt5">
+<code class="descname">has_qt5</code><a class="headerlink" href="#sgtk.platform.Engine.has_qt5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates that the host application has access to Qt 5 and that the <code class="docutils literal"><span class="pre">sgtk.platform.qt5</span></code>  module
+has been populated with the Qt 5 modules and information.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns bool:</th><td class="field-body">boolean value indicating if Qt 5 is available.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.Engine.has_qt4">
+<code class="descname">has_qt4</code><a class="headerlink" href="#sgtk.platform.Engine.has_qt4" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates that the host application has access to Qt 4 and that the <code class="docutils literal"><span class="pre">sgtk.platform.qt</span></code>  module
+has been populated with the Qt 4 modules and information.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns bool:</th><td class="field-body">boolean value indicating if Qt 4 is available.</td>
 </tr>
 </tbody>
 </table>
@@ -4326,6 +4357,23 @@ should be no problem writing code that works with both libraries.</p>
 </div>
 <p>Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many applications (for example Nuke)
 may not have a functional Qt that can be imported when they run in batch mode.</p>
+</div>
+<div class="section" id="using-qt-5-inside-your-toolkit-app">
+<h2>Using QT 5 inside your Toolkit App<a class="headerlink" href="#using-qt-5-inside-your-toolkit-app" title="Permalink to this headline">¶</a></h2>
+<p>When running in an environment with PySide 2 , Toolkit will provide under <code class="docutils literal"><span class="pre">sgtk.platform.qt</span></code> an
+emulation layer that mimics the PySide 1 API on top of PySide 2 so that your Toolkit applications don&#8217;t
+need to be updated to work in those environments. If you need straight access to the PySide 2 API, you
+can access it through the <code class="docutils literal"><span class="pre">sgtk.platform.qt5</span></code> module. Detecting the availability of Qt 5 can be done
+through <a class="reference internal" href="#sgtk.platform.Engine.has_qt5" title="sgtk.platform.Engine.has_qt5"><code class="xref py py-meth docutils literal"><span class="pre">Engine.has_qt5()</span></code></a>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>The PySide 1 emulation layer for PySide 2 may be missing some features. It provides enough
+coverage to run the officially supported Toolkit applications. If you find that something
+in the PySide 1 emulation layer is not working or missing, please contact <a class="reference external" href="mailto:support&#37;&#52;&#48;shotgunsoftware&#46;com">support<span>&#64;</span>shotgunsoftware<span>&#46;</span>com</a>
+so that we may update it.</p>
+<p class="last">To learn more about API discrepancies between Qt 4 and Qt 5, you can visit
+<a class="reference external" href="https://wiki.qt.io/Transition_from_Qt_4.x_to_Qt5">https://wiki.qt.io/Transition_from_Qt_4.x_to_Qt5</a>.</p>
+</div>
 <div class="section" id="creating-dialogs">
 <h3>Creating Dialogs<a class="headerlink" href="#creating-dialogs" title="Permalink to this headline">¶</a></h3>
 <p>When creating a dialog, it is important to parent it properly to the host environment. There is nothing stopping
@@ -4433,7 +4481,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.22',
+            VERSION:'v0.18.24',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

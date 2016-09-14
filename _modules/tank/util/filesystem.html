@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.filesystem &mdash; tk-core v0.18.22 documentation</title>
+  <title>tank.util.filesystem &mdash; tk-core v0.18.24 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.22 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.24 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.22.<br>
+    <b>tk-core</b> v0.18.24.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -363,7 +363,14 @@
     <span class="n">SKIP_LIST_DEFAULT</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.svn&quot;</span><span class="p">,</span> <span class="s2">&quot;.git&quot;</span><span class="p">,</span> <span class="s2">&quot;.gitignore&quot;</span><span class="p">,</span> <span class="s2">&quot;.hg&quot;</span><span class="p">,</span> <span class="s2">&quot;.hgignore&quot;</span><span class="p">]</span>
 
     <span class="c1"># compute full skip list</span>
-    <span class="n">actual_skip_list</span> <span class="o">=</span> <span class="n">skip_list</span> <span class="ow">or</span> <span class="n">SKIP_LIST_DEFAULT</span>
+    <span class="c1"># note: we don&#39;t do</span>
+    <span class="c1"># actual_skip_list = skip_list or SKIP_LIST_DEFAULT</span>
+    <span class="c1"># because we want users to be able to pass in</span>
+    <span class="c1"># skip_list=[] in order to clear the default skip list.</span>
+    <span class="k">if</span> <span class="n">skip_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">actual_skip_list</span> <span class="o">=</span> <span class="n">SKIP_LIST_DEFAULT</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">actual_skip_list</span> <span class="o">=</span> <span class="n">skip_list</span>
     <span class="n">actual_skip_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">SKIP_LIST_ALWAYS</span><span class="p">)</span>
 
     <span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
@@ -510,7 +517,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.22',
+            VERSION:'v0.18.24',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

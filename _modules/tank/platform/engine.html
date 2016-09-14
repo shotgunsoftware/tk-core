@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.22 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.24 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.22 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.24 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.22.<br>
+    <b>tk-core</b> v0.18.24.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -213,6 +213,7 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">validation</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">events</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">qt</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">qt5</span>
 <span class="kn">from</span> <span class="nn">.bundle</span> <span class="kn">import</span> <span class="n">TankBundle</span>
 <span class="kn">from</span> <span class="nn">.framework</span> <span class="kn">import</span> <span class="n">setup_frameworks</span>
 <span class="kn">from</span> <span class="nn">.engine_logging</span> <span class="kn">import</span> <span class="n">ToolkitEngineHandler</span><span class="p">,</span> <span class="n">ToolkitEngineLegacyHandler</span>
@@ -266,6 +267,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__qt_widget_trash</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__created_qt_dialogs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__qt_debug_info</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__has_qt5</span> <span class="o">=</span> <span class="bp">False</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">__commands_that_need_prefixing</span> <span class="o">=</span> <span class="p">[]</span>
         
@@ -349,6 +351,11 @@
         <span class="n">qt</span><span class="o">.</span><span class="n">QtCore</span> <span class="o">=</span> <span class="n">base_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;qt_core&quot;</span><span class="p">)</span>
         <span class="n">qt</span><span class="o">.</span><span class="n">QtGui</span> <span class="o">=</span> <span class="n">base_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;qt_gui&quot;</span><span class="p">)</span>
         <span class="n">qt</span><span class="o">.</span><span class="n">TankDialogBase</span> <span class="o">=</span> <span class="n">base_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dialog_base&quot;</span><span class="p">)</span>
+
+        <span class="n">qt5_base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__define_qt5_base</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__has_qt5</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qt5_base</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">qt5_base</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">qt5</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
         <span class="c1"># Update the authentication module to use the engine&#39;s Qt.</span>
         <span class="c1"># @todo: can this import be untangled? Code references internal part of the auth module</span>
@@ -776,6 +783,27 @@
         <span class="c1"># default implementation is to assume a UI exists</span>
         <span class="c1"># this is since most engines are supporting a graphical application</span>
         <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_qt5</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Indicates that the host application has access to Qt 5 and that the ``sgtk.platform.qt5``  module</span>
+<span class="sd">        has been populated with the Qt 5 modules and information.</span>
+
+<span class="sd">        :returns bool: boolean value indicating if Qt 5 is available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__has_qt5</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_qt4</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Indicates that the host application has access to Qt 4 and that the ``sgtk.platform.qt``  module</span>
+<span class="sd">        has been populated with the Qt 4 modules and information.</span>
+
+<span class="sd">        :returns bool: boolean value indicating if Qt 4 is available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check if Qt was imported. Then checks if a Qt4 compatible api is available.</span>
+        <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qt</span><span class="p">,</span> <span class="s2">&quot;QtGui&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qt</span><span class="o">.</span><span class="n">QtGui</span><span class="p">,</span> <span class="s2">&quot;QApplication&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">metrics_dispatch_allowed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1947,13 +1975,26 @@
                 <span class="n">base</span><span class="p">[</span><span class="s2">&quot;dialog_base&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">base</span><span class="p">[</span><span class="s2">&quot;dialog_base&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
-            <span class="n">base</span><span class="p">[</span><span class="s2">&quot;wrapper&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">wrapper</span>
+            <span class="n">base</span><span class="p">[</span><span class="s2">&quot;wrapper&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">binding</span>
         <span class="k">except</span><span class="p">:</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">log_exception</span><span class="p">(</span><span class="s2">&quot;Default engine QT definition failed to find QT. &quot;</span>
                                <span class="s2">&quot;This may need to be subclassed.&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">base</span></div>
+
+    <span class="k">def</span> <span class="nf">__define_qt5_base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This will be called at initialization to discover every PySide 2 modules. It should provide</span>
+<span class="sd">        every Qt modules available as well as two extra attributes, ``__name__`` and</span>
+<span class="sd">        ``__version__``, which refer to the name of the binding and it&#39;s version, e.g.</span>
+<span class="sd">        PySide2 and 2.0.1.</span>
+
+<span class="sd">        .. note:: PyQt5 not supported since it runs only on Python 3.</span>
+
+<span class="sd">        :returns: A dictionary with all the modules, __version__ and __name__.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">QtImporter</span><span class="p">(</span><span class="n">interface_version_requested</span><span class="o">=</span><span class="n">QtImporter</span><span class="o">.</span><span class="n">QT5</span><span class="p">)</span><span class="o">.</span><span class="n">base</span>
 
 <div class="viewcode-block" id="Engine._initialize_dark_look_and_feel"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._initialize_dark_look_and_feel">[docs]</a>    <span class="k">def</span> <span class="nf">_initialize_dark_look_and_feel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2957,7 +2998,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.22',
+            VERSION:'v0.18.24',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

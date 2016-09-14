@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.22 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.24 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.22 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.24 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -137,7 +137,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.22.<br>
+    <b>tk-core</b> v0.18.24.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -341,23 +341,28 @@ resolve and normal operation.</p>
 </div>
 <div class="section" id="path-and-dev">
 <h3>Path and Dev<a class="headerlink" href="#path-and-dev" title="Permalink to this headline">¶</a></h3>
-<p>Pointing Sgtk to an app that resides in the local file system is typically something you do when you do
-development. This is when you use the <code class="docutils literal"><span class="pre">dev</span></code> descriptor:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>{
-    type: dev,
+<p>Pointing Sgtk to an app that resides in the local file system is often very useful for managing your own bundles
+or doing development on an app or engine before releasing onto production. To allow for these scenarios, Sgtk
+provides the <code class="docutils literal"><span class="pre">dev</span></code> and <code class="docutils literal"><span class="pre">path</span></code> descriptors. Here are some examples:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span># locally managed bundle
+{
+    type: path,
     path: /path/to/app
 }
 
+# using environment variables in the paths
 {
     type: dev,
     path: ${HOME}/path/to/app
 }
 
+# exapanding the user directory
 {
-    type: dev,
+    type: path,
     path: ~/path/to/app
 }
 
+# use different paths on different operating systems
 {
     type: dev,
     windows_path: c:\path\to\app,
@@ -368,9 +373,15 @@ development. This is when you use the <code class="docutils literal"><span class
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The path and dev descriptors support environment variable resolution on the form <code class="docutils literal"><span class="pre">${MYENVVAR}</span></code>
-as well as user directory resolution if the path starts with <cite>~</cite>.</p>
+<p class="last">As noted in the comments above, the <code class="docutils literal"><span class="pre">path</span></code> and <code class="docutils literal"><span class="pre">dev</span></code> descriptors
+support environment variable resolution on the form <code class="docutils literal"><span class="pre">${MYENVVAR}</span></code> as well
+as user directory resolution if the path starts with <cite>~</cite>.</p>
 </div>
+<p>The path and dev descriptors are very similar in terms of functionality.  The
+optional and required parameters are the same for each.  The <code class="docutils literal"><span class="pre">dev</span></code> descriptor
+has some additional information associated with it is used to provide more
+developer friendly workflows. An example of this is the <strong>Reload and Restart</strong>
+action that shows up in DCCs when using the <code class="docutils literal"><span class="pre">dev</span></code> descriptor.</p>
 <p>Sometimes it can be handy to organize your development sandbox relative to a pipeline configuration.
 If all developers in the studio share a convention where they for example have a <code class="docutils literal"><span class="pre">dev</span></code> folder inside
 their pipeline configuration dev sandboxes, it becomes easy to exchange environment configs.
@@ -380,14 +391,12 @@ local path to the pipeline configuration:</p>
 </pre></div>
 </div>
 <p>Since Sgtk does not know what version of the app is being run, it will return <code class="docutils literal"><span class="pre">Undefined</span></code> for
-an app referenced using the dev type. Sometimes, especially when doing framework development,
+an app referenced via a <code class="docutils literal"><span class="pre">dev</span></code> or <code class="docutils literal"><span class="pre">path</span></code> descriptor. Sometimes, especially when doing framework development,
 it can be useful to be able to specify a version number. In that case, you can specify
 a specific version number and Toolkit will associate this version number with the app:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;dev&quot;</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;/path/to/app&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v0.2.1&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>If you needed to point Toolkit at a path, but intend to use the setup for non-dev purposes, use a <code class="docutils literal"><span class="pre">path</span></code>
-descriptor rather than a dev descriptor. These have identical syntax.</p>
 </div>
 <div class="section" id="manual">
 <h3>Manual<a class="headerlink" href="#manual" title="Permalink to this headline">¶</a></h3>
@@ -2692,7 +2701,7 @@ If not url has been defined, None is returned.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.22',
+            VERSION:'v0.18.24',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
