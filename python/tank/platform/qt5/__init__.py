@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Shotgun Software Inc.
+# Copyright (c) 2016 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -8,14 +8,5 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Imports Qt without having to worry which version of Qt we are using.
-"""
-
-from ...util.qt_importer import QtImporter
-
-_importer = QtImporter()
-QtCore = _importer.QtCore
-QtGui = _importer.QtGui
-qt_version_tuple = _importer.qt_version_tuple
-del _importer
+# This module will be populated during engine initialization with modules available for Qt 5 if
+# PySide 2 is accessible.

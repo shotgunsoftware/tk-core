@@ -107,6 +107,11 @@ class TestGitIODescriptor(TankTestBase):
             os.path.join(self.bundle_cache, "git", "tk-config-default.git", "v0.15.11")
         )
 
+        # test that the copy method copies the .git folder
+        copy_target = os.path.join(self.project_root, "test_copy_target")
+        latest_desc.copy(copy_target)
+        self.assertTrue(os.path.exists(os.path.join(copy_target, ".git")))
+
 
     @skip_if_git_missing
     def test_branch_shorthash(self):
@@ -192,3 +197,9 @@ class TestGitIODescriptor(TankTestBase):
             latest_desc.get_path(),
             os.path.join(self.bundle_cache, "gitbranch", "tk-config-default.git", "7fa75a7")
         )
+
+        # test that the copy method copies the .git folder
+        copy_target = os.path.join(self.project_root, "test_copy_target")
+        latest_desc.copy(copy_target)
+        self.assertTrue(os.path.exists(os.path.join(copy_target, ".git")))
+
