@@ -332,6 +332,12 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
 
             fh.write("\n\n# system generated parameters\n")
             fh.write("BUILD_DATE=\"%s\"\n" % datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+            fh.write("BUILD_INFO=\"%s %s@%s\"\n" % (
+                    datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
+                    getpass.getuser(),
+                    socket.getfqdn(),
+                    )
+            )
             fh.write("BUILD_GENERATION=%d\n" % BUILD_GENERATION)
 
             # Write out helper function 'get_sgtk_pythonpath()'.
