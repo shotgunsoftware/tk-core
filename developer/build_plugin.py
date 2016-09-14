@@ -96,6 +96,7 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
     """
     # introspect the config and cache everything
     logger.info("Introspecting environments...")
+    cfg_descriptor.ensure_local()
     env_path = os.path.join(cfg_descriptor.get_path(), "env")
 
     # find all environment files
