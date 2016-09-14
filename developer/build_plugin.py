@@ -96,7 +96,6 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
     """
     # introspect the config and cache everything
     logger.info("Introspecting environments...")
-    cfg_descriptor.ensure_local()
     env_path = os.path.join(cfg_descriptor.get_path(), "env")
 
     # find all environment files
@@ -472,16 +471,22 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
 
     # cache config in bundle cache
     logger.info("Downloading and caching config...")
+
+    # copy the config payload across to the plugin bundle cache
     cfg_descriptor.clone_cache(bundle_cache_root)
 
     # cache all apps, engines and frameworks
     _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root)
 
-    # get latest core
-
+    # get latest core - cache it directly into the plugin root folder
     if bootstrap_core_uri:
         logger.info("Caching custom core for boostrap (%s)" % bootstrap_core_uri)
-        bootstrap_core_desc = create_descriptor(sg_connection, Descriptor.CORE, bootstrap_core_uri)
+        bootstrap_core_desc = create_descriptor(
+            sg_connection,
+            Descriptor.CORE,
+            bootstrap_core_uri,
+            bundle_cache_root_override=bundle_cache_root
+        )
 
     else:
         # by default, use latest core for bootstrap
@@ -493,10 +498,11 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
             Descriptor.CORE,
             {"type": "app_store", "name": "tk-core"},
             resolve_latest=True,
-            fallback_roots=[bundle_cache_root]
+            bundle_cache_root_override=bundle_cache_root
         )
 
-    bootstrap_core_desc.clone_cache(bundle_cache_root)
+    # cache it
+    bootstrap_core_desc.ensure_local()
 
     # make a python folder where we put our manifest
     logger.info("Creating configuration manifest...")
@@ -518,9 +524,9 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
             sg_connection,
             Descriptor.CORE,
             cfg_descriptor.associated_core_descriptor,
-            fallback_roots=[bundle_cache_root]
+            bundle_cache_root_override=bundle_cache_root
         )
-        associated_core_desc.clone_cache(bundle_cache_root)
+        associated_core_desc.ensure_local()
 
 
     logger.info("")
