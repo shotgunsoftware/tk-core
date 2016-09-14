@@ -63,7 +63,7 @@ class TestResolver(TankTestBase):
         Tests the direct config resolve, which doesn't talk to Shotgun
         """
         config = self.resolver.resolve_configuration(self.config_1, self.tk.shotgun)
-        self.assertEqual(config.get_descriptor().get_dict(), self.config_1)
+        self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
         # make sure we didn't talk to shotgun
         self.assertFalse(find_mock.called)
@@ -77,7 +77,7 @@ class TestResolver(TankTestBase):
         config_latest = {"type": "app_store", "name": "tk-config-test"}
         config = self.resolver.resolve_configuration(config_latest, self.tk.shotgun)
         # this should find the latest version
-        self.assertEqual(config.get_descriptor().get_dict(), self.config_2)
+        self.assertEqual(config._descriptor.get_dict(), self.config_2)
 
         # make sure we didn't talk to shotgun
         self.assertFalse(find_mock.called)
@@ -123,7 +123,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.get_descriptor().get_dict(), self.config_1)
+        self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
@@ -166,7 +166,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.get_descriptor().get_dict(), self.config_1)
+        self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
@@ -197,7 +197,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.get_descriptor().get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_auto_resolve_user(self, find_mock):
@@ -238,7 +238,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.get_descriptor().get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
 
 
 
@@ -270,7 +270,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.get_descriptor().get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_path_override(self, find_mock):
@@ -300,7 +300,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.get_descriptor().get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
 
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
@@ -332,7 +332,7 @@ class TestResolver(TankTestBase):
         )
 
         self.assertEqual(
-            config.get_descriptor().get_dict(),
+            config._descriptor.get_dict(),
             {'name': 'tk-config-test', 'type': 'app_store', 'version': 'v3.1.2'}
         )
 
@@ -365,7 +365,7 @@ class TestResolver(TankTestBase):
         )
 
         self.assertEqual(
-            config.get_descriptor().get_dict(),
+            config._descriptor.get_dict(),
             self.config_1
         )
 
@@ -429,7 +429,7 @@ class TestResolverSiteConfig(TestResolver):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.get_descriptor().get_dict(), self.config_1)
+        self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
@@ -472,4 +472,4 @@ class TestResolverSiteConfig(TestResolver):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.get_descriptor().get_dict(), self.config_1)
+        self.assertEqual(config._descriptor.get_dict(), self.config_1)
