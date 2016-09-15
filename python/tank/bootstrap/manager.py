@@ -164,7 +164,7 @@ class ToolkitManager(object):
         # setter for plugin_id
         self._plugin_id = plugin_id
 
-    plugin_id = property(_plugin_id, _plugin_id)
+    plugin_id = property(_get_plugin_id, _set_plugin_id)
 
     # backwards compatibility
     entry_point = plugin_id
