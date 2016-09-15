@@ -118,7 +118,7 @@ class ToolkitManager(object):
 
     def _get_plugin_id(self):
         """
-        The entry_point defines the scope of the bootstrap operation.
+        The Plugin Id is a string that defines the scope of the bootstrap operation.
 
         If you are bootstrapping into an entire Toolkit pipeline, e.g
         a traditional Toolkit setup, this should be left blank.
@@ -128,35 +128,20 @@ class ToolkitManager(object):
         point will be used to define a scope and sandbox in which your
         plugin will execute.
 
-        In the future, it will be possible to use the entry point value
-        to customize the behavior of a
-        plugin via Shotgun. At bootstrap, toolkit will look for a pipeline
-        configuration with a matching name and entry point. If found, this
-        will be used instead of the one defined by the :meth:`base_configuration`
-        property.
+        When constructing a plugin id for an integration the following
+        should be considered:
 
-        It is possible for multiple plugins running in different DCCs
-        to share the same entry point - in this case, they would all
-        get their settings and setup from a shared configuration. If you
-        were to override the base configuration in Shotgun, your override
-        would affect the entire suite of plugins. This kind of setup allows
-        for the development of several plugins in different DCCs that together
-        form a curated workflow.
+        - Plugin Ids should uniquely identify the plugin.
+        - The name should be short and descriptive.
 
-        We recommend an entry point naming convention of ``provider_service``,
+        We recommend a Plugin Id naming convention of ``service.dcc``,
         for example:
 
-        - A plugin maintained by the RV group which handles review inside RV would
-          be named ``rv_review``.
-        - A plugin for a toolkit load/publish workflow that runs inside of Maya and
-          Nuke, maintained by the Toolkit team, could be named ``sgtk_publish``.
-        - A plugin containg a studio VR workflow across multiple DCCs could be
-          named ``studioname_vrtools``.
+        - A review plugin running inside RV: ``review.rv``.
+        - A basic set of pipeline tools running inside of Nuke: ``basic.nuke``
+        - A plugin containg a suite of motion capture tools for maya: ``mocap.maya``
 
-        Please make sure that your entry point is **unique, explicit and short**.
-
-            .. note:: If you want to force the :meth:`base_configuration` to always
-                      be used, set :meth:`do_shotgun_config_lookup` to False.
+        Please make sure that your Plugin Id is **unique, explicit and short**.
         """
         return self._plugin_id
 
@@ -209,7 +194,6 @@ class ToolkitManager(object):
         _set_bundle_cache_fallback_paths
     )
 
-
     def _get_progress_callback(self):
         """
         Callback function property to call whenever progress of the bootstrap should be reported back.
@@ -231,7 +215,6 @@ class ToolkitManager(object):
 
     progress_callback = property(_get_progress_callback, _set_progress_callback)
 
-
     def set_progress_callback(self, progress_callback):
         """
         Sets the function to call whenever progress of the bootstrap should be reported back.
@@ -242,7 +225,6 @@ class ToolkitManager(object):
         """
 
         self.progress_callback = progress_callback
-
 
     def bootstrap_engine(self, engine_name, entity=None):
         """
