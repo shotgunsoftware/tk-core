@@ -42,7 +42,7 @@ class TestResolver(TankTestBase):
 
         # set up a resolver
         self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
-            entry_point="foo.maya",
+            plugin_id="foo.maya",
             engine_name="tk-test",
             project_id=123,
             bundle_cache_fallback_paths=[self.install_root]
@@ -382,7 +382,7 @@ class TestResolverSiteConfig(TestResolver):
 
         # set up a resolver
         self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
-            entry_point="foo.maya",
+            plugin_id="foo.maya",
             engine_name="tk-test",
             project_id=None,
             bundle_cache_fallback_paths=[self.install_root]

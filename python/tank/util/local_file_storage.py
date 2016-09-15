@@ -200,7 +200,7 @@ class LocalFileStorageManager(object):
             cls,
             hostname,
             project_id,
-            entry_point,
+            plugin_id,
             pipeline_config_id,
             path_type,
             generation=CORE_V18):
@@ -230,10 +230,10 @@ class LocalFileStorageManager(object):
 
         :param hostname: Shotgun hostname as string, e.g. 'https://foo.shotgunstudio.com'
         :param project_id: Shotgun project id as integer. For the site config, this should be None.
-        :param entry_point: Entry point string to identify the scope for a particular plugin
-                            or integration. For more information,
-                            see :meth:`~sgtk.bootstrap.ToolkitManager.entry_point`. For
-                            non-plugin based toolkit projects, this value is None.
+        :param plugin_id: Plugin id string to identify the scope for a particular plugin
+                          or integration. For more information,
+                          see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
+                          non-plugin based toolkit projects, this value is None.
         :param pipeline_config_id: Shotgun pipeline config id. None for bootstraped configs.
         :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,
                           ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where
@@ -269,9 +269,9 @@ class LocalFileStorageManager(object):
             if pipeline_config_id:
                 # a config that has a shotgun counterpart
                 pc_suffix = "c%d" % pipeline_config_id
-            elif entry_point:
+            elif plugin_id:
                 # no pc id but instead an entry point string
-                pc_suffix = ".%s" % filesystem.create_valid_filename(entry_point)
+                pc_suffix = ".%s" % filesystem.create_valid_filename(plugin_id)
             else:
                 # this is a possible, however not recommended state
                 pc_suffix = ""

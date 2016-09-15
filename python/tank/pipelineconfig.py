@@ -89,7 +89,7 @@ class PipelineConfiguration(object):
         self._project_name = pipeline_config_metadata.get("project_name")
         self._project_id = pipeline_config_metadata.get("project_id")
         self._pc_id = pipeline_config_metadata.get("pc_id")
-        self._entry_point = pipeline_config_metadata.get("entry_point")
+        self._plugin_id = pipeline_config_metadata.get("plugin_id")
         self._pc_name = pipeline_config_metadata.get("pc_name")
         self._published_file_entity_type = pipeline_config_metadata.get(
             "published_file_entity_type",
@@ -369,11 +369,12 @@ class PipelineConfiguration(object):
         """
         return self._pc_id
 
-    def get_entry_point(self):
+    def get_plugin_id(self):
         """
-        Returns the entry point for this PC.
+        Returns the plugin id for this PC.
+        For more information, see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`.
         """
-        return self._entry_point
+        return self._plugin_id
 
     def get_project_id(self):
         """

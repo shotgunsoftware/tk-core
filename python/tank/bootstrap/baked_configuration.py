@@ -33,7 +33,7 @@ class BakedConfiguration(Configuration):
             path,
             sg,
             project_id,
-            entry_point,
+            plugin_id,
             pipeline_config_id,
             bundle_cache_fallback_paths
     ):
@@ -45,10 +45,10 @@ class BakedConfiguration(Configuration):
         :param project_id: Project id for the shotgun project associated with the
                            configuration. For a site-level configuration, this
                            can be set to None.
-        :param entry_point: Entry point string to identify the scope for a particular plugin
-                            or integration. For more information,
-                            see :meth:`~sgtk.bootstrap.ToolkitManager.entry_point`. For
-                            non-plugin based toolkit projects, this value is None.
+        :param plugin_id: Plugin id string to identify the scope for a particular plugin
+                          or integration. For more information,
+                          see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
+                          non-plugin based toolkit projects, this value is None.
         :param pipeline_config_id: Pipeline Configuration id for the shotgun
                                    pipeline config id associated. If a config does
                                    not have an associated entity in Shotgun, this
@@ -59,7 +59,7 @@ class BakedConfiguration(Configuration):
         self._path = path
         self._sg_connection = sg
         self._project_id = project_id
-        self._entry_point = entry_point
+        self._plugin_id = plugin_id
         self._pipeline_config_id = pipeline_config_id
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths
 
@@ -118,13 +118,13 @@ class BakedConfiguration(Configuration):
         return super(BakedConfiguration, self).get_tk_instance(sg_user)
 
     @classmethod
-    def bake_config_scaffold(cls, path, sg_connection, entry_point, config_descriptor):
+    def bake_config_scaffold(cls, path, sg_connection, plugin_id, config_descriptor):
         """
         Helper method that can be used to generate a baked scaffold in a given path.
 
         :param path: Path to generate scaffold in.
         :param sg_connection: Shotgun API instance
-        :param entry_point: Config entry point
+        :param plugin_id: Config plugin id
         :param config_descriptor: Descriptor object describing the configuration.
         """
         config_writer = ConfigurationWriter(ShotgunPath.from_current_os_path(path), sg_connection)
@@ -138,7 +138,7 @@ class BakedConfiguration(Configuration):
         config_writer.write_pipeline_config_file(
             pipeline_config_id=None,
             project_id=None,
-            entry_point=entry_point,
+            plugin_id=plugin_id,
             bundle_cache_fallback_paths=[]
         )
 

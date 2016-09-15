@@ -55,7 +55,7 @@ class ToolkitManager(object):
         self._base_config_descriptor = None
         self._progress_cb = None
         self._do_shotgun_config_lookup = True
-        self._entry_point = None
+        self._plugin_id = None
 
         log.debug("%s instantiated" % self)
 
@@ -116,9 +116,9 @@ class ToolkitManager(object):
 
     do_shotgun_config_lookup = property(_get_do_shotgun_config_lookup, _set_do_shotgun_config_lookup)
 
-    def _get_entry_point(self):
+    def _get_plugin_id(self):
         """
-        The entry point defines the scope of the bootstrap operation.
+        The entry_point defines the scope of the bootstrap operation.
 
         If you are bootstrapping into an entire Toolkit pipeline, e.g
         a traditional Toolkit setup, this should be left blank.
@@ -158,13 +158,16 @@ class ToolkitManager(object):
             .. note:: If you want to force the :meth:`base_configuration` to always
                       be used, set :meth:`do_shotgun_config_lookup` to False.
         """
-        return self._entry_point
+        return self._plugin_id
 
-    def _set_entry_point(self, entry_point):
-        # setter for entry_point
-        self._entry_point = entry_point
+    def _set_plugin_id(self, plugin_id):
+        # setter for plugin_id
+        self._plugin_id = plugin_id
 
-    entry_point = property(_get_entry_point, _set_entry_point)
+    plugin_id = property(_plugin_id, _plugin_id)
+
+    # backwards compatibility
+    entry_point = plugin_id
 
     def _get_base_configuration(self):
         """
@@ -437,7 +440,7 @@ class ToolkitManager(object):
         self._report_progress(progress_callback, 0.1, "Resolving configuration...")
 
         resolver = ConfigurationResolver(
-            self._entry_point,
+            self._plugin_id,
             engine_name,
             project_id,
             self._bundle_cache_fallback_paths

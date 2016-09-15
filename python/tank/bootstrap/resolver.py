@@ -38,7 +38,7 @@ class ConfigurationResolver(object):
 
     def __init__(
             self,
-            entry_point,
+            plugin_id,
             engine_name,
             project_id=None,
             bundle_cache_fallback_paths=None
@@ -46,14 +46,14 @@ class ConfigurationResolver(object):
         """
         Constructor
 
-        :param entry_point: The entry point name of the system that is being bootstrapped.
+        :param plugin_id: The plugin id of the system that is being bootstrapped.
         :param engine_name: Name of the engine that is about to be launched.
         :param project_id: Project id to create a config object for, None for the site config.
         :param bundle_cache_fallback_paths: Optional list of additional paths where apps are cached.
         """
         self._project_id = project_id
         self._proj_entity_dict = {"type": "Project", "id": self._project_id} if self._project_id else None
-        self._entry_point = entry_point
+        self._plugin_id = plugin_id
         self._engine_name = engine_name
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths or []
 
@@ -61,7 +61,7 @@ class ConfigurationResolver(object):
         return "<Resolver: proj id %s, engine %s, entry point %s>" % (
             self._project_id,
             self._engine_name,
-            self._entry_point,
+            self._plugin_id,
         )
 
     def resolve_configuration(self, config_descriptor, sg_connection):
@@ -113,7 +113,7 @@ class ConfigurationResolver(object):
                 baked_config_root,
                 sg_connection,
                 self._project_id,
-                self._entry_point,
+                self._plugin_id,
                 None,  # pipeline config id
                 self._bundle_cache_fallback_paths
             )
@@ -150,7 +150,7 @@ class ConfigurationResolver(object):
             cache_root = LocalFileStorageManager.get_configuration_root(
                 sg_connection.base_url,
                 self._project_id,
-                self._entry_point,
+                self._plugin_id,
                 None,  # pipeline config id
                 LocalFileStorageManager.CACHE
             )
@@ -175,7 +175,7 @@ class ConfigurationResolver(object):
                 sg_connection,
                 cfg_descriptor,
                 self._project_id,
-                self._entry_point,
+                self._plugin_id,
                 None,  # pipeline config id
                 self._bundle_cache_fallback_paths
             )
@@ -371,8 +371,8 @@ class ConfigurationResolver(object):
 
         # glob match each item
         for pattern in patterns:
-            if fnmatch.fnmatch(self._entry_point, pattern):
-                log.debug("Our entry point '%s' matches pattern '%s'" % (self._entry_point, value))
+            if fnmatch.fnmatch(self._plugin_id, pattern):
+                log.debug("Our plugin id '%s' matches pattern '%s'" % (self._plugin_id, value))
                 return True
 
         return False
