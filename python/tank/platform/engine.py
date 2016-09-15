@@ -1384,6 +1384,8 @@ class Engine(TankBundle):
 
             if isinstance(event, events.FileOpenEvent):
                 app.event_file_open(event)
+            elif isinstance(event, events.FileCloseEvent):
+                app.event_file_close(event)
 
     def _emit_log_message(self, handler, record):
         """

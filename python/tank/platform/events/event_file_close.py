@@ -9,5 +9,20 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .event_engine import EngineEvent
-from .event_file_open import FileOpenEvent
-from .event_file_close import FileCloseEvent
+
+class FileCloseEvent(EngineEvent):
+    """
+    An object representation of a file-open event.
+    """
+    def __init__(self):
+        """
+        Constructor.
+
+        :param str file_path: The path to the file opened.
+        """
+        super(FileCloseEvent, self).__init__()
+
+    #@property
+
+    # def __str__(self):
+    #     return "FileCloseEvent"
