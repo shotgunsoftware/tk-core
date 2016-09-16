@@ -1451,13 +1451,10 @@ if __name__ == "__main__":
 
     # check if there is a --debug flag anywhere in the args list.
     # in that case turn on debug logging and remove the flag
-    debug_mode = False
     if "--debug" in cmd_line:
-        debug_mode = True
-        log_handler.setLevel(logging.DEBUG)
+        LogManager().global_debug = True
         logger.debug("")
         logger.debug("A log file can be found in %s" % LogManager().log_folder)
-        logger.debug("To permanently set debug, define a TK_DEBUG environment variable.")
         logger.debug("")
     cmd_line = [arg for arg in cmd_line if arg != "--debug"]
 
@@ -1629,7 +1626,7 @@ if __name__ == "__main__":
 
     except AuthenticationCancelled:
         logger.info("")
-        if debug_mode:
+        if LogManager().global_debug:
             # full stack trace
             logger.exception("An AuthenticationCancelled error was raised: %s" % "Authentication was cancelled.")
         else:
@@ -1641,7 +1638,7 @@ if __name__ == "__main__":
 
     except IncompleteCredentials, e:
         logger.info("")
-        if debug_mode:
+        if LogManager().global_debug:
             # full stack trace
             logger.exception("An IncompleteCredentials exception was raised: %s" % e)
         else:
@@ -1651,7 +1648,7 @@ if __name__ == "__main__":
 
     except ShotgunAuthenticationError, e:
         logger.info("")
-        if debug_mode:
+        if LogManager().global_debug:
             # full stack trace
             logger.exception("A ShotgunAuthenticationError was raised: %s" % str(e))
         else:
@@ -1662,7 +1659,7 @@ if __name__ == "__main__":
 
     except TankError, e:
         logger.info("")
-        if debug_mode:
+        if LogManager().global_debug:
             # full stack trace
             logger.exception("A TankError was raised: %s" % e)
         else:
