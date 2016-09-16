@@ -271,7 +271,7 @@ class ConfigurationResolver(object):
 
                 # make sure configuration matches our entry point
 
-                if self.__match_plugin_id(pc.get("plugin_ids")) or self.__match_plugin_id(pc.get("sg_plugin_ids")):
+                if self._match_plugin_id(pc.get("plugin_ids")) or self._match_plugin_id(pc.get("sg_plugin_ids")):
                     # we have a matching pipeline configuration!
 
                     if pc["project"] == self._proj_entity_dict:
@@ -329,7 +329,7 @@ class ConfigurationResolver(object):
 
             for pc in pipeline_configs:
 
-                if self.__match_plugin_id(pc.get("plugin_ids")) or self.__match_plugin_id(pc.get("sg_plugin_ids")):
+                if self._match_plugin_id(pc.get("plugin_ids")) or self._match_plugin_id(pc.get("sg_plugin_ids")):
                     # we have a matching pipeline configuration!
 
                     if pipeline_config:
@@ -375,7 +375,7 @@ class ConfigurationResolver(object):
 
         return self.resolve_configuration(descriptor, sg_connection)
 
-    def __match_plugin_id(self, value):
+    def _match_plugin_id(self, value):
         """
         Given a plugin id pattern, determine if the current
         plugin id (entry point) matches.
