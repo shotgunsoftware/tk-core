@@ -272,6 +272,13 @@ def _validate_manifest(source_path):
         raise TankError("Cannot parse info.yml manifest: %s" % e)
 
     logger.debug("Validating manifest...")
+
+    # legacy check - if we find entry_point, convert it across
+    # to be plugin_id
+    if "entry_point" in manifest_data:
+        logger.warning("Found legacy entry_point syntax. Please upgrade to use plugin_id instead.")
+        manifest_data["plugin_id"] = manifest_data["entry_point"]
+
     for parameter in REQUIRED_MANIFEST_PARAMETERS:
         if parameter not in manifest_data:
             raise TankError(
