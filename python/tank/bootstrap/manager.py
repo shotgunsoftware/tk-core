@@ -121,7 +121,7 @@ class ToolkitManager(object):
         The Plugin Id is a string that defines the scope of the bootstrap operation.
 
         If you are bootstrapping into an entire Toolkit pipeline, e.g
-        a traditional Toolkit setup, this should be left blank.
+        a traditional Toolkit setup, this should be left at its default ``None`` value.
 
         If you are writing a plugin that is intended to run side by
         side with other plugins in your target environment, the entry
@@ -202,10 +202,10 @@ class ToolkitManager(object):
 
             progress_callback(progress_value, message)
 
-        where:
-        - ``progress_value`` is the current progress value, a float number ranging from 0.0 to 1.0
-                             representing the percentage of work completed.
-        - ``message`` is the progress message string to report.
+            # progress_value is the current progress value, a float number
+            # ranging from 0.0 to 1.0 and representing the percentage of work completed.
+            #
+            # message is the progress message string to report.
         """
         return self._progress_cb or self._default_progress_callback
 
@@ -286,24 +286,27 @@ class ToolkitManager(object):
 
             completed_callback(engine)
 
-        where:
-        - ``engine``is the launched :class:`~sgtk.platform.Engine` instance.
+            # the engine parameter passes the launched engine instance
 
         A callback function that handles cleanup after failed completion of the bootstrap
         with the following signature::
 
             failed_callback(phase, exception)
 
-        where:
-        - ``phase`` is the bootstrap phase that raised the exception,
-                    ``ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE`` or ``ToolkitManager.ENGINE_STARTUP_PHASE``.
-                    Using this phase, the callback can decide if the toolkit core needs
-                    to be re-imported to ensure usage of a swapped in version.
-        - ``exception`` is the python exception raised while bootstrapping.
+            # The phase parameter indicates in which phase of the bootstrap the exception
+            # was raised:
+            #
+            # ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE if the failure happened while the system
+            # was still bootstrapping or ToolkitManager.ENGINE_STARTUP_PHASE if the system had
+            # switched over into the toolkit startup phase. At this point, the running core API
+            # instance may habe been swapped over to another version than the one that was
+            # originally loaded.
+            #
+            # Using this parameter, a callback implementation can decide if the toolkit core needs
+            # to be re-imported to ensure usage of a swapped in version.
+            #
+            # The exception parameter contains the python exception raised.
 
-        Please note that the API version of the tk instance that hosts
-        the engine may not be the same as the API version that was
-        executed during the bootstrap.
 
         :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
         :param entity: Shotgun entity to launch engine for.

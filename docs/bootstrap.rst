@@ -72,6 +72,7 @@ ToolkitManager
 .. autoclass:: ToolkitManager
     :members:
     :inherited-members:
+    :exclude-members: entry_point, set_progress_callback
 
 Exception Classes
 ========================================
