@@ -98,25 +98,6 @@ class TestResolver(TankTestBase):
         self.assertTrue(resolver._match_plugin_id("foo.maya"))
         self.assertFalse(resolver._match_plugin_id("foo.nuke"))
 
-
-    def _match_plugin_id(self, value):
-        """
-        Given a plugin id pattern, determine if the current
-        plugin id (entry point) matches.
-
-        Patterns can be comma separated and glob style patterns.
-        Examples:
-
-            - basic.nuke, basic.maya
-            - basic.*, rv_review
-
-        :param value: pattern string to check or None
-        :return: True if matching false if not
-        """
-
-
-
-
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_resolve_base_config(self, find_mock):
         """

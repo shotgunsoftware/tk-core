@@ -58,7 +58,7 @@ class ConfigurationResolver(object):
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths or []
 
     def __repr__(self):
-        return "<Resolver: proj id %s, engine %s, entry point %s>" % (
+        return "<Resolver: proj id %s, engine %s, plugin id %s>" % (
             self._project_id,
             self._engine_name,
             self._plugin_id,
@@ -155,9 +155,9 @@ class ConfigurationResolver(object):
                 LocalFileStorageManager.CACHE
             )
 
-            # resolve the config location both based on entry point and current engine.
+            # resolve the config location both based on plugin id and current engine.
             #
-            # Example: ~/Library/Caches/Shotgun/mysitename/site.rv_review/cfg
+            # Example: ~/Library/Caches/Shotgun/mysitename/site.review.rv/cfg
             #
             config_cache_root = os.path.join(cache_root, "cfg")
             filesystem.ensure_folder_exists(config_cache_root)
@@ -269,8 +269,7 @@ class ConfigurationResolver(object):
 
             for pc in pipeline_configs:
 
-                # make sure configuration matches our entry point
-
+                # make sure configuration matches our plugin id
                 if self._match_plugin_id(pc.get("plugin_ids")) or self._match_plugin_id(pc.get("sg_plugin_ids")):
                     # we have a matching pipeline configuration!
 
@@ -399,7 +398,7 @@ class ConfigurationResolver(object):
     def _match_plugin_id(self, value):
         """
         Given a plugin id pattern, determine if the current
-        plugin id (entry point) matches.
+        plugin id matches.
 
         Patterns can be comma separated and glob style patterns.
         Examples:

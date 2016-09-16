@@ -215,8 +215,8 @@ class LocalFileStorageManager(object):
           a pipeline configuration id. When a pipeline configuration is not registered
           in Shotgun, this value should be None.
 
-        - If the configuration has been bootstrapped or has a known entry point, this
-          should be specified via the entry point parameter.
+        - If the configuration has been bootstrapped or has a known plugin id, this
+          should be specified via the plugin id parameter.
 
         For more details, see :meth:`LocalFileStorageManager.get_global_root`.
 
@@ -224,7 +224,7 @@ class LocalFileStorageManager(object):
 
         - Site config: ``ROOT/shotgunsite/p0``
         - Project 123, config 33: ``ROOT/shotgunsite/p123c33``
-        - project 123, no config, entry point rv_review: ``ROOT/shotgunsite/p123.rv_review``
+        - project 123, no config, plugin id review.rv: ``ROOT/shotgunsite/p123.review.rv``
 
         .. note:: This method does not ensure that the folder exists.
 
@@ -264,13 +264,13 @@ class LocalFileStorageManager(object):
 
             # new paths are on the form
             # project 123, config 33:       root/mysite/p123c33
-            # project 123 with entry point: root/mysite/p123.rv_review
+            # project 123 with plugin id:   root/mysite/p123.review.rv
             # site project:                 root/mysite/p0
             if pipeline_config_id:
                 # a config that has a shotgun counterpart
                 pc_suffix = "c%d" % pipeline_config_id
             elif plugin_id:
-                # no pc id but instead an entry point string
+                # no pc id but instead an plugin id string
                 pc_suffix = ".%s" % filesystem.create_valid_filename(plugin_id)
             else:
                 # this is a possible, however not recommended state

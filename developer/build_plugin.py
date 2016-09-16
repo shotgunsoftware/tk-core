@@ -18,6 +18,7 @@ a primed bundle cache.
 
 # system imports
 from __future__ import with_statement
+import re
 import os
 import sys
 import socket
@@ -285,6 +286,10 @@ def _validate_manifest(source_path):
                 "Required plugin manifest parameter '%s' missing in '%s'" % (parameter, manifest_path)
             )
 
+    # plugin_id needs to be alpha numeric + period
+    if re.search("^[a-zA-Z0-9_\.]+$", manifest_data["plugin_id"]) is None:
+        raise TankError("Plugin id can only contain alphanumerics, period and underscore characters.")
+
     return manifest_data
 
 def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
@@ -296,8 +301,9 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
     :param core_descriptor: descriptor object pointing at core to use for bootstrap
     :param plugin_root: Root path for plugin
     """
-    # add entry point to our module to ensure multiple plugins can live side by side
-    module_name = "sgtk_plugin_%s" % manifest_data["plugin_id"]
+    # suffix our generated python module with plugin id for uniqueness
+    # replace all non-alphanumeric chars with underscores.
+    module_name = "sgtk_plugin_%s" % re.sub("\W", "_", manifest_data["plugin_id"])
     full_module_path = os.path.join(plugin_root, "python", module_name)
     filesystem.ensure_folder_exists(full_module_path)
 

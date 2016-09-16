@@ -75,7 +75,7 @@ class ToolkitManager(object):
 
         By default, this value is set to ``None``, indicating to the Manager
         that it should attempt to find the most suitable Shotgun pipeline configuration
-        given the project and entry point. In this case, it will look for all pipeline
+        given the project and plugin id. In this case, it will look for all pipeline
         configurations associated with the project who are associated with the current
         user. If no user-tagged pipeline configuration exists, it will look for
         the primary configuration, and in case this is not found, it will fall back on the
@@ -84,7 +84,7 @@ class ToolkitManager(object):
 
         Alternatively, you can set this to a specific pipeline configuration. In that
         case, the Manager will look for a pipeline configuration that matches that name
-        and the associated project and entry point. If such a config cannot be found in
+        and the associated project and plugin id. If such a config cannot be found in
         Shotgun, it falls back on the :meth:`base_configuration`.
         """
         return self._pipeline_configuration_name
