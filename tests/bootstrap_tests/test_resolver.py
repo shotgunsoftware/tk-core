@@ -104,12 +104,12 @@ class TestResolver(TankTestBase):
             if args[0] == "PipelineConfiguration":
                 self.assertEqual(
                     args[1],
-                    [{'filter_operator': 'all', 'filters': [['project', 'is', {'type': 'Project', 'id': 123}], {'filter_operator': 'any', 'filters': [['code', 'is', 'Primary'], ['users.HumanUser.login', 'contains', 'john.smith']]}]}]
+                    [{'filter_operator': 'all', 'filters': [{'filter_operator': 'any', 'filters': [['project', 'is', {'type': 'Project', 'id': 123}], ['project', 'is', None]]}, {'filter_operator': 'any', 'filters': [['code', 'is', 'Primary'], ['users.HumanUser.login', 'contains', 'john.smith']]}]}]
                 )
 
                 self.assertEqual(
                     args[2],
-                    ['code', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
+                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
                 )
 
             return []
@@ -152,7 +152,7 @@ class TestResolver(TankTestBase):
 
                 self.assertEqual(
                     args[2],
-                    ['code', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
+                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
                 )
 
             return []
@@ -178,6 +178,7 @@ class TestResolver(TankTestBase):
         def find_mock_impl(*args, **kwargs):
             return [{
                 'code': 'Primary',
+                'project': {'type': 'Project', 'id': 123},
                 'users': [],
                 'plugin_ids': "foo.*",
                 'sg_plugin_ids': None,
@@ -209,6 +210,7 @@ class TestResolver(TankTestBase):
             return [{
                 'code': 'Primary',
                 'users': [],
+                'project': {'type': 'Project', 'id': 123},
                 'plugin_ids': "foo.*",
                 'sg_plugin_ids': None,
                 'windows_path': 'pr_path',
@@ -220,6 +222,7 @@ class TestResolver(TankTestBase):
             {
                 'code': 'Dev Sandbox',
                 'users': [],
+                'project': {'type': 'Project', 'id': 123},
                 'plugin_ids': "foo.*",
                 'sg_plugin_ids': None,
                 'windows_path': 'sg_path',
@@ -243,6 +246,97 @@ class TestResolver(TankTestBase):
 
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_site_override(self, find_mock):
+        """
+        if both a site and a project config matches, the project config takes precedence
+        """
+
+        def find_mock_impl(*args, **kwargs):
+            return [{
+                'code': 'Primary',
+                'users': [],
+                'project': {'type': 'Project', 'id': 123},
+                'plugin_ids': "foo.*",
+                'sg_plugin_ids': None,
+                'windows_path': 'pr_path',
+                'linux_path': 'pr_path',
+                'mac_path': 'pr_path',
+                'sg_descriptor': None,
+                'descriptor': None
+            },
+            {
+                'code': 'Primary',
+                'users': [],
+                'project': None,
+                'plugin_ids': "foo.*",
+                'sg_plugin_ids': None,
+                'windows_path': 'sg_path',
+                'linux_path': 'sg_path',
+                'mac_path': 'sg_path',
+                'sg_descriptor': None,
+                'descriptor': None
+            }]
+
+        find_mock.side_effect = find_mock_impl
+
+        config = self.resolver.resolve_shotgun_configuration(
+            pipeline_config_name=None,
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login='john.smith'
+        )
+
+        self.assertEqual(config._descriptor.get_dict(), {'path': 'pr_path', 'type': 'path'})
+
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_site_override_2(self, find_mock):
+        """
+        For a project, when a site is returned, this is still a relevant resolve solution
+        """
+
+        def find_mock_impl(*args, **kwargs):
+            return [
+            {
+                'code': 'Dev Sandbox',
+                'users': [],
+                'project': None,
+                'plugin_ids': "foo.*",
+                'sg_plugin_ids': None,
+                'windows_path': 'sg_path',
+                'linux_path': 'sg_path',
+                'mac_path': 'sg_path',
+                'sg_descriptor': None,
+                'descriptor': None
+            },
+
+            {
+                'code': 'Dev Sandbox',
+                'users': [],
+                'project': None,
+                'plugin_ids': "not matching plugin ids",
+                'sg_plugin_ids': None,
+                'windows_path': 'sg_path',
+                'linux_path': 'sg_path',
+                'mac_path': 'sg_path',
+                'sg_descriptor': None,
+                'descriptor': None
+            }
+            ]
+
+        find_mock.side_effect = find_mock_impl
+
+        config = self.resolver.resolve_shotgun_configuration(
+            pipeline_config_name=None,
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login='john.smith'
+        )
+
+        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
+
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_specific_resolve(self, find_mock):
         """
         Resolve the right config to use in Shotgun when no pc is defined
@@ -251,6 +345,7 @@ class TestResolver(TankTestBase):
         def find_mock_impl(*args, **kwargs):
             return [{
                 'code': 'Dev Sandbox',
+                'project': {'type': 'Project', 'id': 123},
                 'users': [],
                 'plugin_ids': "foo.maya",
                 'sg_plugin_ids': None,
@@ -281,6 +376,7 @@ class TestResolver(TankTestBase):
         def find_mock_impl(*args, **kwargs):
             return [{
                 'code': 'Primary',
+                'project': {'type': 'Project', 'id': 123},
                 'users': [],
                 'plugin_ids': "foo.*",
                 'sg_plugin_ids': None,
@@ -312,6 +408,7 @@ class TestResolver(TankTestBase):
         def find_mock_impl(*args, **kwargs):
             return [{
                 'code': 'Primary',
+                'project': {'type': 'Project', 'id': 123},
                 'users': [],
                 'plugin_ids': "foo.*, bar, baz",
                 'sg_plugin_ids': None,
@@ -345,6 +442,7 @@ class TestResolver(TankTestBase):
         def find_mock_impl(*args, **kwargs):
             return [{
                 'code': 'Primary',
+                'project': {'type': 'Project', 'id': 123},
                 'users': [],
                 'plugin_ids': "fo3o.*",
                 'sg_plugin_ids': None,
@@ -397,25 +495,15 @@ class TestResolverSiteConfig(TestResolver):
 
         def find_mock_impl(*args, **kwargs):
 
-
-            # expect the following:
-            # args:
-            # ('PipelineConfiguration',
-            #  [{'filter_operator': 'all', 'filters': [['project', 'is', None], {'filter_operator': 'any', 'filters': [['code', 'is', 'Primary'], ['users.HumanUser.login', 'contains', 'john.smith']]}]}],
-            #  ['code', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor'])
-            #
-            #
-            # kwargs:
-            # {'order': [{'direction': 'asc', 'field_name': 'updated_at'}]}
             if args[0] == "PipelineConfiguration":
                 self.assertEqual(
                     args[1],
-                    [{'filter_operator': 'all', 'filters': [['project', 'is', None], {'filter_operator': 'any', 'filters': [['code', 'is', 'Primary'], ['users.HumanUser.login', 'contains', 'john.smith']]}]}]
+                    [{'filter_operator': 'all', 'filters': [{'filter_operator': 'any', 'filters': [['project', 'is', None], ['project', 'is', None]]}, {'filter_operator': 'any', 'filters': [['code', 'is', 'Primary'], ['users.HumanUser.login', 'contains', 'john.smith']]}]}]
                 )
 
                 self.assertEqual(
                     args[2],
-                    ['code', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
+                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
                 )
 
             return []
@@ -440,16 +528,6 @@ class TestResolverSiteConfig(TestResolver):
 
         def find_mock_impl(*args, **kwargs):
 
-            # expect the following:
-            # args:
-            # (
-            # 'PipelineConfiguration',
-            # [['project', 'is', None], ['code', 'is', 'dev_sandbox']],
-            # ['code', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
-            # )
-            #
-            # kwargs:
-            # {'order': [{'direction': 'asc', 'field_name': 'updated_at'}]}
             if args[0] == "PipelineConfiguration":
                 self.assertEqual(
                     args[1],
@@ -458,7 +536,7 @@ class TestResolverSiteConfig(TestResolver):
 
                 self.assertEqual(
                     args[2],
-                    ['code', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
+                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
                 )
 
             return []
@@ -473,3 +551,47 @@ class TestResolverSiteConfig(TestResolver):
         )
 
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
+
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_site_override(self, find_mock):
+        """
+        When a user config is specified, this takes precedence over primary
+        """
+
+        def find_mock_impl(*args, **kwargs):
+            return [{
+                'code': 'Primary',
+                'users': [],
+                'project': None,
+                'plugin_ids': "foo.*",
+                'sg_plugin_ids': None,
+                'windows_path': 'pr_path',
+                'linux_path': 'pr_path',
+                'mac_path': 'pr_path',
+                'sg_descriptor': None,
+                'descriptor': None
+            },
+            {
+                'code': 'Primary',
+                'users': [],
+                'project': None,
+                'plugin_ids': "foo.*",
+                'sg_plugin_ids': None,
+                'windows_path': 'sg_path',
+                'linux_path': 'sg_path',
+                'mac_path': 'sg_path',
+                'sg_descriptor': None,
+                'descriptor': None
+            }]
+
+        find_mock.side_effect = find_mock_impl
+
+        config = self.resolver.resolve_shotgun_configuration(
+            pipeline_config_name=None,
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login='john.smith'
+        )
+
+        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})

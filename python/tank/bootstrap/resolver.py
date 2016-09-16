@@ -209,6 +209,7 @@ class ConfigurationResolver(object):
 
         fields = [
             "code",
+            "project",
             "users",
             "plugin_ids",
             "sg_plugin_ids",
@@ -226,6 +227,7 @@ class ConfigurationResolver(object):
 
             # get the pipeline configs for the current project which are
             # either the primary or is associated with the currently logged in user.
+            # also get the pipeline configs for the site level (project=None)
             log.debug("Requesting pipeline configurations from Shotgun...")
 
             pipeline_configs = sg_connection.find(
@@ -233,7 +235,14 @@ class ConfigurationResolver(object):
                 [{
                     "filter_operator": "all",
                     "filters": [
-                        ["project", "is", self._proj_entity_dict],
+
+                        {
+                            "filter_operator": "any",
+                            "filters": [
+                                ["project", "is", self._proj_entity_dict],
+                                ["project", "is", None],
+                            ]
+                        },
 
                         {
                             "filter_operator": "any",
@@ -255,6 +264,9 @@ class ConfigurationResolver(object):
             # resolve primary and user config
             primary_config = None
             user_config = None
+            secondary_primary_config = None
+            secondary_user_config = None
+
             for pc in pipeline_configs:
 
                 # make sure configuration matches our entry point
@@ -262,24 +274,38 @@ class ConfigurationResolver(object):
                 if self.__match_plugin_id(pc.get("plugin_ids")) or self.__match_plugin_id(pc.get("sg_plugin_ids")):
                     # we have a matching pipeline configuration!
 
-                    if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-                        if primary_config:
-                            log.warning(
-                                "More than one pipeline config detected. Will use the most "
-                                "recently updated one."
-                            )
-                        primary_config = pc
-                    else:
-                        # user config
-                        if user_config:
-                            log.warning(
-                                "More than one user config detected. Will use the most "
-                                "recently updated one."
-                            )
-                        user_config = pc
+                    if pc["project"] == self._proj_entity_dict:
+                        # this is a direct match
+                        if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                            log.debug("Primary match: %s" % pc)
+                            primary_config = pc
+                        else:
+                            user_config = pc
+                            log.debug("Per-user match: %s" % pc)
 
-            # user pc takes precedence if available.
-            pipeline_config = user_config if user_config else primary_config
+                    else:
+                        # this is the site level fallback
+                        if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                            secondary_primary_config = pc
+                            log.debug("Site level override match: %s" % pc)
+                        else:
+                            secondary_user_config = pc
+                            log.debug("Site level per-user match: %s" % pc)
+
+
+            # select in order of priority:
+            # - a Primary config with project None (least prio)
+            # - a Primary config matching the project
+            # - a per user config with project None
+            # - a per user config matching the project (most prio)
+            pipeline_config = secondary_primary_config
+            if primary_config:
+                pipeline_config = primary_config
+            if secondary_user_config:
+                pipeline_config = secondary_user_config
+            if user_config:
+                pipeline_config = user_config
+
 
         else:
             # there is a fixed pipeline configuration name specified.
