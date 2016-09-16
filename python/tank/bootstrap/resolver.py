@@ -306,25 +306,27 @@ class ConfigurationResolver(object):
 
             # Now select in order of priority:
 
-            # we may not have any pipeline configuration matches at all:
-            pipeline_config = None
+            if user_config:
+                # A per-user pipeline config for the current project has top priority
+                pipeline_config = user_config
 
-            if primary_config_fallback:
-                # Lowest priority - A Primary pipeline configuration with project field None
-                pipeline_config = primary_config_fallback
-
-            if primary_config:
-                # if there is a primary config for our current project, this takes precedence
-                pipeline_config = primary_config
-
-            if user_config_fallback:
+            elif user_config_fallback:
                 # if there is a pipeline config for our current user with project field None
                 # that takes precedence
                 pipeline_config = user_config_fallback
 
-            if user_config:
-                # and a per-user pipeline config for the current project has top priority
-                pipeline_config = user_config
+            elif primary_config:
+                # if there is a primary config for our current project, this takes precedence
+                pipeline_config = primary_config
+
+            elif primary_config_fallback:
+                # Lowest priority - A Primary pipeline configuration with project field None
+                pipeline_config = primary_config_fallback
+
+            else:
+                # we may not have any pipeline configuration matches at all:
+                pipeline_config = None
+
 
         else:
             # there is a fixed pipeline configuration name specified.
