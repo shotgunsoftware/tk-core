@@ -660,16 +660,17 @@ class ToolkitManager(object):
         # pass 2 - download all apps
         for idx, descriptor in enumerate(descriptors):
 
+            # Scale the progress step 0.3 between this value 0.4 and the next one 0.7
+            # to compute a value progressing while looping over the indexes.
+            progress_value = 0.4 + idx * (0.3 / len(descriptors))
+
             if not descriptor.exists_local():
-                # Scale the progress step 0.3 between this value 0.4 and the next one 0.7
-                # to compute a value progressing while looping over the indexes.
-                progress_value = 0.4 + idx * (0.3 / len(descriptors))
                 message = "Downloading %s (%s of %s)..." % (descriptor, idx+1, len(descriptors))
                 self._report_progress(progress_callback, progress_value, message)
                 descriptor.download_local()
-
             else:
-                log.debug("Item %s is already locally installed." % descriptor)
+                message = "%s already installed locally (%s of %s)." % (descriptor, idx+1, len(descriptors))
+                self._report_progress(progress_callback, progress_value, message)
 
         # pass 3 - do post install
         if do_post_install:
