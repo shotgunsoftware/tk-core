@@ -124,7 +124,10 @@ class BakedConfiguration(Configuration):
 
         :param path: Path to generate scaffold in.
         :param sg_connection: Shotgun API instance
-        :param plugin_id: Config plugin id
+        :param plugin_id: Plugin id string to identify the scope for a particular plugin
+                          or integration. For more information,
+                          see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
+                          non-plugin based toolkit projects, this value is None.
         :param config_descriptor: Descriptor object describing the configuration.
         """
         config_writer = ConfigurationWriter(ShotgunPath.from_current_os_path(path), sg_connection)

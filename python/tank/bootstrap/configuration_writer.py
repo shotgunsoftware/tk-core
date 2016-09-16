@@ -325,7 +325,10 @@ class ConfigurationWriter(object):
 
         :param pipeline_config_id: Pipeline config id or None for an unmanaged config.
         :param project_id: Project id or None for the site config or for a baked config.
-        :param plugin_id: Plugin id for the bootstrap.
+        :param plugin_id: Plugin id string to identify the scope for a particular plugin
+                          or integration. For more information,
+                          see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
+                          non-plugin based toolkit projects, this value is None.
         :param bundle_cache_fallback_paths: List of bundle cache fallback paths.
         """
         # the pipeline config metadata

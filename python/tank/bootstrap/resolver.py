@@ -264,8 +264,8 @@ class ConfigurationResolver(object):
             # resolve primary and user config
             primary_config = None
             user_config = None
-            secondary_primary_config = None
-            secondary_user_config = None
+            primary_config_fallback = None
+            user_config_fallback = None
 
             for pc in pipeline_configs:
 
@@ -275,7 +275,10 @@ class ConfigurationResolver(object):
                     # we have a matching pipeline configuration!
 
                     if pc["project"] == self._proj_entity_dict:
-                        # this is a direct match
+
+                        # this pipeline configuration matches our current project exactly!
+                        # alternatively, we may be in site mode, where project id is always None.
+                        # this kind of exact match takes precdence (see logic below)
                         if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
                             log.debug("Primary match: %s" % pc)
                             primary_config = pc
@@ -284,28 +287,44 @@ class ConfigurationResolver(object):
                             log.debug("Per-user match: %s" % pc)
 
                     else:
-                        # this is the site level fallback
+
+                        # alternatively, this is a pipeline configuration record
+                        # which doesn't match directly - typically this is a
+                        # pipeline config record with project id set to None, in this
+                        # case indicating that this configuration can be used for
+                        # *any* project on the site (one config used for all projects).
+                        # this has a lower priority than the exact match above, so if
+                        # a project has specific pipeline configuration specified, this
+                        # always takes precedence.
                         if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-                            secondary_primary_config = pc
-                            log.debug("Site level override match: %s" % pc)
+                            primary_config_fallback = pc
+                            log.debug("Found primary fallback match: %s" % pc)
                         else:
-                            secondary_user_config = pc
-                            log.debug("Site level per-user match: %s" % pc)
+                            user_config_fallback = pc
+                            log.debug("Found per-user fallback match: %s" % pc)
 
 
-            # select in order of priority:
-            # - a Primary config with project None (least prio)
-            # - a Primary config matching the project
-            # - a per user config with project None
-            # - a per user config matching the project (most prio)
-            pipeline_config = secondary_primary_config
+            # Now select in order of priority:
+
+            # we may not have any pipeline configuration matches at all:
+            pipeline_config = None
+
+            if primary_config_fallback:
+                # Lowest priority - A Primary pipeline configuration with project field None
+                pipeline_config = primary_config_fallback
+
             if primary_config:
+                # if there is a primary config for our current project, this takes precedence
                 pipeline_config = primary_config
-            if secondary_user_config:
-                pipeline_config = secondary_user_config
-            if user_config:
-                pipeline_config = user_config
 
+            if user_config_fallback:
+                # if there is a pipeline config for our current user with project field None
+                # that takes precedence
+                pipeline_config = user_config_fallback
+
+            if user_config:
+                # and a per-user pipeline config for the current project has top priority
+                pipeline_config = user_config
 
         else:
             # there is a fixed pipeline configuration name specified.
