@@ -201,12 +201,15 @@ class ToolkitManager(object):
 
         This function should have the following signature::
 
-            progress_callback(progress_value, message)
+            def progress_callback(progress_value, message):
+                '''
+                Called whenever toolkit reports progress.
 
-            # progress_value is the current progress value, a float number
-            # ranging from 0.0 to 1.0 and representing the percentage of work completed.
-            #
-            # message is the progress message string to report.
+                :param progress_value: The current progress value as float number.
+                                       values will be reported in incremental order
+                                       and always in the range 0.0 to 1.0
+                :param message:        Progress message string
+                '''
         """
         return self._progress_cb or self._default_progress_callback
 
@@ -284,29 +287,34 @@ class ToolkitManager(object):
         A callback function that handles cleanup after successful completion of the bootstrap
         with the following signature::
 
-            completed_callback(engine)
+            def completed_callback(engine):
+                '''
+                Called by the asynchronous bootstrap upon completion.
 
-            # the engine parameter passes the launched engine instance
+                :param engine: Engine instance representing the engine
+                               that was launched.
+                '''
 
         A callback function that handles cleanup after failed completion of the bootstrap
         with the following signature::
 
-            failed_callback(phase, exception)
+            def failed_callback(phase, exception):
+                '''
+                Called by the asynchronous bootstrap if an exception is raised.
 
-            # The phase parameter indicates in which phase of the bootstrap the exception
-            # was raised:
-            #
-            # ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE if the failure happened while the system
-            # was still bootstrapping or ToolkitManager.ENGINE_STARTUP_PHASE if the system had
-            # switched over into the toolkit startup phase. At this point, the running core API
-            # instance may habe been swapped over to another version than the one that was
-            # originally loaded.
-            #
-            # Using this parameter, a callback implementation can decide if the toolkit core needs
-            # to be re-imported to ensure usage of a swapped in version.
-            #
-            # The exception parameter contains the python exception raised.
+                :param phase: Indicates in which phase of the bootstrap the exception
+                              was raised. An integer constant which is either
+                              ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE or
+                              ToolkitManager.ENGINE_STARTUP_PHASE. The former if the
+                              failure happened while the system was still bootstrapping
+                              and the latter if the system had switched over into the
+                              Toolkit startup phase. At this point, the running core API
+                              instance may have been swapped over to another version than
+                              the one that was originally loaded and may need to be reset
+                              in an implementation of this callback.
 
+                :param exception: The python exception that was raised.
+                '''
 
         :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
         :param entity: Shotgun entity to launch engine for.
