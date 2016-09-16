@@ -167,7 +167,7 @@ class PathCache(object):
                 constants.CACHE_LOCATION_HOOK_NAME,
                 "get_path_cache_path",
                 project_id=self._tk.pipeline_configuration.get_project_id(),
-                entry_point=self._tk.pipeline_configuration.get_entry_point(),
+                plugin_id=self._tk.pipeline_configuration.get_plugin_id(),
                 pipeline_configuration_id=self._tk.pipeline_configuration.get_shotgun_id()
             )
 

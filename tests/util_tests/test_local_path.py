@@ -180,7 +180,7 @@ class TestLocalFileStorage(TankTestBase):
                 )
             )
 
-    def _compute_config_root(self, project_id, entry_point, pc_id, expected_suffix):
+    def _compute_config_root(self, project_id, plugin_id, pc_id, expected_suffix):
 
         hostname = "http://test.shotgunstudio.com"
 
@@ -195,7 +195,7 @@ class TestLocalFileStorage(TankTestBase):
             root = LocalFileStorageManager.get_configuration_root(
                 hostname,
                 project_id,
-                entry_point,
+                plugin_id,
                 pc_id,
                 path_type
             )
@@ -212,41 +212,41 @@ class TestLocalFileStorage(TankTestBase):
 
         self._compute_config_root(
             project_id=123,
-            entry_point=None,
+            plugin_id=None,
             pc_id=1234,
             expected_suffix="p123c1234"
         )
 
         self._compute_config_root(
             project_id=None,
-            entry_point="foo",
+            plugin_id="foo",
             pc_id=None,
             expected_suffix="site.foo"
         )
 
         self._compute_config_root(
             project_id=None,
-            entry_point="foo",
+            plugin_id="foo",
             pc_id=1234,
             expected_suffix="sitec1234"
         )
 
         self._compute_config_root(
             project_id=123,
-            entry_point="foo",
+            plugin_id="foo",
             pc_id=1234,
             expected_suffix="p123c1234"
         )
 
         self._compute_config_root(
             project_id=123,
-            entry_point="flame",
+            plugin_id="flame",
             pc_id=None,
             expected_suffix="p123.flame"
         )
 
 
-    def _compute_legacy_config_root(self, project_id, entry_point, pc_id, expected_suffix):
+    def _compute_legacy_config_root(self, project_id, plugin_id, pc_id, expected_suffix):
 
         hostname = "http://test.shotgunstudio.com"
 
@@ -260,7 +260,7 @@ class TestLocalFileStorage(TankTestBase):
             root = LocalFileStorageManager.get_configuration_root(
                 hostname,
                 project_id,
-                entry_point,
+                plugin_id,
                 pc_id,
                 path_type,
                 LocalFileStorageManager.CORE_V17
@@ -278,35 +278,35 @@ class TestLocalFileStorage(TankTestBase):
 
         self._compute_legacy_config_root(
             project_id=123,
-            entry_point=None,
+            plugin_id=None,
             pc_id=1234,
             expected_suffix=os.path.join("project_123", "config_1234")
         )
 
         self._compute_legacy_config_root(
             project_id=None,
-            entry_point="foo",
+            plugin_id="foo",
             pc_id=None,
             expected_suffix=os.path.join("project_0", "config_None")
         )
 
         self._compute_legacy_config_root(
             project_id=None,
-            entry_point="foo",
+            plugin_id="foo",
             pc_id=1234,
             expected_suffix=os.path.join("project_0", "config_1234")
         )
 
         self._compute_legacy_config_root(
             project_id=123,
-            entry_point="foo",
+            plugin_id="foo",
             pc_id=1234,
             expected_suffix=os.path.join("project_123", "config_1234")
         )
 
         self._compute_legacy_config_root(
             project_id=123,
-            entry_point="flame",
+            plugin_id="flame",
             pc_id=None,
             expected_suffix=os.path.join("project_123", "config_None")
         )

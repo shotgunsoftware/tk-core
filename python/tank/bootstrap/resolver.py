@@ -38,7 +38,7 @@ class ConfigurationResolver(object):
 
     def __init__(
             self,
-            entry_point,
+            plugin_id,
             engine_name,
             project_id=None,
             bundle_cache_fallback_paths=None
@@ -46,14 +46,14 @@ class ConfigurationResolver(object):
         """
         Constructor
 
-        :param entry_point: The entry point name of the system that is being bootstrapped.
+        :param plugin_id: The plugin id of the system that is being bootstrapped.
         :param engine_name: Name of the engine that is about to be launched.
         :param project_id: Project id to create a config object for, None for the site config.
         :param bundle_cache_fallback_paths: Optional list of additional paths where apps are cached.
         """
         self._project_id = project_id
         self._proj_entity_dict = {"type": "Project", "id": self._project_id} if self._project_id else None
-        self._entry_point = entry_point
+        self._plugin_id = plugin_id
         self._engine_name = engine_name
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths or []
 
@@ -61,7 +61,7 @@ class ConfigurationResolver(object):
         return "<Resolver: proj id %s, engine %s, entry point %s>" % (
             self._project_id,
             self._engine_name,
-            self._entry_point,
+            self._plugin_id,
         )
 
     def resolve_configuration(self, config_descriptor, sg_connection):
@@ -113,7 +113,7 @@ class ConfigurationResolver(object):
                 baked_config_root,
                 sg_connection,
                 self._project_id,
-                self._entry_point,
+                self._plugin_id,
                 None,  # pipeline config id
                 self._bundle_cache_fallback_paths
             )
@@ -150,7 +150,7 @@ class ConfigurationResolver(object):
             cache_root = LocalFileStorageManager.get_configuration_root(
                 sg_connection.base_url,
                 self._project_id,
-                self._entry_point,
+                self._plugin_id,
                 None,  # pipeline config id
                 LocalFileStorageManager.CACHE
             )
@@ -175,7 +175,7 @@ class ConfigurationResolver(object):
                 sg_connection,
                 cfg_descriptor,
                 self._project_id,
-                self._entry_point,
+                self._plugin_id,
                 None,  # pipeline config id
                 self._bundle_cache_fallback_paths
             )
@@ -209,6 +209,7 @@ class ConfigurationResolver(object):
 
         fields = [
             "code",
+            "project",
             "users",
             "plugin_ids",
             "sg_plugin_ids",
@@ -226,6 +227,7 @@ class ConfigurationResolver(object):
 
             # get the pipeline configs for the current project which are
             # either the primary or is associated with the currently logged in user.
+            # also get the pipeline configs for the site level (project=None)
             log.debug("Requesting pipeline configurations from Shotgun...")
 
             pipeline_configs = sg_connection.find(
@@ -233,7 +235,14 @@ class ConfigurationResolver(object):
                 [{
                     "filter_operator": "all",
                     "filters": [
-                        ["project", "is", self._proj_entity_dict],
+
+                        {
+                            "filter_operator": "any",
+                            "filters": [
+                                ["project", "is", self._proj_entity_dict],
+                                ["project", "is", None],
+                            ]
+                        },
 
                         {
                             "filter_operator": "any",
@@ -255,31 +264,69 @@ class ConfigurationResolver(object):
             # resolve primary and user config
             primary_config = None
             user_config = None
+            primary_config_fallback = None
+            user_config_fallback = None
+
             for pc in pipeline_configs:
 
                 # make sure configuration matches our entry point
 
-                if self.__match_plugin_id(pc.get("plugin_ids")) or self.__match_plugin_id(pc.get("sg_plugin_ids")):
+                if self._match_plugin_id(pc.get("plugin_ids")) or self._match_plugin_id(pc.get("sg_plugin_ids")):
                     # we have a matching pipeline configuration!
 
-                    if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-                        if primary_config:
-                            log.warning(
-                                "More than one pipeline config detected. Will use the most "
-                                "recently updated one."
-                            )
-                        primary_config = pc
-                    else:
-                        # user config
-                        if user_config:
-                            log.warning(
-                                "More than one user config detected. Will use the most "
-                                "recently updated one."
-                            )
-                        user_config = pc
+                    if pc["project"] == self._proj_entity_dict:
 
-            # user pc takes precedence if available.
-            pipeline_config = user_config if user_config else primary_config
+                        # this pipeline configuration matches our current project exactly!
+                        # alternatively, we may be in site mode, where project id is always None.
+                        # this kind of exact match takes precdence (see logic below)
+                        if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                            log.debug("Primary match: %s" % pc)
+                            primary_config = pc
+                        else:
+                            user_config = pc
+                            log.debug("Per-user match: %s" % pc)
+
+                    else:
+
+                        # alternatively, this is a pipeline configuration record
+                        # which doesn't match directly - typically this is a
+                        # pipeline config record with project id set to None, in this
+                        # case indicating that this configuration can be used for
+                        # *any* project on the site (one config used for all projects).
+                        # this has a lower priority than the exact match above, so if
+                        # a project has specific pipeline configuration specified, this
+                        # always takes precedence.
+                        if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                            primary_config_fallback = pc
+                            log.debug("Found primary fallback match: %s" % pc)
+                        else:
+                            user_config_fallback = pc
+                            log.debug("Found per-user fallback match: %s" % pc)
+
+
+            # Now select in order of priority:
+
+            if user_config:
+                # A per-user pipeline config for the current project has top priority
+                pipeline_config = user_config
+
+            elif user_config_fallback:
+                # if there is a pipeline config for our current user with project field None
+                # that takes precedence
+                pipeline_config = user_config_fallback
+
+            elif primary_config:
+                # if there is a primary config for our current project, this takes precedence
+                pipeline_config = primary_config
+
+            elif primary_config_fallback:
+                # Lowest priority - A Primary pipeline configuration with project field None
+                pipeline_config = primary_config_fallback
+
+            else:
+                # we may not have any pipeline configuration matches at all:
+                pipeline_config = None
+
 
         else:
             # there is a fixed pipeline configuration name specified.
@@ -303,7 +350,7 @@ class ConfigurationResolver(object):
 
             for pc in pipeline_configs:
 
-                if self.__match_plugin_id(pc.get("plugin_ids")) or self.__match_plugin_id(pc.get("sg_plugin_ids")):
+                if self._match_plugin_id(pc.get("plugin_ids")) or self._match_plugin_id(pc.get("sg_plugin_ids")):
                     # we have a matching pipeline configuration!
 
                     if pipeline_config:
@@ -349,7 +396,7 @@ class ConfigurationResolver(object):
 
         return self.resolve_configuration(descriptor, sg_connection)
 
-    def __match_plugin_id(self, value):
+    def _match_plugin_id(self, value):
         """
         Given a plugin id pattern, determine if the current
         plugin id (entry point) matches.
@@ -371,8 +418,8 @@ class ConfigurationResolver(object):
 
         # glob match each item
         for pattern in patterns:
-            if fnmatch.fnmatch(self._entry_point, pattern):
-                log.debug("Our entry point '%s' matches pattern '%s'" % (self._entry_point, value))
+            if fnmatch.fnmatch(self._plugin_id, pattern):
+                log.debug("Our plugin id '%s' matches pattern '%s'" % (self._plugin_id, value))
                 return True
 
         return False

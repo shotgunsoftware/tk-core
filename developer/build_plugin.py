@@ -46,7 +46,7 @@ from tank_vendor import yaml
 logger = LogManager.get_logger("build_plugin")
 
 # required keys in the info.yml plugin manifest file
-REQUIRED_MANIFEST_PARAMETERS = ["base_configuration", "entry_point"]
+REQUIRED_MANIFEST_PARAMETERS = ["base_configuration", "plugin_id"]
 
 # the folder where all items will be cached
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
@@ -210,7 +210,7 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
         BakedConfiguration.bake_config_scaffold(
             install_path,
             sg_connection,
-            manifest_data["entry_point"],
+            manifest_data["plugin_id"],
             cfg_descriptor
         )
 
@@ -272,6 +272,13 @@ def _validate_manifest(source_path):
         raise TankError("Cannot parse info.yml manifest: %s" % e)
 
     logger.debug("Validating manifest...")
+
+    # legacy check - if we find entry_point, convert it across
+    # to be plugin_id
+    if "entry_point" in manifest_data:
+        logger.warning("Found legacy entry_point syntax. Please upgrade to use plugin_id instead.")
+        manifest_data["plugin_id"] = manifest_data["entry_point"]
+
     for parameter in REQUIRED_MANIFEST_PARAMETERS:
         if parameter not in manifest_data:
             raise TankError(
@@ -290,7 +297,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
     :param plugin_root: Root path for plugin
     """
     # add entry point to our module to ensure multiple plugins can live side by side
-    module_name = "sgtk_plugin_%s" % manifest_data["entry_point"]
+    module_name = "sgtk_plugin_%s" % manifest_data["plugin_id"]
     full_module_path = os.path.join(plugin_root, "python", module_name)
     filesystem.ensure_folder_exists(full_module_path)
 
@@ -403,7 +410,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
             fh.write("    manager.base_configuration = '%s'\n" % config_uri)
 
             # set entry point
-            fh.write("    manager.entry_point = '%s'\n" % manifest_data["entry_point"])
+            fh.write("    manager.plugin_id = '%s'\n" % manifest_data["plugin_id"])
 
             # set shotgun config lookup flag if defined
             if "do_shotgun_config_lookup" in manifest_data:

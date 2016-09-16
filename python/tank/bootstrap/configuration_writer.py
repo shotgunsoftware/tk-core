@@ -316,7 +316,7 @@ class ConfigurationWriter(object):
 
         log.debug("Wrote %s" % sg_file)
 
-    def write_pipeline_config_file(self, pipeline_config_id, project_id, entry_point, bundle_cache_fallback_paths):
+    def write_pipeline_config_file(self, pipeline_config_id, project_id, plugin_id, bundle_cache_fallback_paths):
         """
         Writes out the the pipeline configuration file config/core/pipeline_config.yml
 
@@ -325,7 +325,10 @@ class ConfigurationWriter(object):
 
         :param pipeline_config_id: Pipeline config id or None for an unmanaged config.
         :param project_id: Project id or None for the site config or for a baked config.
-        :param entry_point: Entry point for the boostrap.
+        :param plugin_id: Plugin id string to identify the scope for a particular plugin
+                          or integration. For more information,
+                          see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
+                          non-plugin based toolkit projects, this value is None.
         :param bundle_cache_fallback_paths: List of bundle cache fallback paths.
         """
         # the pipeline config metadata
@@ -368,7 +371,7 @@ class ConfigurationWriter(object):
             "pc_name": pipeline_config_name,
             "project_id": project_id,
             "project_name": project_name,
-            "entry_point": entry_point,
+            "plugin_id": plugin_id,
             "published_file_entity_type": "PublishedFile",
             "use_bundle_cache": True,
             "bundle_cache_fallback_roots": bundle_cache_fallback_paths,

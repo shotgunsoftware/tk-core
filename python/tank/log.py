@@ -620,7 +620,7 @@ class LogManager(object):
         self._root_logger.addHandler(self._std_file_handler)
 
         # log the fact that we set up the log file :)
-        log.debug("Writing to log standard log file %s" % log_file)
+        log.debug("Writing to standard log file %s" % log_file)
 
         # return previous log name
         return previous_log_file

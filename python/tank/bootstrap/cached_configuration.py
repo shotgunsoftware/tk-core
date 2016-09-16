@@ -38,7 +38,7 @@ class CachedConfiguration(Configuration):
             sg,
             descriptor,
             project_id,
-            entry_point,
+            plugin_id,
             pipeline_config_id,
             bundle_cache_fallback_paths
     ):
@@ -49,10 +49,10 @@ class CachedConfiguration(Configuration):
         :param project_id: Project id for the shotgun project associated with the
                            configuration. For a site-level configuration, this
                            can be set to None.
-        :param entry_point: Entry point string to identify the scope for a particular plugin
-                            or integration. For more information,
-                            see :meth:`~sgtk.bootstrap.ToolkitManager.entry_point`. For
-                            non-plugin based toolkit projects, this value is None.
+        :param plugin_id: Plugin id string to identify the scope for a particular plugin
+                          or integration. For more information,
+                          see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
+                          non-plugin based toolkit projects, this value is None.
         :param pipeline_config_id: Pipeline Configuration id for the shotgun
                                    pipeline config id associated. If a config does
                                    not have an associated entity in Shotgun, this
@@ -64,7 +64,7 @@ class CachedConfiguration(Configuration):
         self._sg_connection = sg
         self._descriptor = descriptor
         self._project_id = project_id
-        self._entry_point = entry_point
+        self._plugin_id = plugin_id
         self._pipeline_config_id = pipeline_config_id
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths
 
@@ -80,10 +80,10 @@ class CachedConfiguration(Configuration):
         """
         Low level representation of the config.
         """
-        return "<Config with id %s, project id %s, ep %s and base %r>" % (
+        return "<Config with id %s, project id %s, id %s and base %r>" % (
             self._pipeline_config_id,
             self._project_id,
-            self._entry_point,
+            self._plugin_id,
             self._descriptor
         )
 
@@ -183,7 +183,7 @@ class CachedConfiguration(Configuration):
             self._config_writer.write_pipeline_config_file(
                 self._pipeline_config_id,
                 self._project_id,
-                self._entry_point,
+                self._plugin_id,
                 self._bundle_cache_fallback_paths
             )
 

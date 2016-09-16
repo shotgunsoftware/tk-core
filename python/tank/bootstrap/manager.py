@@ -55,7 +55,7 @@ class ToolkitManager(object):
         self._base_config_descriptor = None
         self._progress_cb = None
         self._do_shotgun_config_lookup = True
-        self._entry_point = None
+        self._plugin_id = None
 
         log.debug("%s instantiated" % self)
 
@@ -64,6 +64,7 @@ class ToolkitManager(object):
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
         repr += " Cache fallback path %s\n" % self._bundle_cache_fallback_paths
+        repr += " Plugin id %s\n" % self._plugin_id
         repr += " Config %s\n" % self._pipeline_configuration_name
         repr += " Base %s >" % self._base_config_descriptor
         return repr
@@ -116,55 +117,43 @@ class ToolkitManager(object):
 
     do_shotgun_config_lookup = property(_get_do_shotgun_config_lookup, _set_do_shotgun_config_lookup)
 
-    def _get_entry_point(self):
+    def _get_plugin_id(self):
         """
-        The entry point defines the scope of the bootstrap operation.
+        The Plugin Id is a string that defines the scope of the bootstrap operation.
 
         If you are bootstrapping into an entire Toolkit pipeline, e.g
-        a traditional Toolkit setup, this should be left blank.
+        a traditional Toolkit setup, this should be left at its default ``None`` value.
 
         If you are writing a plugin that is intended to run side by
         side with other plugins in your target environment, the entry
         point will be used to define a scope and sandbox in which your
         plugin will execute.
 
-        In the future, it will be possible to use the entry point value
-        to customize the behavior of a
-        plugin via Shotgun. At bootstrap, toolkit will look for a pipeline
-        configuration with a matching name and entry point. If found, this
-        will be used instead of the one defined by the :meth:`base_configuration`
-        property.
+        When constructing a plugin id for an integration the following
+        should be considered:
 
-        It is possible for multiple plugins running in different DCCs
-        to share the same entry point - in this case, they would all
-        get their settings and setup from a shared configuration. If you
-        were to override the base configuration in Shotgun, your override
-        would affect the entire suite of plugins. This kind of setup allows
-        for the development of several plugins in different DCCs that together
-        form a curated workflow.
+        - Plugin Ids should uniquely identify the plugin.
+        - The name should be short and descriptive.
 
-        We recommend an entry point naming convention of ``provider_service``,
+        We recommend a Plugin Id naming convention of ``service.dcc``,
         for example:
 
-        - A plugin maintained by the RV group which handles review inside RV would
-          be named ``rv_review``.
-        - A plugin for a toolkit load/publish workflow that runs inside of Maya and
-          Nuke, maintained by the Toolkit team, could be named ``sgtk_publish``.
-        - A plugin containg a studio VR workflow across multiple DCCs could be
-          named ``studioname_vrtools``.
+        - A review plugin running inside RV: ``review.rv``.
+        - A basic set of pipeline tools running inside of Nuke: ``basic.nuke``
+        - A plugin containg a suite of motion capture tools for maya: ``mocap.maya``
 
-        Please make sure that your entry point is **unique, explicit and short**.
-
-            .. note:: If you want to force the :meth:`base_configuration` to always
-                      be used, set :meth:`do_shotgun_config_lookup` to False.
+        Please make sure that your Plugin Id is **unique, explicit and short**.
         """
-        return self._entry_point
+        return self._plugin_id
 
-    def _set_entry_point(self, entry_point):
-        # setter for entry_point
-        self._entry_point = entry_point
+    def _set_plugin_id(self, plugin_id):
+        # setter for plugin_id
+        self._plugin_id = plugin_id
 
-    entry_point = property(_get_entry_point, _set_entry_point)
+    plugin_id = property(_get_plugin_id, _set_plugin_id)
+
+    # backwards compatibility
+    entry_point = plugin_id
 
     def _get_base_configuration(self):
         """
@@ -206,19 +195,21 @@ class ToolkitManager(object):
         _set_bundle_cache_fallback_paths
     )
 
-
     def _get_progress_callback(self):
         """
         Callback function property to call whenever progress of the bootstrap should be reported back.
 
         This function should have the following signature::
 
-            progress_callback(progress_value, message)
+            def progress_callback(progress_value, message):
+                '''
+                Called whenever toolkit reports progress.
 
-        where:
-        - ``progress_value`` is the current progress value, a float number ranging from 0.0 to 1.0
-                             representing the percentage of work completed.
-        - ``message`` is the progress message string to report.
+                :param progress_value: The current progress value as float number.
+                                       values will be reported in incremental order
+                                       and always in the range 0.0 to 1.0
+                :param message:        Progress message string
+                '''
         """
         return self._progress_cb or self._default_progress_callback
 
@@ -227,7 +218,6 @@ class ToolkitManager(object):
         self._progress_cb = value
 
     progress_callback = property(_get_progress_callback, _set_progress_callback)
-
 
     def set_progress_callback(self, progress_callback):
         """
@@ -239,7 +229,6 @@ class ToolkitManager(object):
         """
 
         self.progress_callback = progress_callback
-
 
     def bootstrap_engine(self, engine_name, entity=None):
         """
@@ -263,8 +252,7 @@ class ToolkitManager(object):
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :returns: :class:`~sgtk.platform.Engine` instance.
         """
-
-        log.info("Synchronously bootstrapping engine %s for entity %s." % (engine_name, entity))
+        self._log_startup_message(engine_name, entity)
 
         tk = self._bootstrap_sgtk(engine_name, entity)
 
@@ -299,26 +287,34 @@ class ToolkitManager(object):
         A callback function that handles cleanup after successful completion of the bootstrap
         with the following signature::
 
-            completed_callback(engine)
+            def completed_callback(engine):
+                '''
+                Called by the asynchronous bootstrap upon completion.
 
-        where:
-        - ``engine``is the launched :class:`~sgtk.platform.Engine` instance.
+                :param engine: Engine instance representing the engine
+                               that was launched.
+                '''
 
         A callback function that handles cleanup after failed completion of the bootstrap
         with the following signature::
 
-            failed_callback(phase, exception)
+            def failed_callback(phase, exception):
+                '''
+                Called by the asynchronous bootstrap if an exception is raised.
 
-        where:
-        - ``phase`` is the bootstrap phase that raised the exception,
-                    ``ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE`` or ``ToolkitManager.ENGINE_STARTUP_PHASE``.
-                    Using this phase, the callback can decide if the toolkit core needs
-                    to be re-imported to ensure usage of a swapped in version.
-        - ``exception`` is the python exception raised while bootstrapping.
+                :param phase: Indicates in which phase of the bootstrap the exception
+                              was raised. An integer constant which is either
+                              ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE or
+                              ToolkitManager.ENGINE_STARTUP_PHASE. The former if the
+                              failure happened while the system was still bootstrapping
+                              and the latter if the system had switched over into the
+                              Toolkit startup phase. At this point, the running core API
+                              instance may have been swapped over to another version than
+                              the one that was originally loaded and may need to be reset
+                              in an implementation of this callback.
 
-        Please note that the API version of the tk instance that hosts
-        the engine may not be the same as the API version that was
-        executed during the bootstrap.
+                :param exception: The python exception that was raised.
+                '''
 
         :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
         :param entity: Shotgun entity to launch engine for.
@@ -326,8 +322,9 @@ class ToolkitManager(object):
         :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
         :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
         """
+        self._log_startup_message(engine_name, entity)
 
-        log.info("Asynchronously bootstrapping engine %s for entity %s." % (engine_name, entity))
+        log.debug("Will attempt to start up asynchronously.")
 
         if completed_callback is None:
             completed_callback = self._default_completed_callback
@@ -381,6 +378,37 @@ class ToolkitManager(object):
             # Handle cleanup after successful completion of the engine bootstrap.
             completed_callback(engine)
 
+    def _log_startup_message(self, engine_name, entity):
+        """
+        Helper method that logs information about the current session
+        :param engine_name: Name of the engine used to bootstrap
+        :param entity: Shotgun entity to bootstrap into.
+        """
+        log.debug("-----------------------------------------------------------------")
+        log.debug("Begin bootstrapping Toolkit.")
+        log.debug("")
+        log.debug("Plugin Id: %s" % self._plugin_id)
+
+        if self._do_shotgun_config_lookup:
+            log.debug("Will connect to Shotgun to look for overrides.")
+            log.debug("If no overrides found, this config will be used: %s" % self._base_config_descriptor)
+
+            if self._pipeline_configuration_name:
+                log.debug("Potential config overrides will be pulled ")
+                log.debug("from pipeline config '%s'" % self._pipeline_configuration_name)
+            else:
+                log.debug("The system will automatically determine the pipeline configuration")
+                log.debug("based on the current project id and user.")
+
+        else:
+            log.debug("Will not connect to shotgun to resolve config overrides.")
+            log.debug("The following config will be used: %s" % self._base_config_descriptor)
+
+        log.debug("")
+        log.debug("Target entity for runtime context: %s" % entity)
+        log.debug("Bootstrapping engine %s." % engine_name)
+        log.debug("-----------------------------------------------------------------")
+
     def _bootstrap_sgtk(self, engine_name, entity, progress_callback=None):
         """
         Create an sgtk instance for the given engine and entity.
@@ -402,9 +430,6 @@ class ToolkitManager(object):
                                   Set to ``None`` to use the default callback function.
         :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
         """
-
-        log.debug("Begin bootstrapping sgtk.")
-
         if progress_callback is None:
             progress_callback = self.progress_callback
 
@@ -437,7 +462,7 @@ class ToolkitManager(object):
         self._report_progress(progress_callback, 0.1, "Resolving configuration...")
 
         resolver = ConfigurationResolver(
-            self._entry_point,
+            self._plugin_id,
             engine_name,
             project_id,
             self._bundle_cache_fallback_paths

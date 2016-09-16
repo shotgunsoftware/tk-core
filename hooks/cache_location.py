@@ -26,7 +26,7 @@ class CacheLocation(HookBaseClass):
     For further details, see individual cache methods below.
     """
     
-    def get_path_cache_path(self, project_id, entry_point, pipeline_configuration_id):
+    def get_path_cache_path(self, project_id, plugin_id, pipeline_configuration_id):
         """
         Establish a location for the path cache database file.
 
@@ -44,10 +44,10 @@ class CacheLocation(HookBaseClass):
         id will be set to None.
 
         :param project_id: The shotgun id of the project to store caches for
-        :param entry_point: Entry point string to identify the scope for a particular plugin
-                            or integration. For more information,
-                            see :meth:`~sgtk.bootstrap.ToolkitManager.entry_point`. For
-                            non-plugin based toolkit projects, this value is None.
+        :param plugin_id: Unique string to identify the scope for a particular plugin
+                          or integration. For more information,
+                          see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
+                          non-plugin based toolkit projects, this value is None.
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
         :returns: The path to a path cache file. This file should exist when this method returns.
         """
@@ -76,7 +76,7 @@ class CacheLocation(HookBaseClass):
         cache_root = LocalFileStorageManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
-            entry_point,
+            plugin_id,
             pipeline_configuration_id,
             LocalFileStorageManager.CACHE
         )
@@ -95,7 +95,7 @@ class CacheLocation(HookBaseClass):
         legacy_cache_root = LocalFileStorageManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
-            entry_point,
+            plugin_id,
             pipeline_configuration_id,
             LocalFileStorageManager.CACHE,
             generation=LocalFileStorageManager.CORE_V17
@@ -113,7 +113,7 @@ class CacheLocation(HookBaseClass):
 
         return target_path
 
-    def get_bundle_data_cache_path(self, project_id, entry_point, pipeline_configuration_id, bundle):
+    def get_bundle_data_cache_path(self, project_id, plugin_id, pipeline_configuration_id, bundle):
         """
         Establish a cache folder for an app, engine or framework.
 
@@ -129,10 +129,10 @@ class CacheLocation(HookBaseClass):
         folder inside the bundle cache location).
 
         :param project_id: The shotgun id of the project to store caches for
-        :param entry_point: Entry point string to identify the scope for a particular plugin
-                            or integration. For more information,
-                            see :meth:`~sgtk.bootstrap.ToolkitManager.entry_point`. For
-                            non-plugin based toolkit projects, this value is None.
+        :param plugin_id: Unique string to identify the scope for a particular plugin
+                          or integration. For more information,
+                          see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
+                          non-plugin based toolkit projects, this value is None.
         :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
         :param bundle: The app, engine or framework object which is requesting the cache folder.
         :returns: The path to a folder which should exist on disk.
@@ -159,7 +159,7 @@ class CacheLocation(HookBaseClass):
         cache_root = LocalFileStorageManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
-            entry_point,
+            plugin_id,
             pipeline_configuration_id,
             LocalFileStorageManager.CACHE
         )
@@ -189,7 +189,7 @@ class CacheLocation(HookBaseClass):
         legacy_cache_root = LocalFileStorageManager.get_configuration_root(
             tk.shotgun_url,
             project_id,
-            entry_point,
+            plugin_id,
             pipeline_configuration_id,
             LocalFileStorageManager.CACHE,
             generation=LocalFileStorageManager.CORE_V17
