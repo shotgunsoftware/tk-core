@@ -64,6 +64,7 @@ class ToolkitManager(object):
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
         repr += " Cache fallback path %s\n" % self._bundle_cache_fallback_paths
+        repr += " Plugin id %s\n" % self._plugin_id
         repr += " Config %s\n" % self._pipeline_configuration_name
         repr += " Base %s >" % self._base_config_descriptor
         return repr
@@ -248,8 +249,7 @@ class ToolkitManager(object):
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :returns: :class:`~sgtk.platform.Engine` instance.
         """
-
-        log.info("Synchronously bootstrapping engine %s for entity %s." % (engine_name, entity))
+        self._log_startup_message(engine_name, entity)
 
         tk = self._bootstrap_sgtk(engine_name, entity)
 
@@ -314,8 +314,9 @@ class ToolkitManager(object):
         :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
         :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
         """
+        self._log_startup_message(engine_name, entity)
 
-        log.info("Asynchronously bootstrapping engine %s for entity %s." % (engine_name, entity))
+        log.debug("Will attempt to start up asynchronously.")
 
         if completed_callback is None:
             completed_callback = self._default_completed_callback
@@ -369,6 +370,37 @@ class ToolkitManager(object):
             # Handle cleanup after successful completion of the engine bootstrap.
             completed_callback(engine)
 
+    def _log_startup_message(self, engine_name, entity):
+        """
+        Helper method that logs information about the current session
+        :param engine_name: Name of the engine used to bootstrap
+        :param entity: Shotgun entity to bootstrap into.
+        """
+        log.debug("-----------------------------------------------------------------")
+        log.debug("Begin bootstrapping Toolkit.")
+        log.debug("")
+        log.debug("Plugin Id: %s" % self._plugin_id)
+
+        if self._do_shotgun_config_lookup:
+            log.debug("Will connect to Shotgun to look for overrides.")
+            log.debug("If no overrides found, this config will be used: %s" % self._base_config_descriptor)
+
+            if self._pipeline_configuration_name:
+                log.debug("Potential config overrides will be pulled ")
+                log.debug("from pipeline config '%s'" % self._pipeline_configuration_name)
+            else:
+                log.debug("The system will automatically determine the pipeline configuration")
+                log.debug("based on the current project id and user.")
+
+        else:
+            log.debug("Will not connect to shotgun to resolve config overrides.")
+            log.debug("The following config will be used: %s" % self._base_config_descriptor)
+
+        log.debug("")
+        log.debug("Target entity for runtime context: %s" % entity)
+        log.debug("Bootstrapping engine %s." % engine_name)
+        log.debug("-----------------------------------------------------------------")
+
     def _bootstrap_sgtk(self, engine_name, entity, progress_callback=None):
         """
         Create an sgtk instance for the given engine and entity.
@@ -390,9 +422,6 @@ class ToolkitManager(object):
                                   Set to ``None`` to use the default callback function.
         :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
         """
-
-        log.debug("Begin bootstrapping sgtk.")
-
         if progress_callback is None:
             progress_callback = self.progress_callback
 
