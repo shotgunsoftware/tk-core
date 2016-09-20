@@ -141,16 +141,17 @@ def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
     logger.info("Total size of bundle cache: %d KiB" % (filesystem.compute_folder_size(bundle_cache_root) / 1024))
 
 
-def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
+def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data, buildable):
     """
     Given data in the plugin manifest, download resolve and
     cache the configuration.
 
     :param sg_connection: Shotgun connection
-    :param manifest_data: Manifest data as a dictionary
     :param source_path: Root path of plugin source.
     :param target_path: Build target path
     :param bundle_cache_root: Bundle cache root
+    :param manifest_data: Manifest data as a dictionary
+    :param buildable: True if the generated build should be buildable
     :return: (Resolved config descriptor object, config descriptor uri to use at runtime)
     """
     logger.info("Analyzing configuration")
@@ -186,7 +187,7 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             # if it's a relative path, we have already copied it to the build
             # target location. In this case, attempt to locate it and remove it.
             baked_target_path = os.path.abspath(os.path.join(target_path, baked_path))
-            if baked_target_path.startswith(baked_target_path):
+            if baked_target_path.startswith(baked_target_path) and not buildable:
                 logger.debug("Removing '%s' from build" % baked_target_path)
                 shutil.rmtree(baked_target_path)
         else:
@@ -435,7 +436,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
         raise TankError("Cannot write manifest file: %s" % e)
 
 
-def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=None):
+def build_plugin(sg_connection, source_path, target_path, buildable, bootstrap_core_uri=None):
     """
     Perform a build of a plugin.
 
@@ -447,6 +448,9 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     :param sg_connection: Shotgun connection
     :param source_path: Path to plugin.
     :param target_path: Path to build
+    :param buildable: True if the resulting plugin build should be buildable
+    :param bootstrap_core_uri: Custom bootstrap core uri. If None,
+                               the latest core from the app store will be used.
     """
     logger.info("Your toolkit plugin in '%s' will be processed." % source_path)
     logger.info("The build will generated into '%s'" % target_path)
@@ -459,6 +463,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     if os.path.exists(target_path):
         logger.info("The folder '%s' already exists on disk. Moving it to backup location" % target_path)
         filesystem.backup_folder(target_path)
+        shutil.rmtree(target_path)
 
     # try to create target path
     filesystem.ensure_folder_exists(target_path)
@@ -469,7 +474,8 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     # copy all plugin data across
     # skip info.yml, this is baked into the manifest python code
     logger.info("Copying plugin data across...")
-    filesystem.copy_folder(source_path, target_path, skip_list=["info.yml", ".git"])
+    skip_list = [] if buildable else [".git", "info.yml"]
+    filesystem.copy_folder(source_path, target_path, skip_list=skip_list)
 
     # create bundle cache
     logger.info("Creating bundle cache folder...")
@@ -485,7 +491,8 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
         source_path,
         target_path,
         bundle_cache_root,
-        manifest_data
+        manifest_data,
+        buildable
     )
 
     # cache config in bundle cache
@@ -555,6 +562,8 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     logger.info("- Plugin uses config %r" % cfg_descriptor)
     logger.info("- Bootstrap core is %r" % bootstrap_core_desc)
     logger.info("- All dependencies have been baked out into the bundle_cache folder")
+    if buildable:
+        logger.info("- The plugin can be used as a source for building further plugins.")
     logger.info("")
     logger.info("")
     logger.info("")
@@ -611,6 +620,15 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         default=False,
         action="store_true",
         help="Enable debug logging"
+    )
+
+    parser.add_option(
+        "-b",
+        "--buildable",
+        default=False,
+        action="store_true",
+        help=("Don't cull config files as part of the build process. Enabling this setting "
+              "means that the built plugin can be used as a source for another build.")
     )
 
     parser.add_option(
@@ -711,7 +729,13 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         return 3
 
     # we are all set.
-    build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri)
+    build_plugin(
+        sg_connection,
+        source_path,
+        target_path,
+        options.buildable,
+        bootstrap_core_uri
+    )
 
     # all good!
     return 0
