@@ -12,13 +12,13 @@ from .event_engine import EngineEvent
 
 class FileCloseEvent(EngineEvent):
     """
-    An object representation of a file-open event.
+    An object representation of a file-close event.
     """
     def __init__(self, file_path):
         """
         Constructor.
 
-        :param str file_path: The path to the file opened.
+        :param str file_path: The path to the file closed.
         """
         super(FileCloseEvent, self).__init__()
         self._file_path = file_path
@@ -26,7 +26,7 @@ class FileCloseEvent(EngineEvent):
     @property
     def file_path(self):
         """
-        The string path of the file that was opened.
+        The string path of the file that was closed.
         """
         return self._file_path
 
