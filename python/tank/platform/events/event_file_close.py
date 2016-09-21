@@ -14,10 +14,21 @@ class FileCloseEvent(EngineEvent):
     """
     An object representation of a file-open event.
     """
-    def __init__(self):
+    def __init__(self, file_path):
         """
         Constructor.
 
         :param str file_path: The path to the file opened.
         """
         super(FileCloseEvent, self).__init__()
+        self._file_path = file_path
+
+    @property
+    def file_path(self):
+        """
+        The string path of the file that was opened.
+        """
+        return self._file_path
+
+    def __str__(self):
+        return ("%s: %s" % ("FileOpenEvent", self.file_path))
