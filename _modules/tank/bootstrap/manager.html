@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.bootstrap.manager &mdash; tk-core v0.18.24 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.26 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.24 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.26 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.24.<br>
+    <b>tk-core</b> v0.18.26.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -178,6 +178,8 @@
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
+<span class="kn">import</span> <span class="nn">os</span>
+
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankBootstrapError</span>
 <span class="kn">from</span> <span class="nn">.configuration</span> <span class="kn">import</span> <span class="n">Configuration</span>
@@ -192,6 +194,11 @@
 <span class="sd">    This class allows for flexible and non-obtrusive management of toolkit configurations</span>
 <span class="sd">    and installations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Constants used to indicate that the manager is:</span>
+    <span class="c1"># - bootstrapping the toolkit (with method _bootstrap_sgtk),</span>
+    <span class="c1"># - starting up the engine (with method _start_engine).</span>
+    <span class="p">(</span><span class="n">TOOLKIT_BOOTSTRAP_PHASE</span><span class="p">,</span> <span class="n">ENGINE_STARTUP_PHASE</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_user</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -218,7 +225,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_entry_point</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span> <span class="o">=</span> <span class="bp">None</span>
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> instantiated&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
 
@@ -227,6 +234,7 @@
         <span class="nb">repr</span>  <span class="o">=</span> <span class="s2">&quot;&lt;TkManager &quot;</span>
         <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; User </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span>
         <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Cache fallback path </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span>
+        <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Plugin id </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span>
         <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Config </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span>
         <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Base </span><span class="si">%s</span><span class="s2"> &gt;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span>
         <span class="k">return</span> <span class="nb">repr</span>
@@ -237,7 +245,7 @@
 
 <span class="sd">        By default, this value is set to ``None``, indicating to the Manager</span>
 <span class="sd">        that it should attempt to find the most suitable Shotgun pipeline configuration</span>
-<span class="sd">        given the project and entry point. In this case, it will look for all pipeline</span>
+<span class="sd">        given the project and plugin id. In this case, it will look for all pipeline</span>
 <span class="sd">        configurations associated with the project who are associated with the current</span>
 <span class="sd">        user. If no user-tagged pipeline configuration exists, it will look for</span>
 <span class="sd">        the primary configuration, and in case this is not found, it will fall back on the</span>
@@ -246,7 +254,7 @@
 
 <span class="sd">        Alternatively, you can set this to a specific pipeline configuration. In that</span>
 <span class="sd">        case, the Manager will look for a pipeline configuration that matches that name</span>
-<span class="sd">        and the associated project and entry point. If such a config cannot be found in</span>
+<span class="sd">        and the associated project and plugin id. If such a config cannot be found in</span>
 <span class="sd">        Shotgun, it falls back on the :meth:`base_configuration`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span>
@@ -279,56 +287,43 @@
 
     <span class="n">do_shotgun_config_lookup</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_do_shotgun_config_lookup</span><span class="p">,</span> <span class="n">_set_do_shotgun_config_lookup</span><span class="p">)</span>
 
-
-    <span class="k">def</span> <span class="nf">_get_entry_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_plugin_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The entry point defines the scope of the bootstrap operation.</span>
+<span class="sd">        The Plugin Id is a string that defines the scope of the bootstrap operation.</span>
 
 <span class="sd">        If you are bootstrapping into an entire Toolkit pipeline, e.g</span>
-<span class="sd">        a traditional Toolkit setup, this should be left blank.</span>
+<span class="sd">        a traditional Toolkit setup, this should be left at its default ``None`` value.</span>
 
 <span class="sd">        If you are writing a plugin that is intended to run side by</span>
 <span class="sd">        side with other plugins in your target environment, the entry</span>
 <span class="sd">        point will be used to define a scope and sandbox in which your</span>
 <span class="sd">        plugin will execute.</span>
 
-<span class="sd">        In the future, it will be possible to use the entry point value</span>
-<span class="sd">        to customize the behavior of a</span>
-<span class="sd">        plugin via Shotgun. At bootstrap, toolkit will look for a pipeline</span>
-<span class="sd">        configuration with a matching name and entry point. If found, this</span>
-<span class="sd">        will be used instead of the one defined by the :meth:`base_configuration`</span>
-<span class="sd">        property.</span>
+<span class="sd">        When constructing a plugin id for an integration the following</span>
+<span class="sd">        should be considered:</span>
 
-<span class="sd">        It is possible for multiple plugins running in different DCCs</span>
-<span class="sd">        to share the same entry point - in this case, they would all</span>
-<span class="sd">        get their settings and setup from a shared configuration. If you</span>
-<span class="sd">        were to override the base configuration in Shotgun, your override</span>
-<span class="sd">        would affect the entire suite of plugins. This kind of setup allows</span>
-<span class="sd">        for the development of several plugins in different DCCs that together</span>
-<span class="sd">        form a curated workflow.</span>
+<span class="sd">        - Plugin Ids should uniquely identify the plugin.</span>
+<span class="sd">        - The name should be short and descriptive.</span>
 
-<span class="sd">        We recommend an entry point naming convention of ``provider_service``,</span>
+<span class="sd">        We recommend a Plugin Id naming convention of ``service.dcc``,</span>
 <span class="sd">        for example:</span>
 
-<span class="sd">        - A plugin maintained by the RV group which handles review inside RV would</span>
-<span class="sd">          be named ``rv_review``.</span>
-<span class="sd">        - A plugin for a toolkit load/publish workflow that runs inside of Maya and</span>
-<span class="sd">          Nuke, maintained by the Toolkit team, could be named ``sgtk_publish``.</span>
-<span class="sd">        - A plugin containg a studio VR workflow across multiple DCCs could be</span>
-<span class="sd">          named ``studioname_vrtools``.</span>
+<span class="sd">        - A review plugin running inside RV: ``review.rv``.</span>
+<span class="sd">        - A basic set of pipeline tools running inside of Nuke: ``basic.nuke``</span>
+<span class="sd">        - A plugin containg a suite of motion capture tools for maya: ``mocap.maya``</span>
 
-<span class="sd">        Please make sure that your entry point is **unique, explicit and short**.</span>
-
-<span class="sd">            .. note:: If you want to force the :meth:`base_configuration` to always</span>
-<span class="sd">                      be used, set :meth:`do_shotgun_config_lookup` to False.</span>
+<span class="sd">        Please make sure that your Plugin Id is **unique, explicit and short**.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entry_point</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span>
 
-    <span class="k">def</span> <span class="nf">_set_entry_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry_point</span><span class="p">):</span>
-        <span class="c1"># setter for entry_point</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_entry_point</span> <span class="o">=</span> <span class="n">entry_point</span>
+    <span class="k">def</span> <span class="nf">_set_plugin_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plugin_id</span><span class="p">):</span>
+        <span class="c1"># setter for plugin_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span> <span class="o">=</span> <span class="n">plugin_id</span>
 
-    <span class="n">entry_point</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_entry_point</span><span class="p">,</span> <span class="n">_set_entry_point</span><span class="p">)</span>
+    <span class="n">plugin_id</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_plugin_id</span><span class="p">,</span> <span class="n">_set_plugin_id</span><span class="p">)</span>
+
+    <span class="c1"># backwards compatibility</span>
+    <span class="n">entry_point</span> <span class="o">=</span> <span class="n">plugin_id</span>
 
     <span class="k">def</span> <span class="nf">_get_base_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -344,7 +339,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span> <span class="o">=</span> <span class="n">descriptor</span>
 
     <span class="n">base_configuration</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_base_configuration</span><span class="p">,</span> <span class="n">_set_base_configuration</span><span class="p">)</span>
-
 
     <span class="k">def</span> <span class="nf">_get_bundle_cache_fallback_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -371,30 +365,47 @@
         <span class="n">_set_bundle_cache_fallback_paths</span>
     <span class="p">)</span>
 
-
-<div class="viewcode-block" id="ToolkitManager.set_progress_callback"><a class="viewcode-back" href="../../../bootstrap.html#sgtk.bootstrap.ToolkitManager.set_progress_callback">[docs]</a>    <span class="k">def</span> <span class="nf">set_progress_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_progress_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Specify a method to call whenever progress should be reported back.</span>
+<span class="sd">        Callback function property to call whenever progress of the bootstrap should be reported back.</span>
 
-<span class="sd">        The method needs to have the following signature::</span>
+<span class="sd">        This function should have the following signature::</span>
 
-<span class="sd">            progress_callback(message, current_index, max_index)</span>
+<span class="sd">            def progress_callback(progress_value, message):</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                Called whenever toolkit reports progress.</span>
 
-<span class="sd">        The two index parameters are used to illustrate progress</span>
-<span class="sd">        over time and looping. ``max_index`` is the total number of</span>
-<span class="sd">        current progress items, ``current_index`` is the currently</span>
-<span class="sd">        processed item. This can be used to compute a percentage.</span>
-<span class="sd">        Note that ``max_index`` may change at any time and is not guaranteed</span>
-<span class="sd">        to be fixed.</span>
-
-<span class="sd">        :param callback: Callback fn. See above for details.</span>
+<span class="sd">                :param progress_value: The current progress value as float number.</span>
+<span class="sd">                                       values will be reported in incremental order</span>
+<span class="sd">                                       and always in the range 0.0 to 1.0</span>
+<span class="sd">                :param message:        Progress message string</span>
+<span class="sd">                &#39;&#39;&#39;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span> <span class="o">=</span> <span class="n">callback</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_progress_callback</span>
+
+    <span class="k">def</span> <span class="nf">_set_progress_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1"># Setter for progress_callback.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="n">progress_callback</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_progress_callback</span><span class="p">,</span> <span class="n">_set_progress_callback</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_progress_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the function to call whenever progress of the bootstrap should be reported back.</span>
+
+<span class="sd">        .. note:: This is a deprecated method. Property ``progress_callback`` should now be used.</span>
+
+<span class="sd">        :param progress_callback: Callback function that reports back on the toolkit and engine bootstrap progress.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span> <span class="o">=</span> <span class="n">progress_callback</span>
 
 <div class="viewcode-block" id="ToolkitManager.bootstrap_engine"><a class="viewcode-back" href="../../../bootstrap.html#sgtk.bootstrap.ToolkitManager.bootstrap_engine">[docs]</a>    <span class="k">def</span> <span class="nf">bootstrap_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create an sgtk instance for the given project or site,</span>
+<span class="sd">        Create an :class:`~sgtk.Sgtk` instance for the given engine and entity,</span>
 <span class="sd">        then launch into the given engine.</span>
+
+<span class="sd">        The whole engine bootstrap logic will be executed synchronously in the main application thread.</span>
 
 <span class="sd">        If entity is None, the method will bootstrap into the site</span>
 <span class="sd">        config. This method will attempt to resolve the config according</span>
@@ -406,34 +417,169 @@
 <span class="sd">        the engine may not be the same as the API version that was</span>
 <span class="sd">        executed during the bootstrap.</span>
 
-<span class="sd">        :param entity: Shotgun entity to launch engine for</span>
-<span class="sd">        :type entity: Dictionary with keys type and id</span>
-<span class="sd">        :param engine_name: name of engine to launch (e.g. ``tk-nuke``)</span>
-<span class="sd">        :returns: :class:`sgtk.platform.Engine` instance</span>
+<span class="sd">        :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).</span>
+<span class="sd">        :param entity: Shotgun entity to launch engine for.</span>
+<span class="sd">        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.</span>
+<span class="sd">        :returns: :class:`~sgtk.platform.Engine` instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Bootstrapping into engine </span><span class="si">%s</span><span class="s2"> for entity </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_startup_message</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
 
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Bootstrapping into environment.&quot;</span><span class="p">)</span>
         <span class="n">tk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bootstrap_sgtk</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
 
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Resolving context.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_empty</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity_dictionary</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Launching Engine...&quot;</span><span class="p">)</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Attempting to start engine </span><span class="si">%s</span><span class="s2"> for context </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">ctx</span><span class="p">))</span>
-
-        <span class="c1"># perform absolute import to ensure we get the new swapped core.</span>
-        <span class="kn">import</span> <span class="nn">tank</span>
-        <span class="n">engine</span> <span class="o">=</span> <span class="n">tank</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
-
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Launched engine </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">engine</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">engine</span></div>
 
+<div class="viewcode-block" id="ToolkitManager.bootstrap_engine_async"><a class="viewcode-back" href="../../../bootstrap.html#sgtk.bootstrap.ToolkitManager.bootstrap_engine_async">[docs]</a>    <span class="k">def</span> <span class="nf">bootstrap_engine_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                               <span class="n">engine_name</span><span class="p">,</span>
+                               <span class="n">entity</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                               <span class="n">completed_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                               <span class="n">failed_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create an :class:`~sgtk.Sgtk` instance for the given engine and entity,</span>
+<span class="sd">        then launch into the given engine.</span>
 
-    <span class="k">def</span> <span class="nf">_bootstrap_sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+<span class="sd">        This method launches the bootstrap process and returns immediately.</span>
+<span class="sd">        The :class:`~sgtk.Sgtk` instance will be bootstrapped asynchronously in a background thread,</span>
+<span class="sd">        followed by launching the engine synchronously in the main application thread.</span>
+<span class="sd">        This will allow the main application to continue its execution and</span>
+<span class="sd">        remain responsive when bootstrapping the toolkit involves downloading files and</span>
+<span class="sd">        installing apps from the toolkit app store.</span>
+
+<span class="sd">        If entity is None, the method will bootstrap into the site</span>
+<span class="sd">        config. This method will attempt to resolve the config according</span>
+<span class="sd">        to business logic set in the associated resolver class and based</span>
+<span class="sd">        on this launch a configuration. This may involve downloading new</span>
+<span class="sd">        apps from the toolkit app store and installing files on disk.</span>
+
+<span class="sd">        Two callback functions can be provided.</span>
+
+<span class="sd">        A callback function that handles cleanup after successful completion of the bootstrap</span>
+<span class="sd">        with the following signature::</span>
+
+<span class="sd">            def completed_callback(engine):</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                Called by the asynchronous bootstrap upon completion.</span>
+
+<span class="sd">                :param engine: Engine instance representing the engine</span>
+<span class="sd">                               that was launched.</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+
+<span class="sd">        A callback function that handles cleanup after failed completion of the bootstrap</span>
+<span class="sd">        with the following signature::</span>
+
+<span class="sd">            def failed_callback(phase, exception):</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                Called by the asynchronous bootstrap if an exception is raised.</span>
+
+<span class="sd">                :param phase: Indicates in which phase of the bootstrap the exception</span>
+<span class="sd">                              was raised. An integer constant which is either</span>
+<span class="sd">                              ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE or</span>
+<span class="sd">                              ToolkitManager.ENGINE_STARTUP_PHASE. The former if the</span>
+<span class="sd">                              failure happened while the system was still bootstrapping</span>
+<span class="sd">                              and the latter if the system had switched over into the</span>
+<span class="sd">                              Toolkit startup phase. At this point, the running core API</span>
+<span class="sd">                              instance may have been swapped over to another version than</span>
+<span class="sd">                              the one that was originally loaded and may need to be reset</span>
+<span class="sd">                              in an implementation of this callback.</span>
+
+<span class="sd">                :param exception: The python exception that was raised.</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+
+<span class="sd">        :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).</span>
+<span class="sd">        :param entity: Shotgun entity to launch engine for.</span>
+<span class="sd">        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.</span>
+<span class="sd">        :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.</span>
+<span class="sd">        :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_startup_message</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will attempt to start up asynchronously.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">completed_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">completed_callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_completed_callback</span>
+
+        <span class="k">if</span> <span class="n">failed_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">failed_callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_failed_callback</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">.async_bootstrap</span> <span class="kn">import</span> <span class="n">AsyncBootstrapWrapper</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="n">AsyncBootstrapWrapper</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Cannot bootstrap asynchronously in a background thread;&quot;</span>
+                        <span class="s2">&quot; falling back on synchronous startup.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">AsyncBootstrapWrapper</span><span class="p">:</span>
+
+            <span class="c1"># Bootstrap an Sgtk instance asynchronously in a background thread,</span>
+            <span class="c1"># followed by launching the engine synchronously in the main application thread.</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bootstrapper</span> <span class="o">=</span> <span class="n">AsyncBootstrapWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">completed_callback</span><span class="p">,</span> <span class="n">failed_callback</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bootstrapper</span><span class="o">.</span><span class="n">bootstrap</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="c1"># Since Qt is not available, fall back on synchronous bootstrapping.</span>
+            <span class="c1"># Execute the whole engine bootstrap logic synchronously in the main application thread,</span>
+            <span class="c1"># while still calling the provided callbacks in order for the caller to work as expected.</span>
+
+            <span class="k">try</span><span class="p">:</span>
+
+                <span class="n">tk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bootstrap_sgtk</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">exception</span><span class="p">:</span>
+
+                <span class="c1"># Handle cleanup after failed completion of the toolkit bootstrap.</span>
+                <span class="n">failed_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TOOLKIT_BOOTSTRAP_PHASE</span><span class="p">,</span> <span class="n">exception</span><span class="p">)</span>
+
+                <span class="k">return</span>
+
+            <span class="k">try</span><span class="p">:</span>
+
+                <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">exception</span><span class="p">:</span>
+
+                <span class="c1"># Handle cleanup after failed completion of the engine startup.</span>
+                <span class="n">failed_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ENGINE_STARTUP_PHASE</span><span class="p">,</span> <span class="n">exception</span><span class="p">)</span>
+
+                <span class="k">return</span>
+
+            <span class="c1"># Handle cleanup after successful completion of the engine bootstrap.</span>
+            <span class="n">completed_callback</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_log_startup_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper method that logs information about the current session</span>
+<span class="sd">        :param engine_name: Name of the engine used to bootstrap</span>
+<span class="sd">        :param entity: Shotgun entity to bootstrap into.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;-----------------------------------------------------------------&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Begin bootstrapping Toolkit.&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Plugin Id: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will connect to Shotgun to look for overrides.&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;If no overrides found, this config will be used: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Potential config overrides will be pulled &quot;</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;from pipeline config &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;The system will automatically determine the pipeline configuration&quot;</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;based on the current project id and user.&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will not connect to shotgun to resolve config overrides.&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;The following config will be used: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Target entity for runtime context: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">entity</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Bootstrapping engine </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">engine_name</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;-----------------------------------------------------------------&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_bootstrap_sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create an sgtk instance for the given engine and entity.</span>
 
@@ -447,13 +593,17 @@
 <span class="sd">        the engine may not be the same as the API version that was</span>
 <span class="sd">        executed during the bootstrap.</span>
 
-<span class="sd">        :param entity: Shotgun entity to launch engine for</span>
-<span class="sd">        :param engine_name: name of engine to launch (e.g. tk-nuke)</span>
-<span class="sd">        :returns: sgtk instance</span>
+<span class="sd">        :param engine_name: Name of the engine used to resolve a configuration.</span>
+<span class="sd">        :param entity: Shotgun entity used to resolve a project context.</span>
+<span class="sd">        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.</span>
+<span class="sd">        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.</span>
+<span class="sd">                                  Set to ``None`` to use the default callback function.</span>
+<span class="sd">        :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Begin bootstrapping sgtk.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">progress_callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Resolving Toolkit Context...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;Resolving project...&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">project_id</span> <span class="o">=</span> <span class="bp">None</span>
 
@@ -479,10 +629,10 @@
 
         <span class="c1"># get an object to represent the business logic for</span>
         <span class="c1"># how a configuration location is being determined</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Resolving configuration...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;Resolving configuration...&quot;</span><span class="p">)</span>
 
         <span class="n">resolver</span> <span class="o">=</span> <span class="n">ConfigurationResolver</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_entry_point</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span><span class="p">,</span>
             <span class="n">engine_name</span><span class="p">,</span>
             <span class="n">project_id</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span>
@@ -492,8 +642,35 @@
         <span class="c1"># this object represents a configuration that may or may not</span>
         <span class="c1"># exist on disk. We can use the config object to check if the</span>
         <span class="c1"># object needs installation, updating etc.</span>
+        <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_OVERRIDE_ENV_VAR</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="c1"># an override environment variable has been set. This takes precedence over</span>
+            <span class="c1"># all other methods and is useful when you do development. For example,</span>
+            <span class="c1"># if you are developing an app and want to test it with an existing plugin</span>
+            <span class="c1"># without wanting to rebuild the plugin, simply set this environment variable</span>
+            <span class="c1"># to point at a local config on disk:</span>
+            <span class="c1">#</span>
+            <span class="c1"># TK_BOOTSTRAP_CONFIG_OVERRIDE=/path/to/dev_config</span>
+            <span class="c1">#</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Detected a </span><span class="si">%s</span><span class="s2"> environment variable.&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_OVERRIDE_ENV_VAR</span><span class="p">)</span>
+            <span class="n">config_override_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_OVERRIDE_ENV_VAR</span><span class="p">]</span>
+            <span class="c1"># resolve env vars and tildes</span>
+            <span class="n">config_override_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">config_override_path</span><span class="p">))</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Config override set to &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">config_override_path</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config_override_path</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">TankBootstrapError</span><span class="p">(</span>
+                    <span class="s2">&quot;Cannot find config &#39;</span><span class="si">%s</span><span class="s2">&#39; defined by override env var </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">config_override_path</span><span class="p">,</span>
+                        <span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_OVERRIDE_ENV_VAR</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="n">config</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">resolve_configuration</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;dev&quot;</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">config_override_path</span><span class="p">},</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span><span class="p">:</span>
             <span class="c1"># do the full resolve where we connect to shotgun etc.</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Checking for pipeline configuration overrides in Shotgun.&quot;</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;In order to turn this off, set do_shotgun_config_lookup to False&quot;</span><span class="p">)</span>
@@ -512,14 +689,13 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">,</span>
             <span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Using </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">config</span><span class="p">)</span>
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">config</span><span class="p">)</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Bootstrapping into configuration </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">config</span><span class="p">)</span>
 
         <span class="c1"># see what we have locally</span>
         <span class="n">status</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">status</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Updating configuration...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;Updating configuration...&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">Configuration</span><span class="o">.</span><span class="n">LOCAL_CFG_UP_TO_DATE</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Your locally cached configuration is up to date.&quot;</span><span class="p">)</span>
 
@@ -539,28 +715,73 @@
             <span class="k">raise</span> <span class="n">TankBootstrapError</span><span class="p">(</span><span class="s2">&quot;Unknown configuration update status!&quot;</span><span class="p">)</span>
 
         <span class="c1"># we can now boot up this config.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Starting up Toolkit...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;Starting up Toolkit...&quot;</span><span class="p">)</span>
         <span class="n">tk</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_tk_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">status</span> <span class="o">!=</span> <span class="n">Configuration</span><span class="o">.</span><span class="n">LOCAL_CFG_UP_TO_DATE</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cache_apps</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache_apps</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">tk</span>
 
-    <span class="k">def</span> <span class="nf">_report_progress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">curr_idx</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">max_idx</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_start_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Helper method. Report progress back to</span>
-<span class="sd">        any defined progress callback.</span>
+<span class="sd">        Launch into the given engine.</span>
 
-<span class="sd">        :param message: Message to report</span>
-<span class="sd">        :param curr_idx: Optional integer denoting progress. This number is</span>
-<span class="sd">                         relative to the max_idx which denotes completion</span>
-<span class="sd">                         of the current task or subtask.</span>
-<span class="sd">        :param max_idx: Max number of items.</span>
+<span class="sd">        If entity is None, the method will bootstrap into the site config.</span>
+
+<span class="sd">        Please note that the API version of the tk instance that hosts</span>
+<span class="sd">        the engine may not be the same as the API version that was</span>
+<span class="sd">        executed during the bootstrap.</span>
+
+<span class="sd">        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance.</span>
+<span class="sd">        :param engine_name: Name of the engine to start up.</span>
+<span class="sd">        :param entity: Shotgun entity used to resolve a project context.</span>
+<span class="sd">        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.</span>
+<span class="sd">        :param progress_callback: Callback function that reports back on the engine startup progress.</span>
+<span class="sd">                                  Set to ``None`` to use the default callback function.</span>
+<span class="sd">        :returns: Started :class:`~sgtk.platform.Engine` instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Progress Report: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">curr_idx</span><span class="p">,</span> <span class="n">max_idx</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Begin starting up engine </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">engine_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">progress_callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="s2">&quot;Resolving context...&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_empty</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity_dictionary</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="s2">&quot;Launching Engine...&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Attempting to start engine </span><span class="si">%s</span><span class="s2"> for context </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">ctx</span><span class="p">))</span>
+
+        <span class="c1"># perform absolute import to ensure we get the new swapped core.</span>
+        <span class="kn">import</span> <span class="nn">tank</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="n">tank</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Launched engine </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">engine</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">engine</span>
+
+    <span class="k">def</span> <span class="nf">_report_progress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">,</span> <span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper method that reports back on the bootstrap progress to a defined progress callback.</span>
+
+<span class="sd">        :param progress_callback: Callback function to use to report back.</span>
+<span class="sd">        :param progress_value: Current progress value, a float number ranging from 0.0 to 1.0</span>
+<span class="sd">                               representing the percentage of work completed.</span>
+<span class="sd">        :param message: Progress message string to report.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Progress Report (</span><span class="si">%s%%</span><span class="s2">): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">progress_value</span><span class="o">*</span><span class="mi">100</span><span class="p">),</span> <span class="n">message</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Call the new style progress callback.</span>
+            <span class="n">progress_callback</span><span class="p">(</span><span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="c1"># Call the old style progress callback with signature (message, current_index, maximum_index).</span>
+            <span class="n">progress_callback</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_is_toolkit_activated_in_shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -575,13 +796,15 @@
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;...enabled: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">enabled</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">enabled</span>
 
-    <span class="k">def</span> <span class="nf">_cache_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">do_post_install</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_cache_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">,</span> <span class="n">do_post_install</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Caches all apps associated with the given tk instance</span>
+<span class="sd">        Caches all apps associated with the given toolkit instance.</span>
 
-<span class="sd">        :param tk: Toolkit instance to cache items for</span>
-<span class="sd">        :param do_post_install: Set to true for post install triggers to execute</span>
+<span class="sd">        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance to cache items for.</span>
+<span class="sd">        :param progress_callback: Callback function that reports back on the engine startup progress.</span>
+<span class="sd">        :param do_post_install: Set to true to execute the post install triggers.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading and installing apps...&quot;</span><span class="p">)</span>
 
         <span class="c1"># each entry in the config template contains instructions about which version of the app</span>
@@ -607,20 +830,56 @@
         <span class="c1"># pass 2 - download all apps</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">descriptor</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">descriptors</span><span class="p">):</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">exists_local</span><span class="p">():</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Downloading </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">descriptors</span><span class="p">))</span>
-                <span class="n">descriptor</span><span class="o">.</span><span class="n">download_local</span><span class="p">()</span>
+            <span class="c1"># Scale the progress step 0.3 between this value 0.4 and the next one 0.7</span>
+            <span class="c1"># to compute a value progressing while looping over the indexes.</span>
+            <span class="n">progress_value</span> <span class="o">=</span> <span class="mf">0.4</span> <span class="o">+</span> <span class="n">idx</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.3</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">descriptors</span><span class="p">))</span>
 
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">exists_local</span><span class="p">():</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Downloading </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2"> of </span><span class="si">%s</span><span class="s2">)...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">descriptors</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+                <span class="n">descriptor</span><span class="o">.</span><span class="n">download_local</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Item </span><span class="si">%s</span><span class="s2"> is already locally installed.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> already installed locally (</span><span class="si">%s</span><span class="s2"> of </span><span class="si">%s</span><span class="s2">).&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">descriptors</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
 
         <span class="c1"># pass 3 - do post install</span>
         <span class="k">if</span> <span class="n">do_post_install</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">descriptor</span> <span class="ow">in</span> <span class="n">descriptors</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="s2">&quot;Running post install for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="s2">&quot;Running post install for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
                 <span class="n">descriptor</span><span class="o">.</span><span class="n">ensure_shotgun_fields_exist</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
-                <span class="n">descriptor</span><span class="o">.</span><span class="n">run_post_install</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span></div>
+                <span class="n">descriptor</span><span class="o">.</span><span class="n">run_post_install</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">_default_progress_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Default callback function that reports back on the toolkit and engine bootstrap progress.</span>
+
+<span class="sd">        :param progress_value: Current progress value, ranging from 0.0 to 1.0.</span>
+<span class="sd">        :param message: Progress message to report.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Default progress callback (</span><span class="si">%s</span><span class="s2">): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_default_completed_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Default callback function that handles cleanup after successful completion of the bootstrap.</span>
+
+<span class="sd">        :param engine: Launched :class:`sgtk.platform.Engine` instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Default completed callback: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">engine</span><span class="o">.</span><span class="n">instance_name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_default_failed_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Default callback function that handles cleanup after failed completion of the bootstrap.</span>
+
+<span class="sd">        :param phase: Bootstrap phase that raised the exception,</span>
+<span class="sd">                      ``ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE`` or ``ToolkitManager.ENGINE_STARTUP_PHASE``.</span>
+<span class="sd">        :param exception: Python exception raised while bootstrapping.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">phase_name</span> <span class="o">=</span> <span class="s2">&quot;TOOLKIT_BOOTSTRAP_PHASE&quot;</span> <span class="k">if</span> <span class="n">phase</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">TOOLKIT_BOOTSTRAP_PHASE</span> <span class="k">else</span> <span class="s2">&quot;ENGINE_STARTUP_PHASE&quot;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Default failed callback (</span><span class="si">%s</span><span class="s2">): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">exception</span><span class="p">))</span></div>
 </pre></div>
 
            </div>
@@ -653,7 +912,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.24',
+            VERSION:'v0.18.26',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

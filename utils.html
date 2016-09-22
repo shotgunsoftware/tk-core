@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.24 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.26 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.24 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.26 documentation" href="index.html"/>
         <link rel="next" title="Descriptor API" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -146,7 +146,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.24.<br>
+    <b>tk-core</b> v0.18.26.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -770,6 +770,22 @@ by the umask:</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="sgtk.util.filesystem.compute_folder_size">
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">compute_folder_size</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#compute_folder_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.compute_folder_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes and returns the size of the given folder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; folder to compute size for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">size in bytes</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="sgtk.util.filesystem.touch_file">
 <code class="descclassname">sgtk.util.filesystem.</code><code class="descname">touch_file</code><span class="sig-paren">(</span><em>path</em>, <em>permissions=0666</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#touch_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.touch_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Touch a file and optionally set its permissions.</p>
@@ -895,6 +911,31 @@ all content from sources. Skips files that won&#8217;t delete.</p>
 <li><strong>src</strong> &#8211; Source path to copy from</li>
 <li><strong>dst</strong> &#8211; Destination to copy to</li>
 <li><strong>folder_permissions</strong> &#8211; permissions to use for new folders</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.filesystem.backup_folder">
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">backup_folder</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#backup_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.backup_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves the given directory into a backup location.</p>
+<p>By default, the folder will be renamed by simply giving it a
+timestamp based suffix. Optionally, it can be moved into a different
+location.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">backup_folder(&quot;/foo/bar&quot;)</span></code> will move <code class="docutils literal"><span class="pre">/foo/bar</span></code> to <code class="docutils literal"><span class="pre">/foo/bar.20160912_200426</span></code></li>
+<li><code class="docutils literal"><span class="pre">backup_folder(&quot;/foo/bar&quot;,</span> <span class="pre">&quot;/tmp&quot;)</span></code> will move <code class="docutils literal"><span class="pre">/foo/bar</span></code> to <code class="docutils literal"><span class="pre">/tmp/bar.20160912_200426</span></code></li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>src</strong> &#8211; Folder to move</li>
+<li><strong>dst</strong> &#8211; Optional backup folder</li>
 </ul>
 </td>
 </tr>
@@ -1271,7 +1312,7 @@ which is the current generation of paths.</li>
 
 <dl class="classmethod">
 <dt id="sgtk.util.LocalFileStorageManager.get_configuration_root">
-<em class="property">classmethod </em><code class="descname">get_configuration_root</code><span class="sig-paren">(</span><em>hostname</em>, <em>project_id</em>, <em>entry_point</em>, <em>pipeline_config_id</em>, <em>path_type</em>, <em>generation=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/local_file_storage.html#LocalFileStorageManager.get_configuration_root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.LocalFileStorageManager.get_configuration_root" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">get_configuration_root</code><span class="sig-paren">(</span><em>hostname</em>, <em>project_id</em>, <em>plugin_id</em>, <em>pipeline_config_id</em>, <em>path_type</em>, <em>generation=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/local_file_storage.html#LocalFileStorageManager.get_configuration_root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.LocalFileStorageManager.get_configuration_root" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the storage root for any data that is project and config specific.</p>
 <ul class="simple">
 <li>A well defined project id should always be passed. Passing None as the project
@@ -1280,15 +1321,15 @@ that represents the non-project state in Shotgun.</li>
 <li>Configurations that have a pipeline configuration in Shotgun should pass in
 a pipeline configuration id. When a pipeline configuration is not registered
 in Shotgun, this value should be None.</li>
-<li>If the configuration has been bootstrapped or has a known entry point, this
-should be specified via the entry point parameter.</li>
+<li>If the configuration has been bootstrapped or has a known plugin id, this
+should be specified via the plugin id parameter.</li>
 </ul>
 <p>For more details, see <code class="xref py py-meth docutils literal"><span class="pre">LocalFileStorageManager.get_global_root()</span></code>.</p>
 <p>Examples of paths that will be generated:</p>
 <ul class="simple">
 <li>Site config: <code class="docutils literal"><span class="pre">ROOT/shotgunsite/p0</span></code></li>
 <li>Project 123, config 33: <code class="docutils literal"><span class="pre">ROOT/shotgunsite/p123c33</span></code></li>
-<li>project 123, no config, entry point rv_review: <code class="docutils literal"><span class="pre">ROOT/shotgunsite/p123.rv_review</span></code></li>
+<li>project 123, no config, plugin id review.rv: <code class="docutils literal"><span class="pre">ROOT/shotgunsite/p123.review.rv</span></code></li>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1301,9 +1342,9 @@ should be specified via the entry point parameter.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>hostname</strong> &#8211; Shotgun hostname as string, e.g. &#8216;<a class="reference external" href="https://foo.shotgunstudio.com">https://foo.shotgunstudio.com</a>&#8216;</li>
 <li><strong>project_id</strong> &#8211; Shotgun project id as integer. For the site config, this should be None.</li>
-<li><strong>entry_point</strong> &#8211; Entry point string to identify the scope for a particular plugin
+<li><strong>plugin_id</strong> &#8211; Plugin id string to identify the scope for a particular plugin
 or integration. For more information,
-see <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager.entry_point" title="sgtk.bootstrap.ToolkitManager.entry_point"><code class="xref py py-meth docutils literal"><span class="pre">entry_point()</span></code></a>. For
+see <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-meth docutils literal"><span class="pre">plugin_id()</span></code></a>. For
 non-plugin based toolkit projects, this value is None.</li>
 <li><strong>pipeline_config_id</strong> &#8211; Shotgun pipeline config id. None for bootstraped configs.</li>
 <li><strong>path_type</strong> &#8211; Type of path to return. One of <code class="docutils literal"><span class="pre">LocalFileStorageManager.LOGGING</span></code>,
@@ -1659,7 +1700,7 @@ with the following fields: id, type, email, login, name, image, firstname, lastn
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.24',
+            VERSION:'v0.18.26',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

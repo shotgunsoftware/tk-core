@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.24 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.26 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.24 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.26 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -137,7 +137,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.24.<br>
+    <b>tk-core</b> v0.18.26.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -272,7 +272,13 @@ locations if you want to pre-bake your own collection of caches.</p>
 <p>The Toolkit app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
 tested and approved by Shotgun. App store descriptors should include a name and version token and
 are on the following form:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nb">type</span><span class="p">:</span> <span class="n">app_store</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">tk</span><span class="o">-</span><span class="n">core</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v12</span><span class="o">.</span><span class="mf">3.4</span> <span class="p">}</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
+    type: app_store,
+    name: tk-core,
+    version: v12.3.4
+}
+
+sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4
 </pre></div>
 </div>
 </div>
@@ -284,14 +290,16 @@ a pipeline configuration. In that configuration, the descriptor represents
 a &#8216;cloud based configuration&#8217;. It could also be a custom entity or non-project
 entity in the case you want to store a descriptor (app, engine or config)
 that can be easily accessed from any project:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="nb">type</span><span class="p">:</span> <span class="n">shotgun</span><span class="p">,</span>
-    <span class="n">entity_type</span><span class="p">:</span> <span class="n">PipelineConfiguration</span><span class="p">,</span>  <span class="c1"># entity type</span>
-    <span class="n">name</span><span class="p">:</span> <span class="n">primary</span><span class="p">,</span>                       <span class="c1"># name of the record in shotgun (e.g. &#39;code&#39; field)</span>
-    <span class="n">project_id</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span>                     <span class="c1"># optional project id. If omitted, name is assumed to be unique.</span>
-    <span class="n">field</span><span class="p">:</span> <span class="n">sg_config</span><span class="p">,</span>                    <span class="c1"># attachment field where payload can be found</span>
-    <span class="n">version</span><span class="p">:</span> <span class="mi">456</span>                         <span class="c1"># attachment id of particular attachment</span>
-<span class="p">}</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
+    type: shotgun,
+    entity_type: PipelineConfiguration,  # entity type
+    name: primary,                       # name of the record in shotgun (e.g. &#39;code&#39; field)
+    project_id: 123,                     # optional project id. If omitted, name is assumed to be unique.
+    field: sg_config,                    # attachment field where payload can be found
+    version: 456                         # attachment id of particular attachment
+}
+
+sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;name=primary&amp;project_id=123&amp;field=sg_config&amp;version=456
 </pre></div>
 </div>
 <p>When the attachment field is updated, the attachment id (e.g. version field in the descriptor) changes, resulting in
@@ -302,13 +310,24 @@ a new descriptor. This can be used to determine the latest version for a Shotgun
 <p>The <code class="docutils literal"><span class="pre">git</span></code> descriptor type is used to track git tags and typically used when you are tracking released
 versions of something. You can use any syntax that git supports, with a path key containing the path
 to the git repository:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v0</span><span class="o">.</span><span class="mf">2.1</span><span class="p">}</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>{type: git, path: /path/to/repo.git, version: v0.2.1}
 
-<span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">user</span><span class="nd">@remotehost</span><span class="p">:</span><span class="o">/</span><span class="n">path_to</span><span class="o">/</span><span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v0</span><span class="o">.</span><span class="mf">1.0</span><span class="p">}</span>
+sgtk:descriptor:git?path=/path/to/repo.git&amp;version=v12.3.4
 
-<span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v0</span><span class="o">.</span><span class="mf">1.0</span><span class="p">}</span>
 
-<span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v0</span><span class="o">.</span><span class="mf">1.0</span><span class="p">}</span>
+{type: git, path: user@remotehost:/path_to/repo.git, version: v0.1.0}
+
+sgtk:descriptor:git?path=user%40remotehost%3A/path_to/repo.git&amp;version=v0.1.0
+
+
+{type: git, path: git://github.com/user/tk-multi-publish.git, version: v0.1.0}
+
+sgtk:descriptor:git?path=git%3A//github.com/user/tk-multi-publish.git&amp;version=v0.1.0
+
+
+{type: git, path: https://github.com/user/tk-multi-publish.git, version: v0.1.0}
+
+sgtk:descriptor:git?path=https%3A//github.com/user/tk-multi-publish.git&amp;version=v0.1.0
 </pre></div>
 </div>
 <p>The latest version for a descriptor is determined by retrieving the list of tags for
@@ -317,13 +336,24 @@ For this comparison, <code class="xref py py-class docutils literal"><span class
 that version numbers follow the semantic versioning standard that can be found at <a class="reference external" href="http://semver.org">http://semver.org</a>.</p>
 <p>The <code class="docutils literal"><span class="pre">git_branch</span></code> descriptor type is typically used during development and allows you to track
 a commit in a particular branch:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="n">master</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mi">17</span><span class="n">fedd8</span><span class="p">}</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>{type: git_branch, branch: master, path: /path/to/repo.git, version: 17fedd8}
 
-<span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="n">master</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">user</span><span class="nd">@remotehost</span><span class="p">:</span><span class="o">/</span><span class="n">path_to</span><span class="o">/</span><span class="n">repo</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mi">17</span><span class="n">fedd8</span><span class="p">}</span>
+sgtk:descriptor:git_branch?branch=master&amp;path=/path/to/repo.git&amp;version=17fedd8
 
-<span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="n">master</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mi">17</span><span class="n">fedd8</span><span class="p">}</span>
 
-<span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span> <span class="n">branch</span><span class="p">:</span> <span class="n">master</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">publish</span><span class="o">.</span><span class="n">git</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mi">17</span><span class="n">fedd8</span><span class="p">}</span>
+{type: git_branch, branch: master, path: user@remotehost:/path_to/repo.git, version: 17fedd8}
+
+sgtk:descriptor:git_branch?branch=master&amp;path=user%40remotehost%3A/path_to/repo.git&amp;version=17fedd8
+
+
+{type: git_branch, branch: master, path: git://github.com/user/tk-multi-publish.git, version: 17fedd8}
+
+sgtk:descriptor:git_branch?branch=master&amp;path=git%3A//github.com/user/tk-multi-publish.git&amp;version=17fedd8
+
+
+{type: git_branch, branch: master, path: https://github.com/user/tk-multi-publish.git, version: 17fedd8}
+
+sgtk:descriptor:git_branch?branch=master&amp;path=https%3A//github.com/user/tk-multi-publish.git&amp;version=17fedd8
 </pre></div>
 </div>
 <p>You can use both long and short hash formats for the version token. The latest version for a git_branch
@@ -341,14 +371,22 @@ resolve and normal operation.</p>
 </div>
 <div class="section" id="path-and-dev">
 <h3>Path and Dev<a class="headerlink" href="#path-and-dev" title="Permalink to this headline">¶</a></h3>
-<p>Pointing Sgtk to an app that resides in the local file system is often very useful for managing your own bundles
+<p>Pointing Toolkit to an app that resides in the local file system is often very useful for managing your own bundles
 or doing development on an app or engine before releasing onto production. To allow for these scenarios, Sgtk
 provides the <code class="docutils literal"><span class="pre">dev</span></code> and <code class="docutils literal"><span class="pre">path</span></code> descriptors. Here are some examples:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span># locally managed bundle
+<div class="highlight-default"><div class="highlight"><pre><span></span># locally managed bundle that is used for development
+{
+    type: dev,
+    path: /path/to/app
+}
+sgtk:descriptor:dev?path=/path/to/app
+
+# locally managed bundle that is meant to be deployed
 {
     type: path,
     path: /path/to/app
 }
+sgtk:descriptor:dev?path=/path/to/app
 
 # using environment variables in the paths
 {
@@ -2701,7 +2739,7 @@ If not url has been defined, None is returned.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.24',
+            VERSION:'v0.18.26',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Deploy and management &mdash; tk-core v0.18.24 documentation</title>
+  <title>Deploy and management &mdash; tk-core v0.18.26 documentation</title>
   
 
   
@@ -32,9 +32,9 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.24 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.26 documentation" href="index.html"/>
         <link rel="next" title="Foundation" href="core.html"/>
-        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.24" href="index.html"/> 
+        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.26" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -125,7 +125,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.24.<br>
+    <b>tk-core</b> v0.18.26.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -256,7 +256,7 @@ and pass it in.</td>
 <dd><p>The pipeline configuration that is should be operated on.</p>
 <p>By default, this value is set to <code class="docutils literal"><span class="pre">None</span></code>, indicating to the Manager
 that it should attempt to find the most suitable Shotgun pipeline configuration
-given the project and entry point. In this case, it will look for all pipeline
+given the project and plugin id. In this case, it will look for all pipeline
 configurations associated with the project who are associated with the current
 user. If no user-tagged pipeline configuration exists, it will look for
 the primary configuration, and in case this is not found, it will fall back on the
@@ -264,7 +264,7 @@ the primary configuration, and in case this is not found, it will fall back on t
 Shotgun, please set <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup" title="sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup"><code class="xref py py-meth docutils literal"><span class="pre">do_shotgun_config_lookup()</span></code></a> to False.</p>
 <p>Alternatively, you can set this to a specific pipeline configuration. In that
 case, the Manager will look for a pipeline configuration that matches that name
-and the associated project and entry point. If such a config cannot be found in
+and the associated project and plugin id. If such a config cannot be found in
 Shotgun, it falls back on the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal"><span class="pre">base_configuration()</span></code></a>.</p>
 </dd></dl>
 
@@ -283,46 +283,29 @@ is defined via <a class="reference internal" href="#sgtk.bootstrap.ToolkitManage
 </dd></dl>
 
 <dl class="attribute">
-<dt id="sgtk.bootstrap.ToolkitManager.entry_point">
-<code class="descname">entry_point</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.entry_point" title="Permalink to this definition">¶</a></dt>
-<dd><p>The entry point defines the scope of the bootstrap operation.</p>
+<dt id="sgtk.bootstrap.ToolkitManager.plugin_id">
+<code class="descname">plugin_id</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.plugin_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Plugin Id is a string that defines the scope of the bootstrap operation.</p>
 <p>If you are bootstrapping into an entire Toolkit pipeline, e.g
-a traditional Toolkit setup, this should be left blank.</p>
+a traditional Toolkit setup, this should be left at its default <code class="docutils literal"><span class="pre">None</span></code> value.</p>
 <p>If you are writing a plugin that is intended to run side by
 side with other plugins in your target environment, the entry
 point will be used to define a scope and sandbox in which your
 plugin will execute.</p>
-<p>In the future, it will be possible to use the entry point value
-to customize the behavior of a
-plugin via Shotgun. At bootstrap, toolkit will look for a pipeline
-configuration with a matching name and entry point. If found, this
-will be used instead of the one defined by the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal"><span class="pre">base_configuration()</span></code></a>
-property.</p>
-<p>It is possible for multiple plugins running in different DCCs
-to share the same entry point - in this case, they would all
-get their settings and setup from a shared configuration. If you
-were to override the base configuration in Shotgun, your override
-would affect the entire suite of plugins. This kind of setup allows
-for the development of several plugins in different DCCs that together
-form a curated workflow.</p>
-<p>We recommend an entry point naming convention of <code class="docutils literal"><span class="pre">provider_service</span></code>,
+<p>When constructing a plugin id for an integration the following
+should be considered:</p>
+<ul class="simple">
+<li>Plugin Ids should uniquely identify the plugin.</li>
+<li>The name should be short and descriptive.</li>
+</ul>
+<p>We recommend a Plugin Id naming convention of <code class="docutils literal"><span class="pre">service.dcc</span></code>,
 for example:</p>
 <ul class="simple">
-<li>A plugin maintained by the RV group which handles review inside RV would
-be named <code class="docutils literal"><span class="pre">rv_review</span></code>.</li>
-<li>A plugin for a toolkit load/publish workflow that runs inside of Maya and
-Nuke, maintained by the Toolkit team, could be named <code class="docutils literal"><span class="pre">sgtk_publish</span></code>.</li>
-<li>A plugin containg a studio VR workflow across multiple DCCs could be
-named <code class="docutils literal"><span class="pre">studioname_vrtools</span></code>.</li>
+<li>A review plugin running inside RV: <code class="docutils literal"><span class="pre">review.rv</span></code>.</li>
+<li>A basic set of pipeline tools running inside of Nuke: <code class="docutils literal"><span class="pre">basic.nuke</span></code></li>
+<li>A plugin containg a suite of motion capture tools for maya: <code class="docutils literal"><span class="pre">mocap.maya</span></code></li>
 </ul>
-<p>Please make sure that your entry point is <strong>unique, explicit and short</strong>.</p>
-<blockquote>
-<div><div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If you want to force the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal"><span class="pre">base_configuration()</span></code></a> to always
-be used, set <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup" title="sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup"><code class="xref py py-meth docutils literal"><span class="pre">do_shotgun_config_lookup()</span></code></a> to False.</p>
-</div>
-</div></blockquote>
+<p>Please make sure that your Plugin Id is <strong>unique, explicit and short</strong>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -348,35 +331,30 @@ sources.</p>
 the <em>primary</em> bundle cache.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="sgtk.bootstrap.ToolkitManager.set_progress_callback">
-<code class="descname">set_progress_callback</code><span class="sig-paren">(</span><em>callback</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.set_progress_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.set_progress_callback" title="Permalink to this definition">¶</a></dt>
-<dd><p>Specify a method to call whenever progress should be reported back.</p>
-<p>The method needs to have the following signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">progress_callback</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">current_index</span><span class="p">,</span> <span class="n">max_index</span><span class="p">)</span>
+<dl class="attribute">
+<dt id="sgtk.bootstrap.ToolkitManager.progress_callback">
+<code class="descname">progress_callback</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.progress_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callback function property to call whenever progress of the bootstrap should be reported back.</p>
+<p>This function should have the following signature:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">progress_callback</span><span class="p">(</span><span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Called whenever toolkit reports progress.</span>
+
+<span class="sd">    :param progress_value: The current progress value as float number.</span>
+<span class="sd">                           values will be reported in incremental order</span>
+<span class="sd">                           and always in the range 0.0 to 1.0</span>
+<span class="sd">    :param message:        Progress message string</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 </pre></div>
 </div>
-<p>The two index parameters are used to illustrate progress
-over time and looping. <code class="docutils literal"><span class="pre">max_index</span></code> is the total number of
-current progress items, <code class="docutils literal"><span class="pre">current_index</span></code> is the currently
-processed item. This can be used to compute a percentage.
-Note that <code class="docutils literal"><span class="pre">max_index</span></code> may change at any time and is not guaranteed
-to be fixed.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>callback</strong> &#8211; Callback fn. See above for details.</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="sgtk.bootstrap.ToolkitManager.bootstrap_engine">
 <code class="descname">bootstrap_engine</code><span class="sig-paren">(</span><em>engine_name</em>, <em>entity=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.bootstrap_engine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an sgtk instance for the given project or site,
+<dd><p>Create an <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance for the given engine and entity,
 then launch into the given engine.</p>
+<p>The whole engine bootstrap logic will be executed synchronously in the main application thread.</p>
 <p>If entity is None, the method will bootstrap into the site
 config. This method will attempt to resolve the config according
 to business logic set in the associated resolver class and based
@@ -390,12 +368,77 @@ executed during the bootstrap.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>entity</strong> (<em>Dictionary with keys type and id</em>) &#8211; Shotgun entity to launch engine for</li>
-<li><strong>engine_name</strong> &#8211; name of engine to launch (e.g. <code class="docutils literal"><span class="pre">tk-nuke</span></code>)</li>
+<li><strong>engine_name</strong> &#8211; Name of engine to launch (e.g. <code class="docutils literal"><span class="pre">tk-nuke</span></code>).</li>
+<li><strong>entity</strong> (Dictionary with keys <code class="docutils literal"><span class="pre">type</span></code> and <code class="docutils literal"><span class="pre">id</span></code>, or <code class="docutils literal"><span class="pre">None</span></code> for the site.) &#8211; Shotgun entity to launch engine for.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">sgtk.platform.Engine</span></code></a> instance</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a> instance.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.bootstrap.ToolkitManager.bootstrap_engine_async">
+<code class="descname">bootstrap_engine_async</code><span class="sig-paren">(</span><em>engine_name</em>, <em>entity=None</em>, <em>completed_callback=None</em>, <em>failed_callback=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.bootstrap_engine_async"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine_async" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance for the given engine and entity,
+then launch into the given engine.</p>
+<p>This method launches the bootstrap process and returns immediately.
+The <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance will be bootstrapped asynchronously in a background thread,
+followed by launching the engine synchronously in the main application thread.
+This will allow the main application to continue its execution and
+remain responsive when bootstrapping the toolkit involves downloading files and
+installing apps from the toolkit app store.</p>
+<p>If entity is None, the method will bootstrap into the site
+config. This method will attempt to resolve the config according
+to business logic set in the associated resolver class and based
+on this launch a configuration. This may involve downloading new
+apps from the toolkit app store and installing files on disk.</p>
+<p>Two callback functions can be provided.</p>
+<p>A callback function that handles cleanup after successful completion of the bootstrap
+with the following signature:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">completed_callback</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Called by the asynchronous bootstrap upon completion.</span>
+
+<span class="sd">    :param engine: Engine instance representing the engine</span>
+<span class="sd">                   that was launched.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
+<p>A callback function that handles cleanup after failed completion of the bootstrap
+with the following signature:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">failed_callback</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Called by the asynchronous bootstrap if an exception is raised.</span>
+
+<span class="sd">    :param phase: Indicates in which phase of the bootstrap the exception</span>
+<span class="sd">                  was raised. An integer constant which is either</span>
+<span class="sd">                  ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE or</span>
+<span class="sd">                  ToolkitManager.ENGINE_STARTUP_PHASE. The former if the</span>
+<span class="sd">                  failure happened while the system was still bootstrapping</span>
+<span class="sd">                  and the latter if the system had switched over into the</span>
+<span class="sd">                  Toolkit startup phase. At this point, the running core API</span>
+<span class="sd">                  instance may have been swapped over to another version than</span>
+<span class="sd">                  the one that was originally loaded and may need to be reset</span>
+<span class="sd">                  in an implementation of this callback.</span>
+
+<span class="sd">    :param exception: The python exception that was raised.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>engine_name</strong> &#8211; Name of engine to launch (e.g. <code class="docutils literal"><span class="pre">tk-nuke</span></code>).</li>
+<li><strong>entity</strong> (Dictionary with keys <code class="docutils literal"><span class="pre">type</span></code> and <code class="docutils literal"><span class="pre">id</span></code>, or <code class="docutils literal"><span class="pre">None</span></code> for the site.) &#8211; Shotgun entity to launch engine for.</li>
+<li><strong>completed_callback</strong> &#8211; Callback function that handles cleanup after successful completion of the bootstrap.</li>
+<li><strong>failed_callback</strong> &#8211; Callback function that handles cleanup after failed completion of the bootstrap.</li>
+</ul>
 </td>
 </tr>
 </tbody>
@@ -427,7 +470,7 @@ executed during the bootstrap.</p>
         <a href="core.html" class="btn btn-neutral float-right" title="Foundation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.24" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.26" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -457,7 +500,7 @@ executed during the bootstrap.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.24',
+            VERSION:'v0.18.26',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

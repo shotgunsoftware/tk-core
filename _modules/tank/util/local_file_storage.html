@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.local_file_storage &mdash; tk-core v0.18.24 documentation</title>
+  <title>tank.util.local_file_storage &mdash; tk-core v0.18.26 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.24 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.26 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.24.<br>
+    <b>tk-core</b> v0.18.26.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -370,7 +370,7 @@
             <span class="n">cls</span><span class="p">,</span>
             <span class="n">hostname</span><span class="p">,</span>
             <span class="n">project_id</span><span class="p">,</span>
-            <span class="n">entry_point</span><span class="p">,</span>
+            <span class="n">plugin_id</span><span class="p">,</span>
             <span class="n">pipeline_config_id</span><span class="p">,</span>
             <span class="n">path_type</span><span class="p">,</span>
             <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
@@ -385,8 +385,8 @@
 <span class="sd">          a pipeline configuration id. When a pipeline configuration is not registered</span>
 <span class="sd">          in Shotgun, this value should be None.</span>
 
-<span class="sd">        - If the configuration has been bootstrapped or has a known entry point, this</span>
-<span class="sd">          should be specified via the entry point parameter.</span>
+<span class="sd">        - If the configuration has been bootstrapped or has a known plugin id, this</span>
+<span class="sd">          should be specified via the plugin id parameter.</span>
 
 <span class="sd">        For more details, see :meth:`LocalFileStorageManager.get_global_root`.</span>
 
@@ -394,16 +394,16 @@
 
 <span class="sd">        - Site config: ``ROOT/shotgunsite/p0``</span>
 <span class="sd">        - Project 123, config 33: ``ROOT/shotgunsite/p123c33``</span>
-<span class="sd">        - project 123, no config, entry point rv_review: ``ROOT/shotgunsite/p123.rv_review``</span>
+<span class="sd">        - project 123, no config, plugin id review.rv: ``ROOT/shotgunsite/p123.review.rv``</span>
 
 <span class="sd">        .. note:: This method does not ensure that the folder exists.</span>
 
 <span class="sd">        :param hostname: Shotgun hostname as string, e.g. &#39;https://foo.shotgunstudio.com&#39;</span>
 <span class="sd">        :param project_id: Shotgun project id as integer. For the site config, this should be None.</span>
-<span class="sd">        :param entry_point: Entry point string to identify the scope for a particular plugin</span>
-<span class="sd">                            or integration. For more information,</span>
-<span class="sd">                            see :meth:`~sgtk.bootstrap.ToolkitManager.entry_point`. For</span>
-<span class="sd">                            non-plugin based toolkit projects, this value is None.</span>
+<span class="sd">        :param plugin_id: Plugin id string to identify the scope for a particular plugin</span>
+<span class="sd">                          or integration. For more information,</span>
+<span class="sd">                          see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For</span>
+<span class="sd">                          non-plugin based toolkit projects, this value is None.</span>
 <span class="sd">        :param pipeline_config_id: Shotgun pipeline config id. None for bootstraped configs.</span>
 <span class="sd">        :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,</span>
 <span class="sd">                          ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where</span>
@@ -434,14 +434,14 @@
 
             <span class="c1"># new paths are on the form</span>
             <span class="c1"># project 123, config 33:       root/mysite/p123c33</span>
-            <span class="c1"># project 123 with entry point: root/mysite/p123.rv_review</span>
+            <span class="c1"># project 123 with plugin id:   root/mysite/p123.review.rv</span>
             <span class="c1"># site project:                 root/mysite/p0</span>
             <span class="k">if</span> <span class="n">pipeline_config_id</span><span class="p">:</span>
                 <span class="c1"># a config that has a shotgun counterpart</span>
                 <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;c</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pipeline_config_id</span>
-            <span class="k">elif</span> <span class="n">entry_point</span><span class="p">:</span>
-                <span class="c1"># no pc id but instead an entry point string</span>
-                <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">create_valid_filename</span><span class="p">(</span><span class="n">entry_point</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">plugin_id</span><span class="p">:</span>
+                <span class="c1"># no pc id but instead an plugin id string</span>
+                <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">create_valid_filename</span><span class="p">(</span><span class="n">plugin_id</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># this is a possible, however not recommended state</span>
                 <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
@@ -488,7 +488,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.24',
+            VERSION:'v0.18.26',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
