@@ -139,6 +139,8 @@ class TankTestBase(unittest.TestCase):
     Test base class which manages fixtures for tank related tests.
     """
 
+    SHOTGUN_HOME = "SHOTGUN_HOME"
+
     def __init__(self, *args, **kws):
 
         super(TankTestBase, self).__init__(*args, **kws)
@@ -185,6 +187,8 @@ class TankTestBase(unittest.TestCase):
 
 
         """
+        self._old_shotgun_home = os.environ.get("SHOTGUN_HOME")
+        os.environ["SHOTGUN_HOME"] = TANK_TEMP
 
         # Make sure the global settings instance has been reset so anything from a previous test doesn't
         # leak into the next one.
@@ -215,8 +219,6 @@ class TankTestBase(unittest.TestCase):
         self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache")
 
         self.cache_root = os.path.join(self.tank_temp, "cache_root")
-
-        self._sandbox_test_case()
 
         # Mock this so that authentication manager works even tough we are not in a config.
         # If we don't mock it than the path cache calling get_current_user will fail.
@@ -331,49 +333,36 @@ class TankTestBase(unittest.TestCase):
         patch.start()
         self.addCleanup(patch.stop)
 
-    def _sandbox_test_case(self):
-        """
-        Configures locations on disk that are read/writable by a unit test and that need to be sandboxed.
-        """
-        self._mock_return_value("tank.pipelineconfig_factory._get_cache_location", self.init_cache_location)
-        self._mock_return_value("tank.path_cache.PathCache._get_path_cache_location", os.path.join(self.tank_temp, "path_cache.db"))
-        self._mock_return_value("tank.authentication.session_cache._get_global_authentication_file_location", os.path.join(self.tank_temp, "global_authentication.yml"))
-
-        patch = mock.patch(
-            "tank.authentication.session_cache._get_site_authentication_file_location",
-            lambda site: os.path.join(
-                self.tank_temp,
-                urlparse.urlparse(site).netloc.split(":")[0].lower(),
-                "authentication.yml"
-            )
-        )
-        patch.start()
-        self.addCleanup(patch.stop)
-
     def tearDown(self):
         """
         Cleans up after tests.
         """
-        sgtk.set_authenticated_user(self._authenticated_user)
+        try:
+            sgtk.set_authenticated_user(self._authenticated_user)
 
-        # get rid of path cache from local ~/.shotgun storage
-        pc = path_cache.PathCache(self.tk)
-        path_cache_file = pc._get_path_cache_location()
-        pc.close()
-        if os.path.exists(path_cache_file):
-            os.remove(path_cache_file)
+            # get rid of path cache from local ~/.shotgun storage
+            pc = path_cache.PathCache(self.tk)
+            path_cache_file = pc._get_path_cache_location()
+            pc.close()
+            if os.path.exists(path_cache_file):
+                os.remove(path_cache_file)
 
-        # clear global shotgun accessor
-        tank.util.shotgun._g_sg_cached_connections = threading.local()
+            # clear global shotgun accessor
+            tank.util.shotgun._g_sg_cached_connections = threading.local()
 
-        # get rid of init cache
-        if os.path.exists(self.init_cache_location):
-            os.remove(self.init_cache_location)
+            # get rid of init cache
+            if os.path.exists(self.init_cache_location):
+                os.remove(self.init_cache_location)
 
-        # move project scaffold out of the way
-        self._move_project_data()
-        # important to delete this to free memory
-        self.tk = None
+            # move project scaffold out of the way
+            self._move_project_data()
+            # important to delete this to free memory
+            self.tk = None
+        finally:
+            if self._old_shotgun_home:
+                os.environ["SHOTGUN_HOME"] = self._old_shotgun_home
+            else:
+                del os.environ["SHOTGUN_HOME"]
 
     def setup_fixtures(self, name='config', parameters=None):
         """
