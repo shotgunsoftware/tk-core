@@ -12,11 +12,12 @@ from __future__ import with_statement
 
 import os
 import sys
-import copy
 
-from tank_test.tank_test_base import *
 from tank import TankError
 from tank.util import LocalFileStorageManager
+
+from tank_test.tank_test_base import TankTestBase, setUpModule
+
 
 class TestLocalFileStorage(TankTestBase):
     """
@@ -59,9 +60,15 @@ class TestLocalFileStorage(TankTestBase):
         """
         tests the global root, 0.17 style
         """
-        cache_path = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE, LocalFileStorageManager.CORE_V17)
-        persistent_path = LocalFileStorageManager.get_global_root(LocalFileStorageManager.PERSISTENT, LocalFileStorageManager.CORE_V17)
-        log_path = LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING, LocalFileStorageManager.CORE_V17)
+        cache_path = LocalFileStorageManager.get_global_root(
+            LocalFileStorageManager.CACHE, LocalFileStorageManager.CORE_V17
+        )
+        persistent_path = LocalFileStorageManager.get_global_root(
+            LocalFileStorageManager.PERSISTENT, LocalFileStorageManager.CORE_V17
+        )
+        log_path = LocalFileStorageManager.get_global_root(
+            LocalFileStorageManager.LOGGING, LocalFileStorageManager.CORE_V17
+        )
 
         if sys.platform == "darwin":
             self.assertEqual(cache_path, os.path.expanduser("~/Library/Caches/Shotgun"))
@@ -204,7 +211,6 @@ class TestLocalFileStorage(TankTestBase):
 
             self.assertEqual(root, os.path.join(site_root, expected_suffix))
 
-
     def test_config_root(self):
         """
         tests logic for config root computations
@@ -245,7 +251,6 @@ class TestLocalFileStorage(TankTestBase):
             expected_suffix="p123.flame"
         )
 
-
     def _compute_legacy_config_root(self, project_id, plugin_id, pc_id, expected_suffix):
 
         hostname = "http://test.shotgunstudio.com"
@@ -269,7 +274,6 @@ class TestLocalFileStorage(TankTestBase):
             site_root = LocalFileStorageManager.get_site_root(hostname, path_type, LocalFileStorageManager.CORE_V17)
 
             self.assertEqual(root, os.path.join(site_root, expected_suffix))
-
 
     def test_legacy_config_root(self):
         """
@@ -310,4 +314,3 @@ class TestLocalFileStorage(TankTestBase):
             pc_id=None,
             expected_suffix=os.path.join("project_123", "config_None")
         )
-
