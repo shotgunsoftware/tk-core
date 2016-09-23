@@ -222,7 +222,6 @@ from functools import wraps
 from . import constants
 
 
-
 class LogManager(object):
     """
     Main interface for logging in Toolkit.
@@ -268,14 +267,26 @@ class LogManager(object):
             deactivated for this handler and logs will be appended to the current log file indefinitely.
             """
 
+            temp_backup_name = "%s.%s" % (self.baseFilename, uuid.uuid4())
+
+            # We need to close the file before renaming it (windows!)
             if self.stream:
                 self.stream.close()
                 self.stream = None
 
-            temp_backup_name = "%s.%s" % (self.baseFilename, uuid.uuid4())
+            # Before doing the rollover, check if the first file will fail at all.
+            # If it does, then it is a good thing that we checked otherwise the last
+            # backup would have been blown away before encountering the error.
 
-            # Most of the time when the rotation fails it's because the
-            # main log file can't be updated, so try to update it first.
+            # Take the scenario where there's only one backup. This means that
+            # doRollover would first delete the backup (.1) file so it can make
+            # room for the main file to be renamed to .1. However, if the main file
+            # can't be renamed, we've effectively lost 50% of the logs we had, which
+            # is not cool. Since most of the time only the first file will be locked,
+            # we will try to rename it first. If that fails right away as expected,
+            # we don't try any rollover and append to the current log file.
+            # and raise the _disable_rollover flag.
+
             try:
                 os.rename(self.baseFilename, temp_backup_name)
             except:
@@ -285,7 +296,7 @@ class LogManager(object):
                 return
 
             # Everything went well, so now simply move the log file back into place
-            # so doRollover can work.
+            # so doRollover can do its work.
             try:
                 os.rename(temp_backup_name, self.baseFilename)
             except:
@@ -300,16 +311,19 @@ class LogManager(object):
                 self._handle_rename_failure("w", disable_rollover=False)
                 return
 
-            # Now, execute the rollover.
+            # Now, that we are back in the original state we were in,
+            # were pretty confident that the rollover will work. However, due to
+            # any number of reasons it could still fail. If it does, simply
+            # disable rollover and append to the current log.
             try:
                 super(LogManager._SafeRotatingFileHandler, self).doRollover()
             except:
                 # Something probably failed trying to rollover the backups,
                 # since the code above proved that in theory the main log file
-                # could be moved. In any case, we didn't succeed in renaming,
-                # so disable rollover
+                # should be renamable. In any case, we didn't succeed in renaming,
+                # so disable rollover and reopen the main log file in append mode.
                 log.debug("Rollover failed:", exc_info=True)
-                self._handle_rename_failure("a", disable_rollover=False)
+                self._handle_rename_failure("a", disable_rollover=True)
 
         def _handle_rename_failure(self, mode, disable_rollover):
             # Keep track that the rollover failed.
