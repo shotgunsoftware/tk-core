@@ -81,7 +81,7 @@ class LocalFileStorageManager(object):
                 shotgun_home_override = os.path.abspath(shotgun_home_override)
                 # Root everything inside that custom path.
                 if path_type == cls.CACHE:
-                    return os.path.join(shotgun_home_override)
+                    return shotgun_home_override
                 elif path_type == cls.PERSISTENT:
                     return os.path.join(shotgun_home_override, "data")
                 elif path_type == cls.PREFERENCES:
