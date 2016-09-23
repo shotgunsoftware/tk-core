@@ -187,6 +187,7 @@ class TankTestBase(unittest.TestCase):
 
 
         """
+        # Override SHOTGUN_HOME so that unit tests can be sandboxed.
         self._old_shotgun_home = os.environ.get(self.SHOTGUN_HOME)
         os.environ[self.SHOTGUN_HOME] = TANK_TEMP
 
