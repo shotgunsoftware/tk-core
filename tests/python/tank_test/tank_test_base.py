@@ -30,7 +30,7 @@ import mock
 
 import sgtk
 import tank
-from tank import path_cache
+from tank import path_cache, pipelineconfig_factory
 from tank_vendor import yaml
 from tank.util.user_settings import UserSettings
 
@@ -187,8 +187,8 @@ class TankTestBase(unittest.TestCase):
 
 
         """
-        self._old_shotgun_home = os.environ.get("SHOTGUN_HOME")
-        os.environ["SHOTGUN_HOME"] = TANK_TEMP
+        self._old_shotgun_home = os.environ.get(self.SHOTGUN_HOME)
+        os.environ[self.SHOTGUN_HOME] = TANK_TEMP
 
         # Make sure the global settings instance has been reset so anything from a previous test doesn't
         # leak into the next one.
@@ -216,7 +216,6 @@ class TankTestBase(unittest.TestCase):
         mockgun.Shotgun.set_schema_paths(mockgun_schema_path, mockgun_schema_entity_path)
 
         self.tank_temp = TANK_TEMP
-        self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache")
 
         self.cache_root = os.path.join(self.tank_temp, "cache_root")
 
@@ -351,8 +350,8 @@ class TankTestBase(unittest.TestCase):
             tank.util.shotgun._g_sg_cached_connections = threading.local()
 
             # get rid of init cache
-            if os.path.exists(self.init_cache_location):
-                os.remove(self.init_cache_location)
+            if os.path.exists(pipelineconfig_factory._get_cache_location()):
+                os.remove(pipelineconfig_factory._get_cache_location())
 
             # move project scaffold out of the way
             self._move_project_data()
@@ -360,9 +359,9 @@ class TankTestBase(unittest.TestCase):
             self.tk = None
         finally:
             if self._old_shotgun_home:
-                os.environ["SHOTGUN_HOME"] = self._old_shotgun_home
+                os.environ[self.SHOTGUN_HOME] = self._old_shotgun_home
             else:
-                del os.environ["SHOTGUN_HOME"]
+                del os.environ[self.SHOTGUN_HOME]
 
     def setup_fixtures(self, name='config', parameters=None):
         """
