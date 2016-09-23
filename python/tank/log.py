@@ -217,8 +217,11 @@ import logging.handlers
 import os
 import time
 import weakref
+import uuid
 from functools import wraps
 from . import constants
+
+
 
 class LogManager(object):
     """
@@ -234,6 +237,100 @@ class LogManager(object):
 
     # keeps track of the single instance of the class
     __instance = None
+
+    class _SafeRotatingFileHandler(logging.handlers.RotatingFileHandler):
+        """
+        Provides all the functionality provided by Python's built-in RotatingFileHandler, but with a
+        failsafe when an I/O error happens when doing the rollover. In that case, the failure to
+        rename files will be ignored and the handler will keep writing to the current file. A message
+        will also be logged at the exception level so the user is aware that something really bad just
+        happened. Finally, the handler will not try to rollover in the future.
+        """
+
+        def __init__(self, filename, mode="a", maxBytes=0, backupCount=0, encoding=None, delay=0):
+            """
+            :param str filename: Name of of the log file.
+            :param str mode: Mode to open the file, should be  "w" or "a". Defaults to "a"
+            :param int maxBytes: Maximum file size before rollover. By default, rollover never happens.
+            :param int backupCount: Number of backups to make. Defaults to 0.
+            :param encoding: Encoding to use when writing to the file. Defaults to None.
+            :param delay: If the value is truthy, the log file will be opened only on first write.
+                File will be opened by default.
+            """
+            super(LogManager._SafeRotatingFileHandler, self).__init__(filename, mode, maxBytes, backupCount, encoding, delay)
+            self._disable_rollover = False
+
+        def doRollover(self):
+            """
+            Rename every backups so the current log can be promoted to backup number one.
+
+            The new log file is empty. If this process fails due to any I/O error, rollover is
+            deactivated for this handler and logs will be appended to the current log file indefinitely.
+            """
+
+            if self.stream:
+                self.stream.close()
+                self.stream = None
+
+            temp_backup_name = "%s.%s" % (self.baseFilename, uuid.uuid4())
+
+            # Most of the time when the rotation fails it's because the
+            # main log file can't be updated, so try to update it first.
+            try:
+                os.rename(self.baseFilename, temp_backup_name)
+            except:
+                # It failed, so we'll simply append from now on.
+                log.debug("Can't rename main file:", exc_info=True)
+                self._handle_rename_failure("a", disable_rollover=True)
+                return
+
+            # Everything went well, so now simply move the log file back into place
+            # so doRollover can work.
+            try:
+                os.rename(temp_backup_name, self.baseFilename)
+            except:
+                # For some reason we couldn't move the backup in its place.
+                log.debug(
+                    "Unexpected issue renaming '%s' to '%s':" % (temp_backup_name, self.baseFilename),
+                    exc_info=True
+                )
+                # The main log file doesn't exist anymore, so create a new file.
+                # Don't disable the rollover, this has nothing to do with rollover
+                # failing.
+                self._handle_rename_failure("w", disable_rollover=False)
+                return
+
+            # Now, execute the rollover.
+            try:
+                super(LogManager._SafeRotatingFileHandler, self).doRollover()
+            except:
+                # Something probably failed trying to rollover the backups,
+                # since the code above proved that in theory the main log file
+                # could be moved. In any case, we didn't succeed in renaming,
+                # so disable rollover
+                log.debug("Rollover failed:", exc_info=True)
+                self._handle_rename_failure("a", disable_rollover=False)
+
+        def _handle_rename_failure(self, mode, disable_rollover):
+            # Keep track that the rollover failed.
+            self._disable_rollover = disable_rollover
+            # If the file has been closed, reopen it in append mode.
+            if not self.stream:
+                self.mode = mode
+                self.stream = self._open()
+
+        def shouldRollover(self, record):
+            """
+            Return if the log files should rollover.
+
+            If a rollover operation failed in the past this method will always return False.
+
+            :returns: True if rollover should happen, False otherwise.
+            :rtype: bool
+            """
+            return not self._disable_rollover and super(
+                LogManager._SafeRotatingFileHandler, self
+            ).shouldRollover(record)
 
     def __new__(cls, *args, **kwargs):
         #
@@ -598,7 +695,7 @@ class LogManager(object):
 
         # create a rotating log file with a max size of 5 megs -
         # this should make all log files easily attachable to support tickets.
-        self._std_file_handler = logging.handlers.RotatingFileHandler(
+        self._std_file_handler = self._SafeRotatingFileHandler(
             log_file,
             maxBytes=1024*1024*5,  # 5 MiB
             backupCount=1          # Need at least one backup in order to rotate
