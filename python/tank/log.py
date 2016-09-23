@@ -308,7 +308,7 @@ class LogManager(object):
                 # The main log file doesn't exist anymore, so create a new file.
                 # Don't disable the rollover, this has nothing to do with rollover
                 # failing.
-                self._handle_rename_failure("w", disable_rollover=False)
+                self._handle_rename_failure("w")
                 return
 
             # Now, that we are back in the original state we were in,
@@ -325,7 +325,15 @@ class LogManager(object):
                 log.debug("Rollover failed:", exc_info=True)
                 self._handle_rename_failure("a", disable_rollover=True)
 
-        def _handle_rename_failure(self, mode, disable_rollover):
+        def _handle_rename_failure(self, mode, disable_rollover=False):
+            """
+            Reopen the log file in the specific mode and optionally disable
+            future rollover operations.
+
+            :param str mode: Mode in which to reopen the main log file.
+            :param bool disable_rollover: If True, rollover won't be possible in the
+                future. Defaults to False.
+            """
             # Keep track that the rollover failed.
             self._disable_rollover = disable_rollover
             # If the file has been closed, reopen it in append mode.
@@ -338,6 +346,8 @@ class LogManager(object):
             Return if the log files should rollover.
 
             If a rollover operation failed in the past this method will always return False.
+
+            :param logging.Record record: record that is about to be written to the logs.
 
             :returns: True if rollover should happen, False otherwise.
             :rtype: bool
