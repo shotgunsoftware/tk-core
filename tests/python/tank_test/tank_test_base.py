@@ -578,7 +578,8 @@ class TankTestBase(unittest.TestCase):
 
             # turn any dicts into proper type/id/name refs
             for x in entity:
-                if isinstance(entity[x], dict):
+                # special case: EventLogEntry.meta is not an entity link dict
+                if isinstance(entity[x], dict) and x != "meta":
                     # make a std sg link dict with name, id, type
                     link_dict = {"type": entity[x]["type"], "id": entity[x]["id"] }
 
