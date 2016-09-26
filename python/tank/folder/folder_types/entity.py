@@ -14,6 +14,7 @@ import copy
 from ...errors import TankError
 from ...util import shotgun_entity
 
+from .errors import EntityLinkTypeMismatch
 from .base import Folder
 from .expression_tokens import FilterExpressionToken
 from .util import translate_filter_tokens, resolve_shotgun_filters
