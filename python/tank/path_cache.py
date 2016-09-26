@@ -133,7 +133,7 @@ class PathCache(object):
                 
                 # now ensure that some key fields that have been added during the dev cycle are there
                 ret = c.execute("PRAGMA table_info(path_cache)")
-                field_names = [ x[1] for x in ret.fetchall() ]
+                field_names = [x[1] for x in ret.fetchall()]
                 
                 # check for primary entity field - this was added back in 0.12.x
                 if "primary_entity" not in field_names:
@@ -997,33 +997,33 @@ class PathCache(object):
         """
         
         if primary:
-            # the primary entity must be unique: path/id/type 
+            # the primary entity must be unique: path/id/type
             # see if there are any records for this path
             # note that get_entity does not return secondary entities
             curr_entity = self.get_entity(path, cursor)
-            
+
             if curr_entity is not None:
                 # this path is already registered. Ensure it is connected to
-                # our entity! 
+                # our entity!
                 #
                 # Note! We are only comparing against the type and the id
                 # not against the name. It should be perfectly valid to rename something
                 # in shotgun and if folders are then recreated for that item, nothing happens
-                # because there is already a folder which repreents that item. (although now with 
+                # because there is already a folder which repreents that item. (although now with
                 # an incorrect name)
-                # 
+                #
                 # also note that we have already done this once as part of the validation checks -
                 # this time round, we are doing it more as an integrity check.
-                #                
-                if curr_entity["type"] != entity["type"] or curr_entity["id"] != entity["id"]:    
-                    raise TankError("Database concurrency problems: The path '%s' is " 
+                #
+                if curr_entity["type"] != entity["type"] or curr_entity["id"] != entity["id"]:
+                    raise TankError("Database concurrency problems: The path '%s' is "
                                     "already associated with Shotgun entity %s. Please re-run "
                                     "folder creation to try again." % (path, str(curr_entity) ))
-                    
-                else:   
+
+                else:
                     # the entry that exists in the db matches what we are trying to insert so skip it
                     return None
-                
+
         else:
             # secondary entity
             # in this case, it is okay with more than one record for a path
@@ -1037,7 +1037,12 @@ class PathCache(object):
         # there was no entity in the db. So let's create it!
         root_name, relative_path = self._separate_root(path)
         db_path = self._path_to_dbpath(relative_path)
-        cursor.execute("""INSERT INTO path_cache(entity_type,
+        # note: the INSERT OR IGNORE INTO checks if we already have a
+        # record in the db for this combination - if we do, the insert
+        # is ignored. This is to avoid reported realtime issues when two
+        # processes are doing an incremental sync at the same time,
+        # download new data from shotgun and then attempts to insert it.
+        cursor.execute("""INSERT OR IGNORE INTO path_cache(entity_type,
                                                  entity_id,
                                                  entity_name,
                                                  root,
@@ -1047,11 +1052,17 @@ class PathCache(object):
                         (entity["type"], 
                          entity["id"], 
                          entity["name"], 
-                         root_name, 
-                         db_path, 
+                         root_name,
+                         db_path,
                          primary))
-                
-        return cursor.lastrowid
+
+        db_entity_id = cursor.lastrowid
+        if db_entity_id == 0:
+            # this has already been inserted into the db once
+            # return None
+            db_entity_id = None
+
+        return db_entity_id
 
 
     
