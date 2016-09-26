@@ -29,8 +29,13 @@ class Entity(Folder):
     def create(cls, tk, parent, full_path, metadata):
         """
         Factory method for this class
+
+        :param tk: Tk API instance
+        :param parent: Parent :class:`Folder` object.
+        :param full_path: Full path to the configuration file
+        :param metadata: Contents of configuration file.
+        :returns: :class:`Entity` instance.
         """
-        
         # get data
         sg_name_expression = metadata.get("name")
         entity_type = metadata.get("entity_type")
@@ -39,19 +44,27 @@ class Entity(Folder):
         
         # validate
         if sg_name_expression is None:
-            raise TankError("Missing name token in yml metadata file %s" % full_path )
+            raise TankError("Missing name token in yml metadata file %s" % full_path)
         
         if entity_type is None:
-            raise TankError("Missing entity_type token in yml metadata file %s" % full_path )
+            raise TankError("Missing entity_type token in yml metadata file %s" % full_path)
 
         if filters is None:
-            raise TankError("Missing filters token in yml metadata file %s" % full_path )
+            raise TankError("Missing filters token in yml metadata file %s" % full_path)
         
         entity_filter = translate_filter_tokens(filters, parent, full_path)
                 
-        return Entity(tk, parent, full_path, metadata, entity_type, sg_name_expression, entity_filter, create_with_parent)
-    
-    
+        return Entity(
+            tk,
+            parent,
+            full_path,
+            metadata,
+            entity_type,
+            sg_name_expression,
+            entity_filter,
+            create_with_parent
+        )
+
     def __init__(self, tk, parent, full_path, metadata, entity_type, field_name_expression, filters, create_with_parent):
         """
         Constructor.
@@ -87,7 +100,6 @@ class Entity(Folder):
             return spec_name_fields[entity_type]
         else:
             return "code"
-
     
     def get_entity_type(self):
         """
@@ -162,7 +174,6 @@ class Entity(Folder):
             items_created.append( (my_path, my_sg_data) )
             
         return items_created
-    
 
     def _register_secondary_entities(self, io_receiver, path, entity):
         """
@@ -170,7 +181,6 @@ class Entity(Folder):
         """
         # get all the link fields from the name expression
         for lf in self._entity_expression.get_shotgun_link_fields():
-            
             entity_link = entity[lf]
             io_receiver.register_secondary_entity(path, entity_link, self._config_metadata)
 
@@ -352,8 +362,7 @@ class Entity(Folder):
             else:
                 name = rec["code"]
                 tokens[ my_sg_data_key ]["code"] = rec["code"]
-            
-            
+
             # Step through our token key map and process
             #
             # This is on the form
@@ -381,8 +390,7 @@ class Entity(Folder):
                     # than one type. See the EntityLinkTypeMismatch docs for example.
                     if value["type"] != link_obj.get_entity_type():
                         raise EntityLinkTypeMismatch()
-                    
-                
+
                 # store it in our sg_data prefetch chunk
                 tokens[ link_obj.get_sg_data_key() ] = value
                 

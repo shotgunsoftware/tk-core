@@ -27,6 +27,12 @@ class UserWorkspace(Entity):
     def create(cls, tk, parent, full_path, metadata):
         """
         Factory method for this class
+
+        :param tk: Tk API instance
+        :param parent: Parent :class:`Folder` object.
+        :param full_path: Full path to the configuration file
+        :param metadata: Contents of configuration file.
+        :returns: :class:`Entity` instance.
         """
         # get config
         sg_name_expression = metadata.get("name")

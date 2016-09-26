@@ -17,11 +17,17 @@ from .expression_tokens import SymlinkToken
 class Folder(object):
     """
     Abstract Base class for all other folder classes.
+
+    This object represents a configuration file in the folder
+    creation hierarchy. It can be used to instantiate folders on disk,
+    typically driven by some shotgun input data.
     """
     
     def __init__(self, parent, full_path, config_metadata):
         """
-        Constructor
+        :param parent: Parent :class:`Folder`
+        :param full_path: Full path on disk to the associated configuration file.
+        :param config_metadata: Resolved metadata for this configuration object.
         """
         self._config_metadata = config_metadata
         self._children = []
@@ -33,8 +39,7 @@ class Folder(object):
         if self._parent:
             # add me to parent's child list
             self._parent._children.append(self)
-            
-        
+
     def __repr__(self):
         class_name = self.__class__.__name__
         return "<%s %s>" % (class_name, self._full_path)
@@ -68,6 +73,10 @@ class Folder(object):
         
         This is subclassed by deriving classes which process Shotgun data.
         For more information, see the Entity implementation.
+
+        :param sg: Shotgun API instance
+        :param shotgun_data: Shotgun data dictionary. For more information,
+                             see the Entity implementation.
         """
         if self._parent is None:
             return shotgun_data
@@ -89,6 +98,8 @@ class Folder(object):
         """
         Adds a file name that should be added to this folder as part of processing.
         The file path should be absolute.
+
+        :param path: absolute path to file
         """
         self._files.append(path)
         
@@ -102,8 +113,8 @@ class Folder(object):
         :param metadata: full config yml metadata for symlink
         """
         # first split the target expression into chunks
-        resolved_expression = [ SymlinkToken(x) for x in target.split("/") ]
-        self._symlinks.append({"name": name, "target": resolved_expression, "metadata": metadata })
+        resolved_expression = [SymlinkToken(x) for x in target.split("/")]
+        self._symlinks.append({"name": name, "target": resolved_expression, "metadata": metadata})
         
     def create_folders(self, io_receiver, path, sg_data, is_primary, explicit_child_list, engine):
         """
@@ -199,7 +210,6 @@ class Folder(object):
                                       is_primary=False, 
                                       explicit_child_list=[], 
                                       engine=engine)
-            
 
     ###############################################################################################
     # private/protected methods
@@ -216,8 +226,8 @@ class Folder(object):
         """
         Checks if this node should be processed, given its deferred status.
         
-        If deriving classes have other logic for deciding if a node should be processsed,
-        this method can be sublcassed. However, the base class should also be executed.
+        If deriving classes have other logic for deciding if a node should be processed,
+        this method can be subclassed. However, the base class should also be executed.
         
         Is Primary indicates that the folder is part of the primary creation pass.
         
@@ -229,9 +239,11 @@ class Folder(object):
         defer_creation: true                  # create for all engine_str <> None
         defer_creation: tk-maya               # create if engine_str matches
         defer_creation: [tk-maya, tk-nuke]    # create if engine_str is in list
-        """
-        
 
+        :param engine_str: Engine or defer token for which folder creation is running. (see above)
+        :param is_primary: If true, the folder is part of the primary creation pass.
+        :returns: True if the item should be processed
+        """
         dc_value = self._config_metadata.get("defer_creation")
         # if defer_creation config param not specified or None means we 
         # can always go ahead with folder creation!!
@@ -265,7 +277,6 @@ class Folder(object):
         
         # for all other cases, no match!
         return False
-        
 
     def _process_symlinks(self, io_receiver, path, sg_data):
         """
@@ -291,7 +302,6 @@ class Folder(object):
             
             # register symlink with the IO receiver 
             io_receiver.create_symlink(full_path, resolved_target_path, symlink["metadata"])
-        
 
     def _copy_files_to_folder(self, io_receiver, path):
         """

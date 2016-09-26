@@ -8,10 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Folder Classes representing various types of dynamic behaviour 
-"""
-
 from ...errors import TankError
 from .entity import Entity
 
@@ -25,12 +21,16 @@ class Project(Entity):
     def create(cls, tk, schema_config_project_folder, metadata):
         """
         Factory method for this class
+
+        :param tk: Tk API instance
+        :param parent: Parent :class:`Folder` object.
+        :param full_path: Full path to the configuration file
+        :param metadata: Contents of configuration file.
+        :returns: :class:`Entity` instance.
         """
-        
         storage_name = metadata.get("root_name", None)
         if storage_name is None:
             raise TankError("Missing or invalid value for 'root_name' in metadata: %s" % schema_config_project_folder)
-        
         
         # now resolve the disk location for the storage specified in the project config
         local_roots = tk.pipeline_configuration.get_local_storage_roots()
@@ -41,8 +41,12 @@ class Project(Entity):
         
         storage_root_path = local_roots[storage_name]
 
-        return Project(tk, schema_config_project_folder, metadata, storage_root_path)
-    
+        return Project(
+            tk,
+            schema_config_project_folder,
+            metadata,
+            storage_root_path
+        )
     
     def __init__(self, tk, schema_config_project_folder, metadata, storage_root_path):
         """

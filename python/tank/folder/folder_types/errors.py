@@ -12,6 +12,7 @@
 Folder related exceptions.
 """
 
+
 class EntityLinkTypeMismatch(Exception):
     """
     Exception raised to indicate that a shotgun

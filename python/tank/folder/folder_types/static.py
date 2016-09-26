@@ -8,9 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Folder Classes representing various types of dynamic behaviour 
-"""
 import os
 
 from ...errors import TankError
@@ -29,8 +26,13 @@ class Static(Folder):
     def create(cls, tk, parent, full_path, metadata):
         """
         Factory method for this class
+
+        :param tk: Tk API instance
+        :param parent: Parent :class:`Folder` object.
+        :param full_path: Full path to the configuration file
+        :param metadata: Contents of configuration file.
+        :returns: :class:`Entity` instance.
         """
-        
         # get data
         constrain_by_entity = metadata.get("constrain_by_entity")
         constraints = metadata.get("constraints")
@@ -68,7 +70,6 @@ class Static(Folder):
                             "where name is the name of a parent yaml "
                             "configuration file."  % (full_path, constrain_by_entity))
 
-        
             if not isinstance(resolved_constrain_node, Entity):
                 raise TankError("Configuration error in %s: constrain_by_entity points "
                                 "at a node which is not associated with any Shotgun data. " 

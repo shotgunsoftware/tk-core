@@ -26,6 +26,11 @@ class SymlinkToken(object):
     """
 
     def __init__(self, name):
+        """
+        Constructor.
+
+        :param name: name of the symlink
+        """
         self._name = name
 
     def __repr__(self):
@@ -34,6 +39,9 @@ class SymlinkToken(object):
     def resolve_token(self, folder_obj, sg_data):
         """
         Returns a resolved value for this token.
+
+        :param folder_obj: :class:`Folder` to evaluate
+        :param sg_data: Shotgun data dictionary.
         """
         if self._name.startswith("$"):
 
@@ -60,10 +68,15 @@ class SymlinkToken(object):
 
 class CurrentStepExpressionToken(object):
     """
-    Represents the current step
+    Represents the current step within a configuration
     """
 
     def __init__(self, sg_task_step_link_field):
+        """
+        Constructor.
+
+        :param sg_task_step_link_field: The shotgun field that links together a task and a step.
+        """
         self._sg_task_step_link_field = sg_task_step_link_field
 
     def __repr__(self):
@@ -107,6 +120,9 @@ class CurrentTaskExpressionToken(object):
     """
 
     def __init__(self):
+        """
+        Constructor.
+        """
         pass
 
     def __repr__(self):
@@ -220,7 +236,6 @@ class FilterExpressionToken(object):
         Returns the shotgun entity type for this link
         """
         return self._associated_entity_type
-
 
     def resolve_shotgun_data(self, shotgun_data):
         """
