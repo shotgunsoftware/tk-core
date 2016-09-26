@@ -1034,7 +1034,18 @@ class Entity(Folder):
         
         # base class implementation
         return super(Entity, self)._should_item_be_processed(engine_str, is_primary)
-    
+
+    def _get_additional_sg_fields(self):
+        """
+        Returns additional shotgun fields to be retrieved.
+
+        Can be subclassed for special cases.
+
+        :returns: List of shotgun fields to retrieve in addition to those
+                  specified in the configuration files.
+        """
+        return []
+
     def _create_folders_impl(self, io_receiver, parent_path, sg_data):
         """
         Creates folders.
@@ -1118,7 +1129,11 @@ class Entity(Folder):
         
         # always retrieve the name field for the entity
         fields.add( self.__get_name_field_for_et(self._entity_type) )        
-        
+
+        # add any special stuff in
+        for custom_field in self._get_additional_sg_fields():
+            fields.add(custom_field)
+
         # convert to a list - sets wont work with the SG API
         fields_list = list(fields)
         
@@ -1679,8 +1694,40 @@ class ShotgunTask(Entity):
                         entity_filter, 
                         create_with_parent=True)
                 
-        
-        
+    def _get_additional_sg_fields(self):
+        """
+        Returns additional shotgun fields to be retrieved.
+
+        Subclassed for tasks so that the step data is always
+        retrieved at the same time as the task data.
+
+        :returns: List of shotgun fields to retrieve in addition to those
+                  specified in the configuration files.
+        """
+        return ["step"]
+
+    def _register_secondary_entities(self, io_receiver, path, entity):
+        """
+        Looks in the entity dict for any linked entities and register these.
+
+        Subclassed from the base implementation to ensure task entities always
+        register their task as an associated secondary entity
+
+        :param io_receiver: An object which handles any io processing request. Note that
+                            processing may be deferred and happen after the recursion has completed.
+        :param path:        The file system path to the location where this folder should be
+                            created.
+
+        :param entity:      Shotgun data dictionary for the item, containing all fields required by
+                            the configuration + the ones specified by :meth:`_get_additional_sg_fields`.
+        """
+        # call base class implementation
+        super(ShotgunTask, self)._register_secondary_entities(io_receiver, path, entity)
+
+        # for tasks, the associated step is always registered as a secondary entity
+        if entity.get("step"):
+            io_receiver.register_secondary_entity(path, entity["step"], self._config_metadata)
+
 
 
 
