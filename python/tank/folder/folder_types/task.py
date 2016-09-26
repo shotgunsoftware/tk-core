@@ -171,7 +171,7 @@ class ShotgunTask(Entity):
 
     def _register_secondary_entities(self, io_receiver, path, entity):
         """
-        Looks in the entity dict for any linked entities and register these.
+        Process secondary entities for tasks.
 
         Subclassed from the base implementation to ensure task entities always
         register their task as an associated secondary entity
