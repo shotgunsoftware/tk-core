@@ -9,7 +9,9 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 import time
+import Queue
 import StringIO
 import cPickle as pickle
 import sqlite3
@@ -725,24 +727,27 @@ class TestConcurrentShotgunSync(TankTestBase):
         all_processes_finished = False
         while not all_processes_finished:
             time.sleep(0.1)
+            sys.stderr.write(".")
             all_processes_finished = all([not(p.is_alive()) for p in processes])
 
         self.assertFalse(self._multiprocess_fail)
 
-    def concurrent_payload(self, mockgun_shared_pipe):
+    def concurrent_payload(self, queue):
         """
         Run incremental sync 20 times
         """
         try:
-            for x in range(20):
+            for x in range(80):
+                time.sleep(0.05)
                 # update the local mockgun db that we have in memory
-                self.tk.shotgun._db = mockgun_shared_pipe.recv()
+                try:
+                    self.tk.shotgun._db = queue.get_nowait()
+                except Queue.Empty:
+                    pass
                 self.tk.synchronize_filesystem_structure()
         except Exception, e:
             print "Exception from concurrent sync process: %s" % e
             self._multiprocess_fail = True
-        finally:
-            mockgun_shared_pipe.close()
 
     def test_concurrent(self):
         """
@@ -757,22 +762,25 @@ class TestConcurrentShotgunSync(TankTestBase):
         self.tk.synchronize_filesystem_structure(True)
 
         processes = []
-        pipes = []
+        queues = []
+
+        self._multiprocess_fail = False
 
         for x in range(20):
-            pipe, child_pipe = multiprocessing.Pipe()
-            pipes.append(pipe)
-            p = multiprocessing.Process(target=self.concurrent_payload, args=(child_pipe,))
-            p.start()
-            processes.append(p)
-
-        all_processes_finished = False
+            queue = multiprocessing.Queue()
+            proc = multiprocessing.Process(target=self.concurrent_payload, args=(queue,))
+            processes.append(proc)
+            queues.append(queue)
+            proc.start()
 
         shot_id = 5000
         filesystem_location_id = 6000
         event_log_id = 7000
 
-        while not all_processes_finished:
+        while True:
+
+            time.sleep(0.1)
+            sys.stderr.write(".")
 
             shot_id += 1
             filesystem_location_id += 1
@@ -815,12 +823,16 @@ class TestConcurrentShotgunSync(TankTestBase):
 
             self.add_to_sg_mock_db([sg_shot, sg_folder, sg_event_log_entry])
 
-            # now update the mockgun in all other processes
-            for pipe in pipes:
-                pipe.send(self.tk.shotgun._db)
+            if all([not(p.is_alive()) for p in processes]):
+                # all procs finished
+                break
 
-            time.sleep(0.1)
-            all_processes_finished = all([not(p.is_alive()) for p in processes])
+            # now update the mockgun in all other processes
+            for queue in queues:
+                try:
+                    queue.put(self.tk.shotgun._db, block=False)
+                except IOError:
+                    pass
 
         self.assertFalse(self._multiprocess_fail)
 
