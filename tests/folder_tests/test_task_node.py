@@ -311,7 +311,7 @@ class TestSchemaCreateFoldersMultiStep(TankTestBase):
 
         assert_paths_to_create(self.make_path_list())
                                 
-                                
+
     def test_step_b(self):
         """Tests paths used in making a shot are as expected."""
 
@@ -324,3 +324,39 @@ class TestSchemaCreateFoldersMultiStep(TankTestBase):
         assert_paths_to_create(self.make_path_list())
                                 
                                 
+    def test_context_from_path(self):
+        """Testing task based context resolution from path."""
+
+        task_path = os.path.join(
+            self.project_root,
+            "sequences",
+            self.seq["code"],
+            self.shot["code"],
+            self.task["content"]
+        )
+
+        # before folders exist for the task, we expect
+        # only the project to be extracted from the path
+        ctx = self.tk.context_from_path(task_path)
+
+        self.assertEqual(ctx.project, {'type': 'Project', 'id': 1, 'name': 'project_name'})
+        self.assertEqual(ctx.entity, None)
+        self.assertEqual(ctx.step, None)
+        self.assertEqual(ctx.task, None)
+
+        # create folders
+        folder.process_filesystem_structure(self.tk,
+                                            self.task["type"],
+                                            self.task ["id"],
+                                            preview=False,
+                                            engine=None)
+
+
+        # now we should get a full context, including step
+        ctx = self.tk.context_from_path(task_path)
+
+        self.assertEqual(ctx.project, {'type': 'Project', 'id': 1, 'name': 'project_name'})
+        self.assertEqual(ctx.entity, {'type': 'Shot', 'id': 1, 'name': 'shot_code'})
+        self.assertEqual(ctx.step, {'type': 'Step', 'id': 3, 'name': 'step_code'})
+        self.assertEqual(ctx.task, {'type': 'Task', 'id': 23, 'name': 'task1'})
+
