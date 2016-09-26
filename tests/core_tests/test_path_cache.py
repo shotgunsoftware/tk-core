@@ -17,8 +17,6 @@ import cPickle as pickle
 import sqlite3
 import shutil
 import logging
-import multiprocessing
-import threading
 
 from tank_test.tank_test_base import *
 
@@ -708,6 +706,12 @@ class TestConcurrentShotgunSync(TankTestBase):
         """
         test multiple processes doing a full sync of the path cache at the same time
         """
+        # skip this test on windows or py2.5 where multiprocessing isn't available
+        if sys.platform == "win32" or sys.version_info < (2,6):
+            return
+
+        import multiprocessing
+
         folder.process_filesystem_structure(self.tk,
                                             self.task["type"],
                                             self.task["id"],
@@ -753,6 +757,12 @@ class TestConcurrentShotgunSync(TankTestBase):
         """
         Test multi process incremental sync as records are being inserted.
         """
+        # skip this test on windows or py2.5 where multiprocessing isn't available
+        if sys.platform == "win32" or sys.version_info < (2,6):
+            return
+
+        import multiprocessing
+
         folder.process_filesystem_structure(self.tk,
                                             self.task["type"],
                                             self.task["id"],
@@ -835,6 +845,3 @@ class TestConcurrentShotgunSync(TankTestBase):
                     pass
 
         self.assertFalse(self._multiprocess_fail)
-
-
-
