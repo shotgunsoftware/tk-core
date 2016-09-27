@@ -83,6 +83,9 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         # Handle failure of the toolkit bootstrap by the worker.
         self._worker.failed.connect(self._fail_bootstrap)
 
+        # Make the QThread object exit its event loop when the work will be done.
+        self._worker.done.connect(self._thread.quit)
+
     def bootstrap(self):
         """
         Starts the asynchronous bootstrap logic.
@@ -114,13 +117,6 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         Callback slot that handles cleanup after successful completion of the toolkit bootstrap.
         """
 
-        # Make the QThread object exit its event loop.
-        self._thread.quit()
-
-        # Make the worker operate with the main thread affinity
-        # where the main event loop can handle its deletion.
-        self._worker.moveToThread(self.thread())
-
         try:
 
             # Ladies and Gentlemen, start your engines!
@@ -146,13 +142,6 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         :param exception: Exception raised while bootstrapping the toolkit.
         """
 
-        # Make the QThread object exit its event loop.
-        self._thread.quit()
-
-        # Make the worker operate with the main thread affinity
-        # where the main event loop can handle its deletion.
-        self._worker.moveToThread(self.thread())
-
         # Handle cleanup after failed completion of the toolkit bootstrap.
         self._failed_callback(self._toolkit_manager.TOOLKIT_BOOTSTRAP_PHASE, exception)
 
@@ -168,6 +157,8 @@ class _BootstrapToolkitWorker(QtCore.QObject):
              its work in the background. Use ``get_sgtk()`` to retrieve the bootstrapped toolkit instance.
     :signal: ``failed(Exception)`` - Emitted when the bootstrap toolkit worker fails to complete
              its work in the background. The parameter is the python exception raised while bootstrapping.
+    :signal: ``done()`` - Emitted when the bootstrap toolkit worker has done (whether completed or failed)
+             its work in the background.
     """
 
     # Qt signal emitted while the bootstrap toolkit worker is progressing in its work in the background.
@@ -178,6 +169,9 @@ class _BootstrapToolkitWorker(QtCore.QObject):
 
     # Qt signal emitted when the bootstrap toolkit worker fails to complete its work in the background.
     failed = QtCore.Signal(Exception)
+
+    # Qt signal emitted when the bootstrap toolkit worker has done its work in the background.
+    done = QtCore.Signal()
 
     def __init__(self, toolkit_manager, engine_name, entity):
         """
@@ -229,6 +223,14 @@ class _BootstrapToolkitWorker(QtCore.QObject):
 
             # Signal failure of the toolkit bootstrap.
             self.failed.emit(exception)
+
+        # Make the worker operate with the main thread affinity
+        # where the main event loop can handle its deletion.
+        # Only the worker can push itself to the main thread.
+        self.moveToThread(QtCore.QCoreApplication.instance().thread())
+
+        # Signal that the work is done.
+        self.done.emit()
 
     def _report_progress(self, progress_value, message):
         """
