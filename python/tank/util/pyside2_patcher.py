@@ -292,7 +292,10 @@ class PySide2Patcher(object):
                     else:
                         raise ValueError("Unknown platform: %s" % sys.platform)
                 else:
-                    webbrowser.open_new_tab(url.toString().encode("utf-8"))
+                    try:
+                        return webbrowser.open_new_tab(url.toString().encode("utf-8"))
+                    except:
+                        return False
 
             @classmethod
             def displayName(cls, type):
