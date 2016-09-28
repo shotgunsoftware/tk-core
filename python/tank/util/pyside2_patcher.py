@@ -292,6 +292,9 @@ class PySide2Patcher(object):
                     else:
                         raise ValueError("Unknown platform: %s" % sys.platform)
                 else:
+                    # According to webbrowser.py code logic, when open_new_tab() can find
+                    # and launch a suitable browser, it returns True; otherwise it either
+                    # returns False or raises some error.
                     try:
                         return webbrowser.open_new_tab(url.toString().encode("utf-8"))
                     except:
