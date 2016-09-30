@@ -215,6 +215,7 @@ For more information, see https://docs.python.org/2/library/logging.handlers.htm
 import logging
 import logging.handlers
 import os
+import sys
 import time
 import weakref
 import uuid
@@ -247,17 +248,16 @@ class LogManager(object):
         appending to the current log file.
         """
 
-        def __init__(self, filename, mode="a", maxBytes=0, backupCount=0, encoding=None, delay=0):
+        def __init__(self, filename, mode="a", maxBytes=0, backupCount=0, encoding=None):
             """
             :param str filename: Name of of the log file.
             :param str mode: Mode to open the file, should be  "w" or "a". Defaults to "a"
             :param int maxBytes: Maximum file size before rollover. By default, rollover never happens.
             :param int backupCount: Number of backups to make. Defaults to 0.
             :param encoding: Encoding to use when writing to the file. Defaults to None.
-            :param delay: If the value is truthy, the log file will be opened only on first write.
                 File will be opened by default.
             """
-            super(LogManager._SafeRotatingFileHandler, self).__init__(filename, mode, maxBytes, backupCount, encoding, delay)
+            logging.handlers.RotatingFileHandler.__init__(self, filename, mode, maxBytes, backupCount, encoding)
             self._disable_rollover = False
 
         def doRollover(self):
@@ -315,12 +315,17 @@ class LogManager(object):
                 self._handle_rename_failure("w")
                 return
 
+            # Python 2.6 expects the file to be opened during rollover.
+            if not self.stream and sys.version_info[:2] < (2, 7):
+                self.mode = "a"
+                self.stream = self._open()
+
             # Now, that we are back in the original state we were in,
             # were pretty confident that the rollover will work. However, due to
             # any number of reasons it could still fail. If it does, simply
             # disable rollover and append to the current log.
             try:
-                super(LogManager._SafeRotatingFileHandler, self).doRollover()
+                logging.handlers.RotatingFileHandler.doRollover(self)
             except:
                 # Something probably failed trying to rollover the backups,
                 # since the code above proved that in theory the main log file
@@ -359,9 +364,7 @@ class LogManager(object):
             :returns: True if rollover should happen, False otherwise.
             :rtype: bool
             """
-            return not self._disable_rollover and super(
-                LogManager._SafeRotatingFileHandler, self
-            ).shouldRollover(record)
+            return not self._disable_rollover and logging.handlers.RotatingFileHandler.shouldRollover(self, record)
 
     def __new__(cls, *args, **kwargs):
         #
@@ -726,9 +729,17 @@ class LogManager(object):
 
         # create a rotating log file with a max size of 5 megs -
         # this should make all log files easily attachable to support tickets.
-        self._std_file_handler = self._SafeRotatingFileHandler(
+
+        # Python 2.5s implementation is way different that 2.6 and 2.7 and as such we can't
+        # as easily support it for safe rotation.
+        if sys.version_info[:2] > (2, 5):
+            handler_factory = self._SafeRotatingFileHandler
+        else:
+            handler_factory = logging.handlers.RotatingFileHandler
+
+        self._std_file_handler = handler_factory(
             log_file,
-            maxBytes=1024*1024*5,  # 5 MiB
+            maxBytes=1024 * 1024 * 5,  # 5 MiB
             backupCount=1          # Need at least one backup in order to rotate
         )
 
