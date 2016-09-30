@@ -130,8 +130,8 @@ class Engine(TankBundle):
         # check general debug log setting and update the global debug flag accordingly. Do not set this
         # flag only when the debug_logging is "true" because the global_debug flag is... global... and it
         # needs to be reset during engine instantiation if the debug_logging setting suddenly turns false.
-        LogManager().global_debug = self.get_setting("debug_logging", False)
-        if LogManager().global_debug:
+        if self.get_setting("debug_logging", False):
+            LogManager().global_debug = True
             self.log_debug(
                 "Detected setting 'config/env/%s.yml:%s.debug_logging: true' "
                 "in your environment configuration. Turning on debug output." % (env.name, engine_instance_name)
