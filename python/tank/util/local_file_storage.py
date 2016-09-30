@@ -74,8 +74,24 @@ class LocalFileStorageManager(object):
         """
         if generation == cls.CORE_V18:
 
+            # If the environment variable is available and set to an actual value.
+            shotgun_home_override = os.environ.get("SHOTGUN_HOME")
+            if shotgun_home_override:
+                # Make sure the path is an absolute path.
+                shotgun_home_override = os.path.abspath(shotgun_home_override)
+                # Root everything inside that custom path.
+                if path_type == cls.CACHE:
+                    return shotgun_home_override
+                elif path_type == cls.PERSISTENT:
+                    return os.path.join(shotgun_home_override, "data")
+                elif path_type == cls.PREFERENCES:
+                    return os.path.join(shotgun_home_override, "preferences")
+                elif path_type == cls.LOGGING:
+                    return os.path.join(shotgun_home_override, "logs")
+                else:
+                    raise ValueError("Unsupported path type!")
             # current generation of paths
-            if sys.platform == "darwin":
+            elif sys.platform == "darwin":
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/Library/Caches/Shotgun")
                 elif path_type == cls.PERSISTENT:
