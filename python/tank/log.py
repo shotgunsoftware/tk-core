@@ -242,8 +242,9 @@ class LogManager(object):
         Provides all the functionality provided by Python's built-in RotatingFileHandler, but with a
         failsafe when an I/O error happens when doing the rollover. In that case, the failure to
         rename files will be ignored and the handler will keep writing to the current file. A message
-        will also be logged at the exception level so the user is aware that something really bad just
-        happened. Finally, the handler will not try to rollover in the future.
+        will also be logged at the debug level so the user is aware that something really bad just
+        happened. Finally, the handler will not try to rollover in the future and the handler will keep
+        appending to the current log file.
         """
 
         def __init__(self, filename, mode="a", maxBytes=0, backupCount=0, encoding=None, delay=0):
@@ -291,7 +292,10 @@ class LogManager(object):
                 os.rename(self.baseFilename, temp_backup_name)
             except:
                 # It failed, so we'll simply append from now on.
-                log.debug("Can't rename main file:", exc_info=True)
+                log.debug(
+                    "Cannot rotate log file '%s'. Logging will continue to this file, "
+                    "exceeding the specified maximum size", self.baseFilename, exc_info=True
+                )
                 self._handle_rename_failure("a", disable_rollover=True)
                 return
 
@@ -302,8 +306,8 @@ class LogManager(object):
             except:
                 # For some reason we couldn't move the backup in its place.
                 log.debug(
-                    "Unexpected issue renaming '%s' to '%s':" % (temp_backup_name, self.baseFilename),
-                    exc_info=True
+                    "Unexpected issue while rotating log file '%s'. Logging will continue to this file, "
+                    "exceeding the specified maximum size", self.baseFilename, exc_info=True
                 )
                 # The main log file doesn't exist anymore, so create a new file.
                 # Don't disable the rollover, this has nothing to do with rollover
@@ -322,7 +326,10 @@ class LogManager(object):
                 # since the code above proved that in theory the main log file
                 # should be renamable. In any case, we didn't succeed in renaming,
                 # so disable rollover and reopen the main log file in append mode.
-                log.debug("Rollover failed:", exc_info=True)
+                log.debug(
+                    "Cannot rotate log file '%s'. Logging will continue to this file, "
+                    "exceeding the specified maximum size", self.baseFilename, exc_info=True
+                )
                 self._handle_rename_failure("a", disable_rollover=True)
 
         def _handle_rename_failure(self, mode, disable_rollover=False):
