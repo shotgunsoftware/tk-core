@@ -918,6 +918,7 @@ class Engine(TankBundle):
           multi select shotgun app is provided in a special branch in the sample starter
           app: https://github.com/shotgunsoftware/tk-multi-starterapp/tree/shotgun_multi_select
 
+        - Please note that custom icons are not supported by the Shotgun engine.
 
         Typical usage normally looks something like this -
         register_command is called from the :meth:`Application.init_app()` method of an app::
