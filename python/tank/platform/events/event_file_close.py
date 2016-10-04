@@ -31,4 +31,4 @@ class FileCloseEvent(EngineEvent):
         return self._file_path
 
     def __str__(self):
-        return ("%s: %s" % ("FileOpenEvent", self.file_path))
+        return ("%s: %s" % ("FileCloseEvent", self.file_path))
