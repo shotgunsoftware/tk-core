@@ -118,10 +118,6 @@ SG_STYLESHEET_CONSTANTS = { "SG_HIGHLIGHT_COLOR": "#18A7E3",
                             "SG_FOREGROUND_COLOR": "#C8C8C8",
                             "SG_LINK_COLOR": "#C8C8C8"}
 
-# Define a standard template for URL labels. The first string token is for the
-# URL itself, and the second the text/name string to display.
-URL_TEMPLATE = "<a href='%s' style='text-decoration: underline; color: #C8C8C8'>%s</a>"
-
 # the file to look for that defines and bootstraps a framework
 FRAMEWORK_FILE = "framework.py"
 
