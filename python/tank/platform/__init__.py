@@ -24,7 +24,6 @@ from .util import (
     current_bundle,
     restart,
     get_logger,
-    get_hyperlink_html,
 )
 from . import events
 

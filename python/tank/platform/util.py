@@ -260,34 +260,3 @@ def get_logger(module_name):
     full_log_path = "%s.%s" % (curr_bundle.logger.name, module_name)
     return logging.getLogger(full_log_path)
 
-
-def get_hyperlink_html(url, name, color=None, bold=True):
-    """
-    Provides an html string for a hyperlink pointing to the given URL
-    and displaying the provided string name.
-
-    :param str url: The URL that the hyperlink navigates to.
-    :param str name: The string name to display.
-    :param str color: The color of the text. If not given, defaults to
-                      the SG_LINK_COLOR constant.
-    :param bool bold: Whether the displayed text is bold.
-    :return: HTML string.
-    """
-    from sgtk.platform.constants import SG_STYLESHEET_CONSTANTS
-    color = color or SG_STYLESHEET_CONSTANTS["SG_LINK_COLOR"]
-    base = "<a href='{0}' style='text-decoration: none; color: {1}'>".format(
-        url,
-        color,
-    )
-
-    if bold:
-        template = "{0}<b>{1}</b></a>".format(base, name)
-    else:
-        template = "{0}{1}</a>".format(base, name)
-
-    url_template = template.format(
-        url=url,
-        color=color,
-    )
-
-    return url_template
