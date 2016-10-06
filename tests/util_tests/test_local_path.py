@@ -357,7 +357,7 @@ class TestCustomRoot(TankTestBase):
         """
         try:
             # Create an environment variable that uses a ~.
-            os.environ["SHOTGUN_HOME_UNIT_TEST"] = "~/test"
+            os.environ["SHOTGUN_HOME_UNIT_TEST"] = os.path.join("~", "test")
             # Set the SHOTGUN_HOME to use that environment variable.
             os.environ["SHOTGUN_HOME"] = "$SHOTGUN_HOME_UNIT_TEST"
 
