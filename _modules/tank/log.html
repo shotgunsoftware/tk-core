@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.log &mdash; tk-core v0.18.28 documentation</title>
+  <title>tank.log &mdash; tk-core v0.18.29 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.28 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.29 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.28.<br>
+    <b>tk-core</b> v0.18.29.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -383,12 +383,15 @@
 
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">logging.handlers</span>
+<span class="kn">from</span> <span class="nn">logging.handlers</span> <span class="kn">import</span> <span class="n">RotatingFileHandler</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">weakref</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+
 
 <div class="viewcode-block" id="LogManager"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager">[docs]</a><span class="k">class</span> <span class="nc">LogManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -404,6 +407,134 @@
 
     <span class="c1"># keeps track of the single instance of the class</span>
     <span class="n">__instance</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">class</span> <span class="nc">_SafeRotatingFileHandler</span><span class="p">(</span><span class="n">RotatingFileHandler</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provides all the functionality provided by Python&#39;s built-in RotatingFileHandler, but with a</span>
+<span class="sd">        failsafe when an I/O error happens when doing the rollover. In that case, the failure to</span>
+<span class="sd">        rename files will be ignored and the handler will keep writing to the current file. A message</span>
+<span class="sd">        will also be logged at the debug level so the user is aware that something really bad just</span>
+<span class="sd">        happened. Finally, the handler will not try to rollover in the future and the handler will keep</span>
+<span class="sd">        appending to the current log file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">maxBytes</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">backupCount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            :param str filename: Name of of the log file.</span>
+<span class="sd">            :param str mode: Mode to open the file, should be  &quot;w&quot; or &quot;a&quot;. Defaults to &quot;a&quot;</span>
+<span class="sd">            :param int maxBytes: Maximum file size before rollover. By default, rollover never happens.</span>
+<span class="sd">            :param int backupCount: Number of backups to make. Defaults to 0.</span>
+<span class="sd">            :param encoding: Encoding to use when writing to the file. Defaults to None.</span>
+<span class="sd">                File will be opened by default.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">RotatingFileHandler</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">maxBytes</span><span class="p">,</span> <span class="n">backupCount</span><span class="p">,</span> <span class="n">encoding</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_disable_rollover</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">def</span> <span class="nf">doRollover</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Rename every backups so the current log can be promoted to backup number one.</span>
+
+<span class="sd">            The new log file is empty. If this process fails due to any I/O error, rollover is</span>
+<span class="sd">            deactivated for this handler and logs will be appended to the current log file indefinitely.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+
+            <span class="n">temp_backup_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+
+            <span class="c1"># We need to close the file before renaming it (windows!)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="bp">None</span>
+
+            <span class="c1"># Before doing the rollover, check if the first file will fail at all.</span>
+            <span class="c1"># If it does, then it is a good thing that we checked otherwise the last</span>
+            <span class="c1"># backup would have been blown away before encountering the error.</span>
+
+            <span class="c1"># Take the scenario where there&#39;s only one backup. This means that</span>
+            <span class="c1"># doRollover would first delete the backup (.1) file so it can make</span>
+            <span class="c1"># room for the main file to be renamed to .1. However, if the main file</span>
+            <span class="c1"># can&#39;t be renamed, we&#39;ve effectively lost 50% of the logs we had, which</span>
+            <span class="c1"># is not cool. Since most of the time only the first file will be locked,</span>
+            <span class="c1"># we will try to rename it first. If that fails right away as expected,</span>
+            <span class="c1"># we don&#39;t try any rollover and append to the current log file.</span>
+            <span class="c1"># and raise the _disable_rollover flag.</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span> <span class="n">temp_backup_name</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c1"># It failed, so we&#39;ll simply append from now on.</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;Cannot rotate log file &#39;</span><span class="si">%s</span><span class="s2">&#39;. Logging will continue to this file, &quot;</span>
+                    <span class="s2">&quot;exceeding the specified maximum size&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_rename_failure</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">disable_rollover</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Everything went well, so now simply move the log file back into place</span>
+            <span class="c1"># so doRollover can do its work.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">temp_backup_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c1"># For some reason we couldn&#39;t move the backup in its place.</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;Unexpected issue while rotating log file &#39;</span><span class="si">%s</span><span class="s2">&#39;. Logging will continue to this file, &quot;</span>
+                    <span class="s2">&quot;exceeding the specified maximum size&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span>
+                <span class="p">)</span>
+                <span class="c1"># The main log file doesn&#39;t exist anymore, so create a new file.</span>
+                <span class="c1"># Don&#39;t disable the rollover, this has nothing to do with rollover</span>
+                <span class="c1"># failing.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_rename_failure</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Python 2.6 expects the file to be opened during rollover.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;a&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open</span><span class="p">()</span>
+
+            <span class="c1"># Now, that we are back in the original state we were in,</span>
+            <span class="c1"># were pretty confident that the rollover will work. However, due to</span>
+            <span class="c1"># any number of reasons it could still fail. If it does, simply</span>
+            <span class="c1"># disable rollover and append to the current log.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">RotatingFileHandler</span><span class="o">.</span><span class="n">doRollover</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c1"># Something probably failed trying to rollover the backups,</span>
+                <span class="c1"># since the code above proved that in theory the main log file</span>
+                <span class="c1"># should be renamable. In any case, we didn&#39;t succeed in renaming,</span>
+                <span class="c1"># so disable rollover and reopen the main log file in append mode.</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;Cannot rotate log file &#39;</span><span class="si">%s</span><span class="s2">&#39;. Logging will continue to this file, &quot;</span>
+                    <span class="s2">&quot;exceeding the specified maximum size&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_rename_failure</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">disable_rollover</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_handle_rename_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">disable_rollover</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Reopen the log file in the specific mode and optionally disable</span>
+<span class="sd">            future rollover operations.</span>
+
+<span class="sd">            :param str mode: Mode in which to reopen the main log file.</span>
+<span class="sd">            :param bool disable_rollover: If True, rollover won&#39;t be possible in the</span>
+<span class="sd">                future. Defaults to False.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1"># Keep track that the rollover failed.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_disable_rollover</span> <span class="o">=</span> <span class="n">disable_rollover</span>
+            <span class="c1"># If the file has been closed, reopen it in append mode.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">shouldRollover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Return if the log files should rollover.</span>
+
+<span class="sd">            If a rollover operation failed in the past this method will always return False.</span>
+
+<span class="sd">            :param logging.Record record: record that is about to be written to the logs.</span>
+
+<span class="sd">            :returns: True if rollover should happen, False otherwise.</span>
+<span class="sd">            :rtype: bool</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disable_rollover</span> <span class="ow">and</span> <span class="n">RotatingFileHandler</span><span class="o">.</span><span class="n">shouldRollover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1">#</span>
@@ -768,9 +899,17 @@
 
         <span class="c1"># create a rotating log file with a max size of 5 megs -</span>
         <span class="c1"># this should make all log files easily attachable to support tickets.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">RotatingFileHandler</span><span class="p">(</span>
+
+        <span class="c1"># Python 2.5s implementation is way different that 2.6 and 2.7 and as such we can&#39;t</span>
+        <span class="c1"># as easily support it for safe rotation.</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+            <span class="n">handler_factory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SafeRotatingFileHandler</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">handler_factory</span> <span class="o">=</span> <span class="n">RotatingFileHandler</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="o">=</span> <span class="n">handler_factory</span><span class="p">(</span>
             <span class="n">log_file</span><span class="p">,</span>
-            <span class="n">maxBytes</span><span class="o">=</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="o">*</span><span class="mi">5</span><span class="p">,</span>  <span class="c1"># 5 MiB</span>
+            <span class="n">maxBytes</span><span class="o">=</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span>  <span class="c1"># 5 MiB</span>
             <span class="n">backupCount</span><span class="o">=</span><span class="mi">1</span>          <span class="c1"># Need at least one backup in order to rotate</span>
         <span class="p">)</span>
 
@@ -856,7 +995,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.28',
+            VERSION:'v0.18.29',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
