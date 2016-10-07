@@ -143,12 +143,16 @@ class TestIncludes(object):
 
         def test_missing_file(self):
             """
-            Makes sure an exception is raised when the include doesn't exist.
+            Make sure an exception is raised when the include doesn't exist.
             """
             with self.assertRaisesRegexp(tank.TankError, "Include Resolve error"):
                 self._resolve_includes("dead/path/to/a/file")
 
 
+# TODO: These tests should be move within the respective test package, but because they share
+# the same suite of tests there's no easy way to share the suite. However, once we finish the
+# refactoring of the include system, I suspect most of these tests will move to the refactored
+# framework location and this messiness will go away.
 
 class TestTemplateIncludes(TestIncludes.Imp):
     """
