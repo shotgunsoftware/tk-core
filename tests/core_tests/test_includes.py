@@ -105,6 +105,18 @@ class TestIncludes(TankTestBase):
             [paths[sys.platform]] # get the value for the current platform
         )
 
+    @patch("os.path.exists", return_value=True)
+    def test_path_with_relative_env_var(self, _):
+        """
+        Validate that relative path are processed correctly on all platforms.
+        """
+        include = os.path.join("$INCLUDE_ENV_VAR", "include.yml")
+        with temp_env_var(INCLUDE_ENV_VAR="sub_folder"):
+            self.assertEqual(
+                self._resolve_includes(include),
+                [os.path.join(os.getcwd(), "sub_folder", "include.yml")]
+            )
+
     def _resolve_includes(self, includes):
         """
         Take the tedium out of calling _get_include
