@@ -28,61 +28,39 @@ c:\foo\bar\hello.yml - absolute path, windows
 
 """
 
-
-
 import os
-import sys
 
 from .errors import TankError
 from . import constants
 from .util import yaml_cache
+from .util.includes import resolve_include
 
 
 def _get_includes(file_name, data):
     """
-    Parses the includes section and returns a list of valid paths
+    Parse the includes section and return a list of valid paths
+
+    :param str file_name: Name of the file to parse.
+    :param aray or str data: Include path or array of include paths to evaluate.
     """
     includes = []
-    resolved_includes = []
-    
+
+    resolved_includes = set()
+
     if constants.SINGLE_INCLUDE_SECTION in data:
         # single include section
         includes.append( data[constants.SINGLE_INCLUDE_SECTION] )
-            
+
     if constants.MULTI_INCLUDE_SECTION in data:
         # multi include section
         includes.extend( data[constants.MULTI_INCLUDE_SECTION] )
 
     for include in includes:
-        
-        if "/" in include and not include.startswith("/") and not include.startswith("$"):
-            # relative path: foo/bar.yml or ./foo.bar.yml
-            # note the $ check to avoid paths beginning with env vars to fall into this branch
-            adjusted = include.replace("/", os.path.sep)
-            full_path = os.path.join(os.path.dirname(file_name), adjusted)
-    
-        elif "\\" in include:
-            # windows absolute path
-            if sys.platform != "win32":
-                # ignore this on other platforms
-                continue
-            full_path = os.path.expandvars(include)
-            
-        else:
-            # linux absolute path
-            if sys.platform == "win32":
-                # ignore this on other platforms
-                continue
-            full_path = os.path.expandvars(include)
-                    
-        # make sure that the paths all exist
-        if not os.path.exists(full_path):
-            raise TankError("Include Resolve error in %s: Included path %s "
-                            "does not exist!" % (file_name, full_path))
+        resolved = resolve_include(file_name, include)
+        if resolved:
+            resolved_includes.add(resolved)
 
-        resolved_includes.append(full_path)
-
-    return resolved_includes
+    return list(resolved_includes)
 
 
 def _process_template_includes_r(file_name, data):
