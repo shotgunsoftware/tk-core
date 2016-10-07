@@ -116,7 +116,7 @@ BUNDLE_STYLESHEET_FILE = "style.qss"
 SG_STYLESHEET_CONSTANTS = { "SG_HIGHLIGHT_COLOR": "#18A7E3",
                             "SG_ALERT_COLOR": "#FC6246",
                             "SG_FOREGROUND_COLOR": "#C8C8C8",
-                            "SG_LINK_COLOR": "#CCCED2"}
+                            "SG_LINK_COLOR": "#C8C8C8"}
 
 # the file to look for that defines and bootstraps a framework
 FRAMEWORK_FILE = "framework.py"

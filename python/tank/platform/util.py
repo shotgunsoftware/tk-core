@@ -260,4 +260,3 @@ def get_logger(module_name):
     full_log_path = "%s.%s" % (curr_bundle.logger.name, module_name)
     return logging.getLogger(full_log_path)
 
-
