@@ -113,7 +113,7 @@ class TestIncludes(object):
             Validate that relative path are processed correctly on all platforms.
             """
             paths = {
-                "win32": "C:\\$test.yml",
+                "win32": "C:\\test.yml",
                 "darwin": "/test.yml",
                 "linux2": "/test.yml"
             }

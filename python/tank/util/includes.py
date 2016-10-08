@@ -9,8 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 import posixpath
 import ntpath
+
 from .shotgun_path import ShotgunPath
 from ..errors import TankError
 
@@ -26,6 +28,22 @@ def _is_abs(path):
     return posixpath.isabs(path) or ntpath.isabs(path)
 
 
+def _is_current_platform_abspath(path):
+    """
+    Check if the path is an obsolute path for the current platform.
+
+    :param str path: Path to validate.
+
+    :returns bool: True if absolute for this platform, False otherwise.
+    """
+    if sys.platform == "win32":
+        # ntpath likes to consider a path starting with / to be absolute,
+        # but it is not!
+        return ntpath.isabs(path) and not posixpath.isabs(path)
+    else:
+        return posixpath.isabs(path)
+
+
 def resolve_include(file_name, include):
     """
     Resolve an include.
@@ -33,7 +51,7 @@ def resolve_include(file_name, include):
     If the path has a ~ or an environment variable, it will be resolved first.
 
     If the path is relative, it will be considered relative to the file that
-    included it.
+    included it and it will be considered for any OS.
 
     If the path is absolute, the file will be resolved only if it uses the current
     platform's path separator.
@@ -52,13 +70,14 @@ def resolve_include(file_name, include):
     # First resolve all environment variables and ~
     path = os.path.expanduser(os.path.expandvars(include))
 
-    # Then, if the path is not absolute
+    # If the path is not absolute, make it so!
     if not _is_abs(path):
         # Append it to the current file's directory.
         path = os.path.join(os.path.dirname(file_name), path)
-    # Then if this path doesn't use the path separator for the current platform.
-    elif os.path.sep not in path:
-        return
+    # We have an absolute path, so check if it is meant for this platform.
+    elif not _is_current_platform_abspath(path):
+        # It wasn't meant for this platform, return nothing.
+        return None
 
     # ShotgunPath cleans up paths so that slashes are all in the same direction
     # and no doubles exists.
