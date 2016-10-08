@@ -53,10 +53,10 @@ def resolve_include(file_name, include):
     If the path is relative, it will be considered relative to the file that
     included it and it will be considered for any OS.
 
-    If the path is absolute, the file will be resolved only if it uses the current
-    platform's path separator.
+    If the path is absolute, it will only be considered to be a valid include if
+    it is an absolute path for the current platform.
 
-    Finally, the path will be sanitized to remove any extraenous slashes or slashes
+    Finally, the path will be sanitized to remove any extraneous slashes or slashes
     in the wrong direction.
 
     :param str file_name: Name of the file containing the include.
