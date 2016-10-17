@@ -132,7 +132,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
         elif isinstance(entity_ids, str) and entity_ids.isdigit():
             entity_ids = (int(entity_ids),)
         else:
-            raise ValueError("Parameter entity_ids was passed %s, accepted types are list, tuple and int.")
+            raise ValueError("Parameter entity_ids' type is '%s', accepted types are list, tuple and int." % type(entity_ids).__name__)
     
     if len(entity_ids) == 0:
         return
