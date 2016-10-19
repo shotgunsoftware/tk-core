@@ -180,11 +180,15 @@ a commit in a particular branch::
 You can use both long and short hash formats for the version token. The latest version for a git_branch
 descriptor is defined as the most recent commit for a given branch.
 
-As shown in the examples above, the git descriptors handle both local and remote repositories.
-They also handle private repositories in github, assuming that you have set up your ssh authentication
-correctly. On Windows, it is recommended that you use forward slashes.
+.. warning:: Repositories requiring authentication are not fully supported by Toolkit. For such
+             setups, we strongly recommend using an ssh style git url
+             (e.g. ``git@github.com:shotgunsoftware/tk-core.git``) in order to eliminate git
+             trying to prompt for a password in the background.
 
-.. Note:: When using the git descriptor, you need to have the git executable in
+
+.. note:: On Windows, it is recommended that you use forward slashes.
+
+.. note:: When using the git descriptor, you need to have the git executable in
           the ``PATH`` in order for the API to be able to do a latest check or
           app download. The git executable is, however, not needed during descriptor
           resolve and normal operation.
