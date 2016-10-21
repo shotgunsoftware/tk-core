@@ -18,10 +18,9 @@ import time
 import shutil
 import pprint
 import threading
-import logging
 import tempfile
 import uuid
-import urlparse
+import contextlib
 
 from tank_vendor.shotgun_api3.lib import mockgun
 
@@ -98,6 +97,29 @@ def skip_if_pyside_missing(func):
     return unittest.skipIf(_is_pyside_missing(), "PySide is missing")(func)
 
 
+@contextlib.contextmanager
+def temp_env_var(**kwargs):
+    """
+    Scope the life-scope of temporary environment variable within a ``with`` block.
+
+    :param \**kwargs: key-value pairs of environment variables to set.
+    """
+    backup_values = {}
+    for k, v in kwargs.iteritems():
+        if k in os.environ:
+            backup_values[k] = os.environ[k]
+        os.environ[k] = v
+
+    try:
+        yield
+    finally:
+        for k, v in kwargs.iteritems():
+            if k in backup_values:
+                os.environ[k] = backup_values[k]
+            else:
+                del os.environ[k]
+
+
 def setUpModule():
     """
     Creates studio level directories in temporary location for tests.
@@ -163,7 +185,6 @@ class TankTestBase(unittest.TestCase):
 
         # where to go for test data
         self.fixtures_root = os.environ["TK_TEST_FIXTURES"]
-
 
     def setUp(self, parameters=None):
         """
