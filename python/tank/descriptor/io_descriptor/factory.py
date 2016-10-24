@@ -65,6 +65,7 @@ def create_io_descriptor(
     from .appstore import IODescriptorAppStore
     from .dev import IODescriptorDev
     from .path import IODescriptorPath
+    from .versioned_path import IODescriptorVersionedPath
     from .shotgun_entity import IODescriptorShotgunEntity
     from .git_tag import IODescriptorGitTag
     from .git_branch import IODescriptorGitBranch
@@ -100,7 +101,7 @@ def create_io_descriptor(
         # make sure to add an artificial one so that we can resolve it.
         #
         # We only do this for descriptor types that supports a version number concept
-        descriptors_using_version = ["app_store", "shotgun", "manual", "git", "git_branch"]
+        descriptors_using_version = ["app_store", "shotgun", "manual", "git", "git_branch", "versioned_path"]
 
         if "version" not in descriptor_dict and descriptor_dict.get("type") in descriptors_using_version:
             # for the case of latest version, make sure we attach a version
@@ -129,6 +130,9 @@ def create_io_descriptor(
 
     elif descriptor_dict.get("type") == "path":
         descriptor = IODescriptorPath(descriptor_dict)
+
+    elif descriptor_dict.get("type") == "versioned_path":
+        descriptor = IODescriptorVersionedPath(descriptor_dict)
 
     else:
         raise TankDescriptorError("Unknown descriptor type for '%s'" % descriptor_dict)

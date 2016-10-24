@@ -61,6 +61,7 @@ def create_descriptor(
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
     from .descriptor_config import ConfigDescriptor
     from .descriptor_core import CoreDescriptor
+    from .descriptor_third_party import ThirdPartyDescriptor
 
     # if bundle root is not set, fall back on default location
     if bundle_cache_root_override is None:
@@ -102,6 +103,9 @@ def create_descriptor(
     elif descriptor_type == Descriptor.CORE:
         return CoreDescriptor(io_descriptor)
 
+    elif descriptor_type == Descriptor.THIRD_PARTY:
+        return ThirdPartyDescriptor(io_descriptor)
+
     else:
         raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)
 
@@ -128,7 +132,7 @@ class Descriptor(object):
     and helper methods.
     """
 
-    (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = range(5)
+    (APP, FRAMEWORK, ENGINE, CONFIG, CORE, THIRD_PARTY) = range(6)
 
     def __init__(self, io_descriptor):
         """

@@ -298,6 +298,23 @@ class IODescriptorBase(object):
 
         return version_to_use
 
+    @staticmethod
+    def _get_versions_in_path(parent_folder):
+        parent_folder = os.path.dirname(parent_folder)
+
+        all_versions = []
+
+        log.debug("Scanning for versions in '%s'" % parent_folder)
+        if os.path.exists(parent_folder):
+            for version_folder in os.listdir(parent_folder):
+                version_full_path = os.path.join(parent_folder, version_folder)
+                # check that it's a folder and not a system folder
+                if os.path.isdir(version_full_path) and \
+                        not version_folder.startswith("_") and \
+                        not version_folder.startswith("."):
+                    all_versions.append(version_folder)
+        return all_versions
+
     def _get_locally_cached_versions(self):
         """
         Given all cache locations, try to establish a list of versions
@@ -311,19 +328,8 @@ class IODescriptorBase(object):
         """
         all_versions = set()
         for possible_cache_path in self._get_cache_paths():
-            # get the parent folder for the current version path
-            parent_folder = os.path.dirname(possible_cache_path)
-            # now look for child folders here - these are all the
-            # versions stored in this cache area
-            log.debug("Scanning for versions in '%s'" % parent_folder)
-            if os.path.exists(parent_folder):
-                for version_folder in os.listdir(parent_folder):
-                    version_full_path = os.path.join(parent_folder, version_folder)
-                    # check that it's a folder and not a system folder
-                    if os.path.isdir(version_full_path) and \
-                            not version_folder.startswith("_") and \
-                            not version_folder.startswith("."):
-                        all_versions.add(version_folder)
+            for version_folder in self._get_versions_in_path(possible_cache_path):
+                all_versions.add(version_folder)
 
         return list(all_versions)
 
