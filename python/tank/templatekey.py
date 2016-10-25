@@ -277,10 +277,6 @@ class TemplateKey(object):
     def __repr__(self):
         return "<Sgtk %s %s>" % (self.__class__.__name__, self.name)
 
-    @property
-    def has_abstraction(self):
-        return hasattr(self, "_abstractor")
-
 
 class StringKey(TemplateKey):
     """
@@ -295,7 +291,9 @@ class StringKey(TemplateKey):
                  shotgun_field_name=None, 
                  exclusions=None,
                  abstract=False, 
-                 length=None):
+                 length=None,
+                 subset=None,
+                 subset_format=None):
         """
         :param name: Name by which the key will be referred.
         :param default: Default value for the key.
@@ -305,8 +303,10 @@ class StringKey(TemplateKey):
         :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
         :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
         :param exclusions: List of forbidden values.
-        :param abstract: Bool, should this key be treated as abstract.
-        :param length: int, should this key be fixed length
+        :param abstract: Flagging that this should be treated as an abstract key.
+        :param length: Integer value indicating the length of the key.
+        :param subset: Regular expression defining a subset of the value to use.
+        :param subset_format: String to express the order of subset tokens
         """
         self._filter_by = filter_by
 
@@ -328,7 +328,14 @@ class StringKey(TemplateKey):
         elif self._filter_by is not None:
             # filter_by is a regex
             self._custom_regex_u = re.compile(self._filter_by, re.UNICODE)
-        
+
+        self._subset_str = subset
+        self._subset_format = subset_format
+
+        if subset:
+            self._subset_regex = re.compile(subset, re.UNICODE)
+        else:
+            self._subset_regex = None
 
         super(StringKey, self).__init__(name,
                                         default=default,
@@ -343,33 +350,134 @@ class StringKey(TemplateKey):
     def filter_by(self):
         """
         Name of filter type to limit values for string.
-
-        returns: 'alphanumeric', 'alpha', None or a regex string.
+        ``alphanumeric``, ``alpha``, ``None`` or a regex string.
         """
         return self._filter_by
 
-    def validate(self, value):
+    @property
+    def subset(self):
+        """
+        Returns a regular expression describing how values should be transformed
+        when they are being injected into template paths and strings.
 
+        For format for a subset is a regular expression containing tokens,
+        for example:
+
+        - ``([A-Z])[a-z]+ ([A-Z])[a-z]`` would extract initials from a Firstname Surname string
+        - ``(.{3}).*`` would extract the first three characters in a string
+        """
+        return self._subset_str
+
+    def validate(self, value):
+        """
+        Test if a value is valid for this key.
+
+        :param value: Value to test
+        :returns: True if valid, false if not.
+        """
+        # make sure that transforms such as a subset calculation
+        # are valid.
+        return self.__validate(value, validate_transforms=True)
+
+    def value_from_str(self, str_value):
+        """
+        Validates and translates a string into an appropriate value for this key.
+
+        :param str_value: The string to translate.
+        :returns: The translated value.
+        """
+        # this is used by parser when transforming
+        # a path or string into an actual value.
+        # in this case, we don't want to validate transforms
+        # such as the substring regext transform, since these
+        # may not be valid in both directions.
+        if self.__validate(str_value, validate_transforms=False):
+            value = self._as_value(str_value)
+        else:
+            raise TankError(self._last_error)
+        return value
+
+    def _as_string(self, value):
+        """
+        Converts the given value to a string representation
+
+        :param value: value of any type to convert. Value is never None.
+        :return: string representation for this object.
+        """
+        str_value = value if isinstance(value, basestring) else str(value)
+
+        if self._subset_regex:
+            # process substring computation.
+            # we want to do this in unicode.
+
+            if not isinstance(str_value, unicode):
+                # convert to unicode
+                converted_to_unicode = True
+                value_to_convert = str_value.decode("utf-8")
+            else:
+                # already unicode
+                value_to_convert = str_value
+
+            # now perform extraction and concat
+            match = self._subset_regex.match(value_to_convert)
+            if match is None:
+                # no match. return empty string
+                # validate should prevent this from happening
+                resolved_value = u""
+            elif self._subset_format:
+                # we have an explicit format string we want to apply to the
+                # match. In this case, regex needs to contain
+                resolved_value = self._subset_format % match.groupdict()
+            else:
+                # we have a match object. concatenate the groups
+                resolved_value = "".join(match.groups())
+
+            # resolved value is now unicode. Convert it
+            # so that it is consistent with input
+            if converted_to_unicode:
+                # input was utf-8
+                str_value = resolved_value.encode("utf-8")
+            else:
+                str_value = resolved_value
+
+        return str_value
+
+    def __validate(self, value, validate_transforms):
+        """
+        Test if a value is valid for this key.
+
+        :param value: Value to test
+        :param validate_transforms: If true, then validate that transforms which mutate the
+                                    value of a key are valid and can be applied.
+        :returns: True if valid, false if not.
+        """
         u_value = value
         if not isinstance(u_value, unicode):
             # handle non-ascii characters correctly by
             # decoding to unicode assuming utf-8 encoding
             u_value = value.decode("utf-8")
 
-        if self._filter_regex_u:                
+        if self._filter_regex_u:
             # first check our std filters. These filters are negated
-            # so here we are checking that there are occurances of 
+            # so here we are checking that there are occurances of
             # that pattern in the string
             if self._filter_regex_u.search(u_value):
                 self._last_error = "%s Illegal value '%s' does not fit filter_by '%s'" % (self, value, self.filter_by)
                 return False
-        
+
         elif self._custom_regex_u:
             # check for any user specified regexes
             if self._custom_regex_u.match(u_value) is None:
                 self._last_error = "%s Illegal value '%s' does not fit filter_by '%s'" % (self, value, self.filter_by)
                 return False
-            
+
+        # check subset regex
+        if self._subset_regex and validate_transforms:
+            if self._subset_regex.match(u_value) is None:
+                self._last_error = "%s Illegal value '%s' does not fit " \
+                                   "subset expression '%s'" % (self, value, self.subset)
+                return False
+
         return super(StringKey, self).validate(value)
 
     def _as_string(self, value):
