@@ -13,6 +13,7 @@ Classes for fields on TemplatePaths and TemplateStrings
 """
 
 import re
+import sys
 import datetime
 from . import constants
 from .errors import TankError
@@ -331,6 +332,10 @@ class StringKey(TemplateKey):
 
         self._subset_str = subset
         self._subset_format = subset_format
+        if self._subset_format and sys.version_info < (2, 6):
+            raise TankError("Subset formatting in template keys require python 2.6+!")
+
+        self._subset_str = subset
 
         if subset:
             self._subset_regex = re.compile(subset, re.UNICODE)
@@ -361,12 +366,60 @@ class StringKey(TemplateKey):
         when they are being injected into template paths and strings.
 
         For format for a subset is a regular expression containing tokens,
-        for example:
+        for example::
 
-        - ``([A-Z])[a-z]+ ([A-Z])[a-z]`` would extract initials from a Firstname Surname string
-        - ``(.{3}).*`` would extract the first three characters in a string
+            # grabs capital letters of the two first words
+            user_initials:
+                type: str
+                subset: '([A-Z])[a-z]* ([A-Z])[a-z]*'
+
+            # extracts the first three characters
+            first_three_characters:
+                type: str
+                subset: '(.{3}).*'
+
+            # in code, the above expressions would compress the following input:
+
+            some_template.apply_fields(
+                {"user_initials": "John Smith",
+                "first_three_characters": "John Smith"}
+            )
+
+            # into "JS" for the {user_initials} key and "Joh" for the {first_three_characters} key
+
+        If the subset expression contains more than one ``(regex group)`` to extract, the groups
+        will be concatenated together in the order they are found. If you want greater control
+        over this, see :meth:`subset_format`.
         """
         return self._subset_str
+
+    @property
+    def subset_format(self):
+        """
+        Returns the ``subset_format`` string for the given template key. This string is used in conjunction with the
+        :meth:`subset` parameter and allows for the formatting of the values that are being extracted
+        as the subset::
+
+            # grabs capital letters of the two first words
+            user_initials_backwards:
+                type: str
+                subset: '([A-Z])[a-z]* ([A-Z])[a-z]*'
+                subset_format: '{1} {0}'
+
+            # in code, the above expression would compress the following input:
+
+            some_template.apply_fields({"user_initials": "John Smith"})
+
+            # into "SJ" for the user_initials_backwards key.
+
+        The formatting used for the string is standard python custom string formatting, where you can reference
+        each regex group with an integer index. Read more about standard python string formatting here:
+        https://docs.python.org/2/library/string.html#custom-string-formatting
+
+        .. note:: Subset format is using python string formatting and is only compatible with
+                  with Python 2.6+.
+        """
+        return self._subset_format
 
     def validate(self, value):
         """
@@ -424,10 +477,12 @@ class StringKey(TemplateKey):
                 # no match. return empty string
                 # validate should prevent this from happening
                 resolved_value = u""
+
             elif self._subset_format:
                 # we have an explicit format string we want to apply to the
-                # match. In this case, regex needs to contain
-                resolved_value = self._subset_format % match.groupdict()
+                # match.
+                resolved_value = self._subset_format.format(*match.groups())
+
             else:
                 # we have a match object. concatenate the groups
                 resolved_value = "".join(match.groups())
@@ -473,15 +528,29 @@ class StringKey(TemplateKey):
 
         # check subset regex
         if self._subset_regex and validate_transforms:
-            if self._subset_regex.match(u_value) is None:
+            regex_match = self._subset_regex.match(u_value)
+            if regex_match is None:
                 self._last_error = "%s Illegal value '%s' does not fit " \
                                    "subset expression '%s'" % (self, value, self.subset)
                 return False
 
+            # validate that the formatting can be applied to the input value
+            if self._subset_format:
+                try:
+                    self._subset_format.format(*regex_match.groups())
+                except Exception, e:
+                    self._last_error = "%s Illegal value '%s' does not fit subset '%s' with format '%s': %s" % (
+                        self,
+                        value,
+                        self.subset,
+                        self.subset_format,
+                        e
+                    )
+                    return False
+
+
         return super(StringKey, self).validate(value)
 
-    def _as_string(self, value):
-        return value if isinstance(value, basestring) else str(value)
 
 
 class TimestampKey(TemplateKey):
