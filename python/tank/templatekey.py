@@ -307,7 +307,7 @@ class StringKey(TemplateKey):
         :param abstract: Flagging that this should be treated as an abstract key.
         :param length: Integer value indicating the length of the key.
         :param subset: Regular expression defining a subset of the value to use.
-        :param subset_format: String to express the order of subset tokens
+        :param subset_format: String to express the formatting of subset tokens.
         """
         self._filter_by = filter_by
 
@@ -365,7 +365,7 @@ class StringKey(TemplateKey):
         Returns a regular expression describing how values should be transformed
         when they are being injected into template paths and strings.
 
-        For format for a subset is a regular expression containing tokens,
+        The format for a subset is a regular expression containing regex groups,
         for example::
 
             # grabs capital letters of the two first words
@@ -397,8 +397,7 @@ class StringKey(TemplateKey):
     def subset_format(self):
         """
         Returns the ``subset_format`` string for the given template key. This string is used in conjunction with the
-        :meth:`subset` parameter and allows for the formatting of the values that are being extracted
-        as the subset::
+        :meth:`subset` parameter and allows for the formatting of the values that are being extracted::
 
             # grabs capital letters of the two first words
             user_initials_backwards:
@@ -439,11 +438,17 @@ class StringKey(TemplateKey):
         :param str_value: The string to translate.
         :returns: The translated value.
         """
-        # this is used by parser when transforming
+        # this is used by the parser when transforming
         # a path or string into an actual value.
         # in this case, we don't want to validate transforms
         # such as the substring regext transform, since these
         # may not be valid in both directions.
+        #
+        # for example, a regex that extracts the initials from
+        # a "Firstname Lastname" string will result in a value
+        # which will not match the regex that is used to
+        # extract it.
+        #
         if self.__validate(str_value, validate_transforms=False):
             value = self._as_value(str_value)
         else:
@@ -452,10 +457,10 @@ class StringKey(TemplateKey):
 
     def _as_string(self, value):
         """
-        Converts the given value to a string representation
+        Converts the given value to a string representation.
 
         :param value: value of any type to convert. Value is never None.
-        :return: string representation for this object.
+        :returns: string representation for this object.
         """
         str_value = value if isinstance(value, basestring) else str(value)
 
@@ -502,7 +507,7 @@ class StringKey(TemplateKey):
         Test if a value is valid for this key.
 
         :param value: Value to test
-        :param validate_transforms: If true, then validate that transforms which mutate the
+        :param validate_transforms: If true, then validate that transforms that mutate the
                                     value of a key are valid and can be applied.
         :returns: True if valid, false if not.
         """
