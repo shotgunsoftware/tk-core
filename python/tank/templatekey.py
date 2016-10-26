@@ -338,7 +338,11 @@ class StringKey(TemplateKey):
         self._subset_str = subset
 
         if subset:
-            self._subset_regex = re.compile(subset, re.UNICODE)
+            try:
+                self._subset_regex = re.compile(subset, re.UNICODE)
+            except Exception, e:
+                raise TankError("Template key %s: Invalid subset regex '%s': %s" % (name, subset, e))
+
         else:
             self._subset_regex = None
 
@@ -350,6 +354,10 @@ class StringKey(TemplateKey):
                                         exclusions=exclusions,
                                         abstract=abstract,
                                         length=length)
+
+        if self._subset_format and not self._subset_str:
+            raise TankError("%s: Cannot specify subset_format parameter without a subset parameter." % self)
+
 
     @property
     def filter_by(self):
@@ -470,10 +478,11 @@ class StringKey(TemplateKey):
 
             if not isinstance(str_value, unicode):
                 # convert to unicode
-                converted_to_unicode = True
+                input_is_utf8 = True
                 value_to_convert = str_value.decode("utf-8")
             else:
                 # already unicode
+                input_is_utf8 = False
                 value_to_convert = str_value
 
             # now perform extraction and concat
@@ -485,8 +494,8 @@ class StringKey(TemplateKey):
 
             elif self._subset_format:
                 # we have an explicit format string we want to apply to the
-                # match.
-                resolved_value = self._subset_format.format(*match.groups())
+                # match. Do the formatting as unicode.
+                resolved_value = self._subset_format.decode("utf-8").format(*match.groups())
 
             else:
                 # we have a match object. concatenate the groups
@@ -494,8 +503,8 @@ class StringKey(TemplateKey):
 
             # resolved value is now unicode. Convert it
             # so that it is consistent with input
-            if converted_to_unicode:
-                # input was utf-8
+            if isinstance(resolved_value, unicode) and input_is_utf8:
+                # input was utf-8, regex resut is unicode, cast it back
                 str_value = resolved_value.encode("utf-8")
             else:
                 str_value = resolved_value
@@ -542,7 +551,8 @@ class StringKey(TemplateKey):
             # validate that the formatting can be applied to the input value
             if self._subset_format:
                 try:
-                    self._subset_format.format(*regex_match.groups())
+                    # perform the formatting in unicode space to cover all cases
+                    self._subset_format.decode("utf-8").format(*regex_match.groups())
                 except Exception, e:
                     self._last_error = "%s Illegal value '%s' does not fit subset '%s' with format '%s': %s" % (
                         self,
