@@ -411,7 +411,7 @@ class StringKey(TemplateKey):
             user_initials_backwards:
                 type: str
                 subset: '([A-Z])[a-z]* ([A-Z])[a-z]*'
-                subset_format: '{1} {0}'
+                subset_format: '{1}{0}'
 
             # in code, the above expression would compress the following input:
 
