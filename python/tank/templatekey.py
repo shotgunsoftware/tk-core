@@ -13,6 +13,7 @@ Classes for fields on TemplatePaths and TemplateStrings
 """
 
 import re
+import sys
 import datetime
 from . import constants
 from .errors import TankError
@@ -59,16 +60,16 @@ class TemplateKey(object):
                  abstract=False, 
                  length=None):
         """
-        :param name: Key name.
+        :param str name: Name by which the key will be referred.
         :param default: Default value for this key. If the default is a callable, it will be invoked
                         without any parameters whenever a default value is required.
         :param choices: List of possible values for this key. Can be either a list or a dictionary
                         of choice:label pairs.
-        :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
-        :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
-        :param exclusions: List of values which are not allowed.
-        :param abstract: Boolean indicating if the value is abstract.
-        :param length: If non-None, indicating that the value should be of a fixed length.
+        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
+        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.
+        :param list exclusions: List of forbidden values.
+        :param bool abstract: Flagging that this should be treated as an abstract key.
+        :param int length: If non-None, indicating that the value should be of a fixed length.
         """
         self._name = name
         self._default = default
@@ -277,10 +278,6 @@ class TemplateKey(object):
     def __repr__(self):
         return "<Sgtk %s %s>" % (self.__class__.__name__, self.name)
 
-    @property
-    def has_abstraction(self):
-        return hasattr(self, "_abstractor")
-
 
 class StringKey(TemplateKey):
     """
@@ -295,18 +292,23 @@ class StringKey(TemplateKey):
                  shotgun_field_name=None, 
                  exclusions=None,
                  abstract=False, 
-                 length=None):
+                 length=None,
+                 subset=None,
+                 subset_format=None):
         """
-        :param name: Name by which the key will be referred.
-        :param default: Default value for the key.
-        :param choices: List of possible values for this key.
-        :param filter_by: Name of filter type to limit values for string. Currently
-                          only accepted values are 'alphanumeric', 'alpha', None and a regex string.
-        :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
-        :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
-        :param exclusions: List of forbidden values.
-        :param abstract: Bool, should this key be treated as abstract.
-        :param length: int, should this key be fixed length
+        :param str name: Name by which the key will be referred.
+        :param str default: Default value for the key.
+        :param choices: List of possible values for this key. Can be either a list or a dictionary
+                        of choice:label pairs.
+        :param str filter_by: Name of filter type to limit values for string. Currently
+                              only accepted values are 'alphanumeric', 'alpha', None and a regex string.
+        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
+        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.
+        :param list exclusions: List of forbidden values.
+        :param bool abstract: Flagging that this should be treated as an abstract key.
+        :param int length: If non-None, indicating that the value should be of a fixed length.
+        :param str subset: Regular expression defining a subset of the value to use.
+        :param str subset_format: String to express the formatting of subset tokens.
         """
         self._filter_by = filter_by
 
@@ -328,7 +330,22 @@ class StringKey(TemplateKey):
         elif self._filter_by is not None:
             # filter_by is a regex
             self._custom_regex_u = re.compile(self._filter_by, re.UNICODE)
-        
+
+        self._subset_str = subset
+        self._subset_format = subset_format
+        if self._subset_format and sys.version_info < (2, 6):
+            raise TankError("Subset formatting in template keys require python 2.6+!")
+
+        self._subset_str = subset
+
+        if subset:
+            try:
+                self._subset_regex = re.compile(subset, re.UNICODE)
+            except Exception, e:
+                raise TankError("Template key %s: Invalid subset regex '%s': %s" % (name, subset, e))
+
+        else:
+            self._subset_regex = None
 
         super(StringKey, self).__init__(name,
                                         default=default,
@@ -339,41 +356,217 @@ class StringKey(TemplateKey):
                                         abstract=abstract,
                                         length=length)
 
+        if self._subset_format and not self._subset_str:
+            raise TankError("%s: Cannot specify subset_format parameter without a subset parameter." % self)
+
+
     @property
     def filter_by(self):
         """
         Name of filter type to limit values for string.
-
-        returns: 'alphanumeric', 'alpha', None or a regex string.
+        ``alphanumeric``, ``alpha``, ``None`` or a regex string.
         """
         return self._filter_by
 
-    def validate(self, value):
+    @property
+    def subset(self):
+        """
+        Returns a regular expression describing how values should be transformed
+        when they are being injected into template paths and strings.
 
+        The format for a subset is a regular expression containing regex groups,
+        for example::
+
+            # grabs capital letters of the two first words
+            user_initials:
+                type: str
+                subset: '([A-Z])[a-z]* ([A-Z])[a-z]*'
+
+            # extracts the first three characters
+            first_three_characters:
+                type: str
+                subset: '(.{3}).*'
+
+            # in code, the above expressions would compress the following input:
+
+            some_template.apply_fields(
+                {"user_initials": "John Smith",
+                "first_three_characters": "John Smith"}
+            )
+
+            # into "JS" for the {user_initials} key and "Joh" for the {first_three_characters} key
+
+        If the subset expression contains more than one ``(regex group)`` to extract, the groups
+        will be concatenated together in the order they are found. If you want greater control
+        over this, see :meth:`subset_format`.
+        """
+        return self._subset_str
+
+    @property
+    def subset_format(self):
+        """
+        Returns the ``subset_format`` string for the given template key. This string is used in conjunction with the
+        :meth:`subset` parameter and allows for the formatting of the values that are being extracted::
+
+            # grabs capital letters of the two first words
+            user_initials_backwards:
+                type: str
+                subset: '([A-Z])[a-z]* ([A-Z])[a-z]*'
+                subset_format: '{1}{0}'
+
+            # in code, the above expression would compress the following input:
+
+            some_template.apply_fields({"user_initials": "John Smith"})
+
+            # into "SJ" for the user_initials_backwards key.
+
+        The formatting used for the string is standard python custom string formatting, where you can reference
+        each regex group with an integer index. Read more about standard python string formatting here:
+        https://docs.python.org/2/library/string.html#custom-string-formatting
+
+        .. note:: Subset format is using python string formatting and is only compatible with
+                  with Python 2.6+.
+        """
+        return self._subset_format
+
+    def validate(self, value):
+        """
+        Test if a value is valid for this key.
+
+        :param value: Value to test
+        :returns: True if valid, false if not.
+        """
+        # make sure that transforms such as a subset calculation
+        # are valid.
+        return self.__validate(value, validate_transforms=True)
+
+    def value_from_str(self, str_value):
+        """
+        Validates and translates a string into an appropriate value for this key.
+
+        :param str_value: The string to translate.
+        :returns: The translated value.
+        """
+        # this is used by the parser when transforming
+        # a path or string into an actual value.
+        # in this case, we don't want to validate transforms
+        # such as the substring regext transform, since these
+        # may not be valid in both directions.
+        #
+        # for example, a regex that extracts the initials from
+        # a "Firstname Lastname" string will result in a value
+        # which will not match the regex that is used to
+        # extract it.
+        #
+        if self.__validate(str_value, validate_transforms=False):
+            value = self._as_value(str_value)
+        else:
+            raise TankError(self._last_error)
+        return value
+
+    def _as_string(self, value):
+        """
+        Converts the given value to a string representation.
+
+        :param value: value of any type to convert. Value is never None.
+        :returns: string representation for this object.
+        """
+        str_value = value if isinstance(value, basestring) else str(value)
+
+        if self._subset_regex:
+            # process substring computation.
+            # we want to do this in unicode.
+
+            if not isinstance(str_value, unicode):
+                # convert to unicode
+                input_is_utf8 = True
+                value_to_convert = str_value.decode("utf-8")
+            else:
+                # already unicode
+                input_is_utf8 = False
+                value_to_convert = str_value
+
+            # now perform extraction and concat
+            match = self._subset_regex.match(value_to_convert)
+            if match is None:
+                # no match. return empty string
+                # validate should prevent this from happening
+                resolved_value = u""
+
+            elif self._subset_format:
+                # we have an explicit format string we want to apply to the
+                # match. Do the formatting as unicode.
+                resolved_value = self._subset_format.decode("utf-8").format(*match.groups())
+
+            else:
+                # we have a match object. concatenate the groups
+                resolved_value = "".join(match.groups())
+
+            # resolved value is now unicode. Convert it
+            # so that it is consistent with input
+            if isinstance(resolved_value, unicode) and input_is_utf8:
+                # input was utf-8, regex resut is unicode, cast it back
+                str_value = resolved_value.encode("utf-8")
+            else:
+                str_value = resolved_value
+
+        return str_value
+
+    def __validate(self, value, validate_transforms):
+        """
+        Test if a value is valid for this key.
+
+        :param value: Value to test
+        :param validate_transforms: If true, then validate that transforms that mutate the
+                                    value of a key are valid and can be applied.
+        :returns: True if valid, false if not.
+        """
         u_value = value
         if not isinstance(u_value, unicode):
             # handle non-ascii characters correctly by
             # decoding to unicode assuming utf-8 encoding
             u_value = value.decode("utf-8")
 
-        if self._filter_regex_u:                
+        if self._filter_regex_u:
             # first check our std filters. These filters are negated
-            # so here we are checking that there are occurances of 
+            # so here we are checking that there are occurances of
             # that pattern in the string
             if self._filter_regex_u.search(u_value):
                 self._last_error = "%s Illegal value '%s' does not fit filter_by '%s'" % (self, value, self.filter_by)
                 return False
-        
+
         elif self._custom_regex_u:
             # check for any user specified regexes
             if self._custom_regex_u.match(u_value) is None:
                 self._last_error = "%s Illegal value '%s' does not fit filter_by '%s'" % (self, value, self.filter_by)
                 return False
-            
+
+        # check subset regex
+        if self._subset_regex and validate_transforms:
+            regex_match = self._subset_regex.match(u_value)
+            if regex_match is None:
+                self._last_error = "%s Illegal value '%s' does not fit " \
+                                   "subset expression '%s'" % (self, value, self.subset)
+                return False
+
+            # validate that the formatting can be applied to the input value
+            if self._subset_format:
+                try:
+                    # perform the formatting in unicode space to cover all cases
+                    self._subset_format.decode("utf-8").format(*regex_match.groups())
+                except Exception, e:
+                    self._last_error = "%s Illegal value '%s' does not fit subset '%s' with format '%s': %s" % (
+                        self,
+                        value,
+                        self.subset,
+                        self.subset_format,
+                        e
+                    )
+                    return False
+
+
         return super(StringKey, self).validate(value)
 
-    def _as_string(self, value):
-        return value if isinstance(value, basestring) else str(value)
 
 
 class TimestampKey(TemplateKey):
@@ -388,7 +581,7 @@ class TimestampKey(TemplateKey):
         format_spec="%Y-%m-%d-%H-%M-%S"
     ):
         """
-        :param name: Name by which the key will be referred.
+        :param str name: Name by which the key will be referred.
         :param default: Default value for this field. Acceptable values are:
 
                         - ``None``
@@ -398,10 +591,10 @@ class TimestampKey(TemplateKey):
                         - ``now``, which means the current time in the local timezone will be used
                           as the default value.
 
-        :param format_spec: Specification for formatting when casting to/from a string.
-                            The format follows the convention of :meth:`time.strftime`. The
-                            default value is ``%Y-%m-%d-%H-%M-%S``. Given June 24th, 2015 at
-                            9:20:30 PM, this will yield ``2015-06-24-21-20-30``.
+        :param str format_spec: Specification for formatting when casting to/from a string.
+                                The format follows the convention of :meth:`time.strftime`. The
+                                default value is ``%Y-%m-%d-%H-%M-%S``. Given June 24th, 2015 at
+                                9:20:30 PM, this will yield ``2015-06-24-21-20-30``.
         """
 
         # Can't use __repr__ because of a chicken and egg problem. The base class validates the
@@ -539,20 +732,20 @@ class IntegerKey(TemplateKey):
                  length=None,
                  strict_matching=None):
         """
-        :param name: Key's name.
-        :param default: Default value for this key.
-        :param choices: List of possible values for this key.
-        :param format_spec: Specification for formatting when casting to a string.
-                            The form is a zero followed the number of spaces to pad
-                            the value.
-        :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
-        :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
-        :param exclusions: List of forbidden values.
-        :param abstract: Bool, should this key be treated as abstract.
-        :param length: int, should this key be fixed length
-        :param strict_matching: Bool, indicates if the padding should be matching exactly the
-                                format_spec when parsing a string. Default behavior is to match
-                                exactly the padding when a format_spec is provided.
+        :param str name: Name by which the key will be referred.
+        :param int default: Default value for this key.
+        :param list choices: List of possible values for this key.
+        :param str format_spec: Specification for formatting when casting to a string.
+                                The form is a zero followed the number of spaces to pad
+                                the value.
+        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
+        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.
+        :param list exclusions: List of forbidden values.
+        :param bool abstract: Flagging that this should be treated as an abstract key.
+        :param int length: If non-None, indicating that the value should be of a fixed length.
+        :param bool strict_matching: Indicates if the padding should be matching exactly the
+                                     format_spec when parsing a string. Default behavior is to match
+                                     exactly the padding when a format_spec is provided.
         """
         self._zero_padded = None
         self._minimum_width = None
@@ -813,17 +1006,16 @@ class SequenceKey(IntegerKey):
                  shotgun_field_name=None,
                  exclusions=None):
         """
-        :param name: Key's name.
-        :param default: Default value for this key.
-        :param choices: List of possible values for this key.
-        :param format_spec: Specification for formatting when casting to a string.
-                            The form is a zero followed the number of spaces to pad
-                            the value.
-        :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
-        :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
-        :param exclusions: List of forbidden values.
+        :param str name: Name by which the key will be referred.
+        :param str default: Default value for this key.
+        :param list choices: List of possible values for this key.
+        :param str format_spec: Specification for formatting when casting to a string.
+                                The form is a zero followed the number of spaces to pad
+                                the value.
+        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
+        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.
+        :param str exclusions: List of forbidden values.
         """
-
         # determine the actual frame specs given the padding (format_spec)
         # and the allowed formats
         self._frame_specs = [self._resolve_frame_spec(x, format_spec) for x in self.VALID_FORMAT_STRINGS ]

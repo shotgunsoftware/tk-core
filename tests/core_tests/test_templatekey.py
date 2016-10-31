@@ -16,6 +16,7 @@ from __future__ import with_statement
 
 from tank import TankError
 import copy
+import sys
 import datetime
 from mock import patch
 from tank_test.tank_test_base import *
@@ -255,6 +256,121 @@ class TestStringKey(TankTestBase):
     def test_repr(self):
         expected = "<Sgtk StringKey field_name>"
         self.assertEquals(expected, str(self.str_field))
+
+    def test_subset(self):
+        """
+        Test subset_format parameter
+        """
+
+        # test properties
+        template_field = StringKey("field_name", subset="(.{3}).*")
+        self.assertEquals("(.{3}).*", template_field.subset)
+        # test bad regex
+        self.assertRaises(TankError, StringKey, "field_name", subset="({4}.).*BROKENREGEX")
+
+        # test basic regex
+        template_field = StringKey("field_name", subset="(.{3}).*")
+
+        tests = []
+
+        # basic test
+        tests.append({"short": "foo", "full": "foobar", "template": StringKey("field_name", subset="(.{3}).*")})
+        tests.append({"short": u"foo", "full": u"foobar", "template": StringKey("field_name", subset="(.{3}).*")})
+
+        # unicode
+        tests.append({
+            "short": u'\u3042\u308a\u304c',
+            "full": u'\u3042\u308a\u304c\u3068',
+            "template": StringKey("field_name", subset="(.{3}).*")}
+        )
+
+        # multi token
+        tests.append({
+            "short": 'JS',
+            "full": 'John Smith',
+            "template": StringKey("field_name", subset='([A-Z])[a-z]* ([A-Z])[a-z]*')}
+        )
+
+        for test in tests:
+
+            short = test["short"]
+            full = test["full"]
+            template_field = test["template"]
+
+            self.assertEquals(short, template_field.value_from_str(short))
+            self.assertEquals(full, template_field.value_from_str(full))
+
+            self.assertEquals(short, template_field.str_from_value(full))
+
+            self.assertTrue(template_field.validate(full))
+
+            self.assertFalse(template_field.validate(short[0]))
+            self.assertRaises(TankError, template_field.str_from_value, short[0])
+
+
+
+    def test_subset_format(self):
+        """
+        Test subset_format parameter
+        """
+
+        if sys.version_info < (2, 6):
+            # subset format not supported in py25
+            self.assertRaises(TankError, StringKey, "field_name", subset="(.{3}).*", subset_format="{0} FOO")
+            return
+
+        # test properties
+        template_field = StringKey("field_name", subset="(.)().*", subset_format="{0} FOO")
+        self.assertEquals("{0} FOO", template_field.subset_format)
+
+        # cannot specify subset_format without subset
+        self.assertRaises(TankError, StringKey, "field_name", subset_format="{0} FOO")
+
+        tests = []
+
+        # basic test
+        tests.append( {
+            "short": "\u3042foo ",
+            "full": "foobar",
+            "template": StringKey("field_name", subset="(.{3}).*", subset_format="\u3042{0} ")
+            }
+        )
+
+        # unicode
+        tests.append( {
+            "short": u'\u3042\u308a\u304c ',
+            "full": u'\u3042\u308a\u304c\u3068',
+            "template": StringKey("field_name", subset="(.{3}).*", subset_format="{0} ")
+            }
+        )
+
+        # multi token
+        tests.append( {
+            "short": 'S J',
+            "full": 'John Smith',
+            "template": StringKey("field_name", subset='([A-Z])[a-z]* ([A-Z])[a-z]*', subset_format="{1} {0}")
+            }
+        )
+
+        for test in tests:
+
+            print test
+
+            short = test["short"]
+            full = test["full"]
+            template_field = test["template"]
+
+            self.assertEquals(short, template_field.value_from_str(short))
+            self.assertEquals(full, template_field.value_from_str(full))
+
+            self.assertEquals(short, template_field.str_from_value(full))
+
+            self.assertTrue(template_field.validate(full))
+
+            self.assertFalse(template_field.validate(short[0]))
+            self.assertRaises(TankError, template_field.str_from_value, short[0])
+
+
 
 
 class TestIntegerKey(TankTestBase):
