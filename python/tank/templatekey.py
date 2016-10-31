@@ -60,16 +60,16 @@ class TemplateKey(object):
                  abstract=False, 
                  length=None):
         """
-        :param name: Key name.
+        :param str name: Name by which the key will be referred.
         :param default: Default value for this key. If the default is a callable, it will be invoked
                         without any parameters whenever a default value is required.
         :param choices: List of possible values for this key. Can be either a list or a dictionary
                         of choice:label pairs.
-        :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
-        :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
-        :param exclusions: List of values which are not allowed.
-        :param abstract: Boolean indicating if the value is abstract.
-        :param length: If non-None, indicating that the value should be of a fixed length.
+        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
+        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.
+        :param list exclusions: List of forbidden values.
+        :param bool abstract: Flagging that this should be treated as an abstract key.
+        :param int length: If non-None, indicating that the value should be of a fixed length.
         """
         self._name = name
         self._default = default
@@ -296,18 +296,19 @@ class StringKey(TemplateKey):
                  subset=None,
                  subset_format=None):
         """
-        :param name: Name by which the key will be referred.
-        :param default: Default value for the key.
-        :param choices: List of possible values for this key.
-        :param filter_by: Name of filter type to limit values for string. Currently
-                          only accepted values are 'alphanumeric', 'alpha', None and a regex string.
-        :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
-        :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
-        :param exclusions: List of forbidden values.
-        :param abstract: Flagging that this should be treated as an abstract key.
-        :param length: Integer value indicating the length of the key.
-        :param subset: Regular expression defining a subset of the value to use.
-        :param subset_format: String to express the formatting of subset tokens.
+        :param str name: Name by which the key will be referred.
+        :param str default: Default value for the key.
+        :param choices: List of possible values for this key. Can be either a list or a dictionary
+                        of choice:label pairs.
+        :param str filter_by: Name of filter type to limit values for string. Currently
+                              only accepted values are 'alphanumeric', 'alpha', None and a regex string.
+        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
+        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.
+        :param list exclusions: List of forbidden values.
+        :param bool abstract: Flagging that this should be treated as an abstract key.
+        :param int length: If non-None, indicating that the value should be of a fixed length.
+        :param str subset: Regular expression defining a subset of the value to use.
+        :param str subset_format: String to express the formatting of subset tokens.
         """
         self._filter_by = filter_by
 
@@ -580,7 +581,7 @@ class TimestampKey(TemplateKey):
         format_spec="%Y-%m-%d-%H-%M-%S"
     ):
         """
-        :param name: Name by which the key will be referred.
+        :param str name: Name by which the key will be referred.
         :param default: Default value for this field. Acceptable values are:
 
                         - ``None``
@@ -590,10 +591,10 @@ class TimestampKey(TemplateKey):
                         - ``now``, which means the current time in the local timezone will be used
                           as the default value.
 
-        :param format_spec: Specification for formatting when casting to/from a string.
-                            The format follows the convention of :meth:`time.strftime`. The
-                            default value is ``%Y-%m-%d-%H-%M-%S``. Given June 24th, 2015 at
-                            9:20:30 PM, this will yield ``2015-06-24-21-20-30``.
+        :param str format_spec: Specification for formatting when casting to/from a string.
+                                The format follows the convention of :meth:`time.strftime`. The
+                                default value is ``%Y-%m-%d-%H-%M-%S``. Given June 24th, 2015 at
+                                9:20:30 PM, this will yield ``2015-06-24-21-20-30``.
         """
 
         # Can't use __repr__ because of a chicken and egg problem. The base class validates the
@@ -731,20 +732,20 @@ class IntegerKey(TemplateKey):
                  length=None,
                  strict_matching=None):
         """
-        :param name: Key's name.
-        :param default: Default value for this key.
-        :param choices: List of possible values for this key.
-        :param format_spec: Specification for formatting when casting to a string.
-                            The form is a zero followed the number of spaces to pad
-                            the value.
-        :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
-        :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
-        :param exclusions: List of forbidden values.
-        :param abstract: Bool, should this key be treated as abstract.
-        :param length: int, should this key be fixed length
-        :param strict_matching: Bool, indicates if the padding should be matching exactly the
-                                format_spec when parsing a string. Default behavior is to match
-                                exactly the padding when a format_spec is provided.
+        :param str name: Name by which the key will be referred.
+        :param int default: Default value for this key.
+        :param list choices: List of possible values for this key.
+        :param str format_spec: Specification for formatting when casting to a string.
+                                The form is a zero followed the number of spaces to pad
+                                the value.
+        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
+        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.
+        :param list exclusions: List of forbidden values.
+        :param bool abstract: Flagging that this should be treated as an abstract key.
+        :param int length: If non-None, indicating that the value should be of a fixed length.
+        :param bool strict_matching: Indicates if the padding should be matching exactly the
+                                     format_spec when parsing a string. Default behavior is to match
+                                     exactly the padding when a format_spec is provided.
         """
         self._zero_padded = None
         self._minimum_width = None
@@ -1005,17 +1006,16 @@ class SequenceKey(IntegerKey):
                  shotgun_field_name=None,
                  exclusions=None):
         """
-        :param name: Key's name.
-        :param default: Default value for this key.
-        :param choices: List of possible values for this key.
-        :param format_spec: Specification for formatting when casting to a string.
-                            The form is a zero followed the number of spaces to pad
-                            the value.
-        :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
-        :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.
-        :param exclusions: List of forbidden values.
+        :param str name: Name by which the key will be referred.
+        :param str default: Default value for this key.
+        :param list choices: List of possible values for this key.
+        :param str format_spec: Specification for formatting when casting to a string.
+                                The form is a zero followed the number of spaces to pad
+                                the value.
+        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.
+        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.
+        :param str exclusions: List of forbidden values.
         """
-
         # determine the actual frame specs given the padding (format_spec)
         # and the allowed formats
         self._frame_specs = [self._resolve_frame_spec(x, format_spec) for x in self.VALID_FORMAT_STRINGS ]
