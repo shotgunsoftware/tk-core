@@ -108,14 +108,14 @@ class InteractiveTests(TankTestBase):
         """
         self._test_login(console=False)
 
-    @patch("tank.authentication.interactive_authentication._get_qt_state")
+    @patch("tank.authentication.interactive_authentication._get_ui_state")
     @interactive
-    def test_login_console(self, _get_qt_state_mock):
+    def test_login_console(self, _get_ui_state_mock):
         """
         Pops the ui and lets the user authenticate.
         :param cache_session_data_mock: Mock for the tank.util.session_cache.cache_session_data
         """
-        _get_qt_state_mock.return_value = None, None, None
+        _get_ui_state_mock.return_value = False
         self._test_login(console=True)
 
     def _print_message(self, text, test_console):
@@ -162,11 +162,11 @@ class InteractiveTests(TankTestBase):
     def test_session_renewal_ui(self):
         self._test_session_renewal(test_console=False)
 
-    @patch("tank.authentication.interactive_authentication._get_qt_state")
+    @patch("tank.authentication.interactive_authentication._get_ui_state")
     @interactive
-    def test_session_renewal_console(self,_get_qt_state_mock):
+    def test_session_renewal_console(self, _get_ui_state_mock):
         # Doing this forces the prompting code to use the console.
-        _get_qt_state_mock.return_value = None, None, None
+        _get_ui_state_mock.return_value = False
         self._test_session_renewal(test_console=True)
 
     def test_invoker_rethrows_exception(self):
@@ -178,7 +178,7 @@ class InteractiveTests(TankTestBase):
         From the background thread, we will create an invoker and use it to invoke the thrower
         method in the main thread. This thrower method will throw a FromMainThreadException.
         If everything works as planned, the exception will be caught by the invoker and rethrown
-        in the background thread. The background thread will then raise an exception and when the 
+        in the background thread. The background thread will then raise an exception and when the
         main thread calls wait it will assert that the exception that was thrown was coming
         from the thrower function.
         """
