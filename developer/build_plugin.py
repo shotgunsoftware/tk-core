@@ -21,11 +21,9 @@ from __future__ import with_statement
 import re
 import os
 import sys
-import socket
 import shutil
 import optparse
 import datetime
-import getpass
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -346,12 +344,6 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
 
             fh.write("\n\n# system generated parameters\n")
             fh.write("BUILD_DATE=\"%s\"\n" % datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
-            fh.write("BUILD_INFO=\"%s %s@%s\"\n" % (
-                    datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
-                    getpass.getuser(),
-                    socket.getfqdn(),
-                    )
-            )
             fh.write("BUILD_GENERATION=%d\n" % BUILD_GENERATION)
 
             # Write out helper function 'get_sgtk_pythonpath()'.
