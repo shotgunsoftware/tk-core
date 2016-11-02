@@ -169,7 +169,7 @@ QLineEdit:Disabled {
              <enum>QLineEdit::Password</enum>
             </property>
             <property name="placeholderText">
-             <string>password</string>
+             <string>passwordXXX</string>
             </property>
            </widget>
           </item>
@@ -648,11 +648,33 @@ background-color: rgb(35, 165, 225);</string>
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="web_page">
+      <layout class="QVBoxLayout" name="verticalLayout_9">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_8">
+         <item>
+          <widget class="QWebView" name="webView">
+           <property name="url">
+            <url>
+             <string>about:blank</string>
+            </url>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>QWebView</class>
+   <extends>QWidget</extends>
+   <header>QtWebKit/QWebView</header>
+  </customwidget>
   <customwidget>
    <class>AspectPreservingLabel</class>
    <extends>QLabel</extends>

@@ -305,6 +305,18 @@ class Ui_LoginDialog(object):
         self.button_layout_3.addWidget(self.verify_backup)
         self.verticalLayout_6.addLayout(self.button_layout_3)
         self.stackedWidget.addWidget(self.backup_page)
+        self.web_page = QtGui.QWidget()
+        self.web_page.setObjectName("web_page")
+        self.verticalLayout_9 = QtGui.QVBoxLayout(self.web_page)
+        self.verticalLayout_9.setObjectName("verticalLayout_9")
+        self.verticalLayout_8 = QtGui.QVBoxLayout()
+        self.verticalLayout_8.setObjectName("verticalLayout_8")
+        self.webView = QtWebKit.QWebView(self.web_page)
+        self.webView.setUrl(QtCore.QUrl("about:blank"))
+        self.webView.setObjectName("webView")
+        self.verticalLayout_8.addWidget(self.webView)
+        self.verticalLayout_9.addLayout(self.verticalLayout_8)
+        self.stackedWidget.addWidget(self.web_page)
         self.verticalLayout_2.addWidget(self.stackedWidget)
         self.verticalLayout_2.setStretch(0, 1)
 
@@ -318,7 +330,7 @@ class Ui_LoginDialog(object):
     def retranslateUi(self, LoginDialog):
         self.site.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "example.shotgunstudio.com", None, QtGui.QApplication.UnicodeUTF8))
         self.login.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "login", None, QtGui.QApplication.UnicodeUTF8))
-        self.password.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))
+        self.password.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "passwordXXX", None, QtGui.QApplication.UnicodeUTF8))
         self.message.setText(QtGui.QApplication.translate("LoginDialog", "Please enter your credentials.", None, QtGui.QApplication.UnicodeUTF8))
         self.forgot_password_link.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"http://mystudio.shotgunstudio.com/user/forgot_password\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Forgot your password?</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.cancel.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
@@ -334,6 +346,7 @@ class Ui_LoginDialog(object):
         self.cancel_backup.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.verify_backup.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
 
+from .qt_abstraction import QtWebKit
 from .aspect_preserving_label import AspectPreservingLabel
 from .qt5_like_line_edit import Qt5LikeLineEdit
 from . import resources_rc

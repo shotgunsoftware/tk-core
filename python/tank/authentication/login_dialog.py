@@ -22,9 +22,10 @@ from .ui import resources_rc
 from .ui import login_dialog
 from . import session_cache
 from .errors import AuthenticationError
-from .ui.qt_abstraction import QtGui, QtCore
+from .ui.qt_abstraction import QtGui, QtCore, QtWebKit
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 
+from tank_vendor.shotgun_api3 import Shotgun
 
 class LoginDialog(QtGui.QDialog):
     """
@@ -95,9 +96,18 @@ class LoginDialog(QtGui.QDialog):
             self._set_login_message("Please enter your credentials.")
 
         # Select the right first page.
-        self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
+        # url = 'http://okr-staging.shotgunstudio.com/'
+        url = self.ui.site.text()
+        if self._check_sso_enabled(url):
+            self.ui.stackedWidget.setCurrentWidget(self.ui.web_page)
+            self.ui.webView.load(url)
+        else:
+            self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
 
         # hook up signals
+        self.ui.webView.loadStarted.connect(self._page_onStarted)
+        self.ui.webView.loadFinished.connect(self._page_onFinished)
+
         self.ui.sign_in.clicked.connect(self._ok_pressed)
         self.ui.stackedWidget.currentChanged.connect(self._current_page_changed)
 
@@ -113,6 +123,48 @@ class LoginDialog(QtGui.QDialog):
         self.ui.login.editingFinished.connect(self._strip_whitespaces)
         self.ui._2fa_code.editingFinished.connect(self._strip_whitespaces)
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
+
+    def _check_sso_enabled(self, url):
+        """
+        Check to see if the web site uses sso.
+        @FIXME: This is a horrible hack.
+        """
+
+        # Temporary shotgun instance, used only for the purpose of checking
+        # the site infos.
+        try:
+            # info = Shotgun('https://okr-staging.shotgunstudio.com', session_token="xxx").info()
+            # info = Shotgun('https://hubertp-studio.shotgunstudio.com', session_token="xxx").info()
+            # info = Shotgun('https://hubertp-sso.shotgunstudio.com', session_token="xxx").info()
+            info = Shotgun(url, session_token="xxx").info()
+            if 'user_authentication_method' in info:
+                return info['user_authentication_method'] == 'saml2'
+        except shotgun_api3.lib.httplib2.ServerNotFoundError:
+            # Silently ignore exception
+            pass
+        return False
+
+    def _sso_login(self):
+        pass
+
+
+    def _page_onStarted(self):
+        pass
+        # print "_page_onStarted"
+        # jar = self.ui.webView.page().networkAccessManager().cookieJar()
+        # cookies = jar.allCookies()
+        # print ""
+        # for cookie in cookies:
+        #     print "   %s: %s" % (cookie.name(), cookie.value())
+
+    def _page_onFinished(self):
+        print "_page_onFinished"
+        cookies = self.ui.webView.page().networkAccessManager().cookieJar().allCookies()
+        print "   --> %s" % cookies
+        # cookies = jar.allCookies()
+        # print ""
+        # for cookie in cookies:
+        #     print "   %s: %s" % (cookie.name(), cookie.value())
 
     def _strip_whitespaces(self):
         """
@@ -239,7 +291,7 @@ class LoginDialog(QtGui.QDialog):
         except Exception, e:
             self._set_error_message(self.ui.message, e)
 
-    def _authenticate(self, error_label, site, login, password, auth_code=None):
+    def _authenticate(self, error_label, site, login, password, auth_code=None, session_token=None):
         """
         Authenticates the user using the passed in credentials.
 
@@ -258,10 +310,13 @@ class LoginDialog(QtGui.QDialog):
             QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             QtGui.QApplication.processEvents()
 
-            # try and authenticate
-            self._new_session_token = session_cache.generate_session_token(
-                site, login, password, self._http_proxy, auth_code
-            )
+            if session_token is None:
+                # try and authenticate
+                self._new_session_token = session_cache.generate_session_token(
+                    site, login, password, self._http_proxy, auth_code
+                )
+            else:
+                self._new_session_token = session_token
         except AuthenticationError, e:
             # authentication did not succeed
             self._set_error_message(error_label, e)

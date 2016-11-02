@@ -17,5 +17,6 @@ from ...util.qt_importer import QtImporter
 _importer = QtImporter()
 QtCore = _importer.QtCore
 QtGui = _importer.QtGui
+QtWebKit = _importer.QtWebKit
 qt_version_tuple = _importer.qt_version_tuple
 del _importer
