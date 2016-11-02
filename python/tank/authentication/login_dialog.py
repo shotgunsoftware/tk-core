@@ -25,6 +25,7 @@ from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtWebKit
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 
+from tank_vendor.shotgun_api3.lib.httplib2 import ServerNotFoundError
 from tank_vendor.shotgun_api3 import Shotgun
 
 class LoginDialog(QtGui.QDialog):
@@ -66,6 +67,9 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.setText(hostname)
         self.ui.login.setText(login)
 
+        # Set the cookie jar from persistent storage
+        self.cookieJar = None
+
         if fixed_host:
             self._disable_text_widget(
                 self.ui.site,
@@ -96,9 +100,12 @@ class LoginDialog(QtGui.QDialog):
             self._set_login_message("Please enter your credentials.")
 
         # Select the right first page.
-        # url = 'http://okr-staging.shotgunstudio.com/'
+        if self.cookieJar is not None:
+            self.ui.webView.page().networkAccessManager().setCookieJar(self.cookieJar)
+        QtWebKit.QWebSettings.globalSettings().setAttribute(QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled, True)
         url = self.ui.site.text()
         if self._check_sso_enabled(url):
+            self.resize(800, 800)
             self.ui.stackedWidget.setCurrentWidget(self.ui.web_page)
             self.ui.webView.load(url)
         else:
@@ -139,7 +146,7 @@ class LoginDialog(QtGui.QDialog):
             info = Shotgun(url, session_token="xxx").info()
             if 'user_authentication_method' in info:
                 return info['user_authentication_method'] == 'saml2'
-        except shotgun_api3.lib.httplib2.ServerNotFoundError:
+        except ServerNotFoundError:
             # Silently ignore exception
             pass
         return False
@@ -158,13 +165,19 @@ class LoginDialog(QtGui.QDialog):
         #     print "   %s: %s" % (cookie.name(), cookie.value())
 
     def _page_onFinished(self):
-        print "_page_onFinished"
-        cookies = self.ui.webView.page().networkAccessManager().cookieJar().allCookies()
-        print "   --> %s" % cookies
-        # cookies = jar.allCookies()
-        # print ""
-        # for cookie in cookies:
-        #     print "   %s: %s" % (cookie.name(), cookie.value())
+        site = self.ui.site.text()
+        url = self.ui.webView.url().toString()
+        print "_page_onFinished: %s" % url
+        if url.startswith(site):
+            self.cookieJar = self.ui.webView.page().networkAccessManager().cookieJar()
+            session_token = ""
+            for cookie in self.cookieJar.allCookies():
+                if cookie.name() == '_session_id':
+                    session_token = cookie.value()
+                    break
+                # print "  --< %s" % cookie.toRawForm()
+            self._authenticate(self.ui.message, site, "", "", session_token=session_token)
+            print "Session token: %s" % session_token
 
     def _strip_whitespaces(self):
         """

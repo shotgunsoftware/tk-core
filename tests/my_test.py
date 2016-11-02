@@ -32,7 +32,7 @@ authenticator.clear_default_user()
 # on the command line. The user object returned encapsulates the login
 # information.
 user = authenticator.get_user()
-
+# user.set_session_token('873a57e8503855d50c9148e99572b322')
 # print "User is '%s'" % user
 
 # Tells Toolkit which user to use for connecting to Shotgun. Note that this should # noqa
@@ -41,6 +41,15 @@ sgtk.set_authenticated_user(user)
 
 # from shotgun_api3 import Shotgun
 # print Shotgun('https://hubertp-sso.shotgunstudio.com', session_token='xxx').info()
+from pprint import pprint
+import time
+sg = user.create_sg_connection()
+
+for i in range(1,11):
+    print "-----> %s" % i
+    pprint(sg.find('Project', [], ['id', 'name']))
+    time.sleep(60)
+
 
 #
 # Add your app code goes here...

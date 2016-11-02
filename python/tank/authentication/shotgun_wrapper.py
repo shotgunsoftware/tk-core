@@ -17,6 +17,7 @@ at any point.
 """
 
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
+from tank_vendor.shotgun_api3.lib.xmlrpclib import ProtocolError
 from . import interactive_authentication, session_cache
 from .. import LogManager
 
@@ -60,6 +61,18 @@ class ShotgunWrapper(Shotgun):
         except AuthenticationFault:
             logger.debug("Authentication failure.")
             pass
+        except ProtocolError as e:
+            if e.errcode == 302 and e.headers.has_key('location'):
+                pass
+            else:
+                raise e
+            # from pprint import pprint
+            # print "--->"
+            # print dir(e)
+            # print "<---: %s:%s" % (type(e.errcode), e.errcode)
+            # pprint(e.headers)
+            # print "<---"
+            # pass
 
         # Before renewing the session token, let's see if there is another
         # one in the session_cache.
