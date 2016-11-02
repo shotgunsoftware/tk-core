@@ -12,7 +12,7 @@ class Ui_LoginDialog(object):
     def setupUi(self, LoginDialog):
         LoginDialog.setObjectName("LoginDialog")
         LoginDialog.setWindowModality(QtCore.Qt.NonModal)
-        LoginDialog.resize(364, 304)
+        LoginDialog.resize(364, 321)
         LoginDialog.setMinimumSize(QtCore.QSize(364, 296))
         LoginDialog.setStyleSheet("QWidget\n"
 "{\n"
@@ -119,6 +119,13 @@ class Ui_LoginDialog(object):
         self.button_layout.setSpacing(10)
         self.button_layout.setContentsMargins(0, -1, -1, -1)
         self.button_layout.setObjectName("button_layout")
+        self.links = QtGui.QVBoxLayout()
+        self.links.setObjectName("links")
+        self.use_sso_link = QtGui.QLabel(self.login_page)
+        self.use_sso_link.setTextFormat(QtCore.Qt.RichText)
+        self.use_sso_link.setMargin(4)
+        self.use_sso_link.setObjectName("use_sso_link")
+        self.links.addWidget(self.use_sso_link)
         self.forgot_password_link = QtGui.QLabel(self.login_page)
         self.forgot_password_link.setCursor(QtCore.Qt.PointingHandCursor)
         self.forgot_password_link.setStyleSheet("QWidget\n"
@@ -129,7 +136,8 @@ class Ui_LoginDialog(object):
         self.forgot_password_link.setMargin(4)
         self.forgot_password_link.setOpenExternalLinks(False)
         self.forgot_password_link.setObjectName("forgot_password_link")
-        self.button_layout.addWidget(self.forgot_password_link)
+        self.links.addWidget(self.forgot_password_link)
+        self.button_layout.addLayout(self.links)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.button_layout.addItem(spacerItem1)
         self.cancel = QtGui.QPushButton(self.login_page)
@@ -320,6 +328,7 @@ class Ui_LoginDialog(object):
         self.login.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "login", None, QtGui.QApplication.UnicodeUTF8))
         self.password.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))
         self.message.setText(QtGui.QApplication.translate("LoginDialog", "Please enter your credentials.", None, QtGui.QApplication.UnicodeUTF8))
+        self.use_sso_link.setText(QtGui.QApplication.translate("LoginDialog", "<a href=\"about:blank\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Use Single Sign-On (SSO)</span></a>", None, QtGui.QApplication.UnicodeUTF8))
         self.forgot_password_link.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"http://mystudio.shotgunstudio.com/user/forgot_password\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Forgot your password?</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.cancel.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.sign_in.setText(QtGui.QApplication.translate("LoginDialog", "Sign In", None, QtGui.QApplication.UnicodeUTF8))
