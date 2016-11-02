@@ -97,25 +97,36 @@ class SessionCacheTests(TankTestBase):
         session_cache.cache_session_data(
             host,
             "bob",
-            "bob_session_token"
+            "bob_session_token",
+            "bob_session_metadata"
         )
         self.assertEqual(
             session_cache.get_session_data(host, "bob")["session_token"], "bob_session_token"
+        )
+        self.assertEqual(
+            session_cache.get_session_data(host, "bob")["session_metadata"], "bob_session_metadata"
         )
 
         # Make sure we can store a second one.
         session_cache.cache_session_data(
             host,
             "alice",
-            "alice_session_token"
+            "alice_session_token",
+            "alice_session_metadata"
         )
         # We can see the old one
         self.assertEqual(
             session_cache.get_session_data(host, "bob")["session_token"], "bob_session_token"
         )
+        self.assertEqual(
+            session_cache.get_session_data(host, "bob")["session_metadata"], "bob_session_metadata"
+        )
         # check for the new one
         self.assertEqual(
             session_cache.get_session_data(host, "alice")["session_token"], "alice_session_token"
+        )
+        self.assertEqual(
+            session_cache.get_session_data(host, "alice")["session_metadata"], "alice_session_metadata"
         )
 
         session_cache.delete_session_data(host, "bob")
@@ -123,6 +134,9 @@ class SessionCacheTests(TankTestBase):
         self.assertEqual(session_cache.get_session_data(host, "bob"), None)
         self.assertEqual(
             session_cache.get_session_data(host, "alice")["session_token"], "alice_session_token"
+        )
+        self.assertEqual(
+            session_cache.get_session_data(host, "alice")["session_metadata"], "alice_session_metadata"
         )
 
     def test_login_case_insensitivity(self):
