@@ -37,6 +37,7 @@ class ShotgunUserImpl(object):
     """
     Abstract base class for a Shotgun user. It tracks the user's host and proxy.
     """
+
     def __init__(self, host, http_proxy):
         """
         Constructor.
@@ -44,7 +45,6 @@ class ShotgunUserImpl(object):
         :param host: Host for this Shotgun user.
         :param http_proxy: HTTP proxy to use with this host.
         """
-
         if not host:
             raise IncompleteCredentials("missing host")
 
@@ -103,6 +103,14 @@ class ShotgunUserImpl(object):
         """
         self.__class__._not_implemented("get_login")
 
+    def get_cookies(self):
+        """
+        Returns the cookies for this user.
+
+        :returns: The raw cookies string.
+        """
+        self.__class__._not_implemented("get_cookies")
+
     def to_dict(self):
         """
         Converts the user into a dictionary object.
@@ -153,7 +161,8 @@ class SessionUser(ShotgunUserImpl):
     """
     A user that authenticates to the Shotgun server using a session token.
     """
-    def __init__(self, host, login, session_token, http_proxy, password=None):
+
+    def __init__(self, host, login, session_token, http_proxy, password=None, cookies=None, saml_expiration=0):
         """
         Constructor.
 
@@ -162,11 +171,13 @@ class SessionUser(ShotgunUserImpl):
         :param session_token: Session token for the user. If session token is None
             the session token will be looked for in the users file.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
+        :param password: Password for the user. Defaults to None.
+        :param cookies: String of raw cookies for the user. Defaults to None.
+        :param saml_expiration: Int time in UTC in second when the SAML claims will expire (in SSO mode)
 
         :raises IncompleteCredentials: If there is not enough values
             provided to initialize the user, this exception will be thrown.
         """
-
         super(SessionUser, self).__init__(host, http_proxy)
 
         if not login:
@@ -193,6 +204,8 @@ class SessionUser(ShotgunUserImpl):
 
         self._login = login
         self._session_token = session_token
+        self._cookies = cookies
+        self._saml_expiration = saml_expiration
 
         self._try_save()
 
@@ -234,6 +247,22 @@ class SessionUser(ShotgunUserImpl):
         if cache:
             self._try_save()
 
+    def get_cookies(self):
+        """
+        Returns the raw cookies string for this user.
+
+        :returns: The raw cookies string.
+        """
+        return self._cookies
+
+    def set_cookies(self, cookies):
+        """
+        Update the user's cookies.
+
+        :param cookies: String of raw cookies for the user.
+        """
+        self._cookies = cookies
+
     def create_sg_connection(self):
         """
         Creates a Shotgun instance using the script user's credentials.
@@ -248,6 +277,27 @@ class SessionUser(ShotgunUserImpl):
             sg_auth_user=self,
             connect=False
         )
+
+    def get_saml_expiration(self):
+        """
+        Obtain the time at which the sessions will need to be renewed.
+
+        Renewal of a SSO session may require the user to enter his credentials
+        in a Web Page. We rely on the user's cookies to track any session
+        related information for the Identity Provider.
+
+        :returns: The time in UTC seconds until expiration, 0 if SSO is not in use.
+        """
+        return self._saml_expiration
+
+    def set_saml_expiration(self, saml_expiration):
+        """
+        Sets the time boundary for the current SSO session.
+
+        Passed this boundary, web-based renewal will need to be done, which may
+        or may not require the user to enter their credentials.
+        """
+        self._saml_expiration = saml_expiration
 
     @LogManager.log_timing
     def are_credentials_expired(self):
@@ -315,7 +365,8 @@ class SessionUser(ShotgunUserImpl):
             session_cache.cache_session_data(
                 self.get_host(),
                 self.get_login(),
-                self.get_session_token()
+                self.get_session_token(),
+                self.get_cookies()
             )
         except:
             # Do not break execution because somehow we couldn't
@@ -328,6 +379,7 @@ class ScriptUser(ShotgunUserImpl):
     """
     User that authenticates to the Shotgun server using a api name and api key.
     """
+
     def __init__(self, host, api_script, api_key, http_proxy):
         """
         Constructor.
@@ -400,6 +452,15 @@ class ScriptUser(ShotgunUserImpl):
         :returns: The login name string.
         """
         # Script user has no login.
+        return None
+
+    def get_cookies(self):
+        """
+        Returns the raw cookies string for this user.
+
+        :returns: The String of cookies.
+        """
+        # Script user has no cookies.
         return None
 
     def to_dict(self):
