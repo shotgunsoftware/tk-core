@@ -17,13 +17,18 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+import socket
 
-from .ui import resources_rc
 from .ui import login_dialog
 from . import session_cache
+from . import saml2_sso
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
-from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
+from tank_vendor.shotgun_api3 import Shotgun, MissingTwoFactorAuthenticationFault
+from tank_vendor.shotgun_api3.lib.httplib2 import ServerNotFoundError
+from tank_vendor.shotgun_api3.lib.xmlrpclib import ProtocolError
+
+global_saml2_sso = saml2_sso.Saml2Sso('PATATE')
 
 
 class LoginDialog(QtGui.QDialog):
@@ -34,7 +39,7 @@ class LoginDialog(QtGui.QDialog):
     # Formatting required to display error messages.
     ERROR_MSG_FORMAT = "<font style='color: rgb(252, 98, 70);'>%s</font>"
 
-    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None):
+    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, cookies=None, no_gui=False):
         """
         Constructs a dialog.
 
@@ -45,13 +50,25 @@ class LoginDialog(QtGui.QDialog):
         :param fixed_host: Indicates if the hostname can be changed. Defaults to False.
         :param http_proxy: The proxy server to use when testing authentication. Defaults to None.
         :param parent: The Qt parent for the dialog (defaults to None)
+        :param cookies: List of raw cookies. Defaults to empty list.
+        :param no_gui: Attempts to renew the SSO session withou using a GUI. Defaults to False.
         """
         QtGui.QDialog.__init__(self, parent)
+
+        self._saml2_sso = global_saml2_sso
 
         hostname = hostname or ""
         login = login or ""
 
         self._is_session_renewal = is_session_renewal
+        self._cookies = cookies
+        self._no_gui = no_gui
+        self._use_sso = False
+
+        # If we have cookies, let's first try without GUI
+        if self._cookies is not None:
+            self._no_gui = True
+            print "__init__ cookies : %s" % self._cookies
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
@@ -108,11 +125,40 @@ class LoginDialog(QtGui.QDialog):
         self.ui.use_app.clicked.connect(self._use_app_pressed)
 
         self.ui.forgot_password_link.linkActivated.connect(self._link_activated)
+        self.ui.use_sso_link.linkActivated.connect(self._toggle_sso)
 
         self.ui.site.editingFinished.connect(self._strip_whitespaces)
         self.ui.login.editingFinished.connect(self._strip_whitespaces)
         self.ui._2fa_code.editingFinished.connect(self._strip_whitespaces)
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
+
+        url = self.ui.site.text()
+        if self._check_sso_enabled(url):
+            self._toggle_sso()
+
+    def _check_sso_enabled(self, url):
+        """
+        Check to see if the web site uses sso.
+        """
+        # Temporary shotgun instance, used only for the purpose of checking
+        # the site infos.
+        try:
+            info = Shotgun(url, session_token="xxx", connect=False).info()
+            if 'user_authentication_method' in info:
+                return info['user_authentication_method'] == 'saml2'
+        except ServerNotFoundError:
+            # Silently ignore exception
+            pass
+        except ProtocolError:
+            # Silently ignore exception
+            pass
+        except ValueError:
+            # Silently ignore bad arguments to Shotgun constructor
+            pass
+        except socket.error:
+            # Silently ignore bad arguments to Shotgun constructor
+            pass
+        return False
 
     def _strip_whitespaces(self):
         """
@@ -141,6 +187,12 @@ class LoginDialog(QtGui.QDialog):
             self._set_error_message(
                 self.ui.message, "Can't open '%s'." % forgot_password
             )
+
+    def _toggle_sso(self):
+        self._use_sso = not self._use_sso
+        self.ui.login.setEnabled(not self._use_sso)
+        self.ui.password.setEnabled(not self._use_sso)
+        # self.ui.message.setVisible(not self._use_sso)
 
     def _current_page_changed(self, index):
         """
@@ -191,10 +243,19 @@ class LoginDialog(QtGui.QDialog):
         :returns: A tuple of (hostname, username and session token) string if the user authenticated
                   None if the user cancelled.
         """
-        if self.exec_() == QtGui.QDialog.Accepted:
+        # if self._no_gui:
+        #     res = OffscreenEventLoop(self).exec_()
+        #     # If the offscreen session renewal failed, show the GUI as a failsafe
+        #     if res == QtGui.QDialog.Rejected:
+        #         res = self.exec_()
+        # else:
+        #     res = self.exec_()
+
+        res = self.exec_()
+        if res == QtGui.QDialog.Accepted:
             return (self.ui.site.text().encode("utf-8"),
                     self.ui.login.text().encode("utf-8"),
-                    self._new_session_token)
+                    self._new_session_token, self._cookies)
         else:
             return None
 
@@ -219,27 +280,45 @@ class LoginDialog(QtGui.QDialog):
         if len(site) == 0:
             self._set_error_message(self.ui.message, "Please enter the address of the site to connect to.")
             return
-        if len(login) == 0:
-            self._set_error_message(self.ui.message, "Please enter your login name.")
-            return
-        if len(password) == 0:
-            self._set_error_message(self.ui.message, "Please enter your password.")
-            return
+        if not self._use_sso:
+            if len(login) == 0:
+                self._set_error_message(self.ui.message, "Please enter your login name.")
+                return
+            if len(password) == 0:
+                self._set_error_message(self.ui.message, "Please enter your password.")
+                return
 
         # if not protocol specified assume https
         if len(site.split("://")) == 1:
             site = "https://%s" % site
             self.ui.site.setText(site)
 
+        session_token = None
+        if self._use_sso:
+            login = ""
+            password = ""
+            res = self._saml2_sso.on_sso_login_attempt({
+                'host': site,
+                'cookies': self._cookies,
+                'product': 'toolkit'
+            })
+            if res == 1:
+                session_token = self._saml2_sso._session.session_id
+                login = self._saml2_sso._session.user_id
+                self._cookies = self._saml2_sso._session.cookies
+            elif res == 0:
+                return
+            print "WHAT DO WE HAVE HERE --> %s" % res
+
         try:
-            self._authenticate(self.ui.message, site, login, password)
+            self._authenticate(self.ui.message, site, login, password, session_token=session_token)
         except MissingTwoFactorAuthenticationFault:
             # We need a two factor authentication code, move to the next page.
             self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
         except Exception, e:
             self._set_error_message(self.ui.message, e)
 
-    def _authenticate(self, error_label, site, login, password, auth_code=None):
+    def _authenticate(self, error_label, site, login, password, auth_code=None, session_token=None):
         """
         Authenticates the user using the passed in credentials.
 
@@ -252,16 +331,20 @@ class LoginDialog(QtGui.QDialog):
         :raises MissingTwoFactorAuthenticationFault: Raised if auth_code was None but was required
             by the server.
         """
+        print "HERE"
         success = False
         try:
             # set the wait cursor
             QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             QtGui.QApplication.processEvents()
 
-            # try and authenticate
-            self._new_session_token = session_cache.generate_session_token(
-                site, login, password, self._http_proxy, auth_code
-            )
+            if session_token is None:
+                # try and authenticate
+                self._new_session_token = session_cache.generate_session_token(
+                    site, login, password, self._http_proxy, auth_code
+                )
+            else:
+                self._new_session_token = session_token
         except AuthenticationError, e:
             # authentication did not succeed
             self._set_error_message(error_label, e)
