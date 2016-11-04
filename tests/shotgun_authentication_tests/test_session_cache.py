@@ -9,10 +9,34 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
+import os
+
+import unittest2
 
 from tank_test.tank_test_base import *
 
 from tank_vendor.shotgun_authentication import session_cache
+
+
+class SessionCacheLocationTests(unittest2.TestCase):
+    """
+    Separate test for getting cache location since this method is mocked in the TankTestBase.
+    """
+    def test_get_session_cache_location(self):
+        """
+        Makes sure session cache is overidable with SHOTGUN_HOME env var and that env vars
+        and ~ are substituted.
+        """
+        old_sg_home = os.environ.get("SHOTGUN_HOME")
+        try:
+            os.environ["TK_SHOTGUN_HOME_TEST"] = "shotgun_home_test"
+            os.environ["SHOTGUN_HOME"] = "~/$TK_SHOTGUN_HOME_TEST"
+            self.assertEqual(session_cache._get_cache_location(), os.path.expanduser("~/shotgun_home_test"))
+        finally:
+            if old_sg_home is not None:
+                os.environ["SHOTGUN_HOME"] = old_sg_home
+            else:
+                del os.environ["SHOTGUN_HOME"]
 
 
 class SessionCacheTests(TankTestBase):

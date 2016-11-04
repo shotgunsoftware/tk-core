@@ -60,7 +60,11 @@ def _get_cache_location():
 
     :returns: Path to the OS specific cache folder.
     """
-    if sys.platform == "darwin":
+    shotgun_home = os.environ.get("SHOTGUN_HOME")
+    if shotgun_home:
+        root = os.path.expanduser(os.path.expandvars(shotgun_home))
+        root = os.path.abspath(root)
+    elif sys.platform == "darwin":
         root = os.path.expanduser("~/Library/Caches/Shotgun")
     elif sys.platform == "win32":
         root = os.path.join(os.environ["APPDATA"], "Shotgun")
