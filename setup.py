@@ -24,6 +24,10 @@ def get_version():
     # this will work when installing from a locally cloned repo, or directly from
     # github, using something like:
     # pip install git+https://github.com/shotgunsoftware/tk-core@v0.0.1.piptest#egg=sgtk
+    # Please note that the version number will be something like: v0.18.32-12-g24316e3
+    # 'git describe' can certainly be tuned to only return a plain tag if needed,
+    # any tag instead of just annotated ones, e.g. with something like:
+    # git describe --abbrev=0 --tags
     try:
         version_git = subprocess.check_output(["git", "describe"]).rstrip()
         return version_git
