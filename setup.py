@@ -11,6 +11,30 @@
 # Basic setup.py so tk-core could be installed as
 # a standard Python package
 from setuptools import setup, find_packages
+import os
+import subprocess
+
+def get_version():
+    """
+    Helper to extract a version number for this module.
+
+    :returns: A major.minor.patch[.sub] version string or "dev".
+    """
+    # Try to extract the version number from git
+    # this will work when installing from a locally cloned repo
+    try:
+        version_git = subprocess.check_output(["git", "describe"]).rstrip()
+        return version_git
+    except:
+        # Blindly ignore problems, git might be not available, or the user could
+        # be installing from zip archive, etc...
+        pass
+
+    # If everything fails, return a sensible string highlighting that the version
+    # couldn't be extracted. If a version is not specified in `setup`, 0.0.0
+    # will be used by default, it seems better to have an explicit keyword for
+    # this case.
+    return "dev"
 
 # Retrieve long description and licence from external files
 try:
@@ -28,7 +52,7 @@ finally:
 
 setup(
     name="sgtk",
-    version="0.18",
+    version=get_version(),
     description="Shotgun Pipeline Toolkit Core API",
     long_description=readme,
     author="Shotgun Software",
