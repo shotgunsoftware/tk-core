@@ -73,7 +73,7 @@ class TemporaryEventLoop(QtCore.QEventLoop):
         Called when "Quit" is selected. Exits the loop.
         """
         print "=-=-=-=-=-=-=-=> _page_onFinished"
-        # self.exit(self.SUCCESS)
+        self.exit(self.SUCCESS)
 
     def exec_(self):
         """
@@ -102,7 +102,7 @@ class LoginDialog(QtGui.QDialog):
     # Formatting required to display error messages.
     ERROR_MSG_FORMAT = "<font style='color: rgb(252, 98, 70);'>%s</font>"
 
-    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None):
+    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, no_ui=True):
         """
         Constructs a dialog.
 
@@ -121,6 +121,8 @@ class LoginDialog(QtGui.QDialog):
         login = login or ""
 
         self._is_session_renewal = is_session_renewal
+
+        self._no_ui = no_ui
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
@@ -252,6 +254,7 @@ class LoginDialog(QtGui.QDialog):
                     break
                 # print "  --< %s" % cookie.toRawForm()
             self._authenticate(self.ui.message, site, "", "", session_token=session_token)
+
             print "Session token: %s" % session_token
             write_cookie_jar(cookieJar)
 
@@ -323,8 +326,7 @@ class LoginDialog(QtGui.QDialog):
         # On PySide2, or-ring the current window flags with WindowStaysOnTopHint causes the dialog
         # to freeze, so only set the WindowStaysOnTopHint flag as this appears to not disable the
         # other flags.
-        # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-        # return QtGui.QDialog.exec_(self)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         return QtGui.QDialog.exec_(self)
 
     def result(self):
@@ -333,32 +335,34 @@ class LoginDialog(QtGui.QDialog):
         :returns: A tuple of (hostname, username and session token) string if the user authenticated
                   None if the user cancelled.
         """
-        if self._is_session_renewal:
-            pass
-            TemporaryEventLoop(self).exec_()
+        if self._no_ui:
+            print "Killroy was here"
+            res = TemporaryEventLoop(self).exec_()
         else:
-            if self.exec_() == QtGui.QDialog.Accepted:
-                return (self.ui.site.text().encode("utf-8"),
-                        self.ui.login.text().encode("utf-8"),
-                        self._new_session_token)
-            else:
-                return None
+            res = self.exec_()
 
-    def renew(self):
-        """
-        Displays a modal dialog asking for the credentials.
-        :returns: A tuple of (hostname, username and session token) string if the user authenticated
-                  None if the user cancelled.
-        """
-        print "Killroy was here"
-
-        print "--> %s" % TemporaryEventLoop(self).exec_()
-        if self.exec_() == QtGui.QDialog.Accepted:
+        if res == QtGui.QDialog.Accepted:
             return (self.ui.site.text().encode("utf-8"),
                     self.ui.login.text().encode("utf-8"),
                     self._new_session_token)
         else:
             return None
+
+    # def renew(self):
+    #     """
+    #     Displays a modal dialog asking for the credentials.
+    #     :returns: A tuple of (hostname, username and session token) string if the user authenticated
+    #               None if the user cancelled.
+    #     """
+    #     print "Killroy was here"
+    #     self._is_renew_process = True
+    #     print "--> %s" % TemporaryEventLoop(self).exec_()
+    #     # if self.exec_() == QtGui.QDialog.Accepted:
+    #     #     return (self.ui.site.text().encode("utf-8"),
+    #     #             self.ui.login.text().encode("utf-8"),
+    #     #             self._new_session_token)
+    #     # else:
+    #     #     return None
 
     def _set_error_message(self, widget, message):
         """
