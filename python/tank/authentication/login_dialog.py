@@ -22,11 +22,35 @@ from .ui import resources_rc
 from .ui import login_dialog
 from . import session_cache
 from .errors import AuthenticationError
-from .ui.qt_abstraction import QtGui, QtCore, QtWebKit
+from .ui.qt_abstraction import QtGui, QtCore, QtWebKit, QtNetwork
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 
 from tank_vendor.shotgun_api3.lib.httplib2 import ServerNotFoundError
 from tank_vendor.shotgun_api3 import Shotgun
+
+def print_cookie_jar(cookie_jar):
+    print "==== Cookies START ===="
+    for cookie in cookie_jar.allCookies():
+        print "  --< %s" % cookie.toRawForm()
+    print "==== Cookies END ===="
+
+def write_cookie_jar(cookie_jar):
+    with open('cookiejar.txt', 'w') as jar_file:
+        for cookie in cookie_jar.allCookies():
+            jar_file.write( "%s\n" % cookie.toRawForm())
+
+def read_cookie_jar():
+    cookie_list = []
+    try:
+        with open('cookiejar.txt', 'r') as jar_file:
+            for raw_cookie in jar_file.readlines():
+            # return QtNetwork.QNetworkCookie.parseCookies(jar_file.readlines())
+                cookie_list.append(QtNetwork.QNetworkCookie.parseCookies(raw_cookie)[0])
+    except IOError:
+        pass
+    return cookie_list
+
+
 
 class LoginDialog(QtGui.QDialog):
     """
@@ -50,6 +74,7 @@ class LoginDialog(QtGui.QDialog):
         """
         QtGui.QDialog.__init__(self, parent)
 
+        # self.setWindowState(QtCore.Qt.WindowMinimized)
         hostname = hostname or ""
         login = login or ""
 
@@ -68,7 +93,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.login.setText(login)
 
         # Set the cookie jar from persistent storage
-        self.cookieJar = None
+        self.cookieList = []
 
         if fixed_host:
             self._disable_text_widget(
@@ -100,11 +125,18 @@ class LoginDialog(QtGui.QDialog):
             self._set_login_message("Please enter your credentials.")
 
         # Select the right first page.
-        if self.cookieJar is not None:
-            self.ui.webView.page().networkAccessManager().setCookieJar(self.cookieJar)
-        QtWebKit.QWebSettings.globalSettings().setAttribute(QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled, True)
+        self.cookieList = read_cookie_jar()
+        if len(self.cookieList) > 0:
+            self.ui.webView.page().networkAccessManager().cookieJar().setAllCookies(self.cookieList)
+
+        print_cookie_jar(self.ui.webView.page().networkAccessManager().cookieJar())
+        # QtWebKit.QWebSettings.globalSettings().setAttribute(QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled, True)
+        # QtWebKit.QWebSettings.globalSettings().setAttribute(QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled, True)
+
         url = self.ui.site.text()
         if self._check_sso_enabled(url):
+            url += '/saml/saml_login_request'
+            print "-> %s" % url
             self.resize(800, 800)
             self.ui.stackedWidget.setCurrentWidget(self.ui.web_page)
             self.ui.webView.load(url)
@@ -169,15 +201,17 @@ class LoginDialog(QtGui.QDialog):
         url = self.ui.webView.url().toString()
         print "_page_onFinished: %s" % url
         if url.startswith(site):
-            self.cookieJar = self.ui.webView.page().networkAccessManager().cookieJar()
+            cookieJar = self.ui.webView.page().networkAccessManager().cookieJar()
+            print_cookie_jar(cookieJar)
             session_token = ""
-            for cookie in self.cookieJar.allCookies():
+            for cookie in cookieJar.allCookies():
                 if cookie.name() == '_session_id':
                     session_token = cookie.value()
                     break
                 # print "  --< %s" % cookie.toRawForm()
             self._authenticate(self.ui.message, site, "", "", session_token=session_token)
             print "Session token: %s" % session_token
+            write_cookie_jar(cookieJar)
 
     def _strip_whitespaces(self):
         """

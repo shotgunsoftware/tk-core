@@ -59,9 +59,16 @@ class QtImporter(object):
     @property
     def QtWebKit(self):
         """
-        :returns: QtGui module, if available.
+        :returns: QtWebKit module, if available.
         """
         return self._modules["QtWebKit"] if self._modules else None
+
+    @property
+    def QtNetwork(self):
+        """
+        :returns: QtNetwork module, if available.
+        """
+        return self._modules["QtNetwork"] if self._modules else None
 
     @property
     def binding(self):
@@ -118,7 +125,7 @@ class QtImporter(object):
 
         :returns: The (binding name, binding version, modules) tuple.
         """
-        from PySide import QtCore, QtGui, QtWebKit
+        from PySide import QtCore, QtGui, QtWebKit, QtNetwork
 
         import PySide
         # Some old versions of PySide don't include version information
@@ -137,6 +144,7 @@ class QtImporter(object):
             "QtCore": QtCore,
             "QtGui": QtGui,
             "QtWebKit": QtWebKit,
+            "QtNetwork": QtNetwork,
         }, self._to_version_tuple(QtCore.qVersion())
 
     def _import_pyside2(self):

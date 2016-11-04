@@ -45,10 +45,12 @@ from pprint import pprint
 import time
 sg = user.create_sg_connection()
 
-for i in range(1,11):
+# for i in range(1,11):
+for i in range(1,31):
     print "-----> %s" % i
     pprint(sg.find('Project', [], ['id', 'name']))
-    time.sleep(60)
+    # time.sleep(60)
+    time.sleep(6)
 
 
 #
