@@ -51,6 +51,48 @@ def read_cookie_jar():
     return cookie_list
 
 
+class TemporaryEventLoop(QtCore.QEventLoop):
+    """
+    Local event loop for the session token renewal. The return value of _exec()
+    indicates what happen.
+    """
+
+    SUCCESS, FAILURE = range(0, 2)
+
+    def __init__(self, login_ui, parent=None):
+        """
+        Constructor
+        """
+        QtCore.QEventLoop.__init__(self, parent)
+        login_ui.ui.webView.loadFinished.connect(self._page_onFinished)
+        # systray.login.connect(self._login)
+        # systray.quit.connect(self._quit)
+
+    def _page_onFinished(self):
+        """
+        Called when "Quit" is selected. Exits the loop.
+        """
+        print "=-=-=-=-=-=-=-=> _page_onFinished"
+        # self.exit(self.SUCCESS)
+
+    def exec_(self):
+        """
+        Execute the local event loop. If CmdQ was hit in the past, it will be handled just as if the
+        user had picked the Quit menu.
+
+        :returns: The exit code for the loop.
+        """
+        code = QtCore.QEventLoop.exec_(self)
+        # Somebody requested the app to close, so pretend the close menu was picked.
+        if code == -1:
+            return self.SUCCESS
+        elif code in [self.SUCCESS, self.FAILURE]:
+            return code
+        else:
+            raise Exception("Unexpected return code in local event loop: %s" % code)
+
+
+
 
 class LoginDialog(QtGui.QDialog):
     """
@@ -281,7 +323,8 @@ class LoginDialog(QtGui.QDialog):
         # On PySide2, or-ring the current window flags with WindowStaysOnTopHint causes the dialog
         # to freeze, so only set the WindowStaysOnTopHint flag as this appears to not disable the
         # other flags.
-        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        # return QtGui.QDialog.exec_(self)
         return QtGui.QDialog.exec_(self)
 
     def result(self):
@@ -290,6 +333,26 @@ class LoginDialog(QtGui.QDialog):
         :returns: A tuple of (hostname, username and session token) string if the user authenticated
                   None if the user cancelled.
         """
+        if self._is_session_renewal:
+            pass
+            TemporaryEventLoop(self).exec_()
+        else:
+            if self.exec_() == QtGui.QDialog.Accepted:
+                return (self.ui.site.text().encode("utf-8"),
+                        self.ui.login.text().encode("utf-8"),
+                        self._new_session_token)
+            else:
+                return None
+
+    def renew(self):
+        """
+        Displays a modal dialog asking for the credentials.
+        :returns: A tuple of (hostname, username and session token) string if the user authenticated
+                  None if the user cancelled.
+        """
+        print "Killroy was here"
+
+        print "--> %s" % TemporaryEventLoop(self).exec_()
         if self.exec_() == QtGui.QDialog.Accepted:
             return (self.ui.site.text().encode("utf-8"),
                     self.ui.login.text().encode("utf-8"),
