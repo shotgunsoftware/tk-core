@@ -18,8 +18,9 @@ import time
 import shutil
 import pprint
 import threading
-import logging
 import tempfile
+import uuid
+import contextlib
 
 from tank_vendor.shotgun_api3.lib import mockgun
 
@@ -28,7 +29,7 @@ import mock
 
 import sgtk
 import tank
-from tank import path_cache
+from tank import path_cache, pipelineconfig_factory
 from tank_vendor import yaml
 from tank.util.user_settings import UserSettings
 
@@ -96,6 +97,29 @@ def skip_if_pyside_missing(func):
     return unittest.skipIf(_is_pyside_missing(), "PySide is missing")(func)
 
 
+@contextlib.contextmanager
+def temp_env_var(**kwargs):
+    """
+    Scope the life-scope of temporary environment variable within a ``with`` block.
+
+    :param \**kwargs: key-value pairs of environment variables to set.
+    """
+    backup_values = {}
+    for k, v in kwargs.iteritems():
+        if k in os.environ:
+            backup_values[k] = os.environ[k]
+        os.environ[k] = v
+
+    try:
+        yield
+    finally:
+        for k, v in kwargs.iteritems():
+            if k in backup_values:
+                os.environ[k] = backup_values[k]
+            else:
+                del os.environ[k]
+
+
 def setUpModule():
     """
     Creates studio level directories in temporary location for tests.
@@ -106,8 +130,9 @@ def setUpModule():
     temp_dir = tempfile.gettempdir()
     # make a unique test dir for each file
     temp_dir_name = "tankTemporaryTestData"
-    # Append time to the temp directory name
-    temp_dir_name += "_%f" % time.time()
+    # Append a random string to the temp directory name to make it unique. time.time
+    # doesn't have enough resolution!!!
+    temp_dir_name += "_%s" % (uuid.uuid4(),)
 
     TANK_TEMP = os.path.join(temp_dir, temp_dir_name)
     # print out the temp data location
@@ -136,6 +161,8 @@ class TankTestBase(unittest.TestCase):
     Test base class which manages fixtures for tank related tests.
     """
 
+    SHOTGUN_HOME = "SHOTGUN_HOME"
+
     def __init__(self, *args, **kws):
 
         super(TankTestBase, self).__init__(*args, **kws)
@@ -159,7 +186,6 @@ class TankTestBase(unittest.TestCase):
         # where to go for test data
         self.fixtures_root = os.environ["TK_TEST_FIXTURES"]
 
-
     def setUp(self, parameters=None):
         """
         Sets up a Shotgun Mockgun instance with a project and a basic project scaffold on
@@ -182,6 +208,9 @@ class TankTestBase(unittest.TestCase):
 
 
         """
+        # Override SHOTGUN_HOME so that unit tests can be sandboxed.
+        self._old_shotgun_home = os.environ.get(self.SHOTGUN_HOME)
+        os.environ[self.SHOTGUN_HOME] = TANK_TEMP
 
         # Make sure the global settings instance has been reset so anything from a previous test doesn't
         # leak into the next one.
@@ -209,22 +238,15 @@ class TankTestBase(unittest.TestCase):
         mockgun.Shotgun.set_schema_paths(mockgun_schema_path, mockgun_schema_entity_path)
 
         self.tank_temp = TANK_TEMP
-        self.init_cache_location = os.path.join(self.tank_temp, "init_cache.cache")
 
         self.cache_root = os.path.join(self.tank_temp, "cache_root")
 
-        patch = mock.patch("tank.pipelineconfig_factory._get_cache_location", return_value=self.init_cache_location)
-        patch.start()
-        self.addCleanup(patch.stop)
-
         # Mock this so that authentication manager works even tough we are not in a config.
         # If we don't mock it than the path cache calling get_current_user will fail.
-        patch = mock.patch(
+        self._mock_return_value(
             "tank.util.shotgun.get_associated_sg_config_data",
-            return_value={"host": "https://somewhere.shotguntudio.com"}
+            {"host": "https://somewhere.shotguntudio.com"}
         )
-        patch.start()
-        self.addCleanup(patch.stop)
 
         # define entity for test project
         self.project = {"type": "Project",
@@ -299,13 +321,8 @@ class TankTestBase(unittest.TestCase):
         # fake a version response from the server
         self.mockgun.server_info = {"version": (7, 0, 0)}
 
-        patch = mock.patch("tank.util.shotgun.get_associated_sg_base_url", return_value="http://unit_test_mock_sg")
-        patch.start()
-        self.addCleanup(patch.stop)
-
-        patch = mock.patch("tank.util.shotgun.create_sg_connection", return_value=self.mockgun)
-        patch.start()
-        self.addCleanup(patch.stop)
+        self._mock_return_value("tank.util.shotgun.get_associated_sg_base_url", "http://unit_test_mock_sg")
+        self._mock_return_value("tank.util.shotgun.create_sg_connection", self.mockgun)
 
         # add project to mock sg and path cache db
         self.add_production_path(self.project_root, self.project)
@@ -326,30 +343,47 @@ class TankTestBase(unittest.TestCase):
         # back up the authenticated user in case a unit test doesn't clean up correctly.
         self._authenticated_user = sgtk.get_authenticated_user()
 
+    def _mock_return_value(self, to_mock, return_value):
+        """
+        Mocks a method with to return a specified return value.
+
+        :param to_mock: Path to the method to mock
+        :param return_value: Value to return from the mocked method.
+        """
+        patch = mock.patch(to_mock, return_value=return_value)
+        patch.start()
+        self.addCleanup(patch.stop)
+
     def tearDown(self):
         """
         Cleans up after tests.
         """
-        sgtk.set_authenticated_user(self._authenticated_user)
+        try:
+            sgtk.set_authenticated_user(self._authenticated_user)
 
-        # get rid of path cache from local ~/.shotgun storage
-        pc = path_cache.PathCache(self.tk)
-        path_cache_file = pc._get_path_cache_location()
-        pc.close()
-        if os.path.exists(path_cache_file):
-            os.remove(path_cache_file)
+            # get rid of path cache from local ~/.shotgun storage
+            pc = path_cache.PathCache(self.tk)
+            path_cache_file = pc._get_path_cache_location()
+            pc.close()
+            if os.path.exists(path_cache_file):
+                os.remove(path_cache_file)
 
-        # clear global shotgun accessor
-        tank.util.shotgun._g_sg_cached_connections = threading.local()
+            # clear global shotgun accessor
+            tank.util.shotgun._g_sg_cached_connections = threading.local()
 
-        # get rid of init cache
-        if os.path.exists(self.init_cache_location):
-            os.remove(self.init_cache_location)
+            # get rid of init cache
+            if os.path.exists(pipelineconfig_factory._get_cache_location()):
+                os.remove(pipelineconfig_factory._get_cache_location())
 
-        # move project scaffold out of the way
-        self._move_project_data()
-        # important to delete this to free memory
-        self.tk = None
+            # move project scaffold out of the way
+            self._move_project_data()
+            # important to delete this to free memory
+            self.tk = None
+        finally:
+            if self._old_shotgun_home is not None:
+                os.environ[self.SHOTGUN_HOME] = self._old_shotgun_home
+            else:
+                del os.environ[self.SHOTGUN_HOME]
 
     def setup_fixtures(self, name='config', parameters=None):
         """
@@ -554,7 +588,8 @@ class TankTestBase(unittest.TestCase):
 
             # turn any dicts into proper type/id/name refs
             for x in entity:
-                if isinstance(entity[x], dict):
+                # special case: EventLogEntry.meta is not an entity link dict
+                if isinstance(entity[x], dict) and x != "meta":
                     # make a std sg link dict with name, id, type
                     link_dict = {"type": entity[x]["type"], "id": entity[x]["id"] }
 

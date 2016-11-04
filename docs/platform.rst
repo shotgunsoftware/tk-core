@@ -83,6 +83,66 @@ The typical things an engine needs to handle are:
   engine to implement these methods so that they work nicely inside the host application.
 
 
+Engine Events
+============================
+
+Engines have the ability to emit events that can then be handled by Toolkit Apps. The design follows closely
+that of Qt's events, where event handler methods can be implemented in a Toolkit App to execute custom
+behavior tied to specific event types.
+
+
+**Emitting Engine Events**
+
+It is an engine's responsibility to monitor its host DCC application's event or signalling frameworks to
+then emit its associated event. The example below is listening for a Qt signal from a host's "frontend"
+handle and then emits a FileOpenEvent::
+
+    def pre_app_init(self):
+        """
+        Runs before apps are initialized.
+        """
+        frontend.file_opened.connect(self._handle_file_open)
+    
+    def _handle_file_open(self, file_path):
+        """
+        Emits a file open event that apps can listen for.
+
+        :param str file_path: The path of the file opened.
+        """
+        event = sgtk.platform.events.FileOpenEvent(file_path)
+        self.log_debug("Emitting event %s..." % event)
+        self._emit_event(event)
+
+
+**Handling Engine Events**
+
+Toolkit Apps can receive and handle an event in one of two ways:
+
+- Override the type specific event handler. The advantages of this approach to event handling is that
+  there is no need to type check the event before handling it, and the slight performance benefit of
+  only running custom logic when an event of the type you're interested in is emitted. In the case of
+  a file-open event, the Toolkit App's :meth:`Application.event_file_open` method would be reimplemented.
+
+- Override the generic event handler. Every engine event that is emitted, regardless of type, will be
+  sent to the Toolkit App's :meth:`Application.event_engine(event)` method. The approach to handling an
+  engine event in this manner would be to type check the given event object using ``isinstance()`` and run
+  the appropriate logic according to the results.
+
+In the example below, the Toolkit App has reimplemented the :meth:`Application.event_file_open` method in
+order to execute custom logic when the parent :class:`Engine` has indicated that a new file has been
+opened by the host DCC application::
+
+    def event_file_open(self, event):
+        """
+        Handles event notifications from the parent engine.
+
+        :param event: The event object that was emitted.
+        :type event: :class:`~sgtk.platform.events.FileOpenEvent`
+        """
+        self.engine.log_debug("Handling event: %s" % event)
+        self.set_version_entity_by_file(file_path=event.file_path)
+
+
 Engine
 ============================
 
@@ -736,6 +796,24 @@ In order to use QT, import it from Sgtk::
 
 Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many applications (for example Nuke)
 may not have a functional Qt that can be imported when they run in batch mode.
+
+
+Using QT 5 inside your Toolkit App
+---------------------------------------
+
+When running in an environment with PySide 2 , Toolkit will provide under ``sgtk.platform.qt`` an
+emulation layer that mimics the PySide 1 API on top of PySide 2 so that your Toolkit applications don't
+need to be updated to work in those environments. If you need straight access to the PySide 2 API, you
+can access it through the ``sgtk.platform.qt5`` module. Detecting the availability of Qt 5 can be done
+through :meth:`Engine.has_qt5`.
+
+.. warning:: The PySide 1 emulation layer for PySide 2 may be missing some features. It provides enough
+             coverage to run the officially supported Toolkit applications. If you find that something
+             in the PySide 1 emulation layer is not working or missing, please contact support@shotgunsoftware.com
+             so that we may update it.
+
+             To learn more about API discrepancies between Qt 4 and Qt 5, you can visit
+             https://wiki.qt.io/Transition_from_Qt_4.x_to_Qt5.
 
 Creating Dialogs
 ========================================

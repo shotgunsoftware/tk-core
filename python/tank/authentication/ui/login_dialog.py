@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'login_dialog.ui'
 #
-#      by: pyside-uic 0.2.15 running on PySide 1.2.1
+#      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -86,17 +86,16 @@ class Ui_LoginDialog(object):
         self.credentials.setObjectName("credentials")
         self.verticalLayout_7 = QtGui.QVBoxLayout(self.credentials)
         self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.site = QtGui.QLineEdit(self.credentials)
+        self.site = Qt5LikeLineEdit(self.credentials)
         self.site.setMinimumSize(QtCore.QSize(308, 0))
         self.site.setObjectName("site")
         self.verticalLayout_7.addWidget(self.site)
-        self.login = QtGui.QLineEdit(self.credentials)
+        self.login = Qt5LikeLineEdit(self.credentials)
         self.login.setMinimumSize(QtCore.QSize(308, 0))
         self.login.setObjectName("login")
         self.verticalLayout_7.addWidget(self.login)
-        self.password = QtGui.QLineEdit(self.credentials)
+        self.password = Qt5LikeLineEdit(self.credentials)
         self.password.setMinimumSize(QtCore.QSize(308, 0))
         self.password.setEchoMode(QtGui.QLineEdit.Password)
         self.password.setObjectName("password")
@@ -159,7 +158,6 @@ class Ui_LoginDialog(object):
         self.credentials_2.setObjectName("credentials_2")
         self.horizontalLayout_2 = QtGui.QHBoxLayout(self.credentials_2)
         self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.label = QtGui.QLabel(self.credentials_2)
         self.label.setMinimumSize(QtCore.QSize(86, 0))
@@ -184,7 +182,7 @@ class Ui_LoginDialog(object):
         self._2fa_message.setMargin(0)
         self._2fa_message.setObjectName("_2fa_message")
         self.verticalLayout.addWidget(self._2fa_message)
-        self._2fa_code = QtGui.QLineEdit(self.widget_2)
+        self._2fa_code = Qt5LikeLineEdit(self.widget_2)
         self._2fa_code.setObjectName("_2fa_code")
         self.verticalLayout.addWidget(self._2fa_code)
         self.invalid_code = QtGui.QLabel(self.widget_2)
@@ -237,7 +235,6 @@ class Ui_LoginDialog(object):
         self.credentials_3.setObjectName("credentials_3")
         self.horizontalLayout_3 = QtGui.QHBoxLayout(self.credentials_3)
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.label_2 = QtGui.QLabel(self.credentials_3)
         self.label_2.setText("")
@@ -261,7 +258,7 @@ class Ui_LoginDialog(object):
         self._2fa_message_2.setMargin(0)
         self._2fa_message_2.setObjectName("_2fa_message_2")
         self.verticalLayout_5.addWidget(self._2fa_message_2)
-        self.backup_code = QtGui.QLineEdit(self.widget_4)
+        self.backup_code = Qt5LikeLineEdit(self.widget_4)
         self.backup_code.setText("")
         self.backup_code.setObjectName("backup_code")
         self.verticalLayout_5.addWidget(self.backup_code)
@@ -309,7 +306,7 @@ class Ui_LoginDialog(object):
         self.verticalLayout_2.setStretch(0, 1)
 
         self.retranslateUi(LoginDialog)
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(2)
         QtCore.QObject.connect(self.cancel_tfa, QtCore.SIGNAL("clicked()"), LoginDialog.reject)
         QtCore.QObject.connect(self.cancel_backup, QtCore.SIGNAL("clicked()"), LoginDialog.reject)
         QtCore.QObject.connect(self.cancel, QtCore.SIGNAL("clicked()"), LoginDialog.reject)
@@ -335,4 +332,5 @@ class Ui_LoginDialog(object):
         self.verify_backup.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
 
 from .aspect_preserving_label import AspectPreservingLabel
+from .qt5_like_line_edit import Qt5LikeLineEdit
 from . import resources_rc

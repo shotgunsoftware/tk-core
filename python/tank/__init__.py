@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+# Toolkit core API version
+__version__ = "HEAD"
 
 ########################################################################
 # Establish pipeline configuration context if needed

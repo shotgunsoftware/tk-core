@@ -33,17 +33,17 @@ class Environment(object):
     about the different parts of the configuration (by pulling the info.yml
     files from the various apps and engines referenced in the environment file)
 
-    Don't construct this class by hand! Instead, use the
-    pipelineConfiguration.get_environment() method.
-
     This class contains immutable methods only, e.g. you can only read from
     the yaml file. If you want to modify the yaml content, create a 
     WritableEnvironment instance instead.
     """
 
-    def __init__(self, env_path, pipeline_config, context=None):
+    def __init__(self, env_path, context=None):
         """
-        Constructor
+        :param env_path: Path to the environment file
+        :param context: Optional context object. If this is omitted,
+                        context-based include file resolve will be
+                        skipped.
         """
         self._env_path = env_path
         self._env_data = None
@@ -52,7 +52,6 @@ class Environment(object):
         self.__app_locations = {}
         self.__framework_locations = {}
         self.__context = context
-        self.__pipeline_config = pipeline_config
 
         # validate and populate config
         self._refresh()
@@ -194,7 +193,11 @@ class Environment(object):
             # remove location from dict
             self.__engine_locations[(eng,app)] = self.__app_settings[(eng,app)].pop(constants.ENVIRONMENT_LOCATION_KEY)
 
-
+    def __load_data(self, path):
+        """
+        loads the main data from disk, raw form
+        """
+        return g_yaml_cache.get(path)
 
     ##########################################################################################
     # Properties
@@ -281,51 +284,51 @@ class Environment(object):
             raise TankError("App '%s.%s' is not part of environment %s" % (engine, app, self._env_path))
         return d
 
-    def get_framework_descriptor(self, framework_name):
+    ##########################################################################################
+    # Public methods - data update
+
+    def get_framework_descriptor_dict(self, framework_name):
         """
-        Returns the descriptor object for a framework.
+        Returns the descriptor dictionary for a framework.
+
+        :param framework_name: Name of framework instance
+        :returns: descriptor dictionary or uri
         """
         descriptor_dict = self.__framework_locations.get(framework_name)
         if descriptor_dict is None:
-            raise TankError("The framework %s does not have a valid location "
-                            "key for engine %s" % (self._env_path, framework_name))
+            raise TankError(
+                "The framework %s does not have a valid location "
+                "key for engine %s" % (self._env_path, framework_name))
+        return descriptor_dict
 
-        # get the descriptor object for the location
-        return self.__pipeline_config.get_framework_descriptor(descriptor_dict)
-
-    def get_engine_descriptor(self, engine_name):
+    def get_engine_descriptor_dict(self, engine_name):
         """
-        Returns the descriptor object for an engine.
+        Returns the descriptor dictionary for an engine.
+
+        :param engine_name: Name of engine instance
+        :returns: descriptor dictionary or uri
         """
         descriptor_dict = self.__engine_locations.get(engine_name)
         if descriptor_dict is None:
-            raise TankError("The environment %s does not have a valid location "
-                            "key for engine %s" % (self._env_path, engine_name))
+            raise TankError(
+                "The environment %s does not have a valid location "
+                "key for engine %s" % (self._env_path, engine_name)
+            )
+        return descriptor_dict
 
-        # get the descriptor object for the location
-        return self.__pipeline_config.get_engine_descriptor(descriptor_dict)
-
-    def get_app_descriptor(self, engine_name, app_name):
+    def get_app_descriptor_dict(self, engine_name, app_name):
         """
-        Returns the descriptor object for an app.
-        """
+        Returns the descriptor dictionary for an app.
 
+        :param engine_name: Name of engine instance
+        :param app_name: Name of app instance
+        :returns: descriptor dictionary or uri
+        """
         descriptor_dict = self.__engine_locations.get((engine_name, app_name))
         if descriptor_dict is None:
             raise TankError("The environment %s does not have a valid location "
                             "key for app %s.%s" % (self._env_path, engine_name, app_name))
-
-        # get the version object for the location
-        return self.__pipeline_config.get_app_descriptor(descriptor_dict)
-
-    ##########################################################################################
-    # Public methods - data update
-
-    def __load_data(self, path):
-        """
-        loads the main data from disk, raw form
-        """
-        return g_yaml_cache.get(path)
+        return descriptor_dict
 
     def find_location_for_engine(self, engine_name):
         """
@@ -344,7 +347,7 @@ class Environment(object):
         if not path:
             raise TankError("Failed to find the location of the '%s' engine in the '%s' environment!"
                             % (engine_name, self._env_path))
-            
+
         return tokens, path
 
     def find_framework_instances_from(self, yml_file):
@@ -490,7 +493,71 @@ class Environment(object):
 
 
 
-class WritableEnvironment(Environment):
+class InstalledEnvironment(Environment):
+    """
+    Represents an :class:`Environment` that has been installed
+    and has an associated pipeline configuration.
+
+    Don't construct this class by hand! Instead, use the
+    pipelineConfiguration.get_environment() method.
+    """
+    def __init__(self, env_path, pipeline_config, context=None):
+        """
+        :param env_path: Path to the environment file
+        :param pipeline_config: Pipeline configuration assocaited with the installed environment
+        :param context: Optional context object. If this is omitted,
+                        context-based include file resolve will be
+                        skipped.
+        """
+        super(InstalledEnvironment, self).__init__(env_path, context)
+        self.__pipeline_config = pipeline_config
+
+    def get_framework_descriptor(self, framework_name):
+        """
+        Returns the descriptor object for a framework.
+
+        :param framework_name: Name of framework
+        :returns: :class:`~sgtk.descriptor.BundleDescriptor` that represents
+                  this object. The descriptor has been configured to use
+                  whatever caching settings the associated pipeline
+                  configuration is using.
+        """
+        return self.__pipeline_config.get_framework_descriptor(
+            self.get_framework_descriptor_dict(framework_name)
+        )
+
+    def get_engine_descriptor(self, engine_name):
+        """
+        Returns the descriptor object for an engine.
+
+        :param engine_name: Name of engine
+        :returns: :class:`~sgtk.descriptor.BundleDescriptor` that represents
+                  this object. The descriptor has been configured to use
+                  whatever caching settings the associated pipeline
+                  configuration is using.
+        """
+        return self.__pipeline_config.get_engine_descriptor(
+            self.get_engine_descriptor_dict(engine_name)
+        )
+
+    def get_app_descriptor(self, engine_name, app_name):
+        """
+        Returns the descriptor object for an app.
+
+        :param engine_name: Name of engine
+        :param app_name: Name of app
+        :returns: :class:`~sgtk.descriptor.BundleDescriptor` that represents
+                  this object. The descriptor has been configured to use
+                  whatever caching settings the associated pipeline
+                  configuration is using.
+        """
+        return self.__pipeline_config.get_app_descriptor(
+            self.get_app_descriptor_dict(engine_name, app_name)
+        )
+
+
+
+class WritableEnvironment(InstalledEnvironment):
     """
     Represents a mutable environment.
 
@@ -510,10 +577,14 @@ class WritableEnvironment(Environment):
 
     def __init__(self, env_path, pipeline_config, context=None):
         """
-        Constructor
+        :param env_path: Path to the environment file
+        :param pipeline_config: Pipeline configuration assocaited with the installed environment
+        :param context: Optional context object. If this is omitted,
+                        context-based include file resolve will be
+                        skipped.
         """
         self.set_yaml_preserve_mode(True)
-        Environment.__init__(self, env_path, pipeline_config, context)
+        super(WritableEnvironment, self).__init__(env_path, pipeline_config, context)
 
     def __load_writable_yaml(self, path):
         """

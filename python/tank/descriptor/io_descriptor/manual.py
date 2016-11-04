@@ -10,7 +10,6 @@
 import os
 from .base import IODescriptorBase
 from ... import LogManager
-from ...util import filesystem
 from ..errors import TankDescriptorError
 
 log = LogManager.get_logger(__name__)
@@ -110,7 +109,7 @@ class IODescriptorManual(IODescriptorBase):
         """
         # ensure that this exists on disk
         if not self.exists_local():
-            raise TankDescriptorError("%s does not exist on disk!")
+            raise TankDescriptorError("%s does not exist on disk!" % self)
 
     def get_latest_version(self, constraint_pattern=None):
         """
@@ -129,5 +128,33 @@ class IODescriptorManual(IODescriptorBase):
         # what is latest, just return our own version as representing the latest version.
         return self
 
+    def get_latest_cached_version(self, constraint_pattern=None):
+        """
+        Returns a descriptor object that represents the latest version
+        that is locally available in the bundle cache search path.
 
+        :param constraint_pattern: If this is specified, the query will be constrained
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
+
+        :returns: instance deriving from IODescriptorBase or None if not found
+        """
+        # manual descriptor is always manually managed
+        # we also assume that the manual descriptor always exists
+        return self
+
+    def has_remote_access(self):
+        """
+        Probes if the current descriptor is able to handle
+        remote requests. If this method returns, true, operations
+        such as :meth:`download_local` and :meth:`get_latest_version`
+        can be expected to succeed.
+
+        :return: True if a remote is accessible, false if not.
+        """
+        # the remote is the same as the cache for manual descriptors
+        return True
 

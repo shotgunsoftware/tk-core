@@ -19,7 +19,7 @@ BUNDLE_METADATA_FILE = "info.yml"
 # if major changes happen to the way cloud based configs are handled
 # by the system, for example requiring any existing deployed cloud
 # configs to be re-deployed, this version number should be incremented.
-BOOTSTRAP_LOGIC_GENERATION = 4
+BOOTSTRAP_LOGIC_GENERATION = 5
 
 # config file with information about which core to use
 CONFIG_CORE_DESCRIPTOR_FILE = "core_api.yml"
@@ -57,3 +57,11 @@ DESKTOP_PYTHON_MAC = "/Applications/Shotgun.app/Contents/Resources/Python/bin/py
 DESKTOP_PYTHON_WIN = "C:\\Program Files\\Shotgun\\Python\\python.exe"
 DESKTOP_PYTHON_LINUX = "/opt/Shotgun/Python/bin/python"
 
+# name of the special baked descriptor that is used to
+# avoid locally cache immutable bootstrap setups
+BAKED_DESCRIPTOR_TYPE = "baked"
+BAKED_DESCRIPTOR_FOLDER_NAME = "baked"
+
+# environment variable that can be used to override the
+# configuration loaded when a bootstrap/plugin is starting up.
+CONFIG_OVERRIDE_ENV_VAR = "TK_BOOTSTRAP_CONFIG_OVERRIDE"

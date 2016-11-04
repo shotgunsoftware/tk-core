@@ -37,3 +37,98 @@ class TestIODescriptors(TankTestBase):
         # make sure we are getting the same instance back
         self.assertTrue(d1._io_descriptor is d2._io_descriptor)
         self.assertTrue(d1._io_descriptor is not d3._io_descriptor)
+
+    def test_latest_cached(self):
+        """
+        Tests the find_latest_cached_version method
+        """
+        sg = self.tk.shotgun
+        root = os.path.join(self.project_root, "cache_root")
+
+        d = sgtk.descriptor.create_descriptor(
+            sg,
+            sgtk.descriptor.Descriptor.APP,
+            {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"},
+            bundle_cache_root_override=root
+        )
+
+        d2 = sgtk.descriptor.create_descriptor(
+            sg,
+            sgtk.descriptor.Descriptor.APP,
+            {"type": "app_store", "version": "v1.2.1", "name": "tk-bundle"},
+            bundle_cache_root_override=root
+        )
+
+        self.assertEqual(d.get_path(), None)
+        self.assertEqual(d.find_latest_cached_version(), None)
+
+        app_path = os.path.join(root, "app_store", "tk-bundle", "v1.1.1")
+        path = os.path.join(app_path, "info.yml")
+
+        os.makedirs(app_path)
+        fh = open(path, "wt")
+        fh.write("test data\n")
+        fh.close()
+
+        self.assertEqual(d.get_path(), app_path)
+        self.assertEqual(d.find_latest_cached_version(), d)
+
+
+
+        self.assertEqual(d2.get_path(), None)
+
+        app_path = os.path.join(root, "app_store", "tk-bundle", "v1.2.1")
+        path = os.path.join(app_path, "info.yml")
+        os.makedirs(app_path)
+        fh = open(path, "wt")
+        fh.write("test data\n")
+        fh.close()
+
+        self.assertEqual(d2.get_path(), app_path)
+        self.assertEqual(d.find_latest_cached_version(), d2)
+
+        # now check constraints
+        self.assertEqual(d.find_latest_cached_version("v1.1.x"), d)
+        self.assertEqual(d.find_latest_cached_version("v1.x.x"), d2)
+        self.assertEqual(d.find_latest_cached_version("v2.x.x"), None)
+
+
+    def test_cache_locations(self):
+        """
+        Tests locations of caches when using fallback paths.
+        """
+        sg = self.tk.shotgun
+
+        root_a = os.path.join(self.project_root, "cache_root_a")
+        root_b = os.path.join(self.project_root, "cache_root_b")
+        root_c = os.path.join(self.project_root, "cache_root_c")
+        root_d = os.path.join(self.project_root, "cache_root_d")
+
+
+        location = {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"}
+
+
+        d = sgtk.descriptor.create_descriptor(
+            sg,
+            sgtk.descriptor.Descriptor.APP,
+            location,
+            bundle_cache_root_override=root_a,
+            fallback_roots=[root_b, root_c, root_d]
+        )
+
+        self.assertEqual(
+            d._io_descriptor._get_primary_cache_path(),
+            os.path.join(root_a, "app_store", "tk-bundle", "v1.1.1")
+        )
+
+        self.assertEqual(
+            d._io_descriptor._get_cache_paths(),
+            [
+                os.path.join(root_b, "app_store", "tk-bundle", "v1.1.1"),
+                os.path.join(root_c, "app_store", "tk-bundle", "v1.1.1"),
+                os.path.join(root_d, "app_store", "tk-bundle", "v1.1.1"),
+                os.path.join(root_a, "app_store", "tk-bundle", "v1.1.1"),
+                os.path.join(root_a, "apps", "app_store", "tk-bundle", "v1.1.1") # legacy path
+            ]
+        )
+

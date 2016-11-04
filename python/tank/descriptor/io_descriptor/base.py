@@ -18,6 +18,7 @@ import urlparse
 from .. import constants
 from ... import LogManager
 from ...util import filesystem
+from ...util.version import is_version_newer
 from ..errors import TankDescriptorError
 
 from tank_vendor import yaml
@@ -187,6 +188,8 @@ class IODescriptorBase(object):
 
         Version numbers passed in that don't match the pattern v1.2.3... will be ignored.
 
+        If pattern is None, the highest version number is returned.
+
         :param version_numbers: List of version number strings, e.g. ``['v1.2.3', 'v1.2.5']``
         :param pattern: Version pattern string, e.g. 'v1.x.x'. Patterns are on the following forms:
 
@@ -194,10 +197,23 @@ class IODescriptorBase(object):
             - v1.2.x (examples: v1.2.4, or a forked version v1.2.4.2)
             - v1.x.x (examples: v1.3.2, a forked version v1.3.2.2)
             - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
+            - None (latest version is returned)
 
-        :returns: The most appropriate tag in the given list of tags
+        :returns: The most appropriate tag in the given list of tags or None if no tag matches
         :raises: TankDescriptorError if parsing fails
         """
+        if len(version_numbers) == 0:
+            return None
+
+        # first handle case where pattern is None
+        if pattern is None:
+            # iterate over versions in list and find latest
+            latest_version = None
+            for version_number in version_numbers:
+                if is_version_newer(version_number, latest_version):
+                    latest_version = version_number
+            return latest_version
+
         # now put all version number strings which match the form
         # vX.Y.Z(.*) into a nested dictionary where it is keyed recursively
         # by each digit (ie. major, minor, increment, then any additional
@@ -241,7 +257,6 @@ class IODescriptorBase(object):
                 current = current[number]
 
         # now search for the latest version matching our pattern
-        version_to_use = None
         if not re.match("^v([0-9]+|x)(.([0-9]+|x)){2,}$", pattern):
             raise TankDescriptorError("Cannot parse version expression '%s'!" % pattern)
 
@@ -265,10 +280,8 @@ class IODescriptorBase(object):
                 version_digit = max(current.keys(), key=int)
             version_digit = int(version_digit)
             if version_digit not in current:
-                raise TankDescriptorError(
-                    "'%s' does not have a version matching the pattern '%s'. "
-                    "Available versions are: %s" % (self.get_system_name(), pattern, ", ".join(version_numbers))
-                )
+                # no matches
+                return None
             current = current[version_digit]
             if version_to_use is None:
                 version_to_use = "v%d" % version_digit
@@ -284,6 +297,36 @@ class IODescriptorBase(object):
             version_to_use = version_to_use + ".%d" % version_digit
 
         return version_to_use
+
+    def _get_locally_cached_versions(self):
+        """
+        Given all cache locations, try to establish a list of versions
+        available on disk.
+
+        note that this logic is not applicable to all descriptor types,
+        one ones which are listing all its versions as subfolders under
+        a root location.
+
+        :return: list of version strings
+        """
+        all_versions = set()
+        for possible_cache_path in self._get_cache_paths():
+            # get the parent folder for the current version path
+            parent_folder = os.path.dirname(possible_cache_path)
+            # now look for child folders here - these are all the
+            # versions stored in this cache area
+            log.debug("Scanning for versions in '%s'" % parent_folder)
+            if os.path.exists(parent_folder):
+                for version_folder in os.listdir(parent_folder):
+                    version_full_path = os.path.join(parent_folder, version_folder)
+                    # check that it's a folder and not a system folder
+                    if os.path.isdir(version_full_path) and \
+                            not version_folder.startswith("_") and \
+                            not version_folder.startswith("."):
+                        all_versions.add(version_folder)
+
+        return list(all_versions)
+
 
     def copy(self, target_path):
         """
@@ -454,7 +497,7 @@ class IODescriptorBase(object):
         for (param, value) in descriptor_dict.iteritems():
             if param == "type":
                 continue
-            qs_chunks.append("%s=%s" % (param, urllib.quote(value)))
+            qs_chunks.append("%s=%s" % (param, urllib.quote(str(value))))
         qs = "&".join(qs_chunks)
 
         return "%s?%s" % (uri, qs)
@@ -513,19 +556,31 @@ class IODescriptorBase(object):
         """
         return self.get_path() is not None
 
+    def _get_primary_cache_path(self):
+        """
+        Get the path to the cache location in the bundle cache.
+
+        This is the location where new app content should be
+        downloaded to. This path is always returned as part
+        of :meth:`_get_cache_paths`.
+
+        .. note:: This method only computes paths and does not perform any I/O ops.
+
+        :return: Path to the bundle cache location for this item.
+        """
+        return self._get_bundle_cache_path(self._bundle_cache_root)
+
     def _get_cache_paths(self):
         """
-        Get a list of resolved paths, starting with the primary and
-        continuing with alternative locations.
+        Get a list of resolved paths, starting with the fallback roots
+        in order and finishing with the bundle cache location.
 
         .. note:: This method only computes paths and does not perform any I/O ops.
 
         :return: List of path strings
         """
-        paths = []
-
-        for root in self._fallback_roots + [self._bundle_cache_root]:
-            paths.append(self._get_bundle_cache_path(root))
+        paths = [self._get_bundle_cache_path(x) for x in self._fallback_roots]
+        paths.append(self._get_primary_cache_path())
         return paths
 
     def get_path(self):
@@ -563,7 +618,9 @@ class IODescriptorBase(object):
         new_cache_path = self._get_bundle_cache_path(cache_root)
         log.debug("Clone cache for %r: Copying to '%s'" % (self, new_cache_path))
 
-        if os.path.exists(new_cache_path):
+        # like in get_path(), we determine local existence based on the info.yml
+        info_yml_path = os.path.join(new_cache_path, constants.BUNDLE_METADATA_FILE)
+        if os.path.exists(info_yml_path):
             # we already have a cache
             log.debug("Bundle cache already exists in '%s'. Nothing to do." % new_cache_path)
             return False
@@ -626,5 +683,32 @@ class IODescriptorBase(object):
                 - v1.x.x - get the highest v1 version
 
         :returns: instance deriving from IODescriptorBase
+        """
+        raise NotImplementedError
+
+    def get_latest_cached_version(self, constraint_pattern=None):
+        """
+        Returns a descriptor object that represents the latest version
+        that is locally available in the bundle cache search path.
+
+        :param constraint_pattern: If this is specified, the query will be constrained
+               by the given pattern. Version patterns are on the following forms:
+
+                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
+                - v0.12.x - get the highest v0.12 version
+                - v1.x.x - get the highest v1 version
+
+        :returns: instance deriving from IODescriptorBase or None if not found
+        """
+        raise NotImplementedError
+
+    def has_remote_access(self):
+        """
+        Probes if the current descriptor is able to handle
+        remote requests. If this method returns, true, operations
+        such as :meth:`download_local` and :meth:`get_latest_version`
+        can be expected to succeed.
+
+        :return: True if a remote is accessible, false if not.
         """
         raise NotImplementedError

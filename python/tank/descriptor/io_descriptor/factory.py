@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import copy
+
 from ..errors import TankDescriptorError
 
 from ... import LogManager
@@ -47,6 +49,10 @@ def create_io_descriptor(
                            the descriptor dictionary/uri. Please note that setting this flag
                            to true will typically affect performance - an external connection
                            is often required in order to establish what the latest version is.
+
+                           If a remote connection cannot be established when attempting to determine
+                           the latest version, a local scan will be carried out and the highest
+                           version number that is cached locally will be returned.
     :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain
                            the search for latest to only take part over a subset of versions.
                            This is a string that can be on the following form:
@@ -69,7 +75,8 @@ def create_io_descriptor(
         descriptor_dict = IODescriptorBase.dict_from_uri(dict_or_uri)
         descriptor_uri = dict_or_uri
     else:
-        descriptor_dict = dict_or_uri
+        # make a copy to make sure the original object is never altered
+        descriptor_dict = copy.deepcopy(dict_or_uri)
         descriptor_uri = IODescriptorBase.uri_from_dict(dict_or_uri)
 
     # first check if we already have this in our cache
@@ -88,7 +95,6 @@ def create_io_descriptor(
 
     # at this point we didn't have a cache hit,
     # so construct the object manually
-
     if resolve_latest:
         # if someone is requesting a latest descriptor and not providing a version token
         # make sure to add an artificial one so that we can resolve it.
@@ -131,11 +137,22 @@ def create_io_descriptor(
     descriptor.set_cache_roots(bundle_cache_root, fallback_roots)
 
     if resolve_latest:
-        #@todo - in the future, attempt to get "remote" latest first
-        #        and if that fails, fall back on the latest item
-        #        available in the local cache.
-        log.debug("Searching for latest version...")
-        descriptor = descriptor.get_latest_version(constraint_pattern)
+        # attempt to get "remote" latest first
+        # and if that fails, fall back on the latest item
+        # available in the local cache.
+        log.debug("Trying to resolve latest version...")
+        if descriptor.has_remote_access():
+            log.debug("Remote connection is available - attempting to get latest version from remote...")
+            descriptor = descriptor.get_latest_version(constraint_pattern)
+        else:
+            log.debug("Remote connection is not available - falling back on getting latest version from cache...")
+            latest_cached_descriptor = descriptor.get_latest_cached_version(constraint_pattern)
+            if latest_cached_descriptor is None:
+                raise TankDescriptorError("No cached versions of %r cached locally on disk." % descriptor)
+
+            log.debug("Latest cached descriptor is %r" % latest_cached_descriptor)
+            descriptor = latest_cached_descriptor
+
         log.debug("Resolved latest to be %r" % descriptor)
 
     # Now see if we should cache it. Only cache descriptors that represent immutable

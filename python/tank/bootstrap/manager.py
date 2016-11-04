@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import os
+
 from . import constants
 from .errors import TankBootstrapError
 from .configuration import Configuration
@@ -22,6 +24,11 @@ class ToolkitManager(object):
     This class allows for flexible and non-obtrusive management of toolkit configurations
     and installations.
     """
+
+    # Constants used to indicate that the manager is:
+    # - bootstrapping the toolkit (with method _bootstrap_sgtk),
+    # - starting up the engine (with method _start_engine).
+    (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = range(2)
 
     def __init__(self, sg_user=None):
         """
@@ -44,11 +51,11 @@ class ToolkitManager(object):
 
         # defaults
         self._bundle_cache_fallback_paths = []
-        self._pipeline_configuration_name = constants.PRIMARY_PIPELINE_CONFIG_NAME
+        self._pipeline_configuration_name = None
         self._base_config_descriptor = None
         self._progress_cb = None
         self._do_shotgun_config_lookup = True
-        self._entry_point = None
+        self._plugin_id = None
 
         log.debug("%s instantiated" % self)
 
@@ -57,22 +64,32 @@ class ToolkitManager(object):
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
         repr += " Cache fallback path %s\n" % self._bundle_cache_fallback_paths
+        repr += " Plugin id %s\n" % self._plugin_id
         repr += " Config %s\n" % self._pipeline_configuration_name
         repr += " Base %s >" % self._base_config_descriptor
         return repr
 
     def _get_pipeline_configuration(self):
         """
-        The pipeline configuration that is being operated on.
-        By default, the primary pipeline config will be used.
+        The pipeline configuration that is should be operated on.
+
+        By default, this value is set to ``None``, indicating to the Manager
+        that it should attempt to find the most suitable Shotgun pipeline configuration
+        given the project and plugin id. In this case, it will look for all pipeline
+        configurations associated with the project who are associated with the current
+        user. If no user-tagged pipeline configuration exists, it will look for
+        the primary configuration, and in case this is not found, it will fall back on the
+        :meth:`base_configuration`. If you don't want this check to be carried out in
+        Shotgun, please set :meth:`do_shotgun_config_lookup` to False.
+
+        Alternatively, you can set this to a specific pipeline configuration. In that
+        case, the Manager will look for a pipeline configuration that matches that name
+        and the associated project and plugin id. If such a config cannot be found in
+        Shotgun, it falls back on the :meth:`base_configuration`.
         """
         return self._pipeline_configuration_name
 
     def _set_pipeline_configuration(self, name):
-        """
-        The pipeline configuration that is being operated on.
-        By default, the primary pipeline config will be used.
-        """
         self._pipeline_configuration_name = name
 
     pipeline_configuration = property(_get_pipeline_configuration, _set_pipeline_configuration)
@@ -100,56 +117,43 @@ class ToolkitManager(object):
 
     do_shotgun_config_lookup = property(_get_do_shotgun_config_lookup, _set_do_shotgun_config_lookup)
 
-
-    def _get_entry_point(self):
+    def _get_plugin_id(self):
         """
-        The entry point defines the scope of the bootstrap operation.
+        The Plugin Id is a string that defines the scope of the bootstrap operation.
 
         If you are bootstrapping into an entire Toolkit pipeline, e.g
-        a traditional Toolkit setup, this should be left blank.
+        a traditional Toolkit setup, this should be left at its default ``None`` value.
 
         If you are writing a plugin that is intended to run side by
         side with other plugins in your target environment, the entry
         point will be used to define a scope and sandbox in which your
         plugin will execute.
 
-        In the future, it will be possible to use the entry point value
-        to customize the behavior of a
-        plugin via Shotgun. At bootstrap, toolkit will look for a pipeline
-        configuration with a matching name and entry point. If found, this
-        will be used instead of the one defined by the :meth:`base_configuration`
-        property.
+        When constructing a plugin id for an integration the following
+        should be considered:
 
-        It is possible for multiple plugins running in different DCCs
-        to share the same entry point - in this case, they would all
-        get their settings and setup from a shared configuration. If you
-        were to override the base configuration in Shotgun, your override
-        would affect the entire suite of plugins. This kind of setup allows
-        for the development of several plugins in different DCCs that together
-        form a curated workflow.
+        - Plugin Ids should uniquely identify the plugin.
+        - The name should be short and descriptive.
 
-        We recommend an entry point naming convention of ``provider_service``,
+        We recommend a Plugin Id naming convention of ``service.dcc``,
         for example:
 
-        - A plugin maintained by the RV group which handles review inside RV would
-          be named ``rv_review``.
-        - A plugin for a toolkit load/publish workflow that runs inside of Maya and
-          Nuke, maintained by the Toolkit team, could be named ``sgtk_publish``.
-        - A plugin containg a studio VR workflow across multiple DCCs could be
-          named ``studioname_vrtools``.
+        - A review plugin running inside RV: ``review.rv``.
+        - A basic set of pipeline tools running inside of Nuke: ``basic.nuke``
+        - A plugin containg a suite of motion capture tools for maya: ``mocap.maya``
 
-        Please make sure that your entry point is **unique, explicit and short**.
-
-            .. note:: If you want to force the :meth:`base_configuration` to always
-                      be used, set :meth:`do_shotgun_config_lookup` to False.
+        Please make sure that your Plugin Id is **unique, explicit and short**.
         """
-        return self._entry_point
+        return self._plugin_id
 
-    def _set_entry_point(self, entry_point):
-        # setter for entry_point
-        self._entry_point = entry_point
+    def _set_plugin_id(self, plugin_id):
+        # setter for plugin_id
+        self._plugin_id = plugin_id
 
-    entry_point = property(_get_entry_point, _set_entry_point)
+    plugin_id = property(_get_plugin_id, _set_plugin_id)
+
+    # backwards compatibility
+    entry_point = plugin_id
 
     def _get_base_configuration(self):
         """
@@ -165,7 +169,6 @@ class ToolkitManager(object):
         self._base_config_descriptor = descriptor
 
     base_configuration = property(_get_base_configuration, _set_base_configuration)
-
 
     def _get_bundle_cache_fallback_paths(self):
         """
@@ -185,10 +188,6 @@ class ToolkitManager(object):
 
     def _set_bundle_cache_fallback_paths(self, paths):
         # setter for bundle_cache_fallback_paths
-
-        # @todo - maybe here we can add support for environment variables in the
-        #         future so that studios can easily add their own 'primed cache'
-        #         locations for performance or to save space.
         self._bundle_cache_fallback_paths = paths
 
     bundle_cache_fallback_paths = property(
@@ -196,30 +195,47 @@ class ToolkitManager(object):
         _set_bundle_cache_fallback_paths
     )
 
-
-    def set_progress_callback(self, callback):
+    def _get_progress_callback(self):
         """
-        Specify a method to call whenever progress should be reported back.
+        Callback function property to call whenever progress of the bootstrap should be reported back.
 
-        The method needs to have the following signature::
+        This function should have the following signature::
 
-            progress_callback(message, current_index, max_index)
+            def progress_callback(progress_value, message):
+                '''
+                Called whenever toolkit reports progress.
 
-        The two index parameters are used to illustrate progress
-        over time and looping. ``max_index`` is the total number of
-        current progress items, ``current_index`` is the currently
-        processed item. This can be used to compute a percentage.
-        Note that ``max_index`` may change at any time and is not guaranteed
-        to be fixed.
-
-        :param callback: Callback fn. See above for details.
+                :param progress_value: The current progress value as float number.
+                                       values will be reported in incremental order
+                                       and always in the range 0.0 to 1.0
+                :param message:        Progress message string
+                '''
         """
-        self._progress_cb = callback
+        return self._progress_cb or self._default_progress_callback
+
+    def _set_progress_callback(self, value):
+        # Setter for progress_callback.
+        self._progress_cb = value
+
+    progress_callback = property(_get_progress_callback, _set_progress_callback)
+
+    def set_progress_callback(self, progress_callback):
+        """
+        Sets the function to call whenever progress of the bootstrap should be reported back.
+
+        .. note:: This is a deprecated method. Property ``progress_callback`` should now be used.
+
+        :param progress_callback: Callback function that reports back on the toolkit and engine bootstrap progress.
+        """
+
+        self.progress_callback = progress_callback
 
     def bootstrap_engine(self, engine_name, entity=None):
         """
-        Create an sgtk instance for the given project or site,
+        Create an :class:`~sgtk.Sgtk` instance for the given engine and entity,
         then launch into the given engine.
+
+        The whole engine bootstrap logic will be executed synchronously in the main application thread.
 
         If entity is None, the method will bootstrap into the site
         config. This method will attempt to resolve the config according
@@ -231,34 +247,169 @@ class ToolkitManager(object):
         the engine may not be the same as the API version that was
         executed during the bootstrap.
 
-        :param entity: Shotgun entity to launch engine for
-        :type entity: Dictionary with keys type and id
-        :param engine_name: name of engine to launch (e.g. ``tk-nuke``)
-        :returns: :class:`sgtk.platform.Engine` instance
+        :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
+        :param entity: Shotgun entity to launch engine for.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :returns: :class:`~sgtk.platform.Engine` instance.
         """
-        log.info("Bootstrapping into engine %s for entity %s." % (engine_name, entity))
+        self._log_startup_message(engine_name, entity)
 
-        log.debug("Bootstrapping into environment.")
         tk = self._bootstrap_sgtk(engine_name, entity)
 
-        log.debug("Resolving context.")
-        if entity is None:
-            ctx = tk.context_empty()
-        else:
-            ctx = tk.context_from_entity_dictionary(entity)
+        engine = self._start_engine(tk, engine_name, entity)
 
-        self._report_progress("Launching Engine...")
-        log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
-
-        # perform absolute import to ensure we get the new swapped core.
-        import tank
-        engine = tank.platform.start_engine(engine_name, tk, ctx)
-
-        log.debug("Launched engine %r" % engine)
         return engine
 
+    def bootstrap_engine_async(self,
+                               engine_name,
+                               entity=None,
+                               completed_callback=None,
+                               failed_callback=None):
+        """
+        Create an :class:`~sgtk.Sgtk` instance for the given engine and entity,
+        then launch into the given engine.
 
-    def _bootstrap_sgtk(self, engine_name, entity):
+        This method launches the bootstrap process and returns immediately.
+        The :class:`~sgtk.Sgtk` instance will be bootstrapped asynchronously in a background thread,
+        followed by launching the engine synchronously in the main application thread.
+        This will allow the main application to continue its execution and
+        remain responsive when bootstrapping the toolkit involves downloading files and
+        installing apps from the toolkit app store.
+
+        If entity is None, the method will bootstrap into the site
+        config. This method will attempt to resolve the config according
+        to business logic set in the associated resolver class and based
+        on this launch a configuration. This may involve downloading new
+        apps from the toolkit app store and installing files on disk.
+
+        Two callback functions can be provided.
+
+        A callback function that handles cleanup after successful completion of the bootstrap
+        with the following signature::
+
+            def completed_callback(engine):
+                '''
+                Called by the asynchronous bootstrap upon completion.
+
+                :param engine: Engine instance representing the engine
+                               that was launched.
+                '''
+
+        A callback function that handles cleanup after failed completion of the bootstrap
+        with the following signature::
+
+            def failed_callback(phase, exception):
+                '''
+                Called by the asynchronous bootstrap if an exception is raised.
+
+                :param phase: Indicates in which phase of the bootstrap the exception
+                              was raised. An integer constant which is either
+                              ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE or
+                              ToolkitManager.ENGINE_STARTUP_PHASE. The former if the
+                              failure happened while the system was still bootstrapping
+                              and the latter if the system had switched over into the
+                              Toolkit startup phase. At this point, the running core API
+                              instance may have been swapped over to another version than
+                              the one that was originally loaded and may need to be reset
+                              in an implementation of this callback.
+
+                :param exception: The python exception that was raised.
+                '''
+
+        :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
+        :param entity: Shotgun entity to launch engine for.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
+        :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
+        """
+        self._log_startup_message(engine_name, entity)
+
+        log.debug("Will attempt to start up asynchronously.")
+
+        if completed_callback is None:
+            completed_callback = self._default_completed_callback
+
+        if failed_callback is None:
+            failed_callback = self._default_failed_callback
+
+        try:
+            from .async_bootstrap import AsyncBootstrapWrapper
+        except ImportError:
+            AsyncBootstrapWrapper = None
+            log.warning("Cannot bootstrap asynchronously in a background thread;"
+                        " falling back on synchronous startup.")
+
+        if AsyncBootstrapWrapper:
+
+            # Bootstrap an Sgtk instance asynchronously in a background thread,
+            # followed by launching the engine synchronously in the main application thread.
+
+            self._bootstrapper = AsyncBootstrapWrapper(self, engine_name, entity, completed_callback, failed_callback)
+            self._bootstrapper.bootstrap()
+
+        else:
+
+            # Since Qt is not available, fall back on synchronous bootstrapping.
+            # Execute the whole engine bootstrap logic synchronously in the main application thread,
+            # while still calling the provided callbacks in order for the caller to work as expected.
+
+            try:
+
+                tk = self._bootstrap_sgtk(engine_name, entity)
+
+            except Exception, exception:
+
+                # Handle cleanup after failed completion of the toolkit bootstrap.
+                failed_callback(self.TOOLKIT_BOOTSTRAP_PHASE, exception)
+
+                return
+
+            try:
+
+                engine = self._start_engine(tk, engine_name, entity)
+
+            except Exception, exception:
+
+                # Handle cleanup after failed completion of the engine startup.
+                failed_callback(self.ENGINE_STARTUP_PHASE, exception)
+
+                return
+
+            # Handle cleanup after successful completion of the engine bootstrap.
+            completed_callback(engine)
+
+    def _log_startup_message(self, engine_name, entity):
+        """
+        Helper method that logs information about the current session
+        :param engine_name: Name of the engine used to bootstrap
+        :param entity: Shotgun entity to bootstrap into.
+        """
+        log.debug("-----------------------------------------------------------------")
+        log.debug("Begin bootstrapping Toolkit.")
+        log.debug("")
+        log.debug("Plugin Id: %s" % self._plugin_id)
+
+        if self._do_shotgun_config_lookup:
+            log.debug("Will connect to Shotgun to look for overrides.")
+            log.debug("If no overrides found, this config will be used: %s" % self._base_config_descriptor)
+
+            if self._pipeline_configuration_name:
+                log.debug("Potential config overrides will be pulled ")
+                log.debug("from pipeline config '%s'" % self._pipeline_configuration_name)
+            else:
+                log.debug("The system will automatically determine the pipeline configuration")
+                log.debug("based on the current project id and user.")
+
+        else:
+            log.debug("Will not connect to shotgun to resolve config overrides.")
+            log.debug("The following config will be used: %s" % self._base_config_descriptor)
+
+        log.debug("")
+        log.debug("Target entity for runtime context: %s" % entity)
+        log.debug("Bootstrapping engine %s." % engine_name)
+        log.debug("-----------------------------------------------------------------")
+
+    def _bootstrap_sgtk(self, engine_name, entity, progress_callback=None):
         """
         Create an sgtk instance for the given engine and entity.
 
@@ -272,13 +423,17 @@ class ToolkitManager(object):
         the engine may not be the same as the API version that was
         executed during the bootstrap.
 
-        :param entity: Shotgun entity to launch engine for
-        :param engine_name: name of engine to launch (e.g. tk-nuke)
-        :returns: sgtk instance
+        :param engine_name: Name of the engine used to resolve a configuration.
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
+                                  Set to ``None`` to use the default callback function.
+        :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
         """
-        log.debug("Begin bootstrapping sgtk.")
+        if progress_callback is None:
+            progress_callback = self.progress_callback
 
-        self._report_progress("Resolving Toolkit Context...")
+        self._report_progress(progress_callback, 0.0, "Resolving project...")
         if entity is None:
             project_id = None
 
@@ -304,10 +459,10 @@ class ToolkitManager(object):
 
         # get an object to represent the business logic for
         # how a configuration location is being determined
-        self._report_progress("Resolving configuration...")
+        self._report_progress(progress_callback, 0.1, "Resolving configuration...")
 
         resolver = ConfigurationResolver(
-            self._entry_point,
+            self._plugin_id,
             engine_name,
             project_id,
             self._bundle_cache_fallback_paths
@@ -317,13 +472,43 @@ class ToolkitManager(object):
         # this object represents a configuration that may or may not
         # exist on disk. We can use the config object to check if the
         # object needs installation, updating etc.
+        if constants.CONFIG_OVERRIDE_ENV_VAR in os.environ:
+            # an override environment variable has been set. This takes precedence over
+            # all other methods and is useful when you do development. For example,
+            # if you are developing an app and want to test it with an existing plugin
+            # without wanting to rebuild the plugin, simply set this environment variable
+            # to point at a local config on disk:
+            #
+            # TK_BOOTSTRAP_CONFIG_OVERRIDE=/path/to/dev_config
+            #
+            log.info("Detected a %s environment variable." % constants.CONFIG_OVERRIDE_ENV_VAR)
+            config_override_path = os.environ[constants.CONFIG_OVERRIDE_ENV_VAR]
+            # resolve env vars and tildes
+            config_override_path = os.path.expanduser(os.path.expandvars(config_override_path))
+            log.info("Config override set to '%s'" % config_override_path)
 
-        if self._do_shotgun_config_lookup:
+            if not os.path.exists(config_override_path):
+                raise TankBootstrapError(
+                    "Cannot find config '%s' defined by override env var %s." % (
+                        config_override_path,
+                        constants.CONFIG_OVERRIDE_ENV_VAR
+                    )
+                )
+
+            config = resolver.resolve_configuration(
+                {"type": "dev", "path": config_override_path},
+                self._sg_connection,
+            )
+
+        elif self._do_shotgun_config_lookup:
             # do the full resolve where we connect to shotgun etc.
+            log.debug("Checking for pipeline configuration overrides in Shotgun.")
+            log.debug("In order to turn this off, set do_shotgun_config_lookup to False")
             config = resolver.resolve_shotgun_configuration(
                 self._pipeline_configuration_name,
                 self._base_config_descriptor,
-                self._sg_connection
+                self._sg_connection,
+                self._sg_user.login
             )
 
         else:
@@ -334,11 +519,13 @@ class ToolkitManager(object):
                 self._sg_connection,
             )
 
+        log.info("Using %s" % config)
+        log.debug("Bootstrapping into configuration %r" % config)
+
         # see what we have locally
-        self._report_progress("Checking if config is out of date...")
         status = config.status()
 
-        self._report_progress("Updating configuration...")
+        self._report_progress(progress_callback, 0.2, "Updating configuration...")
         if status == Configuration.LOCAL_CFG_UP_TO_DATE:
             log.info("Your locally cached configuration is up to date.")
 
@@ -358,28 +545,73 @@ class ToolkitManager(object):
             raise TankBootstrapError("Unknown configuration update status!")
 
         # we can now boot up this config.
-        self._report_progress("Starting up Toolkit...")
+        self._report_progress(progress_callback, 0.3, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
         if status != Configuration.LOCAL_CFG_UP_TO_DATE:
-            self._cache_apps(tk)
+            self._cache_apps(tk, progress_callback)
 
         return tk
 
-    def _report_progress(self, message, curr_idx=None, max_idx=None):
+    def _start_engine(self, tk, engine_name, entity, progress_callback=None):
         """
-        Helper method. Report progress back to
-        any defined progress callback.
+        Launch into the given engine.
 
-        :param message: Message to report
-        :param curr_idx: Optional integer denoting progress. This number is
-                         relative to the max_idx which denotes completion
-                         of the current task or subtask.
-        :param max_idx: Max number of items.
+        If entity is None, the method will bootstrap into the site config.
+
+        Please note that the API version of the tk instance that hosts
+        the engine may not be the same as the API version that was
+        executed during the bootstrap.
+
+        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance.
+        :param engine_name: Name of the engine to start up.
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :param progress_callback: Callback function that reports back on the engine startup progress.
+                                  Set to ``None`` to use the default callback function.
+        :returns: Started :class:`~sgtk.platform.Engine` instance.
         """
-        log.info("Progress Report: %s" % message)
-        if self._progress_cb:
-            self._progress_cb(message, curr_idx, max_idx)
+
+        log.debug("Begin starting up engine %s." % engine_name)
+
+        if progress_callback is None:
+            progress_callback = self.progress_callback
+
+        self._report_progress(progress_callback, 0.8, "Resolving context...")
+        if entity is None:
+            ctx = tk.context_empty()
+        else:
+            ctx = tk.context_from_entity_dictionary(entity)
+
+        self._report_progress(progress_callback, 0.9, "Launching Engine...")
+        log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
+
+        # perform absolute import to ensure we get the new swapped core.
+        import tank
+        engine = tank.platform.start_engine(engine_name, tk, ctx)
+
+        log.debug("Launched engine %r" % engine)
+
+        return engine
+
+    def _report_progress(self, progress_callback, progress_value, message):
+        """
+        Helper method that reports back on the bootstrap progress to a defined progress callback.
+
+        :param progress_callback: Callback function to use to report back.
+        :param progress_value: Current progress value, a float number ranging from 0.0 to 1.0
+                               representing the percentage of work completed.
+        :param message: Progress message string to report.
+        """
+
+        log.info("Progress Report (%s%%): %s" % (int(progress_value*100), message))
+
+        try:
+            # Call the new style progress callback.
+            progress_callback(progress_value, message)
+        except TypeError:
+            # Call the old style progress callback with signature (message, current_index, maximum_index).
+            progress_callback(message, None, None)
 
     def _is_toolkit_activated_in_shotgun(self):
         """
@@ -394,13 +626,15 @@ class ToolkitManager(object):
         log.debug("...enabled: %s" % enabled)
         return enabled
 
-    def _cache_apps(self, tk, do_post_install=False):
+    def _cache_apps(self, tk, progress_callback, do_post_install=False):
         """
-        Caches all apps associated with the given tk instance
+        Caches all apps associated with the given toolkit instance.
 
-        :param tk: Toolkit instance to cache items for
-        :param do_post_install: Set to true for post install triggers to execute
+        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance to cache items for.
+        :param progress_callback: Callback function that reports back on the engine startup progress.
+        :param do_post_install: Set to true to execute the post install triggers.
         """
+
         log.info("Downloading and installing apps...")
 
         # each entry in the config template contains instructions about which version of the app
@@ -426,17 +660,53 @@ class ToolkitManager(object):
         # pass 2 - download all apps
         for idx, descriptor in enumerate(descriptors):
 
-            if not descriptor.exists_local():
-                self._report_progress("Downloading %s..." % descriptor, idx, len(descriptors))
-                descriptor.download_local()
+            # Scale the progress step 0.3 between this value 0.4 and the next one 0.7
+            # to compute a value progressing while looping over the indexes.
+            progress_value = 0.4 + idx * (0.3 / len(descriptors))
 
+            if not descriptor.exists_local():
+                message = "Downloading %s (%s of %s)..." % (descriptor, idx+1, len(descriptors))
+                self._report_progress(progress_callback, progress_value, message)
+                descriptor.download_local()
             else:
-                log.debug("Item %s is already locally installed." % descriptor)
+                message = "%s already installed locally (%s of %s)." % (descriptor, idx+1, len(descriptors))
+                self._report_progress(progress_callback, progress_value, message)
 
         # pass 3 - do post install
         if do_post_install:
             for descriptor in descriptors:
-                self._report_progress("Running post install for %s" % descriptor)
+                self._report_progress(progress_callback, 0.7, "Running post install for %s" % descriptor)
                 descriptor.ensure_shotgun_fields_exist(tk)
                 descriptor.run_post_install(tk)
 
+    def _default_progress_callback(self, progress_value, message):
+        """
+        Default callback function that reports back on the toolkit and engine bootstrap progress.
+
+        :param progress_value: Current progress value, ranging from 0.0 to 1.0.
+        :param message: Progress message to report.
+        """
+
+        log.debug("Default progress callback (%s): %s" % (progress_value, message))
+
+    def _default_completed_callback(self, engine):
+        """
+        Default callback function that handles cleanup after successful completion of the bootstrap.
+
+        :param engine: Launched :class:`sgtk.platform.Engine` instance.
+        """
+
+        log.debug("Default completed callback: %s" % engine.instance_name)
+
+    def _default_failed_callback(self, phase, exception):
+        """
+        Default callback function that handles cleanup after failed completion of the bootstrap.
+
+        :param phase: Bootstrap phase that raised the exception,
+                      ``ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE`` or ``ToolkitManager.ENGINE_STARTUP_PHASE``.
+        :param exception: Python exception raised while bootstrapping.
+        """
+
+        phase_name = "TOOLKIT_BOOTSTRAP_PHASE" if phase == self.TOOLKIT_BOOTSTRAP_PHASE else "ENGINE_STARTUP_PHASE"
+
+        log.debug("Default failed callback (%s): %s" % (phase_name, exception))

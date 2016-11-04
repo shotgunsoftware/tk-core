@@ -107,6 +107,32 @@ class TestGitIODescriptor(TankTestBase):
             os.path.join(self.bundle_cache, "git", "tk-config-default.git", "v0.15.11")
         )
 
+        # test that the copy method copies the .git folder
+        copy_target = os.path.join(self.project_root, "test_copy_target")
+        latest_desc.copy(copy_target)
+        self.assertTrue(os.path.exists(os.path.join(copy_target, ".git")))
+
+
+    @skip_if_git_missing
+    def test_branch_shorthash(self):
+
+        location_dict = {
+            "type": "git_branch",
+            "path": self.git_repo_uri,
+            "branch": "master",
+            "version": "3e6a681"
+        }
+
+        desc = self._create_desc(location_dict)
+
+        self.assertEqual(desc.get_path(), None)
+
+        desc.ensure_local()
+
+        self.assertEqual(
+            desc.get_path(),
+            os.path.join(self.bundle_cache, "gitbranch", "tk-config-default.git", "3e6a681")
+        )
 
 
     @skip_if_git_missing
@@ -127,7 +153,7 @@ class TestGitIODescriptor(TankTestBase):
 
         self.assertEqual(
             desc.get_path(),
-            os.path.join(self.bundle_cache, "git", "tk-config-default.git", "3e6a681")
+            os.path.join(self.bundle_cache, "gitbranch", "tk-config-default.git", "3e6a681")
         )
 
         latest_desc = desc.find_latest_version()
@@ -139,7 +165,7 @@ class TestGitIODescriptor(TankTestBase):
 
         self.assertEqual(
             latest_desc.get_path(),
-            os.path.join(self.bundle_cache, "git", "tk-config-default.git", "30c293f")
+            os.path.join(self.bundle_cache, "gitbranch", "tk-config-default.git", "30c293f")
         )
 
         location_dict = {
@@ -157,7 +183,7 @@ class TestGitIODescriptor(TankTestBase):
 
         self.assertEqual(
             desc.get_path(),
-            os.path.join(self.bundle_cache, "git", "tk-config-default.git", "9035355")
+            os.path.join(self.bundle_cache, "gitbranch", "tk-config-default.git", "9035355")
         )
 
         latest_desc = desc.find_latest_version()
@@ -169,5 +195,11 @@ class TestGitIODescriptor(TankTestBase):
 
         self.assertEqual(
             latest_desc.get_path(),
-            os.path.join(self.bundle_cache, "git", "tk-config-default.git", "7fa75a7")
+            os.path.join(self.bundle_cache, "gitbranch", "tk-config-default.git", "7fa75a7")
         )
+
+        # test that the copy method copies the .git folder
+        copy_target = os.path.join(self.project_root, "test_copy_target")
+        latest_desc.copy(copy_target)
+        self.assertTrue(os.path.exists(os.path.join(copy_target, ".git")))
+

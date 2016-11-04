@@ -421,7 +421,7 @@ class TankBundle(object):
                 constants.CACHE_LOCATION_HOOK_NAME,
                 "get_bundle_data_cache_path",
                 project_id=project_id,
-                entry_point=self.__tk.pipeline_configuration.get_entry_point(),
+                plugin_id=self.__tk.pipeline_configuration.get_plugin_id(),
                 pipeline_configuration_id=self.__tk.pipeline_configuration.get_shotgun_id(),
                 bundle=self
             )

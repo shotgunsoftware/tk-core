@@ -17,6 +17,13 @@ from .errors import TankEngineInitError, TankContextChangeNotSupportedError
 from .application import Application
 from .engine import Engine
 from .framework import Framework
-from .util import change_context, get_framework, import_framework, current_bundle, restart, get_logger
+from .util import (
+    change_context,
+    get_framework,
+    import_framework,
+    current_bundle,
+    restart,
+    get_logger,
+)
 from . import events
 

@@ -91,7 +91,13 @@ The Toolkit app store is used to release and distribute versions of Apps, Engine
 tested and approved by Shotgun. App store descriptors should include a name and version token and
 are on the following form::
 
-    { type: app_store, name: tk-core, version: v12.3.4 }
+    {
+        type: app_store,
+        name: tk-core,
+        version: v12.3.4
+    }
+
+    sgtk:descriptor:app_store?name=tk-core&version=v12.3.4
 
 Shotgun
 ============
@@ -112,6 +118,8 @@ that can be easily accessed from any project::
         version: 456                         # attachment id of particular attachment
     }
 
+    sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&name=primary&project_id=123&field=sg_config&version=456
+
 When the attachment field is updated, the attachment id (e.g. version field in the descriptor) changes, resulting in
 a new descriptor. This can be used to determine the latest version for a Shotgun attachment descriptor.
 
@@ -124,11 +132,23 @@ to the git repository::
 
     {type: git, path: /path/to/repo.git, version: v0.2.1}
 
+    sgtk:descriptor:git?path=/path/to/repo.git&version=v12.3.4
+
+
     {type: git, path: user@remotehost:/path_to/repo.git, version: v0.1.0}
+
+    sgtk:descriptor:git?path=user%40remotehost%3A/path_to/repo.git&version=v0.1.0
+
 
     {type: git, path: git://github.com/user/tk-multi-publish.git, version: v0.1.0}
 
+    sgtk:descriptor:git?path=git%3A//github.com/user/tk-multi-publish.git&version=v0.1.0
+
+
     {type: git, path: https://github.com/user/tk-multi-publish.git, version: v0.1.0}
+
+    sgtk:descriptor:git?path=https%3A//github.com/user/tk-multi-publish.git&version=v0.1.0
+
 
 The latest version for a descriptor is determined by retrieving the list of tags for
 the repository and comparing the version numbers in order to determine the highest one.
@@ -140,20 +160,35 @@ a commit in a particular branch::
 
     {type: git_branch, branch: master, path: /path/to/repo.git, version: 17fedd8}
 
+    sgtk:descriptor:git_branch?branch=master&path=/path/to/repo.git&version=17fedd8
+
+
     {type: git_branch, branch: master, path: user@remotehost:/path_to/repo.git, version: 17fedd8}
+
+    sgtk:descriptor:git_branch?branch=master&path=user%40remotehost%3A/path_to/repo.git&version=17fedd8
+
 
     {type: git_branch, branch: master, path: git://github.com/user/tk-multi-publish.git, version: 17fedd8}
 
+    sgtk:descriptor:git_branch?branch=master&path=git%3A//github.com/user/tk-multi-publish.git&version=17fedd8
+
+
     {type: git_branch, branch: master, path: https://github.com/user/tk-multi-publish.git, version: 17fedd8}
+
+    sgtk:descriptor:git_branch?branch=master&path=https%3A//github.com/user/tk-multi-publish.git&version=17fedd8
 
 You can use both long and short hash formats for the version token. The latest version for a git_branch
 descriptor is defined as the most recent commit for a given branch.
 
-As shown in the examples above, the git descriptors handle both local and remote repositories.
-They also handle private repositories in github, assuming that you have set up your ssh authentication
-correctly. On Windows, it is recommended that you use forward slashes.
+.. warning:: Repositories requiring authentication are not fully supported by Toolkit. For such
+             setups, we strongly recommend using an ssh style git url
+             (e.g. ``git@github.com:shotgunsoftware/tk-core.git``) in order to eliminate git
+             trying to prompt for a password in the background.
 
-.. Note:: When using the git descriptor, you need to have the git executable in
+
+.. note:: On Windows, it is recommended that you use forward slashes.
+
+.. note:: When using the git descriptor, you need to have the git executable in
           the ``PATH`` in order for the API to be able to do a latest check or
           app download. The git executable is, however, not needed during descriptor
           resolve and normal operation.
@@ -162,24 +197,37 @@ correctly. On Windows, it is recommended that you use forward slashes.
 Path and Dev
 =======================
 
-Pointing Sgtk to an app that resides in the local file system is typically something you do when you do
-development. This is when you use the ``dev`` descriptor::
+Pointing Toolkit to an app that resides in the local file system is often very useful for managing your own bundles
+or doing development on an app or engine before releasing onto production. To allow for these scenarios, Sgtk
+provides the ``dev`` and ``path`` descriptors. Here are some examples::
 
+    # locally managed bundle that is used for development
     {
         type: dev,
         path: /path/to/app
     }
+    sgtk:descriptor:dev?path=/path/to/app
 
+    # locally managed bundle that is meant to be deployed
+    {
+        type: path,
+        path: /path/to/app
+    }
+    sgtk:descriptor:dev?path=/path/to/app
+
+    # using environment variables in the paths
     {
         type: dev,
         path: ${HOME}/path/to/app
     }
 
+    # exapanding the user directory
     {
-        type: dev,
+        type: path,
         path: ~/path/to/app
     }
 
+    # use different paths on different operating systems
     {
         type: dev,
         windows_path: c:\path\to\app,
@@ -187,8 +235,15 @@ development. This is when you use the ``dev`` descriptor::
         mac_path: /path/to/app
     }
 
-.. note:: The path and dev descriptors support environment variable resolution on the form ``${MYENVVAR}``
-          as well as user directory resolution if the path starts with `~`.
+.. note:: As noted in the comments above, the ``path`` and ``dev`` descriptors
+    support environment variable resolution on the form ``${MYENVVAR}`` as well
+    as user directory resolution if the path starts with `~`.
+
+The path and dev descriptors are very similar in terms of functionality.  The
+optional and required parameters are the same for each.  The ``dev`` descriptor
+has some additional information associated with it is used to provide more
+developer friendly workflows. An example of this is the **Reload and Restart**
+action that shows up in DCCs when using the ``dev`` descriptor.
 
 Sometimes it can be handy to organize your development sandbox relative to a pipeline configuration.
 If all developers in the studio share a convention where they for example have a ``dev`` folder inside
@@ -199,16 +254,12 @@ local path to the pipeline configuration::
     {"type": "dev", "path": "{PIPELINE_CONFIG}/dev/tk-nuke-myapp"}
 
 Since Sgtk does not know what version of the app is being run, it will return ``Undefined`` for
-an app referenced using the dev type. Sometimes, especially when doing framework development,
+an app referenced via a ``dev`` or ``path`` descriptor. Sometimes, especially when doing framework development,
 it can be useful to be able to specify a version number. In that case, you can specify
 a specific version number and Toolkit will associate this version number with the app::
 
 
     {"type": "dev", "path": "/path/to/app", "version": "v0.2.1"}
-
-
-If you needed to point Toolkit at a path, but intend to use the setup for non-dev purposes, use a ``path``
-descriptor rather than a dev descriptor. These have identical syntax.
 
 
 

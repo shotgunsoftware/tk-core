@@ -292,7 +292,13 @@ class PySide2Patcher(object):
                     else:
                         raise ValueError("Unknown platform: %s" % sys.platform)
                 else:
-                    webbrowser.open_new_tab(url.toString().encode("utf-8"))
+                    # According to webbrowser.py code logic, when open_new_tab() can find
+                    # and launch a suitable browser, it returns True; otherwise it either
+                    # returns False or raises some error.
+                    try:
+                        return webbrowser.open_new_tab(url.toString().encode("utf-8"))
+                    except:
+                        return False
 
             @classmethod
             def displayName(cls, type):
@@ -349,4 +355,4 @@ class PySide2Patcher(object):
         cls._patch_QMessageBox(qt_gui_shim)
         cls._patch_QDesktopServices(qt_gui_shim, qt_core_shim)
 
-        return qt_core_shim, qt_gui_shim, PySide2
+        return qt_core_shim, qt_gui_shim

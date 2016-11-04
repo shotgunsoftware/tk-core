@@ -8,13 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
+
 import os
 import sys
-import copy
 
-from tank_test.tank_test_base import *
 from tank import TankError
 from tank.util import LocalFileStorageManager
+
+from tank_test.tank_test_base import TankTestBase, setUpModule
+
 
 class TestLocalFileStorage(TankTestBase):
     """
@@ -23,6 +26,16 @@ class TestLocalFileStorage(TankTestBase):
 
     def setUp(self):
         super(TestLocalFileStorage, self).setUp()
+
+        # We can't assume that SHOTGUN_HOME is not set, so unset it for the tests.
+        self._old_value = os.environ.get(self.SHOTGUN_HOME)
+        if self._old_value:
+            del os.environ[self.SHOTGUN_HOME]
+
+    def tearDown(self):
+        # Set it back if there was a value before.
+        if self._old_value:
+            os.environ[self.SHOTGUN_HOME] = self._old_value
 
     def test_global(self):
         """
@@ -57,9 +70,15 @@ class TestLocalFileStorage(TankTestBase):
         """
         tests the global root, 0.17 style
         """
-        cache_path = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE, LocalFileStorageManager.CORE_V17)
-        persistent_path = LocalFileStorageManager.get_global_root(LocalFileStorageManager.PERSISTENT, LocalFileStorageManager.CORE_V17)
-        log_path = LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING, LocalFileStorageManager.CORE_V17)
+        cache_path = LocalFileStorageManager.get_global_root(
+            LocalFileStorageManager.CACHE, LocalFileStorageManager.CORE_V17
+        )
+        persistent_path = LocalFileStorageManager.get_global_root(
+            LocalFileStorageManager.PERSISTENT, LocalFileStorageManager.CORE_V17
+        )
+        log_path = LocalFileStorageManager.get_global_root(
+            LocalFileStorageManager.LOGGING, LocalFileStorageManager.CORE_V17
+        )
 
         if sys.platform == "darwin":
             self.assertEqual(cache_path, os.path.expanduser("~/Library/Caches/Shotgun"))
@@ -178,7 +197,7 @@ class TestLocalFileStorage(TankTestBase):
                 )
             )
 
-    def _compute_config_root(self, project_id, entry_point, pc_id, expected_suffix):
+    def _compute_config_root(self, project_id, plugin_id, pc_id, expected_suffix):
 
         hostname = "http://test.shotgunstudio.com"
 
@@ -193,7 +212,7 @@ class TestLocalFileStorage(TankTestBase):
             root = LocalFileStorageManager.get_configuration_root(
                 hostname,
                 project_id,
-                entry_point,
+                plugin_id,
                 pc_id,
                 path_type
             )
@@ -202,7 +221,6 @@ class TestLocalFileStorage(TankTestBase):
 
             self.assertEqual(root, os.path.join(site_root, expected_suffix))
 
-
     def test_config_root(self):
         """
         tests logic for config root computations
@@ -210,41 +228,40 @@ class TestLocalFileStorage(TankTestBase):
 
         self._compute_config_root(
             project_id=123,
-            entry_point=None,
+            plugin_id=None,
             pc_id=1234,
             expected_suffix="p123c1234"
         )
 
         self._compute_config_root(
             project_id=None,
-            entry_point="foo",
+            plugin_id="foo",
             pc_id=None,
             expected_suffix="site.foo"
         )
 
         self._compute_config_root(
             project_id=None,
-            entry_point="foo",
+            plugin_id="foo",
             pc_id=1234,
             expected_suffix="sitec1234"
         )
 
         self._compute_config_root(
             project_id=123,
-            entry_point="foo",
+            plugin_id="foo",
             pc_id=1234,
             expected_suffix="p123c1234"
         )
 
         self._compute_config_root(
             project_id=123,
-            entry_point="flame",
+            plugin_id="flame",
             pc_id=None,
             expected_suffix="p123.flame"
         )
 
-
-    def _compute_legacy_config_root(self, project_id, entry_point, pc_id, expected_suffix):
+    def _compute_legacy_config_root(self, project_id, plugin_id, pc_id, expected_suffix):
 
         hostname = "http://test.shotgunstudio.com"
 
@@ -258,7 +275,7 @@ class TestLocalFileStorage(TankTestBase):
             root = LocalFileStorageManager.get_configuration_root(
                 hostname,
                 project_id,
-                entry_point,
+                plugin_id,
                 pc_id,
                 path_type,
                 LocalFileStorageManager.CORE_V17
@@ -268,7 +285,6 @@ class TestLocalFileStorage(TankTestBase):
 
             self.assertEqual(root, os.path.join(site_root, expected_suffix))
 
-
     def test_legacy_config_root(self):
         """
         tests logic for legacy config root computations
@@ -276,36 +292,79 @@ class TestLocalFileStorage(TankTestBase):
 
         self._compute_legacy_config_root(
             project_id=123,
-            entry_point=None,
+            plugin_id=None,
             pc_id=1234,
             expected_suffix=os.path.join("project_123", "config_1234")
         )
 
         self._compute_legacy_config_root(
             project_id=None,
-            entry_point="foo",
+            plugin_id="foo",
             pc_id=None,
             expected_suffix=os.path.join("project_0", "config_None")
         )
 
         self._compute_legacy_config_root(
             project_id=None,
-            entry_point="foo",
+            plugin_id="foo",
             pc_id=1234,
             expected_suffix=os.path.join("project_0", "config_1234")
         )
 
         self._compute_legacy_config_root(
             project_id=123,
-            entry_point="foo",
+            plugin_id="foo",
             pc_id=1234,
             expected_suffix=os.path.join("project_123", "config_1234")
         )
 
         self._compute_legacy_config_root(
             project_id=123,
-            entry_point="flame",
+            plugin_id="flame",
             pc_id=None,
             expected_suffix=os.path.join("project_123", "config_None")
         )
 
+
+class TestCustomRoot(TankTestBase):
+    def test_custom_root(self):
+        """
+        Ensures that setting SHOTGUN_HOME overrides the local file storage default paths.
+        """
+        # Here we will assume that the unit test framework already has set SHOTGUN_HOME. This
+        # makes the code simpler, but also ensures that the sandboxing of the tests is not broken
+        # by someone modifying how TankTestBase is initialized.
+        self.assertEqual(
+            LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
+            self.tank_temp
+        )
+        self.assertEqual(
+            LocalFileStorageManager.get_global_root(LocalFileStorageManager.PREFERENCES),
+            os.path.join(self.tank_temp, "preferences")
+        )
+        self.assertEqual(
+            LocalFileStorageManager.get_global_root(LocalFileStorageManager.PERSISTENT),
+            os.path.join(self.tank_temp, "data")
+        )
+        self.assertEqual(
+            LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING),
+            os.path.join(self.tank_temp, "logs")
+        )
+
+    def test_env_var_and_tilde(self):
+        """
+        Makes sure environment variables and ~ are expanded
+        """
+        try:
+            # Create an environment variable that uses a ~.
+            os.environ["SHOTGUN_HOME_UNIT_TEST"] = os.path.join("~", "test")
+            # Set the SHOTGUN_HOME to use that environment variable.
+            os.environ["SHOTGUN_HOME"] = "$SHOTGUN_HOME_UNIT_TEST"
+
+            # Make sure that both the environment variable and the ~ have been expanded.
+            self.assertEqual(
+                LocalFileStorageManager.get_global_root(LocalFileStorageManager.PREFERENCES),
+                os.path.join(os.path.expanduser(os.environ["SHOTGUN_HOME_UNIT_TEST"]), "preferences")
+            )
+        finally:
+            os.environ["SHOTGUN_HOME_UNIT_TEST"]

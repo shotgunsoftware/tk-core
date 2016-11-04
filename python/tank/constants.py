@@ -82,3 +82,6 @@ TOOLKIT_INIT_CACHE_FILE = "toolkit_init.cache"
 
 # Email address of Shotgun support
 SUPPORT_EMAIL = "support@shotgunsoftware.com"
+
+# environment variable to hold external pipeline config data
+ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA = "SGTK_EXT_CONFIG_DATA"

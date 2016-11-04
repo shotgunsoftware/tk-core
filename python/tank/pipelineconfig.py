@@ -14,14 +14,14 @@ across storages, configurations etc.
 """
 import os
 import glob
-import cPickle
+import cPickle as pickle
 
 from tank_vendor import yaml
 
 from .errors import TankError, TankUnreadableFileError
 from .util.version import is_version_older
 from . import constants
-from .platform.environment import Environment, WritableEnvironment
+from .platform.environment import InstalledEnvironment, WritableEnvironment
 from .util import shotgun, yaml_cache
 from .util import ShotgunPath
 from . import hook
@@ -81,7 +81,6 @@ class PipelineConfiguration(object):
                                                                               our_associated_api_version, 
                                                                               self.get_install_location()))            
 
-
         self._roots = pipelineconfig_utils.get_roots_metadata(self._pc_root)
 
         # get the project tank disk name (Project.tank_name),
@@ -90,10 +89,16 @@ class PipelineConfiguration(object):
         self._project_name = pipeline_config_metadata.get("project_name")
         self._project_id = pipeline_config_metadata.get("project_id")
         self._pc_id = pipeline_config_metadata.get("pc_id")
-        self._entry_point = pipeline_config_metadata.get("entry_point")
+        self._plugin_id = pipeline_config_metadata.get("plugin_id")
         self._pc_name = pipeline_config_metadata.get("pc_name")
-        self._published_file_entity_type = pipeline_config_metadata.get("published_file_entity_type", "TankPublishedFile")        
-        self._use_shotgun_path_cache = pipeline_config_metadata.get("use_shotgun_path_cache", False)
+        self._published_file_entity_type = pipeline_config_metadata.get(
+            "published_file_entity_type",
+            "TankPublishedFile"
+        )
+        self._use_shotgun_path_cache = pipeline_config_metadata.get(
+            "use_shotgun_path_cache",
+            False
+        )
 
         # figure out whether to use the bundle cache or the
         # local pipeline configuration 'install' cache
@@ -109,8 +114,46 @@ class PipelineConfiguration(object):
         else:
             self._bundle_cache_fallback_paths = []
 
-        # Populate the global yaml_cache if we find a pickled cache
-        # on disk.
+        #
+        # Now handle the case of a baked and immutable configuration.
+        #
+        # In this case, Toolkit is always started via the bootstrap manager.
+        # A baked config means that the configuration isn't entirely determined
+        # from what is written into the pipeline configuration yaml file but that
+        # certain values, such as the project id, are specified at runtime.
+        #
+        # Such values are determined by the bootstrap process and passed via an
+        # environment variable which is probed and unpacked below.
+        #
+        if constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
+            try:
+                external_data = pickle.loads(os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA])
+            except Exception, e:
+                log.warning("Could not load external config data from: %s" % e)
+
+            if "project_id" in external_data:
+                self._project_id = external_data["project_id"]
+                log.debug("%s: Setting project id to %s from external config data" % (self, self._project_id))
+
+            if "project_name" in external_data:
+                self._project_name = external_data["project_name"]
+                log.debug("%s: Setting project name to %s from external config data" % (self, self._project_name))
+
+            if "pipeline_config_id" in external_data:
+                self._pc_id = external_data["pipeline_config_id"]
+                log.debug("%s: Setting pipeline config id to %s from external config data" % (self, self._pc_id))
+
+            if "pipeline_config_name" in external_data:
+                self._pc_name = external_data["pipeline_config_name"]
+                log.debug("%s: Setting pipeline config name to %s from external config data" % (self, self._pc_name))
+
+            if "bundle_cache_paths" in external_data:
+                self._bundle_cache_fallback_paths = external_data["bundle_cache_paths"]
+                log.debug(
+                    "%s: Setting bundle cache fallbacks to %s from external config data" % (self, self._bundle_cache_fallback_paths)
+                )
+
+        # Populate the global yaml_cache if we find a pickled cache on disk.
         # TODO: For immutable configs, move this into bootstrap
         self._populate_yaml_cache()
 
@@ -201,9 +244,9 @@ class PipelineConfiguration(object):
             fh.close()
             os.umask(old_umask)            
 
-        self._project_id = curr_settings.get("project").get("id")
-        self._pc_id = curr_settings.get("id")
-        self._pc_name = curr_settings.get("code")
+        self._project_id = curr_settings.get("project_id")
+        self._pc_id = curr_settings.get("pc_id")
+        self._pc_name = curr_settings.get("pc_name")
 
     def _populate_yaml_cache(self):
         """
@@ -221,7 +264,7 @@ class PipelineConfiguration(object):
             return
 
         try:
-            cache_items = cPickle.load(fh)
+            cache_items = pickle.load(fh)
             yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
         except Exception, e:
             log.warning("Could not merge yaml cache %s: %s" % (cache_file, e))
@@ -326,11 +369,12 @@ class PipelineConfiguration(object):
         """
         return self._pc_id
 
-    def get_entry_point(self):
+    def get_plugin_id(self):
         """
-        Returns the entry point for this PC.
+        Returns the plugin id for this PC.
+        For more information, see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`.
         """
-        return self._entry_point
+        return self._plugin_id
 
     def get_project_id(self):
         """
@@ -793,7 +837,7 @@ class PipelineConfiguration(object):
         :returns:           An environment object
         """        
         env_file = self.get_environment_path(env_name)
-        EnvClass = WritableEnvironment if writable else Environment
+        EnvClass = WritableEnvironment if writable else InstalledEnvironment
         env_obj = EnvClass(env_file, self, context)
         return env_obj
 

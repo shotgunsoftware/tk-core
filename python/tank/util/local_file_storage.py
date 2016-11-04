@@ -35,11 +35,12 @@ class LocalFileStorageManager(object):
     :constant CORE_V17: Indicates compatibility with Core 0.17 or earlier
     :constant CORE_V18: Indicates compatibility with Core 0.18 or later
 
-    :constant LOGGING: Indicates a path suitable for storing logs, useful for debugging
-    :constant CACHE: Indicates a path suitable for storing cache data that can be deleted without
-                       any loss of functionality or state.
-    :constant PERSISTENT: Indicates a path suitable for storing settings and other data that is needs
-                          to be retained between sessions.
+    :constant LOGGING:     Indicates a path suitable for storing logs, useful for debugging
+    :constant CACHE:       Indicates a path suitable for storing cache data that can be deleted
+                           without any loss of functionality or state.
+    :constant PERSISTENT:  Indicates a path suitable for storing data that needs
+                           to be retained between sessions.
+    :constant PREFERENCES: Indicates a path that suitable for storing settings files and preferences.
     """
     # generation of path structures
     (CORE_V17, CORE_V18) = range(2)
@@ -74,8 +75,29 @@ class LocalFileStorageManager(object):
         """
         if generation == cls.CORE_V18:
 
+            # If the environment variable is available and set to an actual value.
+            shotgun_home_override = os.environ.get("SHOTGUN_HOME")
+            if shotgun_home_override:
+
+                # Make sure environment variables and ~ are evaluated.
+                shotgun_home_override = os.path.expanduser(
+                    os.path.expandvars(shotgun_home_override)
+                )
+                # Make sure the path is an absolute path.
+                shotgun_home_override = os.path.abspath(shotgun_home_override)
+                # Root everything inside that custom path.
+                if path_type == cls.CACHE:
+                    return shotgun_home_override
+                elif path_type == cls.PERSISTENT:
+                    return os.path.join(shotgun_home_override, "data")
+                elif path_type == cls.PREFERENCES:
+                    return os.path.join(shotgun_home_override, "preferences")
+                elif path_type == cls.LOGGING:
+                    return os.path.join(shotgun_home_override, "logs")
+                else:
+                    raise ValueError("Unsupported path type!")
             # current generation of paths
-            if sys.platform == "darwin":
+            elif sys.platform == "darwin":
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/Library/Caches/Shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -200,7 +222,7 @@ class LocalFileStorageManager(object):
             cls,
             hostname,
             project_id,
-            entry_point,
+            plugin_id,
             pipeline_config_id,
             path_type,
             generation=CORE_V18):
@@ -215,8 +237,8 @@ class LocalFileStorageManager(object):
           a pipeline configuration id. When a pipeline configuration is not registered
           in Shotgun, this value should be None.
 
-        - If the configuration has been bootstrapped or has a known entry point, this
-          should be specified via the entry point parameter.
+        - If the configuration has been bootstrapped or has a known plugin id, this
+          should be specified via the plugin id parameter.
 
         For more details, see :meth:`LocalFileStorageManager.get_global_root`.
 
@@ -224,16 +246,16 @@ class LocalFileStorageManager(object):
 
         - Site config: ``ROOT/shotgunsite/p0``
         - Project 123, config 33: ``ROOT/shotgunsite/p123c33``
-        - project 123, no config, entry point rv_review: ``ROOT/shotgunsite/p123.rv_review``
+        - project 123, no config, plugin id review.rv: ``ROOT/shotgunsite/p123.review.rv``
 
         .. note:: This method does not ensure that the folder exists.
 
         :param hostname: Shotgun hostname as string, e.g. 'https://foo.shotgunstudio.com'
         :param project_id: Shotgun project id as integer. For the site config, this should be None.
-        :param entry_point: Entry point string to identify the scope for a particular plugin
-                            or integration. For more information,
-                            see :meth:`~sgtk.bootstrap.ToolkitManager.entry_point`. For
-                            non-plugin based toolkit projects, this value is None.
+        :param plugin_id: Plugin id string to identify the scope for a particular plugin
+                          or integration. For more information,
+                          see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
+                          non-plugin based toolkit projects, this value is None.
         :param pipeline_config_id: Shotgun pipeline config id. None for bootstraped configs.
         :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,
                           ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where
@@ -264,14 +286,14 @@ class LocalFileStorageManager(object):
 
             # new paths are on the form
             # project 123, config 33:       root/mysite/p123c33
-            # project 123 with entry point: root/mysite/p123.rv_review
+            # project 123 with plugin id:   root/mysite/p123.review.rv
             # site project:                 root/mysite/p0
             if pipeline_config_id:
                 # a config that has a shotgun counterpart
                 pc_suffix = "c%d" % pipeline_config_id
-            elif entry_point:
-                # no pc id but instead an entry point string
-                pc_suffix = ".%s" % filesystem.create_valid_filename(entry_point)
+            elif plugin_id:
+                # no pc id but instead an plugin id string
+                pc_suffix = ".%s" % filesystem.create_valid_filename(plugin_id)
             else:
                 # this is a possible, however not recommended state
                 pc_suffix = ""

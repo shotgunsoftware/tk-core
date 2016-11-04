@@ -43,6 +43,7 @@ from . import constants
 from . import validation
 from . import events
 from . import qt
+from . import qt5
 from .bundle import TankBundle
 from .framework import setup_frameworks
 from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
@@ -96,6 +97,7 @@ class Engine(TankBundle):
         self.__qt_widget_trash = []
         self.__created_qt_dialogs = []
         self.__qt_debug_info = {}
+        self.__has_qt5 = False
         
         self.__commands_that_need_prefixing = []
         
@@ -125,12 +127,14 @@ class Engine(TankBundle):
         # (and the rest of the sgtk logging ) to the user
         self.__log_handler = self.__initialize_logging()
 
-        # check general debug log setting and update the global debug flag accordingly. Do not set this
-        # flag only when the debug_logging is "true" because the global_debug flag is... global... and it
-        # needs to be reset during engine instantiation if the debug_logging setting suddenly turns false.
-        LogManager().global_debug = self.get_setting("debug_logging", False)
-        if LogManager().global_debug:
-            self.log_debug("Engine config flag 'debug_logging' detected, turning on debug output.")
+        # check general debug log setting and if this flag is turned on,
+        # adjust the global setting
+        if self.get_setting("debug_logging", False):
+            LogManager().global_debug = True
+            self.log_debug(
+                "Detected setting 'config/env/%s.yml:%s.debug_logging: true' "
+                "in your environment configuration. Turning on debug output." % (env.name, engine_instance_name)
+            )
 
         # check that the context contains all the info that the app needs
         validation.validate_context(descriptor, context)
@@ -176,6 +180,11 @@ class Engine(TankBundle):
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
         qt.TankDialogBase = base_def.get("dialog_base")
+
+        qt5_base = self.__define_qt5_base()
+        self.__has_qt5 = len(qt5_base) > 0
+        for name, value in qt5_base.iteritems():
+            setattr(qt5, name, value)
 
         # Update the authentication module to use the engine's Qt.
         # @todo: can this import be untangled? Code references internal part of the auth module
@@ -605,6 +614,27 @@ class Engine(TankBundle):
         return True
 
     @property
+    def has_qt5(self):
+        """
+        Indicates that the host application has access to Qt 5 and that the ``sgtk.platform.qt5``  module
+        has been populated with the Qt 5 modules and information.
+
+        :returns bool: boolean value indicating if Qt 5 is available.
+        """
+        return self.__has_qt5
+
+    @property
+    def has_qt4(self):
+        """
+        Indicates that the host application has access to Qt 4 and that the ``sgtk.platform.qt``  module
+        has been populated with the Qt 4 modules and information.
+
+        :returns bool: boolean value indicating if Qt 4 is available.
+        """
+        # Check if Qt was imported. Then checks if a Qt4 compatible api is available.
+        return hasattr(qt, "QtGui") and hasattr(qt.QtGui, "QApplication")
+
+    @property
     def metrics_dispatch_allowed(self):
         """
         Indicates this engine will allow the metrics worker threads to forward
@@ -887,6 +917,7 @@ class Engine(TankBundle):
           multi select shotgun app is provided in a special branch in the sample starter
           app: https://github.com/shotgunsoftware/tk-multi-starterapp/tree/shotgun_multi_select
 
+        - Please note that custom icons are not supported by the Shotgun engine.
 
         Typical usage normally looks something like this -
         register_command is called from the :meth:`Application.init_app()` method of an app::
@@ -1774,13 +1805,26 @@ class Engine(TankBundle):
                 base["dialog_base"] = importer.QtGui.QDialog
             else:
                 base["dialog_base"] = None
-            base["wrapper"] = importer.wrapper
+            base["wrapper"] = importer.binding
         except:
 
             self.log_exception("Default engine QT definition failed to find QT. "
                                "This may need to be subclassed.")
 
         return base
+
+    def __define_qt5_base(self):
+        """
+        This will be called at initialization to discover every PySide 2 modules. It should provide
+        every Qt modules available as well as two extra attributes, ``__name__`` and
+        ``__version__``, which refer to the name of the binding and it's version, e.g.
+        PySide2 and 2.0.1.
+
+        .. note:: PyQt5 not supported since it runs only on Python 3.
+
+        :returns: A dictionary with all the modules, __version__ and __name__.
+        """
+        return QtImporter(interface_version_requested=QtImporter.QT5).base
 
     def _initialize_dark_look_and_feel(self):
         """
