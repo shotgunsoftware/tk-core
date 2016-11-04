@@ -21,7 +21,9 @@ def get_version():
     :returns: A major.minor.patch[.sub] version string or "dev".
     """
     # Try to extract the version number from git
-    # this will work when installing from a locally cloned repo
+    # this will work when installing from a locally cloned repo, or directly from
+    # github, using something like:
+    # pip install git+https://github.com/shotgunsoftware/tk-core@v0.0.1.piptest#egg=sgtk
     try:
         version_git = subprocess.check_output(["git", "describe"]).rstrip()
         return version_git
