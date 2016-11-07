@@ -266,12 +266,9 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
     """
     # @todo: progress feedback here - when the SG api supports it!
     # sometimes people report that this download fails (because of flaky connections etc)
-    # engines can often be 30-50MiB - as a quick fix, just retry the download once
-    # if it fails.
+    # engines can often be 30-50MiB - as a quick fix, just retry the download if it fails
     attempt = 0
     done = False
-
-
 
     while not done and attempt < retries:
 
@@ -300,11 +297,12 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
             unzip_file(zip_tmp, target)
 
         except Exception, e:
-            # retry once
             log.warning(
                 "Attempt %s: Attachment download of id %s from %s failed: %s" % (attempt, attachment_id, sg.base_url, e)
             )
             attempt += 1
+            # sleep 500ms before we retry
+            time.sleep(0.5)
         else:
             done = True
         finally:
