@@ -18,33 +18,38 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from .ui import resources_rc
 from .ui import login_dialog
 from . import session_cache
 from .errors import AuthenticationError
-from .ui.qt_abstraction import QtGui, QtCore, QtWebKit, QtNetwork
+from .ui.qt_abstraction import QtGui, QtCore, QtNetwork
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 
 from tank_vendor.shotgun_api3.lib.httplib2 import ServerNotFoundError
 from tank_vendor.shotgun_api3 import Shotgun
 
+
 def print_cookie_jar(cookie_jar):
+    """print_cookie_jar."""
     print "==== Cookies START ===="
     for cookie in cookie_jar.allCookies():
         print "  --< %s" % cookie.toRawForm()
     print "==== Cookies END ===="
 
+
 def write_cookie_jar(cookie_jar):
+    """write_cookie_jar."""
     with open('cookiejar.txt', 'w') as jar_file:
         for cookie in cookie_jar.allCookies():
-            jar_file.write( "%s\n" % cookie.toRawForm())
+            jar_file.write("%s\n" % cookie.toRawForm())
+
 
 def read_cookie_jar():
+    """read_cookie_jar."""
     cookie_list = []
     try:
         with open('cookiejar.txt', 'r') as jar_file:
             for raw_cookie in jar_file.readlines():
-            # return QtNetwork.QNetworkCookie.parseCookies(jar_file.readlines())
+                # return QtNetwork.QNetworkCookie.parseCookies(jar_file.readlines())
                 cookie_list.append(QtNetwork.QNetworkCookie.parseCookies(raw_cookie)[0])
     except IOError:
         pass
@@ -92,8 +97,6 @@ class TemporaryEventLoop(QtCore.QEventLoop):
             raise Exception("Unexpected return code in local event loop: %s" % code)
 
 
-
-
 class LoginDialog(QtGui.QDialog):
     """
     Dialog for getting user credentials.
@@ -102,7 +105,7 @@ class LoginDialog(QtGui.QDialog):
     # Formatting required to display error messages.
     ERROR_MSG_FORMAT = "<font style='color: rgb(252, 98, 70);'>%s</font>"
 
-    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, no_ui=True):
+    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, no_ui=False):
         """
         Constructs a dialog.
 
@@ -229,7 +232,6 @@ class LoginDialog(QtGui.QDialog):
 
     def _sso_login(self):
         pass
-
 
     def _page_onStarted(self):
         pass
