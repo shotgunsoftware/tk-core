@@ -188,7 +188,7 @@ class SessionRenewal(object):
 ###############################################################################################
 # public methods
 
-def renew_session(user):
+def renew_session(user, no_gui=False):
     """
     Prompts the user to enter this password on the console or in a ui to
     retrieve a new session token.
@@ -204,8 +204,9 @@ def renew_session(user):
     print "XXXXXXX"
     print "XXXXXXX"
     print "XXXXXXX"
+    # raise Exception('renew_session')
     if has_ui:
-        authenticator = UiAuthenticationHandler(is_session_renewal=True, cookies=user.get_cookies())
+        authenticator = UiAuthenticationHandler(is_session_renewal=True, cookies=user.get_cookies(), no_gui=no_gui)
     else:
         authenticator = ConsoleRenewSessionHandler()
     SessionRenewal.renew_session(user, authenticator)

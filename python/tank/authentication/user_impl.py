@@ -252,7 +252,7 @@ class SessionUser(ShotgunUserImpl):
 
         :returns: The login name string.
         """
-        print "Setting user cookies to: %s" % cookies
+        # print "Setting user cookies to: %s" % cookies
         self._cookies = cookies
 
     def create_sg_connection(self):

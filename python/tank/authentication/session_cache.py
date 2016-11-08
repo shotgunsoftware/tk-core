@@ -207,7 +207,7 @@ def _try_load_site_authentication_file(file_path):
     # Make sure any mandatory entry is present.
     content.setdefault(_USERS, [])
     content.setdefault(_CURRENT_USER, None)
-    content.setdefault(_CURRENT_COOKIES, None)
+    content.setdefault(_CURRENT_COOKIES, [])
     return content
 
 
@@ -258,9 +258,9 @@ def _write_yaml_file(file_path, users_data):
     :param file_path: Where to write the users data
     :param users_data: Dictionary to write to disk.
     """
-    print "vvvvvvvvvvvvvvvv"
-    print "_write_yaml_file: %s" % users_data
-    print "^^^^^^^^^^^^^^^^"
+    # print "vvvvvvvvvvvvvvvv"
+    # print "_write_yaml_file: %s" % users_data
+    # print "^^^^^^^^^^^^^^^^"
     old_umask = os.umask(0077)
     try:
         with open(file_path, "w") as users_file:

@@ -106,7 +106,7 @@ class LoginDialog(QtGui.QDialog):
     ERROR_MSG_FORMAT = "<font style='color: rgb(252, 98, 70);'>%s</font>"
 
     # def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, no_ui=False):
-    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, cookies=None):
+    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, cookies=None, no_gui=False):
         """
         Constructs a dialog.
 
@@ -127,9 +127,9 @@ class LoginDialog(QtGui.QDialog):
         self._is_session_renewal = is_session_renewal
 
         # self._no_ui = no_ui
-        self._no_ui = False
+        self._no_gui = no_gui
         self._cookies = cookies
-        print "My cookies: %s" % cookies
+        # print "My cookies: %s" % cookies
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
@@ -203,7 +203,8 @@ class LoginDialog(QtGui.QDialog):
 
         url = self.ui.site.text()
         if self._check_sso_enabled(url):
-            # url += '/saml/saml_login_request'
+            if self._is_session_renewal:
+                url += '/saml/saml_login_request'
             print "-> %s" % url
             self.resize(800, 800)
             self.ui.stackedWidget.setCurrentWidget(self.ui.web_page)
@@ -360,7 +361,7 @@ class LoginDialog(QtGui.QDialog):
         :returns: A tuple of (hostname, username and session token) string if the user authenticated
                   None if the user cancelled.
         """
-        if self._no_ui:
+        if self._no_gui:
             print "Killroy was here"
             res = TemporaryEventLoop(self).exec_()
         else:

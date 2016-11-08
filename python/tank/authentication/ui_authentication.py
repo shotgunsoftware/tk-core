@@ -32,7 +32,7 @@ class UiAuthenticationHandler(object):
     directly and be used through the authenticate and renew_session methods.
     """
 
-    def __init__(self, is_session_renewal, fixed_host=False, cookies=None):
+    def __init__(self, is_session_renewal, fixed_host=False, cookies=None, no_gui=False):
         """
         Creates the UiAuthenticationHandler object.
         :param is_session_renewal: Boolean indicating if we are renewing a session. True if we are, False otherwise.
@@ -41,6 +41,7 @@ class UiAuthenticationHandler(object):
         self._gui_launcher = invoker.create()
         self._fixed_host = fixed_host
         self._cookies = cookies
+        self._no_gui = no_gui
 
     def authenticate(self, hostname, login, http_proxy):
         """
@@ -60,14 +61,17 @@ class UiAuthenticationHandler(object):
         else:
             logger.debug("Requesting username and password in a dialog.")
 
+        print "GRRRRR"
         def _process_ui():
+            print "_process_ui"
             dlg = login_dialog.LoginDialog(
                 is_session_renewal=self._is_session_renewal,
                 hostname=hostname,
                 login=login,
                 http_proxy=http_proxy,
                 fixed_host=self._fixed_host,
-                cookies=self._cookies
+                cookies=self._cookies,
+                no_gui=self._no_gui
             )
             return dlg.result()
 
