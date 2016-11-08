@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.templatekey &mdash; tk-core v0.18.31 documentation</title>
+  <title>tank.templatekey &mdash; tk-core v0.18.32 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.31 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.32 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.31.<br>
+    <b>tk-core</b> v0.18.32.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -183,6 +183,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span>
@@ -229,16 +230,16 @@
                  <span class="n">abstract</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
                  <span class="n">length</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :param name: Key name.</span>
+<span class="sd">        :param str name: Name by which the key will be referred.</span>
 <span class="sd">        :param default: Default value for this key. If the default is a callable, it will be invoked</span>
 <span class="sd">                        without any parameters whenever a default value is required.</span>
 <span class="sd">        :param choices: List of possible values for this key. Can be either a list or a dictionary</span>
 <span class="sd">                        of choice:label pairs.</span>
-<span class="sd">        :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.</span>
-<span class="sd">        :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.</span>
-<span class="sd">        :param exclusions: List of values which are not allowed.</span>
-<span class="sd">        :param abstract: Boolean indicating if the value is abstract.</span>
-<span class="sd">        :param length: If non-None, indicating that the value should be of a fixed length.</span>
+<span class="sd">        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.</span>
+<span class="sd">        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.</span>
+<span class="sd">        :param list exclusions: List of forbidden values.</span>
+<span class="sd">        :param bool abstract: Flagging that this should be treated as an abstract key.</span>
+<span class="sd">        :param int length: If non-None, indicating that the value should be of a fixed length.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_default</span> <span class="o">=</span> <span class="n">default</span>
@@ -445,11 +446,7 @@
         <span class="k">return</span> <span class="n">str_value</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">has_abstraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_abstractor&quot;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="StringKey"><a class="viewcode-back" href="../../core.html#sgtk.StringKey">[docs]</a><span class="k">class</span> <span class="nc">StringKey</span><span class="p">(</span><span class="n">TemplateKey</span><span class="p">):</span>
@@ -465,18 +462,23 @@
                  <span class="n">shotgun_field_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
                  <span class="n">exclusions</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">abstract</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
-                 <span class="n">length</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                 <span class="n">length</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">subset</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">subset_format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :param name: Name by which the key will be referred.</span>
-<span class="sd">        :param default: Default value for the key.</span>
-<span class="sd">        :param choices: List of possible values for this key.</span>
-<span class="sd">        :param filter_by: Name of filter type to limit values for string. Currently</span>
-<span class="sd">                          only accepted values are &#39;alphanumeric&#39;, &#39;alpha&#39;, None and a regex string.</span>
-<span class="sd">        :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.</span>
-<span class="sd">        :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.</span>
-<span class="sd">        :param exclusions: List of forbidden values.</span>
-<span class="sd">        :param abstract: Bool, should this key be treated as abstract.</span>
-<span class="sd">        :param length: int, should this key be fixed length</span>
+<span class="sd">        :param str name: Name by which the key will be referred.</span>
+<span class="sd">        :param str default: Default value for the key.</span>
+<span class="sd">        :param choices: List of possible values for this key. Can be either a list or a dictionary</span>
+<span class="sd">                        of choice:label pairs.</span>
+<span class="sd">        :param str filter_by: Name of filter type to limit values for string. Currently</span>
+<span class="sd">                              only accepted values are &#39;alphanumeric&#39;, &#39;alpha&#39;, None and a regex string.</span>
+<span class="sd">        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.</span>
+<span class="sd">        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.</span>
+<span class="sd">        :param list exclusions: List of forbidden values.</span>
+<span class="sd">        :param bool abstract: Flagging that this should be treated as an abstract key.</span>
+<span class="sd">        :param int length: If non-None, indicating that the value should be of a fixed length.</span>
+<span class="sd">        :param str subset: Regular expression defining a subset of the value to use.</span>
+<span class="sd">        :param str subset_format: String to express the formatting of subset tokens.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by</span> <span class="o">=</span> <span class="n">filter_by</span>
 
@@ -498,7 +500,22 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c1"># filter_by is a regex</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_custom_regex_u</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filter_by</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
-        
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subset_str</span> <span class="o">=</span> <span class="n">subset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span> <span class="o">=</span> <span class="n">subset_format</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Subset formatting in template keys require python 2.6+!&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subset_str</span> <span class="o">=</span> <span class="n">subset</span>
+
+        <span class="k">if</span> <span class="n">subset</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_subset_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Template key </span><span class="si">%s</span><span class="s2">: Invalid subset regex &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_subset_regex</span> <span class="o">=</span> <span class="bp">None</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">StringKey</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span>
                                         <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
@@ -509,41 +526,217 @@
                                         <span class="n">abstract</span><span class="o">=</span><span class="n">abstract</span><span class="p">,</span>
                                         <span class="n">length</span><span class="o">=</span><span class="n">length</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_str</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Cannot specify subset_format parameter without a subset parameter.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
+
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">filter_by</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Name of filter type to limit values for string.</span>
-
-<span class="sd">        returns: &#39;alphanumeric&#39;, &#39;alpha&#39;, None or a regex string.</span>
+<span class="sd">        ``alphanumeric``, ``alpha``, ``None`` or a regex string.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by</span>
 
-    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">subset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a regular expression describing how values should be transformed</span>
+<span class="sd">        when they are being injected into template paths and strings.</span>
 
+<span class="sd">        The format for a subset is a regular expression containing regex groups,</span>
+<span class="sd">        for example::</span>
+
+<span class="sd">            # grabs capital letters of the two first words</span>
+<span class="sd">            user_initials:</span>
+<span class="sd">                type: str</span>
+<span class="sd">                subset: &#39;([A-Z])[a-z]* ([A-Z])[a-z]*&#39;</span>
+
+<span class="sd">            # extracts the first three characters</span>
+<span class="sd">            first_three_characters:</span>
+<span class="sd">                type: str</span>
+<span class="sd">                subset: &#39;(.{3}).*&#39;</span>
+
+<span class="sd">            # in code, the above expressions would compress the following input:</span>
+
+<span class="sd">            some_template.apply_fields(</span>
+<span class="sd">                {&quot;user_initials&quot;: &quot;John Smith&quot;,</span>
+<span class="sd">                &quot;first_three_characters&quot;: &quot;John Smith&quot;}</span>
+<span class="sd">            )</span>
+
+<span class="sd">            # into &quot;JS&quot; for the {user_initials} key and &quot;Joh&quot; for the {first_three_characters} key</span>
+
+<span class="sd">        If the subset expression contains more than one ``(regex group)`` to extract, the groups</span>
+<span class="sd">        will be concatenated together in the order they are found. If you want greater control</span>
+<span class="sd">        over this, see :meth:`subset_format`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_str</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">subset_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the ``subset_format`` string for the given template key. This string is used in conjunction with the</span>
+<span class="sd">        :meth:`subset` parameter and allows for the formatting of the values that are being extracted::</span>
+
+<span class="sd">            # grabs capital letters of the two first words</span>
+<span class="sd">            user_initials_backwards:</span>
+<span class="sd">                type: str</span>
+<span class="sd">                subset: &#39;([A-Z])[a-z]* ([A-Z])[a-z]*&#39;</span>
+<span class="sd">                subset_format: &#39;{1}{0}&#39;</span>
+
+<span class="sd">            # in code, the above expression would compress the following input:</span>
+
+<span class="sd">            some_template.apply_fields({&quot;user_initials&quot;: &quot;John Smith&quot;})</span>
+
+<span class="sd">            # into &quot;SJ&quot; for the user_initials_backwards key.</span>
+
+<span class="sd">        The formatting used for the string is standard python custom string formatting, where you can reference</span>
+<span class="sd">        each regex group with an integer index. Read more about standard python string formatting here:</span>
+<span class="sd">        https://docs.python.org/2/library/string.html#custom-string-formatting</span>
+
+<span class="sd">        .. note:: Subset format is using python string formatting and is only compatible with</span>
+<span class="sd">                  with Python 2.6+.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span>
+
+<div class="viewcode-block" id="StringKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.StringKey.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Test if a value is valid for this key.</span>
+
+<span class="sd">        :param value: Value to test</span>
+<span class="sd">        :returns: True if valid, false if not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># make sure that transforms such as a subset calculation</span>
+        <span class="c1"># are valid.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__validate</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">validate_transforms</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="StringKey.value_from_str"><a class="viewcode-back" href="../../core.html#sgtk.StringKey.value_from_str">[docs]</a>    <span class="k">def</span> <span class="nf">value_from_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validates and translates a string into an appropriate value for this key.</span>
+
+<span class="sd">        :param str_value: The string to translate.</span>
+<span class="sd">        :returns: The translated value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># this is used by the parser when transforming</span>
+        <span class="c1"># a path or string into an actual value.</span>
+        <span class="c1"># in this case, we don&#39;t want to validate transforms</span>
+        <span class="c1"># such as the substring regext transform, since these</span>
+        <span class="c1"># may not be valid in both directions.</span>
+        <span class="c1">#</span>
+        <span class="c1"># for example, a regex that extracts the initials from</span>
+        <span class="c1"># a &quot;Firstname Lastname&quot; string will result in a value</span>
+        <span class="c1"># which will not match the regex that is used to</span>
+        <span class="c1"># extract it.</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__validate</span><span class="p">(</span><span class="n">str_value</span><span class="p">,</span> <span class="n">validate_transforms</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_as_value</span><span class="p">(</span><span class="n">str_value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+    <span class="k">def</span> <span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts the given value to a string representation.</span>
+
+<span class="sd">        :param value: value of any type to convert. Value is never None.</span>
+<span class="sd">        :returns: string representation for this object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">str_value</span> <span class="o">=</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_regex</span><span class="p">:</span>
+            <span class="c1"># process substring computation.</span>
+            <span class="c1"># we want to do this in unicode.</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">str_value</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">):</span>
+                <span class="c1"># convert to unicode</span>
+                <span class="n">input_is_utf8</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">value_to_convert</span> <span class="o">=</span> <span class="n">str_value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># already unicode</span>
+                <span class="n">input_is_utf8</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="n">value_to_convert</span> <span class="o">=</span> <span class="n">str_value</span>
+
+            <span class="c1"># now perform extraction and concat</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">value_to_convert</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c1"># no match. return empty string</span>
+                <span class="c1"># validate should prevent this from happening</span>
+                <span class="n">resolved_value</span> <span class="o">=</span> <span class="s2">u&quot;&quot;</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span><span class="p">:</span>
+                <span class="c1"># we have an explicit format string we want to apply to the</span>
+                <span class="c1"># match. Do the formatting as unicode.</span>
+                <span class="n">resolved_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">())</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># we have a match object. concatenate the groups</span>
+                <span class="n">resolved_value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">())</span>
+
+            <span class="c1"># resolved value is now unicode. Convert it</span>
+            <span class="c1"># so that it is consistent with input</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resolved_value</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">)</span> <span class="ow">and</span> <span class="n">input_is_utf8</span><span class="p">:</span>
+                <span class="c1"># input was utf-8, regex resut is unicode, cast it back</span>
+                <span class="n">str_value</span> <span class="o">=</span> <span class="n">resolved_value</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">str_value</span> <span class="o">=</span> <span class="n">resolved_value</span>
+
+        <span class="k">return</span> <span class="n">str_value</span>
+
+    <span class="k">def</span> <span class="nf">__validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">validate_transforms</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Test if a value is valid for this key.</span>
+
+<span class="sd">        :param value: Value to test</span>
+<span class="sd">        :param validate_transforms: If true, then validate that transforms that mutate the</span>
+<span class="sd">                                    value of a key are valid and can be applied.</span>
+<span class="sd">        :returns: True if valid, false if not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">u_value</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u_value</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">):</span>
             <span class="c1"># handle non-ascii characters correctly by</span>
             <span class="c1"># decoding to unicode assuming utf-8 encoding</span>
             <span class="n">u_value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_regex_u</span><span class="p">:</span>                
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_regex_u</span><span class="p">:</span>
             <span class="c1"># first check our std filters. These filters are negated</span>
-            <span class="c1"># so here we are checking that there are occurances of </span>
+            <span class="c1"># so here we are checking that there are occurances of</span>
             <span class="c1"># that pattern in the string</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_regex_u</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">u_value</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39; does not fit filter_by &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_by</span><span class="p">)</span>
                 <span class="k">return</span> <span class="bp">False</span>
-        
+
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_custom_regex_u</span><span class="p">:</span>
             <span class="c1"># check for any user specified regexes</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_custom_regex_u</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">u_value</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39; does not fit filter_by &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_by</span><span class="p">)</span>
                 <span class="k">return</span> <span class="bp">False</span>
-            
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">StringKey</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+        <span class="c1"># check subset regex</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_regex</span> <span class="ow">and</span> <span class="n">validate_transforms</span><span class="p">:</span>
+            <span class="n">regex_match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">u_value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">regex_match</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39; does not fit &quot;</span> \
+                                   <span class="s2">&quot;subset expression &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="c1"># validate that the formatting can be applied to the input value</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># perform the formatting in unicode space to cover all cases</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">regex_match</span><span class="o">.</span><span class="n">groups</span><span class="p">())</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39; does not fit subset &#39;</span><span class="si">%s</span><span class="s2">&#39; with format &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="p">,</span>
+                        <span class="n">value</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">subset</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">subset_format</span><span class="p">,</span>
+                        <span class="n">e</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">StringKey</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="TimestampKey"><a class="viewcode-back" href="../../core.html#sgtk.TimestampKey">[docs]</a><span class="k">class</span> <span class="nc">TimestampKey</span><span class="p">(</span><span class="n">TemplateKey</span><span class="p">):</span>
@@ -558,7 +751,7 @@
         <span class="n">format_spec</span><span class="o">=</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">-%H-%M-%S&quot;</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :param name: Name by which the key will be referred.</span>
+<span class="sd">        :param str name: Name by which the key will be referred.</span>
 <span class="sd">        :param default: Default value for this field. Acceptable values are:</span>
 
 <span class="sd">                        - ``None``</span>
@@ -568,10 +761,10 @@
 <span class="sd">                        - ``now``, which means the current time in the local timezone will be used</span>
 <span class="sd">                          as the default value.</span>
 
-<span class="sd">        :param format_spec: Specification for formatting when casting to/from a string.</span>
-<span class="sd">                            The format follows the convention of :meth:`time.strftime`. The</span>
-<span class="sd">                            default value is ``%Y-%m-%d-%H-%M-%S``. Given June 24th, 2015 at</span>
-<span class="sd">                            9:20:30 PM, this will yield ``2015-06-24-21-20-30``.</span>
+<span class="sd">        :param str format_spec: Specification for formatting when casting to/from a string.</span>
+<span class="sd">                                The format follows the convention of :meth:`time.strftime`. The</span>
+<span class="sd">                                default value is ``%Y-%m-%d-%H-%M-%S``. Given June 24th, 2015 at</span>
+<span class="sd">                                9:20:30 PM, this will yield ``2015-06-24-21-20-30``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Can&#39;t use __repr__ because of a chicken and egg problem. The base class validates the</span>
@@ -709,20 +902,20 @@
                  <span class="n">length</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">strict_matching</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :param name: Key&#39;s name.</span>
-<span class="sd">        :param default: Default value for this key.</span>
-<span class="sd">        :param choices: List of possible values for this key.</span>
-<span class="sd">        :param format_spec: Specification for formatting when casting to a string.</span>
-<span class="sd">                            The form is a zero followed the number of spaces to pad</span>
-<span class="sd">                            the value.</span>
-<span class="sd">        :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.</span>
-<span class="sd">        :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.</span>
-<span class="sd">        :param exclusions: List of forbidden values.</span>
-<span class="sd">        :param abstract: Bool, should this key be treated as abstract.</span>
-<span class="sd">        :param length: int, should this key be fixed length</span>
-<span class="sd">        :param strict_matching: Bool, indicates if the padding should be matching exactly the</span>
-<span class="sd">                                format_spec when parsing a string. Default behavior is to match</span>
-<span class="sd">                                exactly the padding when a format_spec is provided.</span>
+<span class="sd">        :param str name: Name by which the key will be referred.</span>
+<span class="sd">        :param int default: Default value for this key.</span>
+<span class="sd">        :param list choices: List of possible values for this key.</span>
+<span class="sd">        :param str format_spec: Specification for formatting when casting to a string.</span>
+<span class="sd">                                The form is a zero followed the number of spaces to pad</span>
+<span class="sd">                                the value.</span>
+<span class="sd">        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.</span>
+<span class="sd">        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.</span>
+<span class="sd">        :param list exclusions: List of forbidden values.</span>
+<span class="sd">        :param bool abstract: Flagging that this should be treated as an abstract key.</span>
+<span class="sd">        :param int length: If non-None, indicating that the value should be of a fixed length.</span>
+<span class="sd">        :param bool strict_matching: Indicates if the padding should be matching exactly the</span>
+<span class="sd">                                     format_spec when parsing a string. Default behavior is to match</span>
+<span class="sd">                                     exactly the padding when a format_spec is provided.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_zero_padded</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_minimum_width</span> <span class="o">=</span> <span class="bp">None</span>
@@ -983,17 +1176,16 @@
                  <span class="n">shotgun_field_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">exclusions</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :param name: Key&#39;s name.</span>
-<span class="sd">        :param default: Default value for this key.</span>
-<span class="sd">        :param choices: List of possible values for this key.</span>
-<span class="sd">        :param format_spec: Specification for formatting when casting to a string.</span>
-<span class="sd">                            The form is a zero followed the number of spaces to pad</span>
-<span class="sd">                            the value.</span>
-<span class="sd">        :param shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.</span>
-<span class="sd">        :param shotgun_field_name: For keys directly linked to a shotgun field, the field name.</span>
-<span class="sd">        :param exclusions: List of forbidden values.</span>
+<span class="sd">        :param str name: Name by which the key will be referred.</span>
+<span class="sd">        :param str default: Default value for this key.</span>
+<span class="sd">        :param list choices: List of possible values for this key.</span>
+<span class="sd">        :param str format_spec: Specification for formatting when casting to a string.</span>
+<span class="sd">                                The form is a zero followed the number of spaces to pad</span>
+<span class="sd">                                the value.</span>
+<span class="sd">        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.</span>
+<span class="sd">        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.</span>
+<span class="sd">        :param str exclusions: List of forbidden values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="c1"># determine the actual frame specs given the padding (format_spec)</span>
         <span class="c1"># and the allowed formats</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_frame_specs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_resolve_frame_spec</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">VALID_FORMAT_STRINGS</span> <span class="p">]</span>
@@ -1209,7 +1401,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.31',
+            VERSION:'v0.18.32',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

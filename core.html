@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Foundation &mdash; tk-core v0.18.31 documentation</title>
+  <title>Foundation &mdash; tk-core v0.18.32 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.31 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.32 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Deploy and management" href="bootstrap.html"/> 
 
@@ -148,7 +148,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.31.<br>
+    <b>tk-core</b> v0.18.32.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -2217,16 +2217,16 @@ in four flavors: string, integer, sequence and timestamp:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> &#8211; Key name.</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
 <li><strong>default</strong> &#8211; Default value for this key. If the default is a callable, it will be invoked
 without any parameters whenever a default value is required.</li>
 <li><strong>choices</strong> &#8211; List of possible values for this key. Can be either a list or a dictionary
 of choice:label pairs.</li>
-<li><strong>shotgun_entity_type</strong> &#8211; For keys directly linked to a shotgun field, the entity type.</li>
-<li><strong>shotgun_field_name</strong> &#8211; For keys directly linked to a shotgun field, the field name.</li>
-<li><strong>exclusions</strong> &#8211; List of values which are not allowed.</li>
-<li><strong>abstract</strong> &#8211; Boolean indicating if the value is abstract.</li>
-<li><strong>length</strong> &#8211; If non-None, indicating that the value should be of a fixed length.</li>
+<li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
+<li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
+<li><strong>exclusions</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of forbidden values.</li>
+<li><strong>abstract</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flagging that this should be treated as an abstract key.</li>
+<li><strong>length</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; If non-None, indicating that the value should be of a fixed length.</li>
 </ul>
 </td>
 </tr>
@@ -2377,23 +2377,26 @@ of files, for example when you want to represent a sequence of frames using a
 <h3>StringKey<a class="headerlink" href="#stringkey" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.StringKey">
-<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">StringKey</code><span class="sig-paren">(</span><em>name</em>, <em>default=None</em>, <em>choices=None</em>, <em>filter_by=None</em>, <em>shotgun_entity_type=None</em>, <em>shotgun_field_name=None</em>, <em>exclusions=None</em>, <em>abstract=False</em>, <em>length=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#StringKey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.StringKey" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">StringKey</code><span class="sig-paren">(</span><em>name</em>, <em>default=None</em>, <em>choices=None</em>, <em>filter_by=None</em>, <em>shotgun_entity_type=None</em>, <em>shotgun_field_name=None</em>, <em>exclusions=None</em>, <em>abstract=False</em>, <em>length=None</em>, <em>subset=None</em>, <em>subset_format=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#StringKey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.StringKey" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference internal" href="#sgtk.TemplateKey" title="sgtk.TemplateKey"><code class="xref py py-class docutils literal"><span class="pre">TemplateKey</span></code></a> representing a string value.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> &#8211; Name by which the key will be referred.</li>
-<li><strong>default</strong> &#8211; Default value for the key.</li>
-<li><strong>choices</strong> &#8211; List of possible values for this key.</li>
-<li><strong>filter_by</strong> &#8211; Name of filter type to limit values for string. Currently
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
+<li><strong>default</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Default value for the key.</li>
+<li><strong>choices</strong> &#8211; List of possible values for this key. Can be either a list or a dictionary
+of choice:label pairs.</li>
+<li><strong>filter_by</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of filter type to limit values for string. Currently
 only accepted values are &#8216;alphanumeric&#8217;, &#8216;alpha&#8217;, None and a regex string.</li>
-<li><strong>shotgun_entity_type</strong> &#8211; For keys directly linked to a shotgun field, the entity type.</li>
-<li><strong>shotgun_field_name</strong> &#8211; For keys directly linked to a shotgun field, the field name.</li>
-<li><strong>exclusions</strong> &#8211; List of forbidden values.</li>
-<li><strong>abstract</strong> &#8211; Bool, should this key be treated as abstract.</li>
-<li><strong>length</strong> &#8211; int, should this key be fixed length</li>
+<li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
+<li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
+<li><strong>exclusions</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of forbidden values.</li>
+<li><strong>abstract</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flagging that this should be treated as an abstract key.</li>
+<li><strong>length</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; If non-None, indicating that the value should be of a fixed length.</li>
+<li><strong>subset</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Regular expression defining a subset of the value to use.</li>
+<li><strong>subset_format</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; String to express the formatting of subset tokens.</li>
 </ul>
 </td>
 </tr>
@@ -2402,8 +2405,100 @@ only accepted values are &#8216;alphanumeric&#8217;, &#8216;alpha&#8217;, None a
 <dl class="attribute">
 <dt id="sgtk.StringKey.filter_by">
 <code class="descname">filter_by</code><a class="headerlink" href="#sgtk.StringKey.filter_by" title="Permalink to this definition">¶</a></dt>
-<dd><p>Name of filter type to limit values for string.</p>
-<p>returns: &#8216;alphanumeric&#8217;, &#8216;alpha&#8217;, None or a regex string.</p>
+<dd><p>Name of filter type to limit values for string.
+<code class="docutils literal"><span class="pre">alphanumeric</span></code>, <code class="docutils literal"><span class="pre">alpha</span></code>, <code class="docutils literal"><span class="pre">None</span></code> or a regex string.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.StringKey.subset">
+<code class="descname">subset</code><a class="headerlink" href="#sgtk.StringKey.subset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a regular expression describing how values should be transformed
+when they are being injected into template paths and strings.</p>
+<p>The format for a subset is a regular expression containing regex groups,
+for example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># grabs capital letters of the two first words</span>
+<span class="n">user_initials</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">subset</span><span class="p">:</span> <span class="s1">&#39;([A-Z])[a-z]* ([A-Z])[a-z]*&#39;</span>
+
+<span class="c1"># extracts the first three characters</span>
+<span class="n">first_three_characters</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">subset</span><span class="p">:</span> <span class="s1">&#39;(.</span><span class="si">{3}</span><span class="s1">).*&#39;</span>
+
+<span class="c1"># in code, the above expressions would compress the following input:</span>
+
+<span class="n">some_template</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span>
+    <span class="p">{</span><span class="s2">&quot;user_initials&quot;</span><span class="p">:</span> <span class="s2">&quot;John Smith&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;first_three_characters&quot;</span><span class="p">:</span> <span class="s2">&quot;John Smith&quot;</span><span class="p">}</span>
+<span class="p">)</span>
+
+<span class="c1"># into &quot;JS&quot; for the {user_initials} key and &quot;Joh&quot; for the {first_three_characters} key</span>
+</pre></div>
+</div>
+<p>If the subset expression contains more than one <code class="docutils literal"><span class="pre">(regex</span> <span class="pre">group)</span></code> to extract, the groups
+will be concatenated together in the order they are found. If you want greater control
+over this, see <a class="reference internal" href="#sgtk.StringKey.subset_format" title="sgtk.StringKey.subset_format"><code class="xref py py-meth docutils literal"><span class="pre">subset_format()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.StringKey.subset_format">
+<code class="descname">subset_format</code><a class="headerlink" href="#sgtk.StringKey.subset_format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the <code class="docutils literal"><span class="pre">subset_format</span></code> string for the given template key. This string is used in conjunction with the
+<a class="reference internal" href="#sgtk.StringKey.subset" title="sgtk.StringKey.subset"><code class="xref py py-meth docutils literal"><span class="pre">subset()</span></code></a> parameter and allows for the formatting of the values that are being extracted:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># grabs capital letters of the two first words</span>
+<span class="n">user_initials_backwards</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">subset</span><span class="p">:</span> <span class="s1">&#39;([A-Z])[a-z]* ([A-Z])[a-z]*&#39;</span>
+    <span class="n">subset_format</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{1}{0}</span><span class="s1">&#39;</span>
+
+<span class="c1"># in code, the above expression would compress the following input:</span>
+
+<span class="n">some_template</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">({</span><span class="s2">&quot;user_initials&quot;</span><span class="p">:</span> <span class="s2">&quot;John Smith&quot;</span><span class="p">})</span>
+
+<span class="c1"># into &quot;SJ&quot; for the user_initials_backwards key.</span>
+</pre></div>
+</div>
+<p>The formatting used for the string is standard python custom string formatting, where you can reference
+each regex group with an integer index. Read more about standard python string formatting here:
+<a class="reference external" href="https://docs.python.org/2/library/string.html#custom-string-formatting">https://docs.python.org/2/library/string.html#custom-string-formatting</a></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Subset format is using python string formatting and is only compatible with
+with Python 2.6+.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.StringKey.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#StringKey.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.StringKey.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if a value is valid for this key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; Value to test</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if valid, false if not.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.StringKey.value_from_str">
+<code class="descname">value_from_str</code><span class="sig-paren">(</span><em>str_value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#StringKey.value_from_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.StringKey.value_from_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates and translates a string into an appropriate value for this key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>str_value</strong> &#8211; The string to translate.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The translated value.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -2457,15 +2552,15 @@ correct padding.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> &#8211; Key&#8217;s name.</li>
-<li><strong>default</strong> &#8211; Default value for this key.</li>
-<li><strong>choices</strong> &#8211; List of possible values for this key.</li>
-<li><strong>format_spec</strong> &#8211; Specification for formatting when casting to a string.
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
+<li><strong>default</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Default value for this key.</li>
+<li><strong>choices</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of possible values for this key.</li>
+<li><strong>format_spec</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Specification for formatting when casting to a string.
 The form is a zero followed the number of spaces to pad
 the value.</li>
-<li><strong>shotgun_entity_type</strong> &#8211; For keys directly linked to a shotgun field, the entity type.</li>
-<li><strong>shotgun_field_name</strong> &#8211; For keys directly linked to a shotgun field, the field name.</li>
-<li><strong>exclusions</strong> &#8211; List of forbidden values.</li>
+<li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
+<li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
+<li><strong>exclusions</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; List of forbidden values.</li>
 </ul>
 </td>
 </tr>
@@ -2485,18 +2580,18 @@ the value.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> &#8211; Key&#8217;s name.</li>
-<li><strong>default</strong> &#8211; Default value for this key.</li>
-<li><strong>choices</strong> &#8211; List of possible values for this key.</li>
-<li><strong>format_spec</strong> &#8211; Specification for formatting when casting to a string.
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
+<li><strong>default</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Default value for this key.</li>
+<li><strong>choices</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of possible values for this key.</li>
+<li><strong>format_spec</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Specification for formatting when casting to a string.
 The form is a zero followed the number of spaces to pad
 the value.</li>
-<li><strong>shotgun_entity_type</strong> &#8211; For keys directly linked to a shotgun field, the entity type.</li>
-<li><strong>shotgun_field_name</strong> &#8211; For keys directly linked to a shotgun field, the field name.</li>
-<li><strong>exclusions</strong> &#8211; List of forbidden values.</li>
-<li><strong>abstract</strong> &#8211; Bool, should this key be treated as abstract.</li>
-<li><strong>length</strong> &#8211; int, should this key be fixed length</li>
-<li><strong>strict_matching</strong> &#8211; Bool, indicates if the padding should be matching exactly the
+<li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
+<li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
+<li><strong>exclusions</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of forbidden values.</li>
+<li><strong>abstract</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flagging that this should be treated as an abstract key.</li>
+<li><strong>length</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; If non-None, indicating that the value should be of a fixed length.</li>
+<li><strong>strict_matching</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Indicates if the padding should be matching exactly the
 format_spec when parsing a string. Default behavior is to match
 exactly the padding when a format_spec is provided.</li>
 </ul>
@@ -2533,7 +2628,7 @@ format_spec when parsing a string.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> &#8211; Name by which the key will be referred.</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
 <li><strong>default</strong> &#8211; <p>Default value for this field. Acceptable values are:</p>
 <ul>
 <li><code class="docutils literal"><span class="pre">None</span></code></li>
@@ -2544,7 +2639,7 @@ as the default value.</li>
 as the default value.</li>
 </ul>
 </li>
-<li><strong>format_spec</strong> &#8211; Specification for formatting when casting to/from a string.
+<li><strong>format_spec</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Specification for formatting when casting to/from a string.
 The format follows the convention of <code class="xref py py-meth docutils literal"><span class="pre">time.strftime()</span></code>. The
 default value is <code class="docutils literal"><span class="pre">%Y-%m-%d-%H-%M-%S</span></code>. Given June 24th, 2015 at
 9:20:30 PM, this will yield <code class="docutils literal"><span class="pre">2015-06-24-21-20-30</span></code>.</li>
@@ -2657,7 +2752,7 @@ The format follows the convention of <code class="xref py py-meth docutils liter
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.31',
+            VERSION:'v0.18.32',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
