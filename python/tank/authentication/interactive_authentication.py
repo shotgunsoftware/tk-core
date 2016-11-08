@@ -205,7 +205,7 @@ def renew_session(user):
     print "XXXXXXX"
     print "XXXXXXX"
     if has_ui:
-        authenticator = UiAuthenticationHandler(is_session_renewal=True)
+        authenticator = UiAuthenticationHandler(is_session_renewal=True, cookies=user.get_cookies())
     else:
         authenticator = ConsoleRenewSessionHandler()
     SessionRenewal.renew_session(user, authenticator)

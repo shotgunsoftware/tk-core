@@ -277,10 +277,10 @@ class LoginDialog(QtGui.QDialog):
                 if cookie.name() == '_session_id':
                     session_token = cookie.value()
                 # print "  --< %s" % cookie.toRawForm()
-            self._authenticate(self.ui.message, site, "", "", session_token=session_token)
+            self._authenticate(self.ui.message, site, "", "", session_token=str(session_token))
 
-            print "Session token: %s" % session_token
-            print "Session cookies: %s" % self._cookies
+            # print "Session token: %s (%s)" % (session_token, type(session_token))
+            # print "Session cookies: %s" % self._cookies
             # write_cookie_jar(cookieJar)
 
     def _strip_whitespaces(self):
