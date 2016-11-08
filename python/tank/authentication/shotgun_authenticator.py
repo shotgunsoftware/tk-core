@@ -95,7 +95,8 @@ class ShotgunAuthenticator(object):
             user = self.create_session_user(
                 host=self._defaults_manager.get_host(),
                 login=self._defaults_manager.get_login(),
-                http_proxy=self._defaults_manager.get_http_proxy()
+                http_proxy=self._defaults_manager.get_http_proxy(),
+                cookies=self._defaults_manager.get_cookies()
             )
             session_cache.delete_session_data(user.host, user.login)
             return user
@@ -114,18 +115,20 @@ class ShotgunAuthenticator(object):
 
         :returns: The SessionUser based on the login information provided.
         """
-        host, login, session_token = interactive_authentication.authenticate(
+        host, login, session_token, cookies = interactive_authentication.authenticate(
             self._defaults_manager.get_host(),
             self._defaults_manager.get_login(),
             self._defaults_manager.get_http_proxy(),
-            self._defaults_manager.is_host_fixed()
+            self._defaults_manager.is_host_fixed(),
+            self._defaults_manager.get_cookies()
         )
         return self.create_session_user(
             login=login, session_token=session_token,
-            host=host, http_proxy=self._defaults_manager.get_http_proxy()
+            host=host, http_proxy=self._defaults_manager.get_http_proxy(),
+            cookies=cookies
         )
 
-    def create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None):
+    def create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None, cookies=None):
         """
         Create an AuthenticatedUser given a set of human user credentials.
         Either a password or session token must be supplied. If a password is supplied,
@@ -145,7 +148,7 @@ class ShotgunAuthenticator(object):
 
         # Create a session user
         return user.ShotgunUser(
-            user_impl.SessionUser(host, login, session_token, http_proxy, password=password)
+            user_impl.SessionUser(host, login, session_token, http_proxy, password=password, cookies=cookies)
         )
 
     def create_script_user(self, api_script, api_key, host=None, http_proxy=None):
@@ -254,5 +257,6 @@ class ShotgunAuthenticator(object):
         # authentication in order to provide single sign-on.
         self._defaults_manager.set_host(user.host)
         self._defaults_manager.set_login(user.login)
+        self._defaults_manager.set_cookies(user.cookies)
 
         return user

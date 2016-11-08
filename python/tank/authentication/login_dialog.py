@@ -62,14 +62,14 @@ class TemporaryEventLoop(QtCore.QEventLoop):
     indicates what happen.
     """
 
-    SUCCESS, FAILURE = range(0, 2)
-
     def __init__(self, login_ui, parent=None):
         """
         Constructor
         """
         QtCore.QEventLoop.__init__(self, parent)
-        login_ui.ui.webView.loadFinished.connect(self._page_onFinished)
+        self._webView = login_ui.ui.webView
+        self._site = login_ui.ui.site.text()
+        self._webView.loadFinished.connect(self._page_onFinished)
         # systray.login.connect(self._login)
         # systray.quit.connect(self._quit)
 
@@ -77,8 +77,12 @@ class TemporaryEventLoop(QtCore.QEventLoop):
         """
         Called when "Quit" is selected. Exits the loop.
         """
-        print "=-=-=-=-=-=-=-=> _page_onFinished"
-        self.exit(self.SUCCESS)
+        url = self._webView.url().toString()
+        print "=-=-=-=-=-=-=-=> _page_onFinished: %s" % url
+        if url.startswith(self._site):
+            self.exit(QtGui.QDialog.Accepted)
+        # else:
+        #     self.exit(QtGui.QDialog.Rejected)
 
     def exec_(self):
         """
@@ -89,12 +93,8 @@ class TemporaryEventLoop(QtCore.QEventLoop):
         """
         code = QtCore.QEventLoop.exec_(self)
         # Somebody requested the app to close, so pretend the close menu was picked.
-        if code == -1:
-            return self.SUCCESS
-        elif code in [self.SUCCESS, self.FAILURE]:
-            return code
-        else:
-            raise Exception("Unexpected return code in local event loop: %s" % code)
+        print "code: %s" % code
+        return code
 
 
 class LoginDialog(QtGui.QDialog):
@@ -105,7 +105,8 @@ class LoginDialog(QtGui.QDialog):
     # Formatting required to display error messages.
     ERROR_MSG_FORMAT = "<font style='color: rgb(252, 98, 70);'>%s</font>"
 
-    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, no_ui=False):
+    # def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, no_ui=False):
+    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, cookies=None):
         """
         Constructs a dialog.
 
@@ -125,7 +126,10 @@ class LoginDialog(QtGui.QDialog):
 
         self._is_session_renewal = is_session_renewal
 
-        self._no_ui = no_ui
+        # self._no_ui = no_ui
+        self._no_ui = False
+        self._cookies = cookies
+        print "My cookies: %s" % cookies
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
@@ -140,7 +144,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.login.setText(login)
 
         # Set the cookie jar from persistent storage
-        self.cookieList = []
+        # self.cookieList = []
 
         if fixed_host:
             self._disable_text_widget(
@@ -171,18 +175,35 @@ class LoginDialog(QtGui.QDialog):
         else:
             self._set_login_message("Please enter your credentials.")
 
-        # Select the right first page.
-        self.cookieList = read_cookie_jar()
-        if len(self.cookieList) > 0:
-            self.ui.webView.page().networkAccessManager().cookieJar().setAllCookies(self.cookieList)
+        # self._cookies = [
+        #     'BIGipServerpool_saml_stg_east_9030=2753701642.17955.0000; domain=saml-stg.autodesk.com; path=/',
+        #     'PF=2LqUat3dxwM8A4raLdbvyFUzo8RmRp5oNI4H2uaM8E6n; secure; HttpOnly; domain=saml-stg.autodesk.com; path=/',
+        #     'pf-hfa-ADSKFormAdapter-rmu=""; secure; HttpOnly; expires=Tue, 08-Nov-2016 03:14:19 GMT; domain=saml-stg.autodesk.com; path=/',
+        #     'csrf_token_u90=B5gF0GpeIPGUqE6Ai5SsnR1Z4PGdRRg4aAF-5tChJ7o; domain=okr-staging.shotgunstudio.com; path=/',
+        #     'LB-INFO=3448775434.17955.0000; domain=saml-stg.autodesk.com; path=/',
+        #     'totango.heartbeat.last_module=__system; secure; expires=Fri, 11-Nov-2016 03:21:06 GMT; domain=okr-staging.shotgunstudio.com; path=/',
+        #     'totango.heartbeat.last_ts=1478575266530; secure; expires=Fri, 11-Nov-2016 03:21:06 GMT; domain=okr-staging.shotgunstudio.com; path=/',
+        #     '_session_id=da3453c49a4e1e7b41f947a3b7049f8b; secure; HttpOnly; domain=okr-staging.shotgunstudio.com; path=/',
+        # ]
+        try:
+            self.ui.webView.page().networkAccessManager().cookieJar().setAllCookies(
+                [QtNetwork.QNetworkCookie.parseCookies(QtCore.QByteArray.fromBase64(x))[0] for x in self._cookies]
+            )
+        except TypeError:
+            pass
 
-        print_cookie_jar(self.ui.webView.page().networkAccessManager().cookieJar())
+        # Select the right first page.
+        # self.cookieList = read_cookie_jar()
+        # if len(self.cookieList) > 0:
+        #     self.ui.webView.page().networkAccessManager().cookieJar().setAllCookies(self.cookieList)
+
+        # print_cookie_jar(self.ui.webView.page().networkAccessManager().cookieJar())
         # QtWebKit.QWebSettings.globalSettings().setAttribute(QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled, True)
         # QtWebKit.QWebSettings.globalSettings().setAttribute(QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled, True)
 
         url = self.ui.site.text()
         if self._check_sso_enabled(url):
-            url += '/saml/saml_login_request'
+            # url += '/saml/saml_login_request'
             print "-> %s" % url
             self.resize(800, 800)
             self.ui.stackedWidget.setCurrentWidget(self.ui.web_page)
@@ -248,17 +269,19 @@ class LoginDialog(QtGui.QDialog):
         print "_page_onFinished: %s" % url
         if url.startswith(site):
             cookieJar = self.ui.webView.page().networkAccessManager().cookieJar()
-            print_cookie_jar(cookieJar)
+            # print_cookie_jar(cookieJar)
+            self._cookies = []
             session_token = ""
             for cookie in cookieJar.allCookies():
+                self._cookies.append(str(cookie.toRawForm().toBase64()))
                 if cookie.name() == '_session_id':
                     session_token = cookie.value()
-                    break
                 # print "  --< %s" % cookie.toRawForm()
             self._authenticate(self.ui.message, site, "", "", session_token=session_token)
 
             print "Session token: %s" % session_token
-            write_cookie_jar(cookieJar)
+            print "Session cookies: %s" % self._cookies
+            # write_cookie_jar(cookieJar)
 
     def _strip_whitespaces(self):
         """
@@ -343,10 +366,12 @@ class LoginDialog(QtGui.QDialog):
         else:
             res = self.exec_()
 
+        print "This is res: %s" % res
+
         if res == QtGui.QDialog.Accepted:
             return (self.ui.site.text().encode("utf-8"),
                     self.ui.login.text().encode("utf-8"),
-                    self._new_session_token)
+                    self._new_session_token, self._cookies)
         else:
             return None
 

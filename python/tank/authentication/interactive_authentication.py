@@ -9,10 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Authentication and session renewal handling. 
+Authentication and session renewal handling.
 
 This module handles asking the user for their password, login etc.
-It will try to use a QT UI to prompt the user if possible, but may 
+It will try to use a QT UI to prompt the user if possible, but may
 fall back on a console (stdin/stdout) based workflow if QT isn't available.
 
 --------------------------------------------------------------------------------
@@ -82,8 +82,8 @@ def _get_qt_state():
 class SessionRenewal(object):
     """
     Handles multi-threaded session renewal. This class handles the use case when
-    multiple threads simultaneously try to ask the user for a password. 
-    
+    multiple threads simultaneously try to ask the user for a password.
+
     Use this class by calling the static method renew_session(). Please see this method
     for more details.
     """
@@ -133,7 +133,7 @@ class SessionRenewal(object):
             # We're the first thread, so authenticate.
             try:
                 logger.debug("Not authenticated, requesting user input.")
-                hostname, login, session_token = credentials_handler.authenticate(
+                hostname, login, session_token, cookies = credentials_handler.authenticate(
                     user.get_host(),
                     user.get_login(),
                     user.get_http_proxy()
@@ -141,6 +141,7 @@ class SessionRenewal(object):
                 SessionRenewal._auth_state = SessionRenewal.SUCCESS
                 logger.debug("Login successful!")
                 user.set_session_token(session_token)
+                user.set_cookies(cookies)
             except AuthenticationCancelled:
                 SessionRenewal._auth_state = SessionRenewal.CANCELLED
                 logger.debug("Authentication cancelled")
@@ -200,6 +201,9 @@ def renew_session(user):
     logger.debug("Credentials were out of date, renewing them.")
     QtCore, QtGui, has_ui = _get_qt_state()
     # If we have a gui, we need gui based authentication
+    print "XXXXXXX"
+    print "XXXXXXX"
+    print "XXXXXXX"
     if has_ui:
         authenticator = UiAuthenticationHandler(is_session_renewal=True)
     else:
@@ -207,7 +211,7 @@ def renew_session(user):
     SessionRenewal.renew_session(user, authenticator)
 
 
-def authenticate(default_host, default_login, http_proxy, fixed_host):
+def authenticate(default_host, default_login, http_proxy, fixed_host, cookies):
     """
     Prompts the user for his user name and password. If the host is not fixed,
     it is also possible to edit the host. If Qt is available and an QApplication
@@ -230,10 +234,14 @@ def authenticate(default_host, default_login, http_proxy, fixed_host):
 
     QtCore, QtGui, has_ui = _get_qt_state()
 
+    print "BEFORE traceback"
+    # raise Exception("foobar")
+    print "AFTER traceback"
+
     # If we have a gui, we need gui based authentication
     if has_ui:
         # If we are renewing for a background thread, use the invoker
-        authenticator = UiAuthenticationHandler(is_session_renewal=False, fixed_host=fixed_host)
+        authenticator = UiAuthenticationHandler(is_session_renewal=False, fixed_host=fixed_host, cookies=cookies)
     else:
         authenticator = ConsoleLoginHandler(fixed_host=fixed_host)
     return authenticator.authenticate(default_host, default_login, http_proxy)

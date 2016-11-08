@@ -103,6 +103,14 @@ class ShotgunUserImpl(object):
         """
         self.__class__._not_implemented("get_login")
 
+    def get_cookies(self):
+        """
+        Returns the login name for this user.
+
+        :returns: The login name string.
+        """
+        self.__class__._not_implemented("get_cookies")
+
     def to_dict(self):
         """
         Converts the user into a dictionary object.
@@ -153,7 +161,7 @@ class SessionUser(ShotgunUserImpl):
     """
     A user that authenticates to the Shotgun server using a session token.
     """
-    def __init__(self, host, login, session_token, http_proxy, password=None):
+    def __init__(self, host, login, session_token, http_proxy, password=None, cookies=None):
         """
         Constructor.
 
@@ -171,10 +179,11 @@ class SessionUser(ShotgunUserImpl):
 
         if not login:
             raise IncompleteCredentials("missing login.")
-
+        print "====> A"
         # If we only have a password, generate a session token.
         if password and not session_token:
             session_token = session_cache.generate_session_token(host, login, password, http_proxy)
+        print "====> B"
 
         # If we still don't have a session token, look in the session cache
         # to see if this user was already authenticated in the past.
@@ -186,15 +195,20 @@ class SessionUser(ShotgunUserImpl):
             # If session data was cached, load it.
             if session_data:
                 session_token = session_data["session_token"]
+        print "====> C"
 
         # We've exhausted our avenues to get a valid session token, throw.
         if not session_token:
+            print "====> CC"
             raise IncompleteCredentials("missing session_token")
+        print "====> D"
 
         self._login = login
         self._session_token = session_token
+        self._cookies = cookies
 
         self._try_save()
+        print "====> E"
 
     def get_login(self):
         """
@@ -203,6 +217,14 @@ class SessionUser(ShotgunUserImpl):
         :returns: The login name string.
         """
         return self._login
+
+    def get_cookies(self):
+        """
+        Returns the login name for this user.
+
+        :returns: The login name string.
+        """
+        return self._cookies
 
     def get_session_token(self):
         """
@@ -223,6 +245,15 @@ class SessionUser(ShotgunUserImpl):
         self._session_token = session_token
         if cache:
             self._try_save()
+
+    def set_cookies(self, cookies):
+        """
+        Returns the login name for this user.
+
+        :returns: The login name string.
+        """
+        print "Setting user cookies to: %s" % cookies
+        self._cookies = cookies
 
     def create_sg_connection(self):
         """
@@ -379,6 +410,15 @@ class ScriptUser(ShotgunUserImpl):
         return self._api_key
 
     def get_login(self):
+        """
+        Returns the login name for this user.
+
+        :returns: The login name string.
+        """
+        # Script user has no login.
+        return None
+
+    def get_cookies(self):
         """
         Returns the login name for this user.
 
