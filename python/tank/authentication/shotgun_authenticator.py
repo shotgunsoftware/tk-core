@@ -158,6 +158,7 @@ class ShotgunAuthenticator(object):
         :returns: A :class:`ShotgunUser` instance.
         """
         # Get the defaults is arguments were None.
+        # print "=-=-=-=-> create_session_user"
         host = host or self._defaults_manager.get_host()
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 

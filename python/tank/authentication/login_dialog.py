@@ -391,7 +391,7 @@ class LoginDialog(QtGui.QDialog):
             print "Killroy was here"
             res = self.exec_()
 
-        print "This is res: %s" % res
+        # print "This is res: %s" % res
 
         if res == QtGui.QDialog.Accepted:
             return (self.ui.site.text().encode("utf-8"),

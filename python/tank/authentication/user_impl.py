@@ -204,7 +204,7 @@ class SessionUser(ShotgunUserImpl):
         self._login = login
         self._session_token = session_token
         self._cookies = cookies
-        print "====> D"
+        # print "====> D"
         self._session_expiration = 0
 
         self._try_save()
@@ -275,7 +275,7 @@ class SessionUser(ShotgunUserImpl):
 
         Docstring.
         """
-        print "------------------------------------> %s" % session_expiration
+        # print "------------------------------------> %s" % session_expiration
         self._session_expiration = session_expiration
 
     def get_session_expiration(self):

@@ -262,5 +262,7 @@ def authenticate(default_host, default_login, http_proxy, fixed_host, cookies):
         # If we are renewing for a background thread, use the invoker
         authenticator = UiAuthenticationHandler(is_session_renewal=False, fixed_host=fixed_host, cookies=cookies)
     else:
+        # @TODO: Handle gracefully the case where we detect a SSO-enabled
+        # Shotgun server, which will not support console-based login.
         authenticator = ConsoleLoginHandler(fixed_host=fixed_host)
     return authenticator.authenticate(default_host, default_login, http_proxy)
