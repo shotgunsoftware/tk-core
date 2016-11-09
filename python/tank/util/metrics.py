@@ -282,6 +282,7 @@ class MetricsDispatchWorkerThread(Thread):
             },
             "metrics": [m.data for m in metrics]
         }
+        self._engine.log_debug("Logging metrics: %s" % ([m.data for m in metrics],))
         payload_json = json.dumps(payload)
 
         header = {'Content-Type': 'application/json'}
