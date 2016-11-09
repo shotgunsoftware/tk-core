@@ -142,6 +142,8 @@ class SessionRenewal(object):
                 logger.debug("Login successful!")
                 user.set_session_token(session_token)
                 user.set_cookies(cookies)
+                import time
+                user.set_session_expiration(int(time.time()))
             except AuthenticationCancelled:
                 SessionRenewal._auth_state = SessionRenewal.CANCELLED
                 logger.debug("Authentication cancelled")
@@ -201,9 +203,9 @@ def renew_session(user, no_gui=False):
     logger.debug("Credentials were out of date, renewing them.")
     QtCore, QtGui, has_ui = _get_qt_state()
     # If we have a gui, we need gui based authentication
-    print "XXXXXXX"
-    print "XXXXXXX"
-    print "XXXXXXX"
+    # print "XXXXXXX"
+    # print "XXXXXXX"
+    # print "XXXXXXX"
     # raise Exception('renew_session')
     if has_ui:
         authenticator = UiAuthenticationHandler(is_session_renewal=True, cookies=user.get_cookies(), no_gui=no_gui)
@@ -211,6 +213,11 @@ def renew_session(user, no_gui=False):
         authenticator = ConsoleRenewSessionHandler()
     SessionRenewal.renew_session(user, authenticator)
 
+# def patate():
+#     print "\n\nPatate\n\n"
+
+# def last_window_closed():
+#     print "\n\nLast Window Closed\n\n"
 
 def authenticate(default_host, default_login, http_proxy, fixed_host, cookies):
     """
@@ -235,9 +242,20 @@ def authenticate(default_host, default_login, http_proxy, fixed_host, cookies):
 
     QtCore, QtGui, has_ui = _get_qt_state()
 
-    print "BEFORE traceback"
+    # print "BEFORE traceback"
     # raise Exception("foobar")
-    print "AFTER traceback"
+    # if has_ui:
+    #     app = QtGui.QApplication.instance()
+    #     app.lastWindowClosed.connect(last_window_closed)
+    #     print "sessionId: %s" % app.sessionId()
+    #     print "sessionKey: %s" % app.sessionKey()
+    #     if not hasattr(app, '_internal_shotgun_timer'):
+    #         print "\n\nSetting up timer\n\n"
+    #         # app._internal_shotgun_timer = QtCore.QTimer(app)
+    #         app._internal_shotgun_timer = QtCore.QTimer()
+    #         app._internal_shotgun_timer.timeout.connect(patate)
+    #         app._internal_shotgun_timer.start(5000)
+    # print "AFTER traceback"
 
     # If we have a gui, we need gui based authentication
     if has_ui:

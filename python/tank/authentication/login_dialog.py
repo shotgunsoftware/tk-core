@@ -70,15 +70,22 @@ class TemporaryEventLoop(QtCore.QEventLoop):
         self._webView = login_ui.ui.webView
         self._site = login_ui.ui.site.text()
         self._webView.loadFinished.connect(self._page_onFinished)
+        self._timer = QtCore.QTimer(self)
+        self._timer.timeout.connect(self._bail_out)
+        self._timer.start(7000)
         # systray.login.connect(self._login)
         # systray.quit.connect(self._quit)
+
+    def _bail_out(self):
+        # print "=-=-=-=-=-=-=-=> _bail_out"
+        self.exit(QtGui.QDialog.Rejected)
 
     def _page_onFinished(self):
         """
         Called when "Quit" is selected. Exits the loop.
         """
         url = self._webView.url().toString()
-        print "=-=-=-=-=-=-=-=> _page_onFinished: %s" % url
+        # print "=-=-=-=-=-=-=-=> _page_onFinished: %s" % url
         if url.startswith(self._site):
             self.exit(QtGui.QDialog.Accepted)
         # else:
@@ -93,7 +100,7 @@ class TemporaryEventLoop(QtCore.QEventLoop):
         """
         code = QtCore.QEventLoop.exec_(self)
         # Somebody requested the app to close, so pretend the close menu was picked.
-        print "code: %s" % code
+        # print "code: %s" % code
         return code
 
 
@@ -106,7 +113,7 @@ class LoginDialog(QtGui.QDialog):
     ERROR_MSG_FORMAT = "<font style='color: rgb(252, 98, 70);'>%s</font>"
 
     # def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, no_ui=False):
-    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, cookies=None, no_gui=False):
+    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, cookies=[], no_gui=False):
         """
         Constructs a dialog.
 
@@ -126,10 +133,15 @@ class LoginDialog(QtGui.QDialog):
 
         self._is_session_renewal = is_session_renewal
 
-        # self._no_ui = no_ui
-        self._no_gui = no_gui
         self._cookies = cookies
         # print "My cookies: %s" % cookies
+
+        # self._no_gui = True
+        self._no_gui = no_gui
+
+        # If we have cookies, let's first try without GUI
+        if len(self._cookies) > 0:
+            self._no_gui = True
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
@@ -205,7 +217,7 @@ class LoginDialog(QtGui.QDialog):
         if self._check_sso_enabled(url):
             if self._is_session_renewal:
                 url += '/saml/saml_login_request'
-            print "-> %s" % url
+            print "URL -> %s (%s)" % (url, 'NO GUI' if self._no_gui else 'GUI')
             self.resize(800, 800)
             self.ui.stackedWidget.setCurrentWidget(self.ui.web_page)
             self.ui.webView.load(url)
@@ -267,7 +279,7 @@ class LoginDialog(QtGui.QDialog):
     def _page_onFinished(self):
         site = self.ui.site.text()
         url = self.ui.webView.url().toString()
-        print "_page_onFinished: %s" % url
+        # print "_page_onFinished: %s" % url
         if url.startswith(site):
             cookieJar = self.ui.webView.page().networkAccessManager().cookieJar()
             # print_cookie_jar(cookieJar)
@@ -355,16 +367,28 @@ class LoginDialog(QtGui.QDialog):
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         return QtGui.QDialog.exec_(self)
 
+    # def bailOut(self):
+    #     print "Bailing out!!!!!  <<<--------"
+    #     self.exit(QtGui.QDialog.Rejected)
+    #     # self.reject()
+
     def result(self):
         """
         Displays a modal dialog asking for the credentials.
         :returns: A tuple of (hostname, username and session token) string if the user authenticated
                   None if the user cancelled.
         """
+
         if self._no_gui:
-            print "Killroy was here"
+            # self.timer = QtCore.QTimer(self)
+            # self.timer.timeout.connect(self.bailOut)
+            # self.timer.start(5000)
             res = TemporaryEventLoop(self).exec_()
+            if res == QtGui.QDialog.Rejected:
+                print "Fallback"
+                res = self.exec_()
         else:
+            print "Killroy was here"
             res = self.exec_()
 
         print "This is res: %s" % res

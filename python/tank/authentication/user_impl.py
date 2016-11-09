@@ -179,11 +179,11 @@ class SessionUser(ShotgunUserImpl):
 
         if not login:
             raise IncompleteCredentials("missing login.")
-        print "====> A"
+        # print "====> A"
         # If we only have a password, generate a session token.
         if password and not session_token:
             session_token = session_cache.generate_session_token(host, login, password, http_proxy)
-        print "====> B"
+        # print "====> B"
 
         # If we still don't have a session token, look in the session cache
         # to see if this user was already authenticated in the past.
@@ -195,20 +195,19 @@ class SessionUser(ShotgunUserImpl):
             # If session data was cached, load it.
             if session_data:
                 session_token = session_data["session_token"]
-        print "====> C"
+        # print "====> C"
 
         # We've exhausted our avenues to get a valid session token, throw.
         if not session_token:
-            print "====> CC"
             raise IncompleteCredentials("missing session_token")
-        print "====> D"
 
         self._login = login
         self._session_token = session_token
         self._cookies = cookies
+        print "====> D"
+        self._session_expiration = 0
 
         self._try_save()
-        print "====> E"
 
     def get_login(self):
         """
@@ -217,14 +216,6 @@ class SessionUser(ShotgunUserImpl):
         :returns: The login name string.
         """
         return self._login
-
-    def get_cookies(self):
-        """
-        Returns the login name for this user.
-
-        :returns: The login name string.
-        """
-        return self._cookies
 
     def get_session_token(self):
         """
@@ -245,6 +236,14 @@ class SessionUser(ShotgunUserImpl):
         self._session_token = session_token
         if cache:
             self._try_save()
+
+    def get_cookies(self):
+        """
+        Returns the login name for this user.
+
+        :returns: The login name string.
+        """
+        return self._cookies
 
     def set_cookies(self, cookies):
         """
@@ -269,6 +268,23 @@ class SessionUser(ShotgunUserImpl):
             sg_auth_user=self,
             connect=False
         )
+
+    def set_session_expiration(self, session_expiration):
+        """
+        Docstring.
+
+        Docstring.
+        """
+        print "------------------------------------> %s" % session_expiration
+        self._session_expiration = session_expiration
+
+    def get_session_expiration(self):
+        """
+        Docstring.
+
+        Docstring.
+        """
+        return self._session_expiration
 
     @LogManager.log_timing
     def are_credentials_expired(self):

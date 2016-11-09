@@ -21,6 +21,8 @@ from tank_vendor.shotgun_api3.lib.xmlrpclib import ProtocolError
 from . import interactive_authentication, session_cache
 from .. import LogManager
 
+from pprint import pprint
+
 logger = LogManager.get_logger(__name__)
 
 class ShotgunWrapper(Shotgun):
@@ -44,11 +46,20 @@ class ShotgunWrapper(Shotgun):
         del kwargs["sg_auth_user"]
         super(ShotgunWrapper, self).__init__(*args, **kwargs)
 
+    # def _make_call(self, *args, **kwargs):
+    #     http_status, resp_headers, body = super(ShotgunWrapper, self)._make_call(*args, **kwargs)
+    #     print "\n\n\nMY _make_call"
+    #     pprint(resp_headers)
+    #     print "\n\n\n"
+    #     return http_status, resp_headers, body
+
     def _call_rpc(self, *args, **kwargs):
         """
         Wraps the _call_rpc method from the base class to trap authentication
         errors and prompt for the user's password.
         """
+
+        # print "\n\n\n_call_rpc\n\n\n"
         try:
             # If the user's session token has changed since we last tried to
             # call the server, it's because the token expired and there's a

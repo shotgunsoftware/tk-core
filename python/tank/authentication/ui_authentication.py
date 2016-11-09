@@ -61,9 +61,9 @@ class UiAuthenticationHandler(object):
         else:
             logger.debug("Requesting username and password in a dialog.")
 
-        print "GRRRRR"
+        # print "GRRRRR"
         def _process_ui():
-            print "_process_ui"
+            # print "_process_ui"
             dlg = login_dialog.LoginDialog(
                 is_session_renewal=self._is_session_renewal,
                 hostname=hostname,
