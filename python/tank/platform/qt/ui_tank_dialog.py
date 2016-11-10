@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'tank_dialog.ui'
 #
-#      by: pyside-uic 0.2.15 running on PySide 1.2.1
+#      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -12,6 +12,10 @@ class Ui_TankDialog(object):
     def setupUi(self, TankDialog):
         TankDialog.setObjectName("TankDialog")
         TankDialog.resize(879, 551)
+        TankDialog.setStyleSheet("QWidget {\n"
+"    font-family: \"Open Sans\";\n"
+"    font-style: \"Regular\";\n"
+"}")
         self.verticalLayout_3 = QtGui.QVBoxLayout(TankDialog)
         self.verticalLayout_3.setSpacing(0)
         self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)

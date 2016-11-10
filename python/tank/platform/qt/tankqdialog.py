@@ -171,7 +171,7 @@ class TankQDialog(TankDialogBase):
         Constructor
         """
         TankDialogBase.__init__(self, parent)
-        
+
         # indicates that we are showing the info pane
         self._info_mode = False
         self._bundle = bundle

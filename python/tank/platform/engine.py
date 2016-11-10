@@ -103,6 +103,8 @@ class Engine(TankBundle):
         
         self.__global_progress_widget = None
 
+        self.__fonts_loaded = False
+
         self._metrics_dispatcher = None
 
         # Initialize these early on so that methods implemented in the derived class and trying
@@ -867,7 +869,6 @@ class Engine(TankBundle):
         if self.__global_progress_widget:
             self.execute_in_main_thread(self.__clear_busy)
 
-
     def register_command(self, name, callback, properties=None):
         """
         Register a command with a name and a callback function.
@@ -1203,6 +1204,67 @@ class Engine(TankBundle):
 
         return ret_value
 
+    def ensure_core_fonts_loaded(self):
+        """
+        Loads the Shotgun approved fonts that are bundled with tk-core.
+
+        This method ensures that the Shotgun approved fonts bundled with core
+        are loaded into Qt's font database. This allows them to be used by apps
+        for a consistent look and feel.
+
+        This method can be called by directly by Engine subclasses with specific
+        requirements surrounding the lifespan of QApplication instances.
+
+        Apps (via the engine property) that wish to use fonts that are bundled
+        with core can also use this method within their registered callbacks to
+        ensure that the fonts are available.
+
+        Subsequent calls to this method are a no-op.
+        """
+
+        from sgtk.platform.qt import QtGui
+
+        # if the fonts have been loaded, no need to do anything else
+        if self.__fonts_loaded:
+            return
+
+        if not QtGui.QApplication.instance():
+            # there is a QApplication, so we can load fonts.
+            return
+
+        # fonts dir in the core resources dir
+        fonts_parent_dir = self.__get_platform_resource_file("fonts")
+
+        # in the parent directly, get all the font-specific directories
+        for font_dir_name in os.listdir(fonts_parent_dir):
+
+            # the specific font directory
+            font_dir = os.path.join(fonts_parent_dir, font_dir_name)
+
+            if os.path.isdir(font_dir):
+
+                # iterate over the font files and attempt to load them
+                for font_file_name in os.listdir(font_dir):
+
+                    # only process actual font files. It appears as though .ttf
+                    # is the most common extension for use on win/mac/linux so
+                    # for now limit to those files.
+                    if not font_file_name.endswith(".ttf"):
+                        continue
+
+                    # the actual font file
+                    font_file = os.path.join(font_dir, font_file_name)
+
+                    # load the font into the font db
+                    if QtGui.QFontDatabase.addApplicationFont(font_file) == -1:
+                        self.log_warning(
+                            "Unable to load font file: %s" % (font_file,))
+                    else:
+                        self.log_debug("Loaded font file: %s" % (font_file,))
+
+        self.__fonts_loaded = True
+
+
     ##########################################################################################
     # logging interfaces
 
@@ -1420,7 +1482,6 @@ class Engine(TankBundle):
         """
         # default implementation doesn't do anything.
 
-
     def _get_dialog_parent(self):
         """
         Get the QWidget parent for all dialogs created through :meth:`show_dialog` :meth:`show_modal`.
@@ -1447,7 +1508,7 @@ class Engine(TankBundle):
         :type widget: :class:`PySide.QtGui.QWidget`
         """
         from .qt import tankqdialog
-        
+
         # create a dialog to put it inside
         dialog = tankqdialog.TankQDialog(title, bundle, widget, parent)
 
@@ -1459,7 +1520,7 @@ class Engine(TankBundle):
         
         # keep track of some info for debugging object lifetime
         self.__debug_track_qt_widget(dialog)
-        
+
         return dialog
 
     def _create_widget(self, widget_class, *args, **kwargs):
@@ -1480,7 +1541,7 @@ class Engine(TankBundle):
         Additional parameters specified will be passed through to the widget_class constructor.
         """
         from .qt import tankqdialog
-                
+
         # construct the widget object
         derived_widget_class = tankqdialog.TankQDialog.wrap_widget_class(widget_class)
         widget = derived_widget_class(*args, **kwargs)
@@ -1504,14 +1565,15 @@ class Engine(TankBundle):
             
         Additional parameters specified will be passed through to the widget_class constructor.
         """
+
         # get the parent for the dialog:
         parent = self._get_dialog_parent()
         
         # create the widget:
         widget = self._create_widget(widget_class, *args, **kwargs)
-        
+
         # apply style sheet
-        self._apply_external_styleshet(bundle, widget)        
+        self._apply_external_stylesheet(bundle, widget)
         
         # create the dialog:
         dialog = self._create_dialog(title, bundle, widget, parent)
@@ -1748,7 +1810,7 @@ class Engine(TankBundle):
             processed_style_sheet = processed_style_sheet.replace("{{%s}}" % token, value)
         return processed_style_sheet
     
-    def _apply_external_styleshet(self, bundle, widget):
+    def _apply_external_stylesheet(self, bundle, widget):
         """
         Apply an std external stylesheet, associated with a bundle, to a widget.
         
@@ -1872,7 +1934,7 @@ class Engine(TankBundle):
             # open palette file
             palette_file = self.__get_platform_resource_file("dark_palette.qpalette")
             fh = QtCore.QFile(palette_file)
-            fh.open(QtCore.QIODevice.ReadOnly);
+            fh.open(QtCore.QIODevice.ReadOnly)
             file_in = QtCore.QDataStream(fh)
     
             # deserialize the palette
@@ -1912,8 +1974,7 @@ class Engine(TankBundle):
         except Exception, e:
             self.log_error("The standard toolkit dark stylesheet could not be set up! The look and feel of your "
                            "toolkit apps may be sub standard. Please contact support. Details: %s" % e)
-        
-    
+
     def _get_standard_qt_stylesheet(self):
         """
         **********************************************************************
