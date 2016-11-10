@@ -149,12 +149,14 @@ Engine
 .. autoclass:: Engine
     :inherited-members:
     :exclude-members: descriptor,
-                      settings,
+                      get_child_logger,
                       get_env,
-                      log_metric,
+                      get_setting_from,
+                      get_template_from,
                       init_engine,
+                      log_metric,
                       log_user_attribute_metric,
-                      get_child_logger
+                      settings
     :members:
 
 
@@ -174,7 +176,12 @@ Application
 
 .. autoclass:: Application
     :inherited-members:
-    :exclude-members: descriptor, settings, get_env, log_metric
+    :exclude-members: descriptor,
+                      get_env,
+                      get_setting_from,
+                      get_template_from,
+                      log_metric,
+                      settings
     :members:
 
 
@@ -230,7 +237,12 @@ Framework
 
 .. autoclass:: Framework
     :inherited-members:
-    :exclude-members: descriptor, settings, get_env, log_metric
+    :exclude-members: descriptor,
+                      get_setting_from,
+                      get_template_from,
+                      get_env,
+                      log_metric,
+                      settings
     :members:
 
 Exceptions
