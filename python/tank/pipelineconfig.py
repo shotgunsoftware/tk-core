@@ -33,6 +33,7 @@ from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
 
 log = LogManager.get_logger(__name__)
 
+
 class PipelineConfiguration(object):
     """
     Represents a pipeline configuration in Tank.
@@ -40,6 +41,12 @@ class PipelineConfiguration(object):
     Use the factory methods in pipelineconfig_factory
     to construct this object, do not create directly via the constructor.
     """
+
+    # A set of strings for the custom hook metrics that have already been
+    # logged. Certain custom hooks can be called many, many times
+    # (cache_location.get_path_cache_path). So we use this set of names to
+    # ensure we only log those metrics once.
+    __logged_custom_hook_metrics = set()
 
     def __init__(self, pipeline_configuration_path):
         """
@@ -900,9 +907,12 @@ class PipelineConfiguration(object):
         else:
             # some hooks are always custom. ignore those and log the rest.
             if (hasattr(parent, "log_metric") and
-               hook_name not in constants.TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST):
-                parent.log_metric("custom hook %s" % (hook_name,))
+                not hook_name in self.__logged_custom_hook_metrics and
+                hook_name not in constants.TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST):
 
+                # log and remember the name so that we don't log it again
+                parent.log_metric("custom hook %s" % (hook_name,))
+                self.__logged_custom_hook_metrics.add(hook_name)
         try:
             return_value = hook.execute_hook(hook_path, parent, **kwargs)
         except:
@@ -934,15 +944,23 @@ class PipelineConfiguration(object):
         file_name = "%s.py" % hook_name
         hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
         hook_paths = [os.path.join(hooks_path, file_name)]
+
+        # the hook.method display name used when logging the metric and when
+        # identifying the metric to be logged only once in the system.
+        hook_method_display = "%s.%s" % (hook_name, method_name)
         
         # now add a custom hook if that exists.
         hook_folder = self.get_core_hooks_location()        
         hook_path = os.path.join(hook_folder, file_name)
         if os.path.exists(hook_path):
             hook_paths.append(hook_path)
-            if hasattr(parent, 'log_metric'):
-                parent.log_metric("custom hook %s" % (hook_name,))
+            if (hasattr(parent, 'log_metric') and
+                not hook_method_display in self.__logged_custom_hook_metrics and
+                hook_name not in constants.TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST):
 
+                # log and remember the name so that we don't log it again
+                parent.log_metric("custom hook %s" % (hook_method_display,))
+                self.__logged_custom_hook_metrics.add(hook_method_display)
         try:
             return_value = hook.execute_hook_method(hook_paths, parent, method_name, **kwargs)
         except:
