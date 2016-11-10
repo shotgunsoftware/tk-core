@@ -1215,11 +1215,26 @@ class Engine(TankBundle):
         This method can be called by directly by Engine subclasses with specific
         requirements surrounding the lifespan of QApplication instances.
 
-        Apps (via the engine property) that wish to use fonts that are bundled
-        with core can also use this method within their registered callbacks to
-        ensure that the fonts are available.
+        Engines that make use of core's bundled dark look and feel will have
+        the fonts loaded automatically.
 
         Subsequent calls to this method are a no-op.
+
+        Currently bundled fonts are:
+
+            * Open Sans
+                * Light
+                * Regular
+                * Italic
+                * Light Italic
+                * Bold
+                * Extrabold
+                * Semibold
+                * Bold Italic
+                * Extrabold Italic
+                * Semibold Italic
+                * Condensed Light
+
         """
 
         from sgtk.platform.qt import QtGui
@@ -1508,6 +1523,10 @@ class Engine(TankBundle):
         :type widget: :class:`PySide.QtGui.QWidget`
         """
         from .qt import tankqdialog
+
+        # TankQDialog uses the bundled core font. Make sure they are loaded
+        # since know we have a QApplication at this point.
+        self.ensure_core_fonts_loaded()
 
         # create a dialog to put it inside
         dialog = tankqdialog.TankQDialog(title, bundle, widget, parent)
@@ -1910,6 +1929,10 @@ class Engine(TankBundle):
         has been instantiated.
         """
         from .qt import QtGui, QtCore
+
+        # Since know we have a QApplication at this point, go ahead and make
+        # sure the bundled fonts are loaded
+        self.ensure_core_fonts_loaded()
 
         # initialize our style
         QtGui.QApplication.setStyle("plastique")
