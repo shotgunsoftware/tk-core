@@ -194,6 +194,10 @@ class Engine(TankBundle):
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
 
+        # load the fonts. this will work if there is a QApplication instance
+        # available.
+        self._ensure_core_fonts_loaded()
+
         # create invoker to allow execution of functions on the
         # main thread:
         self._invoker, self._async_invoker = self.__create_invokers()
@@ -1204,82 +1208,6 @@ class Engine(TankBundle):
 
         return ret_value
 
-    def ensure_core_fonts_loaded(self):
-        """
-        Loads the Shotgun approved fonts that are bundled with tk-core.
-
-        This method ensures that the Shotgun approved fonts bundled with core
-        are loaded into Qt's font database. This allows them to be used by apps
-        for a consistent look and feel.
-
-        This method can be called by directly by Engine subclasses with specific
-        requirements surrounding the lifespan of QApplication instances.
-
-        Engines that make use of core's bundled dark look and feel will have
-        the fonts loaded automatically.
-
-        Subsequent calls to this method are a no-op.
-
-        Currently bundled fonts are:
-
-            * Open Sans
-                * Light
-                * Regular
-                * Italic
-                * Light Italic
-                * Bold
-                * Extrabold
-                * Semibold
-                * Bold Italic
-                * Extrabold Italic
-                * Semibold Italic
-                * Condensed Light
-
-        """
-
-        from sgtk.platform.qt import QtGui
-
-        # if the fonts have been loaded, no need to do anything else
-        if self.__fonts_loaded:
-            return
-
-        if not QtGui.QApplication.instance():
-            # there is a QApplication, so we can load fonts.
-            return
-
-        # fonts dir in the core resources dir
-        fonts_parent_dir = self.__get_platform_resource_file("fonts")
-
-        # in the parent directly, get all the font-specific directories
-        for font_dir_name in os.listdir(fonts_parent_dir):
-
-            # the specific font directory
-            font_dir = os.path.join(fonts_parent_dir, font_dir_name)
-
-            if os.path.isdir(font_dir):
-
-                # iterate over the font files and attempt to load them
-                for font_file_name in os.listdir(font_dir):
-
-                    # only process actual font files. It appears as though .ttf
-                    # is the most common extension for use on win/mac/linux so
-                    # for now limit to those files.
-                    if not font_file_name.endswith(".ttf"):
-                        continue
-
-                    # the actual font file
-                    font_file = os.path.join(font_dir, font_file_name)
-
-                    # load the font into the font db
-                    if QtGui.QFontDatabase.addApplicationFont(font_file) == -1:
-                        self.log_warning(
-                            "Unable to load font file: %s" % (font_file,))
-                    else:
-                        self.log_debug("Loaded font file: %s" % (font_file,))
-
-        self.__fonts_loaded = True
-
-
     ##########################################################################################
     # logging interfaces
 
@@ -1497,6 +1425,62 @@ class Engine(TankBundle):
         """
         # default implementation doesn't do anything.
 
+    def _ensure_core_fonts_loaded(self):
+        """
+        Loads the Shotgun approved fonts that are bundled with tk-core.
+
+        This method ensures that the Shotgun approved fonts bundled with core
+        are loaded into Qt's font database. This allows them to be used by apps
+        for a consistent look and feel.
+
+        If a QApplication exists during engine initialization, it is not
+        necessary to call this method. Similarly, subclasses that make use of
+        core's bundled dark look and feel will have the bundled fonts loaded
+        automatically.
+        """
+
+        from sgtk.platform.qt import QtGui
+
+        # if the fonts have been loaded, no need to do anything else
+        if self.__fonts_loaded:
+            return
+
+        if not QtGui.QApplication.instance():
+            # there is a QApplication, so we can load fonts.
+            return
+
+        # fonts dir in the core resources dir
+        fonts_parent_dir = self.__get_platform_resource_file("fonts")
+
+        # in the parent directly, get all the font-specific directories
+        for font_dir_name in os.listdir(fonts_parent_dir):
+
+            # the specific font directory
+            font_dir = os.path.join(fonts_parent_dir, font_dir_name)
+
+            if os.path.isdir(font_dir):
+
+                # iterate over the font files and attempt to load them
+                for font_file_name in os.listdir(font_dir):
+
+                    # only process actual font files. It appears as though .ttf
+                    # is the most common extension for use on win/mac/linux so
+                    # for now limit to those files.
+                    if not font_file_name.endswith(".ttf"):
+                        continue
+
+                    # the actual font file
+                    font_file = os.path.join(font_dir, font_file_name)
+
+                    # load the font into the font db
+                    if QtGui.QFontDatabase.addApplicationFont(font_file) == -1:
+                        self.log_warning(
+                            "Unable to load font file: %s" % (font_file,))
+                    else:
+                        self.log_debug("Loaded font file: %s" % (font_file,))
+
+        self.__fonts_loaded = True
+
     def _get_dialog_parent(self):
         """
         Get the QWidget parent for all dialogs created through :meth:`show_dialog` :meth:`show_modal`.
@@ -1526,7 +1510,7 @@ class Engine(TankBundle):
 
         # TankQDialog uses the bundled core font. Make sure they are loaded
         # since know we have a QApplication at this point.
-        self.ensure_core_fonts_loaded()
+        self._ensure_core_fonts_loaded()
 
         # create a dialog to put it inside
         dialog = tankqdialog.TankQDialog(title, bundle, widget, parent)
@@ -1932,7 +1916,7 @@ class Engine(TankBundle):
 
         # Since know we have a QApplication at this point, go ahead and make
         # sure the bundled fonts are loaded
-        self.ensure_core_fonts_loaded()
+        self._ensure_core_fonts_loaded()
 
         # initialize our style
         QtGui.QApplication.setStyle("plastique")
