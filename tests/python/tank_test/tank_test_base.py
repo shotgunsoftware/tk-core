@@ -436,10 +436,13 @@ class TankTestBase(unittest.TestCase):
                 config_target = os.path.join(self.project_config, config_folder)
                 self._copy_folder(config_source, config_target)
 
+        # need to reload the pipeline config to respect the config data from
+        # the fixtures
+        self.reload_pipeline_config()
+
         if not ("skip_template_reload" in parameters and parameters["skip_template_reload"]):
             # no skip_template_reload flag set to true. So go ahead and reload
             self.tk.reload_templates()
-
 
     def setup_multi_root_fixtures(self):
         """
@@ -482,11 +485,9 @@ class TankTestBase(unittest.TestCase):
         roots_file.write(yaml.dump(roots))
         roots_file.close()
 
-        # need a new pipeline config object that is using the
-        # new roots def file we just created
-        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
-        # push this new pipeline config into the tk api
-        self.tk._Sgtk__pipeline_config = self.pipeline_configuration
+        # need to reload the pipeline config object that to respect the
+        # new roots definition file we just created
+        self.reload_pipeline_config()
 
         # force reload templates
         self.tk.reload_templates()
@@ -690,6 +691,16 @@ class TankTestBase(unittest.TestCase):
                     os.chmod(dstname, 0777)
 
         return files
+
+    def reload_pipeline_config(self):
+        """
+        Reload the Pipeline Configuration used in this TestCase.
+        Should be called whenever a configuration yaml changes in `self.pipeline_config_root`
+        """
+        pc = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
+        self.pipeline_configuration = pc
+        # push this new pipeline config into the tk api
+        self.tk._Sgtk__pipeline_config = self.pipeline_configuration
 
 
 def _move_data(path):
