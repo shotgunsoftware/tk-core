@@ -903,10 +903,8 @@ class PipelineConfiguration(object):
                hook_name not in constants.TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST):
 
                 # only log once since some custom hooks can be called many times
-                parent.log_metric(
-                    "custom hook %s" % (hook_name,),
-                    log_once=True
-                )
+                action = "custom hook %s" % (hook_name,)
+                parent.log_metric(action, log_once=True)
 
         try:
             return_value = hook.execute_hook(hook_path, parent, **kwargs)
@@ -953,10 +951,8 @@ class PipelineConfiguration(object):
 
                 # only log once since some custom hooks can be called many
                 # times like cache_location.get_path_cache_path
-                parent.log_metric(
-                    "custom hook method %s" % (hook_method_display,),
-                    log_once=True
-                )
+                action = "custom hook method %s" % (hook_method_display,)
+                parent.log_metric(action, log_once=True)
 
         try:
             return_value = hook.execute_hook_method(hook_paths, parent, method_name, **kwargs)
