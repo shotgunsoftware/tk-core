@@ -116,10 +116,12 @@ class Sgtk(object):
                                                                              parent=self, 
                                                                              **kwargs)
 
-    def log_metric(self, action):
+    def log_metric(self, action, log_once=False):
         """Log a core metric.
 
         :param action: Action string to log, e.g. 'Init'
+        :param bool log_once: ``True`` if this metric should be ignored if it
+            has already been logged. Defaults to ``False``.
 
         Logs a user activity metric as performed within core. This is
         a convenience method that auto-populates the module portion of
@@ -130,7 +132,7 @@ class Sgtk(object):
 
         """
         full_action = "%s %s" % ('tk-core', action)
-        log_user_activity_metric('tk-core', full_action)
+        log_user_activity_metric('tk-core', full_action, log_once=log_once)
 
 
     ################################################################################################
