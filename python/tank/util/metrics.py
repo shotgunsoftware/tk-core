@@ -79,7 +79,7 @@ class MetricsQueueSingleton(object):
             has already been logged. ``False`` otherwise. Defaults to ``False``.
         """
 
-        # This assumes that supplied object's classes implement ``__repr__``
+        # This assumes that supplied object's classes implement __repr__
         # to return consistent results when building objects with the same
         # internal data. See the UserActivityMetric and UserAttributeMetric
         # classes below.
