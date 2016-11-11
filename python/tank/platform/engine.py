@@ -34,7 +34,8 @@ from .errors import (
     TankEngineEventError,
 )
 
-from ..util import log_user_activity_metric, log_user_attribute_metric
+from ..util import log_user_activity_metric as util_log_user_activity_metric
+from ..util import log_user_attribute_metric as util_log_user_attribute_metric
 from ..util.metrics import MetricsDispatcher
 from ..log import LogManager
 
@@ -266,8 +267,8 @@ class Engine(TankBundle):
         self.log_metric("Init")
 
         # log the core and engine versions being used by the current user
-        log_user_attribute_metric("tk-core version", tk.version)
-        log_user_attribute_metric("%s version" % (self.name,), self.version)
+        util_log_user_attribute_metric("tk-core version", tk.version)
+        util_log_user_attribute_metric("%s version" % (self.name,), self.version)
 
         # if the engine supports logging metrics, begin dispatching logged metrics
         if self.metrics_dispatch_allowed:
@@ -465,10 +466,12 @@ class Engine(TankBundle):
             self.__global_progress_widget.close()
             self.__global_progress_widget = None
 
-    def log_metric(self, action):
+    def log_metric(self, action, log_once=False):
         """Log an engine metric.
 
         :param action: Action string to log, e.g. 'Init'
+        :param bool log_once: ``True`` if this metric should be ignored if it
+            has already been logged. Defaults to ``False``.
 
         Logs a user activity metric as performed within an engine. This is
         a convenience method that auto-populates the module portion of
@@ -483,13 +486,15 @@ class Engine(TankBundle):
         # module: tk-maya
         # action: tk-maya - Init
         full_action = "%s %s" % (self.name, action)
-        log_user_activity_metric(self.name, full_action)
+        util_log_user_activity_metric(self.name, full_action, log_once=log_once)
 
-    def log_user_attribute_metric(self, attr_name, attr_value):
+    def log_user_attribute_metric(self, attr_name, attr_value, log_once=False):
         """Convenience class. Logs a user attribute metric.
 
         :param attr_name: The name of the attribute to set for the user.
         :param attr_value: The value of the attribute to set for the user.
+        :param bool log_once: ``True`` if this metric should be ignored if it
+            has already been logged. Defaults to ``False``.
 
         This is a convenience wrapper around
         `tank.util.log_user_activity_metric()` that prevents engine subclasses
@@ -499,7 +504,7 @@ class Engine(TankBundle):
         will be backwards compatible.
 
         """
-        log_user_attribute_metric(attr_name, attr_value)
+        util_log_user_attribute_metric(attr_name, attr_value, log_once=log_once)
 
     def get_child_logger(self, name):
         """

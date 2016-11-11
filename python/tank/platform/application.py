@@ -251,12 +251,14 @@ class Application(TankBundle):
     ##########################################################################################
     # internal API
 
-    def log_metric(self, action, log_version=False):
+    def log_metric(self, action, log_version=False, log_once=False):
         """Logs an app metric.
 
         :param action: Action string to log, e.g. 'Execute Action'
         :param log_version: If True, also log a user attribute metric for the
             version of the app. Default is `False`.
+        :param bool log_once: ``True`` if this metric should be ignored if it
+            has already been logged. Defaults to ``False``.
 
         Logs a user activity metric as performed within an app. This is a
         convenience method that auto-populates the module portion of
@@ -273,11 +275,12 @@ class Application(TankBundle):
         # module: tk-multi-loader2
         # action: (tk-maya) tk-multi-loader2 - Load...
         full_action = "(%s) %s %s" % (self.engine.name, self.name, action)
-        log_user_activity_metric(self.name, full_action)
+        log_user_activity_metric(self.name, full_action, log_once=log_once)
 
         if log_version:
             # log the app version as a user attribute
-            log_user_attribute_metric("%s version" % (self.name,), self.version)
+            log_user_attribute_metric(
+                "%s version" % (self.name,), self.version, log_once=log_once)
 
 def get_application(engine, app_folder, descriptor, settings, instance_name, env):
     """

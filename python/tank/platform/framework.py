@@ -202,10 +202,12 @@ class Framework(TankBundle):
     ##########################################################################################
     # internal API
 
-    def log_metric(self, action):
+    def log_metric(self, action, log_once=False):
         """Logs a framework metric.
 
         :param action: Action string to log, e.g. 'Execute Action'
+        :param bool log_once: ``True`` if this metric should be ignored if it
+            has already been logged. Defaults to ``False``.
 
         Logs a user activity metric as performed within framework code. This is
         a convenience method that auto-populates the module portion of
@@ -219,8 +221,7 @@ class Framework(TankBundle):
         # module: tk-framework-perforce
         # action: (tk-maya) tk-framework-perforce - Connected
         full_action = "(%s) %s %s" % (self.engine.name, self.name, action)
-        log_user_activity_metric(self.name, full_action)
-
+        log_user_activity_metric(self.name, full_action, log_once=log_once)
 
 
 ###################################################################################################

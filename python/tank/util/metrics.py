@@ -45,6 +45,10 @@ class MetricsQueueSingleton(object):
     # keeps track of the single instance of the class
     __instance = None
 
+    # A set of log identifier strings used to check whether a metric has been
+    # logged already.
+    __logged_metrics = set()
+
     def __new__(cls, *args, **kwargs):
         """Ensures only one instance of the metrics queue exists."""
 
@@ -64,15 +68,33 @@ class MetricsQueueSingleton(object):
 
         return cls.__instance
 
-    def log(self, metric):
+    def log(self, metric, log_once=False):
         """Add the metric to the queue for dispatching.
 
-        :param ToolkitMetric metric: The metric to log.
+        If ``log_once`` is set to ``True``, this will only log the metric if it
+        is the first attempt to log it.
 
+        :param ToolkitMetric metric: The metric to log.
+        :param bool log_once: ``True`` if this metric should be ignored if it
+            has already been logged. ``False`` otherwise. Defaults to ``False``.
         """
+
+        # This assumes that supplied object's classes implement __repr__
+        # to return consistent results when building objects with the same
+        # internal data. See the UserActivityMetric and UserAttributeMetric
+        # classes below.
+        metric_identifier = repr(metric)
+
+        if log_once and metric_identifier in self.__logged_metrics:
+            # the metric is already logged! nothing to do.
+            return
+
         self._lock.acquire()
         try:
             self._queue.append(metric)
+
+            # remember that we've logged this one already
+            self.__logged_metrics.add(metric_identifier)
         except:
             pass
         finally:
@@ -314,7 +336,7 @@ class ToolkitMetric(object):
         self._data = data
 
     def __str__(self):
-        """Readable representation of the metric."""
+        """Readable str representation of the metric."""
         return "%s: %s" % (self.__class__, self._data)
 
     @property
@@ -339,6 +361,10 @@ class UserActivityMetric(ToolkitMetric):
             "action": action,
         })
 
+    def __repr__(self):
+        """Official str representation of the user activity metric."""
+        return "%s.%s" % (self._data["module"], self._data["action"])
+
 
 class UserAttributeMetric(ToolkitMetric):
     """Convenience class for a user attribute metric."""
@@ -356,35 +382,42 @@ class UserAttributeMetric(ToolkitMetric):
             "attr_value": attr_value,
         })
 
+    def __repr__(self):
+        """Official str representation of the user attribute metric."""
+        return "%s.%s" % (self._data["attr_name"], self._data["attr_value"])
+
 
 ###############################################################################
 # metrics logging convenience functions
 
-def log_metric(metric):
+def log_metric(metric, log_once=False):
     """Log a Toolkit metric.
     
     :param ToolkitMetric metric: The metric to log.
+    :param bool log_once: ``True`` if this metric should be ignored if it has
+        already been logged. Defaults to ``False``.
 
     This method simply adds the metric to the dispatch queue.
-    
     """
-    MetricsQueueSingleton().log(metric)
+    MetricsQueueSingleton().log(metric, log_once=log_once)
 
-def log_user_activity_metric(module, action):
+def log_user_activity_metric(module, action, log_once=False):
     """Convenience method for logging a user activity metric.
 
     :param str module: The module the activity occured in.
     :param str action: The action the user performed.
-
+    :param bool log_once: ``True`` if this metric should be ignored if it has
+        already been logged. Defaults to ``False``.
     """
-    log_metric(UserActivityMetric(module, action))
+    log_metric(UserActivityMetric(module, action), log_once=log_once)
 
-def log_user_attribute_metric(attr_name, attr_value):
+def log_user_attribute_metric(attr_name, attr_value, log_once=False):
     """Convenience method for logging a user attribute metric.
 
     :param str attr_name: The name of the attribute.
     :param str attr_value: The value of the attribute to log.
-
+    :param bool log_once: ``True`` if this metric should be ignored if it has
+        already been logged. Defaults to ``False``.
     """
-    log_metric(UserAttributeMetric(attr_name, attr_value))
+    log_metric(UserAttributeMetric(attr_name, attr_value), log_once=log_once)
 
