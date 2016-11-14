@@ -148,6 +148,7 @@ Engine
 
 .. autoclass:: Engine
     :inherited-members:
+    :members:
     :exclude-members: descriptor,
                       get_child_logger,
                       get_env,
@@ -157,8 +158,24 @@ Engine
                       log_metric,
                       log_user_attribute_metric,
                       settings
-    :members:
 
+    **Engine Customizations**
+
+    The following methods can be used by subclasses to customize engine
+    behavior.
+
+    .. automethod:: _create_dialog
+    .. automethod:: _create_dialog_with_widget
+    .. automethod:: _create_widget
+    .. automethod:: _define_qt_base
+    .. automethod:: _emit_event
+    .. automethod:: _emit_log_message
+    .. automethod:: _ensure_core_fonts_loaded
+    .. automethod:: _get_dialog_parent
+    .. automethod:: _initialize_dark_look_and_feel
+    .. automethod:: _on_dialog_closed
+
+    **Instance Methods & Properties**
 
 Applications
 ---------------------------------------

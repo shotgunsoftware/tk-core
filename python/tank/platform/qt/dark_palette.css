@@ -32,7 +32,14 @@ and augment those places where the palette isn't being properly respected.
 
 
 QWidget
-{ 
+{
+
+    /*
+    This is the font that is bundled with core. This implies that any
+    apps that use the dark look and feel will use this font by default.
+    */
+    font-family: "Open Sans";
+
     /* 
     Maya uses an 11px font size throughout. 
     Note that QLabels with <small> or <big> tags
