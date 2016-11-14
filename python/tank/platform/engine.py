@@ -1452,6 +1452,10 @@ class Engine(TankBundle):
         if self.__fonts_loaded:
             return
 
+        if not QtGui:
+            # it is possible that QtGui is not available (test suite).
+            return
+
         if not QtGui.QApplication.instance():
             # there is a QApplication, so we can load fonts.
             return
