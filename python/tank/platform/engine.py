@@ -70,18 +70,6 @@ class Engine(TankBundle):
         :param engine_instance_name: The name of the engine as it has been defined in the environment.
         :param env: An Environment object to associate with this engine.
 
-
-        .. tell sphinx to document certain protected methods
-        .. automethod:: _initialize_dark_look_and_feel
-        .. automethod:: _define_qt_base
-        .. automethod:: _create_dialog
-        .. automethod:: _create_widget
-        .. automethod:: _get_dialog_parent
-        .. automethod:: _create_dialog_with_widget
-        .. automethod:: _get_dialog_parent
-        .. automethod:: _on_dialog_closed
-        .. automethod:: _emit_event
-        .. automethod:: _emit_log_message
         """
         
         self.__env = env
