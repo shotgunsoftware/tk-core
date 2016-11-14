@@ -104,6 +104,8 @@ class Engine(TankBundle):
         
         self.__global_progress_widget = None
 
+        self.__fonts_loaded = False
+
         self._metrics_dispatcher = None
 
         # Initialize these early on so that methods implemented in the derived class and trying
@@ -193,6 +195,10 @@ class Engine(TankBundle):
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
 
+        # load the fonts. this will work if there is a QApplication instance
+        # available.
+        self._ensure_core_fonts_loaded()
+
         # create invoker to allow execution of functions on the
         # main thread:
         self._invoker, self._async_invoker = self.__create_invokers()
@@ -229,7 +235,7 @@ class Engine(TankBundle):
                 self.__toggle_debug_logging,
                 {
                     "short_name": "toggle_debug",
-                    "icon": self.__get_platform_resource_file("book_256.png"),
+                    "icon": self.__get_platform_resource_path("book_256.png"),
                     "description": ("Toggles toolkit debug logging on and off. "
                                     "This affects all debug logging, including log "
                                     "files that are being written to disk."),
@@ -247,7 +253,7 @@ class Engine(TankBundle):
                 self.__open_log_folder,
                 {
                     "short_name": "open_log_folder",
-                    "icon": self.__get_platform_resource_file("folder_256.png"),
+                    "icon": self.__get_platform_resource_path("folder_256.png"),
                     "description": "Opens the folder where log files are being stored.",
                     "type": "context_menu"
                 }
@@ -872,7 +878,6 @@ class Engine(TankBundle):
         if self.__global_progress_widget:
             self.execute_in_main_thread(self.__clear_busy)
 
-
     def register_command(self, name, callback, properties=None):
         """
         Register a command with a name and a callback function.
@@ -1425,6 +1430,75 @@ class Engine(TankBundle):
         """
         # default implementation doesn't do anything.
 
+    def _ensure_core_fonts_loaded(self):
+        """
+        Loads the Shotgun approved fonts that are bundled with tk-core.
+
+        This method ensures that the Shotgun approved fonts bundled with core
+        are loaded into Qt's font database. This allows them to be used by apps
+        for a consistent look and feel.
+
+        If a QApplication exists during engine initialization, it is not
+        necessary to call this method. Similarly, subclasses that make use of
+        core's bundled dark look and feel will have the bundled fonts loaded
+        automatically.
+
+        This method can/should be called by subclasses that meet the following
+        criteria:
+
+         * Create their own ``QApplication`` instance after engine init
+         * Do not use the bundled dark look and feel.
+         * Have overridden ``Engine._create_dialog()``.
+
+        """
+
+        # Note, the fonts are packed within core's resource directory with a
+        # parent directory that is the name of the font. The directory contains
+        # all the bundled font files. Example:
+        #
+        #       ``tank/platform/qt/fonts/OpenSans/OpenSans-*.ttf``
+
+        from sgtk.platform.qt import QtGui
+
+        # if the fonts have been loaded, no need to do anything else
+        if self.__fonts_loaded:
+            return
+
+        if not QtGui.QApplication.instance():
+            # there is a QApplication, so we can load fonts.
+            return
+
+        # fonts dir in the core resources dir
+        fonts_parent_dir = self.__get_platform_resource_path("fonts")
+
+        # in the parent directly, get all the font-specific directories
+        for font_dir_name in os.listdir(fonts_parent_dir):
+
+            # the specific font directory
+            font_dir = os.path.join(fonts_parent_dir, font_dir_name)
+
+            if os.path.isdir(font_dir):
+
+                # iterate over the font files and attempt to load them
+                for font_file_name in os.listdir(font_dir):
+
+                    # only process actual font files. It appears as though .ttf
+                    # is the most common extension for use on win/mac/linux so
+                    # for now limit to those files.
+                    if not font_file_name.endswith(".ttf"):
+                        continue
+
+                    # the actual font file
+                    font_file = os.path.join(font_dir, font_file_name)
+
+                    # load the font into the font db
+                    if QtGui.QFontDatabase.addApplicationFont(font_file) == -1:
+                        self.log_warning(
+                            "Unable to load font file: %s" % (font_file,))
+                    else:
+                        self.log_debug("Loaded font file: %s" % (font_file,))
+
+        self.__fonts_loaded = True
 
     def _get_dialog_parent(self):
         """
@@ -1452,7 +1526,11 @@ class Engine(TankBundle):
         :type widget: :class:`PySide.QtGui.QWidget`
         """
         from .qt import tankqdialog
-        
+
+        # TankQDialog uses the bundled core font. Make sure they are loaded
+        # since know we have a QApplication at this point.
+        self._ensure_core_fonts_loaded()
+
         # create a dialog to put it inside
         dialog = tankqdialog.TankQDialog(title, bundle, widget, parent)
 
@@ -1464,7 +1542,7 @@ class Engine(TankBundle):
         
         # keep track of some info for debugging object lifetime
         self.__debug_track_qt_widget(dialog)
-        
+
         return dialog
 
     def _create_widget(self, widget_class, *args, **kwargs):
@@ -1485,7 +1563,7 @@ class Engine(TankBundle):
         Additional parameters specified will be passed through to the widget_class constructor.
         """
         from .qt import tankqdialog
-                
+
         # construct the widget object
         derived_widget_class = tankqdialog.TankQDialog.wrap_widget_class(widget_class)
         widget = derived_widget_class(*args, **kwargs)
@@ -1509,14 +1587,15 @@ class Engine(TankBundle):
             
         Additional parameters specified will be passed through to the widget_class constructor.
         """
+
         # get the parent for the dialog:
         parent = self._get_dialog_parent()
         
         # create the widget:
         widget = self._create_widget(widget_class, *args, **kwargs)
-        
+
         # apply style sheet
-        self._apply_external_styleshet(bundle, widget)        
+        self._apply_external_stylesheet(bundle, widget)
         
         # create the dialog:
         dialog = self._create_dialog(title, bundle, widget, parent)
@@ -1753,7 +1832,7 @@ class Engine(TankBundle):
             processed_style_sheet = processed_style_sheet.replace("{{%s}}" % token, value)
         return processed_style_sheet
     
-    def _apply_external_styleshet(self, bundle, widget):
+    def _apply_external_stylesheet(self, bundle, widget):
         """
         Apply an std external stylesheet, associated with a bundle, to a widget.
         
@@ -1786,6 +1865,11 @@ class Engine(TankBundle):
         except IOError:
             # The file didn't exist, so nothing to do.
             pass
+
+    # Here we add backward compatibility for a typo that existed in core for a
+    # while. The method was found to be used in some existing Engine subclasses
+    # so we need this.
+    _apply_external_styleshet = _apply_external_stylesheet
 
     def _define_qt_base(self):
         """
@@ -1854,6 +1938,10 @@ class Engine(TankBundle):
         """
         from .qt import QtGui, QtCore
 
+        # Since know we have a QApplication at this point, go ahead and make
+        # sure the bundled fonts are loaded
+        self._ensure_core_fonts_loaded()
+
         # initialize our style
         QtGui.QApplication.setStyle("plastique")
         
@@ -1875,9 +1963,9 @@ class Engine(TankBundle):
 
         try:
             # open palette file
-            palette_file = self.__get_platform_resource_file("dark_palette.qpalette")
+            palette_file = self.__get_platform_resource_path("dark_palette.qpalette")
             fh = QtCore.QFile(palette_file)
-            fh.open(QtCore.QIODevice.ReadOnly);
+            fh.open(QtCore.QIODevice.ReadOnly)
             file_in = QtCore.QDataStream(fh)
     
             # deserialize the palette
@@ -1906,7 +1994,7 @@ class Engine(TankBundle):
             
         try:
             # read css
-            css_file = self.__get_platform_resource_file("dark_palette.css")
+            css_file = self.__get_platform_resource_path("dark_palette.css")
             f = open(css_file)
             css_data = f.read()
             f.close()
@@ -1917,8 +2005,7 @@ class Engine(TankBundle):
         except Exception, e:
             self.log_error("The standard toolkit dark stylesheet could not be set up! The look and feel of your "
                            "toolkit apps may be sub standard. Please contact support. Details: %s" % e)
-        
-    
+
     def _get_standard_qt_stylesheet(self):
         """
         **********************************************************************
@@ -1939,7 +2026,7 @@ class Engine(TankBundle):
         
         :returns: The style sheet data, as a string.
         """
-        css_file = self.__get_platform_resource_file("toolkit_std_dark.css")
+        css_file = self.__get_platform_resource_path("toolkit_std_dark.css")
         f = open(css_file)
         css_data = f.read()
         f.close()
@@ -2313,16 +2400,16 @@ class Engine(TankBundle):
                     "Reload and Restart",
                     restart,
                     {"short_name": "restart",
-                     "icon": self.__get_platform_resource_file("reload_256.png"),
+                     "icon": self.__get_platform_resource_path("reload_256.png"),
                      "type": "context_menu"}
                 )
                 # only need one reload button, so don't keep iterating :)
                 break
 
-    def __get_platform_resource_file(self, filename):
+    def __get_platform_resource_path(self, filename):
         """
-        Returns the full path to the given platform resource file.
-        Resource files reside in the core/platform/qt folder.
+        Returns the full path to the given platform resource file or folder.
+        Resources reside in the core/platform/qt folder.
 
         :return: full path
         """
