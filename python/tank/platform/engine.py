@@ -1437,6 +1437,14 @@ class Engine(TankBundle):
         necessary to call this method. Similarly, subclasses that make use of
         core's bundled dark look and feel will have the bundled fonts loaded
         automatically.
+
+        This method can/should be called by subclasses that meet the following
+        criteria:
+
+         * Create their own ``QApplication`` instance after engine init
+         * Do not use the bundled dark look and feel.
+         * Have overridden ``Engine._create_dialog()``.
+
         """
 
         # Note, the fonts are packed within core's resource directory with a
