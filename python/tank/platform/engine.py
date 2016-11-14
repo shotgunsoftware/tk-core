@@ -234,7 +234,7 @@ class Engine(TankBundle):
                 self.__toggle_debug_logging,
                 {
                     "short_name": "toggle_debug",
-                    "icon": self.__get_platform_resource_file("book_256.png"),
+                    "icon": self.__get_platform_resource_path("book_256.png"),
                     "description": ("Toggles toolkit debug logging on and off. "
                                     "This affects all debug logging, including log "
                                     "files that are being written to disk."),
@@ -252,7 +252,7 @@ class Engine(TankBundle):
                 self.__open_log_folder,
                 {
                     "short_name": "open_log_folder",
-                    "icon": self.__get_platform_resource_file("folder_256.png"),
+                    "icon": self.__get_platform_resource_path("folder_256.png"),
                     "description": "Opens the folder where log files are being stored.",
                     "type": "context_menu"
                 }
@@ -1439,6 +1439,12 @@ class Engine(TankBundle):
         automatically.
         """
 
+        # Note, the fonts are packed within core's resource directory with a
+        # parent directory that is the name of the font. The directory contains
+        # all the bundled font files. Example:
+        #
+        #       ``tank/platform/qt/fonts/OpenSans/OpenSans-*.ttf``
+
         from sgtk.platform.qt import QtGui
 
         # if the fonts have been loaded, no need to do anything else
@@ -1450,7 +1456,7 @@ class Engine(TankBundle):
             return
 
         # fonts dir in the core resources dir
-        fonts_parent_dir = self.__get_platform_resource_file("fonts")
+        fonts_parent_dir = self.__get_platform_resource_path("fonts")
 
         # in the parent directly, get all the font-specific directories
         for font_dir_name in os.listdir(fonts_parent_dir):
@@ -1847,6 +1853,11 @@ class Engine(TankBundle):
             # The file didn't exist, so nothing to do.
             pass
 
+    # Here we add backward compatibility for a typo that existed in core for a
+    # while. The method was found to be used in some existing Engine subclasses
+    # so we need this.
+    _apply_external_styleshet = _apply_external_stylesheet
+
     def _define_qt_base(self):
         """
         This will be called at initialisation time and will allow
@@ -1939,7 +1950,7 @@ class Engine(TankBundle):
 
         try:
             # open palette file
-            palette_file = self.__get_platform_resource_file("dark_palette.qpalette")
+            palette_file = self.__get_platform_resource_path("dark_palette.qpalette")
             fh = QtCore.QFile(palette_file)
             fh.open(QtCore.QIODevice.ReadOnly)
             file_in = QtCore.QDataStream(fh)
@@ -1970,7 +1981,7 @@ class Engine(TankBundle):
             
         try:
             # read css
-            css_file = self.__get_platform_resource_file("dark_palette.css")
+            css_file = self.__get_platform_resource_path("dark_palette.css")
             f = open(css_file)
             css_data = f.read()
             f.close()
@@ -2002,7 +2013,7 @@ class Engine(TankBundle):
         
         :returns: The style sheet data, as a string.
         """
-        css_file = self.__get_platform_resource_file("toolkit_std_dark.css")
+        css_file = self.__get_platform_resource_path("toolkit_std_dark.css")
         f = open(css_file)
         css_data = f.read()
         f.close()
@@ -2376,16 +2387,16 @@ class Engine(TankBundle):
                     "Reload and Restart",
                     restart,
                     {"short_name": "restart",
-                     "icon": self.__get_platform_resource_file("reload_256.png"),
+                     "icon": self.__get_platform_resource_path("reload_256.png"),
                      "type": "context_menu"}
                 )
                 # only need one reload button, so don't keep iterating :)
                 break
 
-    def __get_platform_resource_file(self, filename):
+    def __get_platform_resource_path(self, filename):
         """
-        Returns the full path to the given platform resource file.
-        Resource files reside in the core/platform/qt folder.
+        Returns the full path to the given platform resource file or folder.
+        Resources reside in the core/platform/qt folder.
 
         :return: full path
         """
