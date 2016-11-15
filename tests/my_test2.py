@@ -6,6 +6,9 @@ import atexit
 import sgtk
 import time
 
+sgtk.LogManager().initialize_base_file_handler("patate")
+
+
 # Import the ShotgunAuthenticator from the tank_vendor.shotgun_authentication
 # module. This class allows you to authenticate either programmatically or, in this # noqa
 # case, interactively.
@@ -46,7 +49,7 @@ sgtk.set_authenticated_user(user)
 sg = user.create_sg_connection()
 
 def renew_session():
-    if time.time() > user.impl.get_session_expiration() + 15:
+    if (time.time() + 15) > user.impl.get_session_expiration():
         print "Renewing session"
         interactive_authentication.renew_session(user.impl, no_gui=True)
         print "Renewing session completed"
