@@ -11,7 +11,6 @@
 # Basic setup.py so tk-core could be installed as
 # a standard Python package
 from setuptools import setup, find_packages
-import os
 import subprocess
 
 def get_version():
@@ -22,14 +21,15 @@ def get_version():
     """
     # Try to extract the version number from git
     # this will work when installing from a locally cloned repo, or directly from
-    # github, using something like:
-    # pip install git+https://github.com/shotgunsoftware/tk-core@v0.0.1.piptest#egg=sgtk
-    # Please note that the version number will be something like: v0.18.32-12-g24316e3
-    # 'git describe' can certainly be tuned to only return a plain tag if needed,
-    # any tag instead of just annotated ones, e.g. with something like:
-    # git describe --abbrev=0 --tags
+    # github, using the syntax:
+    #
+    # pip install git+https://github.com/shotgunsoftware/tk-core@v0.18.32#egg=sgtk
+    #
+    # Note: if you install from a cloned git repository
+    # (e.g. pip install ./tk-core), the version number
+    # will be picked up from the most recently added tag.
     try:
-        version_git = subprocess.check_output(["git", "describe"]).rstrip()
+        version_git = subprocess.check_output(["git", "describe", "--abbrev=0"]).rstrip()
         return version_git
     except:
         # Blindly ignore problems, git might be not available, or the user could
@@ -75,5 +75,5 @@ setup(
         "": ["resources/*", ".txt", "*.*"],
     },
     # Everything can be found under the python folder, but installed without it
-    package_dir = {"": "python"}
+    package_dir={"": "python"}
 )
