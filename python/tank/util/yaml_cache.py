@@ -257,17 +257,12 @@ class YamlCache(object):
         """
         path = item.path
         try:
-            fh = open(path, "r")
-            raw_data = yaml.load(fh)
+            with open(path, "r") as fh:
+                raw_data = yaml.load(fh)
         except IOError:
             raise TankFileDoesNotExistError("File does not exist: %s" % path)
         except Exception, e:
             raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
-            # Since it wasn't an IOError it means we have an open
-            # filehandle to close.
-            fh.close()
-        else:
-            fh.close()
         # Populate the item's data before adding it to the cache.
         item.data = raw_data
 
