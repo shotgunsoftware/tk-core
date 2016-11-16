@@ -143,7 +143,8 @@ class SessionRenewal(object):
                 user.set_session_token(session_token)
                 user.set_cookies(cookies)
                 import time
-                user.set_session_expiration(int(time.time()))
+                # @FIXME: This should be obtained from the server.
+                user.set_session_expiration(int(time.time())+30)
             except AuthenticationCancelled:
                 SessionRenewal._auth_state = SessionRenewal.CANCELLED
                 logger.debug("Authentication cancelled")

@@ -49,6 +49,7 @@ sgtk.set_authenticated_user(user)
 sg = user.create_sg_connection()
 
 def renew_session():
+    print "Checking"
     if (time.time() + 15) > user.impl.get_session_expiration():
         print "Renewing session"
         interactive_authentication.renew_session(user.impl, no_gui=True)
@@ -74,9 +75,9 @@ if __name__ == '__main__':
     view.show()
     app.view = view
 
-    # timer1 = QtCore.QTimer()
-    # timer1.timeout.connect(renew_session)
-    # timer1.start(6000)
+    timer1 = QtCore.QTimer()
+    timer1.timeout.connect(renew_session)
+    timer1.start(6000)
 
     timer2 = QtCore.QTimer()
     timer2.timeout.connect(print_stuff)
