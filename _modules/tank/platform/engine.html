@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.32 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.35 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.32 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.35 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.32.<br>
+    <b>tk-core</b> v0.18.35.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -204,7 +204,8 @@
     <span class="n">TankEngineEventError</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">log_user_activity_metric</span><span class="p">,</span> <span class="n">log_user_attribute_metric</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">log_user_activity_metric</span> <span class="k">as</span> <span class="n">util_log_user_activity_metric</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">log_user_attribute_metric</span> <span class="k">as</span> <span class="n">util_log_user_attribute_metric</span>
 <span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="kn">import</span> <span class="n">MetricsDispatcher</span>
 <span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
 
@@ -240,18 +241,6 @@
 <span class="sd">        :param engine_instance_name: The name of the engine as it has been defined in the environment.</span>
 <span class="sd">        :param env: An Environment object to associate with this engine.</span>
 
-
-<span class="sd">        .. tell sphinx to document certain protected methods</span>
-<span class="sd">        .. automethod:: _initialize_dark_look_and_feel</span>
-<span class="sd">        .. automethod:: _define_qt_base</span>
-<span class="sd">        .. automethod:: _create_dialog</span>
-<span class="sd">        .. automethod:: _create_widget</span>
-<span class="sd">        .. automethod:: _get_dialog_parent</span>
-<span class="sd">        .. automethod:: _create_dialog_with_widget</span>
-<span class="sd">        .. automethod:: _get_dialog_parent</span>
-<span class="sd">        .. automethod:: _on_dialog_closed</span>
-<span class="sd">        .. automethod:: _emit_event</span>
-<span class="sd">        .. automethod:: _emit_log_message</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">__env</span> <span class="o">=</span> <span class="n">env</span>
@@ -272,6 +261,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__commands_that_need_prefixing</span> <span class="o">=</span> <span class="p">[]</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fonts_loaded</span> <span class="o">=</span> <span class="bp">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_metrics_dispatcher</span> <span class="o">=</span> <span class="bp">None</span>
 
@@ -362,6 +353,10 @@
         <span class="n">qt_abstraction</span><span class="o">.</span><span class="n">QtCore</span> <span class="o">=</span> <span class="n">qt</span><span class="o">.</span><span class="n">QtCore</span>
         <span class="n">qt_abstraction</span><span class="o">.</span><span class="n">QtGui</span> <span class="o">=</span> <span class="n">qt</span><span class="o">.</span><span class="n">QtGui</span>
 
+        <span class="c1"># load the fonts. this will work if there is a QApplication instance</span>
+        <span class="c1"># available.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_core_fonts_loaded</span><span class="p">()</span>
+
         <span class="c1"># create invoker to allow execution of functions on the</span>
         <span class="c1"># main thread:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_invoker</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_invoker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__create_invokers</span><span class="p">()</span>
@@ -398,7 +393,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">__toggle_debug_logging</span><span class="p">,</span>
                 <span class="p">{</span>
                     <span class="s2">&quot;short_name&quot;</span><span class="p">:</span> <span class="s2">&quot;toggle_debug&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;icon&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_file</span><span class="p">(</span><span class="s2">&quot;book_256.png&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;icon&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_path</span><span class="p">(</span><span class="s2">&quot;book_256.png&quot;</span><span class="p">),</span>
                     <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Toggles toolkit debug logging on and off. &quot;</span>
                                     <span class="s2">&quot;This affects all debug logging, including log &quot;</span>
                                     <span class="s2">&quot;files that are being written to disk.&quot;</span><span class="p">),</span>
@@ -416,7 +411,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">__open_log_folder</span><span class="p">,</span>
                 <span class="p">{</span>
                     <span class="s2">&quot;short_name&quot;</span><span class="p">:</span> <span class="s2">&quot;open_log_folder&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;icon&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_file</span><span class="p">(</span><span class="s2">&quot;folder_256.png&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;icon&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_path</span><span class="p">(</span><span class="s2">&quot;folder_256.png&quot;</span><span class="p">),</span>
                     <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Opens the folder where log files are being stored.&quot;</span><span class="p">,</span>
                     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;context_menu&quot;</span>
                 <span class="p">}</span>
@@ -436,8 +431,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">log_metric</span><span class="p">(</span><span class="s2">&quot;Init&quot;</span><span class="p">)</span>
 
         <span class="c1"># log the core and engine versions being used by the current user</span>
-        <span class="n">log_user_attribute_metric</span><span class="p">(</span><span class="s2">&quot;tk-core version&quot;</span><span class="p">,</span> <span class="n">tk</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
-        <span class="n">log_user_attribute_metric</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> version&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,),</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+        <span class="n">util_log_user_attribute_metric</span><span class="p">(</span><span class="s2">&quot;tk-core version&quot;</span><span class="p">,</span> <span class="n">tk</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+        <span class="n">util_log_user_attribute_metric</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> version&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,),</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
 
         <span class="c1"># if the engine supports logging metrics, begin dispatching logged metrics</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics_dispatch_allowed</span><span class="p">:</span>
@@ -635,10 +630,12 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span> <span class="o">=</span> <span class="bp">None</span>
 
-    <span class="k">def</span> <span class="nf">log_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">log_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Log an engine metric.</span>
 
 <span class="sd">        :param action: Action string to log, e.g. &#39;Init&#39;</span>
+<span class="sd">        :param bool log_once: ``True`` if this metric should be ignored if it</span>
+<span class="sd">            has already been logged. Defaults to ``False``.</span>
 
 <span class="sd">        Logs a user activity metric as performed within an engine. This is</span>
 <span class="sd">        a convenience method that auto-populates the module portion of</span>
@@ -653,13 +650,15 @@
         <span class="c1"># module: tk-maya</span>
         <span class="c1"># action: tk-maya - Init</span>
         <span class="n">full_action</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
-        <span class="n">log_user_activity_metric</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">full_action</span><span class="p">)</span>
+        <span class="n">util_log_user_activity_metric</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">full_action</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="n">log_once</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">log_user_attribute_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">log_user_attribute_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Convenience class. Logs a user attribute metric.</span>
 
 <span class="sd">        :param attr_name: The name of the attribute to set for the user.</span>
 <span class="sd">        :param attr_value: The value of the attribute to set for the user.</span>
+<span class="sd">        :param bool log_once: ``True`` if this metric should be ignored if it</span>
+<span class="sd">            has already been logged. Defaults to ``False``.</span>
 
 <span class="sd">        This is a convenience wrapper around</span>
 <span class="sd">        `tank.util.log_user_activity_metric()` that prevents engine subclasses</span>
@@ -669,7 +668,7 @@
 <span class="sd">        will be backwards compatible.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">log_user_attribute_metric</span><span class="p">(</span><span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span><span class="p">)</span>
+        <span class="n">util_log_user_attribute_metric</span><span class="p">(</span><span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="n">log_once</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_child_logger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1036,7 +1035,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clear_busy</span><span class="p">)</span></div>
-
 
 <div class="viewcode-block" id="Engine.register_command"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.register_command">[docs]</a>    <span class="k">def</span> <span class="nf">register_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1590,6 +1588,79 @@
 <span class="sd">        &quot;&quot;&quot;</span></div>
         <span class="c1"># default implementation doesn&#39;t do anything.</span>
 
+<div class="viewcode-block" id="Engine._ensure_core_fonts_loaded"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._ensure_core_fonts_loaded">[docs]</a>    <span class="k">def</span> <span class="nf">_ensure_core_fonts_loaded</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the Shotgun approved fonts that are bundled with tk-core.</span>
+
+<span class="sd">        This method ensures that the Shotgun approved fonts bundled with core</span>
+<span class="sd">        are loaded into Qt&#39;s font database. This allows them to be used by apps</span>
+<span class="sd">        for a consistent look and feel.</span>
+
+<span class="sd">        If a QApplication exists during engine initialization, it is not</span>
+<span class="sd">        necessary to call this method. Similarly, subclasses that make use of</span>
+<span class="sd">        core&#39;s bundled dark look and feel will have the bundled fonts loaded</span>
+<span class="sd">        automatically.</span>
+
+<span class="sd">        This method can/should be called by subclasses that meet the following</span>
+<span class="sd">        criteria:</span>
+
+<span class="sd">         * Create their own ``QApplication`` instance after engine init</span>
+<span class="sd">         * Do not use the bundled dark look and feel.</span>
+<span class="sd">         * Have overridden ``Engine._create_dialog()``.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Note, the fonts are packed within core&#39;s resource directory with a</span>
+        <span class="c1"># parent directory that is the name of the font. The directory contains</span>
+        <span class="c1"># all the bundled font files. Example:</span>
+        <span class="c1">#</span>
+        <span class="c1">#       ``tank/platform/qt/fonts/OpenSans/OpenSans-*.ttf``</span>
+
+        <span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="kn">import</span> <span class="n">QtGui</span>
+
+        <span class="c1"># if the fonts have been loaded, no need to do anything else</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fonts_loaded</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">QtGui</span><span class="p">:</span>
+            <span class="c1"># it is possible that QtGui is not available (test suite).</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">():</span>
+            <span class="c1"># there is a QApplication, so we can load fonts.</span>
+            <span class="k">return</span>
+
+        <span class="c1"># fonts dir in the core resources dir</span>
+        <span class="n">fonts_parent_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_path</span><span class="p">(</span><span class="s2">&quot;fonts&quot;</span><span class="p">)</span>
+
+        <span class="c1"># in the parent directly, get all the font-specific directories</span>
+        <span class="k">for</span> <span class="n">font_dir_name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">fonts_parent_dir</span><span class="p">):</span>
+
+            <span class="c1"># the specific font directory</span>
+            <span class="n">font_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fonts_parent_dir</span><span class="p">,</span> <span class="n">font_dir_name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">font_dir</span><span class="p">):</span>
+
+                <span class="c1"># iterate over the font files and attempt to load them</span>
+                <span class="k">for</span> <span class="n">font_file_name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">font_dir</span><span class="p">):</span>
+
+                    <span class="c1"># only process actual font files. It appears as though .ttf</span>
+                    <span class="c1"># is the most common extension for use on win/mac/linux so</span>
+                    <span class="c1"># for now limit to those files.</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">font_file_name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.ttf&quot;</span><span class="p">):</span>
+                        <span class="k">continue</span>
+
+                    <span class="c1"># the actual font file</span>
+                    <span class="n">font_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">font_dir</span><span class="p">,</span> <span class="n">font_file_name</span><span class="p">)</span>
+
+                    <span class="c1"># load the font into the font db</span>
+                    <span class="k">if</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFontDatabase</span><span class="o">.</span><span class="n">addApplicationFont</span><span class="p">(</span><span class="n">font_file</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log_warning</span><span class="p">(</span>
+                            <span class="s2">&quot;Unable to load font file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">font_file</span><span class="p">,))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Loaded font file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">font_file</span><span class="p">,))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fonts_loaded</span> <span class="o">=</span> <span class="bp">True</span></div>
 
 <div class="viewcode-block" id="Engine._get_dialog_parent"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._get_dialog_parent">[docs]</a>    <span class="k">def</span> <span class="nf">_get_dialog_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1617,7 +1688,11 @@
 <span class="sd">        :type widget: :class:`PySide.QtGui.QWidget`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">tankqdialog</span>
-        
+
+        <span class="c1"># TankQDialog uses the bundled core font. Make sure they are loaded</span>
+        <span class="c1"># since know we have a QApplication at this point.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_core_fonts_loaded</span><span class="p">()</span>
+
         <span class="c1"># create a dialog to put it inside</span>
         <span class="n">dialog</span> <span class="o">=</span> <span class="n">tankqdialog</span><span class="o">.</span><span class="n">TankQDialog</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
 
@@ -1629,7 +1704,7 @@
         
         <span class="c1"># keep track of some info for debugging object lifetime</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug_track_qt_widget</span><span class="p">(</span><span class="n">dialog</span><span class="p">)</span>
-        
+
         <span class="k">return</span> <span class="n">dialog</span></div>
 
 <div class="viewcode-block" id="Engine._create_widget"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._create_widget">[docs]</a>    <span class="k">def</span> <span class="nf">_create_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1650,7 +1725,7 @@
 <span class="sd">        Additional parameters specified will be passed through to the widget_class constructor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">tankqdialog</span>
-                
+
         <span class="c1"># construct the widget object</span>
         <span class="n">derived_widget_class</span> <span class="o">=</span> <span class="n">tankqdialog</span><span class="o">.</span><span class="n">TankQDialog</span><span class="o">.</span><span class="n">wrap_widget_class</span><span class="p">(</span><span class="n">widget_class</span><span class="p">)</span>
         <span class="n">widget</span> <span class="o">=</span> <span class="n">derived_widget_class</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1674,14 +1749,15 @@
 <span class="sd">            </span>
 <span class="sd">        Additional parameters specified will be passed through to the widget_class constructor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># get the parent for the dialog:</span>
         <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dialog_parent</span><span class="p">()</span>
         
         <span class="c1"># create the widget:</span>
         <span class="n">widget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_widget</span><span class="p">(</span><span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        
+
         <span class="c1"># apply style sheet</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_external_styleshet</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_external_stylesheet</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span>
         
         <span class="c1"># create the dialog:</span>
         <span class="n">dialog</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_dialog</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
@@ -1918,7 +1994,7 @@
             <span class="n">processed_style_sheet</span> <span class="o">=</span> <span class="n">processed_style_sheet</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{{</span><span class="si">%s</span><span class="s2">}}&quot;</span> <span class="o">%</span> <span class="n">token</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">processed_style_sheet</span>
     
-    <span class="k">def</span> <span class="nf">_apply_external_styleshet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_apply_external_stylesheet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Apply an std external stylesheet, associated with a bundle, to a widget.</span>
 <span class="sd">        </span>
@@ -1951,6 +2027,11 @@
         <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
             <span class="c1"># The file didn&#39;t exist, so nothing to do.</span>
             <span class="k">pass</span>
+
+    <span class="c1"># Here we add backward compatibility for a typo that existed in core for a</span>
+    <span class="c1"># while. The method was found to be used in some existing Engine subclasses</span>
+    <span class="c1"># so we need this.</span>
+    <span class="n">_apply_external_styleshet</span> <span class="o">=</span> <span class="n">_apply_external_stylesheet</span>
 
 <div class="viewcode-block" id="Engine._define_qt_base"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._define_qt_base">[docs]</a>    <span class="k">def</span> <span class="nf">_define_qt_base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2019,6 +2100,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
 
+        <span class="c1"># Since know we have a QApplication at this point, go ahead and make</span>
+        <span class="c1"># sure the bundled fonts are loaded</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_core_fonts_loaded</span><span class="p">()</span>
+
         <span class="c1"># initialize our style</span>
         <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">setStyle</span><span class="p">(</span><span class="s2">&quot;plastique&quot;</span><span class="p">)</span>
         
@@ -2040,9 +2125,9 @@
 
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># open palette file</span>
-            <span class="n">palette_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_file</span><span class="p">(</span><span class="s2">&quot;dark_palette.qpalette&quot;</span><span class="p">)</span>
+            <span class="n">palette_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_path</span><span class="p">(</span><span class="s2">&quot;dark_palette.qpalette&quot;</span><span class="p">)</span>
             <span class="n">fh</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QFile</span><span class="p">(</span><span class="n">palette_file</span><span class="p">)</span>
-            <span class="n">fh</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QIODevice</span><span class="o">.</span><span class="n">ReadOnly</span><span class="p">);</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QIODevice</span><span class="o">.</span><span class="n">ReadOnly</span><span class="p">)</span>
             <span class="n">file_in</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QDataStream</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
     
             <span class="c1"># deserialize the palette</span>
@@ -2071,7 +2156,7 @@
             
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># read css</span>
-            <span class="n">css_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_file</span><span class="p">(</span><span class="s2">&quot;dark_palette.css&quot;</span><span class="p">)</span>
+            <span class="n">css_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_path</span><span class="p">(</span><span class="s2">&quot;dark_palette.css&quot;</span><span class="p">)</span>
             <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">css_file</span><span class="p">)</span>
             <span class="n">css_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
             <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -2082,8 +2167,7 @@
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log_error</span><span class="p">(</span><span class="s2">&quot;The standard toolkit dark stylesheet could not be set up! The look and feel of your &quot;</span>
                            <span class="s2">&quot;toolkit apps may be sub standard. Please contact support. Details: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span></div>
-        
-    
+
     <span class="k">def</span> <span class="nf">_get_standard_qt_stylesheet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        **********************************************************************</span>
@@ -2104,7 +2188,7 @@
 <span class="sd">        </span>
 <span class="sd">        :returns: The style sheet data, as a string.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">css_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_file</span><span class="p">(</span><span class="s2">&quot;toolkit_std_dark.css&quot;</span><span class="p">)</span>
+        <span class="n">css_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_path</span><span class="p">(</span><span class="s2">&quot;toolkit_std_dark.css&quot;</span><span class="p">)</span>
         <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">css_file</span><span class="p">)</span>
         <span class="n">css_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -2478,16 +2562,16 @@
                     <span class="s2">&quot;Reload and Restart&quot;</span><span class="p">,</span>
                     <span class="n">restart</span><span class="p">,</span>
                     <span class="p">{</span><span class="s2">&quot;short_name&quot;</span><span class="p">:</span> <span class="s2">&quot;restart&quot;</span><span class="p">,</span>
-                     <span class="s2">&quot;icon&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_file</span><span class="p">(</span><span class="s2">&quot;reload_256.png&quot;</span><span class="p">),</span>
+                     <span class="s2">&quot;icon&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_path</span><span class="p">(</span><span class="s2">&quot;reload_256.png&quot;</span><span class="p">),</span>
                      <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;context_menu&quot;</span><span class="p">}</span>
                 <span class="p">)</span>
                 <span class="c1"># only need one reload button, so don&#39;t keep iterating :)</span>
                 <span class="k">break</span>
 
-    <span class="k">def</span> <span class="nf">__get_platform_resource_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__get_platform_resource_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the full path to the given platform resource file.</span>
-<span class="sd">        Resource files reside in the core/platform/qt folder.</span>
+<span class="sd">        Returns the full path to the given platform resource file or folder.</span>
+<span class="sd">        Resources reside in the core/platform/qt folder.</span>
 
 <span class="sd">        :return: full path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2998,7 +3082,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.32',
+            VERSION:'v0.18.35',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

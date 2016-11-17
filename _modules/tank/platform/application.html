@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.application &mdash; tk-core v0.18.32 documentation</title>
+  <title>tank.platform.application &mdash; tk-core v0.18.35 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.32 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.35 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.32.<br>
+    <b>tk-core</b> v0.18.35.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -421,12 +421,14 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># internal API</span>
 
-    <span class="k">def</span> <span class="nf">log_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">log_version</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">log_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">log_version</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Logs an app metric.</span>
 
 <span class="sd">        :param action: Action string to log, e.g. &#39;Execute Action&#39;</span>
 <span class="sd">        :param log_version: If True, also log a user attribute metric for the</span>
 <span class="sd">            version of the app. Default is `False`.</span>
+<span class="sd">        :param bool log_once: ``True`` if this metric should be ignored if it</span>
+<span class="sd">            has already been logged. Defaults to ``False``.</span>
 
 <span class="sd">        Logs a user activity metric as performed within an app. This is a</span>
 <span class="sd">        convenience method that auto-populates the module portion of</span>
@@ -443,11 +445,12 @@
         <span class="c1"># module: tk-multi-loader2</span>
         <span class="c1"># action: (tk-maya) tk-multi-loader2 - Load...</span>
         <span class="n">full_action</span> <span class="o">=</span> <span class="s2">&quot;(</span><span class="si">%s</span><span class="s2">) </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
-        <span class="n">log_user_activity_metric</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">full_action</span><span class="p">)</span>
+        <span class="n">log_user_activity_metric</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">full_action</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="n">log_once</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">log_version</span><span class="p">:</span>
             <span class="c1"># log the app version as a user attribute</span>
-            <span class="n">log_user_attribute_metric</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> version&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,),</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span></div>
+            <span class="n">log_user_attribute_metric</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> version&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,),</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="n">log_once</span><span class="p">)</span></div>
 
 <span class="k">def</span> <span class="nf">get_application</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">app_folder</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -499,7 +502,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.32',
+            VERSION:'v0.18.35',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

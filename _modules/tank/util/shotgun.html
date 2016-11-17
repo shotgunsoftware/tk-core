@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun &mdash; tk-core v0.18.32 documentation</title>
+  <title>tank.util.shotgun &mdash; tk-core v0.18.35 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.32 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.35 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.32.<br>
+    <b>tk-core</b> v0.18.35.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -436,12 +436,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># @todo: progress feedback here - when the SG api supports it!</span>
     <span class="c1"># sometimes people report that this download fails (because of flaky connections etc)</span>
-    <span class="c1"># engines can often be 30-50MiB - as a quick fix, just retry the download once</span>
-    <span class="c1"># if it fails.</span>
+    <span class="c1"># engines can often be 30-50MiB - as a quick fix, just retry the download if it fails</span>
     <span class="n">attempt</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">done</span> <span class="o">=</span> <span class="bp">False</span>
-
-
 
     <span class="k">while</span> <span class="ow">not</span> <span class="n">done</span> <span class="ow">and</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">retries</span><span class="p">:</span>
 
@@ -470,11 +467,12 @@
             <span class="n">unzip_file</span><span class="p">(</span><span class="n">zip_tmp</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
 
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-            <span class="c1"># retry once</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;Attempt </span><span class="si">%s</span><span class="s2">: Attachment download of id </span><span class="si">%s</span><span class="s2"> from </span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attempt</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">sg</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="n">attempt</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="c1"># sleep 500ms before we retry</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">done</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="k">finally</span><span class="p">:</span>
@@ -1526,7 +1524,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.32',
+            VERSION:'v0.18.35',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

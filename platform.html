@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.32 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.35 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.32 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.35 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -168,7 +168,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.32.<br>
+    <b>tk-core</b> v0.18.35.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -514,47 +514,9 @@ and various factory methods such as <a class="reference internal" href="#sgtk.pl
 </tr>
 </tbody>
 </table>
-<dl class="method">
-<dt id="sgtk.platform.Engine._initialize_dark_look_and_feel">
-<code class="descname">_initialize_dark_look_and_feel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._initialize_dark_look_and_feel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._initialize_dark_look_and_feel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes a standard toolkit look and feel using a combination of
-QPalette and stylesheets.</p>
-<p>If your engine is running inside an environment which already has
-a dark style defined, do not call this method. The Toolkit apps are 
-designed to work well with most dark themes.</p>
-<p>However, if you are for example creating your own QApplication instance
-you can execute this method to but the session into Toolkit&#8217;s 
-standard dark mode.</p>
-<p>This will initialize the plastique style and set it up with a standard
-dark palette and supporting stylesheet.</p>
-<p>Apps and UIs can then extend this further by using further css.</p>
-<p>Due to restrictions in QT, this needs to run after a QApplication object
-has been instantiated.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine._define_qt_base">
-<code class="descname">_define_qt_base</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._define_qt_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._define_qt_base" title="Permalink to this definition">¶</a></dt>
-<dd><p>This will be called at initialisation time and will allow
-a user to control various aspects of how QT is being used
-by Tank. The method should return a dictionary with a number
-of specific keys, outlined below.</p>
-<ul class="simple">
-<li>qt_core - the QtCore module to use</li>
-<li>qt_gui - the QtGui module to use</li>
-<li>wrapper - the Qt wrapper root module, e.g. PySide</li>
-<li>dialog_base - base class for to use for Tank&#8217;s dialog factory</li>
-</ul>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+<p><strong>Engine Customizations</strong></p>
+<p>The following methods can be used by subclasses to customize engine
+behavior.</p>
 <dl class="method">
 <dt id="sgtk.platform.Engine._create_dialog">
 <code class="descname">_create_dialog</code><span class="sig-paren">(</span><em>title</em>, <em>bundle</em>, <em>widget</em>, <em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._create_dialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._create_dialog" title="Permalink to this definition">¶</a></dt>
@@ -574,46 +536,6 @@ dialogs dialog_closed event so that it can clean up when the dialog is closed.</
 <li><strong>widget</strong> (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>) &#8211; A QWidget instance to be embedded in the newly created dialog.</li>
 </ul>
 </td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine._create_widget">
-<code class="descname">_create_widget</code><span class="sig-paren">(</span><em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._create_widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._create_widget" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an instance of the specified widget_class.  This wraps the widget_class so that 
-the TankQDialog it is embedded in can connect to it more easily in order to handle the 
-close event.</p>
-<p>When overriding in a derived engine, be sure to call the base implementations of
-<a class="reference internal" href="#sgtk.platform.Engine._create_widget" title="sgtk.platform.Engine._create_widget"><code class="xref py py-meth docutils literal"><span class="pre">_create_widget()</span></code></a> and <a class="reference internal" href="#sgtk.platform.Engine._create_dialog" title="sgtk.platform.Engine._create_dialog"><code class="xref py py-meth docutils literal"><span class="pre">_create_dialog()</span></code></a> to ensure that all
-dialogs and widgets are tracked efficiently and safely.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">For more information, see the documentation for <a class="reference internal" href="#sgtk.platform.Engine.show_dialog" title="sgtk.platform.Engine.show_dialog"><code class="xref py py-meth docutils literal"><span class="pre">show_dialog()</span></code></a>.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>widget_class</strong> (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>) &#8211; The class of the UI to be constructed. This must derive from QWidget.</td>
-</tr>
-</tbody>
-</table>
-<p>Additional parameters specified will be passed through to the widget_class constructor.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine._get_dialog_parent">
-<code class="descname">_get_dialog_parent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._get_dialog_parent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._get_dialog_parent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the QWidget parent for all dialogs created through <a class="reference internal" href="#sgtk.platform.Engine.show_dialog" title="sgtk.platform.Engine.show_dialog"><code class="xref py py-meth docutils literal"><span class="pre">show_dialog()</span></code></a> <a class="reference internal" href="#sgtk.platform.Engine.show_modal" title="sgtk.platform.Engine.show_modal"><code class="xref py py-meth docutils literal"><span class="pre">show_modal()</span></code></a>.</p>
-<p>Can be overriden in derived classes to return the QWidget to be used as the parent 
-for all TankQDialog&#8217;s.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">QT Parent window (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>)</td>
 </tr>
 </tbody>
 </table>
@@ -645,35 +567,50 @@ widget_class embedded in the main section.</p>
 </dd></dl>
 
 <dl class="method">
-<dt>
-<code class="descname">_get_dialog_parent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._get_dialog_parent"><span class="viewcode-link">[source]</span></a></dt>
-<dd><p>Get the QWidget parent for all dialogs created through <a class="reference internal" href="#sgtk.platform.Engine.show_dialog" title="sgtk.platform.Engine.show_dialog"><code class="xref py py-meth docutils literal"><span class="pre">show_dialog()</span></code></a> <a class="reference internal" href="#sgtk.platform.Engine.show_modal" title="sgtk.platform.Engine.show_modal"><code class="xref py py-meth docutils literal"><span class="pre">show_modal()</span></code></a>.</p>
-<p>Can be overriden in derived classes to return the QWidget to be used as the parent 
-for all TankQDialog&#8217;s.</p>
+<dt id="sgtk.platform.Engine._create_widget">
+<code class="descname">_create_widget</code><span class="sig-paren">(</span><em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._create_widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._create_widget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an instance of the specified widget_class.  This wraps the widget_class so that 
+the TankQDialog it is embedded in can connect to it more easily in order to handle the 
+close event.</p>
+<p>When overriding in a derived engine, be sure to call the base implementations of
+<a class="reference internal" href="#sgtk.platform.Engine._create_widget" title="sgtk.platform.Engine._create_widget"><code class="xref py py-meth docutils literal"><span class="pre">_create_widget()</span></code></a> and <a class="reference internal" href="#sgtk.platform.Engine._create_dialog" title="sgtk.platform.Engine._create_dialog"><code class="xref py py-meth docutils literal"><span class="pre">_create_dialog()</span></code></a> to ensure that all
+dialogs and widgets are tracked efficiently and safely.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For more information, see the documentation for <a class="reference internal" href="#sgtk.platform.Engine.show_dialog" title="sgtk.platform.Engine.show_dialog"><code class="xref py py-meth docutils literal"><span class="pre">show_dialog()</span></code></a>.</p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">QT Parent window (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>widget_class</strong> (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>) &#8211; The class of the UI to be constructed. This must derive from QWidget.</td>
 </tr>
 </tbody>
 </table>
+<p>Additional parameters specified will be passed through to the widget_class constructor.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="sgtk.platform.Engine._on_dialog_closed">
-<code class="descname">_on_dialog_closed</code><span class="sig-paren">(</span><em>dlg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._on_dialog_closed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._on_dialog_closed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called when a dialog created by this engine is closed.</p>
+<dt id="sgtk.platform.Engine._define_qt_base">
+<code class="descname">_define_qt_base</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._define_qt_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._define_qt_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>This will be called at initialisation time and will allow
+a user to control various aspects of how QT is being used
+by Tank. The method should return a dictionary with a number
+of specific keys, outlined below.</p>
+<ul class="simple">
+<li>qt_core - the QtCore module to use</li>
+<li>qt_gui - the QtGui module to use</li>
+<li>wrapper - the Qt wrapper root module, e.g. PySide</li>
+<li>dialog_base - base class for to use for Tank&#8217;s dialog factory</li>
+</ul>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dlg</strong> (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>) &#8211; The dialog being closed</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict</td>
 </tr>
 </tbody>
 </table>
-<p>Derived implementations of this method should be sure to call
-the base implementation</p>
 </dd></dl>
 
 <dl class="method">
@@ -747,6 +684,79 @@ logging code is writing to the DCC console in the main thread.</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="sgtk.platform.Engine._ensure_core_fonts_loaded">
+<code class="descname">_ensure_core_fonts_loaded</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._ensure_core_fonts_loaded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._ensure_core_fonts_loaded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the Shotgun approved fonts that are bundled with tk-core.</p>
+<p>This method ensures that the Shotgun approved fonts bundled with core
+are loaded into Qt&#8217;s font database. This allows them to be used by apps
+for a consistent look and feel.</p>
+<p>If a QApplication exists during engine initialization, it is not
+necessary to call this method. Similarly, subclasses that make use of
+core&#8217;s bundled dark look and feel will have the bundled fonts loaded
+automatically.</p>
+<p>This method can/should be called by subclasses that meet the following
+criteria:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Create their own <code class="docutils literal"><span class="pre">QApplication</span></code> instance after engine init</li>
+<li>Do not use the bundled dark look and feel.</li>
+<li>Have overridden <code class="docutils literal"><span class="pre">Engine._create_dialog()</span></code>.</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine._get_dialog_parent">
+<code class="descname">_get_dialog_parent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._get_dialog_parent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._get_dialog_parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the QWidget parent for all dialogs created through <a class="reference internal" href="#sgtk.platform.Engine.show_dialog" title="sgtk.platform.Engine.show_dialog"><code class="xref py py-meth docutils literal"><span class="pre">show_dialog()</span></code></a> <a class="reference internal" href="#sgtk.platform.Engine.show_modal" title="sgtk.platform.Engine.show_modal"><code class="xref py py-meth docutils literal"><span class="pre">show_modal()</span></code></a>.</p>
+<p>Can be overriden in derived classes to return the QWidget to be used as the parent 
+for all TankQDialog&#8217;s.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">QT Parent window (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine._initialize_dark_look_and_feel">
+<code class="descname">_initialize_dark_look_and_feel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._initialize_dark_look_and_feel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._initialize_dark_look_and_feel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a standard toolkit look and feel using a combination of
+QPalette and stylesheets.</p>
+<p>If your engine is running inside an environment which already has
+a dark style defined, do not call this method. The Toolkit apps are 
+designed to work well with most dark themes.</p>
+<p>However, if you are for example creating your own QApplication instance
+you can execute this method to but the session into Toolkit&#8217;s 
+standard dark mode.</p>
+<p>This will initialize the plastique style and set it up with a standard
+dark palette and supporting stylesheet.</p>
+<p>Apps and UIs can then extend this further by using further css.</p>
+<p>Due to restrictions in QT, this needs to run after a QApplication object
+has been instantiated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine._on_dialog_closed">
+<code class="descname">_on_dialog_closed</code><span class="sig-paren">(</span><em>dlg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._on_dialog_closed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._on_dialog_closed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when a dialog created by this engine is closed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dlg</strong> (<a class="reference external" href="http://pyside.github.io/docs/pyside/PySide/QtGui/QWidget.html#PySide.QtGui.QWidget" title="(in PySide v1.2.1)"><code class="xref py py-class docutils literal"><span class="pre">PySide.QtGui.QWidget</span></code></a>) &#8211; The dialog being closed</td>
+</tr>
+</tbody>
+</table>
+<p>Derived implementations of this method should be sure to call
+the base implementation</p>
+</dd></dl>
+
+<p><strong>Instance Methods &amp; Properties</strong></p>
 <dl class="attribute">
 <dt id="sgtk.platform.Engine.logger">
 <code class="descname">logger</code><a class="headerlink" href="#sgtk.platform.Engine.logger" title="Permalink to this definition">¶</a></dt>
@@ -1827,27 +1837,6 @@ parameters without breaking backwards compatibility, for example
 </dd></dl>
 
 <dl class="method">
-<dt id="sgtk.platform.Engine.get_setting_from">
-<code class="descname">get_setting_from</code><span class="sig-paren">(</span><em>other_settings</em>, <em>key</em>, <em>default=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.get_setting_from" title="Permalink to this definition">¶</a></dt>
-<dd><p>Internal method - not part of Tank&#8217;s public interface.</p>
-<p>Get a value from the settings dictionary passed in
-using the logic from this application</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>other_settings</strong> &#8211; dictionary to use to find setting</li>
-<li><strong>key</strong> &#8211; setting name</li>
-<li><strong>default</strong> &#8211; default value to return</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="sgtk.platform.Engine.get_template">
 <code class="descname">get_template</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.get_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a template object for a particular template setting in the Framework configuration.
@@ -1880,26 +1869,6 @@ the app configuration and the get_template() method.</p>
 <p>This is a convenience method. Shorthand for <code class="docutils literal"><span class="pre">self.sgtk.templates[template_name]</span></code>.</p>
 <p>:param template_name
 :returns: <code class="xref py py-class docutils literal"><span class="pre">Template</span></code> object</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Engine.get_template_from">
-<code class="descname">get_template_from</code><span class="sig-paren">(</span><em>other_settings</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.get_template_from" title="Permalink to this definition">¶</a></dt>
-<dd><p>Internal method - not part of Tank&#8217;s public interface.</p>
-<p>A shortcut for looking up which template is referenced in the given setting from
-the settings dictionary passed in.  It then calls get_template_by_name() on it.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>other_settings</strong> &#8211; dictionary to use to find setting</li>
-<li><strong>key</strong> &#8211; setting name</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -2664,27 +2633,6 @@ parameters without breaking backwards compatibility, for example
 </dd></dl>
 
 <dl class="method">
-<dt id="sgtk.platform.Application.get_setting_from">
-<code class="descname">get_setting_from</code><span class="sig-paren">(</span><em>other_settings</em>, <em>key</em>, <em>default=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.get_setting_from" title="Permalink to this definition">¶</a></dt>
-<dd><p>Internal method - not part of Tank&#8217;s public interface.</p>
-<p>Get a value from the settings dictionary passed in
-using the logic from this application</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>other_settings</strong> &#8211; dictionary to use to find setting</li>
-<li><strong>key</strong> &#8211; setting name</li>
-<li><strong>default</strong> &#8211; default value to return</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="sgtk.platform.Application.get_template">
 <code class="descname">get_template</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.get_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a template object for a particular template setting in the Framework configuration.
@@ -2717,26 +2665,6 @@ the app configuration and the get_template() method.</p>
 <p>This is a convenience method. Shorthand for <code class="docutils literal"><span class="pre">self.sgtk.templates[template_name]</span></code>.</p>
 <p>:param template_name
 :returns: <code class="xref py py-class docutils literal"><span class="pre">Template</span></code> object</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Application.get_template_from">
-<code class="descname">get_template_from</code><span class="sig-paren">(</span><em>other_settings</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.get_template_from" title="Permalink to this definition">¶</a></dt>
-<dd><p>Internal method - not part of Tank&#8217;s public interface.</p>
-<p>A shortcut for looking up which template is referenced in the given setting from
-the settings dictionary passed in.  It then calls get_template_by_name() on it.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>other_settings</strong> &#8211; dictionary to use to find setting</li>
-<li><strong>key</strong> &#8211; setting name</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -3482,27 +3410,6 @@ parameters without breaking backwards compatibility, for example
 </dd></dl>
 
 <dl class="method">
-<dt id="sgtk.platform.Framework.get_setting_from">
-<code class="descname">get_setting_from</code><span class="sig-paren">(</span><em>other_settings</em>, <em>key</em>, <em>default=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.get_setting_from" title="Permalink to this definition">¶</a></dt>
-<dd><p>Internal method - not part of Tank&#8217;s public interface.</p>
-<p>Get a value from the settings dictionary passed in
-using the logic from this application</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>other_settings</strong> &#8211; dictionary to use to find setting</li>
-<li><strong>key</strong> &#8211; setting name</li>
-<li><strong>default</strong> &#8211; default value to return</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="sgtk.platform.Framework.get_template">
 <code class="descname">get_template</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.get_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a template object for a particular template setting in the Framework configuration.
@@ -3535,26 +3442,6 @@ the app configuration and the get_template() method.</p>
 <p>This is a convenience method. Shorthand for <code class="docutils literal"><span class="pre">self.sgtk.templates[template_name]</span></code>.</p>
 <p>:param template_name
 :returns: <code class="xref py py-class docutils literal"><span class="pre">Template</span></code> object</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.platform.Framework.get_template_from">
-<code class="descname">get_template_from</code><span class="sig-paren">(</span><em>other_settings</em>, <em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.get_template_from" title="Permalink to this definition">¶</a></dt>
-<dd><p>Internal method - not part of Tank&#8217;s public interface.</p>
-<p>A shortcut for looking up which template is referenced in the given setting from
-the settings dictionary passed in.  It then calls get_template_by_name() on it.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>other_settings</strong> &#8211; dictionary to use to find setting</li>
-<li><strong>key</strong> &#8211; setting name</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -4482,7 +4369,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.32',
+            VERSION:'v0.18.35',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

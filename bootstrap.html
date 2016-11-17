@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Deploy and management &mdash; tk-core v0.18.32 documentation</title>
+  <title>Deploy and management &mdash; tk-core v0.18.35 documentation</title>
   
 
   
@@ -32,9 +32,9 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.32 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.35 documentation" href="index.html"/>
         <link rel="next" title="Foundation" href="core.html"/>
-        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.32" href="index.html"/> 
+        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.35" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -97,6 +97,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#exception-classes">Exception Classes</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-the-sgtk-module-using-pip">Installing the sgtk module using pip</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Foundation</a></li>
@@ -125,7 +126,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.32.<br>
+    <b>tk-core</b> v0.18.35.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -458,6 +459,31 @@ with the following signature:</p>
 
 </div>
 </div>
+<div class="section" id="installing-the-sgtk-module-using-pip">
+<h2>Installing the sgtk module using pip<a class="headerlink" href="#installing-the-sgtk-module-using-pip" title="Permalink to this headline">¶</a></h2>
+<p>When running Toolkit using the bootstrap API above, you need access to the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a>
+class in order to kickstart the bootstrap process. Once you have started the bootstrap, toolkit will
+download all the necessary components for the given configuration you are bootstrapping into,
+potentially even including a different version of the core API than you are using to bootstrap with.</p>
+<p>In order to fully automate this process programatically, you need an <code class="docutils literal"><span class="pre">sgtk</span></code> instance to begin with.
+One way to accomplish this is to use <code class="docutils literal"><span class="pre">pip</span></code> (see <a class="reference external" href="https://pip.pypa.io/">https://pip.pypa.io/</a>). Use the following syntax:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># install the latest tag</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">shotgunsoftware</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">core</span>
+
+<span class="c1"># install a specific version</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">shotgunsoftware</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">core</span><span class="nd">@v0</span><span class="o">.</span><span class="mf">18.32</span>
+</pre></div>
+</div>
+<p>If you want to add an sgtk core to a <code class="docutils literal"><span class="pre">requirements.txt</span></code> file, use the following syntax:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">shotgunsoftware</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">core</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">In order to use <code class="docutils literal"><span class="pre">pip</span></code>, you currently need to have the git executable installed
+on the system that you are deploying to.</p>
+</div>
+</div>
 </div>
 
 
@@ -470,7 +496,7 @@ with the following signature:</p>
         <a href="core.html" class="btn btn-neutral float-right" title="Foundation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.32" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.35" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -500,7 +526,7 @@ with the following signature:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.32',
+            VERSION:'v0.18.35',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

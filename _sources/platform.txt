@@ -148,15 +148,34 @@ Engine
 
 .. autoclass:: Engine
     :inherited-members:
-    :exclude-members: descriptor,
-                      settings,
-                      get_env,
-                      log_metric,
-                      init_engine,
-                      log_user_attribute_metric,
-                      get_child_logger
     :members:
+    :exclude-members: descriptor,
+                      get_child_logger,
+                      get_env,
+                      get_setting_from,
+                      get_template_from,
+                      init_engine,
+                      log_metric,
+                      log_user_attribute_metric,
+                      settings
 
+    **Engine Customizations**
+
+    The following methods can be used by subclasses to customize engine
+    behavior.
+
+    .. automethod:: _create_dialog
+    .. automethod:: _create_dialog_with_widget
+    .. automethod:: _create_widget
+    .. automethod:: _define_qt_base
+    .. automethod:: _emit_event
+    .. automethod:: _emit_log_message
+    .. automethod:: _ensure_core_fonts_loaded
+    .. automethod:: _get_dialog_parent
+    .. automethod:: _initialize_dark_look_and_feel
+    .. automethod:: _on_dialog_closed
+
+    **Instance Methods & Properties**
 
 Applications
 ---------------------------------------
@@ -174,7 +193,12 @@ Application
 
 .. autoclass:: Application
     :inherited-members:
-    :exclude-members: descriptor, settings, get_env, log_metric
+    :exclude-members: descriptor,
+                      get_env,
+                      get_setting_from,
+                      get_template_from,
+                      log_metric,
+                      settings
     :members:
 
 
@@ -230,7 +254,12 @@ Framework
 
 .. autoclass:: Framework
     :inherited-members:
-    :exclude-members: descriptor, settings, get_env, log_metric
+    :exclude-members: descriptor,
+                      get_setting_from,
+                      get_template_from,
+                      get_env,
+                      log_metric,
+                      settings
     :members:
 
 Exceptions
