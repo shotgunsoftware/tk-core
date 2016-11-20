@@ -139,7 +139,7 @@ def setUpModule():
     msg = "Toolkit test data location: %s" % TANK_TEMP
     print "\n" + "="*len(msg)
     print msg
-    print "="*len(msg) + "\n"
+    print "=" * len(msg) + "\n"
 
     # move tank directory if left by previous tests
     _move_data(TANK_TEMP)
@@ -171,7 +171,7 @@ class TankTestBase(unittest.TestCase):
 
         # Path to temp directory
         self.tank_temp = None
-        # fake project enity dictionary
+        # fake project entity dictionary
         self.project = None
         self.project_root = None
         # alternate project roots for multi-root tests
@@ -224,15 +224,51 @@ class TankTestBase(unittest.TestCase):
             # default project name
             project_tank_name = "project_code"
 
+        # now figure out mockgun location
+        # 1. see if we have it explicitly specified in the parameters
+        # 2. if not, check if the fixtures location has a mockgun folder
+        # 3. if not, fall back on built in mockgun fixtures
+
         if "mockgun_schema_path" in parameters:
             mockgun_schema_path = parameters["mockgun_schema_path"]
+
+        elif os.path.exists(os.path.join(self.fixtures_root, "mockgun")):
+            mockgun_schema_path = os.path.join(
+                self.fixtures_root,
+                "mockgun",
+                "schema.pickle"
+            )
+
         else:
-            mockgun_schema_path = os.path.join(self.fixtures_root, "mockgun", "schema.pickle")
+            # use the std core fixtures
+            mockgun_schema_path = os.path.join(
+                self.tank_source_path,
+                "tests",
+                "fixtures",
+                "mockgun",
+                "schema.pickle"
+            )
+
 
         if "mockgun_schema_entity_path" in parameters:
             mockgun_schema_entity_path = parameters["mockgun_schema_entity_path"]
+
+        elif os.path.exists(os.path.join(self.fixtures_root, "mockgun")):
+            mockgun_schema_entity_path = os.path.join(
+                self.fixtures_root,
+                "mockgun",
+                "schema_entity.pickle"
+            )
+
         else:
-            mockgun_schema_entity_path = os.path.join(self.fixtures_root, "mockgun", "schema_entity.pickle")
+            # use the std core fixtures
+            mockgun_schema_entity_path = os.path.join(
+                self.tank_source_path,
+                "tests",
+                "fixtures",
+                "mockgun",
+                "schema_entity.pickle"
+            )
 
         # set up mockgun to use our schema
         mockgun.Shotgun.set_schema_paths(mockgun_schema_path, mockgun_schema_entity_path)
