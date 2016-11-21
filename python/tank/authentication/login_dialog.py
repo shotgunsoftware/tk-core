@@ -133,7 +133,7 @@ class LoginDialog(QtGui.QDialog):
 
         self._is_session_renewal = is_session_renewal
 
-        self._cookies = cookies
+        self._cookies = [] if cookies is None else cookies
         # print "My cookies: %s" % cookies
 
         # self._no_gui = True
@@ -261,6 +261,9 @@ class LoginDialog(QtGui.QDialog):
                 return info['user_authentication_method'] == 'saml2'
         except ServerNotFoundError:
             # Silently ignore exception
+            pass
+        except ValueError:
+            # Silently ignore bad arguments to Shotgun constructor
             pass
         return False
 

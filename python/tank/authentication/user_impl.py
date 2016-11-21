@@ -204,7 +204,8 @@ class SessionUser(ShotgunUserImpl):
         self._login = login
         self._session_token = session_token
         self._cookies = cookies
-        # print "====> D"
+        # raise Exception("patate")
+        print "====> D: %s" % cookies
         self._session_expiration = 0
 
         self._try_save()
@@ -348,6 +349,8 @@ class SessionUser(ShotgunUserImpl):
         Try saving the credentials for this user, but do not raise an exception
         if it failed.
         """
+        print "_try_save ----------------------------------"
+        raise Exception("Patate 2")
         try:
             session_cache.cache_session_data(
                 self.get_host(),
