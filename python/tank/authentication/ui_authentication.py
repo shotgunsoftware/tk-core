@@ -32,10 +32,12 @@ class UiAuthenticationHandler(object):
     directly and be used through the authenticate and renew_session methods.
     """
 
-    def __init__(self, is_session_renewal, fixed_host=False, cookies=None, no_gui=False):
+    def __init__(self, is_session_renewal, fixed_host=False, cookies=[], no_gui=False):
         """
         Creates the UiAuthenticationHandler object.
         :param is_session_renewal: Boolean indicating if we are renewing a session. True if we are, False otherwise.
+        :param fixed_host: Indicate if the user can select a different host for connecting to.
+        :param cookies: List of cookies
         """
         self._is_session_renewal = is_session_renewal
         self._gui_launcher = invoker.create()
@@ -61,9 +63,8 @@ class UiAuthenticationHandler(object):
         else:
             logger.debug("Requesting username and password in a dialog.")
 
-        # print "GRRRRR"
+        # @FIXME: This may be a good place to create a standalone QWebView.
         def _process_ui():
-            # print "_process_ui"
             dlg = login_dialog.LoginDialog(
                 is_session_renewal=self._is_session_renewal,
                 hostname=hostname,

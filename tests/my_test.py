@@ -35,7 +35,7 @@ def shutdown():
 # on the command line. The user object returned encapsulates the login
 # information.
 atexit.register(shutdown)
-# app = QtGui.QApplication([])
+app = QtGui.QApplication([])
 user = authenticator.get_user()
 # print "User is '%s'" % user
 
@@ -50,7 +50,7 @@ for i in range(1,501):
     new_stamp = int(time.time())
     delta = new_stamp - last_stamp
     last_stamp = new_stamp
-    print "-----> %d - %s - %d" % (i, user.impl.get_session_expiration(), delta)
+    print "-----> %d - %s - %d" % (i, user.impl.get_sso_session_expiration(), delta)
 
     # if time.time() > user.impl.get_session_expiration() + 15:
     #     interactive_authentication.renew_session(user.impl, no_gui=True)

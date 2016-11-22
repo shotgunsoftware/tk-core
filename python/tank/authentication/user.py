@@ -68,10 +68,10 @@ class ShotgunUser(object):
     @property
     def cookies(self):
         """
-        The login for this current user. For Shotgun user types that don't have a concept
-        of a login (like API scripts), None is returned.
+        The cookies for this current user. For Shotgun user types that don't have a concept
+        of a login (like API scripts), and empty list is returned.
 
-        :returns: The login string or None.
+        :returns: A list, potentially empty, of cookies.
         """
         return self._impl.get_cookies()
 

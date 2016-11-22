@@ -43,4 +43,4 @@ print "DefaultUser is '%s'" % defaultUser
 # sgtk.set_authenticated_user(user)
 
 
-authenticator.clear_default_user()
+# authenticator.clear_default_user()

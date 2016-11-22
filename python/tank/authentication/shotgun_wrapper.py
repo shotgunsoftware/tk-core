@@ -21,8 +21,6 @@ from tank_vendor.shotgun_api3.lib.xmlrpclib import ProtocolError
 from . import interactive_authentication, session_cache
 from .. import LogManager
 
-from pprint import pprint
-
 logger = LogManager.get_logger(__name__)
 
 class ShotgunWrapper(Shotgun):
@@ -46,20 +44,11 @@ class ShotgunWrapper(Shotgun):
         del kwargs["sg_auth_user"]
         super(ShotgunWrapper, self).__init__(*args, **kwargs)
 
-    # def _make_call(self, *args, **kwargs):
-    #     http_status, resp_headers, body = super(ShotgunWrapper, self)._make_call(*args, **kwargs)
-    #     print "\n\n\nMY _make_call"
-    #     pprint(resp_headers)
-    #     print "\n\n\n"
-    #     return http_status, resp_headers, body
-
     def _call_rpc(self, *args, **kwargs):
         """
         Wraps the _call_rpc method from the base class to trap authentication
         errors and prompt for the user's password.
         """
-
-        # print "\n\n\n_call_rpc\n\n\n"
         try:
             # If the user's session token has changed since we last tried to
             # call the server, it's because the token expired and there's a
@@ -73,17 +62,13 @@ class ShotgunWrapper(Shotgun):
             logger.debug("Authentication failure.")
             pass
         except ProtocolError as e:
+            # Check if we were given a 302 and a location. This is likely
+            # due to SSO authentication.
+            # @FIXME: need to ensure that we are indeed being redirected for SSO.
             if e.errcode == 302 and e.headers.has_key('location'):
                 pass
             else:
                 raise e
-            # from pprint import pprint
-            # print "--->"
-            # print dir(e)
-            # print "<---: %s:%s" % (type(e.errcode), e.errcode)
-            # pprint(e.headers)
-            # print "<---"
-            # pass
 
         # Before renewing the session token, let's see if there is another
         # one in the session_cache.

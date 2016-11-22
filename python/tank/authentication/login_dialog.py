@@ -22,47 +22,17 @@ from .ui import login_dialog
 from . import session_cache
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork
-from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
-
+from tank_vendor.shotgun_api3 import Shotgun, MissingTwoFactorAuthenticationFault
 from tank_vendor.shotgun_api3.lib.httplib2 import ServerNotFoundError
-from tank_vendor.shotgun_api3 import Shotgun
 
 
-def print_cookie_jar(cookie_jar):
-    """print_cookie_jar."""
-    print "==== Cookies START ===="
-    for cookie in cookie_jar.allCookies():
-        print "  --< %s" % cookie.toRawForm()
-    print "==== Cookies END ===="
-
-
-def write_cookie_jar(cookie_jar):
-    """write_cookie_jar."""
-    with open('cookiejar.txt', 'w') as jar_file:
-        for cookie in cookie_jar.allCookies():
-            jar_file.write("%s\n" % cookie.toRawForm())
-
-
-def read_cookie_jar():
-    """read_cookie_jar."""
-    cookie_list = []
-    try:
-        with open('cookiejar.txt', 'r') as jar_file:
-            for raw_cookie in jar_file.readlines():
-                # return QtNetwork.QNetworkCookie.parseCookies(jar_file.readlines())
-                cookie_list.append(QtNetwork.QNetworkCookie.parseCookies(raw_cookie)[0])
-    except IOError:
-        pass
-    return cookie_list
-
-
-class TemporaryEventLoop(QtCore.QEventLoop):
+class OffscreenEventLoop(QtCore.QEventLoop):
     """
     Local event loop for the session token renewal. The return value of _exec()
-    indicates what happen.
+    indicates what happened.
     """
 
-    def __init__(self, login_ui, parent=None):
+    def __init__(self, login_ui, parent=None, timeout=7000):
         """
         Constructor
         """
@@ -71,36 +41,37 @@ class TemporaryEventLoop(QtCore.QEventLoop):
         self._site = login_ui.ui.site.text()
         self._webView.loadFinished.connect(self._page_onFinished)
         self._timer = QtCore.QTimer(self)
-        self._timer.timeout.connect(self._bail_out)
-        self._timer.start(7000)
-        # systray.login.connect(self._login)
-        # systray.quit.connect(self._quit)
+        self._timer.timeout.connect(self._abort_renewal_attempt)
+        self._timer.start(timeout)
 
-    def _bail_out(self):
-        # print "=-=-=-=-=-=-=-=> _bail_out"
+    def _abort_renewal_attempt(self):
+        """
+        This is called when the automatic session renewal takes too long.
+
+        This will be caused by an explicit user prompt in the web page or
+        by network error, or if the page takes too long to load.
+        """
         self.exit(QtGui.QDialog.Rejected)
 
     def _page_onFinished(self):
         """
-        Called when "Quit" is selected. Exits the loop.
+        Called when the page has finished loading.
+
+        Will exit if we end up on our site's page. This assumes that the
+        SSO session renewal happened and we were redirected back to our site.
         """
         url = self._webView.url().toString()
-        # print "=-=-=-=-=-=-=-=> _page_onFinished: %s" % url
+
         if url.startswith(self._site):
             self.exit(QtGui.QDialog.Accepted)
-        # else:
-        #     self.exit(QtGui.QDialog.Rejected)
 
     def exec_(self):
         """
-        Execute the local event loop. If CmdQ was hit in the past, it will be handled just as if the
-        user had picked the Quit menu.
+        Execute the local event loop.
 
         :returns: The exit code for the loop.
         """
         code = QtCore.QEventLoop.exec_(self)
-        # Somebody requested the app to close, so pretend the close menu was picked.
-        # print "code: %s" % code
         return code
 
 
@@ -112,7 +83,6 @@ class LoginDialog(QtGui.QDialog):
     # Formatting required to display error messages.
     ERROR_MSG_FORMAT = "<font style='color: rgb(252, 98, 70);'>%s</font>"
 
-    # def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, no_ui=False):
     def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, cookies=[], no_gui=False):
         """
         Constructs a dialog.
@@ -124,17 +94,16 @@ class LoginDialog(QtGui.QDialog):
         :param fixed_host: Indicates if the hostname can be changed. Defaults to False.
         :param http_proxy: The proxy server to use when testing authentication. Defaults to None.
         :param parent: The Qt parent for the dialog (defaults to None)
+        :param cookies: List of Base64 encoded raw cookies. Defaults to empty list.
+        :param no_gui: Attempts to renew the SSO session withou using a GUI. Defaults to False.
         """
         QtGui.QDialog.__init__(self, parent)
 
-        # self.setWindowState(QtCore.Qt.WindowMinimized)
         hostname = hostname or ""
         login = login or ""
 
         self._is_session_renewal = is_session_renewal
-
         self._cookies = [] if cookies is None else cookies
-        # print "My cookies: %s" % cookies
 
         # self._no_gui = True
         self._no_gui = no_gui
@@ -154,9 +123,6 @@ class LoginDialog(QtGui.QDialog):
         self._http_proxy = http_proxy
         self.ui.site.setText(hostname)
         self.ui.login.setText(login)
-
-        # Set the cookie jar from persistent storage
-        # self.cookieList = []
 
         if fixed_host:
             self._disable_text_widget(
@@ -187,32 +153,15 @@ class LoginDialog(QtGui.QDialog):
         else:
             self._set_login_message("Please enter your credentials.")
 
-        # self._cookies = [
-        #     'BIGipServerpool_saml_stg_east_9030=2753701642.17955.0000; domain=saml-stg.autodesk.com; path=/',
-        #     'PF=2LqUat3dxwM8A4raLdbvyFUzo8RmRp5oNI4H2uaM8E6n; secure; HttpOnly; domain=saml-stg.autodesk.com; path=/',
-        #     'pf-hfa-ADSKFormAdapter-rmu=""; secure; HttpOnly; expires=Tue, 08-Nov-2016 03:14:19 GMT; domain=saml-stg.autodesk.com; path=/',
-        #     'csrf_token_u90=B5gF0GpeIPGUqE6Ai5SsnR1Z4PGdRRg4aAF-5tChJ7o; domain=okr-staging.shotgunstudio.com; path=/',
-        #     'LB-INFO=3448775434.17955.0000; domain=saml-stg.autodesk.com; path=/',
-        #     'totango.heartbeat.last_module=__system; secure; expires=Fri, 11-Nov-2016 03:21:06 GMT; domain=okr-staging.shotgunstudio.com; path=/',
-        #     'totango.heartbeat.last_ts=1478575266530; secure; expires=Fri, 11-Nov-2016 03:21:06 GMT; domain=okr-staging.shotgunstudio.com; path=/',
-        #     '_session_id=da3453c49a4e1e7b41f947a3b7049f8b; secure; HttpOnly; domain=okr-staging.shotgunstudio.com; path=/',
-        # ]
         try:
             self.ui.webView.page().networkAccessManager().cookieJar().setAllCookies(
                 [QtNetwork.QNetworkCookie.parseCookies(QtCore.QByteArray.fromBase64(x))[0] for x in self._cookies]
             )
         except TypeError:
+            # @FIXME: Should log the cookie related issue
             pass
 
         # Select the right first page.
-        # self.cookieList = read_cookie_jar()
-        # if len(self.cookieList) > 0:
-        #     self.ui.webView.page().networkAccessManager().cookieJar().setAllCookies(self.cookieList)
-
-        # print_cookie_jar(self.ui.webView.page().networkAccessManager().cookieJar())
-        # QtWebKit.QWebSettings.globalSettings().setAttribute(QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled, True)
-        # QtWebKit.QWebSettings.globalSettings().setAttribute(QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled, True)
-
         url = self.ui.site.text()
         if self._check_sso_enabled(url):
             if self._is_session_renewal:
@@ -225,7 +174,6 @@ class LoginDialog(QtGui.QDialog):
             self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
 
         # hook up signals
-        self.ui.webView.loadStarted.connect(self._page_onStarted)
         self.ui.webView.loadFinished.connect(self._page_onFinished)
 
         self.ui.sign_in.clicked.connect(self._ok_pressed)
@@ -247,16 +195,11 @@ class LoginDialog(QtGui.QDialog):
     def _check_sso_enabled(self, url):
         """
         Check to see if the web site uses sso.
-        @FIXME: This is a horrible hack.
         """
-
         # Temporary shotgun instance, used only for the purpose of checking
         # the site infos.
         try:
-            # info = Shotgun('https://okr-staging.shotgunstudio.com', session_token="xxx").info()
-            # info = Shotgun('https://hubertp-studio.shotgunstudio.com', session_token="xxx").info()
-            # info = Shotgun('https://hubertp-sso.shotgunstudio.com', session_token="xxx").info()
-            info = Shotgun(url, session_token="xxx").info()
+            info = Shotgun(url, session_token="xxx", connect=False).info()
             if 'user_authentication_method' in info:
                 return info['user_authentication_method'] == 'saml2'
         except ServerNotFoundError:
@@ -267,37 +210,25 @@ class LoginDialog(QtGui.QDialog):
             pass
         return False
 
-    def _sso_login(self):
-        pass
-
-    def _page_onStarted(self):
-        pass
-        # print "_page_onStarted"
-        # jar = self.ui.webView.page().networkAccessManager().cookieJar()
-        # cookies = jar.allCookies()
-        # print ""
-        # for cookie in cookies:
-        #     print "   %s: %s" % (cookie.name(), cookie.value())
-
     def _page_onFinished(self):
+        """
+        Callback which will update the user's cookies and proceed with the
+        authentication.
+        """
         site = self.ui.site.text()
         url = self.ui.webView.url().toString()
-        # print "_page_onFinished: %s" % url
+
         if url.startswith(site):
             cookieJar = self.ui.webView.page().networkAccessManager().cookieJar()
-            # print_cookie_jar(cookieJar)
+
             self._cookies = []
             session_token = ""
             for cookie in cookieJar.allCookies():
                 self._cookies.append(str(cookie.toRawForm().toBase64()))
                 if cookie.name() == '_session_id':
                     session_token = cookie.value()
-                # print "  --< %s" % cookie.toRawForm()
-            self._authenticate(self.ui.message, site, "", "", session_token=str(session_token))
 
-            # print "Session token: %s (%s)" % (session_token, type(session_token))
-            # print "Session cookies: %s" % self._cookies
-            # write_cookie_jar(cookieJar)
+            self._authenticate(self.ui.message, site, "", "", session_token=str(session_token))
 
     def _strip_whitespaces(self):
         """
@@ -370,11 +301,6 @@ class LoginDialog(QtGui.QDialog):
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         return QtGui.QDialog.exec_(self)
 
-    # def bailOut(self):
-    #     print "Bailing out!!!!!  <<<--------"
-    #     self.exit(QtGui.QDialog.Rejected)
-    #     # self.reject()
-
     def result(self):
         """
         Displays a modal dialog asking for the credentials.
@@ -383,18 +309,12 @@ class LoginDialog(QtGui.QDialog):
         """
 
         if self._no_gui:
-            # self.timer = QtCore.QTimer(self)
-            # self.timer.timeout.connect(self.bailOut)
-            # self.timer.start(5000)
-            res = TemporaryEventLoop(self).exec_()
+            res = OffscreenEventLoop(self).exec_()
+            # If the offscreen session renewal failed, show the GUI as a failsafe
             if res == QtGui.QDialog.Rejected:
-                print "Fallback"
                 res = self.exec_()
         else:
-            print "Killroy was here"
             res = self.exec_()
-
-        # print "This is res: %s" % res
 
         if res == QtGui.QDialog.Accepted:
             return (self.ui.site.text().encode("utf-8"),
@@ -402,22 +322,6 @@ class LoginDialog(QtGui.QDialog):
                     self._new_session_token, self._cookies)
         else:
             return None
-
-    # def renew(self):
-    #     """
-    #     Displays a modal dialog asking for the credentials.
-    #     :returns: A tuple of (hostname, username and session token) string if the user authenticated
-    #               None if the user cancelled.
-    #     """
-    #     print "Killroy was here"
-    #     self._is_renew_process = True
-    #     print "--> %s" % TemporaryEventLoop(self).exec_()
-    #     # if self.exec_() == QtGui.QDialog.Accepted:
-    #     #     return (self.ui.site.text().encode("utf-8"),
-    #     #             self.ui.login.text().encode("utf-8"),
-    #     #             self._new_session_token)
-    #     # else:
-    #     #     return None
 
     def _set_error_message(self, widget, message):
         """

@@ -105,9 +105,9 @@ class ShotgunUserImpl(object):
 
     def get_cookies(self):
         """
-        Returns the login name for this user.
+        Returns the cookies list for this user.
 
-        :returns: The login name string.
+        :returns: The cookies list.
         """
         self.__class__._not_implemented("get_cookies")
 
@@ -161,7 +161,7 @@ class SessionUser(ShotgunUserImpl):
     """
     A user that authenticates to the Shotgun server using a session token.
     """
-    def __init__(self, host, login, session_token, http_proxy, password=None, cookies=None):
+    def __init__(self, host, login, session_token, http_proxy, password=None, cookies=[]):
         """
         Constructor.
 
@@ -170,6 +170,8 @@ class SessionUser(ShotgunUserImpl):
         :param session_token: Session token for the user. If session token is None
             the session token will be looked for in the users file.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
+        :param password: Password for the user. Defaults to None.
+        :param cookies: List of cookies for the user. Defaults to empty list.
 
         :raises IncompleteCredentials: If there is not enough values
             provided to initialize the user, this exception will be thrown.
@@ -237,7 +239,7 @@ class SessionUser(ShotgunUserImpl):
 
     def get_cookies(self):
         """
-        Returns the login name for this user.
+        Returns the cookies list for this user.
 
         :returns: The login name string.
         """
@@ -245,11 +247,10 @@ class SessionUser(ShotgunUserImpl):
 
     def set_cookies(self, cookies):
         """
-        Returns the login name for this user.
+        Update the user's cookies list.
 
-        :returns: The login name string.
+        :param cookies: List of cookies for the user.
         """
-        # print "Setting user cookies to: %s" % cookies
         self._cookies = cookies
 
     def create_sg_connection(self):
@@ -267,22 +268,24 @@ class SessionUser(ShotgunUserImpl):
             connect=False
         )
 
-    def set_session_expiration(self, session_expiration):
+    def get_sso_session_expiration(self):
         """
-        Docstring.
+        Obtain the time at which the sessions will need to be renewed.
 
-        Docstring.
-        """
-        # print "------------------------------------> %s" % session_expiration
-        self._session_expiration = session_expiration
-
-    def get_session_expiration(self):
-        """
-        Docstring.
-
-        Docstring.
+        Renewal of a SSO session may require the user to enter his credentials
+        in a Web Page. We rely on the user's cookies to track any session
+        related information for the Identity Provider.
         """
         return self._session_expiration
+
+    def set_sso_session_expiration(self, session_expiration):
+        """
+        Sets the time boundary for the current SSO session.
+
+        Passed this boundary, web-based renewal will need to be done, which may
+        or may not require the user to enter their credentials.
+        """
+        self._session_expiration = session_expiration
 
     @LogManager.log_timing
     def are_credentials_expired(self):
@@ -435,12 +438,12 @@ class ScriptUser(ShotgunUserImpl):
 
     def get_cookies(self):
         """
-        Returns the login name for this user.
+        Returns the cookies list for this user.
 
-        :returns: The login name string.
+        :returns: The list of cookies.
         """
-        # Script user has no login.
-        return None
+        # Script user has no cookies.
+        return []
 
     def to_dict(self):
         """

@@ -267,9 +267,6 @@ def _write_yaml_file(file_path, users_data):
     :param file_path: Where to write the users data
     :param users_data: Dictionary to write to disk.
     """
-    # print "vvvvvvvvvvvvvvvv"
-    # print "_write_yaml_file: %s" % users_data
-    # print "^^^^^^^^^^^^^^^^"
     old_umask = os.umask(0077)
     try:
         with open(file_path, "w") as users_file:
@@ -340,6 +337,7 @@ def cache_session_data(host, login, session_token, cookies=[]):
     :param host: Site we want to cache a session for.
     :param login: User we want to cache a session for.
     :param session_token: Session token we want to cache.
+    :param cookies: Session base64-encoded raw cookies.
     """
     # Retrieve the cached info file location from the host
     file_path = _get_site_authentication_file_location(host)
@@ -394,11 +392,11 @@ def set_current_user(host, login):
 
 def get_current_cookies(host):
     """
-    Returns the current user for the given host.
+    Returns the current set of cookies for the given user.
 
     :param host: Host to fetch the current for.
 
-    :returns: The current user for this host or None if not set.
+    :returns: The list of cookies. An empty list if no cookies are present.
     """
     # Retrieve the cached info file location from the host
     info_path = _get_site_authentication_file_location(host)
@@ -410,10 +408,11 @@ def get_current_cookies(host):
 
 def set_current_cookies(host, login, cookies):
     """
-    Saves the current user for a given host.
+    Saves the current cookies for a given user.
 
     :param host: Host to save the current user for.
     :param login: The current user login for specified host.
+    :param cookies: The list of base64-encoded raw cookies.
     """
     host = host.strip()
     login = login.strip()

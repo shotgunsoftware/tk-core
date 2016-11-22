@@ -50,7 +50,7 @@ sg = user.create_sg_connection()
 
 def renew_session():
     print "Checking"
-    if (time.time() + 15) > user.impl.get_session_expiration():
+    if (time.time() + 15) > user.impl.get_sso_session_expiration():
         print "Renewing session"
         interactive_authentication.renew_session(user.impl, no_gui=True)
         print "Renewing session completed"

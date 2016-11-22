@@ -169,7 +169,7 @@ QLineEdit:Disabled {
              <enum>QLineEdit::Password</enum>
             </property>
             <property name="placeholderText">
-             <string>passwordXXX</string>
+             <string>password</string>
             </property>
            </widget>
           </item>

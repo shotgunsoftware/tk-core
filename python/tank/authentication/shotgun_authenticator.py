@@ -104,13 +104,6 @@ class ShotgunAuthenticator(object):
             # Not all credentials were found, so there is no default user.
             return None
 
-    def heartbeat(self, user):
-        print "....heartbeat....: %s" % type(user)
-        interactive_authentication.renew_session(user, no_gui=True)
-        from threading import Timer
-        t = Timer(15, self.heartbeat, [user])
-        t.start()
-
     def get_user_from_prompt(self):
         """
         Display a UI prompt (QT based UI if possible but may fall back on console)
@@ -129,21 +122,13 @@ class ShotgunAuthenticator(object):
             self._defaults_manager.is_host_fixed(),
             self._defaults_manager.get_cookies()
         )
-        user = self.create_session_user(
+        return self.create_session_user(
             login=login, session_token=session_token,
             host=host, http_proxy=self._defaults_manager.get_http_proxy(),
             cookies=cookies
         )
 
-        # if user and len(cookies) > 0:
-        #     print "STARTING TIMER"
-        #     from threading import Timer
-        #     t = Timer(15, self.heartbeat, [user.impl])
-        #     t.start()
-
-        return user
-
-    def create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None, cookies=None):
+    def create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None, cookies=[]):
         """
         Create an AuthenticatedUser given a set of human user credentials.
         Either a password or session token must be supplied. If a password is supplied,
@@ -154,11 +139,11 @@ class ShotgunAuthenticator(object):
         :param password: Shotgun password
         :param host: Shotgun host to log in to. If None, the default host will be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
+        :param cookies: List of cookies to use, for SSO sessions. If none, will be an empty list.
 
         :returns: A :class:`ShotgunUser` instance.
         """
         # Get the defaults is arguments were None.
-        # print "=-=-=-=-> create_session_user"
         host = host or self._defaults_manager.get_host()
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 
