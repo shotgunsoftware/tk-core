@@ -577,7 +577,12 @@ class TestAsTemplateFields(TestContext):
         self.keys = {"Sequence": StringKey("Sequence"),
                      "Shot": StringKey("Shot"),
                      "Step": StringKey("Step"),
-                     "static_key": StringKey("static_key")}
+                     "static_key": StringKey("static_key"),
+                     "shotgun_field": StringKey(
+                        "shotgun_field",
+                        shotgun_entity_type="Shot",
+                        shotgun_field_name="shotgun_field"
+                     )}
 
         template_def =  "/sequence/{Sequence}/{Shot}/{Step}/work"
         self.template = TemplatePath(template_def, self.keys, self.project_root)
@@ -983,6 +988,15 @@ class TestAsTemplateFields(TestContext):
         self.assertEquals(fields["Step"], "step_short_name")
         self.assertEquals(len(fields), 4)
 
+    def test_missing_shotgun_field(self):
+        """
+        Ensures that the as_template_fields can skip over missing shotgun field
+        keys.
+        """
+        ctx = tank.Context(self.tk, project=self.project)
+        template_def = "/sequence/{Sequence}/{Shot}/{shotgun_field}"
+        template = TemplatePath(template_def, self.keys, self.project_root, self.shot)
+        ctx.as_template_fields(template, validate=False)
 
 
 class TestSerialize(TestContext):
