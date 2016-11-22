@@ -36,6 +36,7 @@ _CURRENT_USER = "current_user"
 _CURRENT_COOKIES = "current_cookies"
 _USERS = "users"
 _LOGIN = "login"
+_COOKIES = "cookies"
 _SESSION_TOKEN = "session_token"
 _SESSION_CACHE_FILE_NAME = "authentication.yml"
 
@@ -225,7 +226,7 @@ def _try_load_global_authentication_file(file_path):
     return content
 
 
-def _insert_or_update_user(users_file, login, session_token):
+def _insert_or_update_user(users_file, login, session_token, cookies):
     """
     Finds or updates an entry in the users file with the given login and
     session token.
@@ -233,6 +234,7 @@ def _insert_or_update_user(users_file, login, session_token):
     :param users_file: Users dictionary to update.
     :param login: Login of the user to update.
     :param session_token: Session token of the user to update.
+    :param cookies: Session cookies of the user to update.
 
     :returns: True is the users dictionary has been updated, False otherwise.
     """
@@ -240,14 +242,21 @@ def _insert_or_update_user(users_file, login, session_token):
     for user in users_file[_USERS]:
         # If we've matched what we are looking for.
         if _is_same_user(user, login):
+            result = False
             # Update and return True only if something changed.
             if user[_SESSION_TOKEN] != session_token:
                 user[_SESSION_TOKEN] = session_token
-                return True
-            else:
-                return False
+                result = True
+            if set(user[_COOKIES]) != set(cookies):
+                user[_COOKIES] = cookies
+                result = True
+            return result
     # This is a new user, add it to the list.
-    users_file[_USERS].append({_LOGIN: login, _SESSION_TOKEN: session_token})
+    users_file[_USERS].append({
+        _LOGIN: login,
+        _SESSION_TOKEN: session_token,
+        _COOKIES: cookies
+    })
     return True
 
 
@@ -315,7 +324,8 @@ def get_session_data(base_url, login):
                     # There used to be a time where we didn't strip whitepsaces
                     # before writing the file, so do it now just in case.
                     _LOGIN: user[_LOGIN].strip(),
-                    _SESSION_TOKEN: user[_SESSION_TOKEN]
+                    _SESSION_TOKEN: user[_SESSION_TOKEN],
+                    _COOKIES: user[_COOKIES]
                 }
         logger.debug("No cached user found for %s" % login)
     except Exception:
@@ -323,7 +333,7 @@ def get_session_data(base_url, login):
         return None
 
 
-def cache_session_data(host, login, session_token):
+def cache_session_data(host, login, session_token, cookies=[]):
     """
     Caches the session data for a site and a user.
 
@@ -340,7 +350,7 @@ def cache_session_data(host, login, session_token):
 
     document = _try_load_site_authentication_file(file_path)
 
-    if _insert_or_update_user(document, login, session_token):
+    if _insert_or_update_user(document, login, session_token, cookies):
         # Write back the file only it a new user was added.
         _write_yaml_file(file_path, document)
         logger.debug("Updated session cache data.")

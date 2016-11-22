@@ -113,19 +113,18 @@ class DefaultsManager(object):
 
     def get_cookies(self):
         """
-        Called by the authentication system when it needs to get a
-        value for the login. Typically this is used to populate UI
-        fields with defaults.
+        Called by the authentication system when it needs to get the
+        cookies for the current SSO session. These are then used to setup the
+        environment of the web browser for authentication.
 
-        :returns: Default implementation returns the login for the
-                  currently stored user.
+        :returns: The list of cookies asssociated to the current use session.
         """
         # Make sure there is a current host. There could be none if no-one has
         # logged in with Toolkit yet.
         if self.get_host():
             return session_cache.get_current_cookies(self.get_host())
         else:
-            return None
+            return []
 
     def get_user_credentials(self):
         """
@@ -170,12 +169,12 @@ class DefaultsManager(object):
 
     def set_cookies(self, cookies):
         """
-        Called by the authentication system when a new user is being logged in.
+        Called by the authentication system after a user a successfully logged in.
 
         The default implementation maintains a concept of a default user
-        (returned via the get_user_credentials) and whenever the login is set
-        via this method, the default user will change to be this login instead.
+        (returned via the get_user_credentials) and whenever the cookies are set
+        via this method, the default user cookies will be updated.
 
-        :param login: login as string
+        :param login: cookies as list of base64 encoded raw cookies
         """
         session_cache.set_current_cookies(self.get_host(), self._login, cookies)

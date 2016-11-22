@@ -179,11 +179,10 @@ class SessionUser(ShotgunUserImpl):
 
         if not login:
             raise IncompleteCredentials("missing login.")
-        # print "====> A"
+
         # If we only have a password, generate a session token.
         if password and not session_token:
             session_token = session_cache.generate_session_token(host, login, password, http_proxy)
-        # print "====> B"
 
         # If we still don't have a session token, look in the session cache
         # to see if this user was already authenticated in the past.
@@ -195,7 +194,6 @@ class SessionUser(ShotgunUserImpl):
             # If session data was cached, load it.
             if session_data:
                 session_token = session_data["session_token"]
-        # print "====> C"
 
         # We've exhausted our avenues to get a valid session token, throw.
         if not session_token:
@@ -204,8 +202,7 @@ class SessionUser(ShotgunUserImpl):
         self._login = login
         self._session_token = session_token
         self._cookies = cookies
-        # raise Exception("patate")
-        print "====> D: %s" % cookies
+        # @FIXME: Set session expiration properly
         self._session_expiration = 0
 
         self._try_save()
@@ -349,13 +346,12 @@ class SessionUser(ShotgunUserImpl):
         Try saving the credentials for this user, but do not raise an exception
         if it failed.
         """
-        print "_try_save ----------------------------------"
-        raise Exception("Patate 2")
         try:
             session_cache.cache_session_data(
                 self.get_host(),
                 self.get_login(),
-                self.get_session_token()
+                self.get_session_token(),
+                self.get_cookies()
             )
         except:
             # Do not break execution because somehow we couldn't

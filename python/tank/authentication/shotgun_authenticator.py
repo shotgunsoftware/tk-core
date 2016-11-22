@@ -238,7 +238,8 @@ class ShotgunAuthenticator(object):
                 password=credentials.get("password"),
                 session_token=credentials.get("session_token"),
                 host=credentials.get("host"),
-                http_proxy=credentials.get("http_proxy")
+                http_proxy=credentials.get("http_proxy"),
+                cookies=credentials.get("cookies")
             )
         # We don't know what this is, abort!
         else:
