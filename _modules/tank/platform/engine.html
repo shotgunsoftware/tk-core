@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.36 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.37 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.36 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.37 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.36.<br>
+    <b>tk-core</b> v0.18.37.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1616,6 +1616,9 @@
         <span class="c1">#</span>
         <span class="c1">#       ``tank/platform/qt/fonts/OpenSans/OpenSans-*.ttf``</span>
 
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
+            <span class="k">return</span>
+
         <span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="kn">import</span> <span class="n">QtGui</span>
 
         <span class="c1"># if the fonts have been loaded, no need to do anything else</span>
@@ -3082,7 +3085,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.36',
+            VERSION:'v0.18.37',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
