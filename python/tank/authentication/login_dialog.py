@@ -94,7 +94,7 @@ class LoginDialog(QtGui.QDialog):
         :param fixed_host: Indicates if the hostname can be changed. Defaults to False.
         :param http_proxy: The proxy server to use when testing authentication. Defaults to None.
         :param parent: The Qt parent for the dialog (defaults to None)
-        :param cookies: List of Base64 encoded raw cookies. Defaults to empty list.
+        :param cookies: List of raw cookies. Defaults to empty list.
         :param no_gui: Attempts to renew the SSO session withou using a GUI. Defaults to False.
         """
         QtGui.QDialog.__init__(self, parent)
@@ -155,7 +155,7 @@ class LoginDialog(QtGui.QDialog):
 
         try:
             self.ui.webView.page().networkAccessManager().cookieJar().setAllCookies(
-                [QtNetwork.QNetworkCookie.parseCookies(QtCore.QByteArray.fromBase64(x))[0] for x in self._cookies]
+                [QtNetwork.QNetworkCookie.parseCookies(str(x))[0] for x in self._cookies]
             )
         except TypeError:
             # @FIXME: Should log the cookie related issue
@@ -224,7 +224,7 @@ class LoginDialog(QtGui.QDialog):
             self._cookies = []
             session_token = ""
             for cookie in cookieJar.allCookies():
-                self._cookies.append(str(cookie.toRawForm().toBase64()))
+                self._cookies.append(str(cookie.toRawForm()))
                 if cookie.name() == '_session_id':
                     session_token = cookie.value()
 

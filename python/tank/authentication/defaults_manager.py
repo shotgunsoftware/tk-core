@@ -114,9 +114,8 @@ class DefaultsManager(object):
     def get_cookies(self):
         """
         Called by the authentication system when it needs to get the
-        cookies for the current SSO session. The list consists in base64
-        encoded raw cookies. These are then used to setup the
-        environment of the web browser for authentication.
+        cookies for the current SSO session. The list consists of raw cookies.
+        These are then used to setup the environment of the web browser for authentication.
 
         :returns: The list of cookies asssociated to the current use session.
         """
@@ -176,6 +175,6 @@ class DefaultsManager(object):
         (returned via the get_user_credentials) and whenever the cookies are set
         via this method, the default user cookies will be updated.
 
-        :param login: cookies as list of base64 encoded raw cookies
+        :param login: cookies as list of raw cookies
         """
         session_cache.set_current_cookies(self.get_host(), self._login, cookies)

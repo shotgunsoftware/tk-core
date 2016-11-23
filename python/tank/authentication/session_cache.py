@@ -20,6 +20,8 @@ at any point.
 """
 
 from __future__ import with_statement
+import base64
+import json
 import os
 import socket
 from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolError,
@@ -208,7 +210,7 @@ def _try_load_site_authentication_file(file_path):
     # Make sure any mandatory entry is present.
     content.setdefault(_USERS, [])
     content.setdefault(_CURRENT_USER, None)
-    content.setdefault(_CURRENT_COOKIES, [])
+    content.setdefault(_CURRENT_COOKIES, base64.b64encode(json.dumps([])))
     return content
 
 
@@ -247,15 +249,15 @@ def _insert_or_update_user(users_file, login, session_token, cookies):
             if user[_SESSION_TOKEN] != session_token:
                 user[_SESSION_TOKEN] = session_token
                 result = True
-            if set(user[_COOKIES]) != set(cookies):
-                user[_COOKIES] = cookies
+            if set(json.loads(base64.b64decode(user[_COOKIES]))) != set(cookies):
+                user[_COOKIES] = base64.b64encode(json.dumps(cookies))
                 result = True
             return result
     # This is a new user, add it to the list.
     users_file[_USERS].append({
         _LOGIN: login,
         _SESSION_TOKEN: session_token,
-        _COOKIES: cookies
+        _COOKIES: base64.b64encode(json.dumps(cookies))
     })
     return True
 
@@ -322,7 +324,7 @@ def get_session_data(base_url, login):
                     # before writing the file, so do it now just in case.
                     _LOGIN: user[_LOGIN].strip(),
                     _SESSION_TOKEN: user[_SESSION_TOKEN],
-                    _COOKIES: user[_COOKIES]
+                    _COOKIES: json.loads(base64.b64decode(user[_COOKIES]))
                 }
         logger.debug("No cached user found for %s" % login)
     except Exception:
@@ -337,7 +339,7 @@ def cache_session_data(host, login, session_token, cookies=[]):
     :param host: Site we want to cache a session for.
     :param login: User we want to cache a session for.
     :param session_token: Session token we want to cache.
-    :param cookies: Session base64-encoded raw cookies.
+    :param cookies: Session raw cookies.
     """
     # Retrieve the cached info file location from the host
     file_path = _get_site_authentication_file_location(host)
@@ -401,7 +403,7 @@ def get_current_cookies(host):
     # Retrieve the cached info file location from the host
     info_path = _get_site_authentication_file_location(host)
     document = _try_load_site_authentication_file(info_path)
-    cookies = document[_CURRENT_COOKIES]
+    cookies = json.loads(base64.b64decode(document[_CURRENT_COOKIES]))
     logger.debug("Current cookies are '%s'" % cookies)
     return cookies
 
@@ -412,7 +414,7 @@ def set_current_cookies(host, login, cookies):
 
     :param host: Host to save the current user for.
     :param login: The current user login for specified host.
-    :param cookies: The list of base64-encoded raw cookies.
+    :param cookies: The list of raw cookies.
     """
     host = host.strip()
     login = login.strip()
@@ -421,7 +423,7 @@ def set_current_cookies(host, login, cookies):
     _ensure_folder_for_file(file_path)
 
     current_user_file = _try_load_site_authentication_file(file_path)
-    current_user_file[_CURRENT_COOKIES] = cookies
+    current_user_file[_CURRENT_COOKIES] = base64.b64encode(json.dumps(cookies))
     _write_yaml_file(file_path, current_user_file)
 
 
