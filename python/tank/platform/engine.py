@@ -1446,6 +1446,9 @@ class Engine(TankBundle):
         #
         #       ``tank/platform/qt/fonts/OpenSans/OpenSans-*.ttf``
 
+        if not self.has_ui:
+            return
+
         from sgtk.platform.qt import QtGui
 
         # if the fonts have been loaded, no need to do anything else
