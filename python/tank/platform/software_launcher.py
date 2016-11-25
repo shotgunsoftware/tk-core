@@ -14,6 +14,8 @@ should implement.
 """
 
 import os
+import sys
+import re
 import logging
 import xml.etree.ElementTree as XML_ET
 
@@ -30,7 +32,7 @@ from .engine import get_env_and_descriptor_for_engine
 
 def create_engine_launcher(tk, context, engine_name):
     """
-    Factory method that creates a Toolkit engine specific 
+    Factory method that creates a Toolkit engine specific
     SoftwareLauncher instance.
 
     :param tk: :class:`~sgtk.Sgtk` Toolkit instance.
@@ -66,8 +68,8 @@ class SoftwareLauncher(object):
         Constructor.
 
         :param tk: :class:`~sgtk.Sgtk` Toolkit instance
-        :param context: :class:`~sgtk.Context` A context object to 
-                        define the context on disk where the engine 
+        :param context: :class:`~sgtk.Context` A context object to
+                        define the context on disk where the engine
                         is operating
         :param engine_name: (str) Name of the Toolkit engine associated
                             with the DCC(s) to launch.
@@ -104,7 +106,7 @@ class SoftwareLauncher(object):
         self.__engine_settings = settings
         self.__engine_descriptor = descriptor
         self.__engine_name = engine_name
-        self.__synergy_paths = None
+        self._synergy_paths = None
 
         # check general debug log setting and if this flag is turned on,
         # adjust the global setting
@@ -124,7 +126,7 @@ class SoftwareLauncher(object):
     def context(self):
         """
         The context associated with this launcher.
-        
+
         :returns: :class:`~sgtk.Context`
         """
         return self.__context
@@ -134,8 +136,8 @@ class SoftwareLauncher(object):
         """
         Internal method - not part of Tank's public interface.
         This method may be changed or even removed at some point in the future.
-        We leave no guarantees that it will remain unchanged over time, so 
-        do not use in any app code. 
+        We leave no guarantees that it will remain unchanged over time, so
+        do not use in any app code.
         """
         return self.__engine_descriptor
 
@@ -144,8 +146,8 @@ class SoftwareLauncher(object):
         """
         Internal method - not part of Tank's public interface.
         This method may be changed or even removed at some point in the future.
-        We leave no guarantees that it will remain unchanged over time, so 
-        do not use in any app code. 
+        We leave no guarantees that it will remain unchanged over time, so
+        do not use in any app code.
         """
         return self.__engine_settings
 
@@ -153,7 +155,7 @@ class SoftwareLauncher(object):
     def sgtk(self):
         """
         Returns the Toolkit API instance associated with this item
-        
+
         :returns: :class:`~sgtk.Sgtk`
         """
         return self.__tk
@@ -173,11 +175,11 @@ class SoftwareLauncher(object):
     @property
     def display_name(self):
         """
-        The display name for the item. Automatically 
+        The display name for the item. Automatically
         appends 'Startup' to the end of the display
         name if that string is missing from the display
         name (e.g. Maya Engine Startup)
-        
+
         :returns: display name as string
         """
         disp_name = self.descriptor.display_name
@@ -186,11 +188,20 @@ class SoftwareLauncher(object):
         return disp_name
 
     @property
+    def engine_name(self):
+        """
+        The TK engine name this launcher is based on.
+
+        :returns: String TK engine name
+        """
+        return self.__engine_name
+
+    @property
     def logger(self):
         """
         Standard python logger for this engine, app or framework.
-        Use this whenever you want to emit or process log messages. 
-        
+        Use this whenever you want to emit or process log messages.
+
         :returns: logging.Logger instance
         """
         return LogManager.get_logger("env.%s.%s.startup" %
@@ -207,55 +218,6 @@ class SoftwareLauncher(object):
         :returns: Shotgun API handle
         """
         return self.sgtk.shotgun
-
-    @property
-    def synergy_paths(self):
-        """
-        Scans the local file system using a list of search paths for
-        Autodesk Synergy Config files (.syncfg).
-
-        :returns: List of path names to Synergy Config files found
-                  in the local environment
-        """
-        if self.__synergy_paths is None:
-            # Check for custom paths defined by the SYNHUB_CONFIG_PATH 
-            # env var. 
-            env_paths = os.environ.get("SYNHUB_CONFIG_PATH")
-            search_paths = []
-            if isinstance(env_paths, basestring):
-                # This can be a list of directories and/or files.
-                search_paths = env_paths.split(os.pathsep)
-
-            # Check the platfom-specific default installation path
-            # if no paths were set in the environment
-            elif sys.platform == "darwin":
-                search_paths = ["/Applications/Autodesk/Synergy/"]
-            elif sys.platform == "win32":
-                search_paths = ["C:\\ProgramData\\Autodesk\\Synergy\\"]
-            elif sys.platform == "linux2":
-                search_paths = ["/opt/Autodesk/Synergy/"]
-            else:
-                self.logger.debug(
-                    "Unable to determine Autodesk Synergy paths for platform "%
-                    sys.platform
-                )
-
-            # Set a default value, so we stop looking for them.
-            # @todo: Possibly implement a reset_synergy_paths() method?
-            self.__synergy_paths = []
-            for search_path in search_paths:
-                if os.path.isdir(search_path):
-                    # Get the list of *.syncfg files in this directory
-                    self.__synergy_paths.extend([
-                        "%s/%s" % (search_path, f) for f in os.listdir(search_path)
-                        if f.endswith(".syncfg")
-                    ])
-                elif os.path.isfile(search_path) and search_path.endswith(".syncfg"):
-                    # Add the specified Synergy Config file directly to the list of paths.
-                    self.__synergy_paths.append(search_path)
-
-            self.logger.info("Autodesk Synergy paths set to : %s" % self.__synergy_paths)
-        return self.__synergy_paths
 
 
     ##########################################################################################
@@ -283,13 +245,14 @@ class SoftwareLauncher(object):
         """
         raise NotImplementedError
 
-    def prepare_launch(self, software_version, args, options):
+    def prepare_launch(self, software_version, args, options, file_to_open=None):
         """
         Prepares the given software for launch
 
         :param software_version: Software Version to launch
         :param args: Command line arguments as strings
         :param options: DCC specific options to pass
+        :param file_to_open: (Optional) Full path name of a file to open on launch
         :returns: LaunchInformation instance
         """
         raise NotImplementedError
@@ -332,37 +295,54 @@ class SoftwareLauncher(object):
             value = self.__post_process_settings_r(key, value, schema)
         return value
 
-    def get_template(self, key):
+    def synergy_paths(self):
         """
-        Returns a template object for a particular template setting in the Framework 
-        configuration. This method will look at the app configuration, determine which 
-        template is being referred to in the setting, go into the main platform Template 
-        API and fetch that particular template object.
-    
-        This is a convenience method. Shorthand for ``self.sgtk.templates[ self.get_setting(key) ]``.
+        Scans the local file system using a list of search paths for
+        Autodesk Synergy Config files (.syncfg).
 
-        :param key: Setting to retrieve template for
-        :returns: :class:`~Template` object
+        :returns: List of path names to Synergy Config files found
+                  in the local environment
         """
-        return self.get_template_by_name(self.get_setting(key))
+        if self._synergy_paths is None:
+            # Check for custom paths defined by the SYNHUB_CONFIG_PATH
+            # env var.
+            env_paths = os.environ.get("SYNHUB_CONFIG_PATH")
+            search_paths = []
+            if isinstance(env_paths, basestring):
+                # This can be a list of directories and/or files.
+                search_paths = env_paths.split(os.pathsep)
 
-    def get_template_by_name(self, template_name):
-        """
-        Note: This is for advanced use cases - Most of the time you should probably use 
-        :meth:`get_template()`. Find a particular template, the way it is named in the
-        master config file ``templates.yml``. This method will access the master templates
-        file directly and pull out a specifically named template without using the app 
-        config. Note that using this method may result in code which is less portable across 
-        studios, since it makes assumptions about how templates are named and defined in 
-        the master config. Generally speaking, it is often better to access templates using 
-        the app configuration and the get_template() method.
-        
-        This is a convenience method. Shorthand for ``self.sgtk.templates[template_name]``.
+            # Check the platfom-specific default installation path
+            # if no paths were set in the environment
+            elif sys.platform == "darwin":
+                search_paths = ["/Applications/Autodesk/Synergy/"]
+            elif sys.platform == "win32":
+                search_paths = ["C:\\ProgramData\\Autodesk\\Synergy\\"]
+            elif sys.platform == "linux2":
+                search_paths = ["/opt/Autodesk/Synergy/"]
+            else:
+                self.logger.debug(
+                    "Unable to determine Autodesk Synergy paths for platform "%
+                    sys.platform
+                )
 
-        :param template_name: String name of template to retrieve
-        :returns: :class:`~Template` object
-        """
-        return self.sgtk.templates.get(template_name)
+            # Set a default value, so we stop looking for them.
+            # @todo: Possibly implement a reset_synergy_paths() method?
+            self._synergy_paths = []
+            for search_path in search_paths:
+                if os.path.isdir(search_path):
+                    # Get the list of *.syncfg files in this directory
+                    self._synergy_paths.extend([
+                        os.path.join(search_path, f) for f in os.listdir(search_path)
+                        if f.endswith(".syncfg")
+                    ])
+                elif os.path.isfile(search_path) and search_path.endswith(".syncfg"):
+                    # Add the specified Synergy Config file directly to the list of paths.
+                    self._synergy_paths.append(search_path)
+
+            self.logger.info("Autodesk Synergy paths set to : %s" % self._synergy_paths)
+        return self._synergy_paths
+
 
     ##########################################################################################
     # internal helper methods
@@ -397,7 +377,7 @@ class SoftwareLauncher(object):
             app_elem = doc.getroot().find("Application")
             if app_elem is None:
                 self.logger.warning(
-                    "No <Application> found in Synergy config file '%s'." % 
+                    "No <Application> found in Synergy config file '%s'." %
                     (cfg_path)
                 )
                 return {}
@@ -418,7 +398,7 @@ class SoftwareLauncher(object):
         data from either the input Synergy Config (.syncfg) file or the data
         dictionary already parsed from a Synergy Config file.
 
-        Must specify cfg_path or syn_data. If both are specified, cfg_path 
+        Must specify cfg_path or syn_data. If both are specified, cfg_path
         is ignored.
 
         :param cfg_path: Full path to a Synergy Config (.syncfg) XML file
@@ -449,7 +429,7 @@ class SoftwareLauncher(object):
         """
         found_data = None
         path_matches = []
-        for cfg_path in self.synergy_paths:
+        for cfg_path in self.synergy_paths():
             syn_data = self._synergy_data_from_config(cfg_path)
             # Get the ExecutablePath from the Synergy Config file
             # and compare it to the input exec_path.
@@ -479,7 +459,7 @@ class SoftwareLauncher(object):
         Recursive post-processing of settings values
 
         :param key: Key to find value for from schema or default
-        :param value: Default value to return if no default value 
+        :param value: Default value to return if no default value
                       is found in the schema.
         :param schema: Settings schema containing key
         :returns: Value for key
@@ -510,11 +490,11 @@ class SoftwareLauncher(object):
 
         elif type(value) == str and value.startswith("hook:"):
             # handle the special form where the value is computed in a hook.
-            # 
+            #
             # if the template parameter is on the form
             # a) hook:foo_bar
             # b) hook:foo_bar:testing:testing
-            #        
+            #
             # The following hook will be called
             # a) foo_bar with parameters []
             # b) foo_bar with parameters [testing, testing]
@@ -540,15 +520,15 @@ class SoftwareVersion(object):
     def __init__(self, name, version, display_name, path, icon=None):
         """
         Constructor.
-    
-        :param name: Internal name for the SoftwareVersion 
+
+        :param name: Internal name for the SoftwareVersion
                      (e.g. Maya)
         :param version: Explicit (string) version of the DCC represented
                         (e.g. 2017)
         :param display_name: Name to use for any graphical displays
         :param path: Full path to the DCC executable. This path may contain
                      {version} and/or {v1}..{vN} patterns or ENV variables.
-        :param icon: (Optional) Full path to the icon to use for graphical 
+        :param icon: (Optional) Full path to the icon to use for graphical
                      displays of this SoftwareVersion. This path may contain
                      {version} and/or {v1}..{vN} patterns or ENV variables.
         """
@@ -579,20 +559,29 @@ class SoftwareVersion(object):
     @property
     def display_name(self):
         """
-        Name to use for this SoftwareVersion in graphical displays. 
+        Name to use for this SoftwareVersion in graphical displays.
         Replaces any {version} and/or {v1}...{vN} patterns in the
         display_name string originally specified.
-        
+
         :returns: String display name
         """
         return _apply_version_to_setting(self._display_name, self._version)
 
+    @display_name.setter
+    def display_name(self, new_value):
+        """
+        Set the display name to the new input value.
+
+        :param new_value: Display name to use as a string.
+        """
+        self._display_name = new_value
+
     @property
     def raw_path(self):
         """
-        Input DCC path that may contain {version} and/or {v1}...{vN} patterns 
+        Input DCC path that may contain {version} and/or {v1}...{vN} patterns
         or environment variables.
-    
+
         :returns: String path
         """
         return self._path
@@ -600,13 +589,22 @@ class SoftwareVersion(object):
     @property
     def path(self):
         """
-        DCC path with any {version} and/or {v1}...{vN} patterns and/or 
+        DCC path with any {version} and/or {v1}...{vN} patterns and/or
         environment variables subtituted appropriately.
-    
+
         :returns: String path
         """
         ver_path = _apply_version_to_setting(self._path, self._version)
         return os.path.expandvars(ver_path)
+
+    @path.setter
+    def path(self, new_value):
+        """
+        Allow the DCC path to be set post-construction.
+
+        :param new_value: New path to DCC, as a string
+        """
+        self._path = new_value
 
     @property
     def raw_icon(self):
@@ -617,23 +615,25 @@ class SoftwareVersion(object):
         :returns: String path
         """
         return self._icon_path
-        
+
     @property
     def icon(self):
         """
-        Icon path with any {version} and/or {v1}...{vN} patterns and/or 
+        Icon path with any {version} and/or {v1}...{vN} patterns and/or
         environment variables substituted appropriately.
 
         :returns: String path
         """
         ver_icon = _apply_version_to_setting(self._icon_path, self._version)
-        return os.path.expandvars(ver_icon)
+        if ver_icon:
+            ver_icon = os.path.expandvars(ver_icon)
+        return ver_icon
 
     @icon.setter
     def icon(self, new_path):
         """
         Allow the icon path to be set post-construction.
-    
+
         :param new_path: New path to icon
         """
         self._icon_path = new_path
@@ -641,11 +641,11 @@ class SoftwareVersion(object):
 
 def _apply_version_to_setting(raw_string, version=None):
     """
-    Replace any version tokens contained in the raw_string 
+    Replace any version tokens contained in the raw_string
     with the appropriate version value from the app settings.
     Replaces {version} and {v0}, {v1}, etc. tokens in raw_string
-    with their values. The {v} tokens are created by using groups 
-    defined by () within the version string. For example, if the 
+    with their values. The {v} tokens are created by using groups
+    defined by () within the version string. For example, if the
     version setting is "(9.0)v4(beta1)"
         {version} = "9.0v4"
         {v0} = "9.0"
@@ -688,7 +688,7 @@ class LaunchInformation(object):
     def __init__(self, path=None, args=None, environ=None):
         """
         Constructor
-        
+
         :param path: Resolved path to DCC
         :param args: Args to pass on the command line when launching the DCC
         :param environ: Dict of environment variables : value that must be
@@ -726,4 +726,3 @@ class LaunchInformation(object):
         :returns: Dict {env_var: value}
         """
         return self._environment
-
