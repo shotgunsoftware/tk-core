@@ -29,6 +29,9 @@ from . import validation
 from .bundle import resolve_default_value
 from .engine import get_env_and_descriptor_for_engine
 
+# std core level logger
+core_logger = LogManager.get_logger(__name__)
+
 
 def create_engine_launcher(tk, context, engine_name):
     """
@@ -41,22 +44,29 @@ def create_engine_launcher(tk, context, engine_name):
                         DCC(s) to launch.
     :returns: :class:`SoftwareLauncher` subclass instance.
     """
-    # Get the engine environment and descriptor using Engine.py code
-    (env, engine_descriptor) = get_env_and_descriptor_for_engine(engine_name, tk, context)
+    try:
+        # Get the engine environment and descriptor using Engine.py code
+        (env, engine_descriptor) = get_env_and_descriptor_for_engine(engine_name, tk, context)
 
-    # Make sure it exists locally
-    if not engine_descriptor.exists_local():
-        raise TankError("Cannot create %s software launcher! %s does not exist on disk" %
-            (engine_name, engine_descriptor)
-        )
+        # Make sure it exists locally
+        if not engine_descriptor.exists_local():
+            raise TankError("Cannot create %s software launcher! %s does not exist on disk" %
+                (engine_name, engine_descriptor)
+            )
 
-    # Get path to engine startup code and load it.
-    engine_path = engine_descriptor.get_path()
-    plugin_file = os.path.join(engine_path, constants.ENGINE_SOFTWARE_LAUNCHER_FILE)
-    class_obj = load_plugin(plugin_file, SoftwareLauncher)
+        # Get path to engine startup code and load it.
+        engine_path = engine_descriptor.get_path()
+        plugin_file = os.path.join(engine_path, constants.ENGINE_SOFTWARE_LAUNCHER_FILE)
+        class_obj = load_plugin(plugin_file, SoftwareLauncher)
+        launcher = class_obj(tk, context, engine_name, env)
+
+    except Exception, e:
+        # Trap and log the exception and let it bubble in unchanged form
+        core_logger.exception("Exception raised in create_engine_launcher :\n%s" % e)
+        raise
 
     # Return the instantiated SoftwareLauncher
-    return class_obj(tk, context, engine_name, env)
+    return launcher
 
 
 class SoftwareLauncher(object):
