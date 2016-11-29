@@ -164,8 +164,9 @@ class LoginDialog(QtGui.QDialog):
         # Select the right first page.
         url = self.ui.site.text()
         if self._check_sso_enabled(url):
-            if self._is_session_renewal:
-                url += '/saml/saml_login_request'
+            # We have a unique login/renew point which redirects us to a
+            # lightweight page.
+            url += '/saml/saml_renew'
             print "URL -> %s (%s)" % (url, 'NO GUI' if self._no_gui else 'GUI')
             self.resize(800, 800)
             self.ui.stackedWidget.setCurrentWidget(self.ui.web_page)
