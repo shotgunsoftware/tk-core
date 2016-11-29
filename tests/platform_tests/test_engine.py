@@ -360,6 +360,11 @@ class TestContextChange(TestEngineBase):
         # Enables the test engine to support context change.
         cur_engine.enable_context_change()
 
+        # Cache the current engine settings and then set them to a bogus
+        # dict of settings. This will allow us to test whether those
+        # settings are recached during the context change.
+        previous_settings = cur_engine.settings
+        cur_engine._set_settings(dict(foo="bar"))
 
         # Now trigger a context change.
         with self._assert_hooks_invoked(self.context, new_context):
@@ -367,6 +372,19 @@ class TestContextChange(TestEngineBase):
 
         # Make sure the engine wasn't destroyed and recreated.
         self.assertEqual(id(cur_engine), id(sgtk.platform.current_engine()))
+
+        # Make sure that engine settings were recached.
+        try:
+            self.assertEqual(
+                cur_engine.settings,
+                cur_engine.get_env().get_engine_settings(cur_engine.instance_name),
+            )
+        except AssertionError:
+            # Just to be safe, we'll set the settings back to what they
+            # were previously if the recache didn't happen. It might be
+            # that forthcoming tests need valid settings cached.
+            cur_engine._set_settings(previous_settings)
+            raise
 
     def test_on_change_context_without_context_change_supporting_engine(self):
         """
