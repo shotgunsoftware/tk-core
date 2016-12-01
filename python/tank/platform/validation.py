@@ -14,6 +14,7 @@ App configuration and schema validation.
 """
 import os
 import sys
+import re
 
 from . import constants
 from ..errors import TankError, TankNoDefaultValueError
@@ -120,7 +121,7 @@ def get_missing_frameworks(descriptor, environment, yml_file):
 
 def validate_and_return_frameworks(descriptor, environment):
     """
-    Validates the frameworks needed for an given descriptor.
+    Validates the frameworks needed for a given descriptor.
     
     Returns a list of the instance names for each of the frameworks needed by the input descriptor.
     
@@ -141,11 +142,17 @@ def validate_and_return_frameworks(descriptor, environment):
     
     # check that each framework required by this app is defined in the environment
     required_fw_instance_names = []
+
+    # Framework version pattern. Groups 1, 2, and 3 correspond to
+    # major, minor, and incremental version numbers, respectively.
+    fw_version_pattern = re.compile(r"v(\d+)[.](\d+)[.](\d+)$")
+
     for fw in required_frameworks:
         # the required_frameworks structure in the info.yml
         # is a list of dicts, each dict having a name and a version key
         name = fw.get("name")
         version = fw.get("version")
+        min_version = fw.get("minimum_version")
         found = False
 
         # find it by naming convention based on the instance name
@@ -156,18 +163,51 @@ def validate_and_return_frameworks(descriptor, environment):
         # (new) - {"name": "tk-framework-qtwidgets", "version": "v1.x.x"}
         # 
         # The new syntax requires a floating version number, meaning that 
-        # the framework instance defined in the environment needs to be on the form  
+        # the framework instance defined in the environment needs to be of the form  
         # 
         # frameworks:
         #   tk-framework-qtwidgets_v1.x.x:
         #     location: {name: tk-framework-qtwidgets, type: app_store, version: v1.3.34}
         #
         desired_fw_instance = "%s_%s" % (name, version)
-        for fw_instance_name in fw_instances:
+        min_version_satisfied = True
+
+        for fw_instance_name, fw_desc in fw_descriptors.iteritems():
+
+            # We've found a matching framework.
             if fw_instance_name == desired_fw_instance:
-                found = True
-                required_fw_instance_names.append(fw_instance_name)
-                break
+                # Now we need to see if there's a minimum required version
+                # of the framework. If we got a v2.x.x framework that flattens
+                # out to v2.1.0 and we have a minimum required version of v2.1.5,
+                # then we haven't actually found a compatible framework.
+                #
+                # If the descriptor for the framework doesn't contain a concrete
+                # version number (example: a "dev" descriptor won't have one), we
+                # simply skip the minimum-required version check. There's nothing
+                # we can do to confirm, so it's best to trust the config. It's
+                # likely that anyone using a non-app_store descriptor understands
+                # the caveats that come with them.
+                fw_version = fw_desc.version
+
+                if min_version and fw_version:
+                    # This will break down match groups 1, 2, and 3 into major,
+                    # minor, and incremental version numbers, respectively. We
+                    # do that for each the required minimum version and for the
+                    # framework we've found that we think is a match.
+                    req_match = re.match(fw_version_pattern, min_version)
+                    fw_match = re.match(fw_version_pattern, fw_version)
+
+                    # If either were malformed, then we just have to skip the check.
+                    if req_match and fw_match:
+                        if ( int(req_match.group(1)) > int(fw_match.group(1)) or
+                             int(req_match.group(2)) > int(fw_match.group(2)) or
+                             int(req_match.group(3)) > int(fw_match.group(3)) ):
+                            min_version_satisfied = False
+
+                if min_version_satisfied:
+                    found = True
+                    required_fw_instance_names.append(fw_instance_name)
+                    break
         
         # backwards compatibility pass - prior to the new syntax, we also technically accepted 
         # (however never used as part of toolkit itself) a different convention where the instance
@@ -191,11 +231,14 @@ def validate_and_return_frameworks(descriptor, environment):
             if len(fw_descriptors) == 0:
                 msg += "No frameworks are currently installed!"
             else:
+                if not min_version_satisfied:
+                    msg += "The required minimum version (%s) was not met!\n" % min_version
+
                 msg += "The currently installed frameworks are: \n"
                 fw_strings = []
-                for x in fw_descriptors:
-                    fw_strings.append("Name: '%s', Version: '%s'" % (fw_descriptors[x].system_name,
-                                                                     fw_descriptors[x].version))
+                for x, fw in fw_descriptors.iteritems():
+                    fw_strings.append("Name: '%s', Version: '%s'" % (fw.system_name,
+                                                                     fw.version))
                 msg += "\n".join(fw_strings)
                 
             raise TankError(msg) 
