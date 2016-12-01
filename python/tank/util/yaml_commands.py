@@ -124,9 +124,10 @@ def yaml_load(stream):
 def yaml_load_preserve(stream):
     """
     In addition to the functionality provided by yaml_load,
-    this command also preserves the original formatting
-    of the file, including comments. Utilizes the ruamel_yaml
-    library.
+    the Python object returned from this command also holds
+    the additional contextual metadata required by the YAML
+    parser to maintain the lexical integrity of the content
+    Utilizes the ruamel_yaml library.
 
     :param stream: Input stream to parse yaml data from
     :returns: Data based from input stream as a dict
@@ -165,7 +166,9 @@ def yaml_dump_preserve(data, stream=None):
     """
     In addition to the functionality provided by yaml_dump,
     this command also preserves the formatting found in the
-    original stream, including comments. Utilizes the
+    original stream, including comments. Note that safe_dump
+    is not needed when using the roundtrip dumper, it will
+    adopt a 'safe' behaviour by default. Utilizes the
     ruamel_yaml library.
 
     :param data: Python dict to serialize as YAML
