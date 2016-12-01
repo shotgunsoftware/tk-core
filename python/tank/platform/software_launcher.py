@@ -116,18 +116,6 @@ class SoftwareLauncher(object):
         self.__engine_settings = settings
         self.__engine_descriptor = descriptor
         self.__engine_name = engine_name
-        self._synergy_paths = None
-
-        # check general debug log setting and if this flag is turned on,
-        # adjust the global setting
-        if self.get_setting("debug_logging", False):
-            LogManager().global_debug = True
-            self.logger.debug(
-                "Detected setting 'config/env/%s.yml:%s.debug_logging: true' "
-                "in your environment configuration. Turning on debug output." %
-                (self.__environment.name, self.__engine_name)
-            )
-
 
     ##########################################################################################
     # properties
@@ -193,7 +181,10 @@ class SoftwareLauncher(object):
         :returns: display name as string
         """
         disp_name = self.descriptor.display_name
-        if disp_name and "startup" not in disp_name.lower():
+        if not disp_name.lower().endswith("startup"):
+            # Append "Startup" to the default descriptor
+            # display_name to distinguish it from the engine's
+            # display name.
             disp_name = "%s Startup" % disp_name
         return disp_name
 
@@ -233,7 +224,7 @@ class SoftwareLauncher(object):
     ##########################################################################################
     # abstract methods
 
-    def scan_software(self, versions=None):
+    def scan_software(self, versions=None, menu_name=None, icon=None):
         """
         Performs a scan for software installations.
 
@@ -242,6 +233,10 @@ class SoftwareLauncher(object):
                          for all versions. A version string is
                          DCC-specific but could be something
                          like "2017", "6.3v7" or "1.2.3.52"
+        :param menu_name: (optional) String to use to describe the
+                          resulting SoftwareVersion(s) in graphical displays.
+        :param icon: (optional) Path to icon to use with the resulting
+                     SoftwareVersion(s) in graphical displays.
         :returns: List of :class:`SoftwareVersion` instances
         """
         raise NotImplementedError
@@ -536,11 +531,9 @@ class SoftwareVersion(object):
         :param version: Explicit (string) version of the DCC represented
                         (e.g. 2017)
         :param display_name: Name to use for any graphical displays
-        :param path: Full path to the DCC executable. This path may contain
-                     {version} and/or {v1}..{vN} patterns or ENV variables.
+        :param path: Full path to the DCC executable.
         :param icon: (Optional) Full path to the icon to use for graphical
-                     displays of this SoftwareVersion. This path may contain
-                     {version} and/or {v1}..{vN} patterns or ENV variables.
+                     displays of this SoftwareVersion.
         """
         self._name = name
         self._version = version
@@ -570,125 +563,29 @@ class SoftwareVersion(object):
     def display_name(self):
         """
         Name to use for this SoftwareVersion in graphical displays.
-        Replaces any {version} and/or {v1}...{vN} patterns in the
-        display_name string originally specified.
 
         :returns: String display name
         """
-        return _apply_version_to_setting(self._display_name, self._version)
-
-    @display_name.setter
-    def display_name(self, new_value):
-        """
-        Set the display name to the new input value.
-
-        :param new_value: Display name to use as a string.
-        """
-        self._display_name = new_value
+        return self._display_name
 
     @property
-    def raw_path(self):
+    def path(self):
         """
-        Input DCC path that may contain {version} and/or {v1}...{vN} patterns
-        or environment variables.
+        Specified path to the DCC executable. May be relative.
 
         :returns: String path
         """
         return self._path
 
     @property
-    def path(self):
+    def icon(self):
         """
-        DCC path with any {version} and/or {v1}...{vN} patterns and/or
-        environment variables subtituted appropriately.
-
-        :returns: String path
-        """
-        ver_path = _apply_version_to_setting(self._path, self._version)
-        return os.path.expandvars(ver_path)
-
-    @path.setter
-    def path(self, new_value):
-        """
-        Allow the DCC path to be set post-construction.
-
-        :param new_value: New path to DCC, as a string
-        """
-        self._path = new_value
-
-    @property
-    def raw_icon(self):
-        """
-        Input path to icon that may contain {version} and/or {v1}...{vN} patterns
-        or environment variables.
+        Path to the icon to use for graphical displays of this
+        SoftwareVersion
 
         :returns: String path
         """
         return self._icon_path
-
-    @property
-    def icon(self):
-        """
-        Icon path with any {version} and/or {v1}...{vN} patterns and/or
-        environment variables substituted appropriately.
-
-        :returns: String path
-        """
-        ver_icon = _apply_version_to_setting(self._icon_path, self._version)
-        if ver_icon:
-            ver_icon = os.path.expandvars(ver_icon)
-        return ver_icon
-
-    @icon.setter
-    def icon(self, new_path):
-        """
-        Allow the icon path to be set post-construction.
-
-        :param new_path: New path to icon
-        """
-        self._icon_path = new_path
-
-
-def _apply_version_to_setting(raw_string, version=None):
-    """
-    Replace any version tokens contained in the raw_string
-    with the appropriate version value from the app settings.
-    Replaces {version} and {v0}, {v1}, etc. tokens in raw_string
-    with their values. The {v} tokens are created by using groups
-    defined by () within the version string. For example, if the
-    version setting is "(9.0)v4(beta1)"
-        {version} = "9.0v4"
-        {v0} = "9.0"
-        {v1} = "beta1"
-
-    If version is None, we return the raw_string since there's
-    no replacement to do.
-
-    :param raw_string: the raw string potentially containing the
-                       version tokens (eg. {version}, {v0}, ...)
-                       we will be replacing. This string could
-                       represent a number of things including a
-                       path, an args string, etc.
-    :param version: version string to use for the token replacement.
-
-    :returns: string with version tokens replaced with their
-              appropriate values
-    """
-    # Verify there's something to replace.
-    if not raw_string or not version:
-        return raw_string
-
-    # split version string into tokens defined by ()s
-    version_tokens = re.findall(r"\(([^\)]+)\)", version)
-
-    # ensure we have a clean complete version string without ()s
-    clean_version = re.sub("[()]", "", version)
-
-    # do the substitution
-    ver_string = raw_string.replace("{version}", clean_version)
-    for i, token in enumerate(version_tokens):
-        ver_string = ver_string.replace("{v%d}" % i, token)
-    return ver_string
 
 
 class LaunchInformation(object):
