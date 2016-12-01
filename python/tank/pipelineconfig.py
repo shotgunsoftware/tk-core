@@ -23,7 +23,7 @@ from .util.version import is_version_older
 from . import constants
 from .platform.environment import InstalledEnvironment, WritableEnvironment
 from .util import shotgun, yaml_cache
-from .util import yaml_load, yaml_dump, yaml_safe_dump
+from .util import yaml_load, yaml_safe_dump
 from .util import ShotgunPath
 from . import hook
 from . import pipelineconfig_utils
