@@ -1003,7 +1003,7 @@ class TestSerialize(TestContext):
     def test_equal_yml(self):
         context_1 = context.Context(**self.kws)
         serialized = yaml_dump(context_1)
-        context_2 = yaml_load(serialized, Utf8Loader)
+        context_2 = yaml_load(serialized)
         self.assertTrue(context_1 == context_2)
 
     def test_equal_custom(self):
