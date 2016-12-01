@@ -19,10 +19,10 @@ from mock import Mock, patch
 
 import tank
 from tank import context
+from tank.util import yaml_load, yaml_dump
 from tank.errors import TankError, TankContextDeserializationError
 from tank.template import TemplatePath
 from tank.templatekey import StringKey, IntegerKey
-from tank_vendor import yaml
 from tank.authentication import ShotgunAuthenticator
 
 
@@ -1002,8 +1002,8 @@ class TestSerialize(TestContext):
 
     def test_equal_yml(self):
         context_1 = context.Context(**self.kws)
-        serialized = yaml.dump(context_1)
-        context_2 = yaml.load(serialized)
+        serialized = yaml_dump(context_1)
+        context_2 = yaml_load(serialized, Utf8Loader)
         self.assertTrue(context_1 == context_2)
 
     def test_equal_custom(self):

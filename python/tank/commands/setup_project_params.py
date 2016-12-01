@@ -26,9 +26,8 @@ from ..errors import TankError, TankErrorProjectIsSetup
 from .. import pipelineconfig_utils
 from ..descriptor import create_descriptor, Descriptor
 
-from tank_vendor import yaml
-
 from ..util import ShotgunPath
+from ..util import yaml_load
 
 
 
@@ -839,7 +838,7 @@ class TemplateConfiguration(object):
             try:
                 file_data = open(info_yml)
                 try:
-                    self._manifest = yaml.load(file_data)
+                    self._manifest = yaml_load(file_data)
                 finally:
                     file_data.close()
             except Exception, e:
@@ -901,7 +900,7 @@ class TemplateConfiguration(object):
             root_file = open(root_file_path, "r")
             try:
                 # if file is empty, initializae with empty dict...
-                roots_data = yaml.load(root_file) or {}
+                roots_data = yaml_load(root_file) or {}
             finally:
                 root_file.close()
 

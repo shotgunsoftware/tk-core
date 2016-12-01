@@ -12,8 +12,7 @@ from ..util import ShotgunPath
 from ..errors import TankError
 from . import constants
 from ..util import filesystem
-
-from tank_vendor import yaml
+from ..util import yaml_load, yaml_safe_dump
 
 from .action_base import Action
 
@@ -231,7 +230,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         # read the file first
         fh = open(sg_pc_location, "rt")
         try:
-            data = yaml.load(fh)
+            data = yaml_load(fh)
         finally:
             fh.close()
 
@@ -261,7 +260,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         # >>> yaml.safe_dump({"foo": u"bar"})
         # '{foo: bar}\n'
         #
-        yaml.safe_dump(data, fh)
+        yaml_safe_dump(data, fh)
         fh.close()
 
     except Exception, e:

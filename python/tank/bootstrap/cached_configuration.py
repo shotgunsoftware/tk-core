@@ -16,8 +16,8 @@ from .errors import TankBootstrapError
 
 from ..util import filesystem
 from ..util import ShotgunPath
+from ..util import yaml_load
 
-from tank_vendor import yaml
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
 
@@ -120,7 +120,7 @@ class CachedConfiguration(Configuration):
 
         fh = open(config_info_file, "rt")
         try:
-            data = yaml.load(fh)
+            data = yaml_load(fh)
             deploy_generation = data["deploy_generation"]
             descriptor_dict = data["config_descriptor"]
         except Exception, e:

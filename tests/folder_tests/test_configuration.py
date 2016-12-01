@@ -13,10 +13,10 @@ import unittest
 import shutil
 from mock import Mock
 import tank
-from tank_vendor import yaml
 from tank import TankError
 from tank import hook
 from tank import folder
+from tank.util import yaml_load, yaml_dump
 from tank_test.tank_test_base import *
 
 
@@ -44,11 +44,11 @@ class TestFolderConfiguration(TankTestBase):
         roots_file = os.path.join(self.tk.pipeline_configuration.get_path(), "config", "core", "schema", "alternate_1.yml")
         
         fh = open(roots_file, "r")
-        data = yaml.load(fh)
+        data = yaml_load(fh)
         fh.close()
         data["root_name"] = "some_bogus_Data"
         fh = open(roots_file, "w")
-        fh.write(yaml.dump(data))
+        fh.write(yaml_dump(data))
         fh.close()
 
         self.assertRaises(TankError,

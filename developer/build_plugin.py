@@ -33,13 +33,13 @@ sys.path.append(python_folder)
 # sgtk imports
 from tank import LogManager
 from tank.util import filesystem
+from tank.util import yaml_load
 from tank.errors import TankError
 from tank.platform import environment
 from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri, create_descriptor
 from tank.authentication import ShotgunAuthenticator
 from tank.bootstrap.baked_configuration import BakedConfiguration
 from tank.bootstrap import constants as bootstrap_constants
-from tank_vendor import yaml
 
 # set up logging
 logger = LogManager.get_logger("build_plugin")
@@ -267,7 +267,7 @@ def _validate_manifest(source_path):
     logger.debug("Reading %s" % manifest_path)
     try:
         with open(manifest_path, "rt") as fh:
-            manifest_data = yaml.load(fh)
+            manifest_data = yaml_load(fh)
     except Exception, e:
         raise TankError("Cannot parse info.yml manifest: %s" % e)
 

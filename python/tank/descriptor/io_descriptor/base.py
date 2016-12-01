@@ -18,10 +18,10 @@ import urlparse
 from .. import constants
 from ... import LogManager
 from ...util import filesystem
+from ...util import yaml_load
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError
 
-from tank_vendor import yaml
 
 log = LogManager.get_logger(__name__)
 
@@ -373,7 +373,7 @@ class IODescriptorBase(object):
             try:
                 file_data = open(file_path)
                 try:
-                    metadata = yaml.load(file_data)
+                    metadata = yaml_load(file_data)
                 finally:
                     file_data.close()
             except Exception, exp:

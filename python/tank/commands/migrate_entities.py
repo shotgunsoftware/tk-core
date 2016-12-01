@@ -17,7 +17,6 @@ import os
 import shutil
 from itertools import chain
 
-from tank_vendor import yaml
 from .action_base import Action
 from . import update 
 from ..errors import TankError
@@ -25,6 +24,7 @@ from . import constants
 from .. import constants as constants_global
 from ..util import shotgun
 from ..util import ShotgunPath
+from ..util import yaml_load, yaml_safe_dump
 
 class EntityMigrator(object):
     """
@@ -1778,7 +1778,7 @@ class MigratePublishedFileEntitiesAction(Action):
                 # read the file first
                 fh = open(pc_path, "rt")
                 try:
-                    pc_data = yaml.load(fh)
+                    pc_data = yaml_load(fh)
                 finally:
                     fh.close()
 
@@ -1804,7 +1804,7 @@ class MigratePublishedFileEntitiesAction(Action):
                     # >>> yaml.safe_dump({"foo": u"bar"})
                     # '{foo: bar}\n'
                     #                    
-                    yaml.safe_dump(pc_data, fh)
+                    yaml_safe_dump(pc_data, fh)
                 finally:
                     fh.close()
         
