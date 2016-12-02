@@ -16,6 +16,8 @@ import os
 import sys
 import re
 
+from distutils.version import StrictVersion
+
 from . import constants
 from ..errors import TankError, TankNoDefaultValueError
 from ..template import TemplateString
@@ -190,18 +192,18 @@ def validate_and_return_frameworks(descriptor, environment):
                 fw_version = fw_desc.version
 
                 if min_version and fw_version:
-                    # This will break down match groups 1, 2, and 3 into major,
-                    # minor, and incremental version numbers, respectively. We
-                    # do that for each the required minimum version and for the
-                    # framework we've found that we think is a match.
+                    # Check to make sure the version strings aren't malformed.
+                    # We expect v\d+.\d+.\d+ pattern.
                     req_match = re.match(fw_version_pattern, min_version)
                     fw_match = re.match(fw_version_pattern, fw_version)
 
                     # If either were malformed, then we just have to skip the check.
                     if req_match and fw_match:
-                        if ( int(req_match.group(1)) > int(fw_match.group(1)) or
-                             int(req_match.group(2)) > int(fw_match.group(2)) or
-                             int(req_match.group(3)) > int(fw_match.group(3)) ):
+                        sub_pat = re.compile(r"[^.\d]")
+                        min_version = re.sub(sub_pat, "", min_version)
+                        fw_version = StrictVersion(re.sub(sub_pat, "", fw_version))
+
+                        if min_version > fw_version:
                             min_version_satisfied = False
 
                 if min_version_satisfied:
