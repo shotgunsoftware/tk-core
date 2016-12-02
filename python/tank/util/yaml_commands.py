@@ -9,7 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Encapsulates basic yaml commands to tailor specific Toolkit needs.
+Encapsulates basic yaml commands that can be tailored for specific needs.
+
 One such need is to override the default constructor for the
 yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG tag to encode strings
 as 'utf8' instead of the default 'ascii' to allow for non-ascii
