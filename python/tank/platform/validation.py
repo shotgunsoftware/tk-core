@@ -145,9 +145,8 @@ def validate_and_return_frameworks(descriptor, environment):
     # check that each framework required by this app is defined in the environment
     required_fw_instance_names = []
 
-    # Framework version pattern. Groups 1, 2, and 3 correspond to
-    # major, minor, and incremental version numbers, respectively.
-    fw_version_pattern = re.compile(r"v(\d+)[.](\d+)[.](\d+)$")
+    # Framework version pattern. 
+    fw_version_pattern = re.compile(r"v(\d+[.]\d+[.]\d+)$")
 
     for fw in required_frameworks:
         # the required_frameworks structure in the info.yml
@@ -193,17 +192,16 @@ def validate_and_return_frameworks(descriptor, environment):
 
                 if min_version and fw_version:
                     # Check to make sure the version strings aren't malformed.
-                    # We expect v\d+.\d+.\d+ pattern.
+                    # We expect v\d+.\d+.\d+ pattern. Group 1 of the match will
+                    # be the version without the "v" at the head.
                     req_match = re.match(fw_version_pattern, min_version)
                     fw_match = re.match(fw_version_pattern, fw_version)
 
                     # If either were malformed, then we just have to skip the check.
                     if req_match and fw_match:
-                        sub_pat = re.compile(r"[^.\d]")
-                        min_version = re.sub(sub_pat, "", min_version)
-                        fw_version = StrictVersion(re.sub(sub_pat, "", fw_version))
+                        fw_version = StrictVersion(fw_match.group(1))
 
-                        if min_version > fw_version:
+                        if req_match.group(1) > fw_version:
                             min_version_satisfied = False
 
                 if min_version_satisfied:
