@@ -9,105 +9,51 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Encapsulates basic yaml commands to tailor specific Toolkit needs. One such
-need is to override the u'tag:yaml.org,2002:str' yaml Constructor method for
-Loaders used by Toolkit to encode strings as 'utf8' instead of the default
-'ascii' to allow for non-ascii characters in environment configuration and
-bundle manifest yaml files.
+Encapsulates basic yaml commands to tailor specific Toolkit needs.
+One such need is to override the default constructor for the
+yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG tag to encode strings
+as 'utf8' instead of the default 'ascii' to allow for non-ascii
+characters in environment configuration and bundle manifest yaml files.
 """
+import sys
 
-# Imports needed for yaml commands
 from tank_vendor import yaml
 from tank_vendor import ruamel_yaml
 
-# Imports needed to construct a utf-8 safe yaml Loader
-from tank_vendor.yaml.reader import Reader
-from tank_vendor.yaml.scanner import Scanner
-from tank_vendor.yaml.parser import Parser
-from tank_vendor.yaml.composer import Composer
-from tank_vendor.yaml.constructor import Constructor
-from tank_vendor.yaml.resolver import Resolver
 
-# Imports needed to construct a utf-8 safe ruamel_yaml RoundTripLoader
-from tank_vendor.ruamel_yaml.reader import Reader as RYReader
-from tank_vendor.ruamel_yaml.scanner import RoundTripScanner
-from tank_vendor.ruamel_yaml.parser_ import Parser as RYParser
-from tank_vendor.ruamel_yaml.composer import Composer as RYComposer
-from tank_vendor.ruamel_yaml.constructor import RoundTripConstructor
-from tank_vendor.ruamel_yaml.resolver import Resolver as RYResolver
-
-class Utf8Constructor(Constructor):
+def construct_yaml_str_as_utf8(loader, node):
     """
-    Yaml Constructor class that encodes data
-    tagged with u'tag:yaml.org,2002:str' as
-    utf-8 instead of ascii
-    """
-    def construct_yaml_str_utf8(self, node):
-        value = self.construct_scalar(node)
-        try:
-            return value.encode("utf-8")
-        except UnicodeEncodeError:
-            return value
+    Defines how to convert strings from yaml to Python.
+    Overrides default behavior of encoding with ascii
+    to encode with utf-8 instead.
 
-# Override the the default SafeConstructor.construct_yaml_str
-# method for this tag.
-Utf8Constructor.add_constructor(
-    u'tag:yaml.org,2002:str',
-    Utf8Constructor.construct_yaml_str_utf8
+    :param loader: yaml Loader instance being used to
+                   read the input stream
+    :param node: yaml Node containing data to be converted
+    :returns: utf-8 encoded str or unicode
+    """
+    value = loader.construct_scalar(node)
+    if sys.version_info[0] == 3:
+        return value
+    try:
+        return value.encode("utf-8")
+    except UnicodeEncodeError:
+        return value
+
+# Set the utf-8 constructor as the default scalar
+# constructor in the yaml module
+yaml.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
+    construct_yaml_str_as_utf8
 )
 
-class Utf8Loader(Reader, Scanner, Parser, Composer, Utf8Constructor, Resolver):
-    """
-    Yaml Loader class to that utilizes utf-8 encoded strings throughout.
-    """
-    def __init__(self, stream):
-        Reader.__init__(self, stream)
-        Scanner.__init__(self)
-        Parser.__init__(self)
-        Composer.__init__(self)
-        Utf8Constructor.__init__(self)
-        Resolver.__init__(self)
-
-class Utf8RoundTripConstructor(RoundTripConstructor):
-    """
-    Yaml RoundTripConstructor class that encodes data
-    tagged with u'tag:yaml.org,2002:str' as utf-8
-    instead of ascii
-    """
-    def construct_yaml_str_utf8(self, node):
-        value = self.construct_scalar(node)
-        if PY3:
-            return value
-        try:
-            return value.encode("utf-8")
-        except UnicodeEncodeError:
-            return value
-
-# Override the the default SafeConstructor.construct_yaml_str
-# method for this tag.
-Utf8RoundTripConstructor.add_constructor(
-    u'tag:yaml.org,2002:str',
-    Utf8RoundTripConstructor.construct_yaml_str_utf8
+# Set the utf-8 constructor as the default scalar
+# constructor in the ruamel_yaml module
+ruamel_yaml.add_constructor(
+    ruamel_yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
+    construct_yaml_str_as_utf8
 )
 
-class Utf8RoundTripLoader(
-    RYReader, RoundTripScanner, RYParser, RYComposer,
-    Utf8RoundTripConstructor, RYResolver
-):
-    """
-    Yaml RoundTripLoader class that encodes data
-    tagged with u'tag:yaml.org,2002:str' as utf-8
-    instead of ascii. The RoundTripLoader is
-    implemented in the ruamel_yaml library, not
-    the standard yaml library.
-    """
-    def __init__(self, stream):
-        RYReader.__init__(self, stream)
-        RoundTripScanner.__init__(self)
-        RYParser.__init__(self)
-        RYComposer.__init__(self)
-        Utf8RoundTripConstructor.__init__(self)
-        RYResolver.__init__(self)
 
 def yaml_load(stream):
     """
@@ -119,7 +65,8 @@ def yaml_load(stream):
     :param stream: Input stream to parse yaml data from
     :returns: Data parsed from stream as a dict
     """
-    return yaml.load(stream, Utf8Loader)
+    return yaml.load(stream)
+
 
 def yaml_load_preserve(stream):
     """
@@ -132,7 +79,8 @@ def yaml_load_preserve(stream):
     :param stream: Input stream to parse yaml data from
     :returns: Data based from input stream as a dict
     """
-    return ruamel_yaml.load(stream, Utf8RoundTripLoader)
+    return ruamel_yaml.load(stream, ruamel_yaml.RoundTripLoader)
+
 
 def yaml_dump(data, stream=None):
     """
@@ -162,6 +110,7 @@ def yaml_safe_dump(data, stream=None):
     """
     return yaml.safe_dump(data, stream)
 
+
 def yaml_dump_preserve(data, stream=None):
     """
     In addition to the functionality provided by yaml_dump,
@@ -177,6 +126,7 @@ def yaml_dump_preserve(data, stream=None):
     :returns: Serialized Python object or None
     """
     return ruamel_yaml.dump(
-        data, stream, default_flow_style=False,
-        Dumper=ruamel_yaml.RoundTripDumper
+        data, stream,
+        default_flow_style=False,
+        Dumper=ruamel_yaml.RoundTripDumper,
     )
