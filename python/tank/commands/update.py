@@ -8,13 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import os
+import re
+
+from distutils.version import StrictVersion
+
 from .action_base import Action
 from . import console_utils
 from . import util
 from ..platform.environment import WritableEnvironment
 from . import constants
-import os
-
 
 
 class AppUpdatesAction(Action):
@@ -459,9 +462,6 @@ def _update_item(log, suppress_prompts, tk, env, old_descriptor, new_descriptor,
         env.update_app_settings(engine_name, app_name, params, new_descriptor.get_dict())
     else:
         env.update_engine_settings(engine_name, params, new_descriptor.get_dict())
-        
-            
-        
 
 
 def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=None, framework_name=None):
@@ -510,6 +510,16 @@ def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=Non
                          engine_name, 
                          app_name, 
                          framework_name)
+
+            # If we have frameworks that need to be updated along with
+            # this item, then we do so here. We're suppressing prompts
+            # for this because these framework updates are required for
+            # the proper functioning of the bundle that was just updated.
+            # This will be due to a minimum-required version setting for
+            # the bundle in its info.yml that isn't currently satisfied.
+            for fw_name in _get_framework_requirements(env, new_descriptor):
+                _process_item(log, True, tk, env, framework_name=fw_name)
+
             item_was_updated = True
 
     elif status["out_of_date"] == False and not status["current"].exists_local():
@@ -561,8 +571,7 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
         version_pattern = framework_name.split("_")[-1]
         # use this pattern as a constraint as we check for updates
         latest_desc = curr_desc.find_latest_version(version_pattern)
-        
-    
+
     elif app_name:
         curr_desc = environment_obj.get_app_descriptor(engine_name, app_name)
         # for apps, also get the descriptor for their parent engine
@@ -614,4 +623,67 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
     data["update_status"] = status
 
     return data
+
+
+def _get_framework_requirements(environment, descriptor):
+    """
+    Gets a list of framework updates that will be required for the given
+    descriptor. This is checking the descriptor's required frameworks
+    for any minimum-required versions it might be expecting. Any version
+    requirements not already met by the frameworks configured for the
+    given environment will be returned by name.
+
+    :param environment: The environment object.
+    :param descriptor: The descriptor object to check.
+
+    :returns: A list of framework names requiring update.
+              Example: ["tk-framework-widget_v0.2.x", ...]
+    """
+    required_frameworks = descriptor.required_frameworks
+
+    if not required_frameworks:
+        return []
+
+    fw_descriptors = dict()
+    fw_instances = environment.get_frameworks()
+
+    for fw in fw_instances:
+        fw_descriptors[fw] = environment.get_framework_descriptor(fw)
+
+    # This will tell us whether the version is properly
+    # formed, and will also give us a group containing the
+    # version number without the "v" at the head.
+    version_pattern = re.compile(r"v(\d+[.]\d+[.]\d+)$")
+    frameworks_to_update = []
+
+    for fw in required_frameworks:
+        # Example: tk-framework-widget_v0.2.x
+        name = "%s_%s" % (fw.get("name"), fw.get("version"))
+
+        # If we don't have the framework configured then there's
+        # not going to be anything for us to check against. It's
+        # best to simply continue on.
+        if name not in fw_descriptors:
+            continue
+
+        min_version = fw.get("minimum_version")
+
+        if not min_version:
+            continue
+
+        min_version_match = re.match(version_pattern, min_version)
+
+        if not min_version_match:
+            continue
+
+        fw_desc = fw_descriptors[name]
+        fw_version_match = re.match(version_pattern, fw_desc.version)
+
+        if not fw_version_match:
+            continue
+
+        if min_version_match.group(1) > StrictVersion(fw_version_match.group(1)):
+            frameworks_to_update.append(name)
+
+    return frameworks_to_update
 
