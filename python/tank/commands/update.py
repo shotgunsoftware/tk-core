@@ -9,15 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import re
-
-from distutils.version import StrictVersion
 
 from .action_base import Action
 from . import console_utils
 from . import util
 from ..platform.environment import WritableEnvironment
 from . import constants
+from ..util.version import is_version_number, is_version_newer
 
 
 class AppUpdatesAction(Action):
@@ -493,13 +491,23 @@ def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=Non
     item_was_updated = False
 
     if status["can_update"]:
+        new_descriptor = status["latest"]
+
+        required_framework_updates = _get_framework_requirements(
+            log=log,
+            environment=env,
+            descriptor=new_descriptor,
+        )
         
         # print summary of changes
-        console_utils.format_bundle_info(log, status["latest"])
+        console_utils.format_bundle_info(
+            log,
+            new_descriptor,
+            required_framework_updates,
+        )
         
         # ask user
         if suppress_prompts or console_utils.ask_question("Update to the above version?"):
-            new_descriptor = status["latest"]
             curr_descriptor = status["current"]            
             _update_item(log, 
                          suppress_prompts, 
@@ -517,7 +525,7 @@ def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=Non
             # the proper functioning of the bundle that was just updated.
             # This will be due to a minimum-required version setting for
             # the bundle in its info.yml that isn't currently satisfied.
-            for fw_name in _get_framework_requirements(env, new_descriptor):
+            for fw_name in required_framework_updates:
                 _process_item(log, True, tk, env, framework_name=fw_name)
 
             item_was_updated = True
@@ -625,14 +633,15 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
     return data
 
 
-def _get_framework_requirements(environment, descriptor):
+def _get_framework_requirements(log, environment, descriptor):
     """
-    Gets a list of framework updates that will be required for the given
-    descriptor. This is checking the descriptor's required frameworks
-    for any minimum-required versions it might be expecting. Any version
+    Returns a list of framework names that will be require updating. This
+    is checking the given descriptor's required frameworks for any
+    minimum-required versions it might be expecting. Any version
     requirements not already met by the frameworks configured for the
     given environment will be returned by name.
 
+    :param log: The logging handle.
     :param environment: The environment object.
     :param descriptor: The descriptor object to check.
 
@@ -644,45 +653,51 @@ def _get_framework_requirements(environment, descriptor):
     if not required_frameworks:
         return []
 
-    fw_descriptors = dict()
-    fw_instances = environment.get_frameworks()
+    env_fw_descriptors = dict()
+    env_fw_instances = environment.get_frameworks()
 
-    for fw in fw_instances:
-        fw_descriptors[fw] = environment.get_framework_descriptor(fw)
+    for fw in env_fw_instances:
+        env_fw_descriptors[fw] = environment.get_framework_descriptor(fw)
 
-    # This will tell us whether the version is properly
-    # formed, and will also give us a group containing the
-    # version number without the "v" at the head.
-    version_pattern = re.compile(r"v(\d+[.]\d+[.]\d+)$")
     frameworks_to_update = []
 
     for fw in required_frameworks:
         # Example: tk-framework-widget_v0.2.x
         name = "%s_%s" % (fw.get("name"), fw.get("version"))
 
-        # If we don't have the framework configured then there's
-        # not going to be anything for us to check against. It's
-        # best to simply continue on.
-        if name not in fw_descriptors:
-            continue
-
         min_version = fw.get("minimum_version")
 
         if not min_version:
+            log.debug("No minimum_version setting found for %s" % name)
             continue
 
-        min_version_match = re.match(version_pattern, min_version)
-
-        if not min_version_match:
+        # If we don't have the framework configured then there's
+        # not going to be anything for us to check against. It's
+        # best to simply continue on.
+        if name not in env_fw_descriptors:
+            log.warning(
+                "Framework %s isn't configured; unable to check "
+                "its minimum-required version as a result." % name
+            )
             continue
 
-        fw_desc = fw_descriptors[name]
-        fw_version_match = re.match(version_pattern, fw_desc.version)
+        env_fw_version = env_fw_descriptors[name].version
 
-        if not fw_version_match:
+        if env_fw_version == "Undefined":
+            log.debug(
+                "Installed framework has no version specified. Not checking "
+                "the bundle's required framework version as a result."
+            )
             continue
 
-        if min_version_match.group(1) > StrictVersion(fw_version_match.group(1)):
+        if not is_version_number(min_version) or not is_version_number(env_fw_version):
+            log.warning(
+                "Unable to check minimum-version requirements for %s "
+                "due to one or both version numbers being malformed: "
+                "%s and %s" % (name, min_version, env_fw_version)
+            )
+
+        if is_version_newer(min_version, env_fw_version):
             frameworks_to_update.append(name)
 
     return frameworks_to_update

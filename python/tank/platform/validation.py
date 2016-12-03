@@ -14,14 +14,18 @@ App configuration and schema validation.
 """
 import os
 import sys
-import re
-
-from distutils.version import StrictVersion
 
 from . import constants
 from ..errors import TankError, TankNoDefaultValueError
 from ..template import TemplateString
 from .bundle import resolve_default_value
+from ..util.version import is_version_newer, is_version_number
+from ..log import LogManager
+
+# We're potentially running here in an environment with
+# no engine available via current_engine(), so we'll have
+# to make use of the standard core logger.
+core_logger = LogManager.get_logger(__name__)
 
 def validate_schema(app_or_engine_display_name, schema):
     """
@@ -32,6 +36,7 @@ def validate_schema(app_or_engine_display_name, schema):
     """
     v = _SchemaValidator(app_or_engine_display_name, schema)
     v.validate()
+
 
 def validate_settings(app_or_engine_display_name, tank_api, context, schema, settings):
     """
@@ -145,9 +150,6 @@ def validate_and_return_frameworks(descriptor, environment):
     # check that each framework required by this app is defined in the environment
     required_fw_instance_names = []
 
-    # Framework version pattern. 
-    fw_version_pattern = re.compile(r"v(\d+[.]\d+[.]\d+)$")
-
     for fw in required_frameworks:
         # the required_frameworks structure in the info.yml
         # is a list of dicts, each dict having a name and a version key
@@ -190,19 +192,16 @@ def validate_and_return_frameworks(descriptor, environment):
                 # the caveats that come with them.
                 fw_version = fw_desc.version
 
-                if min_version and fw_version:
-                    # Check to make sure the version strings aren't malformed.
-                    # We expect v\d+.\d+.\d+ pattern. Group 1 of the match will
-                    # be the version without the "v" at the head.
-                    req_match = re.match(fw_version_pattern, min_version)
-                    fw_match = re.match(fw_version_pattern, fw_version)
-
-                    # If either were malformed, then we just have to skip the check.
-                    if req_match and fw_match:
-                        fw_version = StrictVersion(fw_match.group(1))
-
-                        if req_match.group(1) > fw_version:
-                            min_version_satisfied = False
+                if min_version and fw_version and fw_version != "Undefined":
+                    # If either were malformed, then we just skip the check.
+                    if is_version_number(min_version) and is_version_number(fw_version):
+                        min_version_satisfied = is_version_newer(fw_version, min_version)
+                    else:
+                        core_logger.warning(
+                            "Not checking minimum framework version compliance "
+                            "due to one or both versions being malformed: "
+                            "%s and %s." % (min_version, fw_version)
+                        )
 
                 if min_version_satisfied:
                     found = True
