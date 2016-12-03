@@ -19,7 +19,7 @@ from . import constants
 from ..errors import TankError, TankNoDefaultValueError
 from ..template import TemplateString
 from .bundle import resolve_default_value
-from ..util.version import is_version_newer, is_version_number
+from ..util.version import is_version_older, is_version_number
 from ..log import LogManager
 
 # We're potentially running here in an environment with
@@ -195,7 +195,10 @@ def validate_and_return_frameworks(descriptor, environment):
                 if min_version and fw_version and fw_version != "Undefined":
                     # If either were malformed, then we just skip the check.
                     if is_version_number(min_version) and is_version_number(fw_version):
-                        min_version_satisfied = is_version_newer(fw_version, min_version)
+                        # Example:  v1.0.1 is NOT older than v1.0.0, set to True
+                        #           v1.0.0 is NOT older than v1.0.0, set to True
+                        #           v0.9.0 IS older than v1.0.0, set to False
+                        min_version_satisfied = not is_version_older(fw_version, min_version)
                     else:
                         core_logger.warning(
                             "Not checking minimum framework version compliance "
