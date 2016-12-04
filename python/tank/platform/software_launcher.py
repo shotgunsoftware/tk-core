@@ -26,12 +26,11 @@ from ..util.loader import load_plugin
 from . import constants
 from . import validation
 
-from .bundle import resolve_default_value
+from .bundle import resolve_setting_value
 from .engine import get_env_and_descriptor_for_engine
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
-
 
 def create_engine_launcher(tk, context, engine_name):
     """
@@ -40,32 +39,43 @@ def create_engine_launcher(tk, context, engine_name):
 
     :param tk: :class:`~sgtk.Sgtk` Toolkit instance.
     :param context: :class:`~sgtk.Context` Context to launch the DCC in.
-    :param engine_name: (str) Name of the Toolkit engine associated with the
-                        DCC(s) to launch.
-    :returns: :class:`SoftwareLauncher` subclass instance.
+    :param engine_name: (str) Name of the Toolkit engine associated with
+                        the DCC(s) to launch.
+    :returns: :class:`SoftwareLauncher` subclass instance or None.
     """
-    try:
-        # Get the engine environment and descriptor using Engine.py code
-        (env, engine_descriptor) = get_env_and_descriptor_for_engine(engine_name, tk, context)
+    # Get the engine environment and descriptor using engine.py code
+    (env, engine_descriptor) = get_env_and_descriptor_for_engine(
+        engine_name, tk, context
+    )
 
-        # Make sure it exists locally
-        if not engine_descriptor.exists_local():
-            raise TankError("Cannot create %s software launcher! %s does not exist on disk" %
-                (engine_name, engine_descriptor)
-            )
+    # Make sure it exists locally
+    if not engine_descriptor.exists_local():
+        raise TankError(
+            "Cannot create %s software launcher! %s does not exist on disk." %
+            (engine_name, engine_descriptor)
+        )
 
-        # Get path to engine startup code and load it.
-        engine_path = engine_descriptor.get_path()
-        plugin_file = os.path.join(engine_path, constants.ENGINE_SOFTWARE_LAUNCHER_FILE)
-        class_obj = load_plugin(plugin_file, SoftwareLauncher)
-        launcher = class_obj(tk, context, engine_name, env)
+    # Get path to engine startup code and load it.
+    engine_path = engine_descriptor.get_path()
+    plugin_file = os.path.join(
+        engine_path, constants.ENGINE_SOFTWARE_LAUNCHER_FILE
+    )
 
-    except Exception, e:
-        # Trap and log the exception and let it bubble in unchanged form
-        core_logger.exception("Exception raised in create_engine_launcher :\n%s" % e)
-        raise
+    # Since we don't know what version of the engine is currently
+    # installed, the plugin file may not exist.
+    if not os.path.isfile(plugin_file):
+        # Nothing to do.
+        core_logger.debug(
+            "SoftwareLauncher plugin file '%s' does not exist!" % plugin_file
+        )
+        return None
 
-    # Return the instantiated SoftwareLauncher
+    core_logger.debug("Loading SoftwareLauncher plugin '%s' ..." % plugin_file)
+    class_obj = load_plugin(plugin_file, SoftwareLauncher)
+    launcher = class_obj(tk, context, engine_name, env)
+    core_logger.debug("Created SoftwareLauncher instance: %s" % launcher)
+
+    # Return the SoftwareLauncher instance
     return launcher
 
 
@@ -183,8 +193,8 @@ class SoftwareLauncher(object):
         disp_name = self.descriptor.display_name
         if not disp_name.lower().endswith("startup"):
             # Append "Startup" to the default descriptor
-            # display_name to distinguish it from the engine's
-            # display name.
+            # display_name to distinguish it from the
+            # engine's display name.
             disp_name = "%s Startup" % disp_name
         return disp_name
 
@@ -224,7 +234,7 @@ class SoftwareLauncher(object):
     ##########################################################################################
     # abstract methods
 
-    def scan_software(self, versions=None, menu_name=None, icon=None):
+    def scan_software(self, versions=None, display_name=None, icon=None):
         """
         Performs a scan for software installations.
 
@@ -233,28 +243,20 @@ class SoftwareLauncher(object):
                          for all versions. A version string is
                          DCC-specific but could be something
                          like "2017", "6.3v7" or "1.2.3.52"
-        :param menu_name: (optional) String to use to describe the
-                          resulting SoftwareVersion(s) in graphical displays.
+        :param display_name : (optional) String to use to describe the
+                              resulting SoftwareVersion(s) in graphical
+                              displays.
         :param icon: (optional) Path to icon to use with the resulting
                      SoftwareVersion(s) in graphical displays.
         :returns: List of :class:`SoftwareVersion` instances
         """
         raise NotImplementedError
 
-    def resolve_software(self, path):
-        """
-        Resolve a SoftwareVersion instance for the input DCC path.
-
-        :param path: Full path to a DCC
-        :returns: SoftwareVersion instance
-        """
-        raise NotImplementedError
-
-    def prepare_launch(self, software_version, args, options, file_to_open=None):
+    def prepare_launch(self, exec_path, args, options, file_to_open=None):
         """
         Prepares the given software for launch
 
-        :param software_version: Software Version to launch
+        :param exec_path: Path to DCC executable to launch
         :param args: Command line arguments as strings
         :param options: DCC specific options to pass
         :param file_to_open: (Optional) Full path name of a file to open on launch
@@ -276,245 +278,14 @@ class SoftwareLauncher(object):
         :param default: default value to return
         :returns: Value from the environment configuration
         """
-        # The post processing code requires the schema to introspect the
-        # setting's types, defaults, etc. An old use case exists whereby the key
-        # does not exist in the config schema so we need to account for that.
+        # An old use case exists whereby the key does not exist in the
+        # config schema so we need to account for that.
         schema = self.descriptor.configuration_schema.get(key, None)
 
-        # Get the value for the supplied key
-        if key in self.settings:
-            # Value provided by the settings
-            value = self.settings[key]
-        elif schema:
-            # Resolve a default value from the schema. This checks various
-            # legacy default value forms in the schema keys.
-            value = resolve_default_value(schema, default, self.__engine_name)
-        else:
-            # Nothing in the settings, no schema, fallback to the supplied
-            # default value
-            value = default
-
-        # We have a value of some kind and a schema. Allow the post
-        # processing code to further resolve the value.
-        if value and schema:
-            value = self.__post_process_settings_r(key, value, schema)
-        return value
-
-    def synergy_paths(self):
-        """
-        Scans the local file system using a list of search paths for
-        Autodesk Synergy Config files (.syncfg).
-
-        :returns: List of path names to Synergy Config files found
-                  in the local environment
-        """
-        if self._synergy_paths is None:
-            # Check for custom paths defined by the SYNHUB_CONFIG_PATH
-            # env var.
-            env_paths = os.environ.get("SYNHUB_CONFIG_PATH")
-            search_paths = []
-            if isinstance(env_paths, basestring):
-                # This can be a list of directories and/or files.
-                search_paths = env_paths.split(os.pathsep)
-
-            # Check the platfom-specific default installation path
-            # if no paths were set in the environment
-            elif sys.platform == "darwin":
-                search_paths = ["/Applications/Autodesk/Synergy/"]
-            elif sys.platform == "win32":
-                search_paths = ["C:\\ProgramData\\Autodesk\\Synergy\\"]
-            elif sys.platform == "linux2":
-                search_paths = ["/opt/Autodesk/Synergy/"]
-            else:
-                self.logger.debug(
-                    "Unable to determine Autodesk Synergy paths for platform "%
-                    sys.platform
-                )
-
-            # Set a default value, so we stop looking for them.
-            # @todo: Possibly implement a reset_synergy_paths() method?
-            self._synergy_paths = []
-            for search_path in search_paths:
-                if os.path.isdir(search_path):
-                    # Get the list of *.syncfg files in this directory
-                    self._synergy_paths.extend([
-                        os.path.join(search_path, f) for f in os.listdir(search_path)
-                        if f.endswith(".syncfg")
-                    ])
-                elif os.path.isfile(search_path) and search_path.endswith(".syncfg"):
-                    # Add the specified Synergy Config file directly to the list of paths.
-                    self._synergy_paths.append(search_path)
-
-            self.logger.info("Autodesk Synergy paths set to : %s" % self._synergy_paths)
-        return self._synergy_paths
-
-
-    ##########################################################################################
-    # internal helper methods
-
-    def _synergy_data_from_config(self, cfg_path):
-        """
-        For Autodesk DCCs, retrieve the Synergy Config data from the specified
-        configuation file.
-
-        :param cfg_path: Full path to Synergy Config (.syncfg) XML file
-        :returns: Dictionary representation of <Application> data from the
-                  input config file. Returned dictionary may also be empty.
-        :raises TankError: If there are any XML parsing errors or dict()
-                           conversion errors.
-        """
-        if not os.path.isfile(cfg_path):
-            self.logger.info("Synergy config file [%s] does not exist." % cfg_path)
-            return {}
-
-        try:
-            # Parse the Synergy Config file as XML
-            doc = XML_ET.parse(cfg_path)
-        except Exception, e:
-            raise TankError(
-                "Caught exception attempting to parse [%s] as XML.\n%s" %
-                (cfg_path, e)
-            )
-
-        try:
-            # Find the <Application> element that contains the data
-            # we want.
-            app_elem = doc.getroot().find("Application")
-            if app_elem is None:
-                self.logger.warning(
-                    "No <Application> found in Synergy config file '%s'." %
-                    (cfg_path)
-                )
-                return {}
-
-            # Convert the element's attribute/value pairs to a dictionary
-            synergy_data = dict(app_elem.items())
-        except Exception, e:
-            raise TankError(
-                "Caught unknown exception retrieving <Application> data from %s:\n%s" %
-                (cfg_path, e)
-            )
-
-        return synergy_data
-
-    def _software_version_from_synergy(self, cfg_path=None, syn_data=None):
-        """
-        Creates a SoftwareVersion instance based on the Synergy configuration
-        data from either the input Synergy Config (.syncfg) file or the data
-        dictionary already parsed from a Synergy Config file.
-
-        Must specify cfg_path or syn_data. If both are specified, cfg_path
-        is ignored.
-
-        :param cfg_path: Full path to a Synergy Config (.syncfg) XML file
-        :param syn_data: Synergy data parsed from a Synergy Config file
-        :returns: :class:`SoftwareVersion` SoftwareVersion instance or None.
-        """
-        if syn_data is None:
-            # Assume a configuation file has been specified to parse
-            syn_data = self._synergy_data_from_config(cfg_path)
-        if not syn_data:
-            # Config path not specified or couldn't be parsed.
-            self.logger.debug("Could not parse synergy data from input config '%s'." % cfg_path)
-            self.logger.debug("   or input synergy data : %s" % syn_data)
-            return None
-
-        # Return SoftwareVersion instance built from Synergy data
-        return SoftwareVersion(
-                    syn_data["Name"], syn_data["NumericVersion"],
-                    syn_data["StringVersion"], syn_data["ExecutablePath"],
-               )
-
-    def _synergy_data_from_executable(self, exec_path):
-        """
-        Finds the Synergy Config data relevant to the input DCC path.
-
-        :param exec_path: Full path to DCC.
-        :returns: Dictionary populated with Synergy Config data or empty.
-        """
-        found_data = None
-        path_matches = []
-        for cfg_path in self.synergy_paths():
-            syn_data = self._synergy_data_from_config(cfg_path)
-            # Get the ExecutablePath from the Synergy Config file
-            # and compare it to the input exec_path.
-            data_exec = syn_data.get("ExecutablePath")
-            if data_exec == exec_path:
-                # Exact match, got the data we need, so break.
-                found_data = syn_data
-                break
-            elif str(data_exec).startswith(exec_path):
-                # Keep track of things that might be close.
-                path_matches.append(syn_data)
-
-        if found_data:
-            # Exact match to what was requested.
-            return found_data
-
-        if len(path_matches) == 1:
-            # Only one close match was found.
-            return path_matches[0]
-
-        # Couldn't be determined.
-        return {}
-
-
-    def __post_process_settings_r(self, key, value, schema):
-        """
-        Recursive post-processing of settings values
-
-        :param key: Key to find value for from schema or default
-        :param value: Default value to return if no default value
-                      is found in the schema.
-        :param schema: Settings schema containing key
-        :returns: Value for key
-        """
-        settings_type = schema.get("type")
-
-        if settings_type == "list":
-            processed_val = []
-            value_schema = schema["values"]
-            for x in value:
-                processed_val.append(self.__post_process_settings_r(key, x, value_schema))
-
-        elif settings_type == "dict":
-            items = schema.get("items", {})
-            processed_val = value
-            for (key, value_schema) in items.items():
-                processed_val[key] = self.__post_process_settings_r(
-                    key, value[key], value_schema
-                )
-
-        elif settings_type == "config_path":
-            # this is a config path. Stored on the form
-            # foo/bar/baz.png, we should translate that into
-            # PROJECT_PATH/tank/config/foo/bar/baz.png
-            config_folder = self.__tk.pipeline_configuration.get_config_location()
-            adjusted_value = value.replace("/", os.path.sep)
-            processed_val = os.path.join(config_folder, adjusted_value)
-
-        elif type(value) == str and value.startswith("hook:"):
-            # handle the special form where the value is computed in a hook.
-            #
-            # if the template parameter is on the form
-            # a) hook:foo_bar
-            # b) hook:foo_bar:testing:testing
-            #
-            # The following hook will be called
-            # a) foo_bar with parameters []
-            # b) foo_bar with parameters [testing, testing]
-            #
-            chunks = value.split(":")
-            hook_name = chunks[1]
-            params = chunks[2:]
-            processed_val = self.__tk.execute_core_hook(
-                hook_name, setting=key, bundle_obj=self, extra_params=params
-            )
-        else:
-            # pass-through
-            processed_val = value
-
-        return processed_val
+        # Use engine.py method to resolve the setting value
+        return resolve_setting_value(
+            self.sgtk, self.engine_name, schema, self.settings, key, default
+        )
 
 
 class SoftwareVersion(object):
