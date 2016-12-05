@@ -549,7 +549,7 @@ class ToolkitManager(object):
         tk = config.get_tk_instance(self._sg_user)
 
         if status != Configuration.LOCAL_CFG_UP_TO_DATE:
-            self._cache_apps(tk, progress_callback)
+            self._cache_apps(tk, engine_name, project_id, progress_callback)
 
         return tk
 
@@ -626,11 +626,14 @@ class ToolkitManager(object):
         log.debug("...enabled: %s" % enabled)
         return enabled
 
-    def _cache_apps(self, tk, progress_callback, do_post_install=False):
+    def _cache_apps(self, tk, config_engine_name, config_project_id, progress_callback, do_post_install=False):
         """
         Caches all apps associated with the given toolkit instance.
 
         :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance to cache items for.
+        :param config_engine_name: Name of the engine that was used to resolve the configuration.
+        :param config_project_id: Project id that was used to resolve the configuration;
+                                  None for the site configuration.
         :param progress_callback: Callback function that reports back on the engine startup progress.
         :param do_post_install: Set to true to execute the post install triggers.
         """
@@ -646,16 +649,23 @@ class ToolkitManager(object):
         descriptors = []
         for env_name in pc.get_environments():
 
-            env_obj = pc.get_environment(env_name)
+            # Select the site or project environment based on the configuration project id.
+            if (not config_project_id and env_name == "site") or (config_project_id and env_name != "site"):
 
-            for engine in env_obj.get_engines():
-                descriptors.append(env_obj.get_engine_descriptor(engine))
+                env_obj = pc.get_environment(env_name)
 
-                for app in env_obj.get_apps(engine):
-                    descriptors.append(env_obj.get_app_descriptor(engine, app))
+                for engine in env_obj.get_engines():
 
-            for framework in env_obj.get_frameworks():
-                descriptors.append(env_obj.get_framework_descriptor(framework))
+                    # Select the descriptors for the configuration engine.
+                    if engine == config_engine_name:
+
+                        descriptors.append(env_obj.get_engine_descriptor(engine))
+
+                        for app in env_obj.get_apps(engine):
+                            descriptors.append(env_obj.get_app_descriptor(engine, app))
+
+                for framework in env_obj.get_frameworks():
+                    descriptors.append(env_obj.get_framework_descriptor(framework))
 
         # pass 2 - download all apps
         for idx, descriptor in enumerate(descriptors):
