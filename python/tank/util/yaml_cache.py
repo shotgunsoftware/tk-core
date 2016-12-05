@@ -19,7 +19,7 @@ import os
 import copy
 import threading
 
-from .yaml_commands import yaml_load
+from tank_vendor import yaml
 from ..errors import (
     TankError,
     TankUnreadableFileError,
@@ -258,7 +258,7 @@ class YamlCache(object):
         path = item.path
         try:
             with open(path, "r") as fh:
-                raw_data = yaml_load(fh)
+                raw_data = yaml.load(fh)
         except IOError:
             raise TankFileDoesNotExistError("File does not exist: %s" % path)
         except Exception, e:

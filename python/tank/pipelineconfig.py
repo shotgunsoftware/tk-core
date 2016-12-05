@@ -23,7 +23,6 @@ from .util.version import is_version_older
 from . import constants
 from .platform.environment import InstalledEnvironment, WritableEnvironment
 from .util import shotgun, yaml_cache
-from .util import yaml_load, yaml_safe_dump
 from .util import ShotgunPath
 from . import hook
 from . import pipelineconfig_utils
@@ -188,7 +187,7 @@ class PipelineConfiguration(object):
     
         fh = open(cfg_yml, "rt")
         try:
-            data = yaml_load(fh)
+            data = yaml.load(fh)
             if data is None:
                 raise Exception("File contains no data!")
         except Exception, e:
@@ -237,7 +236,7 @@ class PipelineConfiguration(object):
             # >>> yaml.safe_dump({"foo": u"bar"})
             # '{foo: bar}\n'
             #            
-            yaml_safe_dump(curr_settings, fh)
+            yaml.safe_dump(curr_settings, fh)
         except Exception, exp:
             raise TankError("Could not write to configuration file '%s'. "
                             "Error reported: %s" % (pipe_config_sg_id_path, exp))

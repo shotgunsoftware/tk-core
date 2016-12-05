@@ -23,7 +23,7 @@ from tank.commands.tank_command import get_actions, run_action
 from tank.commands.clone_configuration import clone_pipeline_configuration_html
 from tank.commands.core_upgrade import TankCoreUpdater
 from tank.commands.action_base import Action
-from tank.util import shotgun, CoreDefaultsManager, yaml_load
+from tank.util import shotgun, CoreDefaultsManager
 from tank.platform import constants as platform_constants
 from tank.authentication import ShotgunAuthenticator
 from tank.authentication import AuthenticationError
@@ -31,6 +31,7 @@ from tank.authentication import ShotgunAuthenticationError
 from tank.authentication import AuthenticationCancelled
 from tank.authentication import IncompleteCredentials
 from tank.commands import constants as command_constants
+from tank_vendor import yaml
 from tank.platform import engine
 from tank import pipelineconfig_utils
 from tank import LogManager
@@ -1379,7 +1380,7 @@ def _read_credentials_from_file(auth_path):
         raise IncompleteCredentials("credentials file does not exist.")
     # Read the dictionary from file
     with open(auth_path) as auth_file:
-        file_data = yaml_load(auth_file)
+        file_data = yaml.load(auth_file)
 
     args = [
         (k, v) for k, v in file_data.iteritems() if k in [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY]

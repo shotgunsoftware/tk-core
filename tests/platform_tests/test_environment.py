@@ -7,7 +7,7 @@ import os
 from tank.errors import TankError
 from tank_test.tank_test_base import *
 from tank.platform.validation import *
-from tank.util import yaml_load
+from tank_vendor import yaml
 
 import copy
 
@@ -29,19 +29,19 @@ class TestEnvironment(TankTestBase):
         # get raw environment
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        self.raw_env_data = yaml_load(fh)
+        self.raw_env_data = yaml.load(fh)
         fh.close()
         
         # get raw app metadata
         app_md = os.path.join(self.project_config, "bundles", "test_app", "info.yml")
         fh = open(app_md)
-        self.raw_app_metadata = yaml_load(fh)
+        self.raw_app_metadata = yaml.load(fh)
         fh.close()
 
         # get raw engine metadata
         eng_md = os.path.join(self.project_config, "bundles", "test_engine", "info.yml")
         fh = open(eng_md)
-        self.raw_engine_metadata = yaml_load(fh)
+        self.raw_engine_metadata = yaml.load(fh)
         fh.close()
 
     def test_basic_properties(self):
@@ -205,7 +205,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_before = yaml_load(fh)
+        env_before = yaml.load(fh)
         fh.close()
         
         self.env.create_engine_settings("new_engine")
@@ -213,7 +213,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_after = yaml_load(fh)
+        env_after = yaml.load(fh)
         fh.close()
         
         # ensure that disk was updated
@@ -236,7 +236,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_before = yaml_load(fh)
+        env_before = yaml.load(fh)
         fh.close()
         
         self.env.create_app_settings("test_engine", "new_app")
@@ -244,7 +244,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_after = yaml_load(fh)
+        env_after = yaml.load(fh)
         fh.close()
         
         # ensure that disk was updated
@@ -265,7 +265,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_before = yaml_load(fh)
+        env_before = yaml.load(fh)
         fh.close()
         prev_settings = self.env.get_engine_settings("test_engine")
         
@@ -276,7 +276,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_after = yaml_load(fh)
+        env_after = yaml.load(fh)
         fh.close()
         
         # ensure that disk was updated
@@ -316,7 +316,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_before = yaml_load(fh)
+        env_before = yaml.load(fh)
         fh.close()
         settings_before = self.env.get_app_settings("test_engine", "test_app")
         
@@ -326,7 +326,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_after = yaml_load(fh)
+        env_after = yaml.load(fh)
         fh.close()
         
         # ensure that disk was updated

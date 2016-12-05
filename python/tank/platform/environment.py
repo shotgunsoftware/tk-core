@@ -17,13 +17,12 @@ import os
 import sys
 import copy
 
+from tank_vendor import yaml
 from .bundle import resolve_default_value
 from . import constants
 from . import environment_includes
 from ..errors import TankError, TankUnreadableFileError
 
-from ..util import yaml_load, yaml_load_preserve
-from ..util import yaml_safe_dump, yaml_dump_preserve
 from ..util.yaml_cache import g_yaml_cache
 
 
@@ -611,10 +610,11 @@ class WritableEnvironment(InstalledEnvironment):
                 # which also holds the additional contextual metadata
                 # required by the parse to maintain the lexical integrity
                 # of the content.
-                yaml_data = yaml_load_preserve(fh)
+                from tank_vendor import ruamel_yaml
+                yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
             else:
                 # use pyyaml parser
-                yaml_data = yaml_load(fh)
+                yaml_data = yaml.load(fh)
         except Exception, e:
             raise TankError("Could not parse file '%s'. Error reported: '%s'" % (path, e))
         finally:
@@ -674,7 +674,11 @@ class WritableEnvironment(InstalledEnvironment):
             # note that safe_dump is not needed when using the
             # roundtrip dumper, it will adopt a 'safe' behaviour
             # by default.
-            yaml_dump_preserve(data, fh)
+            from tank_vendor import ruamel_yaml
+            ruamel_yaml.dump(data,
+                             fh,
+                             default_flow_style=False,
+                             Dumper=ruamel_yaml.RoundTripDumper)
         else:
             # use pyyaml parser
             #
@@ -692,7 +696,7 @@ class WritableEnvironment(InstalledEnvironment):
             # >>> yaml.safe_dump({"foo": u"bar"})
             # '{foo: bar}\n'
             #
-            yaml_safe_dump(data, fh)
+            yaml.safe_dump(data, fh)
 
 
     def set_yaml_preserve_mode(self, val):

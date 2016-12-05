@@ -10,7 +10,7 @@
 
 import os
 
-from ..util import yaml_load
+from tank_vendor import yaml
 
 from . import constants
 from .errors import TankDescriptorError
@@ -109,7 +109,7 @@ class ConfigDescriptor(Descriptor):
             # read the file first
             fh = open(core_descriptor_path, "rt")
             try:
-                data = yaml_load(fh)
+                data = yaml.load(fh)
                 core_descriptor_dict = data["location"]
             except Exception, e:
                 raise TankDescriptorError(
@@ -142,7 +142,7 @@ class ConfigDescriptor(Descriptor):
             root_file = open(root_file_path, "r")
             try:
                 # if file is empty, initializae with empty dict...
-                roots_data = yaml_load(root_file) or {}
+                roots_data = yaml.load(root_file) or {}
             finally:
                 root_file.close()
 
