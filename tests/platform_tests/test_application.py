@@ -19,8 +19,7 @@ import mock
 from tank_test.tank_test_base import *
 import tank
 from tank.errors import TankError, TankHookMethodDoesNotExistError
-from tank.platform import application
-from tank.platform import constants
+from tank.platform import application, constants, validation
 from tank.template import Template
 from tank.deploy import descriptor
 
@@ -63,6 +62,50 @@ class TestApplication(TankTestBase):
 
         # important to call base class so it can clean up memory
         super(TestApplication, self).tearDown()
+
+
+class TestAppFrameworks(TestApplication):
+    def test_minimum_version(self):
+        app = self.engine.apps["test_app"]
+        previous_mins = dict()
+        frameworks = app.descriptor.required_frameworks
+
+        for fw in frameworks:
+            previous_mins[fw["name"]] = fw.get("minimum_version")
+            fw["minimum_version"] = "v999.999.999"
+
+        try:
+            # We should get an error here due to the too-high
+            # minumum required version for the frameworks.
+            self.assertRaises(
+                TankError,
+                validation.validate_and_return_frameworks,
+                app.descriptor,
+                self.engine.get_env(),
+            )
+
+            for fw in frameworks:
+                fw["minimum_version"] = "v0.0.0"
+
+            # We should get back a list of framework objects that
+            # is the same length as the number of required frameworks
+            # we have.
+            self.assertEqual(
+                len(validation.validate_and_return_frameworks(
+                    app.descriptor,
+                    self.engine.get_env(),
+                )),
+                len(frameworks),
+            )
+        finally:
+            # In case any future tests need to make use of the minimum
+            # version requirements in the frameworks, we'll put them
+            # back to what they were before.
+            for fw in frameworks:
+                if previous_mins[fw["name"]]:
+                    fw["minimum_version"] = previous_mins[fw["name"]]
+                else:
+                    del fw["minimum_version"]
 
 
 class TestGetApplication(TestApplication):

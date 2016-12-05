@@ -8,13 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import os
+
 from .action_base import Action
 from . import console_utils
 from . import util
 from ..platform.environment import WritableEnvironment
 from . import constants
-import os
-
+from ..util.version import is_version_number, is_version_newer
 
 
 class AppUpdatesAction(Action):
@@ -459,9 +460,6 @@ def _update_item(log, suppress_prompts, tk, env, old_descriptor, new_descriptor,
         env.update_app_settings(engine_name, app_name, params, new_descriptor.get_dict())
     else:
         env.update_engine_settings(engine_name, params, new_descriptor.get_dict())
-        
-            
-        
 
 
 def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=None, framework_name=None):
@@ -493,13 +491,23 @@ def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=Non
     item_was_updated = False
 
     if status["can_update"]:
+        new_descriptor = status["latest"]
+
+        required_framework_updates = _get_framework_requirements(
+            log=log,
+            environment=env,
+            descriptor=new_descriptor,
+        )
         
         # print summary of changes
-        console_utils.format_bundle_info(log, status["latest"])
+        console_utils.format_bundle_info(
+            log,
+            new_descriptor,
+            required_framework_updates,
+        )
         
         # ask user
         if suppress_prompts or console_utils.ask_question("Update to the above version?"):
-            new_descriptor = status["latest"]
             curr_descriptor = status["current"]            
             _update_item(log, 
                          suppress_prompts, 
@@ -510,6 +518,16 @@ def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=Non
                          engine_name, 
                          app_name, 
                          framework_name)
+
+            # If we have frameworks that need to be updated along with
+            # this item, then we do so here. We're suppressing prompts
+            # for this because these framework updates are required for
+            # the proper functioning of the bundle that was just updated.
+            # This will be due to a minimum-required version setting for
+            # the bundle in its info.yml that isn't currently satisfied.
+            for fw_name in required_framework_updates:
+                _process_item(log, True, tk, env, framework_name=fw_name)
+
             item_was_updated = True
 
     elif status["out_of_date"] == False and not status["current"].exists_local():
@@ -561,8 +579,7 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
         version_pattern = framework_name.split("_")[-1]
         # use this pattern as a constraint as we check for updates
         latest_desc = curr_desc.find_latest_version(version_pattern)
-        
-    
+
     elif app_name:
         curr_desc = environment_obj.get_app_descriptor(engine_name, app_name)
         # for apps, also get the descriptor for their parent engine
@@ -614,4 +631,74 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
     data["update_status"] = status
 
     return data
+
+
+def _get_framework_requirements(log, environment, descriptor):
+    """
+    Returns a list of framework names that will be require updating. This
+    is checking the given descriptor's required frameworks for any
+    minimum-required versions it might be expecting. Any version
+    requirements not already met by the frameworks configured for the
+    given environment will be returned by name.
+
+    :param log: The logging handle.
+    :param environment: The environment object.
+    :param descriptor: The descriptor object to check.
+
+    :returns: A list of framework names requiring update.
+              Example: ["tk-framework-widget_v0.2.x", ...]
+    """
+    required_frameworks = descriptor.required_frameworks
+
+    if not required_frameworks:
+        return []
+
+    env_fw_descriptors = dict()
+    env_fw_instances = environment.get_frameworks()
+
+    for fw in env_fw_instances:
+        env_fw_descriptors[fw] = environment.get_framework_descriptor(fw)
+
+    frameworks_to_update = []
+
+    for fw in required_frameworks:
+        # Example: tk-framework-widget_v0.2.x
+        name = "%s_%s" % (fw.get("name"), fw.get("version"))
+
+        min_version = fw.get("minimum_version")
+
+        if not min_version:
+            log.debug("No minimum_version setting found for %s" % name)
+            continue
+
+        # If we don't have the framework configured then there's
+        # not going to be anything for us to check against. It's
+        # best to simply continue on.
+        if name not in env_fw_descriptors:
+            log.warning(
+                "Framework %s isn't configured; unable to check "
+                "its minimum-required version as a result." % name
+            )
+            continue
+
+        env_fw_version = env_fw_descriptors[name].version
+
+        if env_fw_version == "Undefined":
+            log.debug(
+                "Installed framework has no version specified. Not checking "
+                "the bundle's required framework version as a result."
+            )
+            continue
+
+        if not is_version_number(min_version) or not is_version_number(env_fw_version):
+            log.warning(
+                "Unable to check minimum-version requirements for %s "
+                "due to one or both version numbers being malformed: "
+                "%s and %s" % (name, min_version, env_fw_version)
+            )
+
+        if is_version_newer(min_version, env_fw_version):
+            frameworks_to_update.append(name)
+
+    return frameworks_to_update
 

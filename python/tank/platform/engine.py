@@ -802,8 +802,10 @@ class Engine(TankBundle):
             # apps for the new context, and will pull apps that have already
             # been loaded from the __application_pool, which is persistent.
             old_context = self.context
+            new_engine_settings = new_env.get_engine_settings(self.__engine_instance_name)
             self.__env = new_env
             self._set_context(new_context)
+            self._set_settings(new_engine_settings)
             self.__load_apps(reuse_existing_apps=True, old_context=old_context)
 
             # Call the post_context_change method to allow for any engine
