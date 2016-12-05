@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# Added utf-8 coding specification above for non-ascii characters 
+# added to a couple of unit tests for the yaml parsers.
 
 import os
 
