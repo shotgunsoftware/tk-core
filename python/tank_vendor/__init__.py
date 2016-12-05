@@ -10,12 +10,10 @@
 
 
 """
-Encapsulates basic yaml commands that can be tailored for specific needs.
-
-One such need is to override the default constructor for the
-yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG tag to encode strings
-as 'utf8' instead of the default 'ascii' to allow for non-ascii
-characters in environment configuration and bundle manifest yaml files.
+By default, yaml constructs Python str objects using 'ascii' encoding.
+In order to support localization and non-ascii unicode characters in
+environment configuration and/or bundle manifest files, we want to 
+override that encoding to use 'utf-8' instead.
 """
 from . import yaml
 from . import ruamel_yaml
