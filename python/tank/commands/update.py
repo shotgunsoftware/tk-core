@@ -376,7 +376,7 @@ def _process_environment(tk,
             engines_to_process = []
     
     for engine in engines_to_process:
-        items.append( _process_item(log, suppress_prompts, tk, environment_obj, engine) )
+        items.extend(_process_item(log, suppress_prompts, tk, environment_obj, engine))
         log.info("")
         
         if app_instance_name is None:
@@ -393,7 +393,7 @@ def _process_environment(tk,
                 apps_to_process = []
         
         for app in apps_to_process:
-            items.append( _process_item(log, suppress_prompts, tk, environment_obj, engine, app) )
+            items.extend(_process_item(log, suppress_prompts, tk, environment_obj, engine, app))
             log.info("")
     
     if len(environment_obj.get_frameworks()) > 0:
@@ -402,7 +402,7 @@ def _process_environment(tk,
         log.info("-" * 70)
 
         for framework in environment_obj.get_frameworks():
-            items.append( _process_item(log, suppress_prompts, tk, environment_obj, framework_name=framework) )
+            items.extend(_process_item(log, suppress_prompts, tk, environment_obj, framework_name=framework))
         
     return items
         
@@ -489,6 +489,7 @@ def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=Non
 
     status = _check_item_update_status(env, engine_name, app_name, framework_name)
     item_was_updated = False
+    updated_items = []
 
     if status["can_update"]:
         new_descriptor = status["latest"]
@@ -526,7 +527,9 @@ def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=Non
             # This will be due to a minimum-required version setting for
             # the bundle in its info.yml that isn't currently satisfied.
             for fw_name in required_framework_updates:
-                _process_item(log, True, tk, env, framework_name=fw_name)
+                updated_items.extend(
+                    _process_item(log, True, tk, env, framework_name=fw_name)
+                )
 
             item_was_updated = True
 
@@ -551,7 +554,9 @@ def _process_item(log, suppress_prompts, tk, env, engine_name=None, app_name=Non
     d["app_name"] = app_name
     d["engine_name"] = engine_name
     d["env_name"] = env
-    return d
+
+    updated_items.append(d)
+    return updated_items
 
 
 def _check_item_update_status(environment_obj, engine_name=None, app_name=None, framework_name=None):
