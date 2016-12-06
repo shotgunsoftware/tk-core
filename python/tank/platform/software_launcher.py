@@ -15,9 +15,6 @@ should implement.
 
 import os
 import sys
-import re
-import logging
-import xml.etree.ElementTree as XML_ET
 
 from ..errors import TankError
 from ..log import LogManager
@@ -39,9 +36,9 @@ def create_engine_launcher(tk, context, engine_name):
 
     :param tk: :class:`~sgtk.Sgtk` Toolkit instance.
     :param context: :class:`~sgtk.Context` Context to launch the DCC in.
-    :param engine_name: (str) Name of the Toolkit engine associated with
-                        the DCC(s) to launch.
-    :returns: :class:`SoftwareLauncher` subclass instance or None.
+    :param str engine_name: Name of the Toolkit engine associated with
+                            the DCC(s) to launch.
+    :rtype: :class:`SoftwareLauncher` instance or None.
     """
     # Get the engine environment and descriptor using engine.py code
     (env, engine_descriptor) = get_env_and_descriptor_for_engine(
@@ -81,7 +78,9 @@ def create_engine_launcher(tk, context, engine_name):
 
 class SoftwareLauncher(object):
     """
-    Functionality related to the discovery and launch of a DCC
+    Functionality related to the discovery and launch of a DCC. This class
+    should only be constructed through the 'create_engine_launcher()'
+    public factory method above.
     """
     def __init__(self, tk, context, engine_name, env):
         """
@@ -91,11 +90,11 @@ class SoftwareLauncher(object):
         :param context: :class:`~sgtk.Context` A context object to
                         define the context on disk where the engine
                         is operating
-        :param engine_name: (str) Name of the Toolkit engine associated
-                            with the DCC(s) to launch.
-        :param env: An Environment object to associate with this launcher.
+        :param str engine_name: Name of the Toolkit engine associated
+                                with the DCC(s) to launch.
+        :param env: An sgtk.platform.environment.Environment object to
+                    associate with this launcher.
         """
-
         # get the engine settings
         settings = env.get_engine_settings(engine_name)
 
@@ -119,7 +118,10 @@ class SoftwareLauncher(object):
         )
 
         # Once the engine settings and descriptor have been validated,
-        # initialize members of this class
+        # initialize members of this class. Since this code only runs
+        # during the pre-launch phase of an engine, there are no
+        # opportunities to change the Context or environment. Safe
+        # to cache these values.
         self.__tk = tk
         self.__context = context
         self.__environment = env
@@ -238,29 +240,28 @@ class SoftwareLauncher(object):
         """
         Performs a scan for software installations.
 
-        :param versions: List of strings representing versions
-                         to search for. If set to None, search
-                         for all versions. A version string is
-                         DCC-specific but could be something
-                         like "2017", "6.3v7" or "1.2.3.52"
-        :param display_name : (optional) String to use to describe the
-                              resulting SoftwareVersion(s) in graphical
-                              displays.
-        :param icon: (optional) Path to icon to use with the resulting
-                     SoftwareVersion(s) in graphical displays.
+        :param list versions: List of strings representing versions
+                              to search for. If set to None, search
+                              for all versions. A version string is
+                              DCC-specific but could be something
+                              like "2017", "6.3v7" or "1.2.3.52"
+        :param str display_name : (optional) Name to use in graphical
+                                  displays to describe the
+                                  SoftwareVersions that were found.
+        :param icon: (optional) Path to a 256x256 (or smaller) png file
+                     that will represent every SoftwareVersion found.
         :returns: List of :class:`SoftwareVersion` instances
         """
         raise NotImplementedError
 
-    def prepare_launch(self, exec_path, args, options, file_to_open=None):
+    def prepare_launch(self, exec_path, args, file_to_open=None):
         """
         Prepares the given software for launch
 
-        :param exec_path: Path to DCC executable to launch
-        :param args: Command line arguments as strings
-        :param options: DCC specific options to pass
-        :param file_to_open: (Optional) Full path name of a file to open on launch
-        :returns: LaunchInformation instance
+        :param str exec_path: Path to DCC executable to launch
+        :param str args: Command line arguments as strings
+        :param str file_to_open: (optional) Full path name of a file to open on launch
+        :returns: :class:`LaunchInformation` instance
         """
         raise NotImplementedError
 
@@ -293,33 +294,22 @@ class SoftwareVersion(object):
     Container class that stores properties of a DCC that
     are useful for Toolkit Engine Startup functionality.
     """
-    def __init__(self, name, version, display_name, path, icon=None):
+    def __init__(self, version, display_name, path, icon=None):
         """
         Constructor.
 
-        :param name: Internal name for the SoftwareVersion
-                     (e.g. Maya)
-        :param version: Explicit (string) version of the DCC represented
-                        (e.g. 2017)
-        :param display_name: Name to use for any graphical displays
-        :param path: Full path to the DCC executable.
-        :param icon: (Optional) Full path to the icon to use for graphical
-                     displays of this SoftwareVersion.
+        :param str version: Explicit version of the DCC represented
+                            (e.g. 2017)
+        :param str display_name: Name to use for any graphical displays
+        :param str path: Full path to the DCC executable.
+        :param str icon: (optional) Full path to a 256x256 (or smaller)
+                         png file to use for graphical displays of
+                         this SoftwareVersion.
         """
-        self._name = name
         self._version = version
         self._display_name = display_name
         self._path = path
         self._icon_path = icon
-
-    @property
-    def name(self):
-        """
-        The internal name for this SoftwareVersion
-
-        :returns: String name
-        """
-        return self._name
 
     @property
     def version(self):
@@ -352,7 +342,8 @@ class SoftwareVersion(object):
     def icon(self):
         """
         Path to the icon to use for graphical displays of this
-        SoftwareVersion
+        SoftwareVersion. Expected to be a 256x256 (or smaller)
+        png file.
 
         :returns: String path
         """
@@ -367,10 +358,12 @@ class LaunchInformation(object):
         """
         Constructor
 
-        :param path: Resolved path to DCC
-        :param args: Args to pass on the command line when launching the DCC
-        :param environ: Dict of environment variables : value that must be
-                        set to successfully launch the DCC.
+        :param str path: Resolved path to DCC
+        :param str args: Args to pass on the command line
+                         when launching the DCC
+        :param dict environ: Environment variables that
+                             must be set to successfully
+                             launch the DCC.
         """
         # Initialize members
         self._path = path

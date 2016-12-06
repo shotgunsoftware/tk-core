@@ -914,7 +914,7 @@ def _post_process_settings_r(tk, key, value, schema):
         items = schema.get("items", {})
         # note - we assign the original values here because we
         processed_val = value
-        for (key, value_schema) in items.items():
+        for (key, value_schema) in items.iteritems():
             processed_val[key] = _post_process_settings_r(tk, key, value[key], value_schema)
 
     elif settings_type == "config_path":
@@ -925,7 +925,7 @@ def _post_process_settings_r(tk, key, value, schema):
         adjusted_value = value.replace("/", os.path.sep)
         processed_val = os.path.join(config_folder, adjusted_value)
 
-    elif type(value) == str and value.startswith("hook:"):
+    elif isinstance(value, basestring) and value.startswith("hook:"):
         # handle the special form where the value is computed in a hook.
         #
         # if the template parameter is on the form
@@ -954,13 +954,13 @@ def resolve_setting_value(tk, engine_name, schema, settings, key, default):
     Resolve a setting value.  Exposed to allow values to be resolved for
     settings derived outside of the app.
 
-    :param tk: Toolkit API instance
-    :param engine_name: Name of Toolkit engine instance.
-    :param schema: A schema defining types and defaults for settings.
-                   The post processing code requires the schema to
-                   introspect the settings' types, defaults, etc.
-    :param settings: the settings dictionary source
-    :param key: setting name
+    :param tk: :class:`~sgtk.Sgtk` Toolkit API instance
+    :param str engine_name: Name of Toolkit engine instance.
+    :param dict schema: A schema defining types and defaults for settings.
+                        The post processing code requires the schema to
+                        introspect the settings' types, defaults, etc.
+    :param dict settings: the settings dictionary source
+    :param str key: setting name
     :param default: a default value to use for the setting
     :returns: Resolved value of input setting key
     """
