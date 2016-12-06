@@ -313,10 +313,9 @@ class TankQDialog(TankDialogBase):
             self.ui.btn_shotgun.clicked.connect( self._on_shotgun )
             self.ui.btn_reload.clicked.connect( self._on_reload )
 
-            # When there is no file system locations, hide "Jump to File System" and "Jump to Shotgun" buttons.
+            # When there is no file system locations, hide the "Jump to File System" button.
             if not self._bundle.context.filesystem_locations:
                 self.ui.btn_file_system.setVisible(False)
-                self.ui.btn_shotgun.setVisible(False)
 
             if len(self._bundle.descriptor.configuration_schema) == 0:
                 # no configuration for this app!
