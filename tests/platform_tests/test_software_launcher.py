@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import shutil
 
 from tank_test.tank_test_base import *
 import tank
@@ -60,8 +59,8 @@ class TestEngineLauncher(TankTestBase):
         startup_plugin = os.path.join(
             self.pipeline_config_root, "config", "bundles", "test_engine", "startup.py"
         )
-        if os.path.exists(startup_plugin):
-            os.remove(startup_plugin)
+        startup_copy = startup_plugin.replace("startup.py", "startup_copy.py")
+        os.rename(startup_plugin, startup_copy)
         launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
         self.assertEqual(launcher, None)
 
@@ -69,11 +68,7 @@ class TestEngineLauncher(TankTestBase):
         expected_disk_location = os.path.join(
             self.pipeline_config_root, "config", "bundles", "test_engine"
         )
-        startup_copy = os.path.join(
-            self.pipeline_config_root, "config", "bundles", "test_engine", "startup_copy.py"
-        )
-        
-        shutil.copy(startup_copy, startup_plugin)
+        os.rename(startup_copy, startup_plugin)
         launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
         self.assertIsInstance(launcher, SoftwareLauncher)
         self.assertEqual(self.engine_name, launcher.engine_name)
