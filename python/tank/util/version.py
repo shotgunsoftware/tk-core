@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import re
+
 from distutils.version import LooseVersion
 
 def is_version_head(version):
@@ -75,3 +77,21 @@ def is_version_older(a, b):
         b = b[1:]
 
     return LooseVersion(a) < LooseVersion(b)
+
+def is_version_number(version):
+    """
+    Tests whether the given string is a properly formed
+    version number (ex: v1.2.3). The test is made using
+    the pattern r"v\d+.\d+.\d+$"
+
+    :param str version: The version string to test.
+
+    :rtype: bool
+    """
+    match = re.match(r"v\d+.\d+.\d+$", version)
+
+    if match:
+        return True
+    else:
+        return False
+

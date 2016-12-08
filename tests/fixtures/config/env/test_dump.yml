@@ -1,5 +1,12 @@
 include: ./empty_config.yml
 
+frameworks:
+    test_framework_v1.x.x:
+        location:
+            type: dev
+            path: '{PIPELINE_CONFIG}/config/bundles/test_framework'
+            version: v1.0.0
+
 engines:
     test_engine:
         location: {'type': 'dev', 'path': '{PIPELINE_CONFIG}/config/bundles/test_engine'}
