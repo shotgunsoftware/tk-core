@@ -89,5 +89,4 @@ from .templatekey import TemplateKey, SequenceKey, IntegerKey, StringKey, Timest
 
 # Make sure Toolkit specific patches get applied to the yaml and
 # ruamel_yaml modules before anything else imports them.
-from .util.yaml_patcher import yaml
-from .util.yaml_patcher import ruamel_yaml
+from .util import yaml_patcher
