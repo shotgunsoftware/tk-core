@@ -589,7 +589,7 @@ class Context(object):
             fields.update(self._fields_from_template_tree(template, non_none_fields, entities))
 
         # get values for shotgun query keys in template
-        fields.update(self._fields_from_shotgun(template, entities))
+        fields.update(self._fields_from_shotgun(template, entities, validate))
 
         if validate:
             # check that all context template fields were found and if not then raise a TankError
@@ -732,10 +732,19 @@ class Context(object):
     ################################################################################################
     # private methods
 
-    def _fields_from_shotgun(self, template, entities):
+    def _fields_from_shotgun(self, template, entities, validate):
         """
         Query Shotgun server for keys used by this template whose values come directly
         from Shotgun fields.
+
+        :param template: Template to retrieve Shotgun fields for.
+        :param entities: Dictionary of entities for the current context.
+        :param validate: If True, missing fields will raise a TankError.
+
+        :returns: Dictionary of field values extracted from Shotgun.
+        :rtype: dict
+
+        :raises TankError: Raised if a key is missing from the entities list when ``validate`` is ``True``.
         """
         fields = {}
         # for any sg query field
@@ -747,9 +756,12 @@ class Context(object):
                 
                 # ensure that the context actually provides the desired entities
                 if not key.shotgun_entity_type in entities:
-                    raise TankError("Key '%s' in template '%s' could not be populated by "
-                                    "context '%s' because the context does not contain a "
-                                    "shotgun entity of type '%s'!" % (key, template, self, key.shotgun_entity_type))
+                    if validate:
+                        raise TankError("Key '%s' in template '%s' could not be populated by "
+                                        "context '%s' because the context does not contain a "
+                                        "shotgun entity of type '%s'!" % (key, template, self, key.shotgun_entity_type))
+                    else:
+                        continue
                     
                 entity = entities[key.shotgun_entity_type]
                 
