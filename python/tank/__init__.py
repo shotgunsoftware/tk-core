@@ -87,4 +87,7 @@ from .commands import list_commands, get_command, SgtkSystemCommand
 
 from .templatekey import TemplateKey, SequenceKey, IntegerKey, StringKey, TimestampKey
 
-
+# Make sure Toolkit specific patches get applied to the yaml and
+# ruamel_yaml modules before anything else imports them.
+from .util.yaml_patcher import yaml
+from .util.yaml_patcher import ruamel_yaml
