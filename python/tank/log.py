@@ -52,6 +52,8 @@ Below is a simple log hierarchy to illustrate what this might look like in pract
      |       |
      |       |- tk-maya                               Toolkit Engine
      |             |
+     |             |- startup                         Toolkit Engine Software Launcher
+     |             |
      |             |- tk-multi-workfiles2             Toolkit App (or framework)
      |                  |
      |                  |- tkimp63c3b2d57f85          Toolkit Command Session
