@@ -143,6 +143,9 @@ class TestGetSetting(TestApplication):
         
         # test resource
         self.assertEqual(self.test_resource, self.app.get_setting("test_icon"))
+
+        # Test unicode gets encoded correctly
+        self.assertIsInstance(self.app.get_setting("test_unicode"), str)
         
         # Test a simple list
         test_list = self.app.get_setting("test_simple_list")
