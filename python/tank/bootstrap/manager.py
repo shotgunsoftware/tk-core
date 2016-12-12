@@ -549,7 +549,7 @@ class ToolkitManager(object):
         tk = config.get_tk_instance(self._sg_user)
 
         if status != Configuration.LOCAL_CFG_UP_TO_DATE:
-            self._cache_apps(tk, engine_name, project_id, progress_callback)
+            self._cache_apps(tk, engine_name, entity, progress_callback)
 
         return tk
 
@@ -626,14 +626,14 @@ class ToolkitManager(object):
         log.debug("...enabled: %s" % enabled)
         return enabled
 
-    def _cache_apps(self, tk, config_engine_name, config_project_id, progress_callback, do_post_install=False):
+    def _cache_apps(self, tk, config_engine_name, config_entity, progress_callback, do_post_install=False):
         """
         Caches all apps associated with the given toolkit instance.
 
         :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance to cache items for.
         :param config_engine_name: Name of the engine that was used to resolve the configuration.
-        :param config_project_id: Project id that was used to resolve the configuration;
-                                  None for the site configuration.
+        :param config_entity: Shotgun entity that was used to resolve the configuration;
+                              None for the site configuration.
         :param progress_callback: Callback function that reports back on the engine startup progress.
         :param do_post_install: Set to true to execute the post install triggers.
         """
@@ -642,12 +642,11 @@ class ToolkitManager(object):
 
         log.info("Downloading and installing apps...")
 
-        # Resolve a context for the project.
-        if config_project_id:
-            project_entity = {"type": "Project", "id": config_project_id}
-            project_context = tk.context_from_entity_dictionary(project_entity)
+        # Resolve a context for the entity.
+        if config_entity:
+            context = tk.context_from_entity_dictionary(config_entity)
         else:
-            project_context = tk.context_empty()
+            context = tk.context_empty()
 
         # each entry in the config template contains instructions about which version of the app
         # to use. First loop over all environments and gather all descriptors we should download,
@@ -656,10 +655,12 @@ class ToolkitManager(object):
 
         try:
             # Get an environment name given the project context.
-            env_name = tk.execute_core_hook(platform_constants.PICK_ENVIRONMENT_CORE_HOOK_NAME,
-                                            context=project_context)
+            env_name = tk.execute_core_hook(platform_constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
         except Exception, e:
-            log.debug("The pick environment core hook for context '%s' reported error: %s" % (project_context, e))
+            log.debug("The pick environment core hook for context '%s' reported error: %s" % (context, e))
+            message = "Which environment to start up cannot be evaluated. " \
+                      "Will download all dependencies for the entire configuration."
+            self._report_progress(progress_callback, 0.4, message)
             env_name = None
 
         if env_name:
@@ -674,7 +675,7 @@ class ToolkitManager(object):
         descriptors = []
         for env_name in env_name_list:
 
-            env_obj = pc.get_environment(env_name, project_context)
+            env_obj = pc.get_environment(env_name, context)
 
             for engine in env_obj.get_engines():
 
