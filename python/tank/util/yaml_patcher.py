@@ -15,8 +15,9 @@ In order to support localization and non-ascii unicode characters in
 environment configuration and/or bundle manifest files, we want to
 override that encoding to use 'utf-8' instead.
 """
-from tank_vendor import yaml
-from tank_vendor import ruamel_yaml
+
+import sys
+
 
 def construct_yaml_str_as_utf8(loader, node):
     """
@@ -35,6 +36,7 @@ def construct_yaml_str_as_utf8(loader, node):
     except UnicodeEncodeError:
         return value
 
+from tank_vendor import yaml
 # Set the utf-8 constructor as the default scalar
 # constructor in the yaml module
 yaml.add_constructor(
@@ -42,9 +44,12 @@ yaml.add_constructor(
     construct_yaml_str_as_utf8
 )
 
-# Set the utf-8 constructor as the default scalar
-# constructor in the ruamel_yaml module
-ruamel_yaml.add_constructor(
-    ruamel_yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
-    construct_yaml_str_as_utf8
-)
+# ruamel_yaml is not supported on Python 2.5 and lower.
+if not sys.version_info < (2, 6):
+    from tank_vendor import ruamel_yaml
+    # Set the utf-8 constructor as the default scalar
+    # constructor in the ruamel_yaml module
+    ruamel_yaml.add_constructor(
+        ruamel_yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
+        construct_yaml_str_as_utf8
+    )
