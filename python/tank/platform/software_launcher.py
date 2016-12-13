@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Defines the base class for DCC application launchers all Tank engines
+Defines the base class for DCC application launchers all Toolkit engines
 should implement.
 """
 
@@ -31,13 +31,39 @@ core_logger = LogManager.get_logger(__name__)
 
 def create_engine_launcher(tk, context, engine_name):
     """
-    Factory method that creates a Toolkit engine specific
-    SoftwareLauncher instance.
+    Factory method that creates a :class:`SoftwareLauncher` instance
+    for a particular engine in the environment config. Methods of the
+    :class:`SoftwareLauncher` implement the business logic of launching
+    a DCC application including executable path discovery and environmental
+    requirements to start up the specified engine during the launch process.
+    This information can be used by a custom script or toolkit app developed
+    to launch DCC applications. The relevant toolkit engine will automatically
+    start up during the DCC's launch phase.
+
+    Example::
+
+        >>> import subprocess
+        >>> import sgtk
+        >>> tk = sgtk.sgtk_from_path("/studio/project_root")
+        >>> context = tk.context_from_path("/studio/project_root/sequences/AAA/ABC/Light/work")
+        >>> launcher = sgtk.platform.create_engine_launcher(tk, context, "tk-maya")
+        >>> software_versions = launcher.scan_software()
+        >>> launch_info = launcher.prepare_launch(software_versions[0].path, args, "/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma")
+        >>> subprocess.Popen([launch_info.path + " " + launch_info.args], env=launch_info.environment)
+
+    where *software_versions* is a list of :class:`SoftwareVersion` instances
+    and *launch_info* is a :class:`LaunchInformation` instance. The example script
+    will launch the first version of Maya found installed on the local filesystem,
+    automatically start the tk-maya engine for that Maya session, and open
+    /studio/project_root/sequences/AAA/ABC/Light/work/scene.ma.
 
     :param tk: :class:`~sgtk.Sgtk` Toolkit instance.
     :param context: :class:`~sgtk.Context` Context to launch the DCC in.
-    :param str engine_name: Name of the Toolkit engine associated with
-                            the DCC(s) to launch.
+    :param str engine_name: Name of the Toolkit engine associated with the DCC(s)
+                            to launch. A :class:`TankError` is raised if the
+                            specified engine cannot be found on disk. If the engine
+                            is found, but no **startup.py** file exists, None is returned.
+
     :rtype: :class:`SoftwareLauncher` instance or None.
     """
     # Get the engine environment and descriptor using engine.py code
@@ -78,14 +104,15 @@ def create_engine_launcher(tk, context, engine_name):
 
 class SoftwareLauncher(object):
     """
-    Functionality related to the discovery and launch of a DCC. This class
-    should only be constructed through the 'create_engine_launcher()'
-    public factory method above.
+    Base class that defines an interface for functionality related to the discovery
+    and launch of a DCC application related to a specified toolkit engine. Contains
+    helper properties analogous to what the :class:`Engine` base class provides.
+    This class should never be constructed directly. It should only be constructed
+    by the :meth:`sgtk.platform.create_engine_launcher` factory method, which will
+    return an instance of a subclass implemented by the requested engine or None.
     """
     def __init__(self, tk, context, engine_name, env):
         """
-        Constructor.
-
         :param tk: :class:`~sgtk.Sgtk` Toolkit instance
         :param context: :class:`~sgtk.Context` A context object to
                         define the context on disk where the engine
@@ -203,9 +230,9 @@ class SoftwareLauncher(object):
     @property
     def engine_name(self):
         """
-        The TK engine name this launcher is based on.
+        The toolkit engine name this launcher is based on.
 
-        :returns: String TK engine name
+        :returns: String engine name
         """
         return self.__engine_name
 
@@ -215,7 +242,7 @@ class SoftwareLauncher(object):
         Standard python logger for this engine, app or framework.
         Use this whenever you want to emit or process log messages.
 
-        :returns: logging.Logger instance
+        :returns: :class:`~logging.Logger` instance
         """
         return LogManager.get_logger("env.%s.%s.startup" %
             (self.__environment.name, self.__engine_name)
@@ -238,25 +265,38 @@ class SoftwareLauncher(object):
 
     def scan_software(self, versions=None, display_name=None, icon=None):
         """
-        Performs a scan for software installations.
+        This is an abstract method that must be implemented by a subclass. The
+        engine implementation should scan the local filesystem to find installed
+        executables for the related DCC. If a list of versions is specified,
+        only return executable paths that match one of the specified versions.
 
-        :param list versions: List of strings representing versions
-                              to search for. If set to None, search
-                              for all versions. A version string is
-                              DCC-specific but could be something
-                              like "2017", "6.3v7" or "1.2.3.52"
-        :param str display_name : (optional) Name to use in graphical
-                                  displays to describe the
-                                  SoftwareVersions that were found.
+        :param list versions: Strings representing versions to search for. If set to None,
+                              search for all versions. A version string is DCC-specific but
+                              could be something like 2017, 6.3v7 or 1.2.3.52
+        :param str display_name: (optional) Label to use in graphical
+                                 displays to describe each :class:`SoftwareVersion`
+                                 that was found.
         :param icon: (optional) Path to a 256x256 (or smaller) png file
-                     that will represent every SoftwareVersion found.
+                     that will represent every :class:`SoftwareVersion` found
+                     where an icon is called for.
+
         :returns: List of :class:`SoftwareVersion` instances
         """
         raise NotImplementedError
 
     def prepare_launch(self, exec_path, args, file_to_open=None):
         """
-        Prepares the given software for launch
+        This is an abstract method that must be implemented by a subclass. The
+        engine implementation should prepare an environment to launch the specified
+        executable path in.
+
+        .. note:: By returning an executable path and args string, we allow for
+                  a workflow where the engine launcher can rewrite the launch
+                  sequence in arbitrary ways. For example, if a DCC has a
+                  pre-check phase that requires input from a human, a different
+                  executable path that launches a standalone UI which in turn
+                  launches the specified path can be returned with the appropriate
+                  args.
 
         :param str exec_path: Path to DCC executable to launch
         :param str args: Command line arguments as strings
@@ -296,8 +336,6 @@ class SoftwareVersion(object):
     """
     def __init__(self, version, display_name, path, icon=None):
         """
-        Constructor.
-
         :param str version: Explicit version of the DCC represented
                             (e.g. 2017)
         :param str display_name: Name to use for any graphical displays
@@ -352,12 +390,12 @@ class SoftwareVersion(object):
 
 class LaunchInformation(object):
     """
-    Stores blueprints for how to launch a specific DCC.
+    Stores blueprints for how to launch a specific DCC which includes
+    required environment variables, the executable path, and command
+    line arguments to pass when launching the DCC.
     """
     def __init__(self, path=None, args=None, environ=None):
         """
-        Constructor
-
         :param str path: Resolved path to DCC
         :param str args: Args to pass on the command line
                          when launching the DCC

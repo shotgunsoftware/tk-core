@@ -15,7 +15,8 @@ Launching and accessing Engines and Apps
 The methods in this section are used when you want to start up or manage a Toolkit engine.
 This typically happens directly once a host application (e.g. Maya or Nuke) has been launched.
 A running engine typically needs to be terminated before a new engine can be started. The method
-for terminating an engine can be found on the engine class itself.
+for terminating an engine can be found on the engine class itself. Methods defining a standard
+interface for launching host applications are also provided.
 
 .. autofunction:: start_engine
 
@@ -29,13 +30,14 @@ for terminating an engine can be found on the engine class itself.
 
 .. autofunction:: restart
 
+.. autofunction:: create_engine_launcher
 
 Engines
 ---------------------------------------
 
 A Toolkit engine connects a runtime environment such as a DCC with the rest of the Toolkit ecosystem.
-As the engine starts up, it loads the various associated apps and frameworks defined in the configuration and acts a
-host for all these objects, ensuring that they can operate in a consistent fashion across integrations.
+As the engine starts up, it loads the various associated apps and frameworks defined in the configuration and acts
+as a host for all these objects, ensuring that they can operate in a consistent fashion across integrations.
 
 **Information for App Developers**
 
@@ -46,7 +48,7 @@ You use the engine for a couple of main things:
 
 - Command registration via :meth:`Engine.register_command`
 
-The engine takes acts as a bridge betgween the DCC and the App so that the app doesn't have to
+The engine takes acts as a bridge between the DCC and the App so that the app doesn't have to
 contain DCC-specific code to create dialogs or manage menus etc. Typically, any DCC specific code
 is contained within a :class:`~sgtk.Hook`, making it easy to design apps that
 can be extended easily to support new engine environments.
@@ -56,7 +58,7 @@ can be extended easily to support new engine environments.
 
 The engine is a collection of files, similar in structure to an App. It has an ``engine.py`` file and this must
 derive from the :class:`Engine` Base class. Different engines then re-implement various aspect of this base
-class depending on their internal complexity. A summary of functionality include:
+class depending on their internal complexity. A summary of functionality defined in this file include:
 
 - The base class exposes various init and destroy methods which are executed at various points in the startup
   process. These can be overridden to control startup and shutdown execution.
@@ -81,6 +83,19 @@ The typical things an engine needs to handle are:
   the it provides a consistent python/QT interface to the apps. Since all engines implement the
   same base class, apps can call methods on the engines to for example create UIs. It is up to each
   engine to implement these methods so that they work nicely inside the host application.
+
+An engine may also implement a startup interface for DCC applications that are related to the engine.
+This implementation is a subclass of :class:`SoftwareLauncher` and located in a **startup.py** file
+in the root folder of the engine, analogous to the **engine.py** file. The engine launcher subclass
+must implement the :meth:`SoftwareLauncher.scan_software` and :meth:`SoftwareLauncher.prepare_launch`
+methods. If any special startup files (like userSetup.py for Maya) are needed to properly launch the
+DCC application, they should by convention reside in a **startup** subfolder at the same level as the
+**startup.py** file. The **EngineLauncher.prepare_launch()** method should parse the value for the
+**launch_builtin_plugin** engine configuration setting to determine whether toolkit is initialized in
+classic or plugin mode. For example, the **launch_builtin_plugin: basic** engine configuration setting
+tells the EngineLauncher startup logic to go look in ENGINE_ROOT/plugins/basic and make necessary
+preparations to get that plugin initialized as the DCC application launches. Additional plugins can
+be loaded during the launch phase by specifying a comma-separated string value to **launch_builtin_plugin**.
 
 
 Engine Events
@@ -176,6 +191,22 @@ Engine
     .. automethod:: _on_dialog_closed
 
     **Instance Methods & Properties**
+
+SoftwareLauncher
+============================
+.. autoclass:: SoftwareLauncher
+    :inherited-members:
+    :exclude-members: descriptor,
+                      settings
+    :members:
+
+SoftwareVersion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SoftwareVersion
+
+LaunchInformation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: LaunchInformation
 
 Applications
 ---------------------------------------
