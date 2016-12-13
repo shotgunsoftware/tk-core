@@ -33,3 +33,22 @@ class TestPipelineConfig(TankTestBase):
         # it from disk.
         tk2 = tank.sgtk_from_path(self.tk.pipeline_configuration.get_path())
         self.assertTrue(tk2.pipeline_configuration.is_site_configuration())
+
+    def test_publishtype_default(self):
+        """
+        Makes sure the default publish type is TankPublishedFile
+        """
+        self.assertEqual(
+            self.tk.pipeline_configuration.get_published_file_entity_type(),
+            "TankPublishedFile"
+        )
+
+    def test_publishtype_reloaded(self):
+        """
+        Makes sure the publish type is the one from the fixture.
+        """
+        self.setup_fixtures()
+        self.assertEqual(
+            self.tk.pipeline_configuration.get_published_file_entity_type(),
+            "PublishedFile"
+        )
