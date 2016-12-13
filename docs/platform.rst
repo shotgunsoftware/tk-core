@@ -90,12 +90,13 @@ in the root folder of the engine, analogous to the **engine.py** file. The engin
 must implement the :meth:`SoftwareLauncher.scan_software` and :meth:`SoftwareLauncher.prepare_launch`
 methods. If any special startup files (like userSetup.py for Maya) are needed to properly launch the
 DCC application, they should by convention reside in a **startup** subfolder at the same level as the
-**startup.py** file. The **EngineLauncher.prepare_launch()** method should parse the value for the
-**launch_builtin_plugin** engine configuration setting to determine whether toolkit is initialized in
-classic or plugin mode. For example, the **launch_builtin_plugin: basic** engine configuration setting
-tells the EngineLauncher startup logic to go look in ENGINE_ROOT/plugins/basic and make necessary
-preparations to get that plugin initialized as the DCC application launches. Additional plugins can
-be loaded during the launch phase by specifying a comma-separated string value to **launch_builtin_plugin**.
+**startup.py** file. To determine whether toolkit is initialized in classic or plugin mode, the 
+**EngineLauncher.prepare_launch()** method should parse the value for the **launch_builtin_plugin**
+engine configuration setting. For example, specifying **launch_builtin_plugin: basic** as an engine
+configuration setting tells the EngineLauncher startup logic to look in ENGINE_ROOT/plugins/basic and
+make necessary preparations to get that plugin initialized as the DCC application launches. Additional
+plugins can be loaded during the launch phase by specifying a comma-separated string value to 
+**launch_builtin_plugin**.
 
 
 Engine Events
