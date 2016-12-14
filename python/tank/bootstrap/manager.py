@@ -549,7 +549,7 @@ class ToolkitManager(object):
         tk = config.get_tk_instance(self._sg_user)
 
         if status != Configuration.LOCAL_CFG_UP_TO_DATE:
-            self._cache_apps(tk, progress_callback)
+            self._cache_apps(tk, engine_name, entity, progress_callback)
 
         return tk
 
@@ -626,35 +626,69 @@ class ToolkitManager(object):
         log.debug("...enabled: %s" % enabled)
         return enabled
 
-    def _cache_apps(self, tk, progress_callback, do_post_install=False):
+    def _cache_apps(self, tk, config_engine_name, config_entity, progress_callback, do_post_install=False):
         """
         Caches all apps associated with the given toolkit instance.
 
         :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance to cache items for.
+        :param config_engine_name: Name of the engine that was used to resolve the configuration.
+        :param config_entity: Shotgun entity that was used to resolve the configuration;
+                              None for the site configuration.
         :param progress_callback: Callback function that reports back on the engine startup progress.
         :param do_post_install: Set to true to execute the post install triggers.
         """
 
+        from ..platform import constants as platform_constants
+
         log.info("Downloading and installing apps...")
+
+        # Resolve a context for the entity.
+        if config_entity:
+            context = tk.context_from_entity_dictionary(config_entity)
+        else:
+            context = tk.context_empty()
 
         # each entry in the config template contains instructions about which version of the app
         # to use. First loop over all environments and gather all descriptors we should download,
         # then go ahead and download and post-install them
         pc = tk.pipeline_configuration
 
+        try:
+            # Get an environment name given the project context.
+            env_name = tk.execute_core_hook(platform_constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
+        except Exception, e:
+            log.debug("The pick environment core hook for context '%s' reported error: %s" % (context, e))
+            message = "Which environment to start up cannot be evaluated. " \
+                      "Will download all dependencies for the entire configuration."
+            self._report_progress(progress_callback, 0.4, message)
+            env_name = None
+
+        if env_name:
+            env_name_list = [env_name]
+        else:
+            # Since we could not get an environment name with the core hook,
+            # use a broader approach that will probably cache more apps,
+            # but at least the ones that we need.
+            env_name_list = pc.get_environments()
+
         # pass 1 - populate list of all descriptors
         descriptors = []
-        for env_name in pc.get_environments():
+        for env_name in env_name_list:
 
-            env_obj = pc.get_environment(env_name)
+            env_obj = pc.get_environment(env_name, context)
 
             for engine in env_obj.get_engines():
-                descriptors.append(env_obj.get_engine_descriptor(engine))
 
-                for app in env_obj.get_apps(engine):
-                    descriptors.append(env_obj.get_app_descriptor(engine, app))
+                # Select the descriptors for the configuration engine.
+                if engine == config_engine_name:
+
+                    descriptors.append(env_obj.get_engine_descriptor(engine))
+
+                    for app in env_obj.get_apps(engine):
+                        descriptors.append(env_obj.get_app_descriptor(engine, app))
 
             for framework in env_obj.get_frameworks():
+
                 descriptors.append(env_obj.get_framework_descriptor(framework))
 
         # pass 2 - download all apps

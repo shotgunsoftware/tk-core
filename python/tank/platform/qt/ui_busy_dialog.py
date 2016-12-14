@@ -11,7 +11,7 @@ from . import QtCore, QtGui
 class Ui_BusyDialog(object):
     def setupUi(self, BusyDialog):
         BusyDialog.setObjectName("BusyDialog")
-        BusyDialog.resize(418, 98)
+        BusyDialog.resize(500, 110)
         BusyDialog.setStyleSheet("/* Style for the window itself */\n"
 "#frame {\n"
 "border-color: #30A7E3;\n"
