@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.context &mdash; tk-core v0.18.40 documentation</title>
+  <title>tank.context &mdash; tk-core v0.18.45 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.40 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.45 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.40.<br>
+    <b>tk-core</b> v0.18.45.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -759,7 +759,7 @@
             <span class="n">fields</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fields_from_template_tree</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">non_none_fields</span><span class="p">,</span> <span class="n">entities</span><span class="p">))</span>
 
         <span class="c1"># get values for shotgun query keys in template</span>
-        <span class="n">fields</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fields_from_shotgun</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">entities</span><span class="p">))</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fields_from_shotgun</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">entities</span><span class="p">,</span> <span class="n">validate</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">validate</span><span class="p">:</span>
             <span class="c1"># check that all context template fields were found and if not then raise a TankError</span>
@@ -902,10 +902,19 @@
     <span class="c1">################################################################################################</span>
     <span class="c1"># private methods</span>
 
-    <span class="k">def</span> <span class="nf">_fields_from_shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">entities</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_fields_from_shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">entities</span><span class="p">,</span> <span class="n">validate</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Query Shotgun server for keys used by this template whose values come directly</span>
 <span class="sd">        from Shotgun fields.</span>
+
+<span class="sd">        :param template: Template to retrieve Shotgun fields for.</span>
+<span class="sd">        :param entities: Dictionary of entities for the current context.</span>
+<span class="sd">        :param validate: If True, missing fields will raise a TankError.</span>
+
+<span class="sd">        :returns: Dictionary of field values extracted from Shotgun.</span>
+<span class="sd">        :rtype: dict</span>
+
+<span class="sd">        :raises TankError: Raised if a key is missing from the entities list when ``validate`` is ``True``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c1"># for any sg query field</span>
@@ -917,9 +926,12 @@
                 
                 <span class="c1"># ensure that the context actually provides the desired entities</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">shotgun_entity_type</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Key &#39;</span><span class="si">%s</span><span class="s2">&#39; in template &#39;</span><span class="si">%s</span><span class="s2">&#39; could not be populated by &quot;</span>
-                                    <span class="s2">&quot;context &#39;</span><span class="si">%s</span><span class="s2">&#39; because the context does not contain a &quot;</span>
-                                    <span class="s2">&quot;shotgun entity of type &#39;</span><span class="si">%s</span><span class="s2">&#39;!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">shotgun_entity_type</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">validate</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Key &#39;</span><span class="si">%s</span><span class="s2">&#39; in template &#39;</span><span class="si">%s</span><span class="s2">&#39; could not be populated by &quot;</span>
+                                        <span class="s2">&quot;context &#39;</span><span class="si">%s</span><span class="s2">&#39; because the context does not contain a &quot;</span>
+                                        <span class="s2">&quot;shotgun entity of type &#39;</span><span class="si">%s</span><span class="s2">&#39;!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">shotgun_entity_type</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">continue</span>
                     
                 <span class="n">entity</span> <span class="o">=</span> <span class="n">entities</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">shotgun_entity_type</span><span class="p">]</span>
                 
@@ -1896,7 +1908,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.40',
+            VERSION:'v0.18.45',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

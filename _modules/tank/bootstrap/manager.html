@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.bootstrap.manager &mdash; tk-core v0.18.40 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.45 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.40 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.45 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.40.<br>
+    <b>tk-core</b> v0.18.45.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -719,7 +719,7 @@
         <span class="n">tk</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_tk_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">status</span> <span class="o">!=</span> <span class="n">Configuration</span><span class="o">.</span><span class="n">LOCAL_CFG_UP_TO_DATE</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cache_apps</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache_apps</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">tk</span>
 
@@ -796,35 +796,69 @@
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;...enabled: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">enabled</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">enabled</span>
 
-    <span class="k">def</span> <span class="nf">_cache_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">,</span> <span class="n">do_post_install</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_cache_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">config_engine_name</span><span class="p">,</span> <span class="n">config_entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">,</span> <span class="n">do_post_install</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Caches all apps associated with the given toolkit instance.</span>
 
 <span class="sd">        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance to cache items for.</span>
+<span class="sd">        :param config_engine_name: Name of the engine that was used to resolve the configuration.</span>
+<span class="sd">        :param config_entity: Shotgun entity that was used to resolve the configuration;</span>
+<span class="sd">                              None for the site configuration.</span>
 <span class="sd">        :param progress_callback: Callback function that reports back on the engine startup progress.</span>
 <span class="sd">        :param do_post_install: Set to true to execute the post install triggers.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="kn">from</span> <span class="nn">..platform</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">platform_constants</span>
+
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading and installing apps...&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Resolve a context for the entity.</span>
+        <span class="k">if</span> <span class="n">config_entity</span><span class="p">:</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity_dictionary</span><span class="p">(</span><span class="n">config_entity</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_empty</span><span class="p">()</span>
 
         <span class="c1"># each entry in the config template contains instructions about which version of the app</span>
         <span class="c1"># to use. First loop over all environments and gather all descriptors we should download,</span>
         <span class="c1"># then go ahead and download and post-install them</span>
         <span class="n">pc</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span>
 
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get an environment name given the project context.</span>
+            <span class="n">env_name</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span><span class="n">platform_constants</span><span class="o">.</span><span class="n">PICK_ENVIRONMENT_CORE_HOOK_NAME</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;The pick environment core hook for context &#39;</span><span class="si">%s</span><span class="s2">&#39; reported error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Which environment to start up cannot be evaluated. &quot;</span> \
+                      <span class="s2">&quot;Will download all dependencies for the entire configuration.&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+            <span class="n">env_name</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="n">env_name</span><span class="p">:</span>
+            <span class="n">env_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">env_name</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Since we could not get an environment name with the core hook,</span>
+            <span class="c1"># use a broader approach that will probably cache more apps,</span>
+            <span class="c1"># but at least the ones that we need.</span>
+            <span class="n">env_name_list</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">get_environments</span><span class="p">()</span>
+
         <span class="c1"># pass 1 - populate list of all descriptors</span>
         <span class="n">descriptors</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">env_name</span> <span class="ow">in</span> <span class="n">pc</span><span class="o">.</span><span class="n">get_environments</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">env_name</span> <span class="ow">in</span> <span class="n">env_name_list</span><span class="p">:</span>
 
-            <span class="n">env_obj</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">get_environment</span><span class="p">(</span><span class="n">env_name</span><span class="p">)</span>
+            <span class="n">env_obj</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">get_environment</span><span class="p">(</span><span class="n">env_name</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">engine</span> <span class="ow">in</span> <span class="n">env_obj</span><span class="o">.</span><span class="n">get_engines</span><span class="p">():</span>
-                <span class="n">descriptors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_obj</span><span class="o">.</span><span class="n">get_engine_descriptor</span><span class="p">(</span><span class="n">engine</span><span class="p">))</span>
 
-                <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">env_obj</span><span class="o">.</span><span class="n">get_apps</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
-                    <span class="n">descriptors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_obj</span><span class="o">.</span><span class="n">get_app_descriptor</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">app</span><span class="p">))</span>
+                <span class="c1"># Select the descriptors for the configuration engine.</span>
+                <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="n">config_engine_name</span><span class="p">:</span>
+
+                    <span class="n">descriptors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_obj</span><span class="o">.</span><span class="n">get_engine_descriptor</span><span class="p">(</span><span class="n">engine</span><span class="p">))</span>
+
+                    <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">env_obj</span><span class="o">.</span><span class="n">get_apps</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
+                        <span class="n">descriptors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_obj</span><span class="o">.</span><span class="n">get_app_descriptor</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">app</span><span class="p">))</span>
 
             <span class="k">for</span> <span class="n">framework</span> <span class="ow">in</span> <span class="n">env_obj</span><span class="o">.</span><span class="n">get_frameworks</span><span class="p">():</span>
+
                 <span class="n">descriptors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_obj</span><span class="o">.</span><span class="n">get_framework_descriptor</span><span class="p">(</span><span class="n">framework</span><span class="p">))</span>
 
         <span class="c1"># pass 2 - download all apps</span>
@@ -912,7 +946,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.40',
+            VERSION:'v0.18.45',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
