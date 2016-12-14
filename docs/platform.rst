@@ -109,9 +109,9 @@ The typical things an engine needs to handle are:
       values are passed back to the calling code from the ``prepare_launch()``
       :class:`LaunchInformation` return value via :meth:`LaunchInformation.environment`.
 
-  - Any special startup files (e.g. userSetup.py for Maya) are needed to properly launch the
-    DCC application should, by convention, reside in a ``startup`` subfolder at the same level
-    as the ``startup.py`` file.
+  - Any special startup files (e.g. userSetup.py for Maya) needed to properly launch the DCC
+    application should, by convention, reside in a ``startup`` subfolder at the same level as
+    the ``startup.py`` file.
 
 
 Engine Events

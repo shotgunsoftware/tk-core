@@ -59,13 +59,12 @@ def create_engine_launcher(tk, context, engine_name):
     :param tk: :class:`~sgtk.Sgtk` Toolkit instance.
     :param context: :class:`~sgtk.Context` Context to launch the DCC in.
     :param str engine_name: Name of the Toolkit engine associated with
-                            the DCC(s) to launch. A :class:`TankError`
-                            is raised if the specified engine cannot be
-                            found on disk. ``None`` is returned if the
-                            engine is found, but no ``startup.py`` file
-                            exists.
+                            the DCC(s) to launch.
 
-    :rtype: :class:`SoftwareLauncher` instance or ``None``.
+    :rtype: :class:`SoftwareLauncher` instance or ``None`` if the 
+            engine can be found on disk, but no ``startup.py`` file exists.
+    :raises: :class:`TankError` if the specified engine cannot be found
+             on disk.
     """
     # Get the engine environment and descriptor using engine.py code
     (env, engine_descriptor) = get_env_and_descriptor_for_engine(
