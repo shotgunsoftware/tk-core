@@ -105,12 +105,13 @@ def create_engine_launcher(tk, context, engine_name):
 
 class SoftwareLauncher(object):
     """
-    Base class that defines an interface for functionality related to the discovery
-    and launch of a DCC application related to a specified toolkit engine. Contains
-    helper properties analogous to what the :class:`Engine` base class provides.
-    This class should never be constructed directly. It should only be constructed
-    by the :meth:`sgtk.platform.create_engine_launcher` factory method, which will
-    return an instance of a subclass implemented by the requested engine or None.
+    Base class that defines the interface for functionality related to the
+    discovery and launch of DCC applications related to a toolkit engine.
+    Contains helper properties analogous to what the :class:`Engine` base
+    class provides. This class should never be constructed directly. It should
+    only be constructed by the :meth:`sgtk.platform.create_engine_launcher`
+    factory method, which will return an instance of a subclass implemented by
+    the requested engine or ``None``.
     """
     def __init__(self, tk, context, engine_name, env):
         """
@@ -268,18 +269,19 @@ class SoftwareLauncher(object):
         """
         This is an abstract method that must be implemented by a subclass. The
         engine implementation should scan the local filesystem to find installed
-        executables for the related DCC. If a list of versions is specified,
+        executables for related DCCs. If a list of versions is specified,
         only return executable paths that match one of the specified versions.
 
-        :param list versions: Strings representing versions to search for. If set to None,
-                              search for all versions. A version string is DCC-specific but
-                              could be something like 2017, 6.3v7 or 1.2.3.52
-        :param str display_name: (optional) Label to use in graphical
-                                 displays to describe each :class:`SoftwareVersion`
-                                 that was found.
-        :param icon: (optional) Path to a 256x256 (or smaller) png file
-                     that will represent every :class:`SoftwareVersion` found
-                     where an icon is called for.
+        :param list versions: Strings representing versions to search for. If
+                              set to ``None``, search for all versions. A version
+                              string is DCC-specific but could be something like
+                              2017, 6.3v7 or 1.2.3.52
+        :param str display_name: (optional) Label to use in graphical displays
+                                 to describe each :class:`SoftwareVersion`
+                                 that may be discovered.
+        :param str icon: (optional) Path to a 256x256 (or smaller) png file
+                         to represent every :class:`SoftwareVersion` found
+                         wherever an icon is called for.
 
         :returns: List of :class:`SoftwareVersion` instances
         """

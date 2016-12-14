@@ -58,7 +58,7 @@ can be extended easily to support new engine environments.
 
 The engine is a collection of files, similar in structure to an App. It has an ``engine.py`` file and this must
 derive from the :class:`Engine` Base class. Different engines then re-implement various aspect of this base
-class depending on their internal complexity. A summary of functionality defined in this file include:
+class depending on their internal complexity. A summary of functionality include:
 
 - The base class exposes various init and destroy methods which are executed at various points in the startup
   process. These can be overridden to control startup and shutdown execution.
