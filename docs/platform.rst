@@ -84,19 +84,34 @@ The typical things an engine needs to handle are:
   same base class, apps can call methods on the engines to for example create UIs. It is up to each
   engine to implement these methods so that they work nicely inside the host application.
 
-An engine may also implement a startup interface for DCC applications that are related to the engine.
-This implementation is a subclass of :class:`SoftwareLauncher` and located in a **startup.py** file
-in the root folder of the engine, analogous to the **engine.py** file. The engine launcher subclass
-must implement the :meth:`SoftwareLauncher.scan_software` and :meth:`SoftwareLauncher.prepare_launch`
-methods. If any special startup files (like userSetup.py for Maya) are needed to properly launch the
-DCC application, they should by convention reside in a **startup** subfolder at the same level as the
-**startup.py** file. To determine whether toolkit is initialized in classic or plugin mode, the 
-**EngineLauncher.prepare_launch()** method should parse the value for the **launch_builtin_plugin**
-engine configuration setting. For example, specifying **launch_builtin_plugin: basic** as an engine
-configuration setting tells the EngineLauncher startup logic to look in ENGINE_ROOT/plugins/basic and
-make necessary preparations to get that plugin initialized as the DCC application launches. Additional
-plugins can be loaded during the launch phase by specifying a comma-separated string value to 
-**launch_builtin_plugin**.
+- A startup interface for related DCC applications.
+
+  - This must be implemented in a ``startup.py`` file at the engine root level and derive from
+    the :class:`SoftwareLauncher` base class.
+
+  - Every engine is required to implement the :meth:`SoftwareLauncher.scan_software` and
+    :meth:`SoftwareLauncher.prepare_launch` methods.
+
+  - The ``prepare_launch()`` method is responsible for determining whether toolkit is initialized
+    in classic or plugin mode based on the value of the ``launch_builtin_plugin`` engine configuration
+    setting.
+
+    - If this value is set and its value is a non-empty string, the engine launcher startup logic
+      should load the specified plugin name(s) from ``ENGINE_ROOT/plugins/<plugin_name>``. Allow 
+      multiple plugins to be loaded at launch time by specifying a comma-separated list of plugin names.
+
+    - If this value is not set or set to an empty string, the classic form of initializing toolkit
+      by importing sgtk and using :meth:`sgtk.platform.start_engine()` with an engine name specified
+      in the environment should be used.
+
+    - In both cases, environment variables can be set to indicate what context to use when
+      starting toolkit, or any other information required to launch the DCC application. These
+      values are passed back to the calling code from the ``prepare_launch()``
+      :class:`LaunchInformation` return value via :meth:`LaunchInformation.environment`.
+
+  - Any special startup files (e.g. userSetup.py for Maya) are needed to properly launch the
+    DCC application should, by convention, reside in a ``startup`` subfolder at the same level
+    as the ``startup.py`` file.
 
 
 Engine Events
@@ -196,7 +211,6 @@ Engine
 SoftwareLauncher
 ============================
 .. autoclass:: SoftwareLauncher
-    :inherited-members:
     :exclude-members: descriptor,
                       settings
     :members:
@@ -204,10 +218,12 @@ SoftwareLauncher
 SoftwareVersion
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: SoftwareVersion
+    :members:
 
 LaunchInformation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: LaunchInformation
+    :members:
 
 Applications
 ---------------------------------------

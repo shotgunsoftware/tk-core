@@ -32,15 +32,13 @@ core_logger = LogManager.get_logger(__name__)
 def create_engine_launcher(tk, context, engine_name):
     """
     Factory method that creates a :class:`SoftwareLauncher` instance
-    for a particular engine in the environment config. Methods of the
-    :class:`SoftwareLauncher` implement the business logic of launching
-    a DCC application including executable path discovery and environmental
-    requirements to start up the specified engine during the launch process.
-    This information can be used by a custom script or toolkit app developed
-    to launch DCC applications. The relevant toolkit engine will automatically
-    start up during the DCC's launch phase.
-
-    Example::
+    for a particular engine in the environment config. Engine specific
+    subclasses of :class:`SoftwareLauncher` implement the business logic
+    for DCC executable path discovery and envrionmental requirements for
+    launching the DCC. The engine implementation will also automatically
+    start up toolkit during the DCC's launch phase. This functionality
+    can be used by a custom script or toolkit app. A very simple example
+    of how this works is demonstrated here::
 
         >>> import subprocess
         >>> import sgtk
@@ -51,20 +49,23 @@ def create_engine_launcher(tk, context, engine_name):
         >>> launch_info = launcher.prepare_launch(software_versions[0].path, args, "/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma")
         >>> subprocess.Popen([launch_info.path + " " + launch_info.args], env=launch_info.environment)
 
-    where *software_versions* is a list of :class:`SoftwareVersion` instances
-    and *launch_info* is a :class:`LaunchInformation` instance. The example script
-    will launch the first version of Maya found installed on the local filesystem,
-    automatically start the tk-maya engine for that Maya session, and open
+    where ``software_versions`` is a list of :class:`SoftwareVersion`
+    instances and ``launch_info`` is a :class:`LaunchInformation`
+    instance. This example will launch the first version of Maya
+    found installed on the local filesystem, automatically start
+    the tk-maya engine for that Maya session, and open
     /studio/project_root/sequences/AAA/ABC/Light/work/scene.ma.
 
     :param tk: :class:`~sgtk.Sgtk` Toolkit instance.
     :param context: :class:`~sgtk.Context` Context to launch the DCC in.
-    :param str engine_name: Name of the Toolkit engine associated with the DCC(s)
-                            to launch. A :class:`TankError` is raised if the
-                            specified engine cannot be found on disk. If the engine
-                            is found, but no **startup.py** file exists, None is returned.
+    :param str engine_name: Name of the Toolkit engine associated with
+                            the DCC(s) to launch. A :class:`TankError`
+                            is raised if the specified engine cannot be
+                            found on disk. ``None`` is returned if the
+                            engine is found, but no ``startup.py`` file
+                            exists.
 
-    :rtype: :class:`SoftwareLauncher` instance or None.
+    :rtype: :class:`SoftwareLauncher` instance or ``None``.
     """
     # Get the engine environment and descriptor using engine.py code
     (env, engine_descriptor) = get_env_and_descriptor_for_engine(
