@@ -435,6 +435,11 @@ class Engine(TankBundle):
                     # set the message before the window is raised to avoid briefly
                     # showing default values
                     self.__global_progress_widget.set_contents(title, details)
+
+                    # if the user closes manually by clicking on the dialog,
+                    # make sure we remove the reference to it via the
+                    # clear_busy method.
+                    window.dialog_closed.connect(self.clear_busy)
                     
                     # kick it off        
                     window.show()
