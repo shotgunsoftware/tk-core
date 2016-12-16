@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-# Added utf-8 coding specification above for non-ascii characters 
-# that appear later in this file that were added for tests to verify 
-# the yaml parsers are using utf-8 encoding, not ascii.
-
 import os
 
 from tank.errors import TankError
@@ -310,7 +305,6 @@ class TestUpdateEnvironment(TankTestBase):
                         "test_complex_dictionary":{"test_list": {"foo":"bar"}},
                         "test_complex_list":{"foo":"bar"},
                         "test_very_complex_list":{"test_list":{"foo":"bar"}},
-                        "test_encoding": "כי膨胀ндүที่ขย™"
                         }
         
         
@@ -336,7 +330,6 @@ class TestUpdateEnvironment(TankTestBase):
         env_app_settings = env_before["engines"]["test_engine"]["apps"]["test_app"]
         env_app_settings["location"] = new_location
         env_app_settings["foo"] = "bar"
-        env_app_settings["test_encoding"] = "כי膨胀ндүที่ขย™"
         env_app_settings["test_simple_dictionary"]["foo"] = "bar"
         for item in env_app_settings["test_complex_dictionary"]["test_list"]:
             item["foo"] = "bar"
@@ -352,7 +345,6 @@ class TestUpdateEnvironment(TankTestBase):
         settings_after = self.env.get_app_settings("test_engine", "test_app")
         
         settings_before["foo"] = "bar"
-        settings_before["test_encoding"] = "כי膨胀ндүที่ขย™"
         settings_before["test_simple_dictionary"]["foo"] = "bar"
         for item in settings_before["test_complex_dictionary"]["test_list"]:
             item["foo"] = "bar"
