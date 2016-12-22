@@ -172,11 +172,27 @@ class DumpConfigAction(Action):
         :param params: parameter dict.
         """
 
+        log.info("Dumping config...")
+
         # the env to dump
         env = self.tk.pipeline_configuration.get_environment(
             params["env"],
             writable=True
         )
+
+        # make sure the environment file doesn't match the output file.
+        # at some point we may want to make this possible, but dump_config is
+        # more about debugging, so for now just error out if they're the same file.
+        if params["file"]:
+            out_file = os.path.realpath(params["file"])
+            env_file = os.path.realpath(env.disk_location)
+
+            if out_file == env_file:
+                raise TankError(
+                    "The specified output file matches the environment configuration.\n"
+                    "As a precaution, writing to the source configuration is not allowed.\n"
+                    "Please specify a different output path."
+                )
 
         # get a file to write to
         env_fh = self._get_file_handle(params)
