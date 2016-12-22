@@ -244,7 +244,7 @@ class ShotgunAuthenticator(object):
         # Make sure we don't already have a user logged in through single
         # sign-on or provided by a DefaultsManager-derived instance.
         user = self.get_default_user()
-        if user:
+        if user and not user.are_credentials_expired():
             return user
 
         # Prompt the client for user credentials and connection information
