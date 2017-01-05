@@ -31,14 +31,13 @@ core_logger = LogManager.get_logger(__name__)
 
 def create_engine_launcher(tk, context, engine_name):
     """
-    Factory method that creates a :class:`SoftwareLauncher` instance
-    for a particular engine in the environment config. Engine specific
-    subclasses of :class:`SoftwareLauncher` implement the business logic
-    for DCC executable path discovery and envrionmental requirements for
-    launching the DCC. The engine implementation will also automatically
-    start up toolkit during the DCC's launch phase. This functionality
-    can be used by a custom script or toolkit app. A very simple example
-    of how this works is demonstrated here::
+    Factory method that creates a :class:`SoftwareLauncher` subclass 
+    instance implemented by a toolkit engine in the environment config
+    that can be used by a custom script or toolkit app. The engine 
+    subclass manages the business logic for DCC executable path 
+    discovery and the environmental requirements for launching the DCC.
+    Toolkit is automatically started up during the DCC's launch phase.
+    A very simple example of how this works is demonstrated here::
 
         >>> import subprocess
         >>> import sgtk
@@ -104,13 +103,12 @@ def create_engine_launcher(tk, context, engine_name):
 
 class SoftwareLauncher(object):
     """
-    Base class that defines the interface for functionality related to the
-    discovery and launch of DCC applications related to a toolkit engine.
-    Contains helper properties analogous to what the :class:`Engine` base
-    class provides. This class should never be constructed directly. It should
-    only be constructed by the :meth:`sgtk.platform.create_engine_launcher`
-    factory method, which will return an instance of a subclass implemented by
-    the requested engine or ``None``.
+    Base class that defines an interface for discovering and launching DCC
+    applications within a toolkit context. Includes properties analogous to
+    those provided by the :class:`Engine` base class. This class should never
+    be constructed directly. Instead, use the
+    :meth:`sgtk.platform.create_engine_launcher` factory method which returns
+    a subclass instance implemented by the requested engine or ``None``.
     """
     def __init__(self, tk, context, engine_name, env):
         """
@@ -245,7 +243,7 @@ class SoftwareLauncher(object):
 
         :returns: :class:`~logging.Logger` instance
         """
-        return LogManager.get_logger("env.%s.%s.startup" %
+        return LogManager.get_logger("sgtk.env.%s.%s.startup" %
             (self.__environment.name, self.__engine_name)
         )
 
@@ -394,7 +392,15 @@ class LaunchInformation(object):
     """
     Stores blueprints for how to launch a specific DCC which includes
     required environment variables, the executable path, and command
-    line arguments to pass when launching the DCC.
+    line arguments to pass when launching the DCC. For example, given
+    a LaunchInformation instance ``launch_info``, open a DCC using 
+    ``subprocess``::
+
+        >>> launch_cmd = "%s %s" % (launch_info.path, launch_info.args)
+        >>> subprocess.Popen([launch_cmd], env=launch_info.environment)
+
+    A LaunchInformation instance is generally obtained from an engine's
+    subclass implementation of :meth:`SoftwareLauncher.prepare_launch``
     """
     def __init__(self, path=None, args=None, environ=None):
         """
