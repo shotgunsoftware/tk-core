@@ -167,8 +167,7 @@ Engine
                       init_engine,
                       log_metric,
                       log_user_attribute_metric,
-                      
-settings
+                      settings
 
     **Engine Customizations**
 
