@@ -32,11 +32,6 @@ configuration:
     test_bool: 
         type: bool    
 
-    test_unicode:
-        type: str
-        description: "жå膨張ξύተጎዳلالسابق素的巨®"
-        default_value: "жå膨張ξύተጎዳلالسابق素的巨®"
-    
     test_template:
         type: template
         required_fields: [name,version]
