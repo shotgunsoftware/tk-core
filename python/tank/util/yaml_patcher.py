@@ -46,10 +46,17 @@ yaml.add_constructor(
 
 # ruamel_yaml is not supported on Python 2.5 and lower.
 if not sys.version_info < (2, 6):
-    from tank_vendor import ruamel_yaml
-    # Set the utf-8 constructor as the default scalar
-    # constructor in the ruamel_yaml module
-    ruamel_yaml.add_constructor(
-        ruamel_yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
-        construct_yaml_str_as_utf8
-    )
+    try:
+        from tank_vendor import ruamel_yaml
+        # Set the utf-8 constructor as the default scalar
+        # constructor in the ruamel_yaml module
+        ruamel_yaml.add_constructor(
+            ruamel_yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
+            construct_yaml_str_as_utf8
+        )
+
+    except ImportError:
+        # This can happen with older versions (<= v1.3.20) of
+        # tk-framework-desktopstartup that do not have the ruamel_yaml
+        # module added to the local core installation.
+        pass
