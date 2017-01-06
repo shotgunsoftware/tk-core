@@ -31,6 +31,13 @@ class Configuration(object):
         """
         self._path = path
 
+    @property
+    def path(self):
+        """
+        Path to the pipeline configuration.
+        """
+        return self._path
+
     def status(self):
         """
         Compares the actual configuration installed on disk against the
