@@ -38,11 +38,11 @@ class ConfigurationResolver(object):
     """
 
     def __init__(
-            self,
-            plugin_id,
-            engine_name,
-            project_id=None,
-            bundle_cache_fallback_paths=None
+        self,
+        plugin_id,
+        engine_name,
+        project_id=None,
+        bundle_cache_fallback_paths=None
     ):
         """
         Constructor
@@ -196,7 +196,7 @@ class ConfigurationResolver(object):
 
     def resolve_shotgun_configuration(
         self,
-        pipeline_config_name,
+        pipeline_config_identifier,
         fallback_config_descriptor,
         sg_connection,
         current_login
@@ -206,11 +206,11 @@ class ConfigurationResolver(object):
         in Shotgun. If no suitable configuration is found, return a configuration
         for the given fallback config.
 
-        :param pipeline_config_name: Name of configuration branch (e.g Primary).
-                                     if None, the method will automatically attempt
-                                     to resolve the right configuration based on the
-                                     current user and the users field on the pipeline
-                                     configuration.
+        :param pipeline_config_identifier: Name or id of configuration branch (e.g Primary).
+                                           If None, the method will automatically attempt
+                                           to resolve the right configuration based on the
+                                           current user and the users field on the pipeline
+                                           configuration.
         :param fallback_config_descriptor: descriptor dict or string for fallback config.
         :param sg_connection: Shotgun API instance
         :param current_login: The login of the currently logged in user.
@@ -218,7 +218,7 @@ class ConfigurationResolver(object):
         :return: :class:`Configuration` instance
         """
         log.debug(
-            "%s resolving configuration from Shotgun Pipeline Configuration %s" % (self, pipeline_config_name)
+            "%s resolving configuration from Shotgun Pipeline Configuration %s" % (self, pipeline_config_identifier)
         )
 
         fields = [
@@ -236,7 +236,7 @@ class ConfigurationResolver(object):
 
         pipeline_config = None
 
-        if pipeline_config_name is None:
+        if pipeline_config_identifier is None:
             log.debug("Will auto-detect which pipeline configuration to use.")
 
             # get the pipeline configs for the current project which are
@@ -316,9 +316,7 @@ class ConfigurationResolver(object):
                             user_config_fallback = pc
                             log.debug("Found per-user fallback match: %s" % pc)
 
-
             # Now select in order of priority:
-
             if user_config:
                 # A per-user pipeline config for the current project has top priority
                 pipeline_config = user_config
@@ -340,10 +338,30 @@ class ConfigurationResolver(object):
                 # we may not have any pipeline configuration matches at all:
                 pipeline_config = None
 
+        elif isinstance(pipeline_config_identifier, int):
+            log.debug("Will use pipeline configuration id '%s'" % pipeline_config_identifier)
+
+            log.debug("Requesting pipeline configuration data from Shotgun...")
+
+            # Fetch the one and only config that matches this id.
+            pipeline_config = sg_connection.find_one(
+                "PipelineConfiguration",
+                [
+                    ["project", "is", self._proj_entity_dict],
+                    ["id", "is", pipeline_config_identifier],
+                ],
+                fields
+            )
+
+            # If it doesn't exist, we're in trouble.
+            if pipeline_config is None:
+                raise TankBootstrapError(
+                    "Pipeline configuration with id '%d' doesn't exist in Shotgun" % pipeline_config_identifier
+                )
 
         else:
             # there is a fixed pipeline configuration name specified.
-            log.debug("Will use pipeline configuration '%s'" % pipeline_config_name)
+            log.debug("Will use pipeline configuration named '%s'" % pipeline_config_identifier)
 
             log.debug("Requesting pipeline configuration data from Shotgun...")
 
@@ -351,7 +369,7 @@ class ConfigurationResolver(object):
                 "PipelineConfiguration",
                 [
                     ["project", "is", self._proj_entity_dict],
-                    ["code", "is", pipeline_config_name],
+                    ["code", "is", pipeline_config_identifier],
                 ],
                 fields,
                 order=[{"field_name": "updated_at", "direction": "asc"}]
@@ -398,7 +416,8 @@ class ConfigurationResolver(object):
             if path.current_os:
                 # Emit a warning when both the OS field and descriptor field is set.
                 if pipeline_config.get("descriptor") or pipeline_config.get("sg_descriptor"):
-                    log.warning("Fields for path based and descriptor based pipeline configuration are both set. Using path based field.")
+                    log.warning("Fields for path based and descriptor based pipeline configuration are both set. "
+                                "Using path based field.")
 
                 log.debug("Descriptor will be based off the path in the pipeline configuration")
                 descriptor = {"type": constants.INSTALLED_DESCRIPTOR_TYPE, "path": path.current_os}
@@ -444,4 +463,3 @@ class ConfigurationResolver(object):
                 return True
 
         return False
-

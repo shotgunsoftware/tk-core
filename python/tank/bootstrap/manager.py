@@ -26,7 +26,7 @@ class ToolkitManager(object):
     """
 
     # Constants used to indicate that the manager is:
-    # - bootstrapping the toolkit (with method _bootstrap_sgtk),
+    # - bootstrapping the toolkit (with method bootstrap_toolkit),
     # - starting up the engine (with method _start_engine).
     (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = range(2)
 
@@ -51,7 +51,7 @@ class ToolkitManager(object):
 
         # defaults
         self._bundle_cache_fallback_paths = []
-        self._pipeline_configuration_name = None
+        self._pipeline_configuration_identifier = None
         self._base_config_descriptor = None
         self._progress_cb = None
         self._do_shotgun_config_lookup = True
@@ -59,13 +59,19 @@ class ToolkitManager(object):
 
         log.debug("%s instantiated" % self)
 
-
     def __repr__(self):
+        if self._pipeline_configuration_identifier is None:
+            identifier_type = "is"
+        elif isinstance(self._pipeline_configuration_identifier, int):
+            identifier_type = "id"
+        else:
+            identifier_type = "name"
+
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
         repr += " Cache fallback path %s\n" % self._bundle_cache_fallback_paths
         repr += " Plugin id %s\n" % self._plugin_id
-        repr += " Config %s\n" % self._pipeline_configuration_name
+        repr += " Config %s %s\n" % (identifier_type, self._pipeline_configuration_identifier),
         repr += " Base %s >" % self._base_config_descriptor
         return repr
 
@@ -83,14 +89,14 @@ class ToolkitManager(object):
         Shotgun, please set :meth:`do_shotgun_config_lookup` to False.
 
         Alternatively, you can set this to a specific pipeline configuration. In that
-        case, the Manager will look for a pipeline configuration that matches that name
+        case, the Manager will look for a pipeline configuration that matches that name or id
         and the associated project and plugin id. If such a config cannot be found in
         Shotgun, it falls back on the :meth:`base_configuration`.
         """
-        return self._pipeline_configuration_name
+        return self._pipeline_configuration_identifier
 
-    def _set_pipeline_configuration(self, name):
-        self._pipeline_configuration_name = name
+    def _set_pipeline_configuration(self, identifier):
+        self._pipeline_configuration_identifier = identifier
 
     pipeline_configuration = property(_get_pipeline_configuration, _set_pipeline_configuration)
 
@@ -254,7 +260,7 @@ class ToolkitManager(object):
         """
         self._log_startup_message(engine_name, entity)
 
-        tk = self._bootstrap_sgtk(engine_name, entity)
+        tk = self.bootstrap_toolkit(engine_name, entity)
 
         engine = self._start_engine(tk, engine_name, entity)
 
@@ -355,7 +361,7 @@ class ToolkitManager(object):
 
             try:
 
-                tk = self._bootstrap_sgtk(engine_name, entity)
+                tk = self.bootstrap_toolkit(engine_name, entity)
 
             except Exception, exception:
 
@@ -393,9 +399,9 @@ class ToolkitManager(object):
             log.debug("Will connect to Shotgun to look for overrides.")
             log.debug("If no overrides found, this config will be used: %s" % self._base_config_descriptor)
 
-            if self._pipeline_configuration_name:
+            if self._pipeline_configuration_identifier not in [0, None, ""]:
                 log.debug("Potential config overrides will be pulled ")
-                log.debug("from pipeline config '%s'" % self._pipeline_configuration_name)
+                log.debug("from pipeline config '%s'" % self._pipeline_configuration_identifier)
             else:
                 log.debug("The system will automatically determine the pipeline configuration")
                 log.debug("based on the current project id and user.")
@@ -409,7 +415,7 @@ class ToolkitManager(object):
         log.debug("Bootstrapping engine %s." % engine_name)
         log.debug("-----------------------------------------------------------------")
 
-    def _bootstrap_sgtk(self, engine_name, entity, progress_callback=None):
+    def bootstrap_toolkit(self, engine_name, entity, progress_callback=None):
         """
         Create an sgtk instance for the given engine and entity.
 
@@ -505,7 +511,7 @@ class ToolkitManager(object):
             log.debug("Checking for pipeline configuration overrides in Shotgun.")
             log.debug("In order to turn this off, set do_shotgun_config_lookup to False")
             config = resolver.resolve_shotgun_configuration(
-                self._pipeline_configuration_name,
+                self._pipeline_configuration_identifier,
                 self._base_config_descriptor,
                 self._sg_connection,
                 self._sg_user.login
