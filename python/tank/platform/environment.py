@@ -615,6 +615,11 @@ class WritableEnvironment(InstalledEnvironment):
             else:
                 # use pyyaml parser
                 yaml_data = yaml.load(fh)
+        except ImportError:
+            # In case the ruamel_yaml module cannot be loaded, use pyyaml parser
+            # instead. This is known to happen when and old version (<= v1.3.20) of
+            # tk-framework-desktopstartup is in use.
+            yaml_data = yaml.load(fh)
         except Exception, e:
             raise TankError("Could not parse file '%s'. Error reported: '%s'" % (path, e))
         finally:
@@ -654,48 +659,54 @@ class WritableEnvironment(InstalledEnvironment):
         :param data: yaml data structure to write
         """
 
-        # the ruamel parser doesn't have 2.5 support so
-        # only use it on 2.6+
-        if self._use_ruamel_yaml_parser and not(sys.version_info < (2,6)):
-            # note that we are using the RoundTripDumper in order to
-            # preserve the structure when writing the file to disk.
-            #
-            # the default_flow_style=False tells the parse to write
-            # any modified values on multi-line form, e.g.
-            #
-            # foo:
-            #   bar: 3
-            #   baz: 4
-            #
-            # rather than
-            #
-            # foo: { bar: 3, baz: 4 }
-            #
-            # note that safe_dump is not needed when using the
-            # roundtrip dumper, it will adopt a 'safe' behaviour
-            # by default.
-            from tank_vendor import ruamel_yaml
-            ruamel_yaml.dump(data,
-                             fh,
-                             default_flow_style=False,
-                             Dumper=ruamel_yaml.RoundTripDumper)
-        else:
-            # use pyyaml parser
-            #
-            # using safe_dump instead of dump ensures that we
-            # don't serialize any non-std yaml content. In particular,
-            # this causes issues if a unicode object containing a 7-bit
-            # ascii string is passed as part of the data. in this case,
-            # dump will write out a special format which is later on
-            # *loaded in* as a unicode object, even if the content doesn't
-            # need unicode handling. And this causes issues down the line
-            # in toolkit code, assuming strings:
-            #
-            # >>> yaml.dump({"foo": u"bar"})
-            # "{foo: !!python/unicode 'bar'}\n"
-            # >>> yaml.safe_dump({"foo": u"bar"})
-            # '{foo: bar}\n'
-            #
+        try:
+            # the ruamel parser doesn't have 2.5 support so
+            # only use it on 2.6+
+            if self._use_ruamel_yaml_parser and not(sys.version_info < (2,6)):
+                # note that we are using the RoundTripDumper in order to
+                # preserve the structure when writing the file to disk.
+                #
+                # the default_flow_style=False tells the parse to write
+                # any modified values on multi-line form, e.g.
+                #
+                # foo:
+                #   bar: 3
+                #   baz: 4
+                #
+                # rather than
+                #
+                # foo: { bar: 3, baz: 4 }
+                #
+                # note that safe_dump is not needed when using the
+                # roundtrip dumper, it will adopt a 'safe' behaviour
+                # by default.
+                from tank_vendor import ruamel_yaml
+                ruamel_yaml.dump(data,
+                                 fh,
+                                 default_flow_style=False,
+                                 Dumper=ruamel_yaml.RoundTripDumper)
+            else:
+                # use pyyaml parser
+                #
+                # using safe_dump instead of dump ensures that we
+                # don't serialize any non-std yaml content. In particular,
+                # this causes issues if a unicode object containing a 7-bit
+                # ascii string is passed as part of the data. in this case,
+                # dump will write out a special format which is later on
+                # *loaded in* as a unicode object, even if the content doesn't
+                # need unicode handling. And this causes issues down the line
+                # in toolkit code, assuming strings:
+                #
+                # >>> yaml.dump({"foo": u"bar"})
+                # "{foo: !!python/unicode 'bar'}\n"
+                # >>> yaml.safe_dump({"foo": u"bar"})
+                # '{foo: bar}\n'
+                #
+                yaml.safe_dump(data, fh)
+        except ImportError:
+            # In case the ruamel_yaml module cannot be loaded, use pyyaml parser
+            # instead. This is known to happen when an old version (<= v1.3.20)
+            # of tk-framework-desktopstartup is being used.
             yaml.safe_dump(data, fh)
 
 
