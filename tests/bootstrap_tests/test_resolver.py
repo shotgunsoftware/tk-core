@@ -9,13 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import mock
 from mock import patch
-import tempfile
-import uuid
 import sgtk
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import setUpModule, TankTestBase # noqa
 
 
 class TestResolver(TankTestBase):
@@ -123,7 +120,6 @@ class TestResolver(TankTestBase):
         # make sure we didn't talk to shotgun
         self.assertFalse(find_mock.called)
 
-
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_auto_resolve_query(self, find_mock):
         """
@@ -131,8 +127,6 @@ class TestResolver(TankTestBase):
         """
 
         def find_mock_impl(*args, **kwargs):
-
-
             # expect the following:
             # args:
             # ('PipelineConfiguration',
@@ -165,7 +159,6 @@ class TestResolver(TankTestBase):
         )
 
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
-
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_specific_resolve_query(self, find_mock):
@@ -209,11 +202,11 @@ class TestResolver(TankTestBase):
 
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
-
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_auto_resolve_primary(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_auto_resolve_primary(self, _, find_mock):
         """
-        Resolve the right config to use in Shotgun when no pc is defined
+        Resolve the primrary config when no configuration name is specified.
         """
 
         def find_mock_impl(*args, **kwargs):
@@ -239,10 +232,11 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config._path.current_os, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_auto_resolve_user(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_auto_resolve_user(self, _, find_mock):
         """
         When a user config is specified, this takes precedence over primary
         """
@@ -282,12 +276,11 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
-
-
+        self.assertEqual(config._path.current_os, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_site_override(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_site_override(self, _, find_mock):
         """
         if both a site and a project config matches, the project config takes precedence
         """
@@ -327,13 +320,13 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'pr_path', 'type': 'path'})
-
+        self.assertEqual(config._path.current_os, 'pr_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_site_override_2(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_site_override_2(self, _, find_mock):
         """
-        For a project, when a site is returned, this is still a relevant resolve solution
+        Picks the sandbox with the right plugin id.
         """
 
         def find_mock_impl(*args, **kwargs):
@@ -357,9 +350,9 @@ class TestResolver(TankTestBase):
                 'project': None,
                 'plugin_ids': "not matching plugin ids",
                 'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
+                'windows_path': 'nm_path',
+                'linux_path': 'nm_path',
+                'mac_path': 'nm_path',
                 'sg_descriptor': None,
                 'descriptor': None
             }
@@ -374,13 +367,13 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
-
+        self.assertEqual(config._path.current_os, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_specific_resolve(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_specific_resolve(self, _, find_mock):
         """
-        Resolve the right config to use in Shotgun when no pc is defined
+        Resolve the sandbox if no primary is present.
         """
 
         def find_mock_impl(*args, **kwargs):
@@ -406,12 +399,13 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config._path.current_os, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_path_override(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_path_override(self, _, find_mock):
         """
-        If pipeline config paths are defined, these take precedence
+        If pipeline config paths are defined, these take precedence over the descriptor field.
         """
 
         def find_mock_impl(*args, **kwargs):
@@ -437,13 +431,12 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
-
+        self.assertEqual(config._path.current_os, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_pc_descriptor(self, find_mock):
         """
-        If pipeline config paths are defined, these take precedence
+        Descriptor field is used when set.
         """
 
         def find_mock_impl(*args, **kwargs):
@@ -477,7 +470,7 @@ class TestResolver(TankTestBase):
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_plugin_ids(self, find_mock):
         """
-        If pipeline config paths are defined, these take precedence
+        If no plugin id match, use the fallback.
         """
 
         def find_mock_impl(*args, **kwargs):
@@ -509,8 +502,6 @@ class TestResolver(TankTestBase):
         )
 
 
-
-
 class TestResolverSiteConfig(TestResolver):
     """
     All Test Resoolver tests, just with the site config instead of a project config
@@ -526,7 +517,6 @@ class TestResolverSiteConfig(TestResolver):
             project_id=None,
             bundle_cache_fallback_paths=[self.install_root]
         )
-
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_auto_resolve_query(self, find_mock):
@@ -560,7 +550,6 @@ class TestResolverSiteConfig(TestResolver):
 
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
-
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_specific_resolve_query(self, find_mock):
         """
@@ -593,11 +582,11 @@ class TestResolverSiteConfig(TestResolver):
 
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
-
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_site_override(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_site_override(self, _, find_mock):
         """
-        When a user config is specified, this takes precedence over primary
+        When multiple primaries match, the latest one is picked.
         """
 
         def find_mock_impl(*args, **kwargs):
@@ -635,4 +624,120 @@ class TestResolverSiteConfig(TestResolver):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config._path.current_os, 'sg_path')
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @patch("os.path.exists", return_value=True)
+    def test_resolve_installed_from_sg(self, _, find_mock):
+        """
+        When a path is set, we have an installed configuration.
+        """
+        def find_mock_impl(*args, **kwargs):
+            return [{
+                'code': 'Primary',
+                'users': [],
+                'project': None,
+                'plugin_ids': "foo.*",
+                'sg_plugin_ids': None,
+                'windows_path': 'sg_path',
+                'linux_path': 'sg_path',
+                'mac_path': 'sg_path',
+                'sg_descriptor': None,
+                'descriptor': None
+            }]
+
+        find_mock.side_effect = find_mock_impl
+
+        config = self.resolver.resolve_shotgun_configuration(
+            pipeline_config_name=None,
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login='john.smith'
+        )
+
+        self.assertIsInstance(config, sgtk.bootstrap.resolver.InstalledConfiguration)
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_resolve_cached_from_sg(self, find_mock):
+        """
+        When nothing is set, we get the cached descriptor.
+        """
+        def find_mock_impl(*args, **kwargs):
+            return [{
+                'code': 'Primary',
+                'users': [],
+                'project': None,
+                'plugin_ids': "foo.*",
+                'sg_plugin_ids': None,
+                'windows_path': None,
+                'linux_path': None,
+                'mac_path': None,
+                'sg_descriptor': None,
+                'descriptor': None
+            }]
+
+        find_mock.side_effect = find_mock_impl
+
+        config = self.resolver.resolve_shotgun_configuration(
+            pipeline_config_name=None,
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login='john.smith'
+        )
+
+        self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
+
+
+class TestResolvedConfiguration(TankTestBase):
+
+    def setUp(self):
+        super(TestResolvedConfiguration, self).setUp()
+
+        self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
+        self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
+            plugin_id="tk-maya",
+            engine_name="tk-maya",
+            bundle_cache_fallback_paths=[self._tmp_bundle_cache]
+        )
+
+    def test_resolve_installed_configuration(self):
+        """
+        Makes sure an installed configuration is resolved.
+        """
+        self.assertIsInstance(
+            self._resolver.resolve_configuration(
+                {"type": "installed", "path": self.pipeline_config_root}, self.tk.shotgun
+            ),
+            sgtk.bootstrap.resolver.InstalledConfiguration
+        )
+
+    def test_resolve_baked_configuration(self):
+        """
+        Makes sure a baked configuration is resolved.
+        """
+
+        os.makedirs(
+            os.path.join(self._tmp_bundle_cache, "baked", "unit_tests", "v0.4.2")
+        )
+
+        self.assertIsInstance(
+            self._resolver.resolve_configuration(
+                {"type": "baked", "name": "unit_tests", "version": "v0.4.2"}, self.tk.shotgun
+            ),
+            sgtk.bootstrap.resolver.BakedConfiguration
+        )
+
+    def test_resolve_cached_configuration(self):
+        """
+        Makes sure a cached configuration is resolved.
+        """
+        os.makedirs(
+            os.path.join(self._tmp_bundle_cache, "app_store", "unit_tests", "v0.4.2")
+        )
+
+        self.assertIsInstance(
+            self._resolver.resolve_configuration(
+                {"type": "app_store", "name": "unit_tests", "version": "v0.4.2"}, self.tk.shotgun
+            ),
+            sgtk.bootstrap.resolver.CachedConfiguration
+        )
