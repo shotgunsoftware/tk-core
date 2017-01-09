@@ -597,7 +597,7 @@ class TestResolverSiteConfig(TestResolver):
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_site_override(self, find_mock):
         """
-        When a user config is specified, this takes precedence over primary
+        When multiple primaries match, the latest one is picked.
         """
 
         def find_mock_impl(*args, **kwargs):
