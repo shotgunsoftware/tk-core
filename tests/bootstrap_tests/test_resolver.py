@@ -213,7 +213,7 @@ class TestResolver(TankTestBase):
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_auto_resolve_primary(self, find_mock):
         """
-        Resolve the right config to use in Shotgun when no pc is defined
+        Resolve the primrary config when no configuration name is specified.
         """
 
         def find_mock_impl(*args, **kwargs):
@@ -333,7 +333,7 @@ class TestResolver(TankTestBase):
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_site_override_2(self, find_mock):
         """
-        For a project, when a site is returned, this is still a relevant resolve solution
+        Picks the sandbox with the right plugin id.
         """
 
         def find_mock_impl(*args, **kwargs):
@@ -357,9 +357,9 @@ class TestResolver(TankTestBase):
                 'project': None,
                 'plugin_ids': "not matching plugin ids",
                 'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
+                'windows_path': 'nm_path',
+                'linux_path': 'nm_path',
+                'mac_path': 'nm_path',
                 'sg_descriptor': None,
                 'descriptor': None
             }
@@ -380,7 +380,7 @@ class TestResolver(TankTestBase):
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_specific_resolve(self, find_mock):
         """
-        Resolve the right config to use in Shotgun when no pc is defined
+        Resolve the sandbox if no primary is present.
         """
 
         def find_mock_impl(*args, **kwargs):
@@ -411,7 +411,7 @@ class TestResolver(TankTestBase):
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_path_override(self, find_mock):
         """
-        If pipeline config paths are defined, these take precedence
+        If pipeline config paths are defined, these take precedence over the descriptor field.
         """
 
         def find_mock_impl(*args, **kwargs):
@@ -443,7 +443,7 @@ class TestResolver(TankTestBase):
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_pc_descriptor(self, find_mock):
         """
-        If pipeline config paths are defined, these take precedence
+        Descriptor field is used when set.
         """
 
         def find_mock_impl(*args, **kwargs):
@@ -477,7 +477,7 @@ class TestResolver(TankTestBase):
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_plugin_ids(self, find_mock):
         """
-        If pipeline config paths are defined, these take precedence
+        If no plugin id match, use the fallback.
         """
 
         def find_mock_impl(*args, **kwargs):
