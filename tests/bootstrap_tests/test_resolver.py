@@ -9,13 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import mock
 from mock import patch
-import tempfile
-import uuid
 import sgtk
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import setUpModule, TankTestBase # noqa
 
 
 class TestResolver(TankTestBase):
@@ -123,7 +120,6 @@ class TestResolver(TankTestBase):
         # make sure we didn't talk to shotgun
         self.assertFalse(find_mock.called)
 
-
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_auto_resolve_query(self, find_mock):
         """
@@ -131,8 +127,6 @@ class TestResolver(TankTestBase):
         """
 
         def find_mock_impl(*args, **kwargs):
-
-
             # expect the following:
             # args:
             # ('PipelineConfiguration',
@@ -165,7 +159,6 @@ class TestResolver(TankTestBase):
         )
 
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
-
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_specific_resolve_query(self, find_mock):
@@ -208,7 +201,6 @@ class TestResolver(TankTestBase):
         )
 
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
-
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_auto_resolve_primary(self, find_mock):
@@ -284,8 +276,6 @@ class TestResolver(TankTestBase):
 
         self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
 
-
-
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_site_override(self, find_mock):
         """
@@ -328,7 +318,6 @@ class TestResolver(TankTestBase):
         )
 
         self.assertEqual(config._descriptor.get_dict(), {'path': 'pr_path', 'type': 'path'})
-
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_site_override_2(self, find_mock):
@@ -375,7 +364,6 @@ class TestResolver(TankTestBase):
         )
 
         self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
-
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_specific_resolve(self, find_mock):
@@ -438,7 +426,6 @@ class TestResolver(TankTestBase):
         )
 
         self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
-
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_pc_descriptor(self, find_mock):
@@ -509,8 +496,6 @@ class TestResolver(TankTestBase):
         )
 
 
-
-
 class TestResolverSiteConfig(TestResolver):
     """
     All Test Resoolver tests, just with the site config instead of a project config
@@ -526,7 +511,6 @@ class TestResolverSiteConfig(TestResolver):
             project_id=None,
             bundle_cache_fallback_paths=[self.install_root]
         )
-
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_auto_resolve_query(self, find_mock):
@@ -560,7 +544,6 @@ class TestResolverSiteConfig(TestResolver):
 
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
-
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_specific_resolve_query(self, find_mock):
         """
@@ -592,7 +575,6 @@ class TestResolverSiteConfig(TestResolver):
         )
 
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
-
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_site_override(self, find_mock):
