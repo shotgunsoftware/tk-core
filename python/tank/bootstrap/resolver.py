@@ -90,6 +90,9 @@ class ConfigurationResolver(object):
             if not os.path.exists(config_path):
                 raise TankBootstrapError("Cannot locate legacy pipeline configuration at '%s'!" % (config_path,))
 
+            # Convert into a ShotgunPath.
+            config_path = ShotgunPath.from_current_os_path(config_path)
+
             return InstalledConfiguration(config_path)
 
         elif config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:

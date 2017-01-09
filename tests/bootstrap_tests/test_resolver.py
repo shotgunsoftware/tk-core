@@ -232,7 +232,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.path, 'sg_path')
+        self.assertEqual(config._path.current_os, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
@@ -276,7 +276,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.path, 'sg_path')
+        self.assertEqual(config._path.current_os, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
@@ -320,7 +320,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.path, 'pr_path')
+        self.assertEqual(config._path.current_os, 'pr_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
@@ -367,7 +367,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.path, 'sg_path')
+        self.assertEqual(config._path.current_os, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
@@ -399,7 +399,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.path, 'sg_path')
+        self.assertEqual(config._path.current_os, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
@@ -431,7 +431,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.path, 'sg_path')
+        self.assertEqual(config._path.current_os, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_pc_descriptor(self, find_mock):
@@ -624,7 +624,7 @@ class TestResolverSiteConfig(TestResolver):
             current_login='john.smith'
         )
 
-        self.assertEqual(config.path, 'sg_path')
+        self.assertEqual(config._path.current_os, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
