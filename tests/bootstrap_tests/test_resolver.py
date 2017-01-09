@@ -625,3 +625,119 @@ class TestResolverSiteConfig(TestResolver):
         )
 
         self.assertEqual(config.path, 'sg_path')
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @patch("os.path.exists", return_value=True)
+    def test_resolve_installed_from_sg(self, _, find_mock):
+        """
+        When a path is set, we have an installed configuration.
+        """
+        def find_mock_impl(*args, **kwargs):
+            return [{
+                'code': 'Primary',
+                'users': [],
+                'project': None,
+                'plugin_ids': "foo.*",
+                'sg_plugin_ids': None,
+                'windows_path': 'sg_path',
+                'linux_path': 'sg_path',
+                'mac_path': 'sg_path',
+                'sg_descriptor': None,
+                'descriptor': None
+            }]
+
+        find_mock.side_effect = find_mock_impl
+
+        config = self.resolver.resolve_shotgun_configuration(
+            pipeline_config_name=None,
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login='john.smith'
+        )
+
+        self.assertIsInstance(config, sgtk.bootstrap.resolver.InstalledConfiguration)
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_resolve_cached_from_sg(self, find_mock):
+        """
+        When nothing is set, we get the cached descriptor.
+        """
+        def find_mock_impl(*args, **kwargs):
+            return [{
+                'code': 'Primary',
+                'users': [],
+                'project': None,
+                'plugin_ids': "foo.*",
+                'sg_plugin_ids': None,
+                'windows_path': None,
+                'linux_path': None,
+                'mac_path': None,
+                'sg_descriptor': None,
+                'descriptor': None
+            }]
+
+        find_mock.side_effect = find_mock_impl
+
+        config = self.resolver.resolve_shotgun_configuration(
+            pipeline_config_name=None,
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login='john.smith'
+        )
+
+        self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
+
+
+class TestResolvedConfiguration(TankTestBase):
+
+    def setUp(self):
+        super(TestResolvedConfiguration, self).setUp()
+
+        self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
+        self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
+            plugin_id="tk-maya",
+            engine_name="tk-maya",
+            bundle_cache_fallback_paths=[self._tmp_bundle_cache]
+        )
+
+    def test_resolve_installed_configuration(self):
+        """
+        Makes sure an installed configuration is resolved.
+        """
+        self.assertIsInstance(
+            self._resolver.resolve_configuration(
+                {"type": "installed", "path": self.pipeline_config_root}, self.tk.shotgun
+            ),
+            sgtk.bootstrap.resolver.InstalledConfiguration
+        )
+
+    def test_resolve_baked_configuration(self):
+        """
+        Makes sure a baked configuration is resolved.
+        """
+
+        os.makedirs(
+            os.path.join(self._tmp_bundle_cache, "baked", "unit_tests", "v0.4.2")
+        )
+
+        self.assertIsInstance(
+            self._resolver.resolve_configuration(
+                {"type": "baked", "name": "unit_tests", "version": "v0.4.2"}, self.tk.shotgun
+            ),
+            sgtk.bootstrap.resolver.BakedConfiguration
+        )
+
+    def test_resolve_cached_configuration(self):
+        """
+        Makes sure a cached configuration is resolved.
+        """
+        os.makedirs(
+            os.path.join(self._tmp_bundle_cache, "app_store", "unit_tests", "v0.4.2")
+        )
+
+        self.assertIsInstance(
+            self._resolver.resolve_configuration(
+                {"type": "app_store", "name": "unit_tests", "version": "v0.4.2"}, self.tk.shotgun
+            ),
+            sgtk.bootstrap.resolver.CachedConfiguration
+        )
