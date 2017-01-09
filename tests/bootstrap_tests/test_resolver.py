@@ -203,7 +203,8 @@ class TestResolver(TankTestBase):
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_auto_resolve_primary(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_auto_resolve_primary(self, _, find_mock):
         """
         Resolve the primrary config when no configuration name is specified.
         """
@@ -231,10 +232,11 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config.path, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_auto_resolve_user(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_auto_resolve_user(self, _, find_mock):
         """
         When a user config is specified, this takes precedence over primary
         """
@@ -274,10 +276,11 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config.path, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_site_override(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_site_override(self, _, find_mock):
         """
         if both a site and a project config matches, the project config takes precedence
         """
@@ -317,10 +320,11 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'pr_path', 'type': 'path'})
+        self.assertEqual(config.path, 'pr_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_site_override_2(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_site_override_2(self, _, find_mock):
         """
         Picks the sandbox with the right plugin id.
         """
@@ -363,10 +367,11 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config.path, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_specific_resolve(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_specific_resolve(self, _, find_mock):
         """
         Resolve the sandbox if no primary is present.
         """
@@ -394,10 +399,11 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config.path, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_path_override(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_path_override(self, _, find_mock):
         """
         If pipeline config paths are defined, these take precedence over the descriptor field.
         """
@@ -425,7 +431,7 @@ class TestResolver(TankTestBase):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config.path, 'sg_path')
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_pc_descriptor(self, find_mock):
@@ -577,7 +583,8 @@ class TestResolverSiteConfig(TestResolver):
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_site_override(self, find_mock):
+    @patch("os.path.exists", return_value=True)
+    def test_site_override(self, _, find_mock):
         """
         When multiple primaries match, the latest one is picked.
         """
@@ -617,4 +624,4 @@ class TestResolverSiteConfig(TestResolver):
             current_login='john.smith'
         )
 
-        self.assertEqual(config._descriptor.get_dict(), {'path': 'sg_path', 'type': 'path'})
+        self.assertEqual(config.path, 'sg_path')
