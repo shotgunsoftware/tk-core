@@ -21,6 +21,7 @@ from ..descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
 from .errors import TankBootstrapError
 from .baked_configuration import BakedConfiguration
 from .cached_configuration import CachedConfiguration
+from .installed_configuration import InstalledConfiguration
 from ..util import filesystem
 from ..util import ShotgunPath
 from ..util import LocalFileStorageManager
@@ -84,7 +85,20 @@ class ConfigurationResolver(object):
             # convert to dict so we can introspect
             config_descriptor = descriptor_uri_to_dict(config_descriptor)
 
-        if config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
+        if config_descriptor["type"] == constants.INSTALLED_DESCRIPTOR_TYPE:
+
+            config_path = config_descriptor["path"]
+            if not os.path.exists(config_path):
+                raise TankBootstrapError("Cannot locate legacy pipeline configuration at '%s'!" % (config_path,))
+
+            # Convert into a ShotgunPath.
+            config_path = ShotgunPath.from_current_os_path(config_path)
+
+            # The configuration path here points to the actual pipeline configuration that contains
+            # config, cache and install folders.
+            return InstalledConfiguration(config_path)
+
+        elif config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
 
             # special case -- this is a full configuration scaffold that
             # has been pre-baked and can be used directly at runtime
@@ -382,9 +396,17 @@ class ConfigurationResolver(object):
             path = ShotgunPath.from_shotgun_dict(pipeline_config)
 
             if path.current_os:
+                # Emit a warning when both the OS field and descriptor field is set.
+                if pipeline_config.get("descriptor") or pipeline_config.get("sg_descriptor"):
+                    log.warning("Fields for path based and descriptor based pipeline configuration are both set. Using path based field.")
+
                 log.debug("Descriptor will be based off the path in the pipeline configuration")
-                descriptor = {"type": "path", "path": path.current_os}
+                descriptor = {"type": constants.INSTALLED_DESCRIPTOR_TYPE, "path": path.current_os}
             elif pipeline_config.get("descriptor"):
+                # Emit a warning when the sg_descriptor is set as well.
+                if pipeline_config.get("sg_descriptor"):
+                    log.warning("Both sg_descriptor and descriptor fields are set. Using descriptor field.")
+
                 log.debug("Descriptor will be based off the descriptor field in the pipeline configuration")
                 descriptor = pipeline_config.get("descriptor")
             elif pipeline_config.get("sg_descriptor"):
