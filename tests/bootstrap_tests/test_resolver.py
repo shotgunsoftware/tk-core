@@ -163,7 +163,7 @@ class TestPluginMatching(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier="Dev Sandbox",
+            pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -341,156 +341,118 @@ class TestResolverSiteQuery(TestResolverBase):
 
 
 class TestResolverPriority(TestResolverBase):
+    """
+    This test ensures that the following priority is respected when multiple pipeline configurations
+    are found.
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    @patch("os.path.exists", return_value=True)
-    def test_auto_resolve_primary(self, _, find_mock):
+    1. Pipeline configuration sandbox for a project
+    2. Pipeline configuration for a project
+    3. Pipeline configuration sandbox for site
+    4. Pipeline configuration for site.
+    """
+
+    PROJECT_PC_PATH = "project_pc_path"
+    PROJECT_PC = {
+        'code': 'Primary',
+        'project': {'type': 'Project', 'id': 123},
+        'users': [],
+        'plugin_ids': "foo.*",
+        'sg_plugin_ids': None,
+        'windows_path': PROJECT_PC_PATH,
+        'linux_path': PROJECT_PC_PATH,
+        'mac_path': PROJECT_PC_PATH,
+        'sg_descriptor': None,
+        'descriptor': None
+    }
+
+    PROJECT_SANDBOX_PC_PATH = "project_sandbox_pc_path"
+    PROJECT_SANDBOX_PC = {
+        'code': 'Development',
+        'project': {'type': 'Project', 'id': 123},
+        'users': [],
+        'plugin_ids': "foo.*",
+        'sg_plugin_ids': None,
+        'windows_path': PROJECT_SANDBOX_PC_PATH,
+        'linux_path': PROJECT_SANDBOX_PC_PATH,
+        'mac_path': PROJECT_SANDBOX_PC_PATH,
+        'sg_descriptor': None,
+        'descriptor': None
+    }
+
+    SITE_PC_PATH = "project_pc_path"
+    SITE_PC = {
+        'code': 'Primary',
+        'project': None,
+        'users': [],
+        'plugin_ids': "foo.*",
+        'sg_plugin_ids': None,
+        'windows_path': SITE_PC_PATH,
+        'linux_path': SITE_PC_PATH,
+        'mac_path': SITE_PC_PATH,
+        'sg_descriptor': None,
+        'descriptor': None
+    }
+
+    SITE_SANDBOX_PC_PATH = "site_sandbox_pc_path"
+    SITE_SANDBOX_PC = {
+        'code': 'Development',
+        'project': None,
+        'users': [],
+        'plugin_ids': "foo.*",
+        'sg_plugin_ids': None,
+        'windows_path': SITE_SANDBOX_PC_PATH,
+        'linux_path': SITE_SANDBOX_PC_PATH,
+        'mac_path': SITE_SANDBOX_PC_PATH,
+        'sg_descriptor': None,
+        'descriptor': None
+    }
+
+    def _test_priority(self, pcs, expected_path):
+        with patch("os.path.exists", return_value=True):
+            with patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find", return_value=pcs):
+                config = self.resolver.resolve_shotgun_configuration(
+                    pipeline_config_identifier=None,
+                    fallback_config_descriptor=self.config_1,
+                    sg_connection=self.tk.shotgun,
+                    current_login='john.smith'
+                )
+        self.assertEqual(config._path.current_os, expected_path)
+
+    def test_resolve_site_config(self):
         """
-        Resolve the primary config when no configuration name is specified.
+        Makes sure a site config takes is higher priority than the fallback.
         """
+        self._test_priority([self.SITE_PC], self.SITE_PC_PATH)
 
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'code': 'Primary',
-                'project': {'type': 'Project', 'id': 123},
-                'users': [],
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }]
+    def test_resolve_sandboxed_site_config(self):
+        """
+        Makes sure a sandboxed site configuration overrides the site config.
+        """
+        self._test_priority([self.SITE_SANDBOX_PC, self.SITE_PC], self.SITE_SANDBOX_PC_PATH)
 
-        find_mock.side_effect = find_mock_impl
+    def test_resolve_project_config(self):
+        """
+        Makes sure a project configuration overrides the sandboxed site config.
+        """
+        self._test_priority([self.PROJECT_PC, self.SITE_SANDBOX_PC, self.SITE_PC], self.PROJECT_PC_PATH)
 
-        config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier=None,
-            fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
-            current_login='john.smith'
+    def test_resolve_sandboxed_project_config(self):
+        """
+        Makes sure a sandboxed project configuration sandbox overrides project configuration.
+        """
+        self._test_priority(
+            [self.PROJECT_SANDBOX_PC, self.PROJECT_PC, self.SITE_SANDBOX_PC, self.SITE_PC],
+            self.PROJECT_SANDBOX_PC_PATH
         )
 
-        self.assertEqual(config._path.current_os, 'sg_path')
-
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    @patch("os.path.exists", return_value=True)
-    def test_auto_resolve_user(self, _, find_mock):
+    def test_specific_resolve(self):
         """
-        When a user config is specified, this takes precedence over primary
+        Ensure that if there is only one pipeline configuration it will always be resolved.
         """
-
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'code': 'Primary',
-                'users': [],
-                'project': {'type': 'Project', 'id': 123},
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'pr_path',
-                'linux_path': 'pr_path',
-                'mac_path': 'pr_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }, {
-                'code': 'Dev Sandbox',
-                'users': [],
-                'project': {'type': 'Project', 'id': 123},
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }]
-
-        find_mock.side_effect = find_mock_impl
-
-        config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier=None,
-            fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
-            current_login='john.smith'
-        )
-
-        self.assertEqual(config._path.current_os, 'sg_path')
-
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    @patch("os.path.exists", return_value=True)
-    def test_site_override(self, _, find_mock):
-        """
-        if both a site and a project config matches, the project config takes precedence
-        """
-
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'code': 'Primary',
-                'users': [],
-                'project': {'type': 'Project', 'id': 123},
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'pr_path',
-                'linux_path': 'pr_path',
-                'mac_path': 'pr_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }, {
-                'code': 'Primary',
-                'users': [],
-                'project': None,
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }]
-
-        find_mock.side_effect = find_mock_impl
-
-        config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier=None,
-            fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
-            current_login='john.smith'
-        )
-
-        self.assertEqual(config._path.current_os, 'pr_path')
-
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    @patch("os.path.exists", return_value=True)
-    def test_specific_resolve(self, _, find_mock):
-        """
-        Resolve the sandbox if no primary is present.
-        """
-
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'code': 'Dev Sandbox',
-                'project': {'type': 'Project', 'id': 123},
-                'users': [],
-                'plugin_ids': "foo.maya",
-                'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }]
-
-        find_mock.side_effect = find_mock_impl
-
-        config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier="Dev Sandbox",
-            fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
-            current_login='john.smith'
-        )
-
-        self.assertEqual(config._path.current_os, 'sg_path')
+        self._test_priority([self.SITE_PC], self.SITE_PC_PATH)
+        self._test_priority([self.SITE_SANDBOX_PC], self.SITE_SANDBOX_PC_PATH)
+        self._test_priority([self.PROJECT_PC], self.PROJECT_PC_PATH)
+        self._test_priority([self.PROJECT_SANDBOX_PC], self.PROJECT_SANDBOX_PC_PATH)
 
 
 class TestPipelineLocationFieldPriority(TestResolverBase):
@@ -519,7 +481,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier="Dev Sandbox",
+            pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -550,7 +512,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier="Dev Sandbox",
+            pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'

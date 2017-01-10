@@ -321,14 +321,14 @@ class ConfigurationResolver(object):
                 # A per-user pipeline config for the current project has top priority
                 pipeline_config = user_config
 
+            elif primary_config:
+                # if there is a primary config for our current project, this takes precedence
+                pipeline_config = primary_config
+
             elif user_config_fallback:
                 # if there is a pipeline config for our current user with project field None
                 # that takes precedence
                 pipeline_config = user_config_fallback
-
-            elif primary_config:
-                # if there is a primary config for our current project, this takes precedence
-                pipeline_config = primary_config
 
             elif primary_config_fallback:
                 # Lowest priority - A Primary pipeline configuration with project field None
