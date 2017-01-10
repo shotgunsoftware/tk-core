@@ -15,13 +15,9 @@ import sgtk
 from tank_test.tank_test_base import setUpModule, TankTestBase # noqa
 
 
-class TestResolver(TankTestBase):
-    """
-    Testing the resolver class
-    """
-
-    def setUp(self):
-        super(TestResolver, self).setUp()
+class TestResolverBase(TankTestBase):
+    def setUp(self, project_id=123):
+        super(TestResolverBase, self).setUp()
 
         self.install_root = os.path.join(
             self.tk.pipeline_configuration.get_install_location(),
@@ -31,17 +27,14 @@ class TestResolver(TankTestBase):
         # set up bundle cache mock
         path = os.path.join(self.install_root, "app_store", "tk-config-test", "v0.1.2")
         self._create_info_yaml(path)
-        path = os.path.join(self.install_root, "app_store", "tk-config-test", "v0.1.4")
-        self._create_info_yaml(path)
 
         self.config_1 = {"type": "app_store", "version": "v0.1.2", "name": "tk-config-test"}
-        self.config_2 = {"type": "app_store", "version": "v0.1.4", "name": "tk-config-test"}
 
         # set up a resolver
         self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="foo.maya",
             engine_name="tk-test",
-            project_id=123,
+            project_id=project_id,
             bundle_cache_fallback_paths=[self.install_root]
         )
 
@@ -54,7 +47,13 @@ class TestResolver(TankTestBase):
         fh.write("foo")
         fh.close()
 
-    def test_plugin_resolve(self):
+
+class TestPluginMatching(TestResolverBase):
+    """
+    Testing the resolver class
+    """
+
+    def test_plugin_id_matching(self):
         """
         Tests the plugin id resolve syntax
         """
@@ -66,11 +65,11 @@ class TestResolver(TankTestBase):
         )
 
         # test full match
-        resolver._plugin_id="foo.maya"
+        resolver._plugin_id = "foo.maya"
         self.assertTrue(resolver._match_plugin_id("*"))
 
         # test no match
-        resolver._plugin_id="foo.maya"
+        resolver._plugin_id = "foo.maya"
         self.assertFalse(resolver._match_plugin_id(""))
         self.assertFalse(resolver._match_plugin_id("None"))
         self.assertFalse(resolver._match_plugin_id(" "))
@@ -78,22 +77,111 @@ class TestResolver(TankTestBase):
         self.assertFalse(resolver._match_plugin_id("."))
 
         # test comma separation
-        resolver._plugin_id="foo.maya"
+        resolver._plugin_id = "foo.maya"
         self.assertFalse(resolver._match_plugin_id("foo.hou, foo.may, foo.nuk"))
         self.assertTrue(resolver._match_plugin_id("foo.hou, foo.maya, foo.nuk"))
 
         # test comma separation
-        resolver._plugin_id="foo"
+        resolver._plugin_id = "foo"
         self.assertFalse(resolver._match_plugin_id("foo.*"))
         self.assertTrue(resolver._match_plugin_id("foo*"))
 
-        resolver._plugin_id="foo.maya"
+        resolver._plugin_id = "foo.maya"
         self.assertTrue(resolver._match_plugin_id("foo.*"))
         self.assertTrue(resolver._match_plugin_id("foo*"))
 
-        resolver._plugin_id="foo.maya"
+        resolver._plugin_id = "foo.maya"
         self.assertTrue(resolver._match_plugin_id("foo.maya"))
         self.assertFalse(resolver._match_plugin_id("foo.nuke"))
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @patch("os.path.exists", return_value=True)
+    def test_single_matching_id(self, _, find_mock):
+        """
+        Picks the sandbox with the right plugin id.
+        """
+
+        def find_mock_impl(*args, **kwargs):
+            return [{
+                'code': 'Dev Sandbox',
+                'users': [],
+                'project': None,
+                'plugin_ids': "foo.*",
+                'sg_plugin_ids': None,
+                'windows_path': 'sg_path',
+                'linux_path': 'sg_path',
+                'mac_path': 'sg_path',
+                'sg_descriptor': None,
+                'descriptor': None
+            }, {
+                'code': 'Dev Sandbox',
+                'users': [],
+                'project': None,
+                'plugin_ids': "not matching plugin ids",
+                'sg_plugin_ids': None,
+                'windows_path': 'nm_path',
+                'linux_path': 'nm_path',
+                'mac_path': 'nm_path',
+                'sg_descriptor': None,
+                'descriptor': None
+            }
+            ]
+
+        find_mock.side_effect = find_mock_impl
+
+        config = self.resolver.resolve_shotgun_configuration(
+            pipeline_config_name=None,
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login='john.smith'
+        )
+
+        self.assertEqual(config._path.current_os, 'sg_path')
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_no_plugin_id_matching(self, find_mock):
+        """
+        If no plugin id match, use the fallback.
+        """
+
+        def find_mock_impl(*args, **kwargs):
+            return [{
+                'code': 'Primary',
+                'project': {'type': 'Project', 'id': 123},
+                'users': [],
+                'plugin_ids': "fo3o.*",
+                'sg_plugin_ids': None,
+                'windows_path': None,
+                'linux_path': None,
+                'mac_path': None,
+                'sg_descriptor': None,
+                'descriptor': 'sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test'
+            }]
+
+        find_mock.side_effect = find_mock_impl
+
+        config = self.resolver.resolve_shotgun_configuration(
+            pipeline_config_name="Dev Sandbox",
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login='john.smith'
+        )
+
+        self.assertEqual(
+            config._descriptor.get_dict(),
+            self.config_1
+        )
+
+
+class TestFallbackHandling(TestResolverBase):
+
+    def setUp(self):
+        super(TestFallbackHandling, self).setUp()
+
+        path = os.path.join(self.install_root, "app_store", "tk-config-test", "v0.1.4")
+        self._create_info_yaml(path)
+
+        self.config_2 = {"type": "app_store", "version": "v0.1.4", "name": "tk-config-test"}
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_resolve_base_config(self, find_mock):
@@ -120,6 +208,9 @@ class TestResolver(TankTestBase):
         # make sure we didn't talk to shotgun
         self.assertFalse(find_mock.called)
 
+
+class TestResolverProjectQuery(TestResolverBase):
+
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_auto_resolve_query(self, find_mock):
         """
@@ -127,25 +218,38 @@ class TestResolver(TankTestBase):
         """
 
         def find_mock_impl(*args, **kwargs):
-            # expect the following:
-            # args:
-            # ('PipelineConfiguration',
-            #  [{'filter_operator': 'all', 'filters': [['project', 'is', {'type': 'Project', 'id': 123}], {'filter_operator': 'any', 'filters': [['code', 'is', 'Primary'], ['users.HumanUser.login', 'contains', 'john.smith']]}]}],
-            #  ['code', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor'])
-            #
-            #
-            # kwargs:
-            # {'order': [{'direction': 'asc', 'field_name': 'updated_at'}]}
             if args[0] == "PipelineConfiguration":
                 self.assertEqual(
                     args[1],
-                    [{'filter_operator': 'all', 'filters': [{'filter_operator': 'any', 'filters': [['project', 'is', {'type': 'Project', 'id': 123}], ['project', 'is', None]]}, {'filter_operator': 'any', 'filters': [['code', 'is', 'Primary'], ['users.HumanUser.login', 'contains', 'john.smith']]}]}]
+                    [
+                        {
+                            'filter_operator': 'all',
+                            'filters': [
+                                {
+                                    'filter_operator': 'any',
+                                    'filters': [
+                                        ['project', 'is', {'type': 'Project', 'id': 123}],
+                                        ['project', 'is', None]
+                                    ]
+                                },
+                                {
+                                    'filter_operator': 'any',
+                                    'filters': [
+                                        ['code', 'is', 'Primary'],
+                                        ['users.HumanUser.login', 'contains', 'john.smith']
+                                    ]
+                                }]
+                        }
+                    ]
                 )
 
                 self.assertEqual(
                     args[2],
-                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
+                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids',
+                     'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
                 )
+
+                self.assertEqual(kwargs["order"], [{'direction': 'asc', 'field_name': 'updated_at'}])
 
             return []
 
@@ -167,17 +271,6 @@ class TestResolver(TankTestBase):
         """
 
         def find_mock_impl(*args, **kwargs):
-
-            # expect the following:
-            # args:
-            # (
-            # 'PipelineConfiguration',
-            # [['project', 'is', {'type': 'Project', 'id': 123}], ['code', 'is', 'dev_sandbox']],
-            # ['code', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
-            # )
-            #
-            # kwargs:
-            # {'order': [{'direction': 'asc', 'field_name': 'updated_at'}]}
             if args[0] == "PipelineConfiguration":
                 self.assertEqual(
                     args[1],
@@ -186,7 +279,49 @@ class TestResolver(TankTestBase):
 
                 self.assertEqual(
                     args[2],
-                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
+                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids',
+                     'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
+                )
+
+                self.assertEqual(kwargs["order"], [{'direction': 'asc', 'field_name': 'updated_at'}])
+
+            return []
+
+        find_mock.side_effect = find_mock_impl
+
+        config = self.resolver.resolve_shotgun_configuration(
+            pipeline_config_name="dev_sandbox",
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login='john.smith'
+        )
+
+        self.assertEqual(config._descriptor.get_dict(), self.config_1)
+
+
+class TestResolverSiteQuery(TestResolverBase):
+
+    def setUp(self):
+        super(TestResolverSiteQuery, self).setUp(project_id=None)
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_specific_resolve_query(self, find_mock):
+        """
+        Test the sg syntax for the sg auto resolve syntax, e.g. when no pc is defined
+        """
+
+        def find_mock_impl(*args, **kwargs):
+
+            if args[0] == "PipelineConfiguration":
+                self.assertEqual(
+                    args[1],
+                    [['project', 'is', None], ['code', 'is', 'dev_sandbox']]
+                )
+
+                self.assertEqual(
+                    args[2],
+                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids',
+                     'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
                 )
 
             return []
@@ -201,6 +336,9 @@ class TestResolver(TankTestBase):
         )
 
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
+
+
+class TestResolverPriority(TestResolverBase):
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
@@ -221,7 +359,7 @@ class TestResolver(TankTestBase):
                 'mac_path': 'sg_path',
                 'sg_descriptor': None,
                 'descriptor': None
-                }]
+            }]
 
         find_mock.side_effect = find_mock_impl
 
@@ -253,8 +391,7 @@ class TestResolver(TankTestBase):
                 'mac_path': 'pr_path',
                 'sg_descriptor': None,
                 'descriptor': None
-            },
-            {
+            }, {
                 'code': 'Dev Sandbox',
                 'users': [],
                 'project': {'type': 'Project', 'id': 123},
@@ -297,8 +434,7 @@ class TestResolver(TankTestBase):
                 'mac_path': 'pr_path',
                 'sg_descriptor': None,
                 'descriptor': None
-            },
-            {
+            }, {
                 'code': 'Primary',
                 'users': [],
                 'project': None,
@@ -324,53 +460,6 @@ class TestResolver(TankTestBase):
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
-    def test_site_override_2(self, _, find_mock):
-        """
-        Picks the sandbox with the right plugin id.
-        """
-
-        def find_mock_impl(*args, **kwargs):
-            return [
-            {
-                'code': 'Dev Sandbox',
-                'users': [],
-                'project': None,
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            },
-
-            {
-                'code': 'Dev Sandbox',
-                'users': [],
-                'project': None,
-                'plugin_ids': "not matching plugin ids",
-                'sg_plugin_ids': None,
-                'windows_path': 'nm_path',
-                'linux_path': 'nm_path',
-                'mac_path': 'nm_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }
-            ]
-
-        find_mock.side_effect = find_mock_impl
-
-        config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name=None,
-            fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
-            current_login='john.smith'
-        )
-
-        self.assertEqual(config._path.current_os, 'sg_path')
-
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    @patch("os.path.exists", return_value=True)
     def test_specific_resolve(self, _, find_mock):
         """
         Resolve the sandbox if no primary is present.
@@ -388,7 +477,7 @@ class TestResolver(TankTestBase):
                 'mac_path': 'sg_path',
                 'sg_descriptor': None,
                 'descriptor': None
-                }]
+            }]
 
         find_mock.side_effect = find_mock_impl
 
@@ -400,6 +489,9 @@ class TestResolver(TankTestBase):
         )
 
         self.assertEqual(config._path.current_os, 'sg_path')
+
+
+class TestPipelineLocationFieldPriority(TestResolverBase):
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
@@ -420,7 +512,7 @@ class TestResolver(TankTestBase):
                 'mac_path': 'sg_path',
                 'sg_descriptor': None,
                 'descriptor': 'sgtk:descriptor:app_store?version=v0.1.2&name=tk-config-test'
-                }]
+            }]
 
         find_mock.side_effect = find_mock_impl
 
@@ -451,7 +543,7 @@ class TestResolver(TankTestBase):
                 'mac_path': None,
                 'sg_descriptor': None,
                 'descriptor': 'sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test'
-                }]
+            }]
 
         find_mock.side_effect = find_mock_impl
 
@@ -467,42 +559,8 @@ class TestResolver(TankTestBase):
             {'name': 'tk-config-test', 'type': 'app_store', 'version': 'v3.1.2'}
         )
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_plugin_ids(self, find_mock):
-        """
-        If no plugin id match, use the fallback.
-        """
 
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'code': 'Primary',
-                'project': {'type': 'Project', 'id': 123},
-                'users': [],
-                'plugin_ids': "fo3o.*",
-                'sg_plugin_ids': None,
-                'windows_path': None,
-                'linux_path': None,
-                'mac_path': None,
-                'sg_descriptor': None,
-                'descriptor': 'sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test'
-                }]
-
-        find_mock.side_effect = find_mock_impl
-
-        config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name="Dev Sandbox",
-            fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
-            current_login='john.smith'
-        )
-
-        self.assertEqual(
-            config._descriptor.get_dict(),
-            self.config_1
-        )
-
-
-class TestResolverSiteConfig(TestResolver):
+class TestResolverSiteConfig(TestResolverBase):
     """
     All Test Resoolver tests, just with the site config instead of a project config
     """
@@ -529,12 +587,29 @@ class TestResolverSiteConfig(TestResolver):
             if args[0] == "PipelineConfiguration":
                 self.assertEqual(
                     args[1],
-                    [{'filter_operator': 'all', 'filters': [{'filter_operator': 'any', 'filters': [['project', 'is', None], ['project', 'is', None]]}, {'filter_operator': 'any', 'filters': [['code', 'is', 'Primary'], ['users.HumanUser.login', 'contains', 'john.smith']]}]}]
+                    [{
+                        'filter_operator': 'all',
+                        'filters': [
+                            {
+                                'filter_operator': 'any',
+                                'filters': [
+                                    ['project', 'is', None], ['project', 'is', None]
+                                ]
+                            },
+                            {
+                                'filter_operator': 'any',
+                                'filters': [
+                                    ['code', 'is', 'Primary'], ['users.HumanUser.login', 'contains', 'john.smith']
+                                ]
+                            }
+                        ]
+                    }]
                 )
 
                 self.assertEqual(
                     args[2],
-                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
+                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids',
+                     'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
                 )
 
             return []
@@ -543,38 +618,6 @@ class TestResolverSiteConfig(TestResolver):
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_name=None,
-            fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
-            current_login='john.smith'
-        )
-
-        self.assertEqual(config._descriptor.get_dict(), self.config_1)
-
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_specific_resolve_query(self, find_mock):
-        """
-        Test the sg syntax for the sg auto resolve syntax, e.g. when no pc is defined
-        """
-
-        def find_mock_impl(*args, **kwargs):
-
-            if args[0] == "PipelineConfiguration":
-                self.assertEqual(
-                    args[1],
-                    [['project', 'is', None], ['code', 'is', 'dev_sandbox']]
-                )
-
-                self.assertEqual(
-                    args[2],
-                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids', 'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
-                )
-
-            return []
-
-        find_mock.side_effect = find_mock_impl
-
-        config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name="dev_sandbox",
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -601,8 +644,7 @@ class TestResolverSiteConfig(TestResolver):
                 'mac_path': 'pr_path',
                 'sg_descriptor': None,
                 'descriptor': None
-            },
-            {
+            }, {
                 'code': 'Primary',
                 'users': [],
                 'project': None,
