@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
+
 import os
 from mock import patch
 import sgtk
@@ -130,7 +132,7 @@ class TestPluginMatching(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name=None,
+            pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -161,7 +163,7 @@ class TestPluginMatching(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name="Dev Sandbox",
+            pipeline_config_identifier="Dev Sandbox",
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -256,7 +258,7 @@ class TestResolverProjectQuery(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name=None,
+            pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -290,7 +292,7 @@ class TestResolverProjectQuery(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name="dev_sandbox",
+            pipeline_config_identifier="dev_sandbox",
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -329,7 +331,7 @@ class TestResolverSiteQuery(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name="dev_sandbox",
+            pipeline_config_identifier="dev_sandbox",
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -364,7 +366,7 @@ class TestResolverPriority(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name=None,
+            pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -407,7 +409,7 @@ class TestResolverPriority(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name=None,
+            pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -450,7 +452,7 @@ class TestResolverPriority(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name=None,
+            pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -482,7 +484,7 @@ class TestResolverPriority(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name="Dev Sandbox",
+            pipeline_config_identifier="Dev Sandbox",
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -517,7 +519,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name="Dev Sandbox",
+            pipeline_config_identifier="Dev Sandbox",
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -548,7 +550,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name="Dev Sandbox",
+            pipeline_config_identifier="Dev Sandbox",
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -617,7 +619,7 @@ class TestResolverSiteConfig(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name=None,
+            pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -660,7 +662,7 @@ class TestResolverSiteConfig(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name=None,
+            pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -691,7 +693,7 @@ class TestResolverSiteConfig(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name=None,
+            pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -721,7 +723,7 @@ class TestResolverSiteConfig(TestResolverBase):
         find_mock.side_effect = find_mock_impl
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_name=None,
+            pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
             current_login='john.smith'
@@ -783,3 +785,59 @@ class TestResolvedConfiguration(TankTestBase):
             ),
             sgtk.bootstrap.resolver.CachedConfiguration
         )
+
+
+class TestResolvePerId(TestResolverBase):
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @patch("os.path.exists", return_value=True)
+    def test_existing_pc_ic(self, _, find_mock):
+        """
+        Resolve an existing pipeline configuration by id.
+        """
+
+        def find_mock_impl(*args, **kwargs):
+            return [{
+                'id': 1,
+                'code': 'Primary',
+                'project': {'type': 'Project', 'id': 123},
+                'users': [],
+                'plugin_ids': "foo.*",
+                'sg_plugin_ids': None,
+                'windows_path': 'sg_path',
+                'linux_path': 'sg_path',
+                'mac_path': 'sg_path',
+                'sg_descriptor': None,
+                'descriptor': None
+            }]
+
+        find_mock.side_effect = find_mock_impl
+
+        config = self.resolver.resolve_shotgun_configuration(
+            pipeline_config_identifier=1,
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login='john.smith'
+        )
+
+        self.assertEqual(config._path.current_os, 'sg_path')
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @patch("os.path.exists", return_value=True)
+    def test_non_existing_pc_ic(self, _, find_mock):
+        """
+        Resolve a non-existent pipeline configuration by id should fail.
+        """
+
+        def find_mock_impl(*args, **kwargs):
+            return []
+
+        find_mock.side_effect = find_mock_impl
+
+        with self.assertRaises(sgtk.bootstrap.TankBootstrapError):
+            self.resolver.resolve_shotgun_configuration(
+                pipeline_config_identifier=1,
+                fallback_config_descriptor=self.config_1,
+                sg_connection=self.tk.shotgun,
+                current_login='john.smith'
+            )
