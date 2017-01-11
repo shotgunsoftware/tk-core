@@ -32,6 +32,11 @@ sys.path = [python_path] + sys.path
 
 import unittest2 as unittest
 
+import tank
+
+tank.LogManager().initialize_base_file_handler("run_tests")
+
+
 class TankTestRunner(object):
     
     def __init__(self, test_root=None):
