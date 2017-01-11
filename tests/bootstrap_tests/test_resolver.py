@@ -35,7 +35,6 @@ class TestResolverBase(TankTestBase):
         # set up a resolver
         self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="foo.maya",
-            engine_name="tk-test",
             project_id=project_id,
             bundle_cache_fallback_paths=[self.install_root]
         )
@@ -61,7 +60,6 @@ class TestPluginMatching(TestResolverBase):
         """
         resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="foo.maya",
-            engine_name="tk-test",
             project_id=123,
             bundle_cache_fallback_paths=[self.install_root]
         )
@@ -276,7 +274,26 @@ class TestResolverProjectQuery(TestResolverBase):
             if args[0] == "PipelineConfiguration":
                 self.assertEqual(
                     args[1],
-                    [['project', 'is', {'type': 'Project', 'id': 123}], ['code', 'is', 'dev_sandbox']]
+                    [
+                        {
+                            'filter_operator': 'all',
+                            'filters': [
+                                {
+                                    'filter_operator': 'any',
+                                    'filters': [
+                                        ['project', 'is', {'type': 'Project', 'id': 123}],
+                                        ['project', 'is', None]
+                                    ]
+                                },
+                                {
+                                    'filter_operator': 'any',
+                                    'filters': [
+                                        ['code', 'is', 'dev_sandbox'],
+                                        ['users.HumanUser.login', 'contains', 'john.smith']
+                                    ]
+                                }]
+                        }
+                    ]
                 )
 
                 self.assertEqual(
@@ -311,13 +328,31 @@ class TestResolverSiteQuery(TestResolverBase):
         """
         Test the sg syntax for the sg auto resolve syntax, e.g. when no pc is defined
         """
-
         def find_mock_impl(*args, **kwargs):
 
             if args[0] == "PipelineConfiguration":
                 self.assertEqual(
                     args[1],
-                    [['project', 'is', None], ['code', 'is', 'dev_sandbox']]
+                    [
+                        {
+                            'filter_operator': 'all',
+                            'filters': [
+                                {
+                                    'filter_operator': 'any',
+                                    'filters': [
+                                        ['project', 'is', None],
+                                        ['project', 'is', None]
+                                    ]
+                                },
+                                {
+                                    'filter_operator': 'any',
+                                    'filters': [
+                                        ['code', 'is', 'dev_sandbox'],
+                                        ['users.HumanUser.login', 'contains', 'john.smith']
+                                    ]
+                                }]
+                        }
+                    ]
                 )
 
                 self.assertEqual(
@@ -535,7 +570,6 @@ class TestResolverSiteConfig(TestResolverBase):
         # set up a resolver
         self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="foo.maya",
-            engine_name="tk-test",
             project_id=None,
             bundle_cache_fallback_paths=[self.install_root]
         )
@@ -702,7 +736,6 @@ class TestResolvedConfiguration(TankTestBase):
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
         self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="tk-maya",
-            engine_name="tk-maya",
             bundle_cache_fallback_paths=[self._tmp_bundle_cache]
         )
 

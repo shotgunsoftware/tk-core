@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -18,6 +18,7 @@ from ..authentication import ShotgunAuthenticator
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
+
 
 class ToolkitManager(object):
     """
@@ -75,6 +76,27 @@ class ToolkitManager(object):
         repr += " Base %s >" % self._base_config_descriptor
         return repr
 
+    def enumerate_pipeline_configurations(self, project=None):
+        """
+        Enumerates the pipeline configurations available for a given project.
+
+        It also takes into account the user and optional pipeline_configuration name or id.
+
+        :returns iterator: Iterator over a list of pipeline configuration entity links.
+        """
+        resolver = ConfigurationResolver(
+            self.plugin_id,
+            project["id"] if project else None
+        )
+
+        # Only return id, type and code fields.
+        for pc in resolver.find_matching_pipelines(None, self._sg_user.login, self._sg_connection):
+            yield {
+                "id": pc["id"],
+                "type": pc["type"],
+                "code": pc["code"]
+            }
+
     def _get_pipeline_configuration(self):
         """
         The pipeline configuration that is should be operated on.
@@ -99,7 +121,6 @@ class ToolkitManager(object):
         self._pipeline_configuration_identifier = identifier
 
     pipeline_configuration = property(_get_pipeline_configuration, _set_pipeline_configuration)
-
 
     def _get_do_shotgun_config_lookup(self):
         """
@@ -469,7 +490,6 @@ class ToolkitManager(object):
 
         resolver = ConfigurationResolver(
             self._plugin_id,
-            engine_name,
             project_id,
             self._bundle_cache_fallback_paths
         )
