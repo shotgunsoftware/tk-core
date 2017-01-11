@@ -26,6 +26,11 @@ class ToolkitManager(object):
     and installations.
     """
 
+    # Constants used to make the manager bootstrapping:
+    # - download and cache the sole config dependencies needed to run the engine being started,
+    # - download and cache all the config dependencies.
+    (CACHE_SPARSE, CACHE_FULL) = range(2)
+
     # Constants used to indicate that the manager is:
     # - bootstrapping the toolkit (with method bootstrap_toolkit),
     # - starting up the engine (with method _start_engine).
@@ -52,6 +57,8 @@ class ToolkitManager(object):
 
         # defaults
         self._bundle_cache_fallback_paths = []
+        self._caching_policy = self.CACHE_SPARSE
+        self._pipeline_configuration_name = None
         self._pipeline_configuration_identifier = None
         self._base_config_descriptor = None
         self._progress_cb = None
@@ -71,6 +78,7 @@ class ToolkitManager(object):
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
         repr += " Cache fallback path %s\n" % self._bundle_cache_fallback_paths
+        repr += " Caching policy %s\n" % self._caching_policy
         repr += " Plugin id %s\n" % self._plugin_id
         repr += " Config %s %s\n" % (identifier_type, self._pipeline_configuration_identifier),
         repr += " Base %s >" % self._base_config_descriptor
@@ -221,6 +229,29 @@ class ToolkitManager(object):
         _get_bundle_cache_fallback_paths,
         _set_bundle_cache_fallback_paths
     )
+
+    def _get_caching_policy(self):
+        """
+        Specifies the config caching policy to use when bootstrapping.
+
+        ``ToolkitManager.CACHE_SPARSE`` will make the manager download and cache
+        the sole config dependencies needed to run the engine being started.
+        This is the default caching policy.
+
+        ``ToolkitManager.CACHE_FULL`` will make the manager download and cache
+        all the config dependencies.
+        """
+        return self._caching_policy
+
+    def _set_caching_policy(self, caching_policy):
+        # Setter for property 'caching_policy'.
+        if caching_policy not in (self.CACHE_SPARSE, self.CACHE_FULL):
+            raise TankBootstrapError("Invalid config caching policy %s. "
+                                     "Set to 'ToolkitManager.CACHE_SPARSE' or 'ToolkitManager.CACHE_FULL'." %
+                                     caching_policy)
+        self._caching_policy = caching_policy
+
+    caching_policy = property(_get_caching_policy, _set_caching_policy)
 
     def _get_progress_callback(self):
         """
@@ -668,54 +699,77 @@ class ToolkitManager(object):
 
         log.info("Downloading and installing apps...")
 
-        # Resolve a context for the entity.
-        if config_entity:
-            context = tk.context_from_entity_dictionary(config_entity)
-        else:
-            context = tk.context_empty()
-
         # each entry in the config template contains instructions about which version of the app
         # to use. First loop over all environments and gather all descriptors we should download,
         # then go ahead and download and post-install them
         pc = tk.pipeline_configuration
 
-        try:
-            # Get an environment name given the project context.
-            env_name = tk.execute_core_hook(platform_constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
-        except Exception, e:
-            log.debug("The pick environment core hook for context '%s' reported error: %s" % (context, e))
-            message = "Which environment to start up cannot be evaluated. " \
-                      "Will download all dependencies for the entire configuration."
-            self._report_progress(progress_callback, 0.4, message)
-            env_name = None
-
-        if env_name:
-            env_name_list = [env_name]
-        else:
-            # Since we could not get an environment name with the core hook,
-            # use a broader approach that will probably cache more apps,
-            # but at least the ones that we need.
-            env_name_list = pc.get_environments()
-
-        # pass 1 - populate list of all descriptors
         descriptors = []
-        for env_name in env_name_list:
 
-            env_obj = pc.get_environment(env_name, context)
+        if self._caching_policy == self.CACHE_SPARSE:
+            # Download and cache the sole config dependencies needed to run the engine being started,
 
-            for engine in env_obj.get_engines():
+            # Resolve a context for the entity.
+            if config_entity:
+                context = tk.context_from_entity_dictionary(config_entity)
+            else:
+                context = tk.context_empty()
 
-                # Select the descriptors for the configuration engine.
-                if engine == config_engine_name:
+            try:
+                # Get an environment name given the project context.
+                env_name = tk.execute_core_hook(platform_constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
+            except Exception, e:
+                log.debug("The pick environment core hook for context '%s' reported error: %s" % (context, e))
+                message = "Which environment to start up cannot be evaluated. " \
+                          "Will download all dependencies for the entire configuration."
+                self._report_progress(progress_callback, 0.4, message)
+                env_name = None
+
+            if env_name:
+                env_name_list = [env_name]
+            else:
+                # Since we could not get an environment name with the core hook,
+                # use a broader approach that will probably cache more apps,
+                # but at least the ones that we need.
+                env_name_list = pc.get_environments()
+
+            # pass 1 - populate list of all descriptors
+            for env_name in env_name_list:
+
+                env_obj = pc.get_environment(env_name, context)
+
+                for engine in env_obj.get_engines():
+
+                    # Select the descriptors for the configuration engine.
+                    if engine == config_engine_name:
+
+                        descriptors.append(env_obj.get_engine_descriptor(engine))
+
+                        for app in env_obj.get_apps(engine):
+                            descriptors.append(env_obj.get_app_descriptor(engine, app))
+
+                for framework in env_obj.get_frameworks():
+
+                    descriptors.append(env_obj.get_framework_descriptor(framework))
+
+        else:
+            # Since self._caching_policy == self.CACHE_FULL, download and cache all the config dependencies.
+
+            # pass 1 - populate list of all descriptors
+            for env_name in pc.get_environments():
+
+                env_obj = pc.get_environment(env_name)
+
+                for engine in env_obj.get_engines():
 
                     descriptors.append(env_obj.get_engine_descriptor(engine))
 
                     for app in env_obj.get_apps(engine):
                         descriptors.append(env_obj.get_app_descriptor(engine, app))
 
-            for framework in env_obj.get_frameworks():
+                for framework in env_obj.get_frameworks():
 
-                descriptors.append(env_obj.get_framework_descriptor(framework))
+                    descriptors.append(env_obj.get_framework_descriptor(framework))
 
         # pass 2 - download all apps
         for idx, descriptor in enumerate(descriptors):
