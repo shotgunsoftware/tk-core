@@ -191,7 +191,7 @@ class Application(TankBundle):
 
     def event_file_close(self, event):
         """
-        Called when the parent engine emits a file-open event. This method
+        Called when the parent engine emits a file-close event. This method
         is intended to be overridden by deriving classes.
 
         .. warning:: It is possible that events will be triggered quite
