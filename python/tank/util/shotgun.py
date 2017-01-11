@@ -226,8 +226,12 @@ def download_url(sg, url, location):
                      to have write permissions
     :raises: :class:`TankError` on failure.
     """
-    # grab proxy server settings from the shotgun API
-    if sg.config.proxy_handler:
+    # We only need to set the auth cookie for downloads from Shotgun server
+    if sg.config.server in url:
+        # this method also handles proxy server settings from the shotgun API
+        __setup_auth_cookie(sg)
+    elif sg.config.proxy_handler:
+        # grab proxy server settings from the shotgun API
         opener = urllib2.build_opener(sg.config.proxy_handler)
         urllib2.install_opener(opener)
     
@@ -236,12 +240,22 @@ def download_url(sg, url, location):
     
     # download the given url
     try:
+        request = urllib2.Request(url)
+        if sg.config.server in url:
+            request.add_header("user-agent", "; ".join(sg._user_agents))
+
         if timeout and sys.version_info >= (2,6):
             # timeout parameter only available in python 2.6+
-            response = urllib2.urlopen(url, timeout=timeout)
+            response = urllib2.urlopen(request, timeout=timeout)
         else:
             # use system default
-            response = urllib2.urlopen(url)
+            response = urllib2.urlopen(request)
+
+        # Make sure the disk location has the same extension as the url path.
+        loc_base, loc_ext = os.path.splitext(location)
+        url_ext = os.path.splitext(urlparse.urlparse(response.geturl()).path)[-1]
+        if loc_ext != url_ext:
+            location = "%s%s" % (loc_base, url_ext)
             
         f = open(location, "wb")
         try:
@@ -250,6 +264,32 @@ def download_url(sg, url, location):
             f.close()
     except Exception, e:
         raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
+
+def __setup_auth_cookie(sg):
+    """
+    Borrowed from the Shotgun Python API, setup urllib2 with a cookie for authentication on
+    Shotgun instance.
+
+    Looks up session token and sets that in a cookie in the :mod:`urllib2` handler. This is
+    used internally for downloading attachments from the Shotgun server.
+
+    :param sg: Shotgun API instance
+    """
+    import cookielib
+
+    sid = sg.get_session_token()
+    cj = cookielib.LWPCookieJar()
+    c = cookielib.Cookie('0', '_session_id', sid, None, False,
+        sg.config.server, False, False, "/", True, False, None, True,
+        None, None, {})
+    cj.set_cookie(c)
+    cookie_handler = urllib2.HTTPCookieProcessor(cj)
+    if sg.config.proxy_handler:
+        opener = urllib2.build_opener(sg.config.proxy_handler, cookie_handler)
+    else:
+        opener = urllib2.build_opener(cookie_handler)
+    urllib2.install_opener(opener)
+
 
 @LogManager.log_timing
 def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
