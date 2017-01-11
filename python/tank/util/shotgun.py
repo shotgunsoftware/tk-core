@@ -213,7 +213,7 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
     return config_data
 
 @LogManager.log_timing
-def download_url(sg, url, location):
+def download_url(sg, url, location, use_url_extension=False):
     """
     Convenience method that downloads a file from a given url.
     This method will take into account any proxy settings which have
@@ -251,11 +251,12 @@ def download_url(sg, url, location):
             # use system default
             response = urllib2.urlopen(request)
 
-        # Make sure the disk location has the same extension as the url path.
-        loc_base, loc_ext = os.path.splitext(location)
-        url_ext = os.path.splitext(urlparse.urlparse(response.geturl()).path)[-1]
-        if loc_ext != url_ext:
-            location = "%s%s" % (loc_base, url_ext)
+        if use_url_extension:
+            # Make sure the disk location has the same extension as the url path.
+            loc_base, loc_ext = os.path.splitext(location)
+            url_ext = os.path.splitext(urlparse.urlparse(response.geturl()).path)[-1]
+            if loc_ext != url_ext:
+                location = "%s%s" % (loc_base, url_ext)
             
         f = open(location, "wb")
         try:
