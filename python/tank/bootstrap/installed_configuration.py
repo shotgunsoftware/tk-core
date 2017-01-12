@@ -32,7 +32,7 @@ class InstalledConfiguration(Configuration):
         """
         User friendly representation of the configuration.
         """
-        return "Installed Configuration at %s" % (self._path.current_os)
+        return "Installed Configuration at %s" % (self._path.current_os,)
 
     def __repr__(self):
         """
