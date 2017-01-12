@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -49,6 +49,14 @@ class Configuration(object):
         """
         raise NotImplementedError
 
+    @property
+    def path(self):
+        """
+        Gets the path to the pipeline configuration on disk.:
+        :rtype: :class:`~sgtk.util.ShotgunPath`
+        """
+        return self._path
+
     def get_tk_instance(self, sg_user):
         """
         Returns a tk instance for this configuration.
@@ -79,7 +87,3 @@ class Configuration(object):
         log.debug("Core API code located here: %s" % inspect.getfile(tk.__class__))
 
         return tk
-
-
-
-

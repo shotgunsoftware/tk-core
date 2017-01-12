@@ -13,6 +13,7 @@ Resolver module. This module provides a way to resolve a pipeline configuration
 on disk.
 """
 
+import sys
 import os
 import fnmatch
 import pprint
@@ -29,6 +30,18 @@ from .. import LogManager
 from . import constants
 
 log = LogManager.get_logger(__name__)
+
+
+def _current_platform_name():
+    # Now find out the appropriate python to launch
+    if sys.platform == "darwin":
+        return "Darwin"
+    elif sys.platform == "win32":
+        return "Windows"
+    elif sys.platform.startswith("linux"):
+        return "Linux"
+    else:
+        raise RuntimeError("Unknown platform: %s." % sys.platform)
 
 
 class ConfigurationResolver(object):
@@ -403,7 +416,16 @@ class ConfigurationResolver(object):
 
             path = ShotgunPath.from_shotgun_dict(pipeline_config)
 
-            if path.current_os:
+            if path and not path.current_os:
+                log.error(
+                    "No path set for %s on the Pipeline " "Configuration \"%s\" (id %d).",
+                    _current_platform_name(),
+                    pipeline_config["code"],
+                    pipeline_config["id"]
+                )
+                raise TankBootstrapError("The Toolkit configuration path has not\n"
+                                         "been set for your operating system.")
+            elif path:
                 # Emit a warning when both the OS field and descriptor field is set.
                 if pipeline_config.get("descriptor") or pipeline_config.get("sg_descriptor"):
                     log.warning("Fields for path based and descriptor based pipeline configuration are both set. "

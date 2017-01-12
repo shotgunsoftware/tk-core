@@ -89,9 +89,16 @@ def create_io_descriptor(
     # and it doesn't matter where we are fetching it from. If <core appstore v1.2.3>
     # is available in multiple different locations on disk, the content of each location
     # should be identical
-    if descriptor_uri in g_cached_instances:
-        # cache hit
-        return g_cached_instances[descriptor_uri]
+    # FIXME: Disabling caches as it causes issues when caching bundles from an installed configuration
+    # for a cached configurations.
+    # The descriptors that have been cached using an InstalledConfiguration are resolving packages inside
+    # its install folder. Later on when we start ensure that bundles are cached for a CachedConfiguration
+    # those cached descriptors are reporting that a bundle is already cached. Unfortunately, they are not cached
+    # in the bundle_cache but in the InstalledConfiguration's cache so the bundles are not downloaded to the
+    # global bundle cache like we'd expect.
+    # if descriptor_uri in g_cached_instances:
+    #     # cache hit
+    #     return g_cached_instances[descriptor_uri]
 
     # at this point we didn't have a cache hit,
     # so construct the object manually
