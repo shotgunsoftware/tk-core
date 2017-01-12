@@ -32,18 +32,6 @@ from . import constants
 log = LogManager.get_logger(__name__)
 
 
-def _current_platform_name():
-    # Now find out the appropriate python to launch
-    if sys.platform == "darwin":
-        return "Darwin"
-    elif sys.platform == "win32":
-        return "Windows"
-    elif sys.platform.startswith("linux"):
-        return "Linux"
-    else:
-        raise RuntimeError("Unknown platform: %s." % sys.platform)
-
-
 class ConfigurationResolver(object):
     """
     A class that contains the business logic for returning a configuration
@@ -279,7 +267,6 @@ class ConfigurationResolver(object):
         for pc in pipeline_configs:
             # make sure configuration matches our plugin id
             if self._match_plugin_id(pc.get("plugin_ids")) or self._match_plugin_id(pc.get("sg_plugin_ids")):
-                # return only a slice of the dictionary.
                 yield pc
 
     def resolve_shotgun_configuration(
@@ -417,9 +404,9 @@ class ConfigurationResolver(object):
             path = ShotgunPath.from_shotgun_dict(pipeline_config)
 
             if path and not path.current_os:
-                log.error(
-                    "No path set for %s on the Pipeline " "Configuration \"%s\" (id %d).",
-                    _current_platform_name(),
+                log.debug(
+                    "No path set for %s on the Pipeline Configuration \"%s\" (id %d).",
+                    sys.platform,
                     pipeline_config["code"],
                     pipeline_config["id"]
                 )

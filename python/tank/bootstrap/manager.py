@@ -60,7 +60,6 @@ class ToolkitManager(object):
         # defaults
         self._bundle_cache_fallback_paths = []
         self._caching_policy = self.CACHE_SPARSE
-        self._pipeline_configuration_name = None
         self._pipeline_configuration_identifier = None
         self._base_config_descriptor = None
         self._progress_cb = None

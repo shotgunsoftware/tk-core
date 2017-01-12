@@ -13,6 +13,7 @@ from __future__ import with_statement
 import os
 from mock import patch
 import sgtk
+from sgtk.util import ShotgunPath
 
 from tank_test.tank_test_base import setUpModule, TankTestBase # noqa
 
@@ -829,7 +830,44 @@ class TestResolvePerId(TestResolverBase):
 
         find_mock.side_effect = find_mock_impl
 
-        with self.assertRaises(sgtk.bootstrap.TankBootstrapError):
+        with self.assertRaisesRegexp(sgtk.bootstrap.TankBootstrapError, "Pipeline configuration with id"):
+            self.resolver.resolve_shotgun_configuration(
+                pipeline_config_identifier=1,
+                fallback_config_descriptor=self.config_1,
+                sg_connection=self.tk.shotgun,
+                current_login='john.smith'
+            )
+
+
+class TestErrorHandling(TestResolverBase):
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_installed_configuration_not_on_disk(self, find_mock):
+        """
+        Ensure that the resolver detects when an installed configuration has not been set for the
+        current platform.
+        """
+        def find_mock_impl(*args, **kwargs):
+            pc = {
+                'id': 1,
+                'code': 'Primary',
+                'project': {'type': 'Project', 'id': 123},
+                'users': [],
+                'plugin_ids': "foo.*",
+                'sg_plugin_ids': None,
+                'windows_path': 'sg_path',
+                'linux_path': 'sg_path',
+                'mac_path': 'sg_path',
+                'sg_descriptor': None,
+                'descriptor': None
+            }
+            # Wipe the current platform's path.
+            pc[ShotgunPath.get_shotgun_storage_key()] = None
+            return [pc]
+
+        find_mock.side_effect = find_mock_impl
+
+        with self.assertRaisesRegexp(sgtk.bootstrap.TankBootstrapError, "The Toolkit configuration path has not"):
             self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=1,
                 fallback_config_descriptor=self.config_1,

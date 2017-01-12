@@ -52,7 +52,7 @@ class Configuration(object):
     @property
     def path(self):
         """
-        Gets the path to the pipeline configuration on disk.:
+        Gets the path to the pipeline configuration on disk.
         :rtype: :class:`~sgtk.util.ShotgunPath`
         """
         return self._path
