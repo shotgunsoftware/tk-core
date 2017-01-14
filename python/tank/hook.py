@@ -13,6 +13,8 @@ Defines the base class for all Tank Hooks.
 
 """
 import os
+import sys
+import logging
 import threading
 from .util.loader import load_plugin
 from . import LogManager
@@ -206,6 +208,13 @@ class Hook(object):
         """
         return self.__parent
 
+    def get_instance(self):
+        """
+        Returns the instance of the hook.
+        @todo; add docs.
+        """
+        return self
+
     def get_publish_path(self, sg_publish_data):
         """
         Returns the path on disk for a publish entity in Shotgun.
@@ -250,6 +259,37 @@ class Hook(object):
             paths.append(local_path)
 
         return paths
+
+    @property
+    def disk_location(self):
+        """
+        The folder on disk where this item is located.
+        This can be useful if you want to write app code
+        to retrieve a local resource::
+
+            app_font = os.path.join(self.disk_location, "resources", "font.fnt")
+        """
+        path_to_this_file = os.path.abspath(sys.modules[self.__module__].__file__)
+        return os.path.dirname(path_to_this_file)
+
+    @property
+    def logger(self):
+        """
+        Logging for hooks! #39351
+        """
+        # if parent doesn't offer a logger, use the default one
+        log_prefix = log.name
+
+        if self.parent and self.parent.getattr(self.parent, "logger", None):
+            # parent exposes a logger attribute
+            log_prefix = "%s.hook" % self.parent.logger.name
+
+        # name the logger after the name of the hook filename
+        path_to_this_file = os.path.abspath(sys.modules[self.__module__].__file__)
+        hook_name = os.path.splitext(os.path.basename(path_to_this_file))[0]
+
+        full_log_path = "%s.%s" % (log_prefix, hook_name)
+        return logging.getLogger(full_log_path)
 
     def load_framework(self, framework_instance_name):
         """
