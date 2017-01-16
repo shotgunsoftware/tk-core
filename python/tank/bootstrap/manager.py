@@ -91,7 +91,12 @@ class ToolkitManager(object):
 
         It also takes into account the user and optional pipeline_configuration name or id.
 
-        :returns iterator: Iterator over a list of pipeline configuration entity links.
+        :param project: Project entity link to enumerate pipeline configurations for. If ``None``, this will enumerate
+            the pipeline configurations for the site configuration.
+        :type project: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
+
+        :returns: Iterator over a list of pipeline configuration entity links.
+        :rtype: iterator
         """
         resolver = ConfigurationResolver(
             self.plugin_id,
@@ -590,23 +595,21 @@ class ToolkitManager(object):
 
         return config, status
 
-    def bootstrap_toolkit(self, engine_name, entity, progress_callback=None):
+    def bootstrap_toolkit(self, entity, progress_callback=None):
         """
-        Create an sgtk instance for the given engine and entity.
+        Create an :class:`~sgtk.Sgtk` instance for the given engine and entity.
 
         If entity is None, the method will bootstrap into the site
-        config. This method will attempt to resolve the config according
-        to business logic set in the associated resolver class and based
-        on this launch a configuration. This may involve downloading new
-        apps from the toolkit app store and installing files on disk.
+        config. This method will attempt to resolve the configuration and download it
+        locally. Note that it will not cache the application bundles. Use
+        :meth:`ToolkitManager.update_and_cache_configuration` to cache bundles before
+        starting the engine.
 
-        Please note that the API version of the tk instance that hosts
-        the engine may not be the same as the API version that was
-        executed during the bootstrap.
+        Please note that the API version of the :class:`~sgtk.Sgtk` instance may not be the same as the
+        API version that was used during the bootstrap.
 
-        :param engine_name: Name of the engine used to resolve a configuration.
         :param entity: Shotgun entity used to resolve a project context.
-        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
                                   Set to ``None`` to use the default callback function.
         :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
@@ -620,19 +623,19 @@ class ToolkitManager(object):
         self._report_progress(progress_callback, 0.3, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
-        if status != Configuration.LOCAL_CFG_UP_TO_DATE:
-            self._cache_apps(tk, tk.pipeline_configuration, engine_name, entity, progress_callback)
-
         return tk
 
     def update_and_cache_configuration(self, project, progress_callback=None):
         """
-        Updates and caches a configuration on disk.
+        Updates and caches a configuration on disk. The resolution of the pipeline configuration will
+        follow the same rules as the method :meth:`ToolkitManager.bootstrap_engine`, but
+        it simply caches all the bundles for later use instead of bootstrapping directly into it.
 
         :param project: A project entity link.
-        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :type project: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
 
-        :returns str: Path to the configuration.
+        :returns: Path to the configuration.
+        :rtype: str
         """
         if progress_callback is None:
             progress_callback = self.progress_callback
@@ -646,7 +649,7 @@ class ToolkitManager(object):
         except TankError, e:
             raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
 
-        self._cache_apps(None, pc, None, None, progress_callback)
+        self._cache_bundles(None, pc, None, None, progress_callback, do_post_install=False)
 
         return path
 
@@ -710,9 +713,9 @@ class ToolkitManager(object):
             # Call the old style progress callback with signature (message, current_index, maximum_index).
             progress_callback(message, None, None)
 
-    def _cache_apps(self, tk, pc, config_engine_name, config_entity, progress_callback, do_post_install=False):
+    def _cache_bundles(self, tk, pc, config_engine_name, config_entity, progress_callback, do_post_install=False):
         """
-        Caches all apps associated with the given toolkit instance.
+        Caches all bundles associated with the given toolkit instance.
 
         :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance to cache items for. Can be ``None`` in CACHE_FULL mode.
         :param pc: Pipeline configuration instance.

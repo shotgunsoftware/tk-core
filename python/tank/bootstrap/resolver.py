@@ -204,11 +204,12 @@ class ConfigurationResolver(object):
                 self._bundle_cache_fallback_paths
             )
 
-    def find_matching_pipelines(self, pipeline_config_identifier, current_login, sg_connection):
+    def find_matching_pipelines(self, pipeline_config_name, current_login, sg_connection):
         """
         Finds all the pipelines matching the query parameters.
 
-        :param str pipeline_config_identifier: Name of the pipeline configuration requested for. Can be ``None``.
+        :param str pipeline_config_name: Name of the pipeline configuration requested for. If ``None``,
+            all pipeline configurations from the project will be matched.
         :param str current_login: Only retains non-primary configs from the specified user.
         :param ``shotgun_api3.Shotgun`` sg_connection: Connection to the Shotgun site.
 
@@ -221,12 +222,12 @@ class ConfigurationResolver(object):
         log.debug("Requesting pipeline configurations from Shotgun...")
 
         # If nothing was specified, we need to pick pipelines owned by the user and the primary.
-        if pipeline_config_identifier is None:
+        if pipeline_config_name is None:
             ownership_filters = [
                 ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
                 ["users.HumanUser.login", "contains", current_login]
             ]
-        elif pipeline_config_identifier == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+        elif pipeline_config_name == constants.PRIMARY_PIPELINE_CONFIG_NAME:
             # Only retrieve primary.
             # This makes sense if you don't want sandboxes and specifically want the Primary.
             ownership_filters = [
@@ -235,7 +236,7 @@ class ConfigurationResolver(object):
         else:
             # If something other than primary was asked for, only get the ones the user owns.
             ownership_filters = [
-                ["code", "is", pipeline_config_identifier],
+                ["code", "is", pipeline_config_name],
                 ["users.HumanUser.login", "contains", current_login]
             ]
 
@@ -378,7 +379,8 @@ class ConfigurationResolver(object):
             # If it doesn't exist, we're in trouble.
             if pipeline_config is None:
                 raise TankBootstrapError(
-                    "Pipeline configuration with id '%d' doesn't exist in Shotgun." % pipeline_config_identifier
+                    "Pipeline configuration with id '%d' doesn't exist for project id '%d' in Shotgun." %
+                    (pipeline_config_identifier, self._proj_entity_dict["id"])
                 )
 
         # now resolve the descriptor to use based on the pipeline config record

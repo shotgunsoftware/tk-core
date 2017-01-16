@@ -162,12 +162,12 @@ class ShotgunPath(object):
 
     def __nonzero__(self):
         """
-        Tests whether the pass is set.
+        Checks if one or more of the OSes have a path specified.
 
-        :returns: True if one of the OSes has a path specified. False if none are.
+        :returns: True if one or more of the OSes has a path specified. False if all are None.
         """
         # If we're different than an empty path, we're not zero!
-        return self != ShotgunPath()
+        return True if self.windows or self.linux or self.macosx else False
 
     def __repr__(self):
         return "<Path win:'%s', linux:'%s', macosx:'%s'>" % (
