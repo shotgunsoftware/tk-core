@@ -780,8 +780,6 @@ class ToolkitManager(object):
         """
         log.info("Checking that all bundles are cached locally...")
 
-        descriptors = []
-
         if self._caching_policy == self.CACHE_SPARSE:
             # Download and cache the sole config dependencies needed to run the engine being started,
             log.debug("caching_policy is CACHE_SPARSE - only check items associated with %s" % config_engine_name)
@@ -794,20 +792,23 @@ class ToolkitManager(object):
         else:
             raise TankBootstrapError("Unsupported caching_policy setting %s" % self._caching_policy)
 
+        descriptors = {}
         # pass 1 - populate list of all descriptors
         for env_name in pipeline_configuration.get_environments():
             env_obj = pipeline_configuration.get_environment(env_name)
             for engine in env_obj.get_engines():
                 if engine_constraint is None or engine == engine_constraint:
-                    descriptors.append(env_obj.get_engine_descriptor(engine))
+                    descriptor = env_obj.get_engine_descriptor(engine)
+                    descriptors[str(descriptor)] = descriptor
                     for app in env_obj.get_apps(engine):
-                        descriptors.append(env_obj.get_app_descriptor(engine, app))
+                        descriptor = env_obj.get_app_descriptor(engine, app)
+                        descriptors[str(descriptor)] = descriptor
 
             for framework in env_obj.get_frameworks():
-                descriptors.append(env_obj.get_framework_descriptor(framework))
+                descriptors[str(descriptor)] = descriptor
 
         # pass 2 - download all apps
-        for idx, descriptor in enumerate(descriptors):
+        for idx, descriptor in enumerate(descriptors.values()):
 
             # Scale the progress step 0.3 between this value 0.4 and the next one 0.7
             # to compute a value progressing while looping over the indexes.
