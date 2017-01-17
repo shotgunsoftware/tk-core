@@ -588,7 +588,14 @@ class RoundTripRepresenter(SafeRepresenter):
         tag = None
         style = '|'
         if PY2 and not isinstance(data, unicode):
-            data = unicode(data, 'ascii')
+            uni_data = unicode(data, 'ascii')
+            with open("/shotgun/sites/amy-hronek-dev/studio_apps/ruamel_yaml.log", "a") as fhdl:
+                fhdl.write("representer.RoundTripRepresenter.represet_preserved_scalarstring -- data : %s\n" % data)
+                fhdl.write("                                                              type(data) : %s\n" % type(data))
+                fhdl.write("                                                                uni data : %s\n" % uni_data)
+                fhdl.write("                                                          type(uni_data) : %s\n\n" % type(uni_data))
+                fhdl.close()
+            data = uni_data
         tag = u'tag:yaml.org,2002:str'
         return self.represent_scalar(tag, data, style=style)
 

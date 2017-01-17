@@ -151,6 +151,7 @@ class SafeRepresenter(BaseRepresenter):
     def represent_str(self, data):
         tag = None
         style = None
+        """
         try:
             data = unicode(data, 'ascii')
             tag = u'tag:yaml.org,2002:str'
@@ -162,6 +163,14 @@ class SafeRepresenter(BaseRepresenter):
                 data = data.encode('base64')
                 tag = u'tag:yaml.org,2002:binary'
                 style = '|'
+        """
+        try:
+            data = unicode(data, 'utf-8')
+            tag = u'tag:yaml.org,2002:str'
+        except UnicodeDecodeError:
+            data = data.encode('base64')
+            tag = u'tag:yaml.org,2002:binary'
+            style = '|'
         return self.represent_scalar(tag, data, style=style)
 
     def represent_unicode(self, data):
@@ -293,6 +302,7 @@ class Representer(SafeRepresenter):
     def represent_str(self, data):
         tag = None
         style = None
+        """
         try:
             data = unicode(data, 'ascii')
             tag = u'tag:yaml.org,2002:str'
@@ -300,16 +310,26 @@ class Representer(SafeRepresenter):
             try:
                 data = unicode(data, 'utf-8')
                 tag = u'tag:yaml.org,2002:python/str'
+                tag = u'tag:yaml.org,2002:str'
             except UnicodeDecodeError:
                 data = data.encode('base64')
                 tag = u'tag:yaml.org,2002:binary'
                 style = '|'
+        """
+        try:
+            data = unicode(data, 'utf-8')
+            tag = u'tag:yaml.org,2002:python/str'
+            tag = u'tag:yaml.org,2002:str'
+        except UnicodeDecodeError:
+            data = data.encode('base64')
+            tag = u'tag:yaml.org,2002:binary'
+            style = '|'
         return self.represent_scalar(tag, data, style=style)
 
     def represent_unicode(self, data):
         tag = None
         try:
-            data.encode('ascii')
+            data.encode('utf-8')
             tag = u'tag:yaml.org,2002:python/unicode'
         except UnicodeEncodeError:
             tag = u'tag:yaml.org,2002:str'

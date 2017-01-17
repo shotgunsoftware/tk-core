@@ -66,6 +66,11 @@ class BaseConstructor(object):
 
     def construct_object(self, node, deep=False):
         if node in self.constructed_objects:
+            with open("/shotgun/sites/amy-hronek-dev/studio_apps/ruamel_yaml.log", "a") as fhdl:
+                fhdl.write("constructor.construct_object -- node : %s\n" % node)
+                fhdl.write("                                data : %s\n" % self.constructed_objects[node])
+                fhdl.write("                          type(data) : %s\n\n" % type(self.constructed_objects[node]))
+                fhdl.close()
             return self.constructed_objects[node]
         if deep:
             old_deep = self.deep_construct
@@ -113,6 +118,11 @@ class BaseConstructor(object):
         del self.recursive_objects[node]
         if deep:
             self.deep_construct = old_deep
+        with open("/shotgun/sites/amy-hronek-dev/studio_apps/ruamel_yaml.log", "a") as fhdl:
+            fhdl.write("constructor.construct_object -- node : %s\n" % node)
+            fhdl.write("                                data : %s\n" % data)
+            fhdl.write("                          type(data) : %s\n\n" % type(data))
+            fhdl.close()
         return data
 
     def construct_scalar(self, node):
@@ -817,7 +827,8 @@ class RoundTripConstructor(SafeConstructor):
         if PY3:
             return value
         try:
-            return value.encode('ascii')
+            result = value.encode('ascii')
+            return result
         except AttributeError:
             # in case you replace the node dynamically e.g. with a dict
             return value

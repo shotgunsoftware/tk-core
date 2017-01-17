@@ -36,7 +36,10 @@ class BaseConstructor(object):
         # Ensure that the stream contains a single document and construct it.
         node = self.get_single_node()
         if node is not None:
-            return self.construct_document(node)
+            data = self.construct_document(node)
+            print "yaml.constructor.get_single_data -- data : %s\n" % data
+            print "                              type(data) : %s\n" % type(data )
+            return data
         return None
 
     def construct_document(self, node):

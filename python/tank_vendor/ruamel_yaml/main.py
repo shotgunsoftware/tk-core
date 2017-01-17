@@ -187,6 +187,7 @@ def dump_all(documents, stream=None, Dumper=Dumper,
         else:
             stream = BytesIO()
         getvalue = stream.getvalue
+    print "ruamel_yaml dump_all stream to Dumper : %s" % stream
     dumper = Dumper(stream, default_style=default_style,
                     default_flow_style=default_flow_style,
                     canonical=canonical, indent=indent, width=width,
@@ -196,6 +197,7 @@ def dump_all(documents, stream=None, Dumper=Dumper,
     try:
         dumper.open()
         for data in documents:
+            print "dumper.represent data : %s" % data
             dumper.represent(data)
         dumper.close()
     finally:

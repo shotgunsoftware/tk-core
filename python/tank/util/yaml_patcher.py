@@ -54,6 +54,10 @@ if not sys.version_info < (2, 6):
             ruamel_yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
             construct_yaml_str_as_utf8
         )
+        ruamel_yaml.constructor.RoundTripConstructor.add_constructor(
+            ruamel_yaml.resolver.BaseResolver.DEFAULT_SCALAR_TAG,
+            construct_yaml_str_as_utf8
+        )
 
     except ImportError:
         # This can happen with older versions (<= v1.3.20) of

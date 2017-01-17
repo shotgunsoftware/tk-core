@@ -612,6 +612,7 @@ class WritableEnvironment(InstalledEnvironment):
                 # of the content.
                 from tank_vendor import ruamel_yaml
                 yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
+                print "environment.__load_writable_yaml -- ruamel_yaml yaml_data : %s\n" % yaml_data
             else:
                 # use pyyaml parser
                 yaml_data = yaml.load(fh)
@@ -724,6 +725,7 @@ class WritableEnvironment(InstalledEnvironment):
             self._use_ruamel_yaml_parser = False
         else:
             self._use_ruamel_yaml_parser = val
+        self._use_ruamel_yaml_parser = False
         
     def update_engine_settings(self, engine_name, new_data, new_location):
         """
@@ -737,6 +739,8 @@ class WritableEnvironment(InstalledEnvironment):
 
         # now update the yml file where the engine is defined
         yml_data = self.__load_writable_yaml(yml_file)
+        print "environment.update_engine_settings -- yml file : %s" % yml_file
+        print "environment.update_engine_settings -- yml data : %s\n" % yml_data
 
         # now the token may be either [my-maya-ref] or [engines, tk-maya]
         # find the right chunk in the file
@@ -768,6 +772,8 @@ class WritableEnvironment(InstalledEnvironment):
 
         # now update the yml file where the engine is defined
         yml_data = self.__load_writable_yaml(yml_file)
+        print "environment.update_app_settings -- yml_file : %s" % yml_file
+        print "environment.update_app_settings -- yml_data : %s\n" % yml_data
 
         # now the token may be either [my-maya-ref] or [engines, tk-maya]
         # find the right chunk in the file
@@ -796,6 +802,8 @@ class WritableEnvironment(InstalledEnvironment):
 
         # now update the yml file where the engine is defined
         yml_data = self.__load_writable_yaml(yml_file)
+        print "environment.update_framework_settings -- yml file : %s" % yml_file
+        print "environment.update_framework_settings -- yml data : %s\n" % yml_data
 
         # now the token may be either [my_fw_ref] or [frameworks, tk-framework-widget_v0.1.x]
         # find the right chunk in the file
@@ -858,6 +866,8 @@ class WritableEnvironment(InstalledEnvironment):
         """
 
         data = self.__load_writable_yaml(yml_file)
+        print "environment.create_framework_settings -- yml_file : %s" % yml_file
+        print "environment.create_framework_settings -- data : %s\n" % data
 
         if data.get("frameworks") is None:
             data["frameworks"] = {}
@@ -897,6 +907,8 @@ class WritableEnvironment(InstalledEnvironment):
         """
 
         data = self.__load_writable_yaml(self._env_path)
+        print "environment.create_engine_settings -- self._env_path : %s" % self._env_path
+        print "environment.create_engine_settings -- data : %s\n" % data
 
         if engine_name in data["engines"]:
             raise TankError("Engine %s already exists in environment %s" % (engine_name, self._env_path) )
@@ -954,6 +966,8 @@ class WritableEnvironment(InstalledEnvironment):
         """
 
         data = self.__load_writable_yaml(self._env_path)
+        print "environment.create_app_settings -- self._env_path : %s" % self._env_path
+        print "environment.create_app_settings -- data : %s\n" % data
 
         # check that the engine name exists in the config
         if engine_name not in data["engines"]:
@@ -990,6 +1004,8 @@ class WritableEnvironment(InstalledEnvironment):
         :param dst_engine_name: The name of the engine instance to copy to (str)
         """
         data = self.__load_writable_yaml(self._env_path)
+        print "environment.copy_apps -- self._env_path : %s" % self._env_path
+        print "environment.copy_apps -- data : %s\n" % data
 
         # check that the engine names exists in the config
         if src_engine_name not in data["engines"]:
@@ -1026,6 +1042,8 @@ class WritableEnvironment(InstalledEnvironment):
 
         # load the output path's yaml
         yml_data = self.__load_writable_yaml(self._env_path)
+        print "environment.dump -- self._env_path : %s" % self._env_path
+        print "environment.dump -- yaml_data : %s\n" % yaml_data
 
         # process each of the engines for the environment
         for engine_name in self.get_engines():
