@@ -55,7 +55,32 @@ class UserSettings(Singleton):
         """
         :returns: The default proxy.
         """
-        return self._get_value("http_proxy")
+
+        proxy = self._get_value("http_proxy")
+
+        if not proxy:
+            # Since the configuration settings do not specify an http proxy string,
+            # try to retrieve the operating system http proxy.
+
+            import urllib
+
+            # Get the dictionary of scheme to proxy server URL mappings; for example:
+            #     {"http": "http://foo:bar@74.50.63.111:80", "https": "http://74.50.63.111:443"}
+            # "getproxies" scans the environment for variables named <scheme>_proxy, in case insensitive way.
+            # When it cannot find it, for Mac OS X it looks for proxy information from Mac OSX System Configuration,
+            # and for Windows it looks for proxy information from Windows Systems Registry.
+            # If both lowercase and uppercase environment variables exist (and disagree), lowercase is preferred.
+            # Note the following restriction: "getproxies" does not support the use of proxies which
+            # require authentication (user and password) when looking for proxy information from
+            # Mac OSX System Configuration or Windows Systems Registry.
+            system_proxies = urllib.getproxies()
+
+            # Get the http proxy when it exists in the dictionary.
+            proxy = system_proxies.get("http")
+
+            logger.debug("Operating system proxy: %s" % self._get_filtered_proxy(proxy or "<not defined>"))
+
+        return proxy
 
     def is_app_store_proxy_set(self):
         """
