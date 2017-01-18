@@ -224,15 +224,30 @@ def download_url(sg, url, location, use_url_extension=False):
     :param location: path on disk where the payload should be written.
                      this path needs to exists and the current user needs
                      to have write permissions
+    :param bool use_url_extension: Optionally replace the file extension of the
+                                   input `location` value to match the extension
+                                   of the downloaded URL if it can be determined
+                                   and doesn't match already. If set to False, the
+                                   contents of `url` will be downloaded to `location`
+                                   without modification, preserving prior behavior.
+                                   Set this value to True if the file extension for the
+                                   URL to be downloaded cannot be determined in advance,
+                                   for example downloading the content of
+                                   https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227.
     :raises: :class:`TankError` on failure.
     """
-    # We only need to set the auth cookie for downloads from Shotgun server
+    # We only need to set the auth cookie for downloads from Shotgun server,
+    # input URLs like: https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227
     if sg.config.server in url:
         # this method also handles proxy server settings from the shotgun API
-        __setup_auth_cookie(sg)
+        __setup_sg_auth_and_proxy(sg)
     elif sg.config.proxy_handler:
-        # grab proxy server settings from the shotgun API
+        # These input URLs have generally already been authenticated and are
+        # in the form: https://sg-media-staging-usor-01.s3.amazonaws.com/9d93f...
+        # %3D&response-content-disposition=filename%3D%22jackpot_icon.png%22.
+        # Grab proxy server settings from the shotgun API
         opener = urllib2.build_opener(sg.config.proxy_handler)
+
         urllib2.install_opener(opener)
     
     # inherit the timeout value from the sg API    
@@ -242,6 +257,8 @@ def download_url(sg, url, location, use_url_extension=False):
     try:
         request = urllib2.Request(url)
         if sg.config.server in url:
+            # Currently no public access to Shotgun API _user_agents, so
+            # use directly for now.
             request.add_header("user-agent", "; ".join(sg._user_agents))
 
         if timeout and sys.version_info >= (2,6):
@@ -253,9 +270,11 @@ def download_url(sg, url, location, use_url_extension=False):
 
         if use_url_extension:
             # Make sure the disk location has the same extension as the url path.
+            # Would be nice to see this functionality moved to back into Shotgun
+            # API and removed from here.
             loc_base, loc_ext = os.path.splitext(location)
             url_ext = os.path.splitext(urlparse.urlparse(response.geturl()).path)[-1]
-            if loc_ext != url_ext:
+            if url_ext and loc_ext != url_ext:
                 location = "%s%s" % (loc_base, url_ext)
             
         f = open(location, "wb")
@@ -266,7 +285,7 @@ def download_url(sg, url, location, use_url_extension=False):
     except Exception, e:
         raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
 
-def __setup_auth_cookie(sg):
+def __setup_sg_auth_and_proxy(sg):
     """
     Borrowed from the Shotgun Python API, setup urllib2 with a cookie for authentication on
     Shotgun instance.
@@ -276,6 +295,8 @@ def __setup_auth_cookie(sg):
 
     :param sg: Shotgun API instance
     """
+    # Importing this module locally to reduce clutter and facilitate clean up when/if this
+    # functionality gets ported back into the Shotgun API.
     import cookielib
 
     sid = sg.get_session_token()
