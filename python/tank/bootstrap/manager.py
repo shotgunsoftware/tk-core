@@ -29,8 +29,8 @@ class ToolkitManager(object):
     """
 
     # Constants used to make the manager bootstrapping:
-    # - download and cache the sole config dependencies needed to run the engine being started,
-    # - download and cache all the config dependencies.
+    # - download and cache the config dependencies needed to run the engine being started in a specific environment.
+    # - download and cache all the config dependencies needed to run the engine in any environment.
     (CACHE_SPARSE, CACHE_FULL) = range(2)
 
     # Constants used to indicate that the manager is:
@@ -60,7 +60,7 @@ class ToolkitManager(object):
         # defaults
         self._bundle_cache_fallback_paths = []
         self._caching_policy = self.CACHE_SPARSE
-        self._pipeline_configuration_identifier = None
+        self._pipeline_configuration_identifier = None # name or id
         self._base_config_descriptor = None
         self._progress_cb = None
         self._do_shotgun_config_lookup = True
@@ -85,31 +85,42 @@ class ToolkitManager(object):
         repr += " Base %s >" % self._base_config_descriptor
         return repr
 
-    def enumerate_pipeline_configurations(self, project=None):
+    def get_pipeline_configurations(self, project):
         """
-        Enumerates the pipeline configurations available for a given project.
+        Retrieves the pipeline configurations available for a given project.
 
-        It also takes into account the user and optional pipeline_configuration name or id.
+        It also takes into account the current user and optional pipeline_configuration name or id. If the
+        :method:``ToolkitManager.pipeline_configuration`` attribute has been set to a string, it will look
+        for pipeline configurations with that specific name. If it has been set to ``None``, any pipeline
+        that can be applied for the current user and project will be retrieved. Note that this method does
+        not support ``ToolkitManager.pipeline_configuration`` being an integer.
 
         :param project: Project entity link to enumerate pipeline configurations for. If ``None``, this will enumerate
             the pipeline configurations for the site configuration.
         :type project: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
 
-        :returns: Iterator over a list of pipeline configuration entity links.
-        :rtype: iterator
+        :returns: List of pipeline configurations.
+        :rtype: List of dictionaries with keys ``type``, ``id`` and ``name``.
         """
+
+        if isinstance(self.pipeline_configuration, int):
+            raise TankBootstrapError("Can't enumerate pipeline configurations matching a specific id.")
+
         resolver = ConfigurationResolver(
             self.plugin_id,
             project["id"] if project else None
         )
 
         # Only return id, type and code fields.
+        pcs = []
         for pc in resolver.find_matching_pipelines(None, self._sg_user.login, self._sg_connection):
-            yield {
+            pcs.append({
                 "id": pc["id"],
                 "type": pc["type"],
-                "code": pc["code"]
-            }
+                "name": pc["code"]
+            })
+
+        return pcs
 
     def _get_pipeline_configuration(self):
         """
@@ -672,19 +683,22 @@ class ToolkitManager(object):
 
         return tk, status
 
-    def update_and_cache_configuration(self, project):
+    def prepare_engine(self, engine_name, entity):
         """
-        Updates and caches a configuration on disk. The resolution of the pipeline configuration will
-        follow the same rules as the method :meth:`ToolkitManager.bootstrap_engine`, but
-        it simply caches all the bundles for later use instead of bootstrapping directly into it.
+        Updates and caches a configuration on disk for a given project. The resolution of the pipeline
+        configuration will follow the same rules as the method :meth:`ToolkitManager.bootstrap_engine`,
+        but it simply caches all the bundles for later use instead of bootstrapping directly into it.
 
-        :param project: A project entity link.
+        :param str engine_name: Name of the engine instance to cache if using sparse caching. If ``None``,
+            all engine instances will be cached.
+
+        :param entity: An entity link. If the entity is not a project, the project for that entity will be resolved.
         :type project: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
 
-        :returns: Path to the configuration.
+        :returns: Path to the pipeline configuration.
         :rtype: str
         """
-        config, status = self._get_configuration(project, self.progress_callback)
+        config, status = self._get_configuration(entity, self.progress_callback)
 
         path = config.path.current_os
 
@@ -693,7 +707,7 @@ class ToolkitManager(object):
         except TankError, e:
             raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
 
-        self._cache_apps(None, pc, None, None, self.progress_callback, do_post_install=False)
+        self._cache_apps(None, pc, engine_name, None, self.progress_callback, do_post_install=False)
 
         return path
 
@@ -806,8 +820,6 @@ class ToolkitManager(object):
                 env_name_list = pc.get_environments()
         else:
             env_name_list = pc.get_environments()
-            # When caching everything, ignore the config_engine_name argument.
-            config_engine_name = None
 
         # pass 1 - populate list of all descriptors
         for env_name in env_name_list:

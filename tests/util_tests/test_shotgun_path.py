@@ -10,7 +10,8 @@
 
 import sys
 
-from tank_test.tank_test_base import setUpModule, TankTestBase # noqa
+from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase
 
 from tank.util import ShotgunPath
 
