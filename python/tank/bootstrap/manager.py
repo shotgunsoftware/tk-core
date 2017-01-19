@@ -648,8 +648,7 @@ class ToolkitManager(object):
         tk, status = self._bootstrap_toolkit_internal(entity, progress_callback)
 
         # Now cache the apps
-        if status != Configuration.LOCAL_CFG_UP_TO_DATE:
-            self._cache_apps(tk, tk.pipeline_configuration, engine_name, entity, progress_callback)
+        self._cache_apps(tk, tk.pipeline_configuration, engine_name, entity, progress_callback)
 
         return tk
 
