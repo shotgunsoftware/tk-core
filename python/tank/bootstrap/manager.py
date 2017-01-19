@@ -486,14 +486,14 @@ class ToolkitManager(object):
 
     def _get_configuration(self, entity, progress_callback):
         """
-        Resolves the configuration to use and its status.
+        Resolves the configuration to use.
 
         :param entity: Shotgun entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
                                   Set to ``None`` to use the default callback function.
 
-        :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance and its current status.
+        :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.
         """
         self._report_progress(progress_callback, 0.0, "Resolving project...")
         if entity is None:
@@ -604,7 +604,7 @@ class ToolkitManager(object):
         else:
             raise TankBootstrapError("Unknown configuration update status!")
 
-        return config, status
+        return config
 
     def bootstrap_toolkit(self, entity):
         """
@@ -626,7 +626,7 @@ class ToolkitManager(object):
         :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
         """
         # Only return the Toolkit instance.
-        return self._bootstrap_toolkit_internal(entity, None)[0]
+        return self._bootstrap_toolkit_internal(entity, None)
 
     def _bootstrap_toolkit_and_cache_apps(self, engine_name, entity, progress_callback):
         """
@@ -645,9 +645,10 @@ class ToolkitManager(object):
         """
 
         # First get the Toolkit instance
-        tk, status = self._bootstrap_toolkit_internal(entity, progress_callback)
+        tk = self._bootstrap_toolkit_internal(entity, progress_callback)
 
-        # Now cache the apps
+        # Now cache the apps. Always do this since someone can blow their bundle cache but leave
+        # the configuration intact.
         self._cache_apps(tk, tk.pipeline_configuration, engine_name, entity, progress_callback)
 
         return tk
@@ -667,20 +668,19 @@ class ToolkitManager(object):
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
                                   Set to ``None`` to use the default callback function.
-        :returns: Bootstrapped :class:`~sgtk.Sgtk` instance and the configuration's status.
+        :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
         """
 
-        #
         if progress_callback is None:
             progress_callback = self.progress_callback
 
-        config, status = self._get_configuration(entity, progress_callback)
+        config = self._get_configuration(entity, progress_callback)
 
         # we can now boot up this config.
         self._report_progress(progress_callback, 0.3, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
-        return tk, status
+        return tk
 
     def prepare_engine(self, engine_name, entity):
         """
@@ -697,7 +697,7 @@ class ToolkitManager(object):
         :returns: Path to the pipeline configuration.
         :rtype: str
         """
-        config, status = self._get_configuration(entity, self.progress_callback)
+        config = self._get_configuration(entity, self.progress_callback)
 
         path = config.path.current_os
 
@@ -706,6 +706,8 @@ class ToolkitManager(object):
         except TankError, e:
             raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
 
+        # Now cache the apps. Always do this since someone can blow their bundle cache but leave
+        # the configuration intact.
         self._cache_apps(None, pc, engine_name, None, self.progress_callback, do_post_install=False)
 
         return path
