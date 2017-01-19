@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.45 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.49 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.45 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.49 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.45.<br>
+    <b>tk-core</b> v0.18.49.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -605,6 +605,11 @@
                     <span class="c1"># set the message before the window is raised to avoid briefly</span>
                     <span class="c1"># showing default values</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span><span class="o">.</span><span class="n">set_contents</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">details</span><span class="p">)</span>
+
+                    <span class="c1"># if the user closes manually by clicking on the dialog,</span>
+                    <span class="c1"># make sure we remove the reference to it via the</span>
+                    <span class="c1"># clear_busy method.</span>
+                    <span class="n">window</span><span class="o">.</span><span class="n">dialog_closed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clear_busy</span><span class="p">)</span>
                     
                     <span class="c1"># kick it off        </span>
                     <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -3066,7 +3071,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Autodesk.
+        &copy; Copyright 2017, Autodesk.
 
     </p>
   </div> 
@@ -3087,7 +3092,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.45',
+            VERSION:'v0.18.49',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Deploy and management &mdash; tk-core v0.18.45 documentation</title>
+  <title>Deploy and management &mdash; tk-core v0.18.49 documentation</title>
   
 
   
@@ -32,9 +32,9 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.45 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.49 documentation" href="index.html"/>
         <link rel="next" title="Foundation" href="core.html"/>
-        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.45" href="index.html"/> 
+        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.49" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -126,7 +126,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.45.<br>
+    <b>tk-core</b> v0.18.49.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -333,6 +333,17 @@ the <em>primary</em> bundle cache.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="sgtk.bootstrap.ToolkitManager.caching_policy">
+<code class="descname">caching_policy</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.caching_policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specifies the config caching policy to use when bootstrapping.</p>
+<p><code class="docutils literal"><span class="pre">ToolkitManager.CACHE_SPARSE</span></code> will make the manager download and cache
+the sole config dependencies needed to run the engine being started.
+This is the default caching policy.</p>
+<p><code class="docutils literal"><span class="pre">ToolkitManager.CACHE_FULL</span></code> will make the manager download and cache
+all the config dependencies.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sgtk.bootstrap.ToolkitManager.progress_callback">
 <code class="descname">progress_callback</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.progress_callback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Callback function property to call whenever progress of the bootstrap should be reported back.</p>
@@ -499,7 +510,7 @@ likely to contain changes which have not yet been full tested.</p>
         <a href="core.html" class="btn btn-neutral float-right" title="Foundation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.45" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.49" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -508,7 +519,7 @@ likely to contain changes which have not yet been full tested.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, Autodesk.
+        &copy; Copyright 2017, Autodesk.
 
     </p>
   </div> 
@@ -529,7 +540,7 @@ likely to contain changes which have not yet been full tested.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.45',
+            VERSION:'v0.18.49',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
