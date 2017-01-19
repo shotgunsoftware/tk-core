@@ -46,6 +46,7 @@ class UserSettings(Singleton):
         logger.debug("Default login: %s" % (self.default_login or "<missing>",))
 
         self._settings_proxy = self._get_settings_proxy()
+        self._system_proxy = None
         if self._settings_proxy:
             logger.debug("Shotgun proxy (from settings): %s" % self._get_filtered_proxy(self._settings_proxy))
         else:
