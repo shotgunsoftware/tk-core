@@ -234,6 +234,9 @@ def download_url(sg, url, location, use_url_extension=False):
                                    URL to be downloaded cannot be determined in advance,
                                    for example downloading the content of
                                    https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227.
+    :returns: Full filepath to the downloaded file. This may have been altered from
+              the input `location` if `use_url_extension` is True and the url's extension
+              was different than `location`.
     :raises: :class:`TankError` on failure.
     """
     # We only need to set the auth cookie for downloads from Shotgun server,
@@ -284,6 +287,8 @@ def download_url(sg, url, location, use_url_extension=False):
             f.close()
     except Exception, e:
         raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
+
+    return location
 
 def __setup_sg_auth_and_proxy(sg):
     """
