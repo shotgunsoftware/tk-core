@@ -38,6 +38,18 @@ class ToolkitManager(object):
     # - starting up the engine (with method _start_engine).
     (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = range(2)
 
+    # List of constants representing the status of the progress bar when these event occurs during bootstrap.
+    _RESOLVING_PROJECT_RATE = 0.0
+    _RESOLVING_CONFIG_RATE = 0.05
+    _UPDATING_CONFIGURATION_RATE = 0.1
+    _STARTING_TOOLKIT_RATE = 0.15
+    _START_DOWNLOADING_APPS_RATE = 0.20
+    _END_DOWNLOADING_APPS_RATE = 0.90
+    _POST_INSTALL_APPS_RATE = _END_DOWNLOADING_APPS_RATE
+    _RESOLVING_CONTEXT_RATE = 0.95
+    _LAUNCHING_ENGINE_RATE = 0.97
+    _BOOTSTRAP_COMPLETED = 1
+
     def __init__(self, sg_user=None):
         """
         :param sg_user: Authenticated Shotgun User object. If you pass in None,
@@ -361,6 +373,8 @@ class ToolkitManager(object):
 
         engine = self._start_engine(tk, engine_name, entity)
 
+        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
+
         return engine
 
     def bootstrap_engine_async(self,
@@ -523,7 +537,7 @@ class ToolkitManager(object):
 
         :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.
         """
-        self._report_progress(progress_callback, 0.0, "Resolving project...")
+        self._report_progress(progress_callback, self._RESOLVING_PROJECT_RATE, "Resolving project...")
         if entity is None:
             project_id = None
 
@@ -548,7 +562,7 @@ class ToolkitManager(object):
 
         # get an object to represent the business logic for
         # how a configuration location is being determined
-        self._report_progress(progress_callback, 0.1, "Resolving configuration...")
+        self._report_progress(progress_callback, self._RESOLVING_CONFIG_RATE, "Resolving configuration...")
 
         resolver = ConfigurationResolver(
             self._plugin_id,
@@ -613,7 +627,7 @@ class ToolkitManager(object):
         # see what we have locally
         status = config.status()
 
-        self._report_progress(progress_callback, 0.2, "Updating configuration...")
+        self._report_progress(progress_callback, self._UPDATING_CONFIGURATION_RATE, "Updating configuration...")
         if status == Configuration.LOCAL_CFG_UP_TO_DATE:
             log.info("Your locally cached configuration is up to date.")
 
@@ -640,6 +654,10 @@ class ToolkitManager(object):
 
         If entity is None, the method will bootstrap into the site
         config. This method will attempt to resolve the configuration and download it
+
+        self._report_progress(progress_callback, self._BOOTSTRAP_COMPLETED, "Toolkit ready.")
+
+        return tk
         locally. Note that it will not cache the application bundles.
 
         Please note that the API version of the :class:`~sgtk.Sgtk` instance may not be the same as the
@@ -658,7 +676,7 @@ class ToolkitManager(object):
         config = self._get_configuration(entity, progress_callback)
 
         # we can now boot up this config.
-        self._report_progress(progress_callback, 0.3, "Starting up Toolkit...")
+        self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
         # make sure we have all the apps locally downloaded
@@ -701,6 +719,8 @@ class ToolkitManager(object):
         # the configuration intact.
         self._cache_apps(pc, engine_name, self.progress_callback)
 
+        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine ready.")
+
         return path
 
     def _start_engine(self, tk, engine_name, entity, progress_callback=None):
@@ -727,13 +747,13 @@ class ToolkitManager(object):
         if progress_callback is None:
             progress_callback = self.progress_callback
 
-        self._report_progress(progress_callback, 0.8, "Resolving context...")
+        self._report_progress(progress_callback, self._RESOLVING_CONTEXT_RATE, "Resolving context...")
         if entity is None:
             ctx = tk.context_empty()
         else:
             ctx = tk.context_from_entity_dictionary(entity)
 
-        self._report_progress(progress_callback, 0.9, "Launching Engine...")
+        self._report_progress(progress_callback, self._LAUNCHING_ENGINE_RATE, "Launching Engine...")
         log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
 
         if self.pre_engine_start_callback:
@@ -746,6 +766,8 @@ class ToolkitManager(object):
         engine = tank.platform.start_engine(engine_name, tk, ctx)
 
         log.debug("Launched engine %r" % engine)
+
+        self._report_progress(progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
 
         return engine
 
@@ -805,14 +827,16 @@ class ToolkitManager(object):
                         descriptors[str(descriptor)] = descriptor
 
             for framework in env_obj.get_frameworks():
+                descriptor = env_obj.get_framework_descriptor(framework)
                 descriptors[str(descriptor)] = descriptor
 
         # pass 2 - download all apps
         for idx, descriptor in enumerate(descriptors.values()):
 
-            # Scale the progress step 0.3 between this value 0.4 and the next one 0.7
+            # Scale the progress step 0.8 between this value 0.15 and the next one 0.95
             # to compute a value progressing while looping over the indexes.
-            progress_value = 0.4 + idx * (0.3 / len(descriptors))
+            step_size = (self._END_DOWNLOADING_APPS_RATE - self._START_DOWNLOADING_APPS_RATE) / len(descriptors)
+            progress_value = self._START_DOWNLOADING_APPS_RATE + idx * step_size
 
             if not descriptor.exists_local():
                 message = "Downloading %s (%s of %s)..." % (descriptor, idx + 1, len(descriptors))
