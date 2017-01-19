@@ -188,7 +188,21 @@ class Application(TankBundle):
         :type event:    :class:`~sgtk.platform.events.FileOpenEvent`
         """
         pass
-    
+
+    def event_file_close(self, event):
+        """
+        Called when the parent engine emits a file-close event. This method
+        is intended to be overridden by deriving classes.
+
+        .. warning:: It is possible that events will be triggered quite
+                     frequently. It is important to keep performance in
+                     mind when writing an event handler.
+
+        :param event:   The event object that was emitted.
+        :type event:    :class:`~sgtk.platform.events.FileCloseEvent`
+        """
+        pass
+
     ##########################################################################################
     # logging methods
 
