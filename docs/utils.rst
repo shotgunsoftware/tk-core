@@ -99,6 +99,11 @@ following order:
     There is a restriction in these latter cases: the use of proxies which require
     authentication (username and password) is not supported.
 
+    Internally, the Shotgun Toolkit uses Python function ``urllib.getproxies()`` to retrieve
+    the operating system http proxy. More information about this function can be found here:
+
+        https://docs.python.org/2/library/urllib.html#urllib.getproxies
+
 
 Incorrectly configuring this file may raise an exception:
 
