@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-
+import os
 from tank import Hook
 
 class TestHook(Hook):
@@ -18,3 +18,9 @@ class TestHook(Hook):
         
     def second_method(self, another_dummy_param):
         return True
+
+    def logging_method(self):
+        self.logger.info("hello toolkitty")
+
+    def test_disk_location(self):
+        return os.path.join(self.disk_location, "toolkitty.png")

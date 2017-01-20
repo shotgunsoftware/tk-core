@@ -305,19 +305,19 @@ class Hook(object):
         """
         # see if the hook parent object exists and has a logger property
         # in that case make this the parent of our logger
-        if self.parent and self.parent.getattr(self.parent, "logger", None):
-            # parent exposes a logger attribute
-            log_prefix = "%s.hook" % self.parent.logger.name
-        else:
+        try:
+            logger = self.parent.logger
+        except AttributeError:
             # parent doesn't exist or doesn't have a logger.
             # in this case use the logger for this file as a
             # parent - e.g. 'sgtk.core.hook'
             log_prefix = log.name
+        else:
+            log_prefix = "%s.hook" % logger.name
 
         # name the logger after the name of the hook filename
         path_to_this_file = os.path.abspath(sys.modules[self.__module__].__file__)
         hook_name = os.path.splitext(os.path.basename(path_to_this_file))[0]
-
         full_log_path = "%s.%s" % (log_prefix, hook_name)
         return logging.getLogger(full_log_path)
 
