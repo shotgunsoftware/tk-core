@@ -355,7 +355,7 @@ class ToolkitManager(object):
         """
         self._log_startup_message(engine_name, entity)
 
-        tk = self._bootstrap_toolkit_and_cache_apps(engine_name, entity, self.progress_callback)
+        tk = self._bootstrap_sgtk(engine_name, entity)
 
         engine = self._start_engine(tk, engine_name, entity)
 
@@ -456,7 +456,7 @@ class ToolkitManager(object):
 
             try:
 
-                tk = self.bootstrap_toolkit(engine_name, entity)
+                tk = self._bootstrap_sgtk(engine_name, entity)
 
             except Exception, exception:
 
@@ -632,56 +632,9 @@ class ToolkitManager(object):
 
         return config
 
-    def bootstrap_toolkit(self, entity):
+    def _bootstrap_sgtk(self, engine_name, entity, progress_callback=None):
         """
-        Create an :class:`~sgtk.Sgtk` instance for the given entity.
-
-        If entity is None, the method will bootstrap into the site
-        config. This method will attempt to resolve the configuration and download it
-        locally. Note that it will not cache the application bundles. Use
-        :meth:`ToolkitManager.update_and_cache_configuration` to cache bundles before
-        starting the engine.
-
-        Please note that the API version of the :class:`~sgtk.Sgtk` instance may not be the same as the
-        API version that was used during the bootstrap.
-
-        :param entity: Shotgun entity used to resolve a project context.
-        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
-        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
-                                  Set to ``None`` to use the default callback function.
-        :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
-        """
-        # Only return the Toolkit instance.
-        return self._bootstrap_toolkit_internal(entity, None)
-
-    def _bootstrap_toolkit_and_cache_apps(self, engine_name, entity, progress_callback):
-        """
-        Create an :class:`~sgtk.Sgtk` instance for the given entity.
-
-        If entity is None, the method will bootstrap into the site
-        config. This method will attempt to resolve the configuration and download it
-        locally. It will also cache the application bundles.
-
-        :param engine_name: Name of the engine used to find which applications need to be cached.
-        :param entity: Shotgun entity used to resolve a project context.
-        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
-        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
-                                  Set to ``None`` to use the default callback function.
-        :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
-        """
-
-        # First get the Toolkit instance
-        tk = self._bootstrap_toolkit_internal(entity, progress_callback)
-
-        # Now cache the apps. Always do this since someone can blow their bundle cache but leave
-        # the configuration intact.
-        self._cache_apps(tk, tk.pipeline_configuration, engine_name, entity, progress_callback)
-
-        return tk
-
-    def _bootstrap_toolkit_internal(self, entity, progress_callback):
-        """
-        Create an :class:`~sgtk.Sgtk` instance for the given entity.
+        Create an :class:`~sgtk.Sgtk` instance for the given entity and caches all applications.
 
         If entity is None, the method will bootstrap into the site
         config. This method will attempt to resolve the configuration and download it
@@ -705,6 +658,10 @@ class ToolkitManager(object):
         # we can now boot up this config.
         self._report_progress(progress_callback, 0.3, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
+
+        # Now cache the apps. Always do this since someone can blow their bundle cache but leave
+        # the configuration intact.
+        self._cache_apps(tk, tk.pipeline_configuration, engine_name, entity, progress_callback)
 
         return tk
 
