@@ -856,6 +856,64 @@ class TankBundle(object):
         
         return ret_value
 
+        
+
+    def __post_process_settings_r(self, key, value, schema):
+        """
+        Recursive post-processing of settings values
+        """
+        
+        settings_type = schema.get("type")
+        
+        if settings_type == "list":
+            processed_val = []
+            value_schema = schema["values"]
+            for x in value:
+                processed_val.append(self.__post_process_settings_r(key, x, value_schema))
+        
+        elif settings_type == "dict":
+            items = schema.get("items", {})
+            # note - we assign the original values here because we 
+            processed_val = value
+            for (key, value_schema) in items.items():            
+                processed_val[key] = self.__post_process_settings_r(key, value[key], value_schema)
+            
+        
+        elif settings_type == "config_path":
+            # this is a config path. Stored on the form
+            # foo/bar/baz.png, we should translate that into
+            # PROJECT_PATH/tank/config/foo/bar/baz.png
+            config_folder = self.__tk.pipeline_configuration.get_config_location()
+            adjusted_value = value.replace("/", os.path.sep)
+            processed_val = os.path.join(config_folder, adjusted_value)
+        
+        
+        elif type(value) == str and value.startswith("hook:"):
+            
+            # handle the special form where the value is computed in a hook.
+            # 
+            # if the template parameter is on the form
+            # a) hook:foo_bar
+            # b) hook:foo_bar:testing:testing
+            #        
+            # The following hook will be called
+            # a) foo_bar with parameters []
+            # b) foo_bar with parameters [testing, testing]
+            #
+            chunks = value.split(":")
+            hook_name = chunks[1]
+            params = chunks[2:] 
+            processed_val = self.__tk.execute_core_hook(hook_name, 
+                                                        setting=key, 
+                                                        bundle_obj=self, 
+                                                        extra_params=params)
+
+        else:
+            # pass-through
+            processed_val = value
+        
+        return processed_val
+        
     def __resolve_setting_value(self, settings, key, default):
         """
         Resolve a setting value.  Exposed to allow values to be resolved for
@@ -865,20 +923,41 @@ class TankBundle(object):
         :param key: setting name
         :param default: a default value to use for the setting
         """
-        # An old use case exists whereby the key does not exist in the
-        # config schema so we need to account for that.
+
+        # The post processing code requires the schema to introspect the
+        # setting's types, defaults, etc. An old use case exists whereby the key
+        # does not exist in the config schema so we need to account for that.
         schema = self.__descriptor.configuration_schema.get(key, None)
-        return resolve_setting_value(
-            self.__tk, self._get_engine_name(), schema, settings, key, default
-        )
+
+        # Get the value for the supplied key
+        if key in settings:
+            # Value provided by the settings
+            value = settings[key]
+        elif schema:
+            # Resolve a default value from the schema. This checks various
+            # legacy default value forms in the schema keys.
+            value = resolve_default_value(schema, default,
+                self._get_engine_name())
+        else:
+            # Nothing in the settings, no schema, fallback to the supplied
+            # default value
+            value = default
+
+        # We have a value of some kind and a schema. Allow the post
+        # processing code to further resolve the value.
+        if value and schema:
+            value = self.__post_process_settings_r(key, value, schema)
+
+        return value
 
     def _get_engine_name(self):
-        """
-        Returns the bundle's engine name if available. None otherwise.
+        """Returns the bundle's engine name if available. None otherwise.
+
         Convenience method to avoid try/except everywhere.
 
         :return: The engine name or None
         """
+
         # note - this technically violates the generic nature of the bundle
         # base class implementation because the engine member is not defined
         # in the bundle base class (only in App and Framework, not Engine) - an
@@ -891,104 +970,8 @@ class TankBundle(object):
 
         return engine_name
 
-
-def _post_process_settings_r(tk, key, value, schema):
-    """
-    Recursive post-processing of settings values
-
-    :param tk: Toolkit API instance
-    :param key: setting name
-    :param value: Input value to resolve using specified schema
-    :param schema: A schema defining types and defaults for settings.
-    :returns: Processed value for key setting
-    """
-    settings_type = schema.get("type")
-
-    if settings_type == "list":
-        processed_val = []
-        value_schema = schema["values"]
-        for x in value:
-            processed_val.append(_post_process_settings_r(tk, key, x, value_schema))
-
-    elif settings_type == "dict":
-        items = schema.get("items", {})
-        # note - we assign the original values here because we
-        processed_val = value
-        for (key, value_schema) in items.iteritems():
-            processed_val[key] = _post_process_settings_r(tk, key, value[key], value_schema)
-
-    elif settings_type == "config_path":
-        # this is a config path. Stored on the form
-        # foo/bar/baz.png, we should translate that into
-        # PROJECT_PATH/tank/config/foo/bar/baz.png
-        config_folder = tk.pipeline_configuration.get_config_location()
-        adjusted_value = value.replace("/", os.path.sep)
-        processed_val = os.path.join(config_folder, adjusted_value)
-
-    elif isinstance(value, basestring) and value.startswith("hook:"):
-        # handle the special form where the value is computed in a hook.
-        #
-        # if the template parameter is on the form
-        # a) hook:foo_bar
-        # b) hook:foo_bar:testing:testing
-        #
-        # The following hook will be called
-        # a) foo_bar with parameters []
-        # b) foo_bar with parameters [testing, testing]
-        #
-        chunks = value.split(":")
-        hook_name = chunks[1]
-        params = chunks[2:]
-        processed_val = tk.execute_core_hook(
-            hook_name, setting=key, bundle_obj=self, extra_params=params
-        )
-
-    else:
-        # pass-through
-        processed_val = value
-
-    return processed_val
-
-def resolve_setting_value(tk, engine_name, schema, settings, key, default):
-    """
-    Resolve a setting value.  Exposed to allow values to be resolved for
-    settings derived outside of the app.
-
-    :param tk: :class:`~sgtk.Sgtk` Toolkit API instance
-    :param str engine_name: Name of Toolkit engine instance.
-    :param dict schema: A schema defining types and defaults for settings.
-                        The post processing code requires the schema to
-                        introspect the settings' types, defaults, etc.
-    :param dict settings: the settings dictionary source
-    :param str key: setting name
-    :param default: a default value to use for the setting
-    :returns: Resolved value of input setting key
-    """
-    # Get the value for the supplied key
-    if key in settings:
-        # Value provided by the settings
-        value = settings[key]
-
-    elif schema:
-        # Resolve a default value from the schema. This checks various
-        # legacy default value forms in the schema keys.
-        value = resolve_default_value(schema, default, engine_name)
-
-    else:
-        # Nothing in the settings, no schema, fallback to the supplied
-        # default value
-        value = default
-
-    # We have a value of some kind and a schema. Allow the post
-    # processing code to further resolve the value.
-    if value and schema:
-        value = _post_process_settings_r(tk, key, value, schema)
-
-    return value
-
-def resolve_default_value(
-        schema, default=None, engine_name=None, raise_if_missing=False
-    ):
+def resolve_default_value(schema, default=None, engine_name=None,
+    raise_if_missing=False):
     """
     Extract a default value from the supplied schema.
 
@@ -1002,6 +985,7 @@ def resolve_default_value(
         default value is found.
     :return: The resolved default value
     """
+
     default_missing = False
 
     # Engine-specific default value keys are allowed (ex:
