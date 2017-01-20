@@ -275,7 +275,7 @@ class Hook(object):
     def disk_location(self):
         """
         The folder on disk where this item is located.
-        This can be useful if you want to write app code
+        This can be useful if you want to write hook code
         to retrieve a local resource::
 
             hook_icon = os.path.join(self.disk_location, "icon.png")
