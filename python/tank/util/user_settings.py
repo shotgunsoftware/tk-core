@@ -269,4 +269,8 @@ class UserSettings(Singleton):
         # Get the http proxy when it exists in the dictionary.
         proxy = system_proxies.get("http")
 
+        if proxy:
+            # Remove any spurious "http://" from the http proxy string.
+            proxy = proxy.replace("http://", "", 1)
+
         return proxy
