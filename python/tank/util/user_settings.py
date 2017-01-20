@@ -14,6 +14,7 @@ User settings management.
 
 import os
 import ConfigParser
+import urllib
 
 from .local_file_storage import LocalFileStorageManager
 from .errors import EnvironmentVariableFileLookupError
@@ -43,7 +44,18 @@ class UserSettings(Singleton):
         # Log the default settings
         logger.debug("Default site: %s" % (self.default_site or "<missing>",))
         logger.debug("Default login: %s" % (self.default_login or "<missing>",))
-        logger.debug("Shotgun proxy: %s" % (self._get_filtered_proxy(self.shotgun_proxy or "<missing>"),))
+
+        self._settings_proxy = self._get_settings_proxy()
+        self._system_proxy = None
+        if self._settings_proxy:
+            logger.debug("Shotgun proxy (from settings): %s" % self._get_filtered_proxy(self._settings_proxy))
+        else:
+            self._system_proxy = self._get_system_proxy()
+            if self._system_proxy:
+                logger.debug("Shotgun proxy (from system): %s" % self._get_filtered_proxy(self._system_proxy))
+            else:
+                logger.debug("Shotgun proxy: <missing>")
+
         proxy = self._get_filtered_proxy(self.app_store_proxy)
         if self.is_app_store_proxy_set():
             logger.debug("App Store proxy: %s" % (proxy or "<empty>",))
@@ -55,7 +67,10 @@ class UserSettings(Singleton):
         """
         :returns: The default proxy.
         """
-        return self._get_value("http_proxy")
+
+        # Return the configuration settings http proxy string when it is specified;
+        # otherwise, return the operating system http proxy string.
+        return self._settings_proxy or self._system_proxy
 
     def is_app_store_proxy_set(self):
         """
@@ -211,3 +226,47 @@ class UserSettings(Singleton):
             return "<your credentials have been removed for security reasons>@%s" % proxy.rsplit("@", 1)[-1]
         else:
             return proxy
+
+    def _get_settings_proxy(self):
+        """
+        Retrieves the configuration settings http proxy.
+
+        :returns: The configuration settings http proxy string or ``None`` when it is not specified.
+        """
+
+        return self._get_value("http_proxy")
+
+    def _get_system_proxy(self):
+        """
+        Retrieves the operating system http proxy.
+
+        First, the method scans the environment for variables named http_proxy, in case insensitive way.
+        If both lowercase and uppercase environment variables exist (and disagree), lowercase is preferred.
+
+        When the method cannot find such environment variables:
+        - for Mac OS X, it will look for proxy information from Mac OS X System Configuration,
+        - for Windows, it will look for proxy information from Windows Systems Registry.
+
+        .. note:: There is a restriction when looking for proxy information from
+                  Mac OS X System Configuration or Windows Systems Registry:
+                  in these cases, the Toolkit does not support the use of proxies
+                  which require authentication (username and password).
+
+        :returns: The operating system http proxy string or ``None`` when it is not defined.
+        """
+
+        # Get the dictionary of scheme to proxy server URL mappings; for example:
+        #     {"http": "http://foo:bar@74.50.63.111:80", "https": "http://74.50.63.111:443"}
+        # "getproxies" scans the environment for variables named <scheme>_proxy, in case insensitive way.
+        # When it cannot find it, for Mac OS X it looks for proxy information from Mac OSX System Configuration,
+        # and for Windows it looks for proxy information from Windows Systems Registry.
+        # If both lowercase and uppercase environment variables exist (and disagree), lowercase is preferred.
+        # Note the following restriction: "getproxies" does not support the use of proxies which
+        # require authentication (user and password) when looking for proxy information from
+        # Mac OSX System Configuration or Windows Systems Registry.
+        system_proxies = urllib.getproxies()
+
+        # Get the http proxy when it exists in the dictionary.
+        proxy = system_proxies.get("http")
+
+        return proxy

@@ -98,6 +98,17 @@ class UserSettingsTests(unittest.TestCase):
         self.assertTrue(settings.is_app_store_proxy_set())
         self.assertEqual(settings.app_store_proxy, "app_store_http_proxy")
 
+    @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({}))
+    def test_system_proxy(self, mock):
+        """
+        Tests the fallback on the operating system http proxy.
+        """
+        http_proxy = "http://foo:bar@74.50.63.111:80"  # IP address of shotgunstudio.com
+
+        with patch.dict(os.environ, {"http_proxy": http_proxy}):
+            settings = UserSettings()
+            self.assertEqual(settings.shotgun_proxy, http_proxy)
+
     @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({
         # Config parser represent empty settings as empty strings
         "app_store_http_proxy": ""
