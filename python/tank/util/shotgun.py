@@ -234,6 +234,10 @@ def download_url(sg, url, location, use_url_extension=False):
                                    URL to be downloaded cannot be determined in advance,
                                    for example downloading the content of
                                    https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227.
+                                   When set to True and a file extension can be
+                                   determined from the URL, it will be appended to the
+                                   input `location` value. This may have a side-effect
+                                   of naming files something like "/path/file.jpeg.png".
     :returns: Full filepath to the downloaded file. This may have been altered from
               the input `location` if `use_url_extension` is True and the url's extension
               was different than `location`.
@@ -259,11 +263,6 @@ def download_url(sg, url, location, use_url_extension=False):
     # download the given url
     try:
         request = urllib2.Request(url)
-        if sg.config.server in url:
-            # Currently no public access to Shotgun API _user_agents, so
-            # use directly for now.
-            request.add_header("user-agent", "; ".join(sg._user_agents))
-
         if timeout and sys.version_info >= (2,6):
             # timeout parameter only available in python 2.6+
             response = urllib2.urlopen(request, timeout=timeout)
@@ -275,10 +274,9 @@ def download_url(sg, url, location, use_url_extension=False):
             # Make sure the disk location has the same extension as the url path.
             # Would be nice to see this functionality moved to back into Shotgun
             # API and removed from here.
-            loc_base, loc_ext = os.path.splitext(location)
             url_ext = os.path.splitext(urlparse.urlparse(response.geturl()).path)[-1]
-            if url_ext and loc_ext != url_ext:
-                location = "%s%s" % (loc_base, url_ext)
+            if url_ext:
+                location = "%s%s" % (location, url_ext)
             
         f = open(location, "wb")
         try:
