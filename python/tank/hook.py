@@ -211,7 +211,18 @@ class Hook(object):
     def get_instance(self):
         """
         Returns the instance of the hook.
-        @todo; add docs.
+
+        This is useful for complex workflows where it is beneficial to
+        maintain a handle to a hook instance. Normally, hooks are stateless
+        and every time a hook is called, a new instance is created. This method
+        provides a standardized way to retrieve an instance of a hook::
+
+            self._plugin = app_object.execute_hook_method("complex_hook", "get_instance")
+            self._plugin.execute_method_x()
+            self._plugin.execute_method_y()
+            self._plugin.execute_method_z()
+
+        :returns: :class:`Hook` instance.
         """
         return self
 
@@ -267,7 +278,7 @@ class Hook(object):
         This can be useful if you want to write app code
         to retrieve a local resource::
 
-            app_font = os.path.join(self.disk_location, "resources", "font.fnt")
+            hook_icon = os.path.join(self.disk_location, "icon.png")
         """
         path_to_this_file = os.path.abspath(sys.modules[self.__module__].__file__)
         return os.path.dirname(path_to_this_file)
@@ -275,14 +286,33 @@ class Hook(object):
     @property
     def logger(self):
         """
-        Logging for hooks! #39351
-        """
-        # if parent doesn't offer a logger, use the default one
-        log_prefix = log.name
+        Standard python logger handle for this hook.
 
+        The logger can be used to report
+        progress back to the app in a standardized fashion
+        and will be parented under the app/engine/framework logger::
+
+            # pattern
+            sgtk.env.environment_name.engine_name.app_name.hook.hook_file_name
+
+            # for example
+            sgtk.env.asset.tk-maya.tk-multi-loader2.hook.filter_publishes
+
+
+        In the case of core hooks, the logger will be parented
+        under ``sgtk.core.hook``. For more information, see :ref:`logging`
+
+        """
+        # see if the hook parent object exists and has a logger property
+        # in that case make this the parent of our logger
         if self.parent and self.parent.getattr(self.parent, "logger", None):
             # parent exposes a logger attribute
             log_prefix = "%s.hook" % self.parent.logger.name
+        else:
+            # parent doesn't exist or doesn't have a logger.
+            # in this case use the logger for this file as a
+            # parent - e.g. 'sgtk.core.hook'
+            log_prefix = log.name
 
         # name the logger after the name of the hook filename
         path_to_this_file = os.path.abspath(sys.modules[self.__module__].__file__)
