@@ -103,9 +103,9 @@ class UserSettingsTests(unittest.TestCase):
         """
         Tests the fallback on the operating system http proxy.
         """
-        http_proxy = "http://foo:bar@74.50.63.111:80"  # IP address of shotgunstudio.com
+        http_proxy = "foo:bar@74.50.63.111:80"  # IP address of shotgunstudio.com
 
-        with patch.dict(os.environ, {"http_proxy": http_proxy}):
+        with patch.dict(os.environ, {"http_proxy": "http://" + http_proxy}):
             settings = UserSettings()
             self.assertEqual(settings.shotgun_proxy, http_proxy)
 
