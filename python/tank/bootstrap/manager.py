@@ -65,6 +65,7 @@ class ToolkitManager(object):
         self._progress_cb = None
         self._do_shotgun_config_lookup = True
         self._plugin_id = None
+        self._pre_engine_start_callback = None
 
         log.debug("%s instantiated" % self)
 
@@ -144,6 +145,31 @@ class ToolkitManager(object):
 
     def _set_pipeline_configuration(self, identifier):
         self._pipeline_configuration_identifier = identifier
+
+    def _get_pre_engine_start_callback(self):
+        """
+        This callback will be invoked after the Toolkit instance has been
+        created but before the engine is started.
+
+        This function should have the following signature::
+
+            def pre_engine_start_callback(tk, ctx):
+                '''
+                Called before the engine is started.
+
+                :param :class:"~sgtk.Sgtk" tk: The Toolkit instance
+                    that will be used to start the engine.
+
+                :param :class:"~sgtk.Context" ctx: Context into
+                    which the engine will be launched.
+                '''
+        """
+        return self._pre_engine_start_callback
+
+    def _set_pre_engine_start_callback(self, callback):
+        self._pre_engine_start_callback = callback
+
+    pre_engine_start_callback = property(_get_pre_engine_start_callback, _set_pre_engine_start_callback)
 
     pipeline_configuration = property(_get_pipeline_configuration, _set_pipeline_configuration)
 
@@ -744,6 +770,9 @@ class ToolkitManager(object):
 
         self._report_progress(progress_callback, 0.9, "Launching Engine...")
         log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
+
+        if self.pre_engine_start_callback:
+            self.pre_engine_start_callback(tk, ctx)
 
         # perform absolute import to ensure we get the new swapped core.
         import tank
