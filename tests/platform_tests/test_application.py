@@ -266,14 +266,15 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook_method("test_hook_std", "second_method", another_dummy_param=True))
 
-    def test_get_instance(self):
+    def test_create_instance(self):
         """
         tests the built-in get_instance() method
         """
         app = self.engine.apps["test_app"]
-        instance_1 = app.execute_hook_method("test_hook_std", "get_instance")
+        hook_expression = app.get_setting("test_hook_std")
+        instance_1 = app.create_hook_instance(hook_expression)
         self.assertEquals(instance_1.second_method(another_dummy_param=True), True)
-        instance_2 = app.execute_hook_method("test_hook_std", "get_instance")
+        instance_2 = app.create_hook_instance(hook_expression)
         self.assertNotEquals(instance_1, instance_2)
 
     def test_logger(self):
