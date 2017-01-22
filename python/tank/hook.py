@@ -304,7 +304,15 @@ class Hook(object):
 
         """
         # see if the hook parent object exists and has a logger property
-        # in that case make this the parent of our logger
+        # in that case make this the parent of our logger.
+        #
+        # note: core hooks have the tk instance as their parent and
+        # app/engine/fw hooks have the bundle as their parent.
+        # There are some special edge cases where we construct
+        # parentless hooks: the PipelineConfigurationInit hook runs
+        # before a tk instance exists and some of the older "studio
+        # hooks" such as project_name.py and sg_connection.py also exists
+        # with states where no parent can be defined easily.
         try:
             logger = self.parent.logger
         except AttributeError:
