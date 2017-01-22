@@ -494,7 +494,8 @@ class TankBundle(object):
         :param key: The name of the hook setting you want to execute.
         """
         hook_name = self.get_setting(key)
-        return self.__execute_hook_internal(key, hook_name, None, **kwargs)
+        resolved_hook_paths = self.__resolve_hook_expression(key, hook_name)
+        return hook.execute_hook_method(resolved_hook_paths, self, None, **kwargs)
         
     def execute_hook_method(self, key, method_name, **kwargs):
         """
@@ -530,7 +531,8 @@ class TankBundle(object):
         :param method_name: Name of the method to execute
         """
         hook_name = self.get_setting(key)
-        return self.__execute_hook_internal(key, hook_name, method_name, **kwargs)
+        resolved_hook_paths = self.__resolve_hook_expression(key, hook_name)
+        return hook.execute_hook_method(resolved_hook_paths, self, method_name, **kwargs)
 
     def execute_hook_expression(self, hook_expression, method_name, **kwargs):
         """
@@ -551,7 +553,8 @@ class TankBundle(object):
         :param hook_expression: Path to hook to execute. See above for syntax details.
         :param method_name: Method inside the hook to execute.
         """
-        return self.__execute_hook_internal(None, hook_expression, method_name, **kwargs)
+        resolved_hook_paths = self.__resolve_hook_expression(None, hook_expression)
+        return hook.execute_hook_method(resolved_hook_paths, self, method_name, **kwargs)
 
     def execute_hook_by_name(self, hook_name, **kwargs):
         """
@@ -575,9 +578,35 @@ class TankBundle(object):
         """
         hook_folder = self.tank.pipeline_configuration.get_hooks_location()
         hook_path = os.path.join(hook_folder, "%s.py" % hook_name)
-        return hook.execute_hook(hook_path, self, **kwargs)        
+        return hook.execute_hook(hook_path, self, **kwargs)
 
-    
+    def create_hook_instance(self, hook_expression):
+        """
+        Returns the instance of a hook object given an expression.
+
+        This is useful for complex workflows where it is beneficial to
+        maintain a handle to a hook instance. Normally, hooks are stateless
+        and every time a hook is called, a new instance is returned. This method
+        provides a standardized way to retrieve an instance of a hook::
+
+            self._plugin = app_object.create_hook_instance("{config}/path/to/my_hook.py")
+            self._plugin.execute_method_x()
+            self._plugin.execute_method_y()
+            self._plugin.execute_method_z()
+
+        The hook expression is the raw value that is specified in the configuration file.
+        If you want to access a configuration setting instead (like how for example
+        :meth:`execute_hook_method` works), simply call :meth:`get_setting()` to retrieve
+        the value and then pass the settings value to this method.
+
+        .. note:: For more information about hook syntax, see :class:`~sgtk.Hook`
+
+        :param hook_expression: Path to hook to execute. See above for syntax details.
+        :returns: :class:`Hook` instance.
+        """
+        resolved_hook_paths = self.__resolve_hook_expression(None, hook_expression)
+        return hook.create_hook_instance(resolved_hook_paths, self)
+
     def ensure_folder_exists(self, path):
         """
         Make sure that the given folder exists on disk.
@@ -766,45 +795,43 @@ class TankBundle(object):
 
         return path
 
-
-    def __execute_hook_internal(self, settings_name, hook_expression, method_name, **kwargs):
+    def __resolve_hook_expression(self, settings_name, hook_expression):
         """
-        Internal method for executing the specified hook. This method handles
+        Internal method for resolving hook expressions. This method handles
         resolving an environment configuration value into a path on disk.
-        
+
         There are two generations of hook formats - old-style and new-style.
-        
+
         Old style formats:
-        
+
         - hook_setting: foo     -- Resolves 'foo' to CURRENT_PC/hooks/foo.py
-        - hook_setting: default -- Resolves the value from the info.yml manifest and uses 
+        - hook_setting: default -- Resolves the value from the info.yml manifest and uses
           the default hook code supplied by the bundle.
-        
+
         New style formats:
-        
+
         - hook_setting: {$HOOK_PATH}/path/to/foo.py  -- environment variable.
         - hook_setting: {self}/path/to/foo.py   -- looks in the hooks folder in the local bundle
         - hook_setting: {config}/path/to/foo.py -- looks in the hooks folder in the config
         - hook_setting: {engine}/path/to/foo.py -- looks in the hooks folder of the current engine.
         - hook_setting: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of a
-          framework instance that exists in the current environment. Basically, each entry inside the 
-          frameworks section in the current environment can be specified here - all these entries are 
-          on the form frameworkname_versionpattern, for example tk-framework-widget_v0.1.2 or 
-          tk-framework-shotgunutils_v1.3.x. 
-          
+          framework instance that exists in the current environment. Basically, each entry inside the
+          frameworks section in the current environment can be specified here - all these entries are
+          on the form frameworkname_versionpattern, for example tk-framework-widget_v0.1.2 or
+          tk-framework-shotgunutils_v1.3.x.
+
         :param settings_name: If this hook is associated with a setting in the bundle, this is the
                               name of that setting. This is used to identify the inheritance relationships
                               between the hook expression that is evaluated and if this hook derives from
-                              a hook inside an app. 
+                              a hook inside an app.
         :param hook_expression: The path expression to a hook.
-        :param method_name: The method in the hook to execute, or None if the default hook method
-                            is supposed to be executed.
+        :returns: List of paths to hooks files.
         """
         # split up the config value into distinct items
         unresolved_hook_paths = hook_expression.split(":")
 
         # first of all, see if we should add a base class hook to derive from:
-        # 
+        #
         # Basically, any overridden hook implicitly derives from the default hook.
         # specified in the manifest.
         # if the settings value is not {self} add this to the inheritance chain.
@@ -812,18 +839,18 @@ class TankBundle(object):
         #
         # Manifest: {self}/foo_{engine_name}.py
         # In config: {config}/my_custom_hook.py
-        # The my_custom_hook.py implicitly derives from the python class defined 
+        # The my_custom_hook.py implicitly derives from the python class defined
         # in the manifest, so prepend it:
         # hook_paths: ["{self}/foo_tk-maya.py", "{config}/my_custom_hook.py" ]
         #
-        # Check only new-style hooks. All new style hooks start with a { 
+        # Check only new-style hooks. All new style hooks start with a {
         if unresolved_hook_paths[0].startswith("{") and not unresolved_hook_paths[0].startswith("{self}"):
             # this is a new style hook that is not the default hook value.
-            # now prepend the default hook first in the list 
+            # now prepend the default hook first in the list
             manifest = self.__descriptor.configuration_schema
-            
+
             default_value = None
-            
+
             if settings_name:
                 default_value = resolve_default_value(
                     manifest.get(settings_name),
@@ -831,15 +858,15 @@ class TankBundle(object):
             )
 
             if default_value: # possible not to have a default value!
-                
+
                 # expand the default value to be referenced from {self} and with the .py suffix
                 # for backwards compatibility with the old syntax where the default value could
                 # just be 'hook_name' with implicit '{self}' and no suffix!
                 if not default_value.startswith("{self}"):
                     default_value = "{self}/%s.py" % default_value
-                    
+
                 # so now we have a path to a potential default hook inside the app or engine
-                # There is however one possibility when there may not be a hook, and this is 
+                # There is however one possibility when there may not be a hook, and this is
                 # when {engine_name} is defined as part of the default value, but no default hook
                 # exists for the engine that we are currently running. In this case, we don't want
                 # to wedge in this non-existing hook file into the inheritance chain because it does
@@ -852,11 +879,7 @@ class TankBundle(object):
         # resolve paths into actual file paths
         resolved_hook_paths = [self.__resolve_hook_path(settings_name, x) for x in unresolved_hook_paths]
 
-        ret_value = hook.execute_hook_method(resolved_hook_paths, self, method_name, **kwargs)
-        
-        return ret_value
-
-        
+        return resolved_hook_paths
 
     def __post_process_settings_r(self, key, value, schema):
         """

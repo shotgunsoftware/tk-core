@@ -208,24 +208,6 @@ class Hook(object):
         """
         return self.__parent
 
-    def get_instance(self):
-        """
-        Returns the instance of the hook.
-
-        This is useful for complex workflows where it is beneficial to
-        maintain a handle to a hook instance. Normally, hooks are stateless
-        and every time a hook is called, a new instance is created. This method
-        provides a standardized way to retrieve an instance of a hook::
-
-            self._plugin = app_object.execute_hook_method("complex_hook", "get_instance")
-            self._plugin.execute_method_x()
-            self._plugin.execute_method_y()
-            self._plugin.execute_method_z()
-
-        :returns: :class:`Hook` instance.
-        """
-        return self
-
     def get_publish_path(self, sg_publish_data):
         """
         Returns the path on disk for a publish entity in Shotgun.
@@ -521,8 +503,52 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
     :param method_name: method to execute. If None, the default method will be executed.
     :returns: Whatever the hook returns.
     """
-    method_name = method_name or Hook.DEFAULT_HOOK_METHOD
+    hook = create_hook_instance(hook_paths, parent)
 
+    # get the method
+    method_name = method_name or Hook.DEFAULT_HOOK_METHOD
+    try:
+        hook_method = getattr(hook, method_name)
+    except AttributeError:
+        raise TankHookMethodDoesNotExistError(
+            "Cannot execute hook '%s' - the hook class does not have a '%s' "
+            "method!" % (hook, method_name)
+        )
+
+    # execute the method
+    ret_val = hook_method(**kwargs)
+
+    return ret_val
+
+
+def create_hook_instance(hook_paths, parent):
+    """
+    New style hook execution, with method arguments and support for inheritance.
+
+    This method takes a list of hook paths and will load each of the classes
+    in, while maintaining the correct state of the class returned via
+    get_hook_baseclass(). Once all classes have been successfully loaded,
+    the last class in the list is instantiated and returned.
+
+        Example: ["/tmp/a.py", "/tmp/b.py", "/tmp/c.py"]
+
+        1. The code in a.py is loaded in. get_hook_baseclass() will return Hook
+           at this point. class HookA is returned from our plugin loader.
+
+        2. /tmp/b.py is loaded in. get_hook_baseclass() now returns HookA, so
+           if the hook code in B utilises get_hook_baseclass, this will will
+           set up an inheritance relationship with A
+
+        3. /tmp/c.py is finally loaded in, get_hook_baseclass() now returns HookB.
+
+        4. HookC class is instantiated and method method_name is executed.
+
+    :param hook_paths: List of full paths to hooks, in inheritance order.
+    :param parent: Parent object. This will be accessible inside
+                   the hook as self.parent, and is typically an
+                   app, engine or core object.
+    :returns: Instance of the hook.
+    """
     # keep track of the current base class - this is used when loading hooks to dynamically
     # inherit from the correct base.
     _current_hook_baseclass.value = Hook
@@ -568,21 +594,7 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
     # instantiate.
 
     # instantiate the class
-    hook = _current_hook_baseclass.value(parent)
-
-    # get the method
-    try:
-        hook_method = getattr(hook, method_name)
-    except AttributeError:
-        raise TankHookMethodDoesNotExistError(
-            "Cannot execute hook '%s' - the hook class does not have a '%s' "
-            "method!" % (hook, method_name)
-        )
-
-    # execute the method
-    ret_val = hook_method(**kwargs)
-
-    return ret_val
+    return _current_hook_baseclass.value(parent)
 
 def get_hook_baseclass():
     """
