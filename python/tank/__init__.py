@@ -90,7 +90,3 @@ from .hook import Hook, get_hook_baseclass
 from .commands import list_commands, get_command, SgtkSystemCommand
 
 from .templatekey import TemplateKey, SequenceKey, IntegerKey, StringKey, TimestampKey
-
-# Make sure Toolkit specific patches get applied to the yaml and
-# ruamel_yaml modules before anything else imports them.
-from .util import yaml_patcher

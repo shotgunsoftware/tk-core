@@ -659,9 +659,15 @@ class ToolkitManager(object):
         self._report_progress(progress_callback, 0.3, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
-        # Now cache the apps. Always do this since someone can blow their bundle cache but leave
-        # the configuration intact.
-        self._cache_apps(tk, tk.pipeline_configuration, engine_name, entity, progress_callback)
+        # make sure we have all the apps locally downloaded
+        # this check is quick, so always perform the check, even
+        # when the config is up to date - someone may have
+        # deleted their bundle cache but left the config.
+        self._cache_apps(
+            tk.pipeline_configuration,
+            engine_name,
+            progress_callback
+        )
 
         return tk
 
@@ -691,7 +697,7 @@ class ToolkitManager(object):
 
         # Now cache the apps. Always do this since someone can blow their bundle cache but leave
         # the configuration intact.
-        self._cache_apps(None, pc, engine_name, None, self.progress_callback, do_post_install=False)
+        self._cache_apps(pc, engine_name, self.progress_callback)
 
         return path
 
@@ -758,73 +764,42 @@ class ToolkitManager(object):
             # Call the old style progress callback with signature (message, current_index, maximum_index).
             progress_callback(message, None, None)
 
-    def _cache_apps(self, tk, pc, config_engine_name, config_entity, progress_callback, do_post_install=False):
+    def _cache_apps(self, pipeline_configuration, config_engine_name, progress_callback):
         """
         Caches all apps associated with the given toolkit instance.
 
-        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance to cache items for. Can be ``None`` in CACHE_FULL mode.
+        :param pipeline_configuration: :class:`stgk.PipelineConfiguration` to process configuration for
         :param pc: Pipeline configuration instance.
         :type pc: :class:`~sgtk.pipelineconfig.PipelineConfiguration`
         :param config_engine_name: Name of the engine that was used to resolve the configuration.
-        :param config_entity: Shotgun entity that was used to resolve the configuration;
-                              None for the site configuration.
         :param progress_callback: Callback function that reports back on the engine startup progress.
-        :param do_post_install: Set to true to execute the post install triggers.
         """
-
-        from ..platform import constants as platform_constants
-
-        log.info("Downloading and installing apps...")
-        log.debug("Pipeline configuration is located at '%s'.", pc.get_path())
+        log.info("Checking that all bundles are cached locally...")
 
         descriptors = []
 
         if self._caching_policy == self.CACHE_SPARSE:
             # Download and cache the sole config dependencies needed to run the engine being started,
+            log.debug("caching_policy is CACHE_SPARSE - only check items associated with %s" % config_engine_name)
+            engine_constraint = config_engine_name
 
-            # Resolve a context for the entity.
-            if config_entity:
-                context = tk.context_from_entity_dictionary(config_entity)
-            else:
-                context = tk.context_empty()
-
-            try:
-                # Get an environment name given the project context.
-                env_name = tk.execute_core_hook(platform_constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
-            except Exception, e:
-                log.debug("The pick environment core hook for context '%s' reported error: %s" % (context, e))
-                message = "Which environment to start up cannot be evaluated. " \
-                          "Will download all dependencies for the entire configuration."
-                self._report_progress(progress_callback, 0.4, message)
-                env_name = None
-
-            if env_name:
-                env_name_list = [env_name]
-            else:
-                # Since we could not get an environment name with the core hook,
-                # use a broader approach that will probably cache more apps,
-                # but at least the ones that we need.
-                env_name_list = pc.get_environments()
+        elif self._caching_policy == self.CACHE_FULL:
+            # download and cache the entire config
+            log.debug("caching_policy is CACHE_FULL - will download all items defined in the config")
+            engine_constraint = None
         else:
-            env_name_list = pc.get_environments()
+            raise TankBootstrapError("Unsupported caching_policy setting %s" % self._caching_policy)
 
         # pass 1 - populate list of all descriptors
-        for env_name in env_name_list:
-
-            env_obj = pc.get_environment(env_name)
-
+        for env_name in pipeline_configuration.get_environments():
+            env_obj = pipeline_configuration.get_environment(env_name)
             for engine in env_obj.get_engines():
-
-                # If we don't want a specific engine or we've found the one we're looking for
-                if config_engine_name is None or config_engine_name == engine:
-
+                if engine_constraint is None or engine == engine_constraint:
                     descriptors.append(env_obj.get_engine_descriptor(engine))
-
                     for app in env_obj.get_apps(engine):
                         descriptors.append(env_obj.get_app_descriptor(engine, app))
 
             for framework in env_obj.get_frameworks():
-
                 descriptors.append(env_obj.get_framework_descriptor(framework))
 
         # pass 2 - download all apps
@@ -839,16 +814,9 @@ class ToolkitManager(object):
                 self._report_progress(progress_callback, progress_value, message)
                 descriptor.download_local()
             else:
-                message = "%s already installed locally (%s of %s)." % (descriptor, idx + 1, len(descriptors))
+                message = "Checking %s (%s of %s)." % (descriptor, idx+1, len(descriptors))
                 log.debug("%s exists locally at '%s'.", descriptor, descriptor.get_path())
                 self._report_progress(progress_callback, progress_value, message)
-
-        # pass 3 - do post install
-        if do_post_install:
-            for descriptor in descriptors:
-                self._report_progress(progress_callback, 0.7, "Running post install for %s" % descriptor)
-                descriptor.ensure_shotgun_fields_exist(tk)
-                descriptor.run_post_install(tk)
 
     def _default_progress_callback(self, progress_value, message):
         """

@@ -3,6 +3,8 @@
 Utilities
 ####################################################
 
+.. _logging:
+
 Logging
 ============================================
 
@@ -83,6 +85,26 @@ following order:
     - Windows: ``%APPDATA%\Shotgun\desktop\config\config.ini``
     - macOS: ``~/Library/Caches/Shotgun/desktop/config/config.ini``
     - Linux: ``~/shotgun/desktop/config/config.ini``
+
+.. note::
+    When the http proxy is not specified in this file, the Shotgun Toolkit will try to retrieve
+    the operating system http proxy.
+
+    First, the environment will be scanned for variables named ``http_proxy``, in case insensitive way.
+    If both lowercase and uppercase environment variables exist (and disagree), lowercase will be preferred.
+
+    When such environment variables cannot be found:
+
+    - for Mac OS X, proxy information will be looked for from Mac OS X System Configuration,
+    - for Windows, proxy information will be looked for from Windows Systems Registry.
+
+    There is a restriction in these latter cases: the use of proxies which require
+    authentication (username and password) is not supported.
+
+    Internally, the Shotgun Toolkit uses Python function ``urllib.getproxies()`` to retrieve
+    the operating system http proxy. More information about this function can be found here:
+
+        https://docs.python.org/2/library/urllib.html#urllib.getproxies
 
 
 Incorrectly configuring this file may raise an exception:
