@@ -582,7 +582,11 @@ class ToolkitManager(object):
         # this check is quick, so always perform the check, even
         # when the config is up to date - someone may have
         # deleted their bundle cache but left the config.
-        self._cache_apps(tk.pipeline_configuration, engine_name, entity, progress_callback)
+        self._cache_apps(
+            tk.pipeline_configuration,
+            engine_name,
+            progress_callback
+        )
 
         return tk
 
@@ -653,7 +657,6 @@ class ToolkitManager(object):
         :param pipeline_configuration: :class:`stgk.PipelineConfiguration` to process configuration for
         :param config_engine_name: Name of the engine that was used to resolve the configuration.
         :param progress_callback: Callback function that reports back on the engine startup progress.
-        :param do_post_install: Set to true to execute the post install triggers.
         """
         log.info("Checking that all bundles are cached locally...")
 
