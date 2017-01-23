@@ -322,6 +322,9 @@ def get_python_interpreter_for_config(pipeline_config_path):
     files that provide a path to the Python interpreter used to launch the ``tank``
     command.
 
+    If you require a `python` executable to launch a script that will use a pipeline configuration, it is
+    recommended its associated Python interpreter.
+
     :param str pipeline_config_path: Path to the pipeline configuration root.
 
     :returns: Path to the Python interpreter for that configuration.
