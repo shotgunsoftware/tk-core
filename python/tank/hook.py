@@ -13,6 +13,8 @@ Defines the base class for all Tank Hooks.
 
 """
 import os
+import sys
+import logging
 import threading
 from .util.loader import load_plugin
 from . import LogManager
@@ -251,6 +253,68 @@ class Hook(object):
 
         return paths
 
+    @property
+    def disk_location(self):
+        """
+        The folder on disk where this item is located.
+        This can be useful if you want to write hook code
+        to retrieve a local resource::
+
+            hook_icon = os.path.join(self.disk_location, "icon.png")
+        """
+        # note: the reason we don't call __file__ directly is because
+        #       we don't want to return the location of the 'hook.py'
+        #       base class but rather the location of hook object that
+        #       has been derived from this class.
+        path_to_this_file = os.path.abspath(sys.modules[self.__module__].__file__)
+        return os.path.dirname(path_to_this_file)
+
+    @property
+    def logger(self):
+        """
+        Standard python logger handle for this hook.
+
+        The logger can be used to report
+        progress back to the app in a standardized fashion
+        and will be parented under the app/engine/framework logger::
+
+            # pattern
+            sgtk.env.environment_name.engine_name.app_name.hook.hook_file_name
+
+            # for example
+            sgtk.env.asset.tk-maya.tk-multi-loader2.hook.filter_publishes
+
+
+        In the case of core hooks, the logger will be parented
+        under ``sgtk.core.hook``. For more information, see :ref:`logging`
+
+        """
+        # see if the hook parent object exists and has a logger property
+        # in that case make this the parent of our logger.
+        #
+        # note: core hooks have the tk instance as their parent and
+        # app/engine/fw hooks have the bundle as their parent.
+        # There are some special edge cases where we construct
+        # parentless hooks: the PipelineConfigurationInit hook runs
+        # before a tk instance exists and some of the older "studio
+        # hooks" such as project_name.py and sg_connection.py also exists
+        # with states where no parent can be defined easily.
+        try:
+            logger = self.parent.logger
+        except AttributeError:
+            # parent doesn't exist or doesn't have a logger.
+            # in this case use the logger for this file as a
+            # parent - e.g. 'sgtk.core.hook'
+            log_prefix = log.name
+        else:
+            log_prefix = "%s.hook" % logger.name
+
+        # name the logger after the name of the hook filename
+        path_to_this_file = os.path.abspath(sys.modules[self.__module__].__file__)
+        hook_name = os.path.splitext(os.path.basename(path_to_this_file))[0]
+        full_log_path = "%s.%s" % (log_prefix, hook_name)
+        return logging.getLogger(full_log_path)
+
     def load_framework(self, framework_instance_name):
         """
         Loads and returns a framework given an environment instance name.
@@ -443,8 +507,52 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
     :param method_name: method to execute. If None, the default method will be executed.
     :returns: Whatever the hook returns.
     """
-    method_name = method_name or Hook.DEFAULT_HOOK_METHOD
+    hook = create_hook_instance(hook_paths, parent)
 
+    # get the method
+    method_name = method_name or Hook.DEFAULT_HOOK_METHOD
+    try:
+        hook_method = getattr(hook, method_name)
+    except AttributeError:
+        raise TankHookMethodDoesNotExistError(
+            "Cannot execute hook '%s' - the hook class does not have a '%s' "
+            "method!" % (hook, method_name)
+        )
+
+    # execute the method
+    ret_val = hook_method(**kwargs)
+
+    return ret_val
+
+
+def create_hook_instance(hook_paths, parent):
+    """
+    New style hook execution, with method arguments and support for inheritance.
+
+    This method takes a list of hook paths and will load each of the classes
+    in, while maintaining the correct state of the class returned via
+    get_hook_baseclass(). Once all classes have been successfully loaded,
+    the last class in the list is instantiated and returned.
+
+        Example: ["/tmp/a.py", "/tmp/b.py", "/tmp/c.py"]
+
+        1. The code in a.py is loaded in. get_hook_baseclass() will return Hook
+           at this point. class HookA is returned from our plugin loader.
+
+        2. /tmp/b.py is loaded in. get_hook_baseclass() now returns HookA, so
+           if the hook code in B utilises get_hook_baseclass, this will will
+           set up an inheritance relationship with A
+
+        3. /tmp/c.py is finally loaded in, get_hook_baseclass() now returns HookB.
+
+        4. HookC class is instantiated and method method_name is executed.
+
+    :param hook_paths: List of full paths to hooks, in inheritance order.
+    :param parent: Parent object. This will be accessible inside
+                   the hook as self.parent, and is typically an
+                   app, engine or core object.
+    :returns: Instance of the hook.
+    """
     # keep track of the current base class - this is used when loading hooks to dynamically
     # inherit from the correct base.
     _current_hook_baseclass.value = Hook
@@ -490,21 +598,7 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
     # instantiate.
 
     # instantiate the class
-    hook = _current_hook_baseclass.value(parent)
-
-    # get the method
-    try:
-        hook_method = getattr(hook, method_name)
-    except AttributeError:
-        raise TankHookMethodDoesNotExistError(
-            "Cannot execute hook '%s' - the hook class does not have a '%s' "
-            "method!" % (hook, method_name)
-        )
-
-    # execute the method
-    ret_val = hook_method(**kwargs)
-
-    return ret_val
+    return _current_hook_baseclass.value(parent)
 
 def get_hook_baseclass():
     """
