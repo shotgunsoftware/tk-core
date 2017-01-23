@@ -206,6 +206,10 @@ class TankBundle(object):
 
             app_font = os.path.join(self.disk_location, "resources", "font.fnt")
         """
+        # note: the reason we don't call __file__ directly is because
+        #       we don't want to return the location of the 'bundle.py'
+        #       base class but rather the location of object that
+        #       has been derived from this class.
         path_to_this_file = os.path.abspath(sys.modules[self.__module__].__file__)
         return os.path.dirname(path_to_this_file)
 

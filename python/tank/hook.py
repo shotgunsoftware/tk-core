@@ -262,6 +262,10 @@ class Hook(object):
 
             hook_icon = os.path.join(self.disk_location, "icon.png")
         """
+        # note: the reason we don't call __file__ directly is because
+        #       we don't want to return the location of the 'hook.py'
+        #       base class but rather the location of hook object that
+        #       has been derived from this class.
         path_to_this_file = os.path.abspath(sys.modules[self.__module__].__file__)
         return os.path.dirname(path_to_this_file)
 
