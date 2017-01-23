@@ -15,10 +15,6 @@ from ..errors import TankDescriptorError
 from ... import LogManager
 log = LogManager.get_logger(__name__)
 
-# for performance, we keep cached instances of
-# descriptors in a cache.
-g_cached_instances = {}
-
 
 def create_io_descriptor(
         sg,
@@ -89,9 +85,6 @@ def create_io_descriptor(
     # and it doesn't matter where we are fetching it from. If <core appstore v1.2.3>
     # is available in multiple different locations on disk, the content of each location
     # should be identical
-    if descriptor_uri in g_cached_instances:
-        # cache hit
-        return g_cached_instances[descriptor_uri]
 
     # at this point we didn't have a cache hit,
     # so construct the object manually
@@ -154,10 +147,6 @@ def create_io_descriptor(
             descriptor = latest_cached_descriptor
 
         log.debug("Resolved latest to be %r" % descriptor)
-
-    # Now see if we should cache it. Only cache descriptors that represent immutable
-    if descriptor.is_immutable():
-        g_cached_instances[descriptor_uri] = descriptor
 
     return descriptor
 
