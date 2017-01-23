@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.49 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.50 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.49 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.50 documentation" href="index.html"/>
         <link rel="next" title="Descriptor API" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -146,7 +146,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.49.<br>
+    <b>tk-core</b> v0.18.50.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -697,6 +697,24 @@ following order:</p>
 <li>macOS: <code class="docutils literal"><span class="pre">~/Library/Caches/Shotgun/desktop/config/config.ini</span></code></li>
 <li>Linux: <code class="docutils literal"><span class="pre">~/shotgun/desktop/config/config.ini</span></code></li>
 </ul>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>When the http proxy is not specified in this file, the Shotgun Toolkit will try to retrieve
+the operating system http proxy.</p>
+<p>First, the environment will be scanned for variables named <code class="docutils literal"><span class="pre">http_proxy</span></code>, in case insensitive way.
+If both lowercase and uppercase environment variables exist (and disagree), lowercase will be preferred.</p>
+<p>When such environment variables cannot be found:</p>
+<ul class="simple">
+<li>for Mac OS X, proxy information will be looked for from Mac OS X System Configuration,</li>
+<li>for Windows, proxy information will be looked for from Windows Systems Registry.</li>
+</ul>
+<p>There is a restriction in these latter cases: the use of proxies which require
+authentication (username and password) is not supported.</p>
+<p>Internally, the Shotgun Toolkit uses Python function <code class="docutils literal"><span class="pre">urllib.getproxies()</span></code> to retrieve
+the operating system http proxy. More information about this function can be found here:</p>
+<blockquote class="last">
+<div><a class="reference external" href="https://docs.python.org/2/library/urllib.html#urllib.getproxies">https://docs.python.org/2/library/urllib.html#urllib.getproxies</a></div></blockquote>
 </div>
 <p>Incorrectly configuring this file may raise an exception:</p>
 <dl class="class">
@@ -1703,7 +1721,7 @@ with the following fields: id, type, email, login, name, image, firstname, lastn
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.49',
+            VERSION:'v0.18.50',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

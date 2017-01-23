@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.49 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.50 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.49 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.50 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -168,7 +168,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.49.<br>
+    <b>tk-core</b> v0.18.50.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -2211,6 +2211,27 @@ mind when writing an event handler.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> (<code class="xref py py-class docutils literal"><span class="pre">FileOpenEvent</span></code>) &#8211; The event object that was emitted.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.event_file_close">
+<code class="descname">event_file_close</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.event_file_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.event_file_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the parent engine emits a file-close event. This method
+is intended to be overridden by deriving classes.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is possible that events will be triggered quite
+frequently. It is important to keep performance in
+mind when writing an event handler.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> (<code class="xref py py-class docutils literal"><span class="pre">FileCloseEvent</span></code>) &#8211; The event object that was emitted.</td>
 </tr>
 </tbody>
 </table>
@@ -4369,7 +4390,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.49',
+            VERSION:'v0.18.50',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
