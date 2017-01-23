@@ -12,7 +12,9 @@ from __future__ import with_statement
 
 import sys
 import os
+import StringIO
 import shutil
+import logging
 import tempfile
 import mock
 
@@ -263,6 +265,53 @@ class TestExecuteHook(TestApplication):
     def test_custom_method(self):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook_method("test_hook_std", "second_method", another_dummy_param=True))
+
+    def test_create_instance(self):
+        """
+        tests the built-in get_instance() method
+        """
+        app = self.engine.apps["test_app"]
+        hook_expression = app.get_setting("test_hook_std")
+        instance_1 = app.create_hook_instance(hook_expression)
+        self.assertEquals(instance_1.second_method(another_dummy_param=True), True)
+        instance_2 = app.create_hook_instance(hook_expression)
+        self.assertNotEquals(instance_1, instance_2)
+
+    def test_logger(self):
+        """
+        tests the logger property
+        """
+
+        # capture sync log to string
+        stream = StringIO.StringIO()
+        handler = logging.StreamHandler(stream)
+
+        app = self.engine.apps["test_app"]
+        hook_logger_name = "%s.hook.config_test_hook" % app.logger.name
+
+        log = logging.getLogger(hook_logger_name)
+        log.setLevel(logging.DEBUG)
+        log.addHandler(handler)
+
+        # run hook method that logs something via self.logger
+        app.execute_hook_method("test_hook_std", "logging_method")
+
+        log_contents = stream.getvalue()
+        stream.close()
+        log.removeHandler(handler)
+
+        self.assertEquals(log_contents, "hello toolkitty\n")
+
+    def test_disk_location(self):
+        """
+        tests the built-in get_instance() method
+        """
+        app = self.engine.apps["test_app"]
+        disk_location = app.execute_hook_method("test_hook_std", "test_disk_location")
+        self.assertEquals(
+            disk_location,
+            os.path.join(self.pipeline_config_root, "config", "hooks", "toolkitty.png")
+        )
 
     def test_self_format(self):
         app = self.engine.apps["test_app"]
