@@ -17,10 +17,8 @@ import textwrap
 from .. import pipelineconfig_utils
 from ..platform import validation
 from ..errors import TankError, TankNoDefaultValueError
-from ..util import shotgun
 from ..platform.bundle import resolve_default_value
-from ..util.version import is_version_older
-
+from ..util import shotgun
 
 ##########################################################################################
 # user prompts
@@ -482,73 +480,20 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
 
 
 
-g_sg_studio_version = None
-def __get_sg_version():
-    """
-    Returns the version of the studio shotgun server.
 
-    :returns: a string on the form "X.Y.Z"
-    """
-    global g_sg_studio_version
-    if g_sg_studio_version is None:
-        try:
-            studio_sg = shotgun.get_sg_connection()
-            g_sg_studio_version = ".".join([ str(x) for x in studio_sg.server_info["version"]])
-        except Exception, e:
-            raise TankError("Could not extract version number for studio shotgun: %s" % e)
 
-    return g_sg_studio_version
-
-def _check_constraints(descriptor_obj, parent_engine_descriptor = None):
+def _check_constraints(descriptor_obj, parent_engine_descriptor=None):
     """
     Checks if there are constraints blocking an upgrade or install
 
     :returns: a tuple: (can_upgrade, list_of_reasons)
     """
-    constraints = descriptor_obj.version_constraints
-
-    can_update = True
-    reasons = []
-
-    if "min_sg" in constraints:
-        # ensure shotgun version is ok
-        studio_sg_version = __get_sg_version()
-        minimum_sg_version = constraints["min_sg"]
-        if is_version_older(studio_sg_version, minimum_sg_version):
-            can_update = False
-            reasons.append("Requires at least Shotgun v%s but currently "
-                           "installed version is v%s." % (minimum_sg_version, studio_sg_version))
-
-    if "min_core" in constraints:
-        # ensure core API is ok
-        core_api_version = pipelineconfig_utils.get_currently_running_api_version()
-        minimum_core_version = constraints["min_core"]
-        if is_version_older(core_api_version, minimum_core_version):
-            can_update = False
-            reasons.append("Requires at least Core API %s but currently "
-                           "installed version is %s." % (minimum_core_version, core_api_version))
-
-    if "min_engine" in constraints:
-        curr_engine_version = parent_engine_descriptor.version
-        minimum_engine_version = constraints["min_engine"]
-        if is_version_older(curr_engine_version, minimum_engine_version):
-            can_update = False
-            reasons.append("Requires at least Engine %s %s but currently "
-                           "installed version is %s." % (parent_engine_descriptor.display_name,
-                                                        minimum_engine_version,
-                                                        curr_engine_version))
-
-    # for multi engine apps, validate the supported_engines list
-    supported_engines  = descriptor_obj.supported_engines
-    if supported_engines is not None:
-        # this is a multi engine app!
-        engine_name = parent_engine_descriptor.system_name
-        if engine_name not in supported_engines:
-            can_update = False
-            reasons.append("Not compatible with engine %s. "
-                           "Supported engines are %s" % (engine_name, ", ".join(supported_engines)))
-
-    return (can_update, reasons)
+    return descriptor_obj.check_version_constraints(
+        __get_sg_version(shotgun.get_sg_connection()),
+        pipelineconfig_utils.get_currently_running_api_version(),
+        parent_engine_descriptor.version,
+        None
+    )
 
 
 def _validate_parameter(tank_api_instance, descriptor, parameter, str_value):

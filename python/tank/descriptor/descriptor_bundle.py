@@ -1,19 +1,22 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .descriptor import Descriptor
 from .errors import TankDescriptorError
 from . import constants
 from .. import LogManager
+from ..util.version import is_version_older
+from ..pipelineconfig_utils import get_currently_running_api_version
 
 log = LogManager.get_logger(__name__)
+
 
 class BundleDescriptor(Descriptor):
     """
@@ -55,6 +58,110 @@ class BundleDescriptor(Descriptor):
             constraints["min_desktop"] = manifest.get("requires_desktop_version")
 
         return constraints
+
+    _sg_studio_versions = {}
+
+    @classmethod
+    def __get_sg_version(cls, connection):
+        """
+        Returns the version of the studio shotgun server. It caches the result per site.
+
+        :param connection: Connection to the Shotgun site.
+        :type: :class:`shotgun_api3.Shotgun`
+
+        :returns: a string on the form "X.Y.Z"
+        :rtype: str
+        """
+        if connection.base_url not in cls._sg_studio_versions:
+            try:
+                version_tuple = connection.server_info["version"]
+            except Exception, e:
+                raise TankDescriptorError("Could not extract version number for site: %s" % e)
+            cls._sg_studio_versions[connection.base_url] = ".".join([str(x) for x in version_tuple])
+
+        return cls._sg_studio_versions[connection.base_url]
+
+    def _test_constraint(self, key, current_version, item_name, reasons)
+
+        minimal_version = self.version_constraints[key]
+
+        if key in constraints:
+            if not current_version:
+                reasons.append("Requires at least %s %s but no version was specified" % (item_name, minimum_version))
+                return False
+            if is_version_folder(current_version, minimal_version):
+                reasons.append("Requires at least %s %s but currently installed version is %s" % (item_name, minimal_version, current_version))
+                return False
+        return True
+
+    def check_version_constraints(
+        self,
+        connection,
+        core_version=None,
+        parent_engine_descriptor=None,
+        desktop_version=None
+    ):
+        """
+        Checks if there are constraints blocking an upgrade or install
+
+        :param connection: Shotgun connection to the current site.
+        :type: :class:`shotgun_api3.Shotgun`
+        :param core_version: Core version. If None, current core version will be used.
+        :type core_version: str
+        :param parent_engine_descriptor: Descriptor of the engine this bundle will run under. None by default.
+        :type parent_engine_descriptor: :class:`~sgtk.bootstrap.DescriptorBundle`
+        :param desktop_version: Version of the Shotgun Desktop. None by default.
+        :type desktop_version: str
+
+        :returns: A flag indicating if all version constraints were satisfied and the reasons why it may have not.
+        :rtype: tuple(bool, list(str))
+
+        :raises TankBootstrapError: Raised if the bundle expects a minimal version of a component but
+            no version for that component was specified.
+        """
+        can_update = True
+        reasons = []
+
+        can_update = self._test_constraint(
+            "min_sg", self.__get_sg_version(connection), "Shotgun", reasons
+        ) and can_update
+        can_update = self._test_constraint(
+            "min_core", core_version or get_currently_running_api_version(), "Core API", reasons
+        ) and can_update
+
+        if "min_engine" in constraints:
+            if parent_engine_descriptor is None:
+                reasons.append("Requires a minimal engine version but no engine was specified.")
+                can_update = False
+            else:
+                curr_engine_version = parent_engine_descriptor.version
+
+                minimum_engine_version = constraints["min_engine"]
+                if is_version_older(curr_engine_version, minimum_engine_version):
+                    can_update = False
+                    reasons.append("Requires at least Engine %s %s but currently "
+                                   "installed version is %s." % (parent_engine_descriptor.display_name,
+                                                                 minimum_engine_version,
+                                                                 curr_engine_version))
+
+        # for multi engine apps, validate the supported_engines list
+        supported_engines  = self.supported_engines
+        if supported_engines is not None:
+            if parent_engine_descriptor is None:
+                reasons.append("Bundle is compatible with a subset of engines but no engine was specified.")
+            else:
+                # this is a multi engine app!
+                engine_name = parent_engine_descriptor.system_name
+                if engine_name not in supported_engines:
+                    can_update = False
+                    reasons.append("Not compatible with engine %s. "
+                                   "Supported engines are %s" % (engine_name, ", ".join(supported_engines)))
+
+        can_update = self._test_constraint(
+            "min_desktop", desktop_version, "Shotgun Desktop", reasons
+        ) and can_update
+
+        return (can_update, reasons)
 
     @property
     def required_context(self):
@@ -118,8 +225,6 @@ class BundleDescriptor(Descriptor):
         manifest = self._io_descriptor.get_manifest()
         return manifest.get("supported_engines")
 
-
-
     @property
     def required_frameworks(self):
         """
@@ -143,12 +248,12 @@ class BundleDescriptor(Descriptor):
     # compatibility accessors to ensure that all systems
     # calling this (previously internal!) parts of toolkit
     # will still work.
-    def get_version_constraints(self): return self.version_constraints
-    def get_required_context(self): return self.required_context
-    def get_supported_platforms(self): return self.supported_platforms
-    def get_configuration_schema(self): return self.configuration_schema
-    def get_supported_engines(self): return self.supported_engines
-    def get_required_frameworks(self): return self.required_frameworks
+    def get_version_constraints(self): return self.version_constraints # noqa
+    def get_required_context(self): return self.required_context # noqa
+    def get_supported_platforms(self): return self.supported_platforms # noqa
+    def get_configuration_schema(self): return self.configuration_schema # noqa
+    def get_supported_engines(self): return self.supported_engines # noqa
+    def get_required_frameworks(self): return self.required_frameworks # noqa
 
     ###############################################################################################
     # helper methods
