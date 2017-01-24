@@ -45,6 +45,8 @@ Below is a simple log hierarchy to illustrate what this might look like in pract
      |   |
      |   |- descriptor                                Logging from core Modules
      |   |- path_cache
+     |   |- hook
+     |       |- create_folders                        Logging from a core hook
      |
      |- env                                           Logging from apps and engines
      |   |
@@ -55,15 +57,20 @@ Below is a simple log hierarchy to illustrate what this might look like in pract
      |             |- tk-multi-workfiles2             Toolkit App (or framework)
      |                  |
      |                  |- tkimp63c3b2d57f85          Toolkit Command Session
-     |                      |
-     |                      |- tk_multi_workfiles     Python hierarchy inside app's python folder
-     |                          |
-     |                          |- entity_tree
+     |                  |   |
+     |                  |   |- tk_multi_workfiles     Python hierarchy inside app's python folder
+     |                  |       |
+     |                  |       |- entity_tree
+     |                  |
+     |                  |
+     |                  |
+     |                  |- hook
+     |                      |- scene_operations       Logging from a hook
+     |
      |
      |- ext                                           Logging from associated external scripts
          |
          |- tank_cmd
-
 
 
 Generating log messages in Toolkit

@@ -10,3 +10,4 @@
 
 from .event_engine import EngineEvent
 from .event_file_open import FileOpenEvent
+from .event_file_close import FileCloseEvent

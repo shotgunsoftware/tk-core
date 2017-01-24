@@ -356,6 +356,12 @@ class ConfigurationWriter(object):
                 ["tank_name"]
             )
 
+            # When the given project id cannot be found, raise a meaningful exception.
+            if not sg_data:
+                msg = "Unknown project id %s" % project_id
+                log.debug("Raising ValueError('%s')" % msg)
+                raise ValueError(msg)
+
             project_name = sg_data["tank_name"] or constants.UNNAMED_PROJECT_NAME
             pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
 
