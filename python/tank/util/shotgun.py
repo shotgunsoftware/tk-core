@@ -218,29 +218,32 @@ def download_url(sg, url, location, use_url_extension=False):
     Convenience method that downloads a file from a given url.
     This method will take into account any proxy settings which have
     been defined in the Shotgun connection parameters.
-    
+
+    In some cases, the target content of the url is not known beforehand.
+    For example, the url ``https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227``
+    may redirect into ``https://some-site/path/to/a/thumbnail.png``. In
+    such cases, you can set the optional use_url_extension parameter to True - this
+    will cause the method to append the file extension of the resolved url to
+    the filename passed in via the location parameter. So for the urls given
+    above, you would get the following results:
+
+    - location="/path/to/file" and use_url_extension=False would return "/path/to/file"
+    - location="/path/to/file" and use_url_extension=True would return "/path/to/file.png"
+
     :param sg: Shotgun API instance to get proxy connection settings from
     :param url: url to download
     :param location: path on disk where the payload should be written.
                      this path needs to exists and the current user needs
                      to have write permissions
-    :param bool use_url_extension: Optionally replace the file extension of the
-                                   input `location` value to match the extension
-                                   of the downloaded URL if it can be determined
-                                   and doesn't match already. If set to False, the
-                                   contents of `url` will be downloaded to `location`
-                                   without modification, preserving prior behavior.
-                                   Set this value to True if the file extension for the
-                                   URL to be downloaded cannot be determined in advance,
-                                   for example downloading the content of
-                                   https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227.
-                                   When set to True and a file extension can be
-                                   determined from the URL, it will be appended to the
-                                   input `location` value. This may have a side-effect
-                                   of naming files something like "/path/file.jpeg.png".
+    :param bool use_url_extension: Optionally append the file extension of the
+                                   resolved URL's path to the input ``location``
+                                   to construct the full path name to the downloaded
+                                   contents. The newly constructed full path name
+                                   will be returned.
+
     :returns: Full filepath to the downloaded file. This may have been altered from
-              the input `location` if `use_url_extension` is True and the url's extension
-              was different than `location`.
+              the input ``location`` if ``use_url_extension`` is True and a file extension
+              could be determined from the resolved url.
     :raises: :class:`TankError` on failure.
     """
     # We only need to set the auth cookie for downloads from Shotgun server,
