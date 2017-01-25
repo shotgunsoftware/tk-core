@@ -13,7 +13,7 @@ from .errors import TankDescriptorError
 from . import constants
 from .. import LogManager
 from ..util.version import is_version_older
-from ..pipelineconfig_utils import get_currently_running_api_version
+from .. import pipelineconfig_utils
 
 log = LogManager.get_logger(__name__)
 
@@ -84,7 +84,6 @@ class BundleDescriptor(Descriptor):
     def _test_constraint(self, key, current_version, item_name, reasons):
 
         constraints = self.version_constraints
-
         if key in constraints:
             minimum_version = constraints[key]
             if not current_version:
@@ -129,7 +128,7 @@ class BundleDescriptor(Descriptor):
             "min_sg", self._get_sg_version(connection), "Shotgun", reasons
         ) and can_update
         can_update = self._test_constraint(
-            "min_core", core_version or get_currently_running_api_version(), "Core API", reasons
+            "min_core", core_version or pipelineconfig_utils.get_currently_running_api_version(), "Core API", reasons
         ) and can_update
 
         constraints = self.version_constraints
