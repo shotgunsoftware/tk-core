@@ -65,7 +65,7 @@ class UserSettings(Singleton):
     @property
     def path(self):
         """
-        Path to the current user settings file. See :ref:`_centralizing_settings` for more information
+        :returns: Path to the current user settings file. See :ref:`_centralizing_settings` for more information
         about how the file is resolved.
         """
         self._path
