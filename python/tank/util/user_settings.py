@@ -36,10 +36,10 @@ class UserSettings(Singleton):
         """
         Singleton initialization.
         """
-        path = self._compute_config_location()
-        logger.debug("Reading user settings from %s" % path)
+        self._path = self._compute_config_location()
+        logger.debug("Reading user settings from %s" % self._path)
 
-        self._user_config = self._load_config(path)
+        self._user_config = self._load_config(self._path)
 
         # Log the default settings
         logger.debug("Default site: %s" % (self.default_site or "<missing>",))
@@ -61,6 +61,14 @@ class UserSettings(Singleton):
             logger.debug("App Store proxy: %s" % (proxy or "<empty>",))
         else:
             logger.debug("App Store proxy: <missing>")
+
+    @property
+    def path(self):
+        """
+        Path to the current user settings file. See :ref:`_centralizing_settings` for more information
+        about how the file is resolved.
+        """
+        self._path
 
     @property
     def shotgun_proxy(self):
