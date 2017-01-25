@@ -45,11 +45,19 @@ class ConsoleUtilsTests(TankTestBase):
         Ensures the Shotgun version cache is cleared between tests.
         """
         super(ConsoleUtilsTests, self).setUp()
-        # Uncache the shotgun verison between tests.
+        # Uncache the shotgun versions between tests.
         descriptor.descriptor_bundle.BundleDescriptor._sg_studio_versions = {}
 
     def _create_descriptor(self, version_constraints, supported_engines):
+        """
+        Creates a descriptor for a fictitious app and mocks the get_manifest method
+        so we can have some settings from info.yml
 
+        :param version_constraints: Dictionary with keys min_sg, min_core and min_engine
+            which are used to specify minimum version of Shotgun, Core and Engine.
+
+        :returns: A sgtk.bootstrap.BundleDescriptor
+        """
         desc = descriptor.create_descriptor(
             self.mockgun,
             descriptor.Descriptor.APP,
