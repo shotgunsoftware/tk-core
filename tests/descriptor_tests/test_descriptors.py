@@ -438,3 +438,22 @@ class TestConstraintValidation(TankTestBase):
 
         self.assertEqual(can_update, False)
         self.assertEqual(len(reasons), 5)
+
+    def test_failure_when_param_missing(self):
+        can_update, reasons = self._create_descriptor(
+            version_constraints={
+                # No need to test for core since passing None uses the current core version instead.
+                "min_sg": "v6.6.6",
+                "min_engine": "v4.4.4",
+                "min_desktop": "v3.3.4"
+            },
+            supported_engines=["tk-test"]
+        ).check_version_constraints(
+            connection=None,
+            core_version=None,
+            parent_engine_descriptor=None,
+            desktop_version=None
+        )
+
+        self.assertEqual(can_update, False)
+        self.assertEqual(len(reasons), 4)

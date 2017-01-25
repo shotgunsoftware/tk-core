@@ -125,7 +125,7 @@ class BundleDescriptor(Descriptor):
         reasons = []
 
         can_update = self._test_constraint(
-            "min_sg", self._get_sg_version(connection), "Shotgun", reasons
+            "min_sg", self._get_sg_version(connection) if connection else None, "Shotgun", reasons
         ) and can_update
         can_update = self._test_constraint(
             "min_core", core_version or pipelineconfig_utils.get_currently_running_api_version(), "Core API", reasons
