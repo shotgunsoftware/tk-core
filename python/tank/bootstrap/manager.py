@@ -821,14 +821,14 @@ class ToolkitManager(object):
             for engine in env_obj.get_engines():
                 if engine_constraint is None or engine == engine_constraint:
                     descriptor = env_obj.get_engine_descriptor(engine)
-                    descriptors[str(descriptor)] = descriptor
+                    descriptors[descriptor.get_uri()] = descriptor
                     for app in env_obj.get_apps(engine):
                         descriptor = env_obj.get_app_descriptor(engine, app)
-                        descriptors[str(descriptor)] = descriptor
+                        descriptors[descriptor.get_uri()] = descriptor
 
             for framework in env_obj.get_frameworks():
                 descriptor = env_obj.get_framework_descriptor(framework)
-                descriptors[str(descriptor)] = descriptor
+                descriptors[descriptor.get_uri()] = descriptor
 
         # pass 2 - download all apps
         for idx, descriptor in enumerate(descriptors.values()):
