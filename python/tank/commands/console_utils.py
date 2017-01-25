@@ -489,9 +489,9 @@ def _check_constraints(descriptor_obj, parent_engine_descriptor=None):
     :returns: a tuple: (can_upgrade, list_of_reasons)
     """
     return descriptor_obj.check_version_constraints(
-        __get_sg_version(shotgun.get_sg_connection()),
+        shotgun.get_sg_connection(),
         pipelineconfig_utils.get_currently_running_api_version(),
-        parent_engine_descriptor.version,
+        parent_engine_descriptor,
         None
     )
 

@@ -62,7 +62,7 @@ class BundleDescriptor(Descriptor):
     _sg_studio_versions = {}
 
     @classmethod
-    def __get_sg_version(cls, connection):
+    def _get_sg_version(cls, connection):
         """
         Returns the version of the studio shotgun server. It caches the result per site.
 
@@ -81,16 +81,19 @@ class BundleDescriptor(Descriptor):
 
         return cls._sg_studio_versions[connection.base_url]
 
-    def _test_constraint(self, key, current_version, item_name, reasons)
+    def _test_constraint(self, key, current_version, item_name, reasons):
 
-        minimal_version = self.version_constraints[key]
+        constraints = self.version_constraints
 
         if key in constraints:
+            minimum_version = constraints[key]
             if not current_version:
                 reasons.append("Requires at least %s %s but no version was specified" % (item_name, minimum_version))
                 return False
-            if is_version_folder(current_version, minimal_version):
-                reasons.append("Requires at least %s %s but currently installed version is %s" % (item_name, minimal_version, current_version))
+            if is_version_older(current_version, minimum_version):
+                reasons.append("Requires at least %s %s but currently installed version is %s" % (
+                    item_name, minimum_version, current_version
+                ))
                 return False
         return True
 
@@ -123,11 +126,13 @@ class BundleDescriptor(Descriptor):
         reasons = []
 
         can_update = self._test_constraint(
-            "min_sg", self.__get_sg_version(connection), "Shotgun", reasons
+            "min_sg", self._get_sg_version(connection), "Shotgun", reasons
         ) and can_update
         can_update = self._test_constraint(
             "min_core", core_version or get_currently_running_api_version(), "Core API", reasons
         ) and can_update
+
+        constraints = self.version_constraints
 
         if "min_engine" in constraints:
             if parent_engine_descriptor is None:
