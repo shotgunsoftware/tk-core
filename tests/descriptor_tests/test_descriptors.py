@@ -410,7 +410,10 @@ class TestConstraintValidation(TankTestBase):
 
         self.assertEqual(can_update, False)
         self.assertEqual(len(reasons), 1)
-        self.assertRegexpMatches(reasons[0], "Requires at least Shotgun Desktop.* but currently installed version is .*\.")
+        self.assertRegexpMatches(
+            reasons[0],
+            "Requires at least Shotgun Desktop.* but currently installed version is .*\."
+        )
 
     @patch("tank.descriptor.descriptor_bundle.BundleDescriptor._get_sg_version", return_value="6.6.5")
     @patch("tank.pipelineconfig_utils.get_currently_running_api_version", return_value="v5.5.4")
@@ -457,3 +460,9 @@ class TestConstraintValidation(TankTestBase):
 
         self.assertEqual(can_update, False)
         self.assertEqual(len(reasons), 4)
+        self.assertRegexpMatches(reasons[0], "Requires at least .* but no version was specified")
+        self.assertRegexpMatches(reasons[1], "Requires a minimal engine version but no engine was specified")
+        self.assertRegexpMatches(
+            reasons[2], "Bundle is compatible with a subset of engines but no engine was specified"
+        )
+        self.assertRegexpMatches(reasons[3], "Requires at least .* but no version was specified")
