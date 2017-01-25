@@ -35,14 +35,23 @@ class SealedMock(Mock):
 
 
 class ConsoleUtilsTests(TankTestBase):
+    """
+    Tests for console utilities.
+    """
 
     def setUp(self):
+        """
+        Ensures the Shotgun version cache is cleared between tests.
+        """
         super(ConsoleUtilsTests, self).setUp()
         # Uncache the shotgun verison between tests.
         console_utils.g_sg_studio_version = None
 
     @patch("tank.util.shotgun.get_sg_connection", return_value=SealedMock(server_info={"version": "6.6.6"}))
     def test_min_sg_constraint_pass(self, _):
+        """
+        Ensures that having a greater or equal version of Shotgun works.
+        """
         can_update, reasons = console_utils._check_constraints(
             SealedMock(
                 version_constraints={"min_sg": "6.6.6"},
@@ -54,6 +63,9 @@ class ConsoleUtilsTests(TankTestBase):
 
     @patch("tank.util.shotgun.get_sg_connection", return_value=SealedMock(server_info={"version": "6.6.5"}))
     def test_min_sg_constraint_fail(self, _):
+        """
+        Ensures that having an older version of Shotgun fails.
+        """
         can_update, reasons = console_utils._check_constraints(
             SealedMock(
                 version_constraints={"min_sg": "6.6.6"},
@@ -66,6 +78,9 @@ class ConsoleUtilsTests(TankTestBase):
 
     @patch("tank.pipelineconfig_utils.get_currently_running_api_version", return_value="v6.6.6")
     def test_min_core_constraint_pass(self, _):
+        """
+        Ensures that having a greater or equal version of core works.
+        """
         can_update, reasons = console_utils._check_constraints(
             SealedMock(
                 version_constraints={"min_core": "v6.6.6"},
@@ -77,6 +92,9 @@ class ConsoleUtilsTests(TankTestBase):
 
     @patch("tank.pipelineconfig_utils.get_currently_running_api_version", return_value="v6.6.5")
     def test_min_core_constraint_fail(self, _):
+        """
+        Ensures that having a lower version of core fails.
+        """
         can_update, reasons = console_utils._check_constraints(
             SealedMock(
                 version_constraints={"min_core": "v6.6.6"},
@@ -88,6 +106,9 @@ class ConsoleUtilsTests(TankTestBase):
         self.assertRegexpMatches(reasons[0], "Requires at least Core API .* but currently installed version is .*")
 
     def test_min_engine_constraint_pass(self):
+        """
+        Ensures that having a greater or equal version of the engine works.
+        """
         can_update, reasons = console_utils._check_constraints(
             SealedMock(
                 version_constraints={"min_engine": "v6.6.6"},
@@ -101,6 +122,9 @@ class ConsoleUtilsTests(TankTestBase):
         self.assertListEqual(reasons, [])
 
     def test_min_engine_constraint_fail(self):
+        """
+        Ensures that having a lower version of the engine fails.
+        """
         can_update, reasons = console_utils._check_constraints(
             SealedMock(
                 version_constraints={"min_engine": "v6.6.6"},
@@ -115,6 +139,9 @@ class ConsoleUtilsTests(TankTestBase):
         self.assertRegexpMatches(reasons[0], "Requires at least Engine .* but currently installed version is .*")
 
     def test_supported_engine_constraint_pass(self):
+        """
+        Ensures that being installed in a supported engine works.
+        """
         can_update, reasons = console_utils._check_constraints(
             SealedMock(
                 version_constraints={},
@@ -129,6 +156,9 @@ class ConsoleUtilsTests(TankTestBase):
         self.assertListEqual(reasons, [])
 
     def test_supported_engine_constraint_fail(self):
+        """
+        Ensures that being installed in an unsupported engine fails.
+        """
         can_update, reasons = console_utils._check_constraints(
             SealedMock(
                 version_constraints={},
@@ -146,6 +176,9 @@ class ConsoleUtilsTests(TankTestBase):
     @patch("tank.util.shotgun.get_sg_connection", return_value=SealedMock(server_info={"version": "6.6.5"}))
     @patch("tank.pipelineconfig_utils.get_currently_running_api_version", return_value="v5.5.4")
     def test_reasons_add_up(self, *_):
+        """
+        Ensures that having multiple failures add up.
+        """
         can_update, reasons = console_utils._check_constraints(
             SealedMock(
                 version_constraints={
