@@ -23,7 +23,7 @@ class LocalFileStorageManager(object):
     Class that encapsulates logic for resolving local storage paths.
 
     Toolkit needs to store cache data, logs and other items at runtime.
-    Some of this data is global, other is per site or per configuraiton.
+    Some of this data is global, other is per site or per configuration.
 
     This class provides a consistent and centralized interface for resolving
     such paths and also handles compatibility across generations of path
