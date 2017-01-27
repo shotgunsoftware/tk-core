@@ -13,6 +13,7 @@ from .errors import TankDescriptorError
 from . import constants
 from .. import LogManager
 from ..util.version import is_version_older
+from ..util import shotgun
 from .. import pipelineconfig_utils
 
 log = LogManager.get_logger(__name__)
@@ -98,7 +99,7 @@ class BundleDescriptor(Descriptor):
 
     def check_version_constraints(
         self,
-        connection,
+        connection=None,
         core_version=None,
         parent_engine_descriptor=None,
         desktop_version=None
@@ -106,7 +107,8 @@ class BundleDescriptor(Descriptor):
         """
         Checks if there are constraints blocking an upgrade or install
 
-        :param connection: Shotgun connection to the current site.
+        :param connection: Shotgun connection to the site we are running the update for. If ``None``, the
+            current site will be used.
         :type: :class:`shotgun_api3.Shotgun`
         :param core_version: Core version. If None, current core version will be used.
         :type core_version: str
@@ -123,6 +125,8 @@ class BundleDescriptor(Descriptor):
         """
         can_update = True
         reasons = []
+
+        connection = connection or shotgun.get_sg_connection()
 
         can_update = self._test_constraint(
             "min_sg", self._get_sg_version(connection) if connection else None, "Shotgun", reasons
