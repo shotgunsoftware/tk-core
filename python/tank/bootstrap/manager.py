@@ -615,18 +615,18 @@ class ToolkitManager(object):
 
         self._report_progress(progress_callback, 0.2, "Updating configuration...")
         if status == Configuration.LOCAL_CFG_UP_TO_DATE:
-            log.info("Your locally cached configuration is up to date.")
+            log.debug("Your locally cached configuration is up to date.")
 
         elif status == Configuration.LOCAL_CFG_MISSING:
-            log.info("A locally cached configuration will be set up.")
+            log.debug("A locally cached configuration will be set up.")
             config.update_configuration()
 
         elif status == Configuration.LOCAL_CFG_DIFFERENT:
-            log.info("Your locally cached configuration differs and will be updated.")
+            log.debug("Your locally cached configuration differs and will be updated.")
             config.update_configuration()
 
         elif status == Configuration.LOCAL_CFG_INVALID:
-            log.info("Your locally cached configuration looks invalid and will be replaced.")
+            log.debug("Your locally cached configuration looks invalid and will be replaced.")
             config.update_configuration()
 
         else:
@@ -759,7 +759,7 @@ class ToolkitManager(object):
         :param message: Progress message string to report.
         """
 
-        log.info("Progress Report (%s%%): %s" % (int(progress_value * 100), message))
+        log.debug("Progress Report (%s%%): %s" % (int(progress_value * 100), message))
 
         try:
             # Call the new style progress callback.
@@ -778,7 +778,7 @@ class ToolkitManager(object):
         :param config_engine_name: Name of the engine that was used to resolve the configuration.
         :param progress_callback: Callback function that reports back on the engine startup progress.
         """
-        log.info("Checking that all bundles are cached locally...")
+        log.debug("Checking that all bundles are cached locally...")
 
         descriptors = []
 
