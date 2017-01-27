@@ -341,9 +341,13 @@ def check_constraints_for_item(descriptor, environment_obj, engine_instance_name
         parent_engine_descriptor = None
 
     # check constraints (minimum versions etc)
-    (can_update, reasons) = _check_constraints(descriptor, parent_engine_descriptor)
+    (can_update, reasons) = descriptor.check_version_constraints(
+        shotgun.get_sg_connection(),
+        pipelineconfig_utils.get_currently_running_api_version(),
+        parent_engine_descriptor
+    )
 
-    if can_update == False:
+    if not can_update:
         reasons.insert(0, "%s requires an upgrade to one or more "
                           "of your installed components." % descriptor)
         details = " ".join(reasons)
@@ -477,23 +481,6 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
                     continue
 
     return new_params
-
-
-
-
-
-def _check_constraints(descriptor_obj, parent_engine_descriptor=None):
-    """
-    Checks if there are constraints blocking an upgrade or install
-
-    :returns: a tuple: (can_upgrade, list_of_reasons)
-    """
-    return descriptor_obj.check_version_constraints(
-        shotgun.get_sg_connection(),
-        pipelineconfig_utils.get_currently_running_api_version(),
-        parent_engine_descriptor,
-        None
-    )
 
 
 def _validate_parameter(tank_api_instance, descriptor, parameter, str_value):
