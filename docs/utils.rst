@@ -86,7 +86,7 @@ following order:
     - macOS: ``~/Library/Caches/Shotgun/desktop/config/config.ini``
     - Linux: ``~/shotgun/desktop/config/config.ini``
 
-    Note that when the ``SHOTGUN_HOME`` environment variable can impact the location
+    Note that the ``SHOTGUN_HOME`` environment variable can impact the location
     of the Shotgun Toolkit preferences file.
 
 .. note::
