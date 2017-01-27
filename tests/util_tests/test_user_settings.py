@@ -37,24 +37,31 @@ class UserSettingsTests(TankTestBase):
         self.addCleanup(UserSettings.clear_singleton)
 
     def _mock_ini_file(self, login_section={}, custom_section={}):
-        # Manually write the file as this is the format we're expecting the UserSettings
-        # to parse.
+        """
+        Creates an ini file in a unique location with te user settings.
+
+        :param login_section: Dictionary of settings that will be stored in the [Login] section.
+        :param custom_section: Dictionary of settings that will be stored in the [Custom] section.
+        """
         # Create a unique folder for this test.
         folder = os.path.join(self.tank_temp, str(uuid.uuid4()))
         os.makedirs(folder)
 
-        # Mock the method that finds the user
+        # Manually write the file as this is the format we're expecting the UserSettings
+        # to parse.
+
         ini_file_location = os.path.join(folder, "toolkit.ini")
         with open(ini_file_location, "w") as f:
             f.writelines(["[Login]\n"])
             for key, value in login_section.iteritems():
                 f.writelines(["%s=%s\n" % (key, value)])
 
-            f.writelines(["[CustomSection]\n"])
+            f.writelines(["[Custom]\n"])
             for key, value in custom_section.iteritems():
                 f.writelines(["%s=%s\n" % (key, value)])
 
-        # Have the singleton read the file at the location we just set.
+        # The setUp phase cleared the singleton. So set the preferences environment variable and
+        # instantiate the singleton, which will read the env var and open that location.
         with patch.dict(os.environ, {"SGTK_PREFERENCES_LOCATION": ini_file_location}):
             UserSettings()
 
@@ -113,6 +120,9 @@ class UserSettingsTests(TankTestBase):
             self.assertEqual(settings.shotgun_proxy, http_proxy)
 
     def test_custom_settings(self):
+        """
+        Tests that we can read settings in any section of the file.
+        """
 
         self._mock_ini_file(
             custom_section={
@@ -121,11 +131,14 @@ class UserSettingsTests(TankTestBase):
         )
 
         self.assertEqual(
-            UserSettings().get_setting("CustomSection", "custom_key"),
+            UserSettings().get_setting("Custom", "custom_key"),
             "custom_value"
         )
 
     def test_boolean_setting(self):
+        """
+        Tests that we can read a setting into a boolean.
+        """
         self._mock_ini_file(
             custom_section={
                 "valid": "ON",
@@ -134,15 +147,19 @@ class UserSettingsTests(TankTestBase):
         )
 
         self.assertEqual(
-            UserSettings().get_boolean_setting("CustomSection", "valid"), True
+            UserSettings().get_boolean_setting("Custom", "valid"), True
         )
         with self.assertRaisesRegexp(
             TankError,
-            "Invalid value 'L' in '.*' for setting 'invalid' in section 'CustomSection': expecting one of .*."
+            "Invalid value 'L' in '.*' for setting 'invalid' in section 'Custom': expecting one of .*."
         ):
-            UserSettings().get_boolean_setting("CustomSection", "invalid")
+            UserSettings().get_boolean_setting("Custom", "invalid")
 
     def test_integer_setting(self):
+        """
+        Tests that we can read a setting into an integer
+        """
+
         self._mock_ini_file(
             custom_section={
                 "valid": "1",
@@ -152,16 +169,16 @@ class UserSettingsTests(TankTestBase):
         )
 
         self.assertEqual(
-            UserSettings().get_integer_setting("CustomSection", "valid"), 1
+            UserSettings().get_integer_setting("Custom", "valid"), 1
         )
         self.assertEqual(
-            UserSettings().get_integer_setting("CustomSection", "also_valid"), -1
+            UserSettings().get_integer_setting("Custom", "also_valid"), -1
         )
         with self.assertRaisesRegexp(
             TankError,
-            "Invalid value 'L' in '.*' for setting 'invalid' in section 'CustomSection': expecting integer."
+            "Invalid value 'L' in '.*' for setting 'invalid' in section 'Custom': expecting integer."
         ):
-            UserSettings().get_integer_setting("CustomSection", "invalid")
+            UserSettings().get_integer_setting("Custom", "invalid")
 
     def test_environment_variable_expansions(self):
         """

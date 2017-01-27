@@ -123,8 +123,7 @@ class UserSettings(Singleton):
         """
         Provides access to any setting, including ones in user defined sections.
 
-        :param str section: Name of the section we want to retrieve the setting from. Do not
-            include the brackets.
+        :param str section: Name of the section to retrieve the setting from. Do not include the brackets.
         :param str name: Name of the setting under the provided section.
 
         :returns: The setting's value if found, ``None`` if the setting is missing from the file or
@@ -141,6 +140,13 @@ class UserSettings(Singleton):
         )
         return value.strip()
 
+    # Unfortunately here for get_boolean_setting and get_integer_setting we're replicating some of the
+    # logic from the ConfigParser class. We have to do this because ConfigParser doesn't expand environment
+    # variables which is a requirement here, so get_setting does the job of using expandvars so everything
+    # gets expanded and then the get_*_setting methods so the necessary casting.
+
+    # This is taken from RawConfigParser. Values are copied in case future Python implementation
+    # rename this. (like Python 3, not that this is going to be an issue in the foreseable future. :p)
     _boolean_states = {'1': True, 'yes': True, 'true': True, 'on': True,
                        '0': False, 'no': False, 'false': False, 'off': False}
 
@@ -152,8 +158,7 @@ class UserSettings(Singleton):
         Values ``1``, ``yes``, ``true`` and ``on`` are converted to ``True`` while ``0``, ``no``,
         ``false``and ``off`` are converted to false. Case is insensitive.
 
-        :param str section: Name of the section we want to retrieve the setting from. Do not
-            include the brackets.
+        :param str section: Name of the section to retrieve the setting from. Do not include the brackets.
         :param str name: Name of the setting under the provided section.
 
         :returns: Boolean if the value is valid, None if not set.
@@ -179,8 +184,7 @@ class UserSettings(Singleton):
         Provides access to any setting, including ones in user defined sections, and casts it
         into an integer.
 
-        :param str section: Name of the section we want to retrieve the setting from. Do not
-            include the brackets.
+        :param str section: Name of the section to retrieve the setting from. Do not include the brackets.
         :param str name: Name of the setting under the provided section.
 
         :returns: Boolean if the value is valid, None if not set.

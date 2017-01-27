@@ -224,8 +224,9 @@ class TestConstraintValidation(TankTestBase):
         # Uncache the shotgun versions between tests.
         sgtk.descriptor.descriptor_bundle.BundleDescriptor._sg_studio_versions = {}
 
-        self._up_to_date_sg = SealedMock(base_url="https://foo.shotgunstudio.com", server_info={"version": "6.6.6"})
-        self._out_of_date_sg = SealedMock(base_url="https://foo.shotgunstudio.com", server_info={"version": "6.6.5"})
+        # If Mockgun supported server_info we could use that instead of mocking.
+        self._up_to_date_sg = SealedMock(base_url="https://foo.shotgunstudio.com", server_info={"version": (6, 6, 6)})
+        self._out_of_date_sg = SealedMock(base_url="https://foo.shotgunstudio.com", server_info={"version": (6, 6, 5)})
 
     def _create_descriptor(self, version_constraints, supported_engines):
         """

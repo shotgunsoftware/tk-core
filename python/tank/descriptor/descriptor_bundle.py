@@ -98,10 +98,10 @@ class BundleDescriptor(Descriptor):
         if key in constraints:
             minimum_version = constraints[key]
             if not current_version:
-                reasons.append("Requires at least %s %s but no version was specified" % (item_name, minimum_version))
+                reasons.append("Requires at least %s %s but no version was specified." % (item_name, minimum_version))
                 return False
             if is_version_older(current_version, minimum_version):
-                reasons.append("Requires at least %s %s but currently installed version is %s" % (
+                reasons.append("Requires at least %s %s but currently installed version is %s." % (
                     item_name, minimum_version, current_version
                 ))
                 return False
@@ -170,7 +170,7 @@ class BundleDescriptor(Descriptor):
                 if engine_name not in supported_engines:
                     can_update = False
                     reasons.append("Not compatible with engine %s. "
-                                   "Supported engines are %s" % (engine_name, ", ".join(supported_engines)))
+                                   "Supported engines are %s." % (engine_name, ", ".join(supported_engines)))
 
         can_update = self._test_constraint(
             "min_desktop", desktop_version, "Shotgun Desktop", reasons
