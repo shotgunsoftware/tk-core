@@ -66,6 +66,13 @@ class UserSettings(Singleton):
         logger.debug("App Store proxy: %s", self._to_friendly_str(proxy))
 
     @property
+    def path(self):
+        """
+        Retrieves the path to the current user settings file.
+        """
+        return self._path
+
+    @property
     def shotgun_proxy(self):
         """
         Retrieves the value from the ``http_proxy`` setting.

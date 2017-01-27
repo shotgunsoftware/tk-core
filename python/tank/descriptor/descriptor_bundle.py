@@ -83,6 +83,16 @@ class BundleDescriptor(Descriptor):
         return cls._sg_studio_versions[connection.base_url]
 
     def _test_constraint(self, key, current_version, item_name, reasons):
+        """
+        Tests a constraint and ensures the user provided a value and that the constraint is matched.
+
+        :param key: Name of the version constraint
+        :param current_version: Version the user passed in.
+        :param item_name: Pretty name for the version constraint.
+        :param reasons: List of reasons errors will be added to.
+
+        :returns: ``True`` if the constraint test passed, ``False`` if not.
+        """
 
         constraints = self.version_constraints
         if key in constraints:
@@ -105,7 +115,7 @@ class BundleDescriptor(Descriptor):
         desktop_version=None
     ):
         """
-        Checks if there are constraints blocking an upgrade or install
+        Checks if there are constraints blocking an upgrade or install.
 
         :param connection: Shotgun connection to the site we are running the update for. If ``None``, the
             current site will be used.
@@ -119,9 +129,6 @@ class BundleDescriptor(Descriptor):
 
         :returns: A flag indicating if all version constraints were satisfied and the reasons why it may have not.
         :rtype: tuple(bool, list(str))
-
-        :raises TankBootstrapError: Raised if the bundle expects a minimal version of a component but
-            no version for that component was specified.
         """
         can_update = True
         reasons = []
