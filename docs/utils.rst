@@ -50,8 +50,9 @@ Here's an example:
 
         # If specified, the Toolkit will use these proxy settings to connect to
         # the Shotgun site and the Toolkit App Store. The proxy string should be of the
-        # forms 123.123.123.123, 123.123.123.123:8888 or
-        # username:pass@123.123.123.123:8888.
+        # forms 123.123.123.123, 123.123.123.123:8888 or username:pass@123.123.123.123:8888.
+        # If the setting is present in the file but not set, then no proxy will be used
+        # to connect to the Shotgun site and the Toolkit App Store.
         # Empty by default.
         #
         http_proxy=123.234.345.456:8888
@@ -87,8 +88,8 @@ following order:
     - Linux: ``~/shotgun/desktop/config/config.ini``
 
 .. note::
-    When the http proxy is not specified in this file, the Shotgun Toolkit will try to retrieve
-    the operating system http proxy.
+    When ``http_proxy`` or ``app_store_http_proxy`` are not specified in this file,
+    the Shotgun Toolkit will try to retrieve the operating system http proxy.
 
     First, the environment will be scanned for variables named ``http_proxy``, in case insensitive way.
     If both lowercase and uppercase environment variables exist (and disagree), lowercase will be preferred.
