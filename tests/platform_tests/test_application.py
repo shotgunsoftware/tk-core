@@ -12,15 +12,16 @@ from __future__ import with_statement
 
 import sys
 import os
+import StringIO
 import shutil
+import logging
 import tempfile
 import mock
 
 from tank_test.tank_test_base import *
 import tank
 from tank.errors import TankError, TankHookMethodDoesNotExistError
-from tank.platform import application
-from tank.platform import constants
+from tank.platform import application, constants, validation
 from tank.template import Template
 from tank.deploy import descriptor
 
@@ -65,6 +66,50 @@ class TestApplication(TankTestBase):
         super(TestApplication, self).tearDown()
 
 
+class TestAppFrameworks(TestApplication):
+    def test_minimum_version(self):
+        app = self.engine.apps["test_app"]
+        previous_mins = dict()
+        frameworks = app.descriptor.required_frameworks
+
+        for fw in frameworks:
+            previous_mins[fw["name"]] = fw.get("minimum_version")
+            fw["minimum_version"] = "v999.999.999"
+
+        try:
+            # We should get an error here due to the too-high
+            # minumum required version for the frameworks.
+            self.assertRaises(
+                TankError,
+                validation.validate_and_return_frameworks,
+                app.descriptor,
+                self.engine.get_env(),
+            )
+
+            for fw in frameworks:
+                fw["minimum_version"] = "v0.0.0"
+
+            # We should get back a list of framework objects that
+            # is the same length as the number of required frameworks
+            # we have.
+            self.assertEqual(
+                len(validation.validate_and_return_frameworks(
+                    app.descriptor,
+                    self.engine.get_env(),
+                )),
+                len(frameworks),
+            )
+        finally:
+            # In case any future tests need to make use of the minimum
+            # version requirements in the frameworks, we'll put them
+            # back to what they were before.
+            for fw in frameworks:
+                if previous_mins[fw["name"]]:
+                    fw["minimum_version"] = previous_mins[fw["name"]]
+                else:
+                    del fw["minimum_version"]
+
+
 class TestGetApplication(TestApplication):
     def test_bad_app_path(self):
         bogus_path = os.path.join(self.tank_temp, "bogus_path")
@@ -100,7 +145,7 @@ class TestGetSetting(TestApplication):
         
         # test resource
         self.assertEqual(self.test_resource, self.app.get_setting("test_icon"))
-        
+
         # Test a simple list
         test_list = self.app.get_setting("test_simple_list")
         self.assertEqual(4, len(test_list))
@@ -220,6 +265,53 @@ class TestExecuteHook(TestApplication):
     def test_custom_method(self):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook_method("test_hook_std", "second_method", another_dummy_param=True))
+
+    def test_create_instance(self):
+        """
+        tests the built-in get_instance() method
+        """
+        app = self.engine.apps["test_app"]
+        hook_expression = app.get_setting("test_hook_std")
+        instance_1 = app.create_hook_instance(hook_expression)
+        self.assertEquals(instance_1.second_method(another_dummy_param=True), True)
+        instance_2 = app.create_hook_instance(hook_expression)
+        self.assertNotEquals(instance_1, instance_2)
+
+    def test_logger(self):
+        """
+        tests the logger property
+        """
+
+        # capture sync log to string
+        stream = StringIO.StringIO()
+        handler = logging.StreamHandler(stream)
+
+        app = self.engine.apps["test_app"]
+        hook_logger_name = "%s.hook.config_test_hook" % app.logger.name
+
+        log = logging.getLogger(hook_logger_name)
+        log.setLevel(logging.DEBUG)
+        log.addHandler(handler)
+
+        # run hook method that logs something via self.logger
+        app.execute_hook_method("test_hook_std", "logging_method")
+
+        log_contents = stream.getvalue()
+        stream.close()
+        log.removeHandler(handler)
+
+        self.assertEquals(log_contents, "hello toolkitty\n")
+
+    def test_disk_location(self):
+        """
+        tests the built-in get_instance() method
+        """
+        app = self.engine.apps["test_app"]
+        disk_location = app.execute_hook_method("test_hook_std", "test_disk_location")
+        self.assertEquals(
+            disk_location,
+            os.path.join(self.pipeline_config_root, "config", "hooks", "toolkitty.png")
+        )
 
     def test_self_format(self):
         app = self.engine.apps["test_app"]

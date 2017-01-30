@@ -304,7 +304,7 @@ class TestUpdateEnvironment(TankTestBase):
                         "test_simple_dictionary":{"foo":"bar"},
                         "test_complex_dictionary":{"test_list": {"foo":"bar"}},
                         "test_complex_list":{"foo":"bar"},
-                        "test_very_complex_list":{"test_list":{"foo":"bar"}}         
+                        "test_very_complex_list":{"test_list":{"foo":"bar"}},
                         }
         
         

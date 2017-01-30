@@ -219,6 +219,12 @@ TimestampKey
     :members:
 
 
+Configuration file resolution
+-----------------------------------------
+Each pipeline configuration has configuration files that help Toolkit locate the Python interpreter to use.
+
+.. autofunction:: get_python_interpreter_for_config
+
 
 Exceptions
 ------------------------------------------
@@ -227,10 +233,16 @@ The following exceptions are raised by the Toolkit Core API classes:
 
 .. autoclass:: TankError
 
-.. autoclass:: TankUnreadableFileError
+.. autoclass:: TankErrorProjectIsSetup
 
 .. autoclass:: TankFileDoesNotExistError
 
-.. autoclass:: TankErrorProjectIsSetup
-
 .. autoclass:: TankHookMethodDoesNotExistError
+
+.. autoclass:: TankInvalidInterpreterLocationError
+
+.. autoclass:: TankInvalidCoreLocationError
+
+.. autoclass:: TankNotPipelineConfigurationError
+
+.. autoclass:: TankUnreadableFileError

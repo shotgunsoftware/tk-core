@@ -79,29 +79,60 @@ def ask_yn_question(question):
 ##########################################################################################
 # displaying of info in the terminal, ascii-graphcics style
 
-def format_bundle_info(log, descriptor):
+def format_bundle_info(log, descriptor, required_updates=None):
     """
-    Formats a release notes summary output for an app, engine or core
-    """
+    Formats a release notes summary output for an app, engine or core.
 
+    :param log: A logging handle.
+    :param descriptor: The descriptor to summarize.
+    :param required_updates: A list of bundle names that require updating.
+    """
     # yay we can install! - get release notes
     (summary, url) = descriptor.changelog
+
+    if required_updates:
+        add_padding = "     "
+    else:
+        add_padding = ""
+
     if summary is None:
         summary = "No details provided."
 
-
     log.info("/%s" % ("-" * 70))
-    log.info("| Item:        %s" % descriptor)
+    log.info("| Item:        %s%s" % (add_padding, descriptor))
     log.info("|")
 
-    str_to_wrap = "Description: %s" % descriptor.description
-    for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|              "):
-        log.info(x)
-    log.info("|")
+    str_to_wrap = "Description: %s%s" % (add_padding, descriptor.description)
+    description = textwrap.wrap(
+        str_to_wrap,
+        width=68,
+        initial_indent="| ",
+        subsequent_indent="|              %s" % add_padding,
+    )
 
-    str_to_wrap = "Change Log:  %s" % summary
-    for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|              "):
+    for x in description:
         log.info(x)
+
+    log.info("|")
+    str_to_wrap = "Change Log:  %s%s" % (add_padding, summary)
+    change_log = textwrap.wrap(
+        str_to_wrap,
+        width=68,
+        initial_indent="| ",
+        subsequent_indent="|              %s" % add_padding,
+    )
+
+    for x in change_log:
+        log.info(x)
+
+    if required_updates:
+        log.info("|")
+        name = required_updates[0]
+        fw_str = "| Required Updates: %s" % name
+        log.info(fw_str)
+
+        for name in required_updates[1:]:
+            log.info("|                   %s" % name)
 
     log.info("\%s" % ("-" * 70))
 

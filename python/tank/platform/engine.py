@@ -435,6 +435,11 @@ class Engine(TankBundle):
                     # set the message before the window is raised to avoid briefly
                     # showing default values
                     self.__global_progress_widget.set_contents(title, details)
+
+                    # if the user closes manually by clicking on the dialog,
+                    # make sure we remove the reference to it via the
+                    # clear_busy method.
+                    window.dialog_closed.connect(self.clear_busy)
                     
                     # kick it off        
                     window.show()
@@ -802,8 +807,10 @@ class Engine(TankBundle):
             # apps for the new context, and will pull apps that have already
             # been loaded from the __application_pool, which is persistent.
             old_context = self.context
+            new_engine_settings = new_env.get_engine_settings(self.__engine_instance_name)
             self.__env = new_env
             self._set_context(new_context)
+            self._set_settings(new_engine_settings)
             self.__load_apps(reuse_existing_apps=True, old_context=old_context)
 
             # Call the post_context_change method to allow for any engine
@@ -1382,6 +1389,8 @@ class Engine(TankBundle):
 
             if isinstance(event, events.FileOpenEvent):
                 app.event_file_open(event)
+            elif isinstance(event, events.FileCloseEvent):
+                app.event_file_close(event)
 
     def _emit_log_message(self, handler, record):
         """
@@ -1445,6 +1454,9 @@ class Engine(TankBundle):
         # all the bundled font files. Example:
         #
         #       ``tank/platform/qt/fonts/OpenSans/OpenSans-*.ttf``
+
+        if not self.has_ui:
+            return
 
         from sgtk.platform.qt import QtGui
 

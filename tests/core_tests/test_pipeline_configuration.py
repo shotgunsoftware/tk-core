@@ -13,6 +13,7 @@ from tank_test.tank_test_base import TankTestBase, setUpModule
 
 import tank
 
+
 class TestPipelineConfig(TankTestBase):
     """
     Tests for the pipeline configuration.
@@ -33,3 +34,35 @@ class TestPipelineConfig(TankTestBase):
         # it from disk.
         tk2 = tank.sgtk_from_path(self.tk.pipeline_configuration.get_path())
         self.assertTrue(tk2.pipeline_configuration.is_site_configuration())
+
+    def test_default_pipeline_in_unittest(self):
+        """
+        Make sure that we are using the default pipeline configuration from
+        the unit tests.
+        """
+        self.assertEqual(
+            self.tk.pipeline_configuration.get_published_file_entity_type(),
+            "TankPublishedFile"
+        )
+
+    def test_fixture_pipeline_reloaded(self):
+        """
+        Makes sure we are using the pipeline configuration form the fixture
+        """
+        self.setup_fixtures(name="fixture_tests")
+        self.assertEqual(
+            self.tk.pipeline_configuration.get_shotgun_id(),
+            42
+        )
+        self.assertEqual(
+            self.tk.pipeline_configuration.get_project_id(),
+            42
+        )
+        self.assertEqual(
+            self.tk.pipeline_configuration.get_project_disk_name(),
+            "abc"
+        )
+        self.assertEqual(
+            self.tk.pipeline_configuration.get_name(),
+            "Firstary"
+        )

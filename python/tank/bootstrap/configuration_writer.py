@@ -48,7 +48,7 @@ class ConfigurationWriter(object):
         Creates all the necessary files on disk for a basic config scaffold.
         """
         config_path = self._path.current_os
-        log.info("Ensuring project scaffold in '%s'..." % config_path)
+        log.debug("Ensuring project scaffold in '%s'..." % config_path)
 
         filesystem.ensure_folder_exists(config_path)
         filesystem.ensure_folder_exists(os.path.join(config_path, "cache"))
@@ -76,7 +76,7 @@ class ConfigurationWriter(object):
 
         if core_uri_or_dict is None:
             # we don't have a core descriptor specified. Get latest from app store.
-            log.info(
+            log.debug(
                 "Config does not have a core/core_api.yml file to define which core to use. "
                 "Will use the latest approved core in the app store."
             )
@@ -355,6 +355,12 @@ class ConfigurationWriter(object):
                 [["id", "is", project_id]],
                 ["tank_name"]
             )
+
+            # When the given project id cannot be found, raise a meaningful exception.
+            if not sg_data:
+                msg = "Unknown project id %s" % project_id
+                log.debug("Raising ValueError('%s')" % msg)
+                raise ValueError(msg)
 
             project_name = sg_data["tank_name"] or constants.UNNAMED_PROJECT_NAME
             pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME

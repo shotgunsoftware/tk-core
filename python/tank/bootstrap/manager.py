@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -15,9 +15,12 @@ from .errors import TankBootstrapError
 from .configuration import Configuration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator
+from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
+from ..errors import TankError
 
 log = LogManager.get_logger(__name__)
+
 
 class ToolkitManager(object):
     """
@@ -25,8 +28,13 @@ class ToolkitManager(object):
     and installations.
     """
 
+    # Constants used to make the manager bootstrapping:
+    # - download and cache the config dependencies needed to run the engine being started in a specific environment.
+    # - download and cache all the config dependencies needed to run the engine in any environment.
+    (CACHE_SPARSE, CACHE_FULL) = range(2)
+
     # Constants used to indicate that the manager is:
-    # - bootstrapping the toolkit (with method _bootstrap_sgtk),
+    # - bootstrapping the toolkit (with method bootstrap_toolkit),
     # - starting up the engine (with method _start_engine).
     (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = range(2)
 
@@ -51,23 +59,73 @@ class ToolkitManager(object):
 
         # defaults
         self._bundle_cache_fallback_paths = []
-        self._pipeline_configuration_name = None
+        self._caching_policy = self.CACHE_SPARSE
+        self._pipeline_configuration_identifier = None # name or id
         self._base_config_descriptor = None
         self._progress_cb = None
         self._do_shotgun_config_lookup = True
         self._plugin_id = None
+        self._pre_engine_start_callback = None
 
         log.debug("%s instantiated" % self)
 
-
     def __repr__(self):
+        if self._pipeline_configuration_identifier is None:
+            identifier_type = "is"
+        elif isinstance(self._pipeline_configuration_identifier, int):
+            identifier_type = "id"
+        else:
+            identifier_type = "name"
+
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
         repr += " Cache fallback path %s\n" % self._bundle_cache_fallback_paths
+        repr += " Caching policy %s\n" % self._caching_policy
         repr += " Plugin id %s\n" % self._plugin_id
-        repr += " Config %s\n" % self._pipeline_configuration_name
+        repr += " Config %s %s\n" % (identifier_type, self._pipeline_configuration_identifier)
         repr += " Base %s >" % self._base_config_descriptor
         return repr
+
+    def get_pipeline_configurations(self, project):
+        """
+        Retrieves the pipeline configurations available for a given project.
+
+        It also takes into account the current user and optional pipeline_configuration name or id. If the
+        :method:``ToolkitManager.pipeline_configuration`` attribute has been set to a string, it will look
+        for pipeline configurations with that specific name. If it has been set to ``None``, any pipeline
+        that can be applied for the current user and project will be retrieved. Note that this method does
+        not support ``ToolkitManager.pipeline_configuration`` being an integer.
+
+        :param project: Project entity link to enumerate pipeline configurations for. If ``None``, this will enumerate
+            the pipeline configurations for the site configuration.
+        :type project: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
+
+        :returns: List of pipeline configurations.
+        :rtype: List of dictionaries with keys ``type``, ``id`` and ``name``.
+        """
+
+        if isinstance(self.pipeline_configuration, int):
+            raise TankBootstrapError("Can't enumerate pipeline configurations matching a specific id.")
+
+        resolver = ConfigurationResolver(
+            self.plugin_id,
+            project["id"] if project else None
+        )
+
+        # Only return id, type and code fields.
+        pcs = []
+        for pc in resolver.find_matching_pipeline_configurations(
+            pipeline_config_name=None,
+            current_login=self._sg_user.login,
+            sg_connection=self._sg_connection
+        ):
+            pcs.append({
+                "id": pc["id"],
+                "type": pc["type"],
+                "name": pc["code"]
+            })
+
+        return pcs
 
     def _get_pipeline_configuration(self):
         """
@@ -83,17 +141,39 @@ class ToolkitManager(object):
         Shotgun, please set :meth:`do_shotgun_config_lookup` to False.
 
         Alternatively, you can set this to a specific pipeline configuration. In that
-        case, the Manager will look for a pipeline configuration that matches that name
+        case, the Manager will look for a pipeline configuration that matches that name or id
         and the associated project and plugin id. If such a config cannot be found in
         Shotgun, it falls back on the :meth:`base_configuration`.
         """
-        return self._pipeline_configuration_name
+        return self._pipeline_configuration_identifier
 
-    def _set_pipeline_configuration(self, name):
-        self._pipeline_configuration_name = name
+    def _set_pipeline_configuration(self, identifier):
+        self._pipeline_configuration_identifier = identifier
+
+    def _get_pre_engine_start_callback(self):
+        """
+        This callback will be invoked after the Toolkit instance has been
+        created but before the engine is started.
+
+        This function should have the following signature::
+
+            def pre_engine_start_callback(ctx):
+                '''
+                Called before the engine is started.
+
+                :param :class:"~sgtk.Context" ctx: Context into
+                    which the engine will be launched. This can also be used
+                    to access the Toolkit instance.
+                '''
+        """
+        return self._pre_engine_start_callback
+
+    def _set_pre_engine_start_callback(self, callback):
+        self._pre_engine_start_callback = callback
+
+    pre_engine_start_callback = property(_get_pre_engine_start_callback, _set_pre_engine_start_callback)
 
     pipeline_configuration = property(_get_pipeline_configuration, _set_pipeline_configuration)
-
 
     def _get_do_shotgun_config_lookup(self):
         """
@@ -194,6 +274,29 @@ class ToolkitManager(object):
         _get_bundle_cache_fallback_paths,
         _set_bundle_cache_fallback_paths
     )
+
+    def _get_caching_policy(self):
+        """
+        Specifies the config caching policy to use when bootstrapping.
+
+        ``ToolkitManager.CACHE_SPARSE`` will make the manager download and cache
+        the sole config dependencies needed to run the engine being started.
+        This is the default caching policy.
+
+        ``ToolkitManager.CACHE_FULL`` will make the manager download and cache
+        all the config dependencies.
+        """
+        return self._caching_policy
+
+    def _set_caching_policy(self, caching_policy):
+        # Setter for property 'caching_policy'.
+        if caching_policy not in (self.CACHE_SPARSE, self.CACHE_FULL):
+            raise TankBootstrapError("Invalid config caching policy %s. "
+                                     "Set to 'ToolkitManager.CACHE_SPARSE' or 'ToolkitManager.CACHE_FULL'." %
+                                     caching_policy)
+        self._caching_policy = caching_policy
+
+    caching_policy = property(_get_caching_policy, _set_caching_policy)
 
     def _get_progress_callback(self):
         """
@@ -393,9 +496,9 @@ class ToolkitManager(object):
             log.debug("Will connect to Shotgun to look for overrides.")
             log.debug("If no overrides found, this config will be used: %s" % self._base_config_descriptor)
 
-            if self._pipeline_configuration_name:
+            if self._pipeline_configuration_identifier not in [0, None, ""]:
                 log.debug("Potential config overrides will be pulled ")
-                log.debug("from pipeline config '%s'" % self._pipeline_configuration_name)
+                log.debug("from pipeline config '%s'" % self._pipeline_configuration_identifier)
             else:
                 log.debug("The system will automatically determine the pipeline configuration")
                 log.debug("based on the current project id and user.")
@@ -409,30 +512,17 @@ class ToolkitManager(object):
         log.debug("Bootstrapping engine %s." % engine_name)
         log.debug("-----------------------------------------------------------------")
 
-    def _bootstrap_sgtk(self, engine_name, entity, progress_callback=None):
+    def _get_configuration(self, entity, progress_callback):
         """
-        Create an sgtk instance for the given engine and entity.
+        Resolves the configuration to use.
 
-        If entity is None, the method will bootstrap into the site
-        config. This method will attempt to resolve the config according
-        to business logic set in the associated resolver class and based
-        on this launch a configuration. This may involve downloading new
-        apps from the toolkit app store and installing files on disk.
-
-        Please note that the API version of the tk instance that hosts
-        the engine may not be the same as the API version that was
-        executed during the bootstrap.
-
-        :param engine_name: Name of the engine used to resolve a configuration.
         :param entity: Shotgun entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
                                   Set to ``None`` to use the default callback function.
-        :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
-        """
-        if progress_callback is None:
-            progress_callback = self.progress_callback
 
+        :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.
+        """
         self._report_progress(progress_callback, 0.0, "Resolving project...")
         if entity is None:
             project_id = None
@@ -456,14 +546,12 @@ class ToolkitManager(object):
                 raise TankBootstrapError("Cannot resolve project for %s" % entity)
             project_id = data["project"]["id"]
 
-
         # get an object to represent the business logic for
         # how a configuration location is being determined
         self._report_progress(progress_callback, 0.1, "Resolving configuration...")
 
         resolver = ConfigurationResolver(
             self._plugin_id,
-            engine_name,
             project_id,
             self._bundle_cache_fallback_paths
         )
@@ -505,7 +593,7 @@ class ToolkitManager(object):
             log.debug("Checking for pipeline configuration overrides in Shotgun.")
             log.debug("In order to turn this off, set do_shotgun_config_lookup to False")
             config = resolver.resolve_shotgun_configuration(
-                self._pipeline_configuration_name,
+                self._pipeline_configuration_identifier,
                 self._base_config_descriptor,
                 self._sg_connection,
                 self._sg_user.login
@@ -527,31 +615,93 @@ class ToolkitManager(object):
 
         self._report_progress(progress_callback, 0.2, "Updating configuration...")
         if status == Configuration.LOCAL_CFG_UP_TO_DATE:
-            log.info("Your locally cached configuration is up to date.")
+            log.debug("Your locally cached configuration is up to date.")
 
         elif status == Configuration.LOCAL_CFG_MISSING:
-            log.info("A locally cached configuration will be set up.")
+            log.debug("A locally cached configuration will be set up.")
             config.update_configuration()
 
         elif status == Configuration.LOCAL_CFG_DIFFERENT:
-            log.info("Your locally cached configuration differs and will be updated.")
+            log.debug("Your locally cached configuration differs and will be updated.")
             config.update_configuration()
 
         elif status == Configuration.LOCAL_CFG_INVALID:
-            log.info("Your locally cached configuration looks invalid and will be replaced.")
+            log.debug("Your locally cached configuration looks invalid and will be replaced.")
             config.update_configuration()
 
         else:
             raise TankBootstrapError("Unknown configuration update status!")
 
+        return config
+
+    def _bootstrap_sgtk(self, engine_name, entity, progress_callback=None):
+        """
+        Create an :class:`~sgtk.Sgtk` instance for the given entity and caches all applications.
+
+        If entity is None, the method will bootstrap into the site
+        config. This method will attempt to resolve the configuration and download it
+        locally. Note that it will not cache the application bundles.
+
+        Please note that the API version of the :class:`~sgtk.Sgtk` instance may not be the same as the
+        API version that was used during the bootstrap.
+
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
+        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
+                                  Set to ``None`` to use the default callback function.
+        :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
+        """
+
+        if progress_callback is None:
+            progress_callback = self.progress_callback
+
+        config = self._get_configuration(entity, progress_callback)
+
         # we can now boot up this config.
         self._report_progress(progress_callback, 0.3, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
-        if status != Configuration.LOCAL_CFG_UP_TO_DATE:
-            self._cache_apps(tk, progress_callback)
+        # make sure we have all the apps locally downloaded
+        # this check is quick, so always perform the check, even
+        # when the config is up to date - someone may have
+        # deleted their bundle cache but left the config.
+        self._cache_apps(
+            tk.pipeline_configuration,
+            engine_name,
+            progress_callback
+        )
 
         return tk
+
+    def prepare_engine(self, engine_name, entity):
+        """
+        Updates and caches a configuration on disk for a given project. The resolution of the pipeline
+        configuration will follow the same rules as the method :meth:`ToolkitManager.bootstrap_engine`,
+        but it simply caches all the bundles for later use instead of bootstrapping directly into it.
+
+        :param str engine_name: Name of the engine instance to cache if using sparse caching. If ``None``,
+            all engine instances will be cached.
+
+        :param entity: An entity link. If the entity is not a project, the project for that entity will be resolved.
+        :type project: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
+
+        :returns: Path to the pipeline configuration.
+        :rtype: str
+        """
+        config = self._get_configuration(entity, self.progress_callback)
+
+        path = config.path.current_os
+
+        try:
+            pc = PipelineConfiguration(path)
+        except TankError, e:
+            raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
+
+        # Now cache the apps. Always do this since someone can blow their bundle cache but leave
+        # the configuration intact.
+        self._cache_apps(pc, engine_name, self.progress_callback)
+
+        return path
 
     def _start_engine(self, tk, engine_name, entity, progress_callback=None):
         """
@@ -586,6 +736,11 @@ class ToolkitManager(object):
         self._report_progress(progress_callback, 0.9, "Launching Engine...")
         log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
 
+        if self.pre_engine_start_callback:
+            log.debug("Invoking pre engine start callback '%s'" % self.pre_engine_start_callback)
+            self.pre_engine_start_callback(ctx)
+            log.debug("Pre engine start callback was invoked.")
+
         # perform absolute import to ensure we get the new swapped core.
         import tank
         engine = tank.platform.start_engine(engine_name, tk, ctx)
@@ -604,7 +759,7 @@ class ToolkitManager(object):
         :param message: Progress message string to report.
         """
 
-        log.info("Progress Report (%s%%): %s" % (int(progress_value*100), message))
+        log.debug("Progress Report (%s%%): %s" % (int(progress_value * 100), message))
 
         try:
             # Call the new style progress callback.
@@ -613,46 +768,40 @@ class ToolkitManager(object):
             # Call the old style progress callback with signature (message, current_index, maximum_index).
             progress_callback(message, None, None)
 
-    def _is_toolkit_activated_in_shotgun(self):
-        """
-        Checks if toolkit has been activated in sg.
-
-        :return: True if true, false otherwise
-        """
-        log.debug("Checking if Toolkit is enabled in Shotgun...")
-        entity_types = self._sg_connection.schema_entity_read()
-        # returns a dict keyed by entity type
-        enabled = constants.PIPELINE_CONFIGURATION_ENTITY_TYPE in entity_types
-        log.debug("...enabled: %s" % enabled)
-        return enabled
-
-    def _cache_apps(self, tk, progress_callback, do_post_install=False):
+    def _cache_apps(self, pipeline_configuration, config_engine_name, progress_callback):
         """
         Caches all apps associated with the given toolkit instance.
 
-        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance to cache items for.
+        :param pipeline_configuration: :class:`stgk.PipelineConfiguration` to process configuration for
+        :param pc: Pipeline configuration instance.
+        :type pc: :class:`~sgtk.pipelineconfig.PipelineConfiguration`
+        :param config_engine_name: Name of the engine that was used to resolve the configuration.
         :param progress_callback: Callback function that reports back on the engine startup progress.
-        :param do_post_install: Set to true to execute the post install triggers.
         """
+        log.debug("Checking that all bundles are cached locally...")
 
-        log.info("Downloading and installing apps...")
+        descriptors = []
 
-        # each entry in the config template contains instructions about which version of the app
-        # to use. First loop over all environments and gather all descriptors we should download,
-        # then go ahead and download and post-install them
-        pc = tk.pipeline_configuration
+        if self._caching_policy == self.CACHE_SPARSE:
+            # Download and cache the sole config dependencies needed to run the engine being started,
+            log.debug("caching_policy is CACHE_SPARSE - only check items associated with %s" % config_engine_name)
+            engine_constraint = config_engine_name
+
+        elif self._caching_policy == self.CACHE_FULL:
+            # download and cache the entire config
+            log.debug("caching_policy is CACHE_FULL - will download all items defined in the config")
+            engine_constraint = None
+        else:
+            raise TankBootstrapError("Unsupported caching_policy setting %s" % self._caching_policy)
 
         # pass 1 - populate list of all descriptors
-        descriptors = []
-        for env_name in pc.get_environments():
-
-            env_obj = pc.get_environment(env_name)
-
+        for env_name in pipeline_configuration.get_environments():
+            env_obj = pipeline_configuration.get_environment(env_name)
             for engine in env_obj.get_engines():
-                descriptors.append(env_obj.get_engine_descriptor(engine))
-
-                for app in env_obj.get_apps(engine):
-                    descriptors.append(env_obj.get_app_descriptor(engine, app))
+                if engine_constraint is None or engine == engine_constraint:
+                    descriptors.append(env_obj.get_engine_descriptor(engine))
+                    for app in env_obj.get_apps(engine):
+                        descriptors.append(env_obj.get_app_descriptor(engine, app))
 
             for framework in env_obj.get_frameworks():
                 descriptors.append(env_obj.get_framework_descriptor(framework))
@@ -665,19 +814,13 @@ class ToolkitManager(object):
             progress_value = 0.4 + idx * (0.3 / len(descriptors))
 
             if not descriptor.exists_local():
-                message = "Downloading %s (%s of %s)..." % (descriptor, idx+1, len(descriptors))
+                message = "Downloading %s (%s of %s)..." % (descriptor, idx + 1, len(descriptors))
                 self._report_progress(progress_callback, progress_value, message)
                 descriptor.download_local()
             else:
-                message = "%s already installed locally (%s of %s)." % (descriptor, idx+1, len(descriptors))
+                message = "Checking %s (%s of %s)." % (descriptor, idx + 1, len(descriptors))
+                log.debug("%s exists locally at '%s'.", descriptor, descriptor.get_path())
                 self._report_progress(progress_callback, progress_value, message)
-
-        # pass 3 - do post install
-        if do_post_install:
-            for descriptor in descriptors:
-                self._report_progress(progress_callback, 0.7, "Running post install for %s" % descriptor)
-                descriptor.ensure_shotgun_fields_exist(tk)
-                descriptor.run_post_install(tk)
 
     def _default_progress_callback(self, progress_value, message):
         """

@@ -8,6 +8,17 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .event_engine import EngineEvent
-from .event_file_open import FileOpenEvent
-from .event_file_close import FileCloseEvent
+import sgtk
+
+class TestFramework(sgtk.platform.Framework):
+    
+    ##########################################################################################
+    # init and destroy
+            
+    def init_framework(self):
+        self.log_debug("%s: Initializing..." % self)
+    
+    def destroy_framework(self):
+        self.log_debug("%s: Destroying..." % self)
+    
+    

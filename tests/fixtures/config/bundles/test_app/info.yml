@@ -31,7 +31,7 @@ configuration:
         
     test_bool: 
         type: bool    
-    
+
     test_template:
         type: template
         required_fields: [name,version]
@@ -249,3 +249,6 @@ configuration:
 requires_shotgun_fields:
 
 required_context: [project, entity]
+
+frameworks:
+    - {"name": "test_framework", "version": "v1.x.x", "minimum_version": "v1.0.0"}

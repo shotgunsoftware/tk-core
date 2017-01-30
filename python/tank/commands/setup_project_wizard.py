@@ -513,8 +513,9 @@ class SetupProjectWizard(object):
             
             if pipeline_config_root_path and os.path.exists(pipeline_config_root_path):
                 # looks like this exists - try to resolve its core API location
-                core_api_root = pipelineconfig_utils.get_core_path_for_config(pipeline_config_root_path)
                 
+                core_api_root = pipelineconfig_utils.get_core_path_for_config(pipeline_config_root_path)
+
                 if core_api_root:
                     # core api resolved correctly. Let's try to base our core on this config.
                     self._log.debug("Will use pipeline configuration here: %s" % pipeline_config_root_path)
@@ -522,7 +523,7 @@ class SetupProjectWizard(object):
                     return_data["using_runtime"] = False
                     return_data["pipeline_config"] = data
                     return_data["core_path"] = pipelineconfig_utils.resolve_all_os_paths_to_core(core_api_root)
-                    
+
                     # finally, check the logic for localization:
                     # if this core that we have found and resolved is localized,
                     # we localize the new project as well.
@@ -530,7 +531,6 @@ class SetupProjectWizard(object):
                         return_data["localize"] = True
                     else:
                         return_data["localize"] = False
-                
                 else:
                     self._log.warning("Cannot locate the Core API associated with the configuration in '%s'. "
                                       "As a fallback, the currently executing Toolkit Core API will "
