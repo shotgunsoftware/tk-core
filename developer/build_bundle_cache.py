@@ -35,13 +35,10 @@ from tank.util import filesystem
 from tank.errors import TankError
 from tank.descriptor import Descriptor, create_descriptor
 
-from .utils import cache_apps, authenticate
+from utils import cache_apps, authenticate
 
 # set up logging
 logger = LogManager.get_logger("build_plugin")
-
-# required keys in the info.yml plugin manifest file
-REQUIRED_MANIFEST_PARAMETERS = ["base_configuration", "plugin_id"]
 
 # the folder where all items will be cached
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
@@ -70,17 +67,15 @@ def build_bundle_cache(sg_connection, target_path, config_descriptor_uri, bootst
     """
     logger.info("The build will generated into '%s'" % target_path)
 
+    bundle_cache_root = os.path.join(target_path, BUNDLE_CACHE_ROOT_FOLDER_NAME)
+
     # check that target path doesn't exist
-    if os.path.exists(target_path):
-        logger.info("The folder '%s' already exists on disk. Removing it" % target_path)
-        shutil.rmtree(target_path)
+    if os.path.exists(bundle_cache_root):
+        logger.info("The folder '%s' already exists on disk. Removing it" % bundle_cache_root)
+        shutil.rmtree(bundle_cache_root)
 
     # try to create target path
-    filesystem.ensure_folder_exists(target_path)
-
-    # create bundle cache
     logger.info("Creating bundle cache folder...")
-    bundle_cache_root = os.path.join(target_path, BUNDLE_CACHE_ROOT_FOLDER_NAME)
     filesystem.ensure_folder_exists(bundle_cache_root)
 
     # Resolve the configuration
@@ -107,13 +102,12 @@ def build_bundle_cache(sg_connection, target_path, config_descriptor_uri, bootst
         logger.info("Config is specifying a custom core in config/core/core_api.yml.")
         logger.info("This will be used when the config is executing.")
         logger.info("Ensuring this core (%s) is cached..." % cfg_descriptor.associated_core_descriptor)
-        associated_core_desc = create_descriptor(
+        bootstrap_core_desc = create_descriptor(
             sg_connection,
             Descriptor.CORE,
             cfg_descriptor.associated_core_descriptor,
             bundle_cache_root_override=bundle_cache_root
         )
-        associated_core_desc.ensure_local()
     elif bootstrap_core_uri:
         logger.info("Caching custom core for boostrap (%s)" % bootstrap_core_uri)
         bootstrap_core_desc = create_descriptor(
@@ -138,6 +132,7 @@ def build_bundle_cache(sg_connection, target_path, config_descriptor_uri, bootst
 
     # cache it
     bootstrap_core_desc.ensure_local()
+    bootstrap_core_desc.clone_cache(bundle_cache_root)
 
     logger.info("")
     logger.info("Build complete!")
@@ -202,7 +197,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     )
 
     parser.add_option(
-        "-c",
+        "-t",
         "--configuration",
         action="store",
         help="Descriptor pointing to the configuration to cache."
@@ -282,7 +277,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     build_bundle_cache(
         sg_connection,
         target_path,
-        options.configuration
+        options.configuration,
+        options.bootstrap_core_uri
     )
 
     # all good!
@@ -292,7 +288,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 if __name__ == "__main__":
 
     # set up std toolkit logging to file
-    LogManager().initialize_base_file_handler("build_plugin")
+    LogManager().initialize_base_file_handler("build_bundle_cache")
 
     # set up output of all sgtk log messages to stdout
     LogManager().initialize_custom_handler()
