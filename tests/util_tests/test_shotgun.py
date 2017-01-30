@@ -12,6 +12,7 @@ from __future__ import with_statement
 import os
 import datetime
 import threading
+import urlparse
 import unittest2 as unittest
 
 from mock import patch
@@ -366,6 +367,84 @@ class TestShotgunRegisterPublish(TankTestBase):
 
         self.assertEqual(expected_path, actual_path)
         self.assertEqual(expected_path_cache, actual_path_cache)
+
+
+class TestShotgunDownloadUrl(TankTestBase):
+
+    def setUp(self):
+        super(TestShotgunDownloadUrl, self).setUp()
+
+        self.setup_fixtures()
+
+        # Identify the source file to "download"
+        self.download_source = os.path.join(
+            self.pipeline_config_root, "config", "hooks", "toolkitty.png"
+        )
+
+        # Construct a URL from the source file name
+        self.download_url = urlparse.urlunparse(
+            ("file", None, self.download_source, None, None, None)
+        )
+
+        # Temporary destination to "download" source file to.
+        self.download_destination = os.path.join(
+            self.pipeline_config_root, "config", "foo",
+            "test_shotgun_download_url.png"
+        )
+        os.makedirs(os.path.dirname(self.download_destination))
+        if os.path.exists(self.download_destination):
+            os.remove(self.download_destination)
+
+        # Make sure mockgun is properly configured
+        if self.mockgun.config.server is None:
+            self.mockgun.config.server = "unit_test_mock_sg"
+
+    def tearDown(self):
+        if os.path.exists(self.download_destination):
+            os.remove(self.download_destination)
+
+        # important to call base class so it can clean up memory
+        super(TestShotgunDownloadUrl, self).tearDown()
+
+    def test_download(self):
+        """
+        Verify URL can be downloaded to specified path.
+        """
+        # Verify the download destination file does not exist.
+        if os.path.exists(self.download_destination):
+            os.remove(self.download_destination)
+        self.assertFalse(os.path.exists(self.download_destination))
+
+        # Attempt to download url and capture the downloaded file name.
+        downloaded_to = tank.util.download_url(
+            self.mockgun, self.download_url, self.download_destination
+        )
+
+        # Verify the destination file exists and is the same as
+        # the return value from tank.util.download_url()
+        self.assertTrue(os.path.exists(self.download_destination))
+        self.assertEqual(self.download_destination, downloaded_to)
+
+    def test_use_url_extension(self):
+        """
+        Verify correct exension gets extracted from the input
+        url and appended to the input location value on return.
+        """
+        # Remove the file extension from the download destination
+        path_base = os.path.splitext(self.download_destination)[0]
+
+        # Ask tank.util.download_url() to append the exension from the
+        # resolved URL to the input destination location and capture
+        # the full path return value.
+        full_path = tank.util.download_url(
+            self.mockgun, self.download_url, path_base, True
+        )
+
+        # Verify the return value is different than the input value
+        self.assertNotEqual(path_base, full_path)
+
+        # Verify the correct file extension was returned.
+        self.assertEqual(self.download_destination, full_path)
 
 
 class TestGetSgConfigData(TankTestBase):
