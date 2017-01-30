@@ -17,6 +17,8 @@ from tank.errors import TankError
 
 from mock import Mock, patch
 
+from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
+
 
 class TestDescriptorSupport(TankTestBase):
 
@@ -221,12 +223,11 @@ class TestConstraintValidation(TankTestBase):
         Ensures the Shotgun version cache is cleared between tests.
         """
         super(TestConstraintValidation, self).setUp()
-        # Uncache the shotgun versions between tests.
-        sgtk.descriptor.descriptor_bundle.BundleDescriptor._sg_studio_versions = {}
-
-        # If Mockgun supported server_info we could use that instead of mocking.
-        self._up_to_date_sg = SealedMock(base_url="https://foo.shotgunstudio.com", server_info={"version": (6, 6, 6)})
-        self._out_of_date_sg = SealedMock(base_url="https://foo.shotgunstudio.com", server_info={"version": (6, 6, 5)})
+        # Set the server info on the Mockgun object.
+        self._up_to_date_sg = Mockgun("https://foo.shotgunstudio.com")
+        self._up_to_date_sg.server_info = {"version": (6, 6, 6)}
+        self._out_of_date_sg = Mockgun("https://foo.shotgunstudio.com")
+        self._out_of_date_sg.server_info = {"version": (6, 6, 5)}
 
     def _create_descriptor(self, version_constraints, supported_engines):
         """
@@ -328,7 +329,7 @@ class TestConstraintValidation(TankTestBase):
             supported_engines=None
         ).check_version_constraints(
             self._up_to_date_sg,
-            parent_engine_descriptor=SealedMock(version="v6.6.6")
+            engine_descriptor=SealedMock(version="v6.6.6")
         )
         self.assertEqual(can_update, True)
         self.assertListEqual(reasons, [])
@@ -342,7 +343,7 @@ class TestConstraintValidation(TankTestBase):
             supported_engines=None
         ).check_version_constraints(
             self._up_to_date_sg,
-            parent_engine_descriptor=SealedMock(version="v6.6.5", display_name="Tk Test")
+            engine_descriptor=SealedMock(version="v6.6.5", display_name="Tk Test")
         )
         self.assertEqual(can_update, False)
         self.assertRegexpMatches(reasons[0], "Requires at least Engine .* but currently installed version is .*")
@@ -356,7 +357,7 @@ class TestConstraintValidation(TankTestBase):
             supported_engines=["tk-test"]
         ).check_version_constraints(
             self._up_to_date_sg,
-            parent_engine_descriptor=SealedMock(
+            engine_descriptor=SealedMock(
                 system_name="tk-test",
                 display_name="Tk Test"
             )
@@ -373,7 +374,7 @@ class TestConstraintValidation(TankTestBase):
             supported_engines=["tk-test"]
         ).check_version_constraints(
             self._up_to_date_sg,
-            parent_engine_descriptor=SealedMock(
+            engine_descriptor=SealedMock(
                 version="v6.6.5",
                 system_name="tk-another-test",
                 display_name="tk-test"
@@ -432,7 +433,7 @@ class TestConstraintValidation(TankTestBase):
             supported_engines=["tk-test"]
         ).check_version_constraints(
             self._out_of_date_sg,
-            parent_engine_descriptor=SealedMock(
+            engine_descriptor=SealedMock(
                 version="v4.4.3",
                 system_name="tk-another-test",
                 display_name="tk-test"

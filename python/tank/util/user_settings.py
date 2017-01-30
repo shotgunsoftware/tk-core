@@ -43,13 +43,13 @@ class UserSettings(Singleton):
         Singleton initialization.
         """
         self._path = self._compute_config_location()
-        logger.debug("Reading user settings from %s" % self._path)
+        logger.debug("Reading user settings from %s", self._path)
 
         self._user_config = self._load_config(self._path)
 
         # Log the default settings
-        logger.debug("Default site: %s", self._to_friendly_str(self.default_site))
-        logger.debug("Default login: %s", self._to_friendly_str(self.default_login))
+        logger.debug("Default site: %s", self._to_display_value(self.default_site))
+        logger.debug("Default login: %s", self._to_display_value(self.default_login))
 
         self._settings_proxy = self._get_settings_proxy()
         self._system_proxy = None
@@ -63,14 +63,7 @@ class UserSettings(Singleton):
                 logger.debug("Shotgun proxy: <missing>")
 
         proxy = self._get_filtered_proxy(self.app_store_proxy)
-        logger.debug("App Store proxy: %s", self._to_friendly_str(proxy))
-
-    @property
-    def path(self):
-        """
-        Retrieves the path to the current user settings file.
-        """
-        return self._path
+        logger.debug("App Store proxy: %s", self._to_display_value(proxy))
 
     @property
     def shotgun_proxy(self):
@@ -347,7 +340,7 @@ class UserSettings(Singleton):
 
         return proxy
 
-    def _to_friendly_str(self, value):
+    def _to_display_value(self, value):
         """
         Converts the value into a meaningful value for the user if the setting is missing or
         empty.

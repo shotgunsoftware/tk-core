@@ -60,8 +60,6 @@ class BundleDescriptor(Descriptor):
 
         return constraints
 
-    _sg_studio_versions = {}
-
     @classmethod
     def _get_sg_version(cls, connection):
         """
@@ -73,18 +71,17 @@ class BundleDescriptor(Descriptor):
         :returns: a string on the form "X.Y.Z"
         :rtype: str
         """
-        if connection.base_url not in cls._sg_studio_versions:
-            try:
-                version_tuple = connection.server_info["version"]
-            except Exception, e:
-                raise TankDescriptorError("Could not extract version number for site: %s" % e)
-            cls._sg_studio_versions[connection.base_url] = ".".join([str(x) for x in version_tuple])
+        try:
+            version_tuple = connection.server_info["version"]
+        except Exception, e:
+            raise TankDescriptorError("Could not extract version number for site: %s" % e)
 
-        return cls._sg_studio_versions[connection.base_url]
+        return ".".join([str(x) for x in version_tuple])
 
-    def _test_constraint(self, key, current_version, item_name, reasons):
+    def _test_version_constraint(self, key, current_version, item_name, reasons):
         """
-        Tests a constraint and ensures the user provided a value and that the constraint is matched.
+        Tests a version constraint by ensuring the user provided a version that is not older than the expected
+        one.
 
         :param key: Name of the version constraint
         :param current_version: Version the user passed in.
@@ -111,7 +108,7 @@ class BundleDescriptor(Descriptor):
         self,
         connection=None,
         core_version=None,
-        parent_engine_descriptor=None,
+        engine_descriptor=None,
         desktop_version=None
     ):
         """
@@ -122,8 +119,8 @@ class BundleDescriptor(Descriptor):
         :type: :class:`shotgun_api3.Shotgun`
         :param core_version: Core version. If None, current core version will be used.
         :type core_version: str
-        :param parent_engine_descriptor: Descriptor of the engine this bundle will run under. None by default.
-        :type parent_engine_descriptor: :class:`~sgtk.bootstrap.DescriptorBundle`
+        :param engine_descriptor: Descriptor of the engine this bundle will run under. None by default.
+        :type engine_descriptor: :class:`~sgtk.bootstrap.DescriptorBundle`
         :param desktop_version: Version of the Shotgun Desktop. None by default.
         :type desktop_version: str
 
@@ -135,44 +132,44 @@ class BundleDescriptor(Descriptor):
 
         connection = connection or shotgun.get_sg_connection()
 
-        can_update = self._test_constraint(
+        can_update = self._test_version_constraint(
             "min_sg", self._get_sg_version(connection) if connection else None, "Shotgun", reasons
         ) and can_update
-        can_update = self._test_constraint(
+        can_update = self._test_version_constraint(
             "min_core", core_version or pipelineconfig_utils.get_currently_running_api_version(), "Core API", reasons
         ) and can_update
 
         constraints = self.version_constraints
 
         if "min_engine" in constraints:
-            if parent_engine_descriptor is None:
+            if engine_descriptor is None:
                 reasons.append("Requires a minimal engine version but no engine was specified.")
                 can_update = False
             else:
-                curr_engine_version = parent_engine_descriptor.version
+                curr_engine_version = engine_descriptor.version
 
                 minimum_engine_version = constraints["min_engine"]
                 if is_version_older(curr_engine_version, minimum_engine_version):
                     can_update = False
                     reasons.append("Requires at least Engine %s %s but currently "
-                                   "installed version is %s." % (parent_engine_descriptor.display_name,
+                                   "installed version is %s." % (engine_descriptor.display_name,
                                                                  minimum_engine_version,
                                                                  curr_engine_version))
 
         # for multi engine apps, validate the supported_engines list
         supported_engines  = self.supported_engines
         if supported_engines is not None:
-            if parent_engine_descriptor is None:
+            if engine_descriptor is None:
                 reasons.append("Bundle is compatible with a subset of engines but no engine was specified.")
             else:
                 # this is a multi engine app!
-                engine_name = parent_engine_descriptor.system_name
+                engine_name = engine_descriptor.system_name
                 if engine_name not in supported_engines:
                     can_update = False
                     reasons.append("Not compatible with engine %s. "
                                    "Supported engines are %s." % (engine_name, ", ".join(supported_engines)))
 
-        can_update = self._test_constraint(
+        can_update = self._test_version_constraint(
             "min_desktop", desktop_version, "Shotgun Desktop", reasons
         ) and can_update
 
