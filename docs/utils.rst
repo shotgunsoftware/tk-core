@@ -88,7 +88,7 @@ following order:
     - Linux: ``~/shotgun/desktop/config/config.ini``
 
 .. note::
-    When ``http_proxy`` or ``app_store_http_proxy`` are not specified in this file,
+    When ``http_proxy`` or ``app_store_http_proxy`` are not present in this file,
     the Shotgun Toolkit will try to retrieve the operating system http proxy.
 
     First, the environment will be scanned for variables named ``http_proxy``, in case insensitive way.
