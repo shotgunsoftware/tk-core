@@ -147,6 +147,14 @@ class IODescriptorGit(IODescriptorBase):
             log.debug("Restoring cwd (to '%s')" % cwd)
             os.chdir(cwd)
 
+        # Cleanup the folder of any git related files.
+        shutil.rmtree(os.path.join(target_path, ".git"), ignore_errors=True)
+
+        for git_file_name in [".gitignore", ".gitattributes", ".gitmodules"]:
+            git_file_path = os.path.join(target_path, git_file_name)
+            if os.path.exists(git_file_path):
+                os.remove(git_file_path)
+
         # return the last returned stdout/stderr
         return output
 
