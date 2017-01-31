@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Foundation &mdash; tk-core v0.18.50 documentation</title>
+  <title>Foundation &mdash; tk-core v0.18.52 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.50 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.52 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Deploy and management" href="bootstrap.html"/> 
 
@@ -148,7 +148,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.50.<br>
+    <b>tk-core</b> v0.18.52.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1705,6 +1705,35 @@ a path key.</td>
 </table>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="sgtk.Hook.disk_location">
+<code class="descname">disk_location</code><a class="headerlink" href="#sgtk.Hook.disk_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>The folder on disk where this item is located.
+This can be useful if you want to write hook code
+to retrieve a local resource:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">hook_icon</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;icon.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Hook.logger">
+<code class="descname">logger</code><a class="headerlink" href="#sgtk.Hook.logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard python logger handle for this hook.</p>
+<p>The logger can be used to report
+progress back to the app in a standardized fashion
+and will be parented under the app/engine/framework logger:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># pattern</span>
+<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">environment_name</span><span class="o">.</span><span class="n">engine_name</span><span class="o">.</span><span class="n">app_name</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">hook_file_name</span>
+
+<span class="c1"># for example</span>
+<span class="n">sgtk</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">asset</span><span class="o">.</span><span class="n">tk</span><span class="o">-</span><span class="n">maya</span><span class="o">.</span><span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">loader2</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">filter_publishes</span>
+</pre></div>
+</div>
+<p>In the case of core hooks, the logger will be parented
+under <code class="docutils literal"><span class="pre">sgtk.core.hook</span></code>. For more information, see <a class="reference internal" href="utils.html#logging"><span class="std std-ref">Logging</span></a></p>
+</dd></dl>
+
 <dl class="method">
 <dt id="sgtk.Hook.load_framework">
 <code class="descname">load_framework</code><span class="sig-paren">(</span><em>framework_instance_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/hook.html#Hook.load_framework"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Hook.load_framework" title="Permalink to this definition">¶</a></dt>
@@ -2752,7 +2781,7 @@ The format follows the convention of <code class="xref py py-meth docutils liter
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.50',
+            VERSION:'v0.18.52',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

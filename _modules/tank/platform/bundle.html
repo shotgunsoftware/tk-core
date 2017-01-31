@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.bundle &mdash; tk-core v0.18.50 documentation</title>
+  <title>tank.platform.bundle &mdash; tk-core v0.18.52 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.50 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.52 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.50.<br>
+    <b>tk-core</b> v0.18.52.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -376,6 +376,10 @@
 
 <span class="sd">            app_font = os.path.join(self.disk_location, &quot;resources&quot;, &quot;font.fnt&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># note: the reason we don&#39;t call __file__ directly is because</span>
+        <span class="c1">#       we don&#39;t want to return the location of the &#39;bundle.py&#39;</span>
+        <span class="c1">#       base class but rather the location of object that</span>
+        <span class="c1">#       has been derived from this class.</span>
         <span class="n">path_to_this_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__module__</span><span class="p">]</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path_to_this_file</span><span class="p">)</span>
 
@@ -664,7 +668,8 @@
 <span class="sd">        :param key: The name of the hook setting you want to execute.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">hook_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__execute_hook_internal</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">hook_name</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">resolved_hook_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__resolve_hook_expression</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">hook_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">execute_hook_method</span><span class="p">(</span><span class="n">resolved_hook_paths</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         
     <span class="k">def</span> <span class="nf">execute_hook_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -700,7 +705,8 @@
 <span class="sd">        :param method_name: Name of the method to execute</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">hook_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__execute_hook_internal</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">hook_name</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">resolved_hook_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__resolve_hook_expression</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">hook_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">execute_hook_method</span><span class="p">(</span><span class="n">resolved_hook_paths</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">execute_hook_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -721,7 +727,8 @@
 <span class="sd">        :param hook_expression: Path to hook to execute. See above for syntax details.</span>
 <span class="sd">        :param method_name: Method inside the hook to execute.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__execute_hook_internal</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">resolved_hook_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__resolve_hook_expression</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">execute_hook_method</span><span class="p">(</span><span class="n">resolved_hook_paths</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">execute_hook_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -745,9 +752,35 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">hook_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_hooks_location</span><span class="p">()</span>
         <span class="n">hook_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">hook_folder</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.py&quot;</span> <span class="o">%</span> <span class="n">hook_name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">execute_hook</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">execute_hook</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    
+    <span class="k">def</span> <span class="nf">create_hook_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the instance of a hook object given an expression.</span>
+
+<span class="sd">        This is useful for complex workflows where it is beneficial to</span>
+<span class="sd">        maintain a handle to a hook instance. Normally, hooks are stateless</span>
+<span class="sd">        and every time a hook is called, a new instance is returned. This method</span>
+<span class="sd">        provides a standardized way to retrieve an instance of a hook::</span>
+
+<span class="sd">            self._plugin = app_object.create_hook_instance(&quot;{config}/path/to/my_hook.py&quot;)</span>
+<span class="sd">            self._plugin.execute_method_x()</span>
+<span class="sd">            self._plugin.execute_method_y()</span>
+<span class="sd">            self._plugin.execute_method_z()</span>
+
+<span class="sd">        The hook expression is the raw value that is specified in the configuration file.</span>
+<span class="sd">        If you want to access a configuration setting instead (like how for example</span>
+<span class="sd">        :meth:`execute_hook_method` works), simply call :meth:`get_setting()` to retrieve</span>
+<span class="sd">        the value and then pass the settings value to this method.</span>
+
+<span class="sd">        .. note:: For more information about hook syntax, see :class:`~sgtk.Hook`</span>
+
+<span class="sd">        :param hook_expression: Path to hook to execute. See above for syntax details.</span>
+<span class="sd">        :returns: :class:`Hook` instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">resolved_hook_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__resolve_hook_expression</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">create_hook_instance</span><span class="p">(</span><span class="n">resolved_hook_paths</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">ensure_folder_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make sure that the given folder exists on disk.</span>
@@ -936,45 +969,43 @@
 
         <span class="k">return</span> <span class="n">path</span>
 
-
-    <span class="k">def</span> <span class="nf">__execute_hook_internal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings_name</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__resolve_hook_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings_name</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Internal method for executing the specified hook. This method handles</span>
+<span class="sd">        Internal method for resolving hook expressions. This method handles</span>
 <span class="sd">        resolving an environment configuration value into a path on disk.</span>
-<span class="sd">        </span>
+
 <span class="sd">        There are two generations of hook formats - old-style and new-style.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Old style formats:</span>
-<span class="sd">        </span>
+
 <span class="sd">        - hook_setting: foo     -- Resolves &#39;foo&#39; to CURRENT_PC/hooks/foo.py</span>
-<span class="sd">        - hook_setting: default -- Resolves the value from the info.yml manifest and uses </span>
+<span class="sd">        - hook_setting: default -- Resolves the value from the info.yml manifest and uses</span>
 <span class="sd">          the default hook code supplied by the bundle.</span>
-<span class="sd">        </span>
+
 <span class="sd">        New style formats:</span>
-<span class="sd">        </span>
+
 <span class="sd">        - hook_setting: {$HOOK_PATH}/path/to/foo.py  -- environment variable.</span>
 <span class="sd">        - hook_setting: {self}/path/to/foo.py   -- looks in the hooks folder in the local bundle</span>
 <span class="sd">        - hook_setting: {config}/path/to/foo.py -- looks in the hooks folder in the config</span>
 <span class="sd">        - hook_setting: {engine}/path/to/foo.py -- looks in the hooks folder of the current engine.</span>
 <span class="sd">        - hook_setting: {tk-framework-perforce_v1.x.x}/path/to/foo.py -- looks in the hooks folder of a</span>
-<span class="sd">          framework instance that exists in the current environment. Basically, each entry inside the </span>
-<span class="sd">          frameworks section in the current environment can be specified here - all these entries are </span>
-<span class="sd">          on the form frameworkname_versionpattern, for example tk-framework-widget_v0.1.2 or </span>
-<span class="sd">          tk-framework-shotgunutils_v1.3.x. </span>
-<span class="sd">          </span>
+<span class="sd">          framework instance that exists in the current environment. Basically, each entry inside the</span>
+<span class="sd">          frameworks section in the current environment can be specified here - all these entries are</span>
+<span class="sd">          on the form frameworkname_versionpattern, for example tk-framework-widget_v0.1.2 or</span>
+<span class="sd">          tk-framework-shotgunutils_v1.3.x.</span>
+
 <span class="sd">        :param settings_name: If this hook is associated with a setting in the bundle, this is the</span>
 <span class="sd">                              name of that setting. This is used to identify the inheritance relationships</span>
 <span class="sd">                              between the hook expression that is evaluated and if this hook derives from</span>
-<span class="sd">                              a hook inside an app. </span>
+<span class="sd">                              a hook inside an app.</span>
 <span class="sd">        :param hook_expression: The path expression to a hook.</span>
-<span class="sd">        :param method_name: The method in the hook to execute, or None if the default hook method</span>
-<span class="sd">                            is supposed to be executed.</span>
+<span class="sd">        :returns: List of paths to hooks files.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># split up the config value into distinct items</span>
         <span class="n">unresolved_hook_paths</span> <span class="o">=</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
 
         <span class="c1"># first of all, see if we should add a base class hook to derive from:</span>
-        <span class="c1"># </span>
+        <span class="c1">#</span>
         <span class="c1"># Basically, any overridden hook implicitly derives from the default hook.</span>
         <span class="c1"># specified in the manifest.</span>
         <span class="c1"># if the settings value is not {self} add this to the inheritance chain.</span>
@@ -982,18 +1013,18 @@
         <span class="c1">#</span>
         <span class="c1"># Manifest: {self}/foo_{engine_name}.py</span>
         <span class="c1"># In config: {config}/my_custom_hook.py</span>
-        <span class="c1"># The my_custom_hook.py implicitly derives from the python class defined </span>
+        <span class="c1"># The my_custom_hook.py implicitly derives from the python class defined</span>
         <span class="c1"># in the manifest, so prepend it:</span>
         <span class="c1"># hook_paths: [&quot;{self}/foo_tk-maya.py&quot;, &quot;{config}/my_custom_hook.py&quot; ]</span>
         <span class="c1">#</span>
-        <span class="c1"># Check only new-style hooks. All new style hooks start with a { </span>
+        <span class="c1"># Check only new-style hooks. All new style hooks start with a {</span>
         <span class="k">if</span> <span class="n">unresolved_hook_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">unresolved_hook_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{self}&quot;</span><span class="p">):</span>
             <span class="c1"># this is a new style hook that is not the default hook value.</span>
-            <span class="c1"># now prepend the default hook first in the list </span>
+            <span class="c1"># now prepend the default hook first in the list</span>
             <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__descriptor</span><span class="o">.</span><span class="n">configuration_schema</span>
-            
+
             <span class="n">default_value</span> <span class="o">=</span> <span class="bp">None</span>
-            
+
             <span class="k">if</span> <span class="n">settings_name</span><span class="p">:</span>
                 <span class="n">default_value</span> <span class="o">=</span> <span class="n">resolve_default_value</span><span class="p">(</span>
                     <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">settings_name</span><span class="p">),</span>
@@ -1001,15 +1032,15 @@
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">default_value</span><span class="p">:</span> <span class="c1"># possible not to have a default value!</span>
-                
+
                 <span class="c1"># expand the default value to be referenced from {self} and with the .py suffix</span>
                 <span class="c1"># for backwards compatibility with the old syntax where the default value could</span>
                 <span class="c1"># just be &#39;hook_name&#39; with implicit &#39;{self}&#39; and no suffix!</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">default_value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{self}&quot;</span><span class="p">):</span>
                     <span class="n">default_value</span> <span class="o">=</span> <span class="s2">&quot;{self}/</span><span class="si">%s</span><span class="s2">.py&quot;</span> <span class="o">%</span> <span class="n">default_value</span>
-                    
+
                 <span class="c1"># so now we have a path to a potential default hook inside the app or engine</span>
-                <span class="c1"># There is however one possibility when there may not be a hook, and this is </span>
+                <span class="c1"># There is however one possibility when there may not be a hook, and this is</span>
                 <span class="c1"># when {engine_name} is defined as part of the default value, but no default hook</span>
                 <span class="c1"># exists for the engine that we are currently running. In this case, we don&#39;t want</span>
                 <span class="c1"># to wedge in this non-existing hook file into the inheritance chain because it does</span>
@@ -1022,11 +1053,7 @@
         <span class="c1"># resolve paths into actual file paths</span>
         <span class="n">resolved_hook_paths</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__resolve_hook_path</span><span class="p">(</span><span class="n">settings_name</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">unresolved_hook_paths</span><span class="p">]</span>
 
-        <span class="n">ret_value</span> <span class="o">=</span> <span class="n">hook</span><span class="o">.</span><span class="n">execute_hook_method</span><span class="p">(</span><span class="n">resolved_hook_paths</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        
-        <span class="k">return</span> <span class="n">ret_value</span>
-
-        
+        <span class="k">return</span> <span class="n">resolved_hook_paths</span>
 
     <span class="k">def</span> <span class="nf">__post_process_settings_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1275,7 +1302,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.50',
+            VERSION:'v0.18.52',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

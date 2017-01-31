@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.hook &mdash; tk-core v0.18.50 documentation</title>
+  <title>tank.hook &mdash; tk-core v0.18.52 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.50 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.52 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.50.<br>
+    <b>tk-core</b> v0.18.52.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -183,6 +183,8 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">from</span> <span class="nn">.util.loader</span> <span class="kn">import</span> <span class="n">load_plugin</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">LogManager</span>
@@ -421,6 +423,68 @@
 
         <span class="k">return</span> <span class="n">paths</span></div>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">disk_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The folder on disk where this item is located.</span>
+<span class="sd">        This can be useful if you want to write hook code</span>
+<span class="sd">        to retrieve a local resource::</span>
+
+<span class="sd">            hook_icon = os.path.join(self.disk_location, &quot;icon.png&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># note: the reason we don&#39;t call __file__ directly is because</span>
+        <span class="c1">#       we don&#39;t want to return the location of the &#39;hook.py&#39;</span>
+        <span class="c1">#       base class but rather the location of hook object that</span>
+        <span class="c1">#       has been derived from this class.</span>
+        <span class="n">path_to_this_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__module__</span><span class="p">]</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path_to_this_file</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Standard python logger handle for this hook.</span>
+
+<span class="sd">        The logger can be used to report</span>
+<span class="sd">        progress back to the app in a standardized fashion</span>
+<span class="sd">        and will be parented under the app/engine/framework logger::</span>
+
+<span class="sd">            # pattern</span>
+<span class="sd">            sgtk.env.environment_name.engine_name.app_name.hook.hook_file_name</span>
+
+<span class="sd">            # for example</span>
+<span class="sd">            sgtk.env.asset.tk-maya.tk-multi-loader2.hook.filter_publishes</span>
+
+
+<span class="sd">        In the case of core hooks, the logger will be parented</span>
+<span class="sd">        under ``sgtk.core.hook``. For more information, see :ref:`logging`</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># see if the hook parent object exists and has a logger property</span>
+        <span class="c1"># in that case make this the parent of our logger.</span>
+        <span class="c1">#</span>
+        <span class="c1"># note: core hooks have the tk instance as their parent and</span>
+        <span class="c1"># app/engine/fw hooks have the bundle as their parent.</span>
+        <span class="c1"># There are some special edge cases where we construct</span>
+        <span class="c1"># parentless hooks: the PipelineConfigurationInit hook runs</span>
+        <span class="c1"># before a tk instance exists and some of the older &quot;studio</span>
+        <span class="c1"># hooks&quot; such as project_name.py and sg_connection.py also exists</span>
+        <span class="c1"># with states where no parent can be defined easily.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">logger</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c1"># parent doesn&#39;t exist or doesn&#39;t have a logger.</span>
+            <span class="c1"># in this case use the logger for this file as a</span>
+            <span class="c1"># parent - e.g. &#39;sgtk.core.hook&#39;</span>
+            <span class="n">log_prefix</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log_prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.hook&quot;</span> <span class="o">%</span> <span class="n">logger</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="c1"># name the logger after the name of the hook filename</span>
+        <span class="n">path_to_this_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__module__</span><span class="p">]</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
+        <span class="n">hook_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path_to_this_file</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">full_log_path</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">log_prefix</span><span class="p">,</span> <span class="n">hook_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">full_log_path</span><span class="p">)</span>
+
 <div class="viewcode-block" id="Hook.load_framework"><a class="viewcode-back" href="../../core.html#sgtk.Hook.load_framework">[docs]</a>    <span class="k">def</span> <span class="nf">load_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">framework_instance_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads and returns a framework given an environment instance name.</span>
@@ -613,8 +677,52 @@
 <span class="sd">    :param method_name: method to execute. If None, the default method will be executed.</span>
 <span class="sd">    :returns: Whatever the hook returns.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">method_name</span> <span class="o">=</span> <span class="n">method_name</span> <span class="ow">or</span> <span class="n">Hook</span><span class="o">.</span><span class="n">DEFAULT_HOOK_METHOD</span>
+    <span class="n">hook</span> <span class="o">=</span> <span class="n">create_hook_instance</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
 
+    <span class="c1"># get the method</span>
+    <span class="n">method_name</span> <span class="o">=</span> <span class="n">method_name</span> <span class="ow">or</span> <span class="n">Hook</span><span class="o">.</span><span class="n">DEFAULT_HOOK_METHOD</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">hook_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">method_name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankHookMethodDoesNotExistError</span><span class="p">(</span>
+            <span class="s2">&quot;Cannot execute hook &#39;</span><span class="si">%s</span><span class="s2">&#39; - the hook class does not have a &#39;</span><span class="si">%s</span><span class="s2">&#39; &quot;</span>
+            <span class="s2">&quot;method!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">method_name</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="c1"># execute the method</span>
+    <span class="n">ret_val</span> <span class="o">=</span> <span class="n">hook_method</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ret_val</span>
+
+
+<span class="k">def</span> <span class="nf">create_hook_instance</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    New style hook execution, with method arguments and support for inheritance.</span>
+
+<span class="sd">    This method takes a list of hook paths and will load each of the classes</span>
+<span class="sd">    in, while maintaining the correct state of the class returned via</span>
+<span class="sd">    get_hook_baseclass(). Once all classes have been successfully loaded,</span>
+<span class="sd">    the last class in the list is instantiated and returned.</span>
+
+<span class="sd">        Example: [&quot;/tmp/a.py&quot;, &quot;/tmp/b.py&quot;, &quot;/tmp/c.py&quot;]</span>
+
+<span class="sd">        1. The code in a.py is loaded in. get_hook_baseclass() will return Hook</span>
+<span class="sd">           at this point. class HookA is returned from our plugin loader.</span>
+
+<span class="sd">        2. /tmp/b.py is loaded in. get_hook_baseclass() now returns HookA, so</span>
+<span class="sd">           if the hook code in B utilises get_hook_baseclass, this will will</span>
+<span class="sd">           set up an inheritance relationship with A</span>
+
+<span class="sd">        3. /tmp/c.py is finally loaded in, get_hook_baseclass() now returns HookB.</span>
+
+<span class="sd">        4. HookC class is instantiated and method method_name is executed.</span>
+
+<span class="sd">    :param hook_paths: List of full paths to hooks, in inheritance order.</span>
+<span class="sd">    :param parent: Parent object. This will be accessible inside</span>
+<span class="sd">                   the hook as self.parent, and is typically an</span>
+<span class="sd">                   app, engine or core object.</span>
+<span class="sd">    :returns: Instance of the hook.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># keep track of the current base class - this is used when loading hooks to dynamically</span>
     <span class="c1"># inherit from the correct base.</span>
     <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">Hook</span>
@@ -660,21 +768,7 @@
     <span class="c1"># instantiate.</span>
 
     <span class="c1"># instantiate the class</span>
-    <span class="n">hook</span> <span class="o">=</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
-
-    <span class="c1"># get the method</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">hook_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">method_name</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">TankHookMethodDoesNotExistError</span><span class="p">(</span>
-            <span class="s2">&quot;Cannot execute hook &#39;</span><span class="si">%s</span><span class="s2">&#39; - the hook class does not have a &#39;</span><span class="si">%s</span><span class="s2">&#39; &quot;</span>
-            <span class="s2">&quot;method!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">method_name</span><span class="p">)</span>
-        <span class="p">)</span>
-
-    <span class="c1"># execute the method</span>
-    <span class="n">ret_val</span> <span class="o">=</span> <span class="n">hook_method</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">ret_val</span>
+    <span class="k">return</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
 
 <div class="viewcode-block" id="get_hook_baseclass"><a class="viewcode-back" href="../../core.html#sgtk.get_hook_baseclass">[docs]</a><span class="k">def</span> <span class="nf">get_hook_baseclass</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -714,7 +808,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.50',
+            VERSION:'v0.18.52',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

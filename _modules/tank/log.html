@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.log &mdash; tk-core v0.18.50 documentation</title>
+  <title>tank.log &mdash; tk-core v0.18.52 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.50 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.52 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.50.<br>
+    <b>tk-core</b> v0.18.52.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -215,6 +215,8 @@
 <span class="sd">     |   |</span>
 <span class="sd">     |   |- descriptor                                Logging from core Modules</span>
 <span class="sd">     |   |- path_cache</span>
+<span class="sd">     |   |- hook</span>
+<span class="sd">     |       |- create_folders                        Logging from a core hook</span>
 <span class="sd">     |</span>
 <span class="sd">     |- env                                           Logging from apps and engines</span>
 <span class="sd">     |   |</span>
@@ -225,15 +227,20 @@
 <span class="sd">     |             |- tk-multi-workfiles2             Toolkit App (or framework)</span>
 <span class="sd">     |                  |</span>
 <span class="sd">     |                  |- tkimp63c3b2d57f85          Toolkit Command Session</span>
-<span class="sd">     |                      |</span>
-<span class="sd">     |                      |- tk_multi_workfiles     Python hierarchy inside app&#39;s python folder</span>
-<span class="sd">     |                          |</span>
-<span class="sd">     |                          |- entity_tree</span>
+<span class="sd">     |                  |   |</span>
+<span class="sd">     |                  |   |- tk_multi_workfiles     Python hierarchy inside app&#39;s python folder</span>
+<span class="sd">     |                  |       |</span>
+<span class="sd">     |                  |       |- entity_tree</span>
+<span class="sd">     |                  |</span>
+<span class="sd">     |                  |</span>
+<span class="sd">     |                  |</span>
+<span class="sd">     |                  |- hook</span>
+<span class="sd">     |                      |- scene_operations       Logging from a hook</span>
+<span class="sd">     |</span>
 <span class="sd">     |</span>
 <span class="sd">     |- ext                                           Logging from associated external scripts</span>
 <span class="sd">         |</span>
 <span class="sd">         |- tank_cmd</span>
-
 
 
 <span class="sd">Generating log messages in Toolkit</span>
@@ -995,7 +1002,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.50',
+            VERSION:'v0.18.52',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

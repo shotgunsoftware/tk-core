@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.50 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.52 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.50 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.52 documentation" href="index.html"/>
         <link rel="next" title="Descriptor API" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -94,7 +94,7 @@
 <li class="toctree-l1"><a class="reference internal" href="core.html">Foundation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="platform.html">Apps, Engines and Frameworks</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-sgtk.log">Logging</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#logging-hierarchy">Logging hierarchy</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#generating-log-messages-in-toolkit">Generating log messages in Toolkit</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#logging-from-within-your-app-engine-or-framework">Logging from within your App, Engine or Framework</a></li>
@@ -146,7 +146,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.50.<br>
+    <b>tk-core</b> v0.18.52.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -197,9 +197,9 @@
             
   <div class="section" id="utilities">
 <h1>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-sgtk.log">
-<span id="logging"></span><h2>Logging<a class="headerlink" href="#module-sgtk.log" title="Permalink to this headline">¶</a></h2>
-<p>Toolkit uses the standard python logging for its
+<div class="section" id="logging">
+<span id="id1"></span><h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-sgtk.log"></span><p>Toolkit uses the standard python logging for its
 log management. The <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal"><span class="pre">LogManager</span></code></a> class below
 acts as an interface that helps make it easy to access
 and manage Toolkit logging.</p>
@@ -226,6 +226,8 @@ are broken down further by environment, engine, etc.</li>
  |   |
  |   |- descriptor                                Logging from core Modules
  |   |- path_cache
+ |   |- hook
+ |       |- create_folders                        Logging from a core hook
  |
  |- env                                           Logging from apps and engines
  |   |
@@ -236,10 +238,16 @@ are broken down further by environment, engine, etc.</li>
  |             |- tk-multi-workfiles2             Toolkit App (or framework)
  |                  |
  |                  |- tkimp63c3b2d57f85          Toolkit Command Session
- |                      |
- |                      |- tk_multi_workfiles     Python hierarchy inside app&#39;s python folder
- |                          |
- |                          |- entity_tree
+ |                  |   |
+ |                  |   |- tk_multi_workfiles     Python hierarchy inside app&#39;s python folder
+ |                  |       |
+ |                  |       |- entity_tree
+ |                  |
+ |                  |
+ |                  |
+ |                  |- hook
+ |                      |- scene_operations       Logging from a hook
+ |
  |
  |- ext                                           Logging from associated external scripts
      |
@@ -1721,7 +1729,7 @@ with the following fields: id, type, email, login, name, image, firstname, lastn
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.50',
+            VERSION:'v0.18.52',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

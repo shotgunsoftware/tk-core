@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.50 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.52 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.50 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.52 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -168,7 +168,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.50.<br>
+    <b>tk-core</b> v0.18.52.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1569,6 +1569,40 @@ be overridden in the deriving class and forced to return True.</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="sgtk.platform.Engine.create_hook_instance">
+<code class="descname">create_hook_instance</code><span class="sig-paren">(</span><em>hook_expression</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.create_hook_instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the instance of a hook object given an expression.</p>
+<p>This is useful for complex workflows where it is beneficial to
+maintain a handle to a hook instance. Normally, hooks are stateless
+and every time a hook is called, a new instance is returned. This method
+provides a standardized way to retrieve an instance of a hook:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">app_object</span><span class="o">.</span><span class="n">create_hook_instance</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{config}</span><span class="s2">/path/to/my_hook.py&quot;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_x</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_y</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_z</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The hook expression is the raw value that is specified in the configuration file.
+If you want to access a configuration setting instead (like how for example
+<a class="reference internal" href="#sgtk.platform.Engine.execute_hook_method" title="sgtk.platform.Engine.execute_hook_method"><code class="xref py py-meth docutils literal"><span class="pre">execute_hook_method()</span></code></a> works), simply call <a class="reference internal" href="#sgtk.platform.Engine.get_setting" title="sgtk.platform.Engine.get_setting"><code class="xref py py-meth docutils literal"><span class="pre">get_setting()</span></code></a> to retrieve
+the value and then pass the settings value to this method.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For more information about hook syntax, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hook_expression</strong> &#8211; Path to hook to execute. See above for syntax details.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code> instance.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="sgtk.platform.Engine.description">
 <code class="descname">description</code><a class="headerlink" href="#sgtk.platform.Engine.description" title="Permalink to this definition">¶</a></dt>
@@ -2386,6 +2420,40 @@ be overridden in the deriving class and forced to return True.</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="sgtk.platform.Application.create_hook_instance">
+<code class="descname">create_hook_instance</code><span class="sig-paren">(</span><em>hook_expression</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.create_hook_instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the instance of a hook object given an expression.</p>
+<p>This is useful for complex workflows where it is beneficial to
+maintain a handle to a hook instance. Normally, hooks are stateless
+and every time a hook is called, a new instance is returned. This method
+provides a standardized way to retrieve an instance of a hook:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">app_object</span><span class="o">.</span><span class="n">create_hook_instance</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{config}</span><span class="s2">/path/to/my_hook.py&quot;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_x</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_y</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_z</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The hook expression is the raw value that is specified in the configuration file.
+If you want to access a configuration setting instead (like how for example
+<a class="reference internal" href="#sgtk.platform.Application.execute_hook_method" title="sgtk.platform.Application.execute_hook_method"><code class="xref py py-meth docutils literal"><span class="pre">execute_hook_method()</span></code></a> works), simply call <a class="reference internal" href="#sgtk.platform.Application.get_setting" title="sgtk.platform.Application.get_setting"><code class="xref py py-meth docutils literal"><span class="pre">get_setting()</span></code></a> to retrieve
+the value and then pass the settings value to this method.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For more information about hook syntax, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hook_expression</strong> &#8211; Path to hook to execute. See above for syntax details.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code> instance.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="sgtk.platform.Application.description">
 <code class="descname">description</code><a class="headerlink" href="#sgtk.platform.Application.description" title="Permalink to this definition">¶</a></dt>
@@ -3158,6 +3226,40 @@ be overridden in the deriving class and forced to return True.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Framework.create_hook_instance">
+<code class="descname">create_hook_instance</code><span class="sig-paren">(</span><em>hook_expression</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.create_hook_instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the instance of a hook object given an expression.</p>
+<p>This is useful for complex workflows where it is beneficial to
+maintain a handle to a hook instance. Normally, hooks are stateless
+and every time a hook is called, a new instance is returned. This method
+provides a standardized way to retrieve an instance of a hook:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">app_object</span><span class="o">.</span><span class="n">create_hook_instance</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{config}</span><span class="s2">/path/to/my_hook.py&quot;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_x</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_y</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_z</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The hook expression is the raw value that is specified in the configuration file.
+If you want to access a configuration setting instead (like how for example
+<a class="reference internal" href="#sgtk.platform.Framework.execute_hook_method" title="sgtk.platform.Framework.execute_hook_method"><code class="xref py py-meth docutils literal"><span class="pre">execute_hook_method()</span></code></a> works), simply call <a class="reference internal" href="#sgtk.platform.Framework.get_setting" title="sgtk.platform.Framework.get_setting"><code class="xref py py-meth docutils literal"><span class="pre">get_setting()</span></code></a> to retrieve
+the value and then pass the settings value to this method.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For more information about hook syntax, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hook_expression</strong> &#8211; Path to hook to execute. See above for syntax details.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code> instance.</td>
 </tr>
 </tbody>
 </table>
@@ -4390,7 +4492,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.50',
+            VERSION:'v0.18.52',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
