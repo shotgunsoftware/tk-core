@@ -39,7 +39,7 @@ from tank.bootstrap.baked_configuration import BakedConfiguration
 from tank.bootstrap import constants as bootstrap_constants
 from tank_vendor import yaml
 
-from .utils import authenticate, cache_apps
+from utils import cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog
 
 # set up logging
 logger = LogManager.get_logger("build_plugin")
@@ -56,15 +56,6 @@ BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
 # generation of the build syntax
 BUILD_GENERATION = 2
-
-
-class OptionParserLineBreakingEpilog(optparse.OptionParser):
-    """
-    Subclassed version of the option parser that doesn't
-    swallow white space in the epilog
-    """
-    def format_epilog(self, formatter):
-        return self.epilog
 
 
 def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
@@ -544,39 +535,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
               "If not specified, defaults to the most recently released core.")
     )
 
-    group = optparse.OptionGroup(
-        parser,
-        "Shotgun Authentication",
-        "In order to download content from the Toolkit app store, the script will need to authenticate "
-        "against any shotgun site. By default, it will use the toolkit authentication APIs stored "
-        "credentials, and if such are not found, it will prompt for site, username and password."
-    )
-
-    group.add_option(
-        "-s",
-        "--shotgun-host",
-        default=None,
-        action="store",
-        help="Shotgun host to authenticate with."
-    )
-
-    group.add_option(
-        "-n",
-        "--shotgun-script-name",
-        default=None,
-        action="store",
-        help="Script to use to authenticate with the given host."
-    )
-
-    group.add_option(
-        "-k",
-        "--shotgun-script-key",
-        default=None,
-        action="store",
-        help="Script key to use to authenticate with the given host."
-    )
-
-    parser.add_option_group(group)
+    add_authentication_options(parser)
 
     # parse cmd line
     (options, remaining_args) = parser.parse_args()

@@ -32,10 +32,9 @@ sys.path.append(python_folder)
 # sgtk imports
 from tank import LogManager
 from tank.util import filesystem
-from tank.errors import TankError
 from tank.descriptor import Descriptor, create_descriptor
 
-from utils import cache_apps, authenticate
+from utils import cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog
 
 # set up logging
 logger = LogManager.get_logger("build_plugin")
@@ -44,16 +43,7 @@ logger = LogManager.get_logger("build_plugin")
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
 
-class OptionParserLineBreakingEpilog(optparse.OptionParser):
-    """
-    Subclassed version of the option parser that doesn't
-    swallow white space in the epilog
-    """
-    def format_epilog(self, formatter):
-        return self.epilog
-
-
-def build_bundle_cache(sg_connection, target_path, config_descriptor_uri, bootstrap_core_uri):
+def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
     """
     Perform a build of the bundle cache.
 
@@ -62,8 +52,6 @@ def build_bundle_cache(sg_connection, target_path, config_descriptor_uri, bootst
     :param sg_connection: Shotgun connection
     :param target_path: Path to build
     :param config_descriptor_uri: Descriptor of the configuration to cache.
-    :param bootstrap_core_uri: Descriptor of the core to cache if no core is associated with the
-        configuration.
     """
     logger.info("The build will generated into '%s'" % target_path)
 
@@ -92,6 +80,8 @@ def build_bundle_cache(sg_connection, target_path, config_descriptor_uri, bootst
     # cache config in bundle cache
     logger.info("Downloading and caching config...")
 
+    cfg_descriptor.ensure_local()
+
     # copy the config payload across to the plugin bundle cache
     cfg_descriptor.clone_cache(bundle_cache_root)
 
@@ -108,39 +98,15 @@ def build_bundle_cache(sg_connection, target_path, config_descriptor_uri, bootst
             cfg_descriptor.associated_core_descriptor,
             bundle_cache_root_override=bundle_cache_root
         )
-    elif bootstrap_core_uri:
-        logger.info("Caching custom core for boostrap (%s)" % bootstrap_core_uri)
-        bootstrap_core_desc = create_descriptor(
-            sg_connection,
-            Descriptor.CORE,
-            bootstrap_core_uri,
-            bundle_cache_root_override=bundle_cache_root
-        )
-
-    else:
-        # by default, use latest core for bootstrap
-        logger.info("Caching latest official core to use when bootstrapping plugin.")
-        logger.info("(To use a specific config instead, specify a --bootstrap-core-uri flag.)")
-
-        bootstrap_core_desc = create_descriptor(
-            sg_connection,
-            Descriptor.CORE,
-            {"type": "app_store", "name": "tk-core"},
-            resolve_latest=True,
-            bundle_cache_root_override=bundle_cache_root
-        )
-
-    # cache it
-    bootstrap_core_desc.ensure_local()
-    bootstrap_core_desc.clone_cache(bundle_cache_root)
+        # cache it
+        bootstrap_core_desc.ensure_local()
+        bootstrap_core_desc.clone_cache(bundle_cache_root)
 
     logger.info("")
     logger.info("Build complete!")
     logger.info("")
     logger.info("- Your bundle cache is ready in '%s'" % target_path)
     logger.info("- All dependencies have been baked out into the bundle_cache folder")
-    logger.info("")
-    logger.info("")
     logger.info("")
 
 
@@ -151,35 +117,33 @@ def main():
     Handles argument parsing and validation and then calls the script payload.
     """
 
-    usage = "%prog [options] source_path target_path"
+    usage = "%prog [options] target_path"
 
-    desc = "Builds a standard toolkit plugin structure ready for testing and deploy"
+    desc = "Builds a bundle cache for a given configuration."
 
     epilog = """
 
 Details and Examples
 --------------------
 
-In its simplest form, just provide a source and target folder for the build.
+In it's simplest form, provide a descriptor to a configuration and the location
+where the bundle cache should be created.
 
-> python build_plugin.py ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
+> python _build_bundle_cache.py
+            "sgtk:descriptor:app_store?version=v0.3.6&name=tk-config-basic"
+            /tmp
+
+Note that it is important to use quotes around the descriptor as shells usually
+give special meaning to the & character.
 
 For automated build setups, you can provide a specific shotgun API script name and
 and corresponding script key:
 
-> python build_plugin.py
+> python _build_bundle_cache.py
             --shotgun-host='https://mysite.shotgunstudio.com'
             --shotgun-script-name='plugin_build'
             --shotgun-script-key='<script-key-here>'
-            ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
-
-By default, the build script will use the latest app store core for its bootstrapping.
-If you want to use a specific core for the bootstrap, this can be specified via the
---bootstrap-core-uri option:
-
-> python build_plugin.py
-            --bootstrap-core-uri='sgtk:descriptor:dev?path=~/dev/tk-core'
-            ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
+            "sgtk:descriptor:app_store?version=v0.3.6&name=tk-config-basic" /tmp
 
 For information about the various descriptors that can be used, see
 http://developer.shotgunsoftware.com/tk-core/descriptor
@@ -196,56 +160,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         help="Enable debug logging"
     )
 
-    parser.add_option(
-        "-t",
-        "--configuration",
-        action="store",
-        help="Descriptor pointing to the configuration to cache."
-    )
-
-    parser.add_option(
-        "-c",
-        "--bootstrap-core-uri",
-        default=None,
-        action="store",
-        help=("Specify which version of core to be used by the bootstrap process. "
-              "If not specified, defaults to the most recently released core. If the configuration "
-              "has an associated core, this core descriptor is ignored.")
-    )
-
-    group = optparse.OptionGroup(
-        parser,
-        "Shotgun Authentication",
-        "In order to download content from the Toolkit app store, the script will need to authenticate "
-        "against any shotgun site. By default, it will use the toolkit authentication APIs stored "
-        "credentials, and if such are not found, it will prompt for site, username and password."
-    )
-
-    group.add_option(
-        "-s",
-        "--shotgun-host",
-        default=None,
-        action="store",
-        help="Shotgun host to authenticate with."
-    )
-
-    group.add_option(
-        "-n",
-        "--shotgun-script-name",
-        default=None,
-        action="store",
-        help="Script to use to authenticate with the given host."
-    )
-
-    group.add_option(
-        "-k",
-        "--shotgun-script-key",
-        default=None,
-        action="store",
-        help="Script key to use to authenticate with the given host."
-    )
-
-    parser.add_option_group(group)
+    add_authentication_options(parser)
 
     # parse cmd line
     (options, remaining_args) = parser.parse_args()
@@ -256,12 +171,13 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     if options.debug:
         LogManager().global_debug = True
 
-    if len(remaining_args) != 1:
+    if len(remaining_args) != 2:
         parser.print_help()
         return 2
 
     # get paths
-    target_path = remaining_args[0]
+    config_descriptor_str = remaining_args[0]
+    target_path = remaining_args[1]
 
     # convert any env vars and tildes
     target_path = os.path.expanduser(os.path.expandvars(target_path))
@@ -274,11 +190,10 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     sg_connection = sg_user.create_sg_connection()
 
     # we are all set.
-    build_bundle_cache(
+    _build_bundle_cache(
         sg_connection,
         target_path,
-        options.configuration,
-        options.bootstrap_core_uri
+        config_descriptor_str
     )
 
     # all good!
@@ -288,7 +203,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 if __name__ == "__main__":
 
     # set up std toolkit logging to file
-    LogManager().initialize_base_file_handler("build_bundle_cache")
+    LogManager().initialize_base_file_handler("_build_bundle_cache")
 
     # set up output of all sgtk log messages to stdout
     LogManager().initialize_custom_handler()
