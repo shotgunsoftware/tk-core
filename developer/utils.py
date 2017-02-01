@@ -81,11 +81,16 @@ def authenticate(options):
             return 2
 
         logger.info("Connecting to %s using script user %s..." % (options.shotgun_host, script_name))
-        return sg_auth.create_script_user(script_name, script_key, options.shotgun_host)
+        sg_user = sg_auth.create_script_user(script_name, script_key, options.shotgun_host)
 
     else:
         # get user, prompt if necessary
-        return sg_auth.get_user()
+        sg_user = sg_auth.get_user()
+
+    # Make sure our session is not out of date.
+    sg_user.refresh_credentials()
+
+    return sg_user
 
 
 def _cache_descriptor(sg, desc_type, desc_dict, target_path):

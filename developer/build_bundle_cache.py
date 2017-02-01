@@ -22,7 +22,6 @@ import os
 
 import sys
 import shutil
-import optparse
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -117,7 +116,7 @@ def main():
     Handles argument parsing and validation and then calls the script payload.
     """
 
-    usage = "%prog [options] target_path"
+    usage = "%prog [options] config_descriptor target_path"
 
     desc = "Builds a bundle cache for a given configuration."
 
@@ -183,9 +182,6 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     target_path = os.path.expanduser(os.path.expandvars(target_path))
 
     sg_user = authenticate(options)
-
-    # make sure we are properly connected
-    sg_user.refresh_credentials()
 
     sg_connection = sg_user.create_sg_connection()
 

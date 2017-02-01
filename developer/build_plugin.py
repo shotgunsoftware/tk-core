@@ -22,7 +22,6 @@ import re
 import os
 import sys
 import shutil
-import optparse
 import datetime
 
 # add sgtk API
@@ -47,12 +46,12 @@ logger = LogManager.get_logger("build_plugin")
 # required keys in the info.yml plugin manifest file
 REQUIRED_MANIFEST_PARAMETERS = ["base_configuration", "plugin_id"]
 
+# the folder where all items will be cached
+BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
+
 # when we are baking a config, use these settings
 BAKED_BUNDLE_NAME = "tk-config-plugin"
 BAKED_BUNDLE_VERSION = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-
-# the folder where all items will be cached
-BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
 # generation of the build syntax
 BUILD_GENERATION = 2
