@@ -70,7 +70,8 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
         sg_connection,
         Descriptor.CONFIG,
         config_descriptor_uri,
-        resolve_latest=False
+        # If the user hasn't specified the version to retrieve, resolve the latest from Shotgun.
+        resolve_latest="version" not in config_descriptor_uri
     )
 
     logger.info("Resolved config %r" % cfg_descriptor)
