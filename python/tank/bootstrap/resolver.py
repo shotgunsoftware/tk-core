@@ -379,7 +379,6 @@ class ConfigurationResolver(object):
             pipeline_config = sg_connection.find_one(
                 "PipelineConfiguration",
                 [
-                    ["project", "is", self._proj_entity_dict],
                     ["id", "is", pipeline_config_identifier],
                 ],
                 self._PIPELINE_CONFIG_FIELDS
