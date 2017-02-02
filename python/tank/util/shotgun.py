@@ -1164,6 +1164,9 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     if path_is_url:
         # for quoting logic, see bugfix here:
         # http://svn.python.org/view/python/trunk/Lib/urllib.py?r1=71780&r2=71779&pathrev=71780
+        #
+        # note: by appling a safe pattern like this, we guarantee that already quoted paths
+        #       are not touched, e.g. quote('foo bar') == quote('foo%20bar')
         data["path"] = {"url": urllib.quote(path, safe="%/:=&?~#+!$,;'@()*[]")}
     else:
 
