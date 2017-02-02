@@ -15,7 +15,7 @@ import threading
 import urlparse
 import unittest2 as unittest
 
-from mock import patch
+from mock import patch, call
 
 import tank
 from tank import context, errors
@@ -367,6 +367,24 @@ class TestShotgunRegisterPublish(TankTestBase):
 
         self.assertEqual(expected_path, actual_path)
         self.assertEqual(expected_path_cache, actual_path_cache)
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    def test_url_paths(self, create_mock):
+        """Tests the passing of urls via the path."""
+
+        tank.util.register_publish(
+            self.tk,
+            self.context,
+            "file:///path/to/file with spaces.png",
+            self.name,
+            self.version)
+
+        create_data = create_mock.call_args
+        args, kwargs = create_data
+        sg_dict = args[1]
+
+        self.assertEqual(sg_dict["path"], {'url': 'file:///path/to/file%20with%20spaces.png'})
+        self.assertEqual("pathcache" not in sg_dict, True)
 
 
 class TestShotgunDownloadUrl(TankTestBase):
