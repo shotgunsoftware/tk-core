@@ -19,6 +19,7 @@ import sys
 import uuid
 import urllib2
 import urlparse
+import urllib
 import pprint
 import time
 import threading
@@ -1161,7 +1162,12 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
     # handle the path definition
     if path_is_url:
-        data["path"] = {"url": path}
+        # for quoting logic, see bugfix here:
+        # http://svn.python.org/view/python/trunk/Lib/urllib.py?r1=71780&r2=71779&pathrev=71780
+        #
+        # note: by appling a safe pattern like this, we guarantee that already quoted paths
+        #       are not touched, e.g. quote('foo bar') == quote('foo%20bar')
+        data["path"] = {"url": urllib.quote(path, safe="%/:=&?~#+!$,;'@()*[]")}
     else:
 
         # Make path platform agnostic.
