@@ -43,18 +43,19 @@ SG_PIPELINE_CONFIG_FIELD = "pipeline_configuration"
 
 log = LogManager.get_logger(__name__)
 
+
 class PathCache(object):
     """
     A global cache which holds the mapping between a shotgun entity and a location on disk.
-    
+
     NOTE! This uses sqlite and the db is typically hosted on an NFS storage.
     Ensure that the code is developed with the constraints that this entails in mind.
     """
-    
+
     def __init__(self, tk):
         """
         Constructor.
-        
+
         :param tk: Toolkit API instance
         """
         self._connection = None
@@ -69,7 +70,7 @@ class PathCache(object):
             # no primary location found. Path cache therefore does not exist!
             # go into a no-path-cache-mode
             self._path_cache_disabled = True
-    
+
     def _init_db(self):
         """
         Sets up the database
@@ -78,10 +79,10 @@ class PathCache(object):
         # will ensure that there is a valid folder and file on
         # disk, created with all the right permissions etc.
         path_cache_file = self._get_path_cache_location()
-        
+
         self._connection = sqlite3.connect(path_cache_file)
-        
-        # this is to handle unicode properly - make sure that sqlite returns 
+
+        # this is to handle unicode properly - make sure that sqlite returns
         # str objects for TEXT fields rather than unicode. Note that any unicode
         # objects that are passed into the database will be automatically
         # converted to UTF-8 strs, so this text_factory guarantees that any character
@@ -89,67 +90,73 @@ class PathCache(object):
         # as UTF-8 (byte string) or unicode. And in the latter case, the returned data
         # will always be unicode.
         self._connection.text_factory = str
-        
+
         c = self._connection.cursor()
         try:
-        
+
             # get a list of tables in the current database
             ret = c.execute("SELECT name FROM main.sqlite_master WHERE type='table';")
             table_names = [x[0] for x in ret.fetchall()]
-            
+
             if len(table_names) == 0:
                 # we have a brand new database. Create all tables and indices
                 c.executescript("""
-                    CREATE TABLE path_cache (entity_type text, entity_id integer, entity_name text, root text, path text, primary_entity integer);
-                
+                    CREATE TABLE path_cache (
+                        entity_type text, entity_id integer, entity_name text,
+                        root text, path text, primary_entity integer
+                    );
+
                     CREATE INDEX path_cache_entity ON path_cache(entity_type, entity_id);
-                
+
                     CREATE INDEX path_cache_path ON path_cache(root, path, primary_entity);
-                
-                    CREATE UNIQUE INDEX path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
-                    
+
+                    CREATE UNIQUE INDEX path_cache_all ON path_cache(
+                        entity_type, entity_id, root, path, primary_entity
+                    );
+
                     CREATE TABLE event_log_sync (last_id integer);
-                    
+
                     CREATE TABLE shotgun_status (path_cache_id integer, shotgun_id integer);
-                    
+
                     CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);
                     """)
                 self._connection.commit()
-                
+
             else:
-                
+
                 # we have an existing database! Ensure it is up to date
                 if "event_log_sync" not in table_names:
                     # this is a pre-0.15 setup where the path cache does not have event log sync
                     c.executescript("CREATE TABLE event_log_sync (last_id integer);")
                     self._connection.commit()
-                
+
                 if "shotgun_status" not in table_names:
                     # this is a pre-0.15 setup where the path cache does not have the shotgun_status table
                     c.executescript("""CREATE TABLE shotgun_status (path_cache_id integer, shotgun_id integer);
                                        CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);""")
                     self._connection.commit()
 
-                
                 # now ensure that some key fields that have been added during the dev cycle are there
                 ret = c.execute("PRAGMA table_info(path_cache)")
                 field_names = [x[1] for x in ret.fetchall()]
-                
+
                 # check for primary entity field - this was added back in 0.12.x
                 if "primary_entity" not in field_names:
                     c.executescript("""
                         ALTER TABLE path_cache ADD COLUMN primary_entity integer;
                         UPDATE path_cache SET primary_entity=1;
-        
+
                         DROP INDEX IF EXISTS path_cache_path;
                         CREATE INDEX IF NOT EXISTS path_cache_path ON path_cache(root, path, primary_entity);
-                        
+
                         DROP INDEX IF EXISTS path_cache_all;
-                        CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
+                        CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(
+                            entity_type, entity_id, root, path, primary_entity
+                        );
                         """)
-        
+
                     self._connection.commit()
-        
+
         finally:
             c.close()
 
@@ -219,9 +226,12 @@ class PathCache(object):
 
     def _separate_root(self, full_path):
         """
-        Determines project root path and relative path.
+        Finds in which local storage a file is located and its path within it.
 
-        :returns: root_name, relative_path
+        :param str full_path: Complete path to a file.
+
+        :returns: Tuple comprised of the local storage name and the relative path to the file inside it.
+        :rtype: tuple(str, str)
         """
         n_path = full_path.replace(os.sep, "/")
         # Deterimine which root
@@ -236,22 +246,21 @@ class PathCache(object):
                 break
 
         if not root_name:
-            
-            storages_str = ",".join( self._roots.values() )
-            
+
+            storages_str = ",".join(self._roots.values())
+
             raise TankError("The path '%s' could not be split up into a project centric path for "
                             "any of the storages %s that are associated with this "
                             "project." % (full_path, storages_str))
 
         return root_name, relative_path
 
-
     def _dbpath_to_path(self, root_path, dbpath):
         """
-        converts a dbpath to path for the local platform
+        Turns a relative path in a local storage into an absolute path.
 
         linux:    /foo/bar --> /studio/proj/foo/bar
-        windows:  /foo/bar --> \\studio\proj\foo\bar         
+        windows:  /foo/bar --> \\studio\proj\foo\bar
 
         :param root_path: Project root path
         :param db_path: Relative path
