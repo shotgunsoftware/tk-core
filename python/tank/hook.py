@@ -16,6 +16,7 @@ import os
 import sys
 import logging
 import threading
+import urllib
 from .util.loader import load_plugin
 from . import LogManager
 from .errors import (
@@ -246,10 +247,22 @@ class Hook(object):
                                 "not contain a valid path definition" % sg_data)
 
             local_path = path_field.get("local_path")
-            if local_path is None:
+            url = path_field.get("url")
+            if local_path:
+                paths.append(local_path)
+
+            elif url and url.startswith("file://"):
+                # this is a url pointing at a local file
+                # strip off the file:// part
+                paths.append(
+                    urllib.unquote(
+                        url[len("file://"):]
+                    )
+                )
+
+            else:
                 raise TankError("Cannot resolve path from publish! The shotgun dictionary %s does "
                                 "not contain a valid path definition" % sg_data)
-            paths.append(local_path)
 
         return paths
 
