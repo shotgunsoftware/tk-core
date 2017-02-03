@@ -743,9 +743,8 @@ class ToolkitManager(object):
         """
         Logs a user activity metric when an engine is bootstrapped.
 
-        For example:
-            Module: ``tk-bootstrap basic.maya`` or ``tk-bootstrap classic``
-            Action: ``Launched engine tk-maya in project context``
+        Module: ``tk-core``
+        Action: ``bootstrap <bootstrap_type> <engine_name> <context_name>``
 
         :param engine_name: Name of the engine being bootstrapped.
         :param entity: Shotgun entity to bootstrap into, or ``None`` for the site.
@@ -755,13 +754,12 @@ class ToolkitManager(object):
         # This is required to make sure we log into the logging queue of this swapped core.
         from tank.util import log_user_activity_metric
 
-        if self._plugin_id:
-            module = "tk-bootstrap %s" % self._plugin_id
-        else:
-            module = "tk-bootstrap classic"
+        module = "tk-core"
 
+        bootstrap_type = self._plugin_id if self._plugin_id else "classic"
         context_name = "project" if entity else "site"
-        action = "Launched engine %s in %s context" % (engine_name, context_name)
+
+        action = "bootstrap %s %s %s" % (bootstrap_type, engine_name, context_name)
 
         log.debug("Logging user activity metric: module '%s', action '%s'" % (module, action))
 
