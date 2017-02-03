@@ -14,11 +14,13 @@ All custom exceptions that this module emits are defined here.
 
 from ..errors import TankError
 
+
 class TankDescriptorError(TankError):
     """
     Base class for all descriptor related errors.
     """
     pass
+
 
 class TankAppStoreError(TankDescriptorError):
     """
@@ -26,8 +28,15 @@ class TankAppStoreError(TankDescriptorError):
     """
     pass
 
+
 class TankAppStoreConnectionError(TankAppStoreError):
     """
     Errors indicating an error connecting to the Toolkit App Store.
     """
     pass
+
+
+class InvalidAppStoreCredentialsError(TankAppStoreConnectionError):
+    """
+    Error indicating no credentials for the Toolkit App Store were found in Shotgun.
+    """
