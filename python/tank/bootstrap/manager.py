@@ -609,6 +609,10 @@ class ToolkitManager(object):
         :returns: Started :class:`~sgtk.platform.Engine` instance.
         """
 
+        # Log a user activity metric saying which engine and entity are bootstrapping
+        # since we can now log into the logging queue of the new swapped core.
+        self._log_bootstrap_metric(engine_name, entity)
+
         log.debug("Begin starting up engine %s." % engine_name)
 
         if progress_callback is None:
@@ -734,3 +738,31 @@ class ToolkitManager(object):
         phase_name = "TOOLKIT_BOOTSTRAP_PHASE" if phase == self.TOOLKIT_BOOTSTRAP_PHASE else "ENGINE_STARTUP_PHASE"
 
         log.debug("Default failed callback (%s): %s" % (phase_name, exception))
+
+    def _log_bootstrap_metric(self, engine_name, entity):
+        """
+        Logs a user activity metric when an engine is bootstrapped.
+
+        For example:
+            Module: ``tk-bootstrap basic.maya`` or ``tk-bootstrap classic``
+            Action: ``Launched engine tk-maya in project context``
+
+        :param engine_name: Name of the engine being bootstrapped.
+        :param entity: Shotgun entity to bootstrap into, or ``None`` for the site.
+        """
+
+        # Perform an absolute import to ensure we get the new swapped core.
+        # This is required to make sure we log into the logging queue of this swapped core.
+        from tank.util import log_user_activity_metric
+
+        if self._plugin_id:
+            module = "tk-bootstrap %s" % self._plugin_id
+        else:
+            module = "tk-bootstrap classic"
+
+        context_name = "project" if entity else "site"
+        action = "Launched engine %s in %s context" % (engine_name, context_name)
+
+        log.debug("Logging user activity metric: module '%s', action '%s'" % (module, action))
+
+        log_user_activity_metric(module, action)
