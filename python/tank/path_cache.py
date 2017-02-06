@@ -100,26 +100,32 @@ class PathCache(object):
 
             if len(table_names) == 0:
                 # we have a brand new database. Create all tables and indices
-                c.executescript("""
-                    CREATE TABLE path_cache (
+                c.executescript(
+                    """CREATE TABLE path_cache (
                         entity_type text, entity_id integer, entity_name text,
                         root text, path text, primary_entity integer
-                    );
+                    );"""
 
-                    CREATE INDEX path_cache_entity ON path_cache(entity_type, entity_id);
+                    """CREATE INDEX path_cache_entity ON path_cache(entity_type, entity_id);"""
 
-                    CREATE INDEX path_cache_path ON path_cache(root, path, primary_entity);
+                    """CREATE INDEX path_cache_path ON path_cache(root, path, primary_entity);"""
 
-                    CREATE UNIQUE INDEX path_cache_all ON path_cache(
+                    """CREATE UNIQUE INDEX path_cache_all ON path_cache(
                         entity_type, entity_id, root, path, primary_entity
-                    );
+                    );"""
 
-                    CREATE TABLE event_log_sync (last_id integer);
+                    """CREATE TABLE event_log_sync (last_id integer);"""
 
-                    CREATE TABLE shotgun_status (path_cache_id integer, shotgun_id integer);
-
-                    CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);
-                    """)
+                    # This table creates a mapping between local database path cache entries and the
+                    # ids of the FileSystemLocation entities in Shotgun.
+                    """CREATE TABLE shotgun_status (path_cache_id integer, shotgun_id integer);"""
+                    # This is an index that ensures that each file system location entry in the
+                    # above table is present only once. It wouldn't make any sense to have
+                    # the same entry in Shotgun point to be reused in a second record.
+                    #
+                    # FIXME: Figure out if path_cache_id should have the same restriction. Surely
+                    # an entry shouldn't map to two different Shotgun Ids?
+                    """CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);""")
                 self._connection.commit()
 
             else:
