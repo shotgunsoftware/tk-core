@@ -763,7 +763,13 @@ def _group_by_storage(tk, list_of_paths):
     for path in list_of_paths:
 
         # use abstracted path if path is part of a sequence
-        abstract_path = _translate_abstract_fields(tk, path)
+        try:
+            abstract_path = _translate_abstract_fields(tk, path)
+        except TankError:
+            # This will happen if the path isn't valid due to a lack of
+            # clearly-matched template. In that case we skip it.
+            continue
+
         root_name, dep_path_cache = _calc_path_cache(tk, abstract_path)
 
         # make sure that the path is even remotely valid, otherwise skip
