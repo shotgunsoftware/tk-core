@@ -22,7 +22,7 @@ from tank.util.system_settings import SystemSettings
 
 class SystemSettingsTests(TankTestBase):
     """
-    Tests functionality around toolkit.ini
+    Tests functionality from the SystemSettings class.
     """
 
     def test_system_proxy(self):
