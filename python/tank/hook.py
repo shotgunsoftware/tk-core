@@ -15,7 +15,9 @@ Defines the base class for all Tank Hooks.
 import os
 import sys
 import logging
+import urlparse
 import threading
+import urllib
 from .util.loader import load_plugin
 from . import LogManager
 from .errors import (
@@ -241,15 +243,42 @@ class Hook(object):
         paths = []
         for sg_data in sg_publish_data_list:
             path_field = sg_data.get("path")
+
             if path_field is None:
                 raise TankError("Cannot resolve path from publish! The shotgun dictionary %s does "
                                 "not contain a valid path definition" % sg_data)
 
-            local_path = path_field.get("local_path")
-            if local_path is None:
-                raise TankError("Cannot resolve path from publish! The shotgun dictionary %s does "
-                                "not contain a valid path definition" % sg_data)
-            paths.append(local_path)
+            resolved_path = None
+
+            if "local_path" in path_field:
+                # first, look for a local file link
+                resolved_path = path_field["local_path"]
+
+            elif "url" in path_field:
+                # secondly, look for a file:// style url
+
+                url = path_field["url"]
+                # url = "file:///path/to/some/file.txt"
+                results = urlparse.urlparse(url)
+                # ParseResult(
+                # scheme='file',
+                # netloc='',
+                # path='/path/to/some/file.txt',
+                # params='',
+                # query='',
+                # fragment=''
+                # )
+
+                if results.scheme == "file":
+                    resolved_path = urllib.unquote(results.path)
+
+            if resolved_path is None:
+                raise TankError(
+                    "Cannot resolve path from publish! The shotgun dictionary %s does "
+                    "not contain a valid path definition" % sg_data
+                )
+            else:
+                paths.append(resolved_path)
 
         return paths
 
