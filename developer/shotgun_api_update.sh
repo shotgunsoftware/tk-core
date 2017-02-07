@@ -68,40 +68,30 @@ trap 'abort' 0
 SRC_REPO=git@github.com:shotgunsoftware/python-api.git
 # Where we'll clone the repo
 DEST_REPO=$ROOT/repo
-# Zip file that will be generated from that repo
-ZIP=$ROOT/tk-core.zip
-UNZIPPED=$ROOT/unzipped
-SHOTGUN_API_SRC=$UNZIPPED/shotgun_api3
 # Destination relative to this script for the files
 DEST=`pwd`/../python/tank_vendor/shotgun_api3
 
 # Recreate the folder structure
 mkdir $ROOT
 mkdir $DEST_REPO
+# Strip files from the destination and recreate it.
+rm -rf $DEST/*
 
-# Strip files from the destination
-rm -rf $DEST
-
-# Clone the repo
 echo "Cloning the Shotgun API into a temp location, hang on..."
+# Clone the repo
 git clone $SRC_REPO $DEST_REPO
 
-# Generate the zip
-echo "Archiving tag '$1'..."
-git archive --format zip --output $ZIP --remote $DEST_REPO $1
-
-# Unzip the files except for the tests.
-echo "unpacking tag..."
-unzip $ZIP -d $UNZIPPED
-
+echo "Checking out the requested version..."
 # Move to the git repo to generate the sha and write it to the $DEST
-echo "writing commit_id file..."
 pushd $DEST_REPO
-git rev-parse HEAD > $SHOTGUN_API_SRC/commit_id
+git checkout $1
+git rev-parse HEAD > $DEST/commit_id
 popd
 
-echo "copying files to target location..."
-cp -R $SHOTGUN_API_SRC $DEST
+echo "Copying Shotgun API to the required location..."
+
+# Copy the files to the destination
+cp -R $DEST_REPO/shotgun_api3/* $DEST
 
 # Put files in the staging area.
 echo "adding new files to git..."
