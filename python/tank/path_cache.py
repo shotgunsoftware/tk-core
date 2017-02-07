@@ -899,7 +899,16 @@ class PathCache(object):
                     msg += "is changed. In order to continue you can either change "
                     msg += "the %s back to its previous name or you can unregister " % entity["type"]
                     msg += "the currently associated folders by running the following command: "
-                    msg += "'tank %s %s unregister_folders' and then try again." % (entity["type"], entity["name"])                    
+
+                    # Steps are a special case. We need to tell the user to unregister the
+                    # the conflicting path directly rather than by entity.
+                    if entity["type"] == "Step":
+                        msg += "'tank unregister_folders %s' and then try again." % p
+                    else:
+                        msg += "'tank %s %s unregister_folders' and then try again." % (
+                            entity["type"],
+                            entity["name"]
+                        )                    
                     raise TankError(msg)
 
 
