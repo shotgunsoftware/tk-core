@@ -740,7 +740,8 @@ class IODescriptorAppStore(IODescriptorBase):
             return settings.app_store_proxy
 
         # Use the http proxy from the connection so we don't have to run
-        # the connection hook again.
+        # the connection hook again or look up the system settings as they
+        # will have been previously looked up to create the connection to Shotgun.
         return self._sg_connection.config.raw_http_proxy
 
     @LogManager.log_timing
