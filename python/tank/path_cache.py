@@ -901,7 +901,12 @@ class PathCache(object):
                     msg += "the currently associated folders by running the following command: "
 
                     # Steps are a special case. We need to tell the user to unregister the
-                    # the conflicting path directly rather than by entity.
+                    # conflicting path directly rather than by entity. The reason for this is
+                    # is two fold: running the unregister on the folder directly will properly
+                    # handle the underlying Task folders beneath the Step. Also, we have some
+                    # logic that assumes an entity being unregistered has a Project, and that
+                    # isn't the case for Step entities. All in all, this is the right thing for
+                    # a user to do to resolve the renamed Step entity's folder situation.
                     if entity["type"] == "Step":
                         msg += "'tank unregister_folders %s' and then try again." % p
                     else:
