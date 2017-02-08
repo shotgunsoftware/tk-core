@@ -27,10 +27,13 @@ from ..descriptor import Descriptor
 from ..errors import TankAppStoreConnectionError
 from ..errors import TankAppStoreError
 from ..errors import TankDescriptorError
+from ..errors import InvalidAppStoreCredentialsError
 
 from ... import LogManager
 from .. import constants
 from .base import IODescriptorBase
+
+from ...constants import SUPPORT_EMAIL
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -685,6 +688,11 @@ class IODescriptorAppStore(IODescriptorBase):
                     filters=[["firstname", "is", script_name]],
                     fields=["type", "id"]
                 )
+            except shotgun_api3.AuthenticationFault:
+                raise InvalidAppStoreCredentialsError(
+                    "The Toolkit App Store credentials found in Shotgun are invalid.\n"
+                    "Please contact %s to resolve this issue." % SUPPORT_EMAIL
+                )
             # Connection errors can occur for a variety of reasons. For example, there is no
             # internet access or there is a proxy server blocking access to the Toolkit app store.
             except (httplib2.HttpLib2Error, httplib2.socks.HTTPError, httplib.HTTPException), e:
@@ -727,10 +735,7 @@ class IODescriptorAppStore(IODescriptorBase):
         try:
             config_data = shotgun.get_associated_sg_config_data()
         except UnresolvableCoreConfigurationError:
-            # This core is not part of a pipeline configuration, we're probably bootstrapping,
-            # so skip the check and simply return the regular proxy settings.
-            log.debug("No core configuration was found, using the current connection's proxy setting.")
-            return self._sg_connection.config.raw_http_proxy
+            config_data = None
 
         if config_data and constants.APP_STORE_HTTP_PROXY in config_data:
             return config_data[constants.APP_STORE_HTTP_PROXY]
@@ -768,6 +773,12 @@ class IODescriptorAppStore(IODescriptorBase):
         html = response.read()
         data = json.loads(html)
 
+        if not data["script_name"] or not data["script_key"]:
+            raise InvalidAppStoreCredentialsError(
+                "Toolkit App Store credentials could not be retrieved from Shotgun.\n"
+                "Please contact %s to resolve this issue." % SUPPORT_EMAIL
+            )
+
         log.debug("Retrieved app store credentials for account '%s'." % data["script_name"])
 
         return data["script_name"], data["script_key"]
@@ -788,6 +799,9 @@ class IODescriptorAppStore(IODescriptorBase):
             # connect to the app store
             (sg, _) = self.__create_sg_app_store_connection()
             log.debug("...connection established: %s" % sg)
+        except InvalidAppStoreCredentialsError:
+            # Let this one bubble up, there's something wrong going on with the appstore credentials
+            raise
         except Exception, e:
             log.debug("...could not establish connection: %s" % e)
             can_connect = False

@@ -13,6 +13,7 @@ import os
 from . import constants
 from .errors import TankBootstrapError
 from .configuration import Configuration
+from .installed_configuration import InstalledConfiguration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
@@ -679,15 +680,16 @@ class ToolkitManager(object):
         self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
-        # make sure we have all the apps locally downloaded
-        # this check is quick, so always perform the check, even
-        # when the config is up to date - someone may have
-        # deleted their bundle cache but left the config.
-        self._cache_apps(
-            tk.pipeline_configuration,
-            engine_name,
-            progress_callback
-        )
+        if not isinstance(config, InstalledConfiguration):
+            # make sure we have all the apps locally downloaded
+            # this check is quick, so always perform the check, except for installed config, which are
+            # self contained, even when the config is up to date - someone may have deleted their
+            # bundle cache
+            self._cache_apps(
+                tk.pipeline_configuration,
+                engine_name,
+                progress_callback
+            )
 
         return tk
 
@@ -715,9 +717,12 @@ class ToolkitManager(object):
         except TankError, e:
             raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
 
-        # Now cache the apps. Always do this since someone can blow their bundle cache but leave
-        # the configuration intact.
-        self._cache_apps(pc, engine_name, self.progress_callback)
+        if not isinstance(config, InstalledConfiguration):
+            # make sure we have all the apps locally downloaded
+            # this check is quick, so always perform the check, except for installed config, which are
+            # self contained, even when the config is up to date - someone may have deleted their
+            # bundle cache
+            self._cache_apps(pc, engine_name, self.progress_callback)
 
         self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine ready.")
 
@@ -741,6 +746,10 @@ class ToolkitManager(object):
                                   Set to ``None`` to use the default callback function.
         :returns: Started :class:`~sgtk.platform.Engine` instance.
         """
+
+        # Log a user activity metric saying which engine and entity are bootstrapping
+        # since we can now log into the logging queue of the new swapped core.
+        self._log_bootstrap_metric(engine_name, entity)
 
         log.debug("Begin starting up engine %s." % engine_name)
 
@@ -878,3 +887,29 @@ class ToolkitManager(object):
         phase_name = "TOOLKIT_BOOTSTRAP_PHASE" if phase == self.TOOLKIT_BOOTSTRAP_PHASE else "ENGINE_STARTUP_PHASE"
 
         log.debug("Default failed callback (%s): %s" % (phase_name, exception))
+
+    def _log_bootstrap_metric(self, engine_name, entity):
+        """
+        Logs a user activity metric when an engine is bootstrapped.
+
+        Module: ``tk-core``
+        Action: ``bootstrap <bootstrap_type> <engine_name> <context_name>``
+
+        :param engine_name: Name of the engine being bootstrapped.
+        :param entity: Shotgun entity to bootstrap into, or ``None`` for the site.
+        """
+
+        # Perform an absolute import to ensure we get the new swapped core.
+        # This is required to make sure we log into the logging queue of this swapped core.
+        from tank.util import log_user_activity_metric
+
+        module = "tk-core"
+
+        bootstrap_type = self._plugin_id if self._plugin_id else "classic"
+        context_name = "project" if entity else "site"
+
+        action = "bootstrap %s %s %s" % (bootstrap_type, engine_name, context_name)
+
+        log.debug("Logging user activity metric: module '%s', action '%s'" % (module, action))
+
+        log_user_activity_metric(module, action)
