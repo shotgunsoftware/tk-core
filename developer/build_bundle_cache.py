@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2017 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -22,7 +22,6 @@ import os
 
 import sys
 import shutil
-import glob
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -30,31 +29,19 @@ python_folder = os.path.abspath(os.path.join(this_folder, "..", "python"))
 sys.path.append(python_folder)
 
 # sgtk imports
-from tank import LogManager
-from tank.util import filesystem
-from tank.descriptor import Descriptor, create_descriptor
+from sgtk import LogManager
+from sgtk.util import filesystem
+from sgtk.descriptor import Descriptor, create_descriptor
 
-from utils import cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog
+from utils import (
+    cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache
+)
 
 # set up logging
 logger = LogManager.get_logger("build_plugin")
 
 # the folder where all items will be cached
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
-
-
-def _cleaup_git_folders(bundle_cache_root):
-    logger.info("")
-    glob_pattern = os.path.join(
-        bundle_cache_root,
-        "git*", # Grabs all git descriptors
-        "*", # Grabs all bundles inside those descriptors
-        "*", # Grabs all commits inside those bundles
-        ".git" # Grabs all git files inside those commits.
-    )
-    for dot_git_folder in glob.iglob(glob_pattern):
-        logger.info("Removing %s...", dot_git_folder)
-        shutil.rmtree(dot_git_folder)
 
 
 def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
@@ -117,7 +104,7 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
         bootstrap_core_desc.ensure_local()
         bootstrap_core_desc.clone_cache(bundle_cache_root)
 
-    _cleaup_git_folders(bundle_cache_root)
+    cleanup_bundle_cache(bundle_cache_root)
 
     logger.info("")
     logger.info("Build complete!")

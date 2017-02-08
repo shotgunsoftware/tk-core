@@ -38,7 +38,9 @@ from tank.bootstrap.baked_configuration import BakedConfiguration
 from tank.bootstrap import constants as bootstrap_constants
 from tank_vendor import yaml
 
-from utils import cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog
+from utils import (
+    cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache
+)
 
 # set up logging
 logger = LogManager.get_logger("build_plugin")
@@ -460,6 +462,8 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
             bundle_cache_root_override=bundle_cache_root
         )
         associated_core_desc.ensure_local()
+
+    cleanup_bundle_cache(bundle_cache_root)
 
     logger.info("")
     logger.info("Build complete!")

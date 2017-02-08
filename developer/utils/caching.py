@@ -1,96 +1,24 @@
+# Copyright (c) 2017 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
 import os
-import optparse
+import glob
+import shutil
 
-
-from tank import LogManager
 from tank.util import filesystem
 from tank.platform import environment
 from tank.descriptor import Descriptor, create_descriptor
-from tank.authentication import ShotgunAuthenticator
 
-logger = LogManager.get_logger("utils")
+from tank import LogManager
 
-
-class OptionParserLineBreakingEpilog(optparse.OptionParser):
-    """
-    Subclassed version of the option parser that doesn't
-    swallow white space in the epilog
-    """
-    def format_epilog(self, formatter):
-        return self.epilog
-
-
-def add_authentication_options(parser):
-    """
-    Adds authentication options to an option parser.
-
-    :param parser: OptionParser to which authentication options will be added.
-    """
-    group = optparse.OptionGroup(
-        parser,
-        "Shotgun Authentication",
-        "In order to download content from the Toolkit app store, the script will need to authenticate "
-        "against any shotgun site. By default, it will use the toolkit authentication APIs stored "
-        "credentials, and if such are not found, it will prompt for site, username and password."
-    )
-
-    group.add_option(
-        "-s",
-        "--shotgun-host",
-        default=None,
-        action="store",
-        help="Shotgun host to authenticate with."
-    )
-
-    group.add_option(
-        "-n",
-        "--shotgun-script-name",
-        default=None,
-        action="store",
-        help="Script to use to authenticate with the given host."
-    )
-
-    group.add_option(
-        "-k",
-        "--shotgun-script-key",
-        default=None,
-        action="store",
-        help="Script key to use to authenticate with the given host."
-    )
-
-    parser.add_option_group(group)
-
-
-def authenticate(options):
-    """
-    Authenticates using the command line arguments or user input.
-
-    :param options: OptionParser instance with values shotgun_host, shotgun_script_key and shotgun_script_name
-
-    :returns: An authenticated ShotgunUser instance.
-    """
-    # now authenticate to shotgun
-    sg_auth = ShotgunAuthenticator()
-
-    if options.shotgun_host:
-        script_name = options.shotgun_script_name
-        script_key = options.shotgun_script_key
-
-        if script_name is None or script_key is None:
-            logger.error("Need to provide, host, script name and script key! Run with -h for more info.")
-            return 2
-
-        logger.info("Connecting to %s using script user %s..." % (options.shotgun_host, script_name))
-        sg_user = sg_auth.create_script_user(script_name, script_key, options.shotgun_host)
-
-    else:
-        # get user, prompt if necessary
-        sg_user = sg_auth.get_user()
-
-    # Make sure our session is not out of date.
-    sg_user.refresh_credentials()
-
-    return sg_user
+logger = LogManager.get_logger("utils.caching")
 
 
 def _cache_descriptor(sg, desc_type, desc_dict, target_path):
@@ -164,3 +92,33 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
             )
 
     logger.info("Total size of bundle cache: %d KiB" % (filesystem.compute_folder_size(bundle_cache_root) / 1024))
+
+
+def cleanup_bundle_cache(bundle_cache_root):
+    """
+    Cleans up the bundle cache from any stray files that should not be shipped.
+
+    This includes:
+        - .git folders.
+    """
+    logger.info("")
+    glob_patterns = [
+        os.path.join(
+            bundle_cache_root,
+            "git*", # Grabs all git descriptors
+            "*", # Grabs all bundles inside those descriptors
+            "*", # Grabs all commits inside those bundles
+            ".git" # Grabs all git files inside those commits.
+        ),
+        os.path.join(
+            bundle_cache_root,
+            "*", # Grabs all descriptor types
+            "*", # Grabs all bundles inside those descriptors
+            "*", # Grabs all commits inside those bundles
+            "tests" # Grabs all tests folders.
+        )
+    ]
+    for glob_pattern in glob_patterns:
+        for folder_to_remove in glob.iglob(glob_pattern):
+            logger.info("Removing %s...", folder_to_remove)
+            shutil.rmtree(folder_to_remove)
