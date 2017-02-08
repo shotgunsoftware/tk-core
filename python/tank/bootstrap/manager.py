@@ -13,6 +13,7 @@ import os
 from . import constants
 from .errors import TankBootstrapError
 from .configuration import Configuration
+from .installed_configuration import InstalledConfiguration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
@@ -37,6 +38,18 @@ class ToolkitManager(object):
     # - bootstrapping the toolkit (with method bootstrap_toolkit),
     # - starting up the engine (with method _start_engine).
     (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = range(2)
+
+    # List of constants representing the status of the progress bar when these event occurs during bootstrap.
+    _RESOLVING_PROJECT_RATE = 0.0
+    _RESOLVING_CONFIG_RATE = 0.05
+    _UPDATING_CONFIGURATION_RATE = 0.1
+    _STARTING_TOOLKIT_RATE = 0.15
+    _START_DOWNLOADING_APPS_RATE = 0.20
+    _END_DOWNLOADING_APPS_RATE = 0.90
+    _POST_INSTALL_APPS_RATE = _END_DOWNLOADING_APPS_RATE
+    _RESOLVING_CONTEXT_RATE = 0.95
+    _LAUNCHING_ENGINE_RATE = 0.97
+    _BOOTSTRAP_COMPLETED = 1
 
     def __init__(self, sg_user=None):
         """
@@ -361,6 +374,8 @@ class ToolkitManager(object):
 
         engine = self._start_engine(tk, engine_name, entity)
 
+        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
+
         return engine
 
     def bootstrap_engine_async(self,
@@ -523,7 +538,7 @@ class ToolkitManager(object):
 
         :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.
         """
-        self._report_progress(progress_callback, 0.0, "Resolving project...")
+        self._report_progress(progress_callback, self._RESOLVING_PROJECT_RATE, "Resolving project...")
         if entity is None:
             project_id = None
 
@@ -548,7 +563,7 @@ class ToolkitManager(object):
 
         # get an object to represent the business logic for
         # how a configuration location is being determined
-        self._report_progress(progress_callback, 0.1, "Resolving configuration...")
+        self._report_progress(progress_callback, self._RESOLVING_CONFIG_RATE, "Resolving configuration...")
 
         resolver = ConfigurationResolver(
             self._plugin_id,
@@ -613,7 +628,7 @@ class ToolkitManager(object):
         # see what we have locally
         status = config.status()
 
-        self._report_progress(progress_callback, 0.2, "Updating configuration...")
+        self._report_progress(progress_callback, self._UPDATING_CONFIGURATION_RATE, "Updating configuration...")
         if status == Configuration.LOCAL_CFG_UP_TO_DATE:
             log.debug("Your locally cached configuration is up to date.")
 
@@ -640,6 +655,10 @@ class ToolkitManager(object):
 
         If entity is None, the method will bootstrap into the site
         config. This method will attempt to resolve the configuration and download it
+
+        self._report_progress(progress_callback, self._BOOTSTRAP_COMPLETED, "Toolkit ready.")
+
+        return tk
         locally. Note that it will not cache the application bundles.
 
         Please note that the API version of the :class:`~sgtk.Sgtk` instance may not be the same as the
@@ -658,18 +677,19 @@ class ToolkitManager(object):
         config = self._get_configuration(entity, progress_callback)
 
         # we can now boot up this config.
-        self._report_progress(progress_callback, 0.3, "Starting up Toolkit...")
+        self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
-        # make sure we have all the apps locally downloaded
-        # this check is quick, so always perform the check, even
-        # when the config is up to date - someone may have
-        # deleted their bundle cache but left the config.
-        self._cache_apps(
-            tk.pipeline_configuration,
-            engine_name,
-            progress_callback
-        )
+        if not isinstance(config, InstalledConfiguration):
+            # make sure we have all the apps locally downloaded
+            # this check is quick, so always perform the check, except for installed config, which are
+            # self contained, even when the config is up to date - someone may have deleted their
+            # bundle cache
+            self._cache_apps(
+                tk.pipeline_configuration,
+                engine_name,
+                progress_callback
+            )
 
         return tk
 
@@ -697,9 +717,14 @@ class ToolkitManager(object):
         except TankError, e:
             raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
 
-        # Now cache the apps. Always do this since someone can blow their bundle cache but leave
-        # the configuration intact.
-        self._cache_apps(pc, engine_name, self.progress_callback)
+        if not isinstance(config, InstalledConfiguration):
+            # make sure we have all the apps locally downloaded
+            # this check is quick, so always perform the check, except for installed config, which are
+            # self contained, even when the config is up to date - someone may have deleted their
+            # bundle cache
+            self._cache_apps(pc, engine_name, self.progress_callback)
+
+        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine ready.")
 
         return path
 
@@ -722,18 +747,22 @@ class ToolkitManager(object):
         :returns: Started :class:`~sgtk.platform.Engine` instance.
         """
 
+        # Log a user activity metric saying which engine and entity are bootstrapping
+        # since we can now log into the logging queue of the new swapped core.
+        self._log_bootstrap_metric(engine_name, entity)
+
         log.debug("Begin starting up engine %s." % engine_name)
 
         if progress_callback is None:
             progress_callback = self.progress_callback
 
-        self._report_progress(progress_callback, 0.8, "Resolving context...")
+        self._report_progress(progress_callback, self._RESOLVING_CONTEXT_RATE, "Resolving context...")
         if entity is None:
             ctx = tk.context_empty()
         else:
             ctx = tk.context_from_entity_dictionary(entity)
 
-        self._report_progress(progress_callback, 0.9, "Launching Engine...")
+        self._report_progress(progress_callback, self._LAUNCHING_ENGINE_RATE, "Launching Engine...")
         log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
 
         if self.pre_engine_start_callback:
@@ -746,6 +775,8 @@ class ToolkitManager(object):
         engine = tank.platform.start_engine(engine_name, tk, ctx)
 
         log.debug("Launched engine %r" % engine)
+
+        self._report_progress(progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
 
         return engine
 
@@ -780,8 +811,6 @@ class ToolkitManager(object):
         """
         log.debug("Checking that all bundles are cached locally...")
 
-        descriptors = []
-
         if self._caching_policy == self.CACHE_SPARSE:
             # Download and cache the sole config dependencies needed to run the engine being started,
             log.debug("caching_policy is CACHE_SPARSE - only check items associated with %s" % config_engine_name)
@@ -794,24 +823,29 @@ class ToolkitManager(object):
         else:
             raise TankBootstrapError("Unsupported caching_policy setting %s" % self._caching_policy)
 
+        descriptors = {}
         # pass 1 - populate list of all descriptors
         for env_name in pipeline_configuration.get_environments():
             env_obj = pipeline_configuration.get_environment(env_name)
             for engine in env_obj.get_engines():
                 if engine_constraint is None or engine == engine_constraint:
-                    descriptors.append(env_obj.get_engine_descriptor(engine))
+                    descriptor = env_obj.get_engine_descriptor(engine)
+                    descriptors[descriptor.get_uri()] = descriptor
                     for app in env_obj.get_apps(engine):
-                        descriptors.append(env_obj.get_app_descriptor(engine, app))
+                        descriptor = env_obj.get_app_descriptor(engine, app)
+                        descriptors[descriptor.get_uri()] = descriptor
 
             for framework in env_obj.get_frameworks():
-                descriptors.append(env_obj.get_framework_descriptor(framework))
+                descriptor = env_obj.get_framework_descriptor(framework)
+                descriptors[descriptor.get_uri()] = descriptor
 
         # pass 2 - download all apps
-        for idx, descriptor in enumerate(descriptors):
+        for idx, descriptor in enumerate(descriptors.values()):
 
-            # Scale the progress step 0.3 between this value 0.4 and the next one 0.7
+            # Scale the progress step 0.8 between this value 0.15 and the next one 0.95
             # to compute a value progressing while looping over the indexes.
-            progress_value = 0.4 + idx * (0.3 / len(descriptors))
+            step_size = (self._END_DOWNLOADING_APPS_RATE - self._START_DOWNLOADING_APPS_RATE) / len(descriptors)
+            progress_value = self._START_DOWNLOADING_APPS_RATE + idx * step_size
 
             if not descriptor.exists_local():
                 message = "Downloading %s (%s of %s)..." % (descriptor, idx + 1, len(descriptors))
@@ -853,3 +887,29 @@ class ToolkitManager(object):
         phase_name = "TOOLKIT_BOOTSTRAP_PHASE" if phase == self.TOOLKIT_BOOTSTRAP_PHASE else "ENGINE_STARTUP_PHASE"
 
         log.debug("Default failed callback (%s): %s" % (phase_name, exception))
+
+    def _log_bootstrap_metric(self, engine_name, entity):
+        """
+        Logs a user activity metric when an engine is bootstrapped.
+
+        Module: ``tk-core``
+        Action: ``bootstrap <bootstrap_type> <engine_name> <context_name>``
+
+        :param engine_name: Name of the engine being bootstrapped.
+        :param entity: Shotgun entity to bootstrap into, or ``None`` for the site.
+        """
+
+        # Perform an absolute import to ensure we get the new swapped core.
+        # This is required to make sure we log into the logging queue of this swapped core.
+        from tank.util import log_user_activity_metric
+
+        module = "tk-core"
+
+        bootstrap_type = self._plugin_id if self._plugin_id else "classic"
+        context_name = "project" if entity else "site"
+
+        action = "bootstrap %s %s %s" % (bootstrap_type, engine_name, context_name)
+
+        log.debug("Logging user activity metric: module '%s', action '%s'" % (module, action))
+
+        log_user_activity_metric(module, action)

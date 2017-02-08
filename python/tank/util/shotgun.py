@@ -19,6 +19,7 @@ import sys
 import uuid
 import urllib2
 import urlparse
+import urllib
 import pprint
 import time
 import threading
@@ -213,22 +214,51 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
     return config_data
 
 @LogManager.log_timing
-def download_url(sg, url, location):
+def download_url(sg, url, location, use_url_extension=False):
     """
     Convenience method that downloads a file from a given url.
     This method will take into account any proxy settings which have
     been defined in the Shotgun connection parameters.
-    
+
+    In some cases, the target content of the url is not known beforehand.
+    For example, the url ``https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227``
+    may redirect into ``https://some-site/path/to/a/thumbnail.png``. In
+    such cases, you can set the optional use_url_extension parameter to True - this
+    will cause the method to append the file extension of the resolved url to
+    the filename passed in via the location parameter. So for the urls given
+    above, you would get the following results:
+
+    - location="/path/to/file" and use_url_extension=False would return "/path/to/file"
+    - location="/path/to/file" and use_url_extension=True would return "/path/to/file.png"
+
     :param sg: Shotgun API instance to get proxy connection settings from
     :param url: url to download
     :param location: path on disk where the payload should be written.
                      this path needs to exists and the current user needs
                      to have write permissions
+    :param bool use_url_extension: Optionally append the file extension of the
+                                   resolved URL's path to the input ``location``
+                                   to construct the full path name to the downloaded
+                                   contents. The newly constructed full path name
+                                   will be returned.
+
+    :returns: Full filepath to the downloaded file. This may have been altered from
+              the input ``location`` if ``use_url_extension`` is True and a file extension
+              could be determined from the resolved url.
     :raises: :class:`TankError` on failure.
     """
-    # grab proxy server settings from the shotgun API
-    if sg.config.proxy_handler:
+    # We only need to set the auth cookie for downloads from Shotgun server,
+    # input URLs like: https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227
+    if sg.config.server in url:
+        # this method also handles proxy server settings from the shotgun API
+        __setup_sg_auth_and_proxy(sg)
+    elif sg.config.proxy_handler:
+        # These input URLs have generally already been authenticated and are
+        # in the form: https://sg-media-staging-usor-01.s3.amazonaws.com/9d93f...
+        # %3D&response-content-disposition=filename%3D%22jackpot_icon.png%22.
+        # Grab proxy server settings from the shotgun API
         opener = urllib2.build_opener(sg.config.proxy_handler)
+
         urllib2.install_opener(opener)
     
     # inherit the timeout value from the sg API    
@@ -236,12 +266,21 @@ def download_url(sg, url, location):
     
     # download the given url
     try:
+        request = urllib2.Request(url)
         if timeout and sys.version_info >= (2,6):
             # timeout parameter only available in python 2.6+
-            response = urllib2.urlopen(url, timeout=timeout)
+            response = urllib2.urlopen(request, timeout=timeout)
         else:
             # use system default
-            response = urllib2.urlopen(url)
+            response = urllib2.urlopen(request)
+
+        if use_url_extension:
+            # Make sure the disk location has the same extension as the url path.
+            # Would be nice to see this functionality moved to back into Shotgun
+            # API and removed from here.
+            url_ext = os.path.splitext(urlparse.urlparse(response.geturl()).path)[-1]
+            if url_ext:
+                location = "%s%s" % (location, url_ext)
             
         f = open(location, "wb")
         try:
@@ -250,6 +289,36 @@ def download_url(sg, url, location):
             f.close()
     except Exception, e:
         raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
+
+    return location
+
+def __setup_sg_auth_and_proxy(sg):
+    """
+    Borrowed from the Shotgun Python API, setup urllib2 with a cookie for authentication on
+    Shotgun instance.
+
+    Looks up session token and sets that in a cookie in the :mod:`urllib2` handler. This is
+    used internally for downloading attachments from the Shotgun server.
+
+    :param sg: Shotgun API instance
+    """
+    # Importing this module locally to reduce clutter and facilitate clean up when/if this
+    # functionality gets ported back into the Shotgun API.
+    import cookielib
+
+    sid = sg.get_session_token()
+    cj = cookielib.LWPCookieJar()
+    c = cookielib.Cookie('0', '_session_id', sid, None, False,
+        sg.config.server, False, False, "/", True, False, None, True,
+        None, None, {})
+    cj.set_cookie(c)
+    cookie_handler = urllib2.HTTPCookieProcessor(cj)
+    if sg.config.proxy_handler:
+        opener = urllib2.build_opener(sg.config.proxy_handler, cookie_handler)
+    else:
+        opener = urllib2.build_opener(cookie_handler)
+    urllib2.install_opener(opener)
+
 
 @LogManager.log_timing
 def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
@@ -1093,7 +1162,12 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
     # handle the path definition
     if path_is_url:
-        data["path"] = {"url": path}
+        # for quoting logic, see bugfix here:
+        # http://svn.python.org/view/python/trunk/Lib/urllib.py?r1=71780&r2=71779&pathrev=71780
+        #
+        # note: by appling a safe pattern like this, we guarantee that already quoted paths
+        #       are not touched, e.g. quote('foo bar') == quote('foo%20bar')
+        data["path"] = {"url": urllib.quote(path, safe="%/:=&?~#+!$,;'@()*[]")}
     else:
 
         # Make path platform agnostic.
