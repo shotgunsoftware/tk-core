@@ -39,7 +39,8 @@ from tank.bootstrap import constants as bootstrap_constants
 from tank_vendor import yaml
 
 from utils import (
-    cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache
+    cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache,
+    wipe_folder
 )
 
 # set up logging
@@ -374,7 +375,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     # check that target path doesn't exist
     if os.path.exists(target_path):
         logger.info("The folder '%s' already exists on disk. Removing it" % target_path)
-        shutil.rmtree(target_path)
+        wipe_folder(target_path)
 
     # try to create target path
     filesystem.ensure_folder_exists(target_path)

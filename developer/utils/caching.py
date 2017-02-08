@@ -11,6 +11,7 @@
 import os
 import glob
 import shutil
+import stat
 
 from tank.util import filesystem
 from tank.platform import environment
@@ -94,6 +95,29 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
     logger.info("Total size of bundle cache: %d KiB" % (filesystem.compute_folder_size(bundle_cache_root) / 1024))
 
 
+def _on_rm_error(func, path, exc_info):
+    # On Windows, Python's shutil can't delete read-only files, so if we were trying to delete one,
+    # remove the flag.
+    # Inspired by http://stackoverflow.com/a/4829285/1074536
+    if func == os.unlink:
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+    else:
+        # Raise the exception, something else went wrong.
+        raise exc_info[1]
+
+
+def wipe_folder(folder):
+    """
+    Deletes all folders recursively.
+
+    This will take care of wiping any permissions that might prevent from deleting a file.
+
+    :param str bundle_cache_root: Path to the bundle cache.
+    """
+    shutil.rmtree(folder, onerror=_on_rm_error)
+
+
 def cleanup_bundle_cache(bundle_cache_root):
     """
     Cleans up the bundle cache from any stray files that should not be shipped.
@@ -119,6 +143,6 @@ def cleanup_bundle_cache(bundle_cache_root):
         )
     ]
     for glob_pattern in glob_patterns:
-        for folder_to_remove in glob.iglob(glob_pattern):
+        for folder_to_remove in glob.glob(glob_pattern):
             logger.info("Removing %s...", folder_to_remove)
-            shutil.rmtree(folder_to_remove)
+            wipe_folder(folder_to_remove)

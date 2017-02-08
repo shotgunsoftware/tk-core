@@ -21,7 +21,6 @@ from __future__ import with_statement
 import os
 
 import sys
-import shutil
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -34,7 +33,8 @@ from sgtk.util import filesystem
 from sgtk.descriptor import Descriptor, create_descriptor
 
 from utils import (
-    cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache
+    cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache,
+    wipe_folder
 )
 
 # set up logging
@@ -61,7 +61,7 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
     # check that target path doesn't exist
     if os.path.exists(bundle_cache_root):
         logger.info("The folder '%s' already exists on disk. Removing it" % bundle_cache_root)
-        shutil.rmtree(bundle_cache_root)
+        wipe_folder(bundle_cache_root)
 
     # try to create target path
     logger.info("Creating bundle cache folder...")
