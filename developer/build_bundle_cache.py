@@ -22,6 +22,7 @@ import os
 
 import sys
 import shutil
+import glob
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -40,6 +41,20 @@ logger = LogManager.get_logger("build_plugin")
 
 # the folder where all items will be cached
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
+
+
+def _cleaup_git_folders(bundle_cache_root):
+    logger.info("")
+    glob_pattern = os.path.join(
+        bundle_cache_root,
+        "git*", # Grabs all git descriptors
+        "*", # Grabs all bundles inside those descriptors
+        "*", # Grabs all commits inside those bundles
+        ".git" # Grabs all git files inside those commits.
+    )
+    for dot_git_folder in glob.iglob(glob_pattern):
+        logger.info("Removing %s...", dot_git_folder)
+        shutil.rmtree(dot_git_folder)
 
 
 def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
@@ -102,6 +117,8 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
         bootstrap_core_desc.ensure_local()
         bootstrap_core_desc.clone_cache(bundle_cache_root)
 
+    _cleaup_git_folders(bundle_cache_root)
+
     logger.info("")
     logger.info("Build complete!")
     logger.info("")
@@ -129,7 +146,7 @@ Details and Examples
 In it's simplest form, provide a descriptor to a configuration and the location
 where the bundle cache should be created.
 
-> python _build_bundle_cache.py
+> python build_bundle_cache.py
             "sgtk:descriptor:app_store?version=v0.3.6&name=tk-config-basic"
             /tmp
 
@@ -139,7 +156,7 @@ give special meaning to the & character.
 For automated build setups, you can provide a specific shotgun API script name and
 and corresponding script key:
 
-> python _build_bundle_cache.py
+> python build_bundle_cache.py
             --shotgun-host='https://mysite.shotgunstudio.com'
             --shotgun-script-name='plugin_build'
             --shotgun-script-key='<script-key-here>'
@@ -200,7 +217,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 if __name__ == "__main__":
 
     # set up std toolkit logging to file
-    LogManager().initialize_base_file_handler("_build_bundle_cache")
+    LogManager().initialize_base_file_handler("build_bundle_cache")
 
     # set up output of all sgtk log messages to stdout
     LogManager().initialize_custom_handler()
