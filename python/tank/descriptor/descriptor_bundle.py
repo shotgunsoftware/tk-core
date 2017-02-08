@@ -250,15 +250,27 @@ class BundleDescriptor(Descriptor):
             frameworks = []
         return frameworks
 
+    ###############################################################################################
     # compatibility accessors to ensure that all systems
     # calling this (previously internal!) parts of toolkit
     # will still work.
-    def get_version_constraints(self): return self.version_constraints # noqa
-    def get_required_context(self): return self.required_context # noqa
-    def get_supported_platforms(self): return self.supported_platforms # noqa
-    def get_configuration_schema(self): return self.configuration_schema # noqa
-    def get_supported_engines(self): return self.supported_engines # noqa
-    def get_required_frameworks(self): return self.required_frameworks # noqa
+    def get_version_constraints(self):
+        return self.version_constraints
+
+    def get_required_context(self):
+        return self.required_context
+
+    def get_supported_platforms(self):
+        return self.supported_platforms
+
+    def get_configuration_schema(self):
+        return self.configuration_schema
+
+    def get_supported_engines(self):
+        return self.supported_engines
+
+    def get_required_frameworks(self):
+        return self.required_frameworks # noqa
 
     ###############################################################################################
     # helper methods
