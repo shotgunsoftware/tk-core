@@ -22,7 +22,6 @@ import re
 import os
 import sys
 import shutil
-import optparse
 import datetime
 
 # add sgtk API
@@ -34,12 +33,14 @@ sys.path.append(python_folder)
 from tank import LogManager
 from tank.util import filesystem
 from tank.errors import TankError
-from tank.platform import environment
 from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri, create_descriptor
-from tank.authentication import ShotgunAuthenticator
 from tank.bootstrap.baked_configuration import BakedConfiguration
 from tank.bootstrap import constants as bootstrap_constants
 from tank_vendor import yaml
+
+from utils import (
+    cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache
+)
 
 # set up logging
 logger = LogManager.get_logger("build_plugin")
@@ -56,87 +57,6 @@ BAKED_BUNDLE_VERSION = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 # generation of the build syntax
 BUILD_GENERATION = 2
-
-class OptionParserLineBreakingEpilog(optparse.OptionParser):
-    """
-    Subclassed version of the option parser that doesn't
-    swallow white space in the epilog
-    """
-    def format_epilog(self, formatter):
-        return self.epilog
-
-
-def _cache_descriptor(sg, desc_type, desc_dict, target_path):
-    """
-    Cache the given descriptor into a new bundle cache.
-
-    :param sg: Shotgun API instance
-    :param desc_type: Descriptor.ENGINE | Descriptor.APP | Descriptor.FRAMEWORK
-    :param desc_dict: descriptor dict or uri
-    :param target_path: bundle cache root to cache into
-    """
-    desc = create_descriptor(sg, desc_type, desc_dict, fallback_roots=[target_path])
-    desc.ensure_local()
-    desc_size_kb = filesystem.compute_folder_size(desc.get_path()) / 1024
-    logger.info("Caching %s into plugin bundle cache (size %d KiB)" % (desc, desc_size_kb))
-    if not desc._io_descriptor.is_immutable():
-        logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
-    desc.clone_cache(target_path)
-
-
-def _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
-    """
-    Iterates over all environments within the given configuration descriptor
-    and caches all items into the bundle cache root.
-
-    :param sg_connection: Shotgun connection
-    :param cfg_descriptor: Config descriptor
-    :param bundle_cache_root: Root where to cache payload
-    """
-    # introspect the config and cache everything
-    logger.info("Introspecting environments...")
-    env_path = os.path.join(cfg_descriptor.get_path(), "env")
-
-    # find all environment files
-    env_filenames = []
-    for filename in os.listdir(env_path):
-        if filename.endswith(".yml"):
-            # matching the env filter (or no filter set)
-            logger.info("> found %s" % filename)
-            env_filenames.append(os.path.join(env_path, filename))
-
-    # traverse and cache
-    for env_path in env_filenames:
-        logger.info("Processing %s..." % env_path)
-        env = environment.Environment(env_path)
-
-        for eng in env.get_engines():
-            # resolve descriptor and clone cache into bundle cache
-            _cache_descriptor(
-                sg_connection,
-                Descriptor.ENGINE,
-                env.get_engine_descriptor_dict(eng),
-                bundle_cache_root
-            )
-
-            for app in env.get_apps(eng):
-                # resolve descriptor and clone cache into bundle cache
-                _cache_descriptor(
-                    sg_connection,
-                    Descriptor.APP,
-                    env.get_app_descriptor_dict(eng, app),
-                    bundle_cache_root
-                )
-
-        for framework in env.get_frameworks():
-            _cache_descriptor(
-                sg_connection,
-                Descriptor.FRAMEWORK,
-                env.get_framework_descriptor_dict(framework),
-                bundle_cache_root
-            )
-
-    logger.info("Total size of bundle cache: %d KiB" % (filesystem.compute_folder_size(bundle_cache_root) / 1024))
 
 
 def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
@@ -219,7 +139,7 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
                 "type": bootstrap_constants.BAKED_DESCRIPTOR_TYPE,
                 "name": BAKED_BUNDLE_NAME,
                 "version": BAKED_BUNDLE_VERSION
-             }
+            }
         )
 
     else:
@@ -250,6 +170,7 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
     logger.info("Resolved config %r" % cfg_descriptor)
     logger.info("Runtime config descriptor uri will be %s" % base_config_uri_str)
     return cfg_descriptor, base_config_uri_str
+
 
 def _validate_manifest(source_path):
     """
@@ -289,6 +210,7 @@ def _validate_manifest(source_path):
         raise TankError("Plugin id can only contain alphanumerics, period and underscore characters.")
 
     return manifest_data
+
 
 def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
     """
@@ -489,7 +411,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     cfg_descriptor.clone_cache(bundle_cache_root)
 
     # cache all apps, engines and frameworks
-    _cache_apps(sg_connection, cfg_descriptor, bundle_cache_root)
+    cache_apps(sg_connection, cfg_descriptor, bundle_cache_root)
 
     # get latest core - cache it directly into the plugin root folder
     if bootstrap_core_uri:
@@ -541,6 +463,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
         )
         associated_core_desc.ensure_local()
 
+    cleanup_bundle_cache(bundle_cache_root)
 
     logger.info("")
     logger.info("Build complete!")
@@ -552,7 +475,6 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     logger.info("")
     logger.info("")
     logger.info("")
-
 
 
 def main():
@@ -616,40 +538,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
               "If not specified, defaults to the most recently released core.")
     )
 
-    group = optparse.OptionGroup(
-        parser,
-        "Shotgun Authentication",
-        "In order to download content from the Toolkit app store, the script will need to authenticate "
-        "against any shotgun site. By default, it will use the toolkit authentication APIs stored "
-        "credentials, and if such are not found, it will prompt for site, username and password."
-    )
-
-    group.add_option(
-        "-s",
-        "--shotgun-host",
-        default=None,
-        action="store",
-        help="Shotgun host to authenticate with."
-    )
-
-    group.add_option(
-        "-n",
-        "--shotgun-script-name",
-        default=None,
-        action="store",
-        help="Script to use to authenticate with the given host."
-    )
-
-    group.add_option(
-        "-k",
-        "--shotgun-script-key",
-        default=None,
-        action="store",
-        help="Script key to use to authenticate with the given host."
-    )
-
-
-    parser.add_option_group(group)
+    add_authentication_options(parser)
 
     # parse cmd line
     (options, remaining_args) = parser.parse_args()
@@ -678,23 +567,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     source_path = os.path.expanduser(os.path.expandvars(source_path))
     target_path = os.path.expanduser(os.path.expandvars(target_path))
 
-    # now authenticate to shotgun
-    sg_auth = ShotgunAuthenticator()
-
-    if options.shotgun_host:
-        script_name = options.shotgun_script_name
-        script_key = options.shotgun_script_key
-
-        if script_name is None or script_key is None:
-            logger.error("Need to provide, host, script name and script key! Run with -h for more info.")
-            return 2
-
-        logger.info("Connecting to %s using script user %s..." % (options.shotgun_host, script_name))
-        sg_user = sg_auth.create_script_user(script_name, script_key, options.shotgun_host)
-
-    else:
-        # get user, prompt if necessary
-        sg_user = sg_auth.get_user()
+    sg_user = authenticate(options)
 
     sg_connection = sg_user.create_sg_connection()
     # make sure we are properly connected
