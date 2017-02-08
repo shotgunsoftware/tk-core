@@ -227,7 +227,7 @@ class ConfigurationResolver(object):
         if pipeline_config_name is None:
             ownership_filters = [
                 ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
-                ["users.HumanUser.login", "contains", current_login]
+                ["users.HumanUser.login", "is", current_login]
             ]
         elif pipeline_config_name == constants.PRIMARY_PIPELINE_CONFIG_NAME:
             # Only retrieve primary.
@@ -239,7 +239,7 @@ class ConfigurationResolver(object):
             # If something other than primary was asked for, only get the ones the user owns.
             ownership_filters = [
                 ["code", "is", pipeline_config_name],
-                ["users.HumanUser.login", "contains", current_login]
+                ["users.HumanUser.login", "is", current_login]
             ]
 
         filters = [{
@@ -319,9 +319,8 @@ class ConfigurationResolver(object):
                 pipeline_config_identifier, current_login, sg_connection
             ):
                 # we have a matching pipeline configuration!
-
-                if pc["project"] == self._proj_entity_dict:
-
+                pc_link = dict(type="Project", id=pc["project"]["id"]) if pc["project"] else None
+                if pc_link == self._proj_entity_dict:
                     # this pipeline configuration matches our current project exactly!
                     # alternatively, we may be in site mode, where project id is always None.
                     # this kind of exact match takes precdence (see logic below)

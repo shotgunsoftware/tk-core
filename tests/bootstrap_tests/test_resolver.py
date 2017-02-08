@@ -20,7 +20,7 @@ from tank_test.tank_test_base import TankTestBase
 
 
 class TestResolverBase(TankTestBase):
-    def setUp(self, project_id=123):
+    def setUp(self, no_project=False):
         super(TestResolverBase, self).setUp()
 
         self.install_root = os.path.join(
@@ -34,10 +34,13 @@ class TestResolverBase(TankTestBase):
 
         self.config_1 = {"type": "app_store", "version": "v0.1.2", "name": "tk-config-test"}
 
+        self._user = self.mockgun.create("HumanUser", {"login": "john.smith"})
+        self._project = self.mockgun.create("Project", {"name": "my_project"})
+
         # set up a resolver
         self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="foo.maya",
-            project_id=project_id,
+            project_id=None if no_project else self._project["id"],
             bundle_cache_fallback_paths=[self.install_root]
         )
 
@@ -62,7 +65,7 @@ class TestPluginMatching(TestResolverBase):
         """
         resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="foo.maya",
-            project_id=123,
+            project_id=self._project["id"],
             bundle_cache_fallback_paths=[self.install_root]
         )
 
@@ -149,7 +152,7 @@ class TestPluginMatching(TestResolverBase):
         def find_mock_impl(*args, **kwargs):
             return [{
                 'code': 'Primary',
-                'project': {'type': 'Project', 'id': 123},
+                'project': self._project,
                 'users': [],
                 'plugin_ids': "fo3o.*",
                 'sg_plugin_ids': None,
@@ -323,7 +326,7 @@ class TestResolverProjectQuery(TestResolverBase):
 class TestResolverSiteQuery(TestResolverBase):
 
     def setUp(self):
-        super(TestResolverSiteQuery, self).setUp(project_id=None)
+        super(TestResolverSiteQuery, self).setUp(no_project=True)
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_specific_resolve_query(self, find_mock):
@@ -388,108 +391,163 @@ class TestResolverPriority(TestResolverBase):
     4. Pipeline configuration for site.
     """
 
+    # FIXME: Official schema doesn't have the plugin_ids and descriptor fields yet, we'll work
+    # with sg_plugin_ids and sg_descriptor for now.
+
+    def _create_pc(self, code, project, path, users):
+
+        entity = self.mockgun.create(
+            "PipelineConfiguration", dict(
+                code=code,
+                project=project,
+                users=users,
+                sg_plugin_ids="foo.*",
+                windows_path=path,
+                mac_path=path,
+                linux_path=path,
+                sg_descriptor=None
+            )
+        )
+        return dict(
+            entity_type=entity["type"],
+            entity_id=entity["id"]
+        )
+
     PROJECT_PC_PATH = "project_pc_path"
-    PROJECT_PC = {
-        'code': 'Primary',
-        'project': {'type': 'Project', 'id': 123},
-        'users': [],
-        'plugin_ids': "foo.*",
-        'sg_plugin_ids': None,
-        'windows_path': PROJECT_PC_PATH,
-        'linux_path': PROJECT_PC_PATH,
-        'mac_path': PROJECT_PC_PATH,
-        'sg_descriptor': None,
-        'descriptor': None
-    }
+
+    def _create_project_pc(self):
+        return self._create_pc("Primary", self._project, self.PROJECT_PC_PATH, [])
+
+    # PROJECT_PC = {
+    #     'code': 'Primary',
+    #     'project': {'type': 'Project', 'id': 123},
+    #     'users': [],
+    #     # 'plugin_ids': "",
+    #     'sg_plugin_ids': "foo.*",
+    #     'windows_path': PROJECT_PC_PATH,
+    #     'linux_path': PROJECT_PC_PATH,
+    #     'mac_path': PROJECT_PC_PATH,
+    #     'sg_descriptor': None,
+    #     # 'descriptor': None
+    # }
 
     PROJECT_SANDBOX_PC_PATH = "project_sandbox_pc_path"
-    PROJECT_SANDBOX_PC = {
-        'code': 'Development',
-        'project': {'type': 'Project', 'id': 123},
-        'users': [],
-        'plugin_ids': "foo.*",
-        'sg_plugin_ids': None,
-        'windows_path': PROJECT_SANDBOX_PC_PATH,
-        'linux_path': PROJECT_SANDBOX_PC_PATH,
-        'mac_path': PROJECT_SANDBOX_PC_PATH,
-        'sg_descriptor': None,
-        'descriptor': None
-    }
 
-    SITE_PC_PATH = "project_pc_path"
-    SITE_PC = {
-        'code': 'Primary',
-        'project': None,
-        'users': [],
-        'plugin_ids': "foo.*",
-        'sg_plugin_ids': None,
-        'windows_path': SITE_PC_PATH,
-        'linux_path': SITE_PC_PATH,
-        'mac_path': SITE_PC_PATH,
-        'sg_descriptor': None,
-        'descriptor': None
-    }
+    def _create_project_sandbox_pc(self):
+        return self._create_pc(
+            "Development",
+            self._project,
+            self.PROJECT_SANDBOX_PC_PATH,
+            [self._user]
+        )
+    #     'code': 'Development',
+    #     'project': {'type': 'Project', 'id': 123},
+    #     'users': [],
+    #     # 'plugin_ids': None,
+    #     'sg_plugin_ids': "foo.*",
+    #     'windows_path': PROJECT_SANDBOX_PC_PATH,
+    #     'linux_path': PROJECT_SANDBOX_PC_PATH,
+    #     'mac_path': PROJECT_SANDBOX_PC_PATH,
+    #     'sg_descriptor': None,
+    #     # 'descriptor': None
+    # }
+
+    SITE_PC_PATH = "site_pc_path"
+
+    def _create_site_pc(self):
+        return self._create_pc("Primary", None, self.SITE_PC_PATH, [])
+    # SITE_PC = {
+    #     'code': 'Primary',
+    #     'project': None,
+    #     'users': [],
+    #     # 'plugin_ids': None,
+    #     'sg_plugin_ids': "foo.*",
+    #     'windows_path': SITE_PC_PATH,
+    #     'linux_path': SITE_PC_PATH,
+    #     'mac_path': SITE_PC_PATH,
+    #     'sg_descriptor': None,
+    #     # 'descriptor': None
+    # }
 
     SITE_SANDBOX_PC_PATH = "site_sandbox_pc_path"
-    SITE_SANDBOX_PC = {
-        'code': 'Development',
-        'project': None,
-        'users': [],
-        'plugin_ids': "foo.*",
-        'sg_plugin_ids': None,
-        'windows_path': SITE_SANDBOX_PC_PATH,
-        'linux_path': SITE_SANDBOX_PC_PATH,
-        'mac_path': SITE_SANDBOX_PC_PATH,
-        'sg_descriptor': None,
-        'descriptor': None
-    }
 
-    def _test_priority(self, pcs, expected_path):
+    def _create_site_sandbox_pc(self):
+        return self._create_pc("Development", None, self.SITE_SANDBOX_PC_PATH, [self._user])
+    # SITE_SANDBOX_PC = {
+    #     'code': 'Development',
+    #     'project': None,
+    #     'users': [],
+    #     # 'plugin_ids': None,
+    #     'sg_plugin_ids': "foo.*",
+    #     'windows_path': SITE_SANDBOX_PC_PATH,
+    #     'linux_path': SITE_SANDBOX_PC_PATH,
+    #     'mac_path': SITE_SANDBOX_PC_PATH,
+    #     'sg_descriptor': None,
+    #     # 'descriptor': None
+    # }
+
+    def _test_priority(self, expected_path):
         with patch("os.path.exists", return_value=True):
-            with patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find", return_value=pcs):
-                config = self.resolver.resolve_shotgun_configuration(
-                    pipeline_config_identifier=None,
-                    fallback_config_descriptor=self.config_1,
-                    sg_connection=self.tk.shotgun,
-                    current_login='john.smith'
-                )
+            config = self.resolver.resolve_shotgun_configuration(
+                pipeline_config_identifier=None,
+                fallback_config_descriptor=self.config_1,
+                sg_connection=self.tk.shotgun,
+                current_login='john.smith'
+            )
         self.assertEqual(config._path.current_os, expected_path)
 
     def test_resolve_site_config(self):
         """
         Makes sure a site config takes is higher priority than the fallback.
         """
-        self._test_priority([self.SITE_PC], self.SITE_PC_PATH)
+        self._create_site_pc()
+        self._test_priority(self.SITE_PC_PATH)
 
     def test_resolve_sandboxed_site_config(self):
         """
         Makes sure a sandboxed site configuration overrides the site config.
         """
-        self._test_priority([self.SITE_SANDBOX_PC, self.SITE_PC], self.SITE_SANDBOX_PC_PATH)
+        self._create_site_sandbox_pc()
+        self._create_site_pc()
+        self._test_priority(self.SITE_SANDBOX_PC_PATH)
 
     def test_resolve_project_config(self):
         """
         Makes sure a project configuration overrides the sandboxed site config.
         """
-        self._test_priority([self.PROJECT_PC, self.SITE_SANDBOX_PC, self.SITE_PC], self.PROJECT_PC_PATH)
+        self._create_project_pc()
+        self._create_site_sandbox_pc()
+        self._create_site_pc()
+        self._test_priority(self.PROJECT_PC_PATH)
 
     def test_resolve_sandboxed_project_config(self):
         """
         Makes sure a sandboxed project configuration sandbox overrides project configuration.
         """
-        self._test_priority(
-            [self.PROJECT_SANDBOX_PC, self.PROJECT_PC, self.SITE_SANDBOX_PC, self.SITE_PC],
-            self.PROJECT_SANDBOX_PC_PATH
-        )
+        self._create_project_sandbox_pc()
+        self._create_project_pc()
+        self._create_site_sandbox_pc()
+        self._create_site_pc()
+        self._test_priority(self.PROJECT_SANDBOX_PC_PATH)
 
-    def test_specific_resolve(self):
+    def test_resolve_pc(self):
         """
         Ensure that if there is only one pipeline configuration it will always be resolved.
         """
-        self._test_priority([self.SITE_PC], self.SITE_PC_PATH)
-        self._test_priority([self.SITE_SANDBOX_PC], self.SITE_SANDBOX_PC_PATH)
-        self._test_priority([self.PROJECT_PC], self.PROJECT_PC_PATH)
-        self._test_priority([self.PROJECT_SANDBOX_PC], self.PROJECT_SANDBOX_PC_PATH)
+        link = self._create_site_pc()
+        self._test_priority(self.SITE_PC_PATH)
+        self.mockgun.delete(**link)
+
+        link = self._create_site_sandbox_pc()
+        self._test_priority(self.SITE_SANDBOX_PC_PATH)
+        self.mockgun.delete(**link)
+
+        link = self._create_project_pc()
+        self._test_priority(self.PROJECT_PC_PATH)
+        self.mockgun.delete(**link)
+
+        link = self._create_project_sandbox_pc()
+        self._test_priority(self.PROJECT_SANDBOX_PC_PATH)
 
 
 class TestPipelineLocationFieldPriority(TestResolverBase):
@@ -504,7 +562,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         def find_mock_impl(*args, **kwargs):
             return [{
                 'code': 'Primary',
-                'project': {'type': 'Project', 'id': 123},
+                'project': self._project,
                 'users': [],
                 'plugin_ids': "foo.*",
                 'sg_plugin_ids': None,
@@ -535,7 +593,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         def find_mock_impl(*args, **kwargs):
             return [{
                 'code': 'Primary',
-                'project': {'type': 'Project', 'id': 123},
+                'project': self._project,
                 'users': [],
                 'plugin_ids': "foo.*, bar, baz",
                 'sg_plugin_ids': None,
@@ -797,7 +855,7 @@ class TestResolvePerId(TestResolverBase):
             return [{
                 'id': 1,
                 'code': 'Primary',
-                'project': {'type': 'Project', 'id': 123},
+                'project': self._project,
                 'users': [],
                 'plugin_ids': "foo.*",
                 'sg_plugin_ids': None,
@@ -852,7 +910,7 @@ class TestErrorHandling(TestResolverBase):
             pc = {
                 'id': 1,
                 'code': 'Primary',
-                'project': {'type': 'Project', 'id': 123},
+                'project': self._project,
                 'users': [],
                 'plugin_ids': "foo.*",
                 'sg_plugin_ids': None,
