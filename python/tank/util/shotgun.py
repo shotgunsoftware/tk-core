@@ -29,7 +29,7 @@ import tempfile
 from tank_vendor import shotgun_api3
 
 from .errors import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
-from ..errors import TankError
+from ..errors import TankError, TankMultipleMatchingTemplatesError
 from ..log import LogManager
 from .. import hook
 from . import constants
@@ -1018,17 +1018,26 @@ def _translate_abstract_fields(tk, path):
     For example, the path /foo/bar/xyz.0003.exr will be transformed into
     /foo/bar/xyz.%04d.exr
     """
-    template = tk.template_from_path(path)
-    if template:
+    try:
+        template = tk.template_from_path(path)
+    except TankMultipleMatchingTemplatesError:
+        log.debug(
+            "Path matches multiple templates. Not translating abstract fields: %s" % path
+        )
+    else:
+        if template:
+            abstract_key_names = [k.name for k in template.keys.values() if k.is_abstract]
 
-        abstract_key_names = [k.name for k in template.keys.values() if k.is_abstract]
-
-        if len(abstract_key_names) > 0:
-            # we want to use the default values for abstract keys
-            cur_fields = template.get_fields(path)
-            for abstract_key_name in abstract_key_names:
-                del(cur_fields[abstract_key_name])
-            path = template.apply_fields(cur_fields)
+            if len(abstract_key_names) > 0:
+                # we want to use the default values for abstract keys
+                cur_fields = template.get_fields(path)
+                for abstract_key_name in abstract_key_names:
+                    del(cur_fields[abstract_key_name])
+                path = template.apply_fields(cur_fields)
+        else:
+            log.debug(
+                "Path does not match a template. Not translating abstract fields: %s" % path
+            )
     return path
 
 def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
