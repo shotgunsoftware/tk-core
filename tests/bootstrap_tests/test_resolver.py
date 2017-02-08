@@ -53,6 +53,37 @@ class TestResolverBase(TankTestBase):
         fh.write("foo")
         fh.close()
 
+    def _create_pc(self, code, project, path, users):
+        """
+        Creates a pipeline configuration.
+
+        :param code: Name of the pipeline configuration.
+        :param project: Project of the pipeline configuration.
+        :param path: mac_path, windows_path and linux_path will be set to this.
+        :param users: List of users who should be able to use this pipeline.
+
+        :returns: Dictionary with keys entity_type and entity_id.
+        """
+
+        entity = self.mockgun.create(
+            "PipelineConfiguration", dict(
+                code=code,
+                project=project,
+                users=users,
+                windows_path=path,
+                mac_path=path,
+                linux_path=path,
+                # FIXME: Official schema doesn't have the plugin_ids and descriptor fields yet,
+                # we'll work with sg_plugin_ids and sg_descriptor for now.
+                sg_plugin_ids="foo.*",
+                sg_descriptor=None
+            )
+        )
+        return dict(
+            entity_type=entity["type"],
+            entity_id=entity["id"]
+        )
+
 
 class TestPluginMatching(TestResolverBase):
     """
@@ -214,172 +245,6 @@ class TestFallbackHandling(TestResolverBase):
         self.assertFalse(find_mock.called)
 
 
-class TestResolverProjectQuery(TestResolverBase):
-
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_auto_resolve_query(self, find_mock):
-        """
-        Test the sg syntax for the sg auto resolve syntax, e.g. when no pc is defined
-        """
-
-        def find_mock_impl(*args, **kwargs):
-            if args[0] == "PipelineConfiguration":
-                self.assertEqual(
-                    args[1],
-                    [
-                        {
-                            'filter_operator': 'all',
-                            'filters': [
-                                {
-                                    'filter_operator': 'any',
-                                    'filters': [
-                                        ['project', 'is', {'type': 'Project', 'id': 123}],
-                                        ['project', 'is', None]
-                                    ]
-                                },
-                                {
-                                    'filter_operator': 'any',
-                                    'filters': [
-                                        ['code', 'is', 'Primary'],
-                                        ['users.HumanUser.login', 'contains', 'john.smith']
-                                    ]
-                                }]
-                        }
-                    ]
-                )
-
-                self.assertEqual(
-                    args[2],
-                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids',
-                     'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
-                )
-
-                self.assertEqual(kwargs["order"], [{'direction': 'asc', 'field_name': 'updated_at'}])
-
-            return []
-
-        find_mock.side_effect = find_mock_impl
-
-        config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier=None,
-            fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
-            current_login='john.smith'
-        )
-
-        self.assertEqual(config._descriptor.get_dict(), self.config_1)
-
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_specific_resolve_query(self, find_mock):
-        """
-        Test the sg syntax for the sg auto resolve syntax, e.g. when no pc is defined
-        """
-
-        def find_mock_impl(*args, **kwargs):
-            if args[0] == "PipelineConfiguration":
-                self.assertEqual(
-                    args[1],
-                    [
-                        {
-                            'filter_operator': 'all',
-                            'filters': [
-                                {
-                                    'filter_operator': 'any',
-                                    'filters': [
-                                        ['project', 'is', {'type': 'Project', 'id': 123}],
-                                        ['project', 'is', None]
-                                    ]
-                                },
-                                {
-                                    'filter_operator': 'any',
-                                    'filters': [
-                                        ['code', 'is', 'dev_sandbox'],
-                                        ['users.HumanUser.login', 'contains', 'john.smith']
-                                    ]
-                                }]
-                        }
-                    ]
-                )
-
-                self.assertEqual(
-                    args[2],
-                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids',
-                     'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
-                )
-
-                self.assertEqual(kwargs["order"], [{'direction': 'asc', 'field_name': 'updated_at'}])
-
-            return []
-
-        find_mock.side_effect = find_mock_impl
-
-        config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier="dev_sandbox",
-            fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
-            current_login='john.smith'
-        )
-
-        self.assertEqual(config._descriptor.get_dict(), self.config_1)
-
-
-class TestResolverSiteQuery(TestResolverBase):
-
-    def setUp(self):
-        super(TestResolverSiteQuery, self).setUp(no_project=True)
-
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_specific_resolve_query(self, find_mock):
-        """
-        Test the sg syntax for the sg auto resolve syntax, e.g. when no pc is defined
-        """
-        def find_mock_impl(*args, **kwargs):
-
-            if args[0] == "PipelineConfiguration":
-                self.assertEqual(
-                    args[1],
-                    [
-                        {
-                            'filter_operator': 'all',
-                            'filters': [
-                                {
-                                    'filter_operator': 'any',
-                                    'filters': [
-                                        ['project', 'is', None],
-                                        ['project', 'is', None]
-                                    ]
-                                },
-                                {
-                                    'filter_operator': 'any',
-                                    'filters': [
-                                        ['code', 'is', 'dev_sandbox'],
-                                        ['users.HumanUser.login', 'contains', 'john.smith']
-                                    ]
-                                }]
-                        }
-                    ]
-                )
-
-                self.assertEqual(
-                    args[2],
-                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids',
-                     'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
-                )
-
-            return []
-
-        find_mock.side_effect = find_mock_impl
-
-        config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier="dev_sandbox",
-            fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
-            current_login='john.smith'
-        )
-
-        self.assertEqual(config._descriptor.get_dict(), self.config_1)
-
-
 class TestResolverPriority(TestResolverBase):
     """
     This test ensures that the following priority is respected when multiple pipeline configurations
@@ -391,102 +256,54 @@ class TestResolverPriority(TestResolverBase):
     4. Pipeline configuration for site.
     """
 
-    # FIXME: Official schema doesn't have the plugin_ids and descriptor fields yet, we'll work
-    # with sg_plugin_ids and sg_descriptor for now.
-
-    def _create_pc(self, code, project, path, users):
-
-        entity = self.mockgun.create(
-            "PipelineConfiguration", dict(
-                code=code,
-                project=project,
-                users=users,
-                sg_plugin_ids="foo.*",
-                windows_path=path,
-                mac_path=path,
-                linux_path=path,
-                sg_descriptor=None
-            )
-        )
-        return dict(
-            entity_type=entity["type"],
-            entity_id=entity["id"]
-        )
-
     PROJECT_PC_PATH = "project_pc_path"
 
     def _create_project_pc(self):
+        """
+        Creates a pipeline configuration for the TestCases's project. The paths will be set
+        to PROJECT_PC_PATH.
+        """
         return self._create_pc("Primary", self._project, self.PROJECT_PC_PATH, [])
-
-    # PROJECT_PC = {
-    #     'code': 'Primary',
-    #     'project': {'type': 'Project', 'id': 123},
-    #     'users': [],
-    #     # 'plugin_ids': "",
-    #     'sg_plugin_ids': "foo.*",
-    #     'windows_path': PROJECT_PC_PATH,
-    #     'linux_path': PROJECT_PC_PATH,
-    #     'mac_path': PROJECT_PC_PATH,
-    #     'sg_descriptor': None,
-    #     # 'descriptor': None
-    # }
 
     PROJECT_SANDBOX_PC_PATH = "project_sandbox_pc_path"
 
     def _create_project_sandbox_pc(self):
+        """
+        Creates a pipeline configuration for the TestCases's project and it's user. The paths will be set
+        to PROJECT_SANDBOX_PC_PATH.
+        """
         return self._create_pc(
             "Development",
             self._project,
             self.PROJECT_SANDBOX_PC_PATH,
             [self._user]
         )
-    #     'code': 'Development',
-    #     'project': {'type': 'Project', 'id': 123},
-    #     'users': [],
-    #     # 'plugin_ids': None,
-    #     'sg_plugin_ids': "foo.*",
-    #     'windows_path': PROJECT_SANDBOX_PC_PATH,
-    #     'linux_path': PROJECT_SANDBOX_PC_PATH,
-    #     'mac_path': PROJECT_SANDBOX_PC_PATH,
-    #     'sg_descriptor': None,
-    #     # 'descriptor': None
-    # }
 
     SITE_PC_PATH = "site_pc_path"
 
     def _create_site_pc(self):
+        """
+        Creates a pipeline configuration with no project. The paths will be set
+        to SITE_PC_PATH.
+        """
         return self._create_pc("Primary", None, self.SITE_PC_PATH, [])
-    # SITE_PC = {
-    #     'code': 'Primary',
-    #     'project': None,
-    #     'users': [],
-    #     # 'plugin_ids': None,
-    #     'sg_plugin_ids': "foo.*",
-    #     'windows_path': SITE_PC_PATH,
-    #     'linux_path': SITE_PC_PATH,
-    #     'mac_path': SITE_PC_PATH,
-    #     'sg_descriptor': None,
-    #     # 'descriptor': None
-    # }
 
     SITE_SANDBOX_PC_PATH = "site_sandbox_pc_path"
 
     def _create_site_sandbox_pc(self):
+        """
+        Creates a pipeline configuration with no project for the TestCases's user. The paths will be set
+        to SITE_PC_PATH.
+        """
         return self._create_pc("Development", None, self.SITE_SANDBOX_PC_PATH, [self._user])
-    # SITE_SANDBOX_PC = {
-    #     'code': 'Development',
-    #     'project': None,
-    #     'users': [],
-    #     # 'plugin_ids': None,
-    #     'sg_plugin_ids': "foo.*",
-    #     'windows_path': SITE_SANDBOX_PC_PATH,
-    #     'linux_path': SITE_SANDBOX_PC_PATH,
-    #     'mac_path': SITE_SANDBOX_PC_PATH,
-    #     'sg_descriptor': None,
-    #     # 'descriptor': None
-    # }
 
     def _test_priority(self, expected_path):
+        """
+        Resolves a pipeline configuration and ensures it's the expected one by comparing the
+        path.
+
+        :param str expected_path: Expected value for the current platform's path.
+        """
         with patch("os.path.exists", return_value=True):
             config = self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=None,
@@ -657,7 +474,7 @@ class TestResolverSiteConfig(TestResolverBase):
                             {
                                 'filter_operator': 'any',
                                 'filters': [
-                                    ['code', 'is', 'Primary'], ['users.HumanUser.login', 'contains', 'john.smith']
+                                    ['code', 'is', 'Primary'], ['users.HumanUser.login', 'is', 'john.smith']
                                 ]
                             }
                         ]
