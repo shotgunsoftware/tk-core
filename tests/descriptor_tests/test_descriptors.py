@@ -14,6 +14,7 @@ import sgtk
 from tank_test.tank_test_base import TankTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.errors import TankError
+from tank.descriptor import CheckVersionConstraintsError
 
 from mock import Mock, patch
 
@@ -261,98 +262,103 @@ class TestConstraintValidation(TankTestBase):
         """
         Ensures that having a greater or equal version of Shotgun works.
         """
-        can_update, reasons = self._create_descriptor(
+        self._create_descriptor(
             version_constraints={"min_sg": "6.6.6"},
             supported_engines=None
         ).check_version_constraints(
             self._up_to_date_sg
         )
 
-        self.assertEqual(can_update, True)
-        self.assertListEqual(reasons, [])
-
     def test_min_sg_constraint_fail(self):
         """
         Ensures that having an older version of Shotgun fails.
         """
-        can_update, reasons = self._create_descriptor(
-            version_constraints={"min_sg": "6.6.6"},
-            supported_engines=None
-        ).check_version_constraints(
-            self._out_of_date_sg
-        )
 
-        self.assertEqual(can_update, False)
-        self.assertEqual(len(reasons), 1)
-        self.assertRegexpMatches(reasons[0], "Requires at least Shotgun .* but currently installed version is .*\.")
+        with self.assertRaises(CheckVersionConstraintsError) as ctx:
+            self._create_descriptor(
+                version_constraints={"min_sg": "6.6.6"},
+                supported_engines=None
+            ).check_version_constraints(
+                self._out_of_date_sg
+            )
+
+        self.assertEqual(len(ctx.exception.reasons), 1)
+        self.assertRegexpMatches(
+            ctx.exception.reasons[0], "Requires at least Shotgun .* but currently installed version is .*\."
+        )
 
     def test_min_core_constraint_pass(self):
         """
         Ensures that having a greater or equal version of core works.
         """
-        can_update, reasons = self._create_descriptor(
+        self._create_descriptor(
             version_constraints={"min_core": "v6.6.6"},
             supported_engines=None
         ).check_version_constraints(self._up_to_date_sg, "v6.6.6")
-
-        self.assertEqual(can_update, True)
-        self.assertListEqual(reasons, [])
 
     def test_min_core_constraint_fail(self):
         """
         Ensures that having a lower version of core fails.
         """
-        can_update, reasons = self._create_descriptor(
-            version_constraints={"min_core": "v6.6.6"},
-            supported_engines=None
-        ).check_version_constraints(self._up_to_date_sg, "v6.6.5")
-        self.assertEqual(can_update, False)
-        self.assertEqual(len(reasons), 1)
-        self.assertRegexpMatches(reasons[0], "Requires at least Core API .* but currently installed version is v6.6.5")
+        with self.assertRaises(CheckVersionConstraintsError) as ctx:
+            self._create_descriptor(
+                version_constraints={"min_core": "v6.6.6"},
+                supported_engines=None
+            ).check_version_constraints(self._up_to_date_sg, "v6.6.5")
+
+        self.assertEqual(len(ctx.exception.reasons), 1)
+        self.assertRegexpMatches(
+            ctx.exception.reasons[0], "Requires at least Core API .* but currently installed version is v6.6.5"
+        )
 
     @patch("tank.pipelineconfig_utils.get_currently_running_api_version", return_value="v6.6.5")
     def test_min_core_with_none_uses_fallabck(self, _):
-        can_update, reasons = self._create_descriptor(
-            version_constraints={"min_core": "v6.6.6"},
-            supported_engines=None
-        ).check_version_constraints(self._up_to_date_sg, core_version=None)
-        self.assertEqual(can_update, False)
-        self.assertEqual(len(reasons), 1)
-        self.assertRegexpMatches(reasons[0], "Requires at least Core API .* but currently installed version is v6.6.5")
+        with self.assertRaises(CheckVersionConstraintsError) as ctx:
+            self._create_descriptor(
+                version_constraints={"min_core": "v6.6.6"},
+                supported_engines=None
+            ).check_version_constraints(self._up_to_date_sg, core_version=None)
+
+        self.assertEqual(len(ctx.exception.reasons), 1)
+        self.assertRegexpMatches(
+            ctx.exception.reasons[0], "Requires at least Core API .* but currently installed version is v6.6.5"
+        )
 
     def test_min_engine_constraint_pass(self):
         """
         Ensures that having a greater or equal version of the engine works.
         """
-        can_update, reasons = self._create_descriptor(
+        self._create_descriptor(
             version_constraints={"min_engine": "v6.6.6"},
             supported_engines=None
         ).check_version_constraints(
             self._up_to_date_sg,
             engine_descriptor=SealedMock(version="v6.6.6")
         )
-        self.assertEqual(can_update, True)
-        self.assertListEqual(reasons, [])
 
     def test_min_engine_constraint_fail(self):
         """
         Ensures that having a lower version of the engine fails.
         """
-        can_update, reasons = self._create_descriptor(
-            version_constraints={"min_engine": "v6.6.6"},
-            supported_engines=None
-        ).check_version_constraints(
-            self._up_to_date_sg,
-            engine_descriptor=SealedMock(version="v6.6.5", display_name="Tk Test")
+        with self.assertRaises(CheckVersionConstraintsError) as ctx:
+            self._create_descriptor(
+                version_constraints={"min_engine": "v6.6.6"},
+                supported_engines=None
+            ).check_version_constraints(
+                self._up_to_date_sg,
+                engine_descriptor=SealedMock(version="v6.6.5", display_name="Tk Test")
+            )
+
+        self.assertRegexpMatches(
+            ctx.exception.reasons[0],
+            "Requires at least Engine .* but currently installed version is .*"
         )
-        self.assertEqual(can_update, False)
-        self.assertRegexpMatches(reasons[0], "Requires at least Engine .* but currently installed version is .*")
 
     def test_supported_engine_constraint_pass(self):
         """
         Ensures that being installed in a supported engine works.
         """
-        can_update, reasons = self._create_descriptor(
+        self._create_descriptor(
             version_constraints={},
             supported_engines=["tk-test"]
         ).check_version_constraints(
@@ -362,32 +368,33 @@ class TestConstraintValidation(TankTestBase):
                 display_name="Tk Test"
             )
         )
-        self.assertEqual(can_update, True)
-        self.assertListEqual(reasons, [])
 
     def test_supported_engine_constraint_fail(self):
         """
         Ensures that being installed in an unsupported engine fails.
         """
-        can_update, reasons = self._create_descriptor(
-            version_constraints={},
-            supported_engines=["tk-test"]
-        ).check_version_constraints(
-            self._up_to_date_sg,
-            engine_descriptor=SealedMock(
-                version="v6.6.5",
-                system_name="tk-another-test",
-                display_name="tk-test"
+        with self.assertRaises(CheckVersionConstraintsError) as ctx:
+            self._create_descriptor(
+                version_constraints={},
+                supported_engines=["tk-test"]
+            ).check_version_constraints(
+                self._up_to_date_sg,
+                engine_descriptor=SealedMock(
+                    version="v6.6.5",
+                    system_name="tk-another-test",
+                    display_name="tk-test"
+                )
             )
+
+        self.assertRegexpMatches(
+            ctx.exception.reasons[0], "Not compatible with engine .*. Supported engines are .*"
         )
-        self.assertEqual(can_update, False)
-        self.assertRegexpMatches(reasons[0], "Not compatible with engine .*. Supported engines are .*")
 
     def test_min_desktop_constraint_pass(self):
         """
         Ensures that having a greater or equal version of Shotgun works.
         """
-        can_update, reasons = self._create_descriptor(
+        self._create_descriptor(
             version_constraints={"min_desktop": "6.6.6"},
             supported_engines=None
         ).check_version_constraints(
@@ -395,25 +402,22 @@ class TestConstraintValidation(TankTestBase):
             desktop_version="v6.6.6"
         )
 
-        self.assertEqual(can_update, True)
-        self.assertListEqual(reasons, [])
-
     def test_min_desktop_constraint_fail(self):
         """
         Ensures that having an older version of Shotgun fails.
         """
-        can_update, reasons = self._create_descriptor(
-            version_constraints={"min_desktop": "6.6.6"},
-            supported_engines=None
-        ).check_version_constraints(
-            self._up_to_date_sg,
-            desktop_version="v6.6.5"
-        )
+        with self.assertRaises(CheckVersionConstraintsError) as ctx:
+            self._create_descriptor(
+                version_constraints={"min_desktop": "6.6.6"},
+                supported_engines=None
+            ).check_version_constraints(
+                self._up_to_date_sg,
+                desktop_version="v6.6.5"
+            )
 
-        self.assertEqual(can_update, False)
-        self.assertEqual(len(reasons), 1)
+        self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegexpMatches(
-            reasons[0],
+            ctx.exception.reasons[0],
             "Requires at least Shotgun Desktop.* but currently installed version is .*\."
         )
 
@@ -423,45 +427,50 @@ class TestConstraintValidation(TankTestBase):
         """
         Ensures that having multiple failures add up.
         """
-        can_update, reasons = self._create_descriptor(
-            version_constraints={
-                "min_core": "v5.5.5",
-                "min_sg": "v6.6.6",
-                "min_engine": "v4.4.4",
-                "min_desktop": "v3.3.4"
-            },
-            supported_engines=["tk-test"]
-        ).check_version_constraints(
-            self._out_of_date_sg,
-            engine_descriptor=SealedMock(
-                version="v4.4.3",
-                system_name="tk-another-test",
-                display_name="tk-test"
-            ),
-            desktop_version="v3.3.3"
-        )
+        with self.assertRaises(CheckVersionConstraintsError) as ctx:
+            self._create_descriptor(
+                version_constraints={
+                    "min_core": "v5.5.5",
+                    "min_sg": "v6.6.6",
+                    "min_engine": "v4.4.4",
+                    "min_desktop": "v3.3.4"
+                },
+                supported_engines=["tk-test"]
+            ).check_version_constraints(
+                self._out_of_date_sg,
+                engine_descriptor=SealedMock(
+                    version="v4.4.3",
+                    system_name="tk-another-test",
+                    display_name="tk-test"
+                ),
+                desktop_version="v3.3.3"
+            )
 
-        self.assertEqual(can_update, False)
-        self.assertEqual(len(reasons), 5)
+        self.assertEqual(len(ctx.exception.reasons), 5)
 
     def test_failure_when_param_missing(self):
         """
         Ensures that when the user is not passing any information that the
         """
-        can_update, reasons = self._create_descriptor(
-            version_constraints={
-                # No need to test for core or Shotgun since passing None uses the current core
-                # and Shotgun version instead.
-                "min_engine": "v4.4.4",
-                "min_desktop": "v3.3.4"
-            },
-            supported_engines=["tk-test"]
-        ).check_version_constraints()
+        with self.assertRaises(CheckVersionConstraintsError) as ctx:
+            self._create_descriptor(
+                version_constraints={
+                    # No need to test for core or Shotgun since passing None uses the current core
+                    # and Shotgun version instead.
+                    "min_engine": "v4.4.4",
+                    "min_desktop": "v3.3.4"
+                },
+                supported_engines=["tk-test"]
+            ).check_version_constraints()
 
-        self.assertEqual(can_update, False)
-        self.assertEqual(len(reasons), 3)
-        self.assertRegexpMatches(reasons[0], "Requires a minimal engine version but no engine was specified")
+        self.assertEqual(len(ctx.exception.reasons), 3)
         self.assertRegexpMatches(
-            reasons[1], "Bundle is compatible with a subset of engines but no engine was specified"
+            ctx.exception.reasons[0],
+            "Requires a minimal engine version but no engine was specified"
         )
-        self.assertRegexpMatches(reasons[2], "Requires at least Shotgun Desktop v3.3.4 but no version was specified")
+        self.assertRegexpMatches(
+            ctx.exception.reasons[1], "Bundle is compatible with a subset of engines but no engine was specified"
+        )
+        self.assertRegexpMatches(
+            ctx.exception.reasons[2], "Requires at least Shotgun Desktop v3.3.4 but no version was specified"
+        )

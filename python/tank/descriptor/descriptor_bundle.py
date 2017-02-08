@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .descriptor import Descriptor
-from .errors import TankDescriptorError
+from .errors import TankDescriptorError, CheckVersionConstraintsError
 from . import constants
 from .. import LogManager
 from ..util.version import is_version_older
@@ -96,13 +96,10 @@ class BundleDescriptor(Descriptor):
             minimum_version = constraints[key]
             if not current_version:
                 reasons.append("Requires at least %s %s but no version was specified." % (item_name, minimum_version))
-                return False
-            if is_version_older(current_version, minimum_version):
+            elif is_version_older(current_version, minimum_version):
                 reasons.append("Requires at least %s %s but currently installed version is %s." % (
                     item_name, minimum_version, current_version
                 ))
-                return False
-        return True
 
     def check_version_constraints(
         self,
@@ -124,33 +121,29 @@ class BundleDescriptor(Descriptor):
         :param desktop_version: Version of the Shotgun Desktop. None by default.
         :type desktop_version: str
 
-        :returns: A flag indicating if all version constraints were satisfied and the reasons why it may have not.
-        :rtype: tuple(bool, list(str))
+        :raises CheckVersionConstraintsError: Raised if one or multiple constraint checks has failed.
         """
-        can_update = True
         reasons = []
 
         connection = connection or shotgun.get_sg_connection()
 
-        can_update = self._test_version_constraint(
+        self._test_version_constraint(
             "min_sg", self._get_sg_version(connection) if connection else None, "Shotgun", reasons
-        ) and can_update
-        can_update = self._test_version_constraint(
+        )
+        self._test_version_constraint(
             "min_core", core_version or pipelineconfig_utils.get_currently_running_api_version(), "Core API", reasons
-        ) and can_update
+        )
 
         constraints = self.version_constraints
 
         if "min_engine" in constraints:
             if engine_descriptor is None:
                 reasons.append("Requires a minimal engine version but no engine was specified.")
-                can_update = False
             else:
                 curr_engine_version = engine_descriptor.version
 
                 minimum_engine_version = constraints["min_engine"]
                 if is_version_older(curr_engine_version, minimum_engine_version):
-                    can_update = False
                     reasons.append("Requires at least Engine %s %s but currently "
                                    "installed version is %s." % (engine_descriptor.display_name,
                                                                  minimum_engine_version,
@@ -165,15 +158,15 @@ class BundleDescriptor(Descriptor):
                 # this is a multi engine app!
                 engine_name = engine_descriptor.system_name
                 if engine_name not in supported_engines:
-                    can_update = False
                     reasons.append("Not compatible with engine %s. "
                                    "Supported engines are %s." % (engine_name, ", ".join(supported_engines)))
 
-        can_update = self._test_version_constraint(
+        self._test_version_constraint(
             "min_desktop", desktop_version, "Shotgun Desktop", reasons
-        ) and can_update
+        )
 
-        return (can_update, reasons)
+        if len(reasons) > 0:
+            raise CheckVersionConstraintsError(reasons)
 
     @property
     def required_context(self):

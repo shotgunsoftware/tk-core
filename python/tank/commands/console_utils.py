@@ -17,6 +17,7 @@ import textwrap
 from .. import pipelineconfig_utils
 from ..platform import validation
 from ..errors import TankError, TankNoDefaultValueError
+from ..descriptor import CheckVersionConstraintsError
 from ..platform.bundle import resolve_default_value
 from ..util import shotgun
 
@@ -341,13 +342,14 @@ def check_constraints_for_item(descriptor, environment_obj, engine_instance_name
         parent_engine_descriptor = None
 
     # check constraints (minimum versions etc)
-    (can_update, reasons) = descriptor.check_version_constraints(
-        shotgun.get_sg_connection(),
-        pipelineconfig_utils.get_currently_running_api_version(),
-        parent_engine_descriptor
-    )
-
-    if not can_update:
+    try:
+        descriptor.check_version_constraints(
+            shotgun.get_sg_connection(),
+            pipelineconfig_utils.get_currently_running_api_version(),
+            parent_engine_descriptor
+        )
+    except CheckVersionConstraintsError, e:
+        reasons = e.reasons[:]
         reasons.insert(0, "%s requires an upgrade to one or more "
                           "of your installed components." % descriptor)
         details = " ".join(reasons)
