@@ -51,16 +51,8 @@ class UserSettings(Singleton):
         logger.debug("Default site: %s", self._to_display_value(self.default_site))
         logger.debug("Default login: %s", self._to_display_value(self.default_login))
 
-        self._settings_proxy = self._get_settings_proxy()
-        self._system_proxy = None
-        if self._settings_proxy is not None:
-            logger.debug("Shotgun proxy (from settings): %s", self._get_filtered_proxy(self._settings_proxy))
-        else:
-            self._system_proxy = self._get_system_proxy()
-            if self._system_proxy is not None:
-                logger.debug("Shotgun proxy (from system): %s", self._get_filtered_proxy(self._system_proxy))
-            else:
-                logger.debug("Shotgun proxy: <missing>")
+        proxy = self._get_filtered_proxy(self.shotgun_proxy)
+        logger.debug("Shotgun proxy: %s", self._to_display_value(proxy))
 
         proxy = self._get_filtered_proxy(self.app_store_proxy)
         logger.debug("App Store proxy: %s", self._to_display_value(proxy))
@@ -69,27 +61,11 @@ class UserSettings(Singleton):
     def shotgun_proxy(self):
         """
         Retrieves the value from the ``http_proxy`` setting.
-
-        If the setting is missing from Toolkit.ini, the environment is scanned for variables named
-        ``http_proxy``, in case insensitive way. If both lowercase and uppercase environment
-        variables exist (and disagree), lowercase is preferred.
-
-        When the method cannot find such environment variables:
-        - for Mac OS X, it will look for proxy information from Mac OS X System Configuration,
-        - for Windows, it will look for proxy information from Windows Systems Registry.
-
-        .. note:: There is a restriction when looking for proxy information from
-                  Mac OS X System Configuration or Windows Systems Registry:
-                  in these cases, Toolkit does not support the use of proxies
-                  which require authentication (username and password).
         """
 
         # Return the configuration settings http proxy string when it is specified;
         # otherwise, return the operating system http proxy string.
-        if self._settings_proxy is not None:
-            return self._settings_proxy
-        else:
-            return self._system_proxy
+        return self.get_setting(self._LOGIN, "http_proxy")
 
     @property
     def app_store_proxy(self):
@@ -292,53 +268,6 @@ class UserSettings(Singleton):
             return "<your credentials have been removed for security reasons>@%s" % proxy.rsplit("@", 1)[-1]
         else:
             return proxy
-
-    def _get_settings_proxy(self):
-        """
-        Retrieves the configuration settings http proxy.
-
-        :returns: The configuration settings http proxy string or ``None`` when it is not specified.
-        """
-        return self.get_setting(self._LOGIN, "http_proxy")
-
-    def _get_system_proxy(self):
-        """
-        Retrieves the operating system http proxy.
-
-        First, the method scans the environment for variables named http_proxy, in case insensitive way.
-        If both lowercase and uppercase environment variables exist (and disagree), lowercase is preferred.
-
-        When the method cannot find such environment variables:
-        - for Mac OS X, it will look for proxy information from Mac OS X System Configuration,
-        - for Windows, it will look for proxy information from Windows Systems Registry.
-
-        .. note:: There is a restriction when looking for proxy information from
-                  Mac OS X System Configuration or Windows Systems Registry:
-                  in these cases, the Toolkit does not support the use of proxies
-                  which require authentication (username and password).
-
-        :returns: The operating system http proxy string or ``None`` when it is not defined.
-        """
-
-        # Get the dictionary of scheme to proxy server URL mappings; for example:
-        #     {"http": "http://foo:bar@74.50.63.111:80", "https": "http://74.50.63.111:443"}
-        # "getproxies" scans the environment for variables named <scheme>_proxy, in case insensitive way.
-        # When it cannot find it, for Mac OS X it looks for proxy information from Mac OSX System Configuration,
-        # and for Windows it looks for proxy information from Windows Systems Registry.
-        # If both lowercase and uppercase environment variables exist (and disagree), lowercase is preferred.
-        # Note the following restriction: "getproxies" does not support the use of proxies which
-        # require authentication (user and password) when looking for proxy information from
-        # Mac OSX System Configuration or Windows Systems Registry.
-        system_proxies = urllib.getproxies()
-
-        # Get the http proxy when it exists in the dictionary.
-        proxy = system_proxies.get("http")
-
-        if proxy:
-            # Remove any spurious "http://" from the http proxy string.
-            proxy = proxy.replace("http://", "", 1)
-
-        return proxy
 
     def _to_display_value(self, value):
         """

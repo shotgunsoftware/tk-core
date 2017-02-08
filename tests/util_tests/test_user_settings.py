@@ -109,16 +109,6 @@ class UserSettingsTests(TankTestBase):
         self.assertEqual(settings.shotgun_proxy, "")
         self.assertEqual(settings.app_store_proxy, "")
 
-    def test_system_proxy(self):
-        """
-        Tests the fallback on the operating system http proxy.
-        """
-        http_proxy = "foo:bar@74.50.63.111:80"  # IP address of shotgunstudio.com
-
-        with patch.dict(os.environ, {"http_proxy": "http://" + http_proxy}):
-            settings = UserSettings()
-            self.assertEqual(settings.shotgun_proxy, http_proxy)
-
     def test_custom_settings(self):
         """
         Tests that we can read settings in any section of the file.
