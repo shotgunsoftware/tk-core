@@ -53,7 +53,7 @@ class TestResolverBase(TankTestBase):
         fh.write("foo")
         fh.close()
 
-    def _create_pc(self, code, project, path, users):
+    def _create_pc(self, code, project=None, path="sg_path", users=[], plugin_ids="foo.*", descriptor=None):
         """
         Creates a pipeline configuration.
 
@@ -61,6 +61,8 @@ class TestResolverBase(TankTestBase):
         :param project: Project of the pipeline configuration.
         :param path: mac_path, windows_path and linux_path will be set to this.
         :param users: List of users who should be able to use this pipeline.
+        :param plugin_ids: Plugin ids for the pipeline configuration.
+        :param descriptor: Descriptor for the pipeline configuration
 
         :returns: Dictionary with keys entity_type and entity_id.
         """
@@ -75,8 +77,8 @@ class TestResolverBase(TankTestBase):
                 linux_path=path,
                 # FIXME: Official schema doesn't have the plugin_ids and descriptor fields yet,
                 # we'll work with sg_plugin_ids and sg_descriptor for now.
-                sg_plugin_ids="foo.*",
-                sg_descriptor=None
+                sg_plugin_ids=plugin_ids,
+                sg_descriptor=descriptor
             )
         )
         return dict(
@@ -130,77 +132,51 @@ class TestPluginMatching(TestResolverBase):
         self.assertTrue(resolver._match_plugin_id("foo.maya"))
         self.assertFalse(resolver._match_plugin_id("foo.nuke"))
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
-    def test_single_matching_id(self, _, find_mock):
+    def test_single_matching_id(self, _):
         """
         Picks the sandbox with the right plugin id.
         """
 
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'code': 'Dev Sandbox',
-                'users': [],
-                'project': None,
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }, {
-                'code': 'Dev Sandbox',
-                'users': [],
-                'project': None,
-                'plugin_ids': "not matching plugin ids",
-                'sg_plugin_ids': None,
-                'windows_path': 'nm_path',
-                'linux_path': 'nm_path',
-                'mac_path': 'nm_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }
-            ]
+        self._create_pc(
+            "Dev Sandbox",
+            path="path_we_want",
+            users=[self._user]
+        )
 
-        find_mock.side_effect = find_mock_impl
+        self._create_pc(
+            "Dev Sandbox",
+            path="path_we_dont_want",
+            users=[self._user],
+            plugin_ids="not.matching.plugin.id"
+        )
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
-            current_login='john.smith'
+            current_login="john.smith"
         )
 
-        self.assertEqual(config._path.current_os, 'sg_path')
+        self.assertEqual(config._path.current_os, 'path_we_want')
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_no_plugin_id_matching(self, find_mock):
+    def test_no_plugin_id_matching(self):
         """
         If no plugin id match, use the fallback.
         """
 
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'code': 'Primary',
-                'project': self._project,
-                'users': [],
-                'plugin_ids': "fo3o.*",
-                'sg_plugin_ids': None,
-                'windows_path': None,
-                'linux_path': None,
-                'mac_path': None,
-                'sg_descriptor': None,
-                'descriptor': 'sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test'
-            }]
-
-        find_mock.side_effect = find_mock_impl
+        self._create_pc(
+            "Primary",
+            self._project,
+            plugin_ids="fo3o.*",
+            descriptor="sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test"
+        )
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
-            current_login='john.smith'
+            current_login="john.smith"
         )
 
         self.assertEqual(
@@ -228,7 +204,7 @@ class TestFallbackHandling(TestResolverBase):
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
         # make sure we didn't talk to shotgun
-        self.assertFalse(find_mock.called)
+        self.assertEqual(find_mock.called, False)
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_resolve_latest_base_config(self, find_mock):
@@ -242,7 +218,7 @@ class TestFallbackHandling(TestResolverBase):
         self.assertEqual(config._descriptor.get_dict(), self.config_2)
 
         # make sure we didn't talk to shotgun
-        self.assertFalse(find_mock.called)
+        self.assertEqual(find_mock.called, False)
 
 
 class TestResolverPriority(TestResolverBase):
@@ -309,7 +285,7 @@ class TestResolverPriority(TestResolverBase):
                 pipeline_config_identifier=None,
                 fallback_config_descriptor=self.config_1,
                 sg_connection=self.tk.shotgun,
-                current_login='john.smith'
+                current_login="john.smith"
             )
         self.assertEqual(config._path.current_os, expected_path)
 
@@ -369,65 +345,41 @@ class TestResolverPriority(TestResolverBase):
 
 class TestPipelineLocationFieldPriority(TestResolverBase):
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
-    def test_path_override(self, _, find_mock):
+    def test_path_override(self, _):
         """
         If pipeline config paths are defined, these take precedence over the descriptor field.
         """
 
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'code': 'Primary',
-                'project': self._project,
-                'users': [],
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
-                'sg_descriptor': None,
-                'descriptor': 'sgtk:descriptor:app_store?version=v0.1.2&name=tk-config-test'
-            }]
-
-        find_mock.side_effect = find_mock_impl
+        self._create_pc(
+            "Primary", self._project, path="sg_path",
+            descriptor="sgtk:descriptor:app_store?version=v0.1.2&name=tk-config-test"
+        )
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
-            current_login='john.smith'
+            current_login="john.smith"
         )
 
         self.assertEqual(config._path.current_os, 'sg_path')
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_pc_descriptor(self, find_mock):
+    def test_pc_descriptor(self):
         """
         Descriptor field is used when set.
         """
 
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'code': 'Primary',
-                'project': self._project,
-                'users': [],
-                'plugin_ids': "foo.*, bar, baz",
-                'sg_plugin_ids': None,
-                'windows_path': None,
-                'linux_path': None,
-                'mac_path': None,
-                'sg_descriptor': None,
-                'descriptor': 'sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test'
-            }]
-
-        find_mock.side_effect = find_mock_impl
+        self._create_pc(
+            "Primary", self._project, path=None, plugin_ids="foo.*, bar, baz",
+            descriptor="sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test"
+        )
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
-            current_login='john.smith'
+            current_login="john.smith"
         )
 
         self.assertEqual(
@@ -451,161 +403,65 @@ class TestResolverSiteConfig(TestResolverBase):
             bundle_cache_fallback_paths=[self.install_root]
         )
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_auto_resolve_query(self, find_mock):
-        """
-        Test the sg syntax for the sg auto resolve syntax, e.g. when no pc is defined
-        """
-
-        def find_mock_impl(*args, **kwargs):
-
-            if args[0] == "PipelineConfiguration":
-                self.assertEqual(
-                    args[1],
-                    [{
-                        'filter_operator': 'all',
-                        'filters': [
-                            {
-                                'filter_operator': 'any',
-                                'filters': [
-                                    ['project', 'is', None], ['project', 'is', None]
-                                ]
-                            },
-                            {
-                                'filter_operator': 'any',
-                                'filters': [
-                                    ['code', 'is', 'Primary'], ['users.HumanUser.login', 'is', 'john.smith']
-                                ]
-                            }
-                        ]
-                    }]
-                )
-
-                self.assertEqual(
-                    args[2],
-                    ['code', 'project', 'users', 'plugin_ids', 'sg_plugin_ids',
-                     'windows_path', 'linux_path', 'mac_path', 'sg_descriptor', 'descriptor']
-                )
-
-            return []
-
-        find_mock.side_effect = find_mock_impl
-
-        config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier=None,
-            fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
-            current_login='john.smith'
-        )
-
-        self.assertEqual(config._descriptor.get_dict(), self.config_1)
-
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
-    def test_site_override(self, _, find_mock):
+    def test_site_override(self, _):
         """
         When multiple primaries match, the latest one is picked.
         """
 
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'code': 'Primary',
-                'users': [],
-                'project': None,
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'pr_path',
-                'linux_path': 'pr_path',
-                'mac_path': 'pr_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }, {
-                'code': 'Primary',
-                'users': [],
-                'project': None,
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }]
-
-        find_mock.side_effect = find_mock_impl
+        self._create_pc(
+            "Primary", path="not_the_pipeline_we_want"
+        )
+        self._create_pc(
+            "Primary", path="the_pipeline_we_want"
+        )
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
-            current_login='john.smith'
+            current_login="john.smith"
         )
 
-        self.assertEqual(config._path.current_os, 'sg_path')
+        self.assertEqual(config._path.current_os, "the_pipeline_we_want")
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
-    def test_resolve_installed_from_sg(self, _, find_mock):
+    def test_resolve_installed_from_sg(self, _):
         """
         When a path is set, we have an installed configuration.
         """
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'code': 'Primary',
-                'users': [],
-                'project': None,
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }]
 
-        find_mock.side_effect = find_mock_impl
+        self._create_pc("Primary", path="sg_path")
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
-            current_login='john.smith'
+            current_login="john.smith"
         )
 
         self.assertIsInstance(config, sgtk.bootstrap.resolver.InstalledConfiguration)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_resolve_cached_from_sg(self, find_mock):
+    def test_resolve_cached_from_sg(self):
         """
         When nothing is set, we get the cached descriptor.
         """
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'code': 'Primary',
-                'users': [],
-                'project': None,
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': None,
-                'linux_path': None,
-                'mac_path': None,
-                'sg_descriptor': None,
-                'descriptor': None
-            }]
-
-        find_mock.side_effect = find_mock_impl
+        self._create_pc("Primary", path=None)
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
-            current_login='john.smith'
+            current_login="john.smith"
         )
 
         self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
 
 
 class TestResolvedConfiguration(TankTestBase):
+    """
+    Ensures that resolving a descriptor returns the right Configuration object.
+    """
 
     def setUp(self):
         super(TestResolvedConfiguration, self).setUp()
@@ -631,7 +487,6 @@ class TestResolvedConfiguration(TankTestBase):
         """
         Makes sure a baked configuration is resolved.
         """
-
         os.makedirs(
             os.path.join(self._tmp_bundle_cache, "baked", "unit_tests", "v0.4.2")
         )
@@ -661,92 +516,65 @@ class TestResolvedConfiguration(TankTestBase):
 
 class TestResolvePerId(TestResolverBase):
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
-    def test_existing_pc_ic(self, _, find_mock):
+    def test_existing_pc_ic(self, _):
         """
         Resolve an existing pipeline configuration by id.
         """
-
-        def find_mock_impl(*args, **kwargs):
-            return [{
-                'id': 1,
-                'code': 'Primary',
-                'project': self._project,
-                'users': [],
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }]
-
-        find_mock.side_effect = find_mock_impl
+        pc_id = self._create_pc(
+            "Primary", self._project, "sg_path"
+        )["entity_id"]
 
         config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier=1,
+            pipeline_config_identifier=pc_id,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.tk.shotgun,
-            current_login='john.smith'
+            current_login="john.smith"
         )
 
         self.assertEqual(config._path.current_os, 'sg_path')
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     @patch("os.path.exists", return_value=True)
-    def test_non_existing_pc_ic(self, _, find_mock):
+    def test_non_existing_pc_ic(self, _):
         """
         Resolve a non-existent pipeline configuration by id should fail.
         """
-
-        def find_mock_impl(*args, **kwargs):
-            return []
-
-        find_mock.side_effect = find_mock_impl
-
         with self.assertRaisesRegexp(sgtk.bootstrap.TankBootstrapError, "Pipeline configuration with id"):
             self.resolver.resolve_shotgun_configuration(
-                pipeline_config_identifier=1,
+                pipeline_config_identifier=42,
                 fallback_config_descriptor=self.config_1,
                 sg_connection=self.tk.shotgun,
-                current_login='john.smith'
+                current_login="john.smith"
             )
 
 
 class TestErrorHandling(TestResolverBase):
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_installed_configuration_not_on_disk(self, find_mock):
+    def test_installed_configuration_not_on_disk(self):
         """
         Ensure that the resolver detects when an installed configuration has not been set for the
         current platform.
         """
-        def find_mock_impl(*args, **kwargs):
-            pc = {
-                'id': 1,
-                'code': 'Primary',
-                'project': self._project,
-                'users': [],
-                'plugin_ids': "foo.*",
-                'sg_plugin_ids': None,
-                'windows_path': 'sg_path',
-                'linux_path': 'sg_path',
-                'mac_path': 'sg_path',
-                'sg_descriptor': None,
-                'descriptor': None
-            }
-            # Wipe the current platform's path.
-            pc[ShotgunPath.get_shotgun_storage_key()] = None
-            return [pc]
+        # Create a pipeline configuration.
+        pc_id = self._create_pc(
+            "Primary",
+            self._project,
+            "sg_path"
+        )["entity_id"]
 
-        find_mock.side_effect = find_mock_impl
+        # Remove the current platform's path.
+        self.mockgun.update(
+            "PipelineConfiguration",
+            pc_id,
+            {
+                ShotgunPath.get_shotgun_storage_key(): None
+            }
+        )
 
         with self.assertRaisesRegexp(sgtk.bootstrap.TankBootstrapError, "The Toolkit configuration path has not"):
             self.resolver.resolve_shotgun_configuration(
-                pipeline_config_identifier=1,
+                pipeline_config_identifier=pc_id,
                 fallback_config_descriptor=self.config_1,
                 sg_connection=self.tk.shotgun,
-                current_login='john.smith'
+                current_login="john.smith"
             )
