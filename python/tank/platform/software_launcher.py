@@ -288,13 +288,44 @@ class SoftwareLauncher(object):
             self.sgtk, self.engine_name, schema, self.settings, key, default
         )
 
+    ##########################################################################################
+    # private methods
+
+    def _sort_versions(self, versions):
+        """
+        Uses standard python modules to determine how to sort arbitrary version numbers. A version
+        number consists of a series of numbers, separated by either periods or strings of letters.
+        When comparing version numbers, the numeric components will be compared numerically, and
+        the alphabetic components lexically. For example:
+
+            1.1 < 1.2 < 1.3
+            1.2 < 1.2a < 1.2ab < 1.2b
+
+        This methodology is also used in Desktop. The input list of versions is not modified.
+
+        :param list versions: List of version "numbers" (may be strings)
+        :returns: List of sorted versions
+        """
+        # Do not sort the incoming versions in place.
+        sort_versions = [version for version in versions]
+
+        def version_cmp(left_version, right_version):
+            if util.is_version_newer(left_version, right_version):
+                return -1
+            if util.is_version_older(left_version, right_version):
+                return 1
+            return 0
+
+        sort_versions.sort(cmp=version_cmp)
+        return sort_versions
+
 
 class SoftwareVersion(object):
     """
     Container class that stores properties of a DCC that
     are useful for Toolkit Engine Startup functionality.
     """
-    def __init__(self, version, display_name, path, icon=None):
+    def __init__(self, version, display_name, path, icon=None, group=None, group_default=None):
         """
         Constructor.
 
@@ -305,11 +336,16 @@ class SoftwareVersion(object):
         :param str icon: (optional) Full path to a 256x256 (or smaller)
                          png file to use for graphical displays of
                          this SoftwareVersion.
+        :param str group: (Optional) Group name this SoftwareVersion belongs to.
+        :param bool group_default: (Optional) Whether this SoftwareVersion is the default value
+                                   for the specified group name.
         """
         self._version = version
         self._display_name = display_name
         self._path = path
         self._icon_path = icon
+        self._group = group
+        self._group_default = group_default
 
     @property
     def version(self):
@@ -348,6 +384,14 @@ class SoftwareVersion(object):
         :returns: String path
         """
         return self._icon_path
+
+    @property
+    def group(self):
+        return self._group
+
+    @property
+    def group_default(self):
+        return self._group_default
 
 
 class LaunchInformation(object):
