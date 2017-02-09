@@ -53,7 +53,7 @@ class TestResolverBase(TankTestBase):
         fh.write("foo")
         fh.close()
 
-    def _create_pc(self, code, project=None, path="sg_path", users=[], plugin_ids="foo.*", descriptor=None):
+    def _create_pc(self, code, project=None, path=None, users=[], plugin_ids=None, descriptor=None):
         """
         Creates a pipeline configuration.
 
@@ -137,11 +137,11 @@ class TestPluginMatching(TestResolverBase):
         """
         Picks the sandbox with the right plugin id.
         """
-
         self._create_pc(
             "Dev Sandbox",
             path="path_we_want",
-            users=[self._user]
+            users=[self._user],
+            plugin_ids="foo.*"
         )
 
         self._create_pc(
@@ -239,7 +239,7 @@ class TestResolverPriority(TestResolverBase):
         Creates a pipeline configuration for the TestCases's project. The paths will be set
         to PROJECT_PC_PATH.
         """
-        return self._create_pc("Primary", self._project, self.PROJECT_PC_PATH, [])
+        return self._create_pc("Primary", self._project, self.PROJECT_PC_PATH, [], plugin_ids="foo.*")
 
     PROJECT_SANDBOX_PC_PATH = "project_sandbox_pc_path"
 
@@ -252,7 +252,8 @@ class TestResolverPriority(TestResolverBase):
             "Development",
             self._project,
             self.PROJECT_SANDBOX_PC_PATH,
-            [self._user]
+            [self._user],
+            plugin_ids="foo.*"
         )
 
     SITE_PC_PATH = "site_pc_path"
@@ -262,7 +263,7 @@ class TestResolverPriority(TestResolverBase):
         Creates a pipeline configuration with no project. The paths will be set
         to SITE_PC_PATH.
         """
-        return self._create_pc("Primary", None, self.SITE_PC_PATH, [])
+        return self._create_pc("Primary", None, self.SITE_PC_PATH, [], plugin_ids="foo.*")
 
     SITE_SANDBOX_PC_PATH = "site_sandbox_pc_path"
 
@@ -271,7 +272,7 @@ class TestResolverPriority(TestResolverBase):
         Creates a pipeline configuration with no project for the TestCases's user. The paths will be set
         to SITE_PC_PATH.
         """
-        return self._create_pc("Development", None, self.SITE_SANDBOX_PC_PATH, [self._user])
+        return self._create_pc("Development", None, self.SITE_SANDBOX_PC_PATH, [self._user], plugin_ids="foo.*")
 
     def _test_priority(self, expected_path):
         """
@@ -352,7 +353,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         """
 
         self._create_pc(
-            "Primary", self._project, path="sg_path",
+            "Primary", self._project, path="sg_path", plugin_ids="foo.*",
             descriptor="sgtk:descriptor:app_store?version=v0.1.2&name=tk-config-test"
         )
 
@@ -371,7 +372,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         """
 
         self._create_pc(
-            "Primary", self._project, path=None, plugin_ids="foo.*, bar, baz",
+            "Primary", self._project, plugin_ids="foo.*, bar, baz",
             descriptor="sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test"
         )
 
@@ -396,6 +397,8 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         # First make sure we return something when there the path is set.
         pc_id = self._create_pc(
             "Primary",
+            path="sg_path",
+            plugin_ids="foo.*",
         )["entity_id"]
 
         pcs = list(self.resolver.find_matching_pipeline_configurations(
@@ -449,10 +452,10 @@ class TestResolverSiteConfig(TestResolverBase):
         """
 
         self._create_pc(
-            "Primary", path="not_the_pipeline_we_want"
+            "Primary", path="not_the_pipeline_we_want", plugin_ids="foo.*"
         )
         self._create_pc(
-            "Primary", path="the_pipeline_we_want"
+            "Primary", path="the_pipeline_we_want", plugin_ids="foo.*"
         )
 
         config = self.resolver.resolve_shotgun_configuration(
@@ -470,7 +473,7 @@ class TestResolverSiteConfig(TestResolverBase):
         When a path is set, we have an installed configuration.
         """
 
-        self._create_pc("Primary", path="sg_path")
+        self._create_pc("Primary", path="sg_path", plugin_ids="foo.*")
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
@@ -485,7 +488,7 @@ class TestResolverSiteConfig(TestResolverBase):
         """
         When nothing is set, we get the cached descriptor.
         """
-        self._create_pc("Primary", path=None)
+        self._create_pc("Primary", plugin_ids="foo.*")
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
@@ -561,7 +564,7 @@ class TestResolvePerId(TestResolverBase):
         Resolve an existing pipeline configuration by id.
         """
         pc_id = self._create_pc(
-            "Primary", self._project, "sg_path"
+            "Primary", self._project, "sg_path", plugin_ids="foo.*"
         )["entity_id"]
 
         config = self.resolver.resolve_shotgun_configuration(
@@ -598,7 +601,8 @@ class TestErrorHandling(TestResolverBase):
         pc_id = self._create_pc(
             "Primary",
             self._project,
-            "sg_path"
+            "sg_path",
+            plugin_ids="foo.*",
         )["entity_id"]
 
         # Remove the current platform's path.
