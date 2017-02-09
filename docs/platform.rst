@@ -9,7 +9,110 @@ This part of the API documentation covers all the classes and methods used when 
 If you are interested in developing your own apps, engines or frameworks, the base classes needed to be derived
 from are outlined below. The documentation also covers how to initialize and shut down the Toolkit engine platform.
 
-Launching and accessing Engines and Apps
+Launching Software
+---------------------------------------------------
+
+.. autofunction:: create_engine_launcher
+
+SoftwareLauncher
+---------------------------------------------------
+.. _sw-launcher-guidelines:
+
+Implementation Guidelines
+============================
+Following are some basic guidelines and examples for implementing a startup interface
+for DCC applications related to the engine:
+
+  - The engine specific :class:`SoftwareLauncher` subclass must be implemented in a
+    ``startup.py`` file at the engine root level. For example, in 
+    ``<project_config>/install/app_store/tk-maya/startup.py``::
+
+      from sgtk.platform import SoftwareLauncher
+
+      class MayaLauncher(SoftwareLauncher):
+          ...
+
+  - Every engine must implement the :meth:`SoftwareLauncher.scan_software()` and
+    :meth:`SoftwareLauncher.prepare_launch()` methods.
+
+  - The :meth:`SoftwareLauncher.scan_software()` method is responsible for 
+    discovering executable paths for DCC applications related to the engine.
+
+  - The :meth:`SoftwareLauncher.prepare_launch()` method is responsible for 
+    determining whether toolkit is initialized in classic or plugin mode based
+    on the value of the ``launch_builtin_plugin`` engine configuration setting.
+
+    - If the value of ``launch_builtin_plugin`` is set to a non-empty string,
+      the engine launcher startup logic should load the specified plugin name(s)
+      from ``INSTALLED_ENGINE_ROOT/plugins/<plugin_name>``. Allow multiple plugins
+      to be loaded at launch time by specifying a comma-separated list of plugin
+      names.
+
+      - The value for INSTALLED_ENGINE_ROOT can be retrieved from the ``disk_location``
+        property on the engine's :class:`SoftwareLauncher` subclass.
+
+    - If the value of ``launch_builtin_plugin`` is not set or empty, the classic
+      form inf initializing toolkit by importing sgtk and using 
+      :meth:`sgtk.platform.start_engine()` with an engine name specified in the
+      environment should be used.
+
+    - In both cases, environment variables can be set to indicate what context to use when
+      starting toolkit, or any other information required to launch the DCC application. These
+      values are passed back to the calling code from the :meth:`SoftwareLauncher.prepare_launch()`
+      :class:`LaunchInformation` return value via :meth:`LaunchInformation.environment`::
+
+        from sgtk.platform import SoftwareLauncher, LaunchInformation
+
+        class MayaLauncher(SoftwareLauncher):
+
+            def prepare_launch(self, exec_path, args, file_to_open=None):
+                required_env = {}
+                load_plugins = self.get_setting("launch_builtin_plugin") or None
+                if load_plugins:
+                    load_maya_plugins = []
+                    find_plugins = [plugin for plugin in load_plugins.split(",")]
+                    for find_plugin in find_plugins:
+                        load_plugin = os.path.join(
+                            self.disk_location, "plugins", find_plugin
+                        )
+                        if os.path.exists(load_plugin):
+                            load_maya_plugins.append(load_plugin)
+
+                    required_env["SHOTGUN_SITE"] = self.sgtk.shotgun_url
+                    required_env["SHOTGUN_ENTITY_TYPE"] = self.context.entity["type"]
+                    required_env["SHOTGUN_ENTITY_ID"] = str(self.context.entity["id"])
+
+                else:
+                    required_env["SGTK_ENGINE"] = self.engine_name
+                    required_env["SGTK_CONTEXT"] = sgtk.context.serialize(self.context)
+
+                if file_to_open:
+                    # Add the file name to open to the launch environment
+                    required_env["SGTK_FILE_TO_OPEN"] = file_to_open
+
+                return LaunchInformation(exec_path, args, required_env)
+
+  - Any required startup files (e.g. userSetup.py for Maya) needed to properly launch the DCC
+    application should, by convention, reside in a ``startup`` subfolder at the same level as
+    the ``startup.py`` file. For example, ``<project_config>/install/app_store/tk-maya/startup/userSetup.py``
+
+.. autoclass:: SoftwareLauncher
+    :exclude-members: descriptor,
+                      settings
+    :members:
+
+SoftwareVersion
+============================
+.. autoclass:: SoftwareVersion
+    :members:
+
+LaunchInformation
+============================
+.. autoclass:: LaunchInformation
+    :members:
+
+
+Managing Engines and Apps
 ---------------------------------------------------
 
 The methods in this section are used when you want to start up or manage a Toolkit engine.
@@ -30,7 +133,6 @@ interface for launching host applications are also provided.
 
 .. autofunction:: restart
 
-.. autofunction:: create_engine_launcher
 
 Engines
 ---------------------------------------
@@ -186,103 +288,6 @@ Engine
     .. automethod:: _on_dialog_closed
 
     **Instance Methods & Properties**
-
-SoftwareLauncher
-============================
-.. _sw-launcher-guidelines:
-
-Implementation Guidelines
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Following are some basic guidelines and examples for implementing a startup interface
-for DCC applications related to the engine:
-
-  - The engine specific :class:`SoftwareLauncher` subclass must be implemented in a
-    ``startup.py`` file at the engine root level. For example, in 
-    ``<project_config>/install/app_store/tk-maya/startup.py``::
-
-      from sgtk.platform import SoftwareLauncher
-
-      class MayaLauncher(SoftwareLauncher):
-          ...
-
-  - Every engine must implement the :meth:`SoftwareLauncher.scan_software()` and
-    :meth:`SoftwareLauncher.prepare_launch()` methods.
-
-  - The :meth:`SoftwareLauncher.scan_software()` method is responsible for 
-    discovering executable paths for DCC applications related to the engine.
-
-  - The :meth:`SoftwareLauncher.prepare_launch()` method is responsible for 
-    determining whether toolkit is initialized in classic or plugin mode based
-    on the value of the ``launch_builtin_plugin`` engine configuration setting.
-
-    - If the value of ``launch_builtin_plugin`` is set to a non-empty string,
-      the engine launcher startup logic should load the specified plugin name(s)
-      from ``INSTALLED_ENGINE_ROOT/plugins/<plugin_name>``. Allow multiple plugins
-      to be loaded at launch time by specifying a comma-separated list of plugin
-      names.
-
-      - The value for INSTALLED_ENGINE_ROOT can be retrieved from the ``disk_location``
-        property on the engine's :class:`SoftwareLauncher` subclass.
-
-    - If the value of ``launch_builtin_plugin`` is not set or empty, the classic
-      form inf initializing toolkit by importing sgtk and using 
-      :meth:`sgtk.platform.start_engine()` with an engine name specified in the
-      environment should be used.
-
-    - In both cases, environment variables can be set to indicate what context to use when
-      starting toolkit, or any other information required to launch the DCC application. These
-      values are passed back to the calling code from the :meth:`SoftwareLauncher.prepare_launch()`
-      :class:`LaunchInformation` return value via :meth:`LaunchInformation.environment`::
-
-        from sgtk.platform import SoftwareLauncher, LaunchInformation
-
-        class MayaLauncher(SoftwareLauncher):
-
-            def prepare_launch(self, exec_path, args, file_to_open=None):
-                required_env = {}
-                load_plugins = self.get_setting("launch_builtin_plugin") or None
-                if load_plugins:
-                    load_maya_plugins = []
-                    find_plugins = [plugin for plugin in load_plugins.split(",")]
-                    for find_plugin in find_plugins:
-                        load_plugin = os.path.join(
-                            self.disk_location, "plugins", find_plugin
-                        )
-                        if os.path.exists(load_plugin):
-                            load_maya_plugins.append(load_plugin)
-
-                    required_env["SHOTGUN_SITE"] = self.sgtk.shotgun_url
-                    required_env["SHOTGUN_ENTITY_TYPE"] = self.context.entity["type"]
-                    required_env["SHOTGUN_ENTITY_ID"] = str(self.context.entity["id"])
-
-                else:
-                    required_env["SGTK_ENGINE"] = self.engine_name
-                    required_env["SGTK_CONTEXT"] = sgtk.context.serialize(self.context)
-
-                if file_to_open:
-                    # Add the file name to open to the launch environment
-                    required_env["SGTK_FILE_TO_OPEN"] = file_to_open
-
-                return LaunchInformation(exec_path, args, required_env)
-
-  - Any required startup files (e.g. userSetup.py for Maya) needed to properly launch the DCC
-    application should, by convention, reside in a ``startup`` subfolder at the same level as
-    the ``startup.py`` file. For example, ``<project_config>/install/app_store/tk-maya/startup/userSetup.py``
-
-.. autoclass:: SoftwareLauncher
-    :exclude-members: descriptor,
-                      settings
-    :members:
-
-SoftwareVersion
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: SoftwareVersion
-    :members:
-
-LaunchInformation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: LaunchInformation
-    :members:
 
 Applications
 ---------------------------------------
