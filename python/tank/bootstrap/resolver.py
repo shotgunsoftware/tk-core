@@ -284,6 +284,26 @@ class ConfigurationResolver(object):
                 else:
                     log.warning("")
 
+    def _is_primary_pc(self, pc):
+        """
+        Tests if a pipeline configuration is a sandbox.
+
+        :param pc: Pipeline configuration entity.
+
+        :returns: True if pipeline configuration is a primary, False otherwise.
+        """
+        return pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME
+
+    def _is_project_pc(self, pc):
+        """
+        Tests if a pipeline configuration is attached to a project.
+
+        :param pc: Pipeline configuration entity.
+
+        :returns: True if the pipeline configuration is attached to a project, False otherwise.
+        """
+        return pc["project"] is not None
+
     def resolve_shotgun_configuration(
         self,
         pipeline_config_identifier,
@@ -317,61 +337,49 @@ class ConfigurationResolver(object):
             log.debug("Will auto-detect which pipeline configuration to use.")
 
             # resolve primary and user config
-            primary_config = None
-            user_config = None
-            primary_config_fallback = None
-            user_config_fallback = None
+            primary_project_config = None
+            user_project_config = None
+            primary_site_config = None
+            user_site_config = None
 
+            # Get all the pipeline configurations that be be used given our project
+            # restriction.
             for pc in self.find_matching_pipeline_configurations(
                 pipeline_config_identifier, current_login, sg_connection
             ):
-                # we have a matching pipeline configuration!
-                pc_link = dict(type="Project", id=pc["project"]["id"]) if pc["project"] else None
-                if pc_link == self._proj_entity_dict:
-                    # this pipeline configuration matches our current project exactly!
-                    # alternatively, we may be in site mode, where project id is always None.
-                    # this kind of exact match takes precdence (see logic below)
-                    if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                if self._is_project_pc(pc):
+                    if self._is_primary_pc(pc):
                         log.debug("Primary match: %s" % pc)
-                        primary_config = pc
+                        primary_project_config = pc
                     else:
-                        user_config = pc
+                        user_project_config = pc
                         log.debug("Per-user match: %s" % pc)
-
                 else:
-
-                    # alternatively, this is a pipeline configuration record
-                    # which doesn't match directly - typically this is a
-                    # pipeline config record with project id set to None, in this
-                    # case indicating that this configuration can be used for
-                    # *any* project on the site (one config used for all projects).
-                    # this has a lower priority than the exact match above, so if
-                    # a project has specific pipeline configuration specified, this
-                    # always takes precedence.
-                    if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-                        primary_config_fallback = pc
+                    #
+                    if self._is_primary_pc(pc):
+                        primary_site_config = pc
                         log.debug("Found primary fallback match: %s" % pc)
                     else:
-                        user_config_fallback = pc
+                        user_site_config = pc
                         log.debug("Found per-user fallback match: %s" % pc)
 
             # Now select in order of priority:
-            if user_config:
+            if user_project_config:
                 # A per-user pipeline config for the current project has top priority
-                pipeline_config = user_config
+                pipeline_config = user_project_config
 
-            elif primary_config:
+            elif primary_project_config:
                 # if there is a primary config for our current project, this takes precedence
-                pipeline_config = primary_config
+                pipeline_config = primary_project_config
 
-            elif user_config_fallback:
+            elif user_site_config:
                 # if there is a pipeline config for our current user with project field None
                 # that takes precedence
-                pipeline_config = user_config_fallback
+                pipeline_config = user_site_config
 
-            elif primary_config_fallback:
+            elif primary_site_config:
                 # Lowest priority - A Primary pipeline configuration with project field None
-                pipeline_config = primary_config_fallback
+                pipeline_config = primary_site_config
 
             else:
                 # we may not have any pipeline configuration matches at all:
