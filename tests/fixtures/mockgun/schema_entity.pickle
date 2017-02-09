@@ -439,7 +439,7 @@ sS'value'
 p220
 S'Release Ticket Connection'
 p221
-sssS'CustomEntity03'
+sssS'CustomEntity02'
 p222
 (dp223
 S'visible'
@@ -459,9 +459,9 @@ p230
 I00
 sS'value'
 p231
-S'Animation'
+S'Custom Entity02'
 p232
-sssS'CustomEntity01'
+sssS'CustomEntity03'
 p233
 (dp234
 S'visible'
@@ -481,9 +481,9 @@ p241
 I00
 sS'value'
 p242
-S'Sprint'
+S'Animation'
 p243
-sssS'Shot'
+sssS'CustomEntity01'
 p244
 (dp245
 S'visible'
@@ -503,9 +503,9 @@ p252
 I00
 sS'value'
 p253
-S'Shot'
+S'Sprint'
 p254
-sssS'BannerUserConnection'
+sssS'Shot'
 p255
 (dp256
 S'visible'
@@ -525,9 +525,9 @@ p263
 I00
 sS'value'
 p264
-S'Banner User Connection'
+S'Shot'
 p265
-sssS'AssetAssetConnection'
+sssS'BannerUserConnection'
 p266
 (dp267
 S'visible'
@@ -547,9 +547,9 @@ p274
 I00
 sS'value'
 p275
-S'Asset Asset Connection'
+S'Banner User Connection'
 p276
-sssS'EventLogEntry'
+sssS'AssetAssetConnection'
 p277
 (dp278
 S'visible'
@@ -569,9 +569,9 @@ p285
 I00
 sS'value'
 p286
-S'Event Log Entry'
+S'Asset Asset Connection'
 p287
-sssS'Shot_sg_deliverables_Connection'
+sssS'EventLogEntry'
 p288
 (dp289
 S'visible'
@@ -591,9 +591,9 @@ p296
 I00
 sS'value'
 p297
-S'Shot Sg Deliverables Connection'
+S'Event Log Entry'
 p298
-sssS'Attachment'
+sssS'Shot_sg_deliverables_Connection'
 p299
 (dp300
 S'visible'
@@ -613,9 +613,9 @@ p307
 I00
 sS'value'
 p308
-S'File'
+S'Shot Sg Deliverables Connection'
 p309
-sssS'Playlist'
+sssS'Attachment'
 p310
 (dp311
 S'visible'
@@ -635,9 +635,9 @@ p318
 I00
 sS'value'
 p319
-S'Playlist'
+S'File'
 p320
-sssS'ShootDaySceneConnection'
+sssS'Playlist'
 p321
 (dp322
 S'visible'
@@ -657,9 +657,9 @@ p329
 I00
 sS'value'
 p330
-S'Shoot Day Scene Connection'
+S'Playlist'
 p331
-sssS'Camera'
+sssS'ShootDaySceneConnection'
 p332
 (dp333
 S'visible'
@@ -679,9 +679,9 @@ p340
 I00
 sS'value'
 p341
-S'Camera'
+S'Shoot Day Scene Connection'
 p342
-sssS'Reply'
+sssS'Camera'
 p343
 (dp344
 S'visible'
@@ -701,9 +701,9 @@ p351
 I00
 sS'value'
 p352
-S'Reply'
+S'Camera'
 p353
-sssS'AppWelcomeUserConnection'
+sssS'Reply'
 p354
 (dp355
 S'visible'
@@ -723,9 +723,9 @@ p362
 I00
 sS'value'
 p363
-S'App Welcome User Connection'
+S'Reply'
 p364
-sssS'PlaylistShare'
+sssS'AppWelcomeUserConnection'
 p365
 (dp366
 S'visible'
@@ -745,9 +745,9 @@ p373
 I00
 sS'value'
 p374
-S'Playlist Share'
+S'App Welcome User Connection'
 p375
-sssS'TicketTicketConnection'
+sssS'PlaylistShare'
 p376
 (dp377
 S'visible'
@@ -767,9 +767,9 @@ p384
 I00
 sS'value'
 p385
-S'Ticket Ticket Connection'
+S'Playlist Share'
 p386
-sssS'Delivery_sg_versions_Connection'
+sssS'TicketTicketConnection'
 p387
 (dp388
 S'visible'
@@ -789,9 +789,9 @@ p395
 I00
 sS'value'
 p396
-S'Delivery Sg Versions Connection'
+S'Ticket Ticket Connection'
 p397
-sssS'CustomEntity21'
+sssS'Delivery_sg_versions_Connection'
 p398
 (dp399
 S'visible'
@@ -811,9 +811,9 @@ p406
 I00
 sS'value'
 p407
-S'Deliverable'
+S'Delivery Sg Versions Connection'
 p408
-sssS'PhysicalAssetMocapTakeConnection'
+sssS'CustomEntity21'
 p409
 (dp410
 S'visible'
@@ -833,9 +833,9 @@ p417
 I00
 sS'value'
 p418
-S'Physical Asset Mocap Take Connection'
+S'Deliverable'
 p419
-sssS'AssetShootDayConnection'
+sssS'PhysicalAssetMocapTakeConnection'
 p420
 (dp421
 S'visible'
@@ -855,9 +855,9 @@ p428
 I00
 sS'value'
 p429
-S'Asset Shoot Day Connection'
+S'Physical Asset Mocap Take Connection'
 p430
-sssS'Delivery_sg_assets_Connection'
+sssS'AssetShootDayConnection'
 p431
 (dp432
 S'visible'
@@ -877,9 +877,9 @@ p439
 I00
 sS'value'
 p440
-S'Delivery Sg Assets Connection'
+S'Asset Shoot Day Connection'
 p441
-sssS'Cut'
+sssS'Delivery_sg_assets_Connection'
 p442
 (dp443
 S'visible'
@@ -899,9 +899,9 @@ p450
 I00
 sS'value'
 p451
-S'Cut'
+S'Delivery Sg Assets Connection'
 p452
-sssS'Group'
+sssS'Cut'
 p453
 (dp454
 S'visible'
@@ -921,9 +921,9 @@ p461
 I00
 sS'value'
 p462
-S'Group'
+S'Cut'
 p463
-sssS'MocapSetup'
+sssS'Group'
 p464
 (dp465
 S'visible'
@@ -943,9 +943,9 @@ p472
 I00
 sS'value'
 p473
-S'Mocap Setup'
+S'Group'
 p474
-sssS'Note'
+sssS'MocapSetup'
 p475
 (dp476
 S'visible'
@@ -965,9 +965,9 @@ p483
 I00
 sS'value'
 p484
-S'Note'
+S'Mocap Setup'
 p485
-sssS'TaskDependency'
+sssS'Note'
 p486
 (dp487
 S'visible'
@@ -987,9 +987,9 @@ p494
 I00
 sS'value'
 p495
-S'Task Dependency'
+S'Note'
 p496
-sssS'PageHit'
+sssS'TaskDependency'
 p497
 (dp498
 S'visible'
@@ -1009,9 +1009,9 @@ p505
 I00
 sS'value'
 p506
-S'Page Hit'
+S'Task Dependency'
 p507
-sssS'LaunchShotConnection'
+sssS'PageHit'
 p508
 (dp509
 S'visible'
@@ -1031,9 +1031,9 @@ p516
 I00
 sS'value'
 p517
-S'Launch Shot Connection'
+S'Page Hit'
 p518
-sssS'Status'
+sssS'LaunchShotConnection'
 p519
 (dp520
 S'visible'
@@ -1053,9 +1053,9 @@ p527
 I00
 sS'value'
 p528
-S'Status'
+S'Launch Shot Connection'
 p529
-sssS'AssetElementConnection'
+sssS'Status'
 p530
 (dp531
 S'visible'
@@ -1075,9 +1075,9 @@ p538
 I00
 sS'value'
 p539
-S'Asset Element Connection'
+S'Status'
 p540
-sssS'MocapTakeRangeShotConnection'
+sssS'AssetElementConnection'
 p541
 (dp542
 S'visible'
@@ -1097,9 +1097,9 @@ p549
 I00
 sS'value'
 p550
-S'Mocap Take Range Shot Connection'
+S'Asset Element Connection'
 p551
-sssS'TimeLog'
+sssS'MocapTakeRangeShotConnection'
 p552
 (dp553
 S'visible'
@@ -1119,9 +1119,9 @@ p560
 I00
 sS'value'
 p561
-S'Time Log'
+S'Mocap Take Range Shot Connection'
 p562
-sssS'ShootDay'
+sssS'TimeLog'
 p563
 (dp564
 S'visible'
@@ -1141,9 +1141,9 @@ p571
 I00
 sS'value'
 p572
-S'Shoot Day'
+S'Time Log'
 p573
-sssS'CustomEntity01_sg_tasks_Connection'
+sssS'ShootDay'
 p574
 (dp575
 S'visible'
@@ -1163,9 +1163,9 @@ p582
 I00
 sS'value'
 p583
-S'Custom Entity01 Sg Tasks Connection'
+S'Shoot Day'
 p584
-sssS'AssetBlendshapeConnection'
+sssS'CustomEntity01_sg_tasks_Connection'
 p585
 (dp586
 S'visible'
@@ -1185,9 +1185,9 @@ p593
 I00
 sS'value'
 p594
-S'Asset Blendshape Connection'
+S'Custom Entity01 Sg Tasks Connection'
 p595
-sssS'MocapTakeRange'
+sssS'AssetBlendshapeConnection'
 p596
 (dp597
 S'visible'
@@ -1207,9 +1207,9 @@ p604
 I00
 sS'value'
 p605
-S'Mocap Take Range'
+S'Asset Blendshape Connection'
 p606
-sssS'PublishedFile'
+sssS'MocapTakeRange'
 p607
 (dp608
 S'visible'
@@ -1229,9 +1229,9 @@ p615
 I00
 sS'value'
 p616
-S'Published File'
+S'Mocap Take Range'
 p617
-sssS'Shot_sg_animations_Connection'
+sssS'PublishedFile'
 p618
 (dp619
 S'visible'
@@ -1251,9 +1251,9 @@ p626
 I00
 sS'value'
 p627
-S'Shot Sg Animations Connection'
+S'Published File'
 p628
-sssS'ProjectUserConnection'
+sssS'Shot_sg_animations_Connection'
 p629
 (dp630
 S'visible'
@@ -1273,9 +1273,9 @@ p637
 I00
 sS'value'
 p638
-S'Project User Connection'
+S'Shot Sg Animations Connection'
 p639
-sssS'CustomEntity03_sg_animation_asset_Connection'
+sssS'ProjectUserConnection'
 p640
 (dp641
 S'visible'
@@ -1295,9 +1295,9 @@ p648
 I00
 sS'value'
 p649
-S'Custom Entity03 Sg Animation Asset Connection'
+S'Project User Connection'
 p650
-sssS'ShotShotConnection'
+sssS'CustomEntity03_sg_animation_asset_Connection'
 p651
 (dp652
 S'visible'
@@ -1317,9 +1317,9 @@ p659
 I00
 sS'value'
 p660
-S'Shot Shot Connection'
+S'Custom Entity03 Sg Animation Asset Connection'
 p661
-sssS'PublishedFileType'
+sssS'ShotShotConnection'
 p662
 (dp663
 S'visible'
@@ -1339,9 +1339,9 @@ p670
 I00
 sS'value'
 p671
-S'Published File Type'
+S'Shot Shot Connection'
 p672
-sssS'TaskTemplate'
+sssS'PublishedFileType'
 p673
 (dp674
 S'visible'
@@ -1361,9 +1361,9 @@ p681
 I00
 sS'value'
 p682
-S'Task Template'
+S'Published File Type'
 p683
-sssS'PerformerShootDayConnection'
+sssS'TankType'
 p684
 (dp685
 S'visible'
@@ -1383,9 +1383,9 @@ p692
 I00
 sS'value'
 p693
-S'Performer Shoot Day Connection'
+S'Tank Type'
 p694
-sssS'PipelineConfiguration'
+sssS'TaskTemplate'
 p695
 (dp696
 S'visible'
@@ -1405,9 +1405,9 @@ p703
 I00
 sS'value'
 p704
-S'Pipeline Configuration'
+S'Task Template'
 p705
-sssS'HumanUser'
+sssS'PerformerShootDayConnection'
 p706
 (dp707
 S'visible'
@@ -1427,9 +1427,9 @@ p714
 I00
 sS'value'
 p715
-S'Person'
+S'Performer Shoot Day Connection'
 p716
-sssS'FilesystemLocation'
+sssS'PipelineConfiguration'
 p717
 (dp718
 S'visible'
@@ -1449,9 +1449,9 @@ p725
 I00
 sS'value'
 p726
-S'Filesystem Location'
+S'Pipeline Configuration'
 p727
-sssS'Performer'
+sssS'HumanUser'
 p728
 (dp729
 S'visible'
@@ -1471,9 +1471,9 @@ p736
 I00
 sS'value'
 p737
-S'Performer'
+S'Person'
 p738
-sssS'Version'
+sssS'FilesystemLocation'
 p739
 (dp740
 S'visible'
@@ -1493,9 +1493,9 @@ p747
 I00
 sS'value'
 p748
-S'Version'
+S'Filesystem Location'
 p749
-sssS'PhysicalAsset'
+sssS'Performer'
 p750
 (dp751
 S'visible'
@@ -1515,9 +1515,9 @@ p758
 I00
 sS'value'
 p759
-S'Physical Asset'
+S'Performer'
 p760
-sssS'ElementShotConnection'
+sssS'Version'
 p761
 (dp762
 S'visible'
@@ -1537,9 +1537,9 @@ p769
 I00
 sS'value'
 p770
-S'Element Shot Connection'
+S'Version'
 p771
-sssS'AssetEpisodeConnection'
+sssS'PhysicalAsset'
 p772
 (dp773
 S'visible'
@@ -1559,9 +1559,9 @@ p780
 I00
 sS'value'
 p781
-S'Asset Episode Connection'
+S'Physical Asset'
 p782
-sssS'AssetSceneConnection'
+sssS'ElementShotConnection'
 p783
 (dp784
 S'visible'
@@ -1581,9 +1581,9 @@ p791
 I00
 sS'value'
 p792
-S'Asset Scene Connection'
+S'Element Shot Connection'
 p793
-sssS'Delivery_sg_shots_Connection'
+sssS'AssetEpisodeConnection'
 p794
 (dp795
 S'visible'
@@ -1603,9 +1603,9 @@ p802
 I00
 sS'value'
 p803
-S'Delivery Sg Shots Connection'
+S'Asset Episode Connection'
 p804
-sssS'AssetMocapTakeConnection'
+sssS'AssetSceneConnection'
 p805
 (dp806
 S'visible'
@@ -1625,9 +1625,9 @@ p813
 I00
 sS'value'
 p814
-S'Asset Mocap Take Connection'
+S'Asset Scene Connection'
 p815
-sssS'CameraMocapTakeConnection'
+sssS'Delivery_sg_shots_Connection'
 p816
 (dp817
 S'visible'
@@ -1647,9 +1647,9 @@ p824
 I00
 sS'value'
 p825
-S'Camera Mocap Take Connection'
+S'Delivery Sg Shots Connection'
 p826
-sssS'Booking'
+sssS'AssetMocapTakeConnection'
 p827
 (dp828
 S'visible'
@@ -1669,9 +1669,9 @@ p835
 I00
 sS'value'
 p836
-S'Booking'
+S'Asset Mocap Take Connection'
 p837
-sssS'PlaylistVersionConnection'
+sssS'CameraMocapTakeConnection'
 p838
 (dp839
 S'visible'
@@ -1691,9 +1691,9 @@ p846
 I00
 sS'value'
 p847
-S'Playlist Version Connection'
+S'Camera Mocap Take Connection'
 p848
-sssS'Phase'
+sssS'Booking'
 p849
 (dp850
 S'visible'
@@ -1713,9 +1713,9 @@ p857
 I00
 sS'value'
 p858
-S'Phase'
+S'Booking'
 p859
-sssS'Ticket'
+sssS'PlaylistVersionConnection'
 p860
 (dp861
 S'visible'
@@ -1735,9 +1735,9 @@ p868
 I00
 sS'value'
 p869
-S'Ticket'
+S'Playlist Version Connection'
 p870
-sssS'AssetShotConnection'
+sssS'Phase'
 p871
 (dp872
 S'visible'
@@ -1757,9 +1757,9 @@ p879
 I00
 sS'value'
 p880
-S'Asset Shot Connection'
+S'Phase'
 p881
-sssS'ClientUser'
+sssS'Ticket'
 p882
 (dp883
 S'visible'
@@ -1779,9 +1779,9 @@ p890
 I00
 sS'value'
 p891
-S'Client User'
+S'Ticket'
 p892
-sssS'PageSetting'
+sssS'AssetShotConnection'
 p893
 (dp894
 S'visible'
@@ -1801,9 +1801,9 @@ p901
 I00
 sS'value'
 p902
-S'Page Setting'
+S'Asset Shot Connection'
 p903
-sssS'Episode'
+sssS'ClientUser'
 p904
 (dp905
 S'visible'
@@ -1823,9 +1823,9 @@ p912
 I00
 sS'value'
 p913
-S'Episode'
+S'Client User'
 p914
-sssS'CustomEntity28_sg_assets_Connection'
+sssS'PageSetting'
 p915
 (dp916
 S'visible'
@@ -1845,9 +1845,9 @@ p923
 I00
 sS'value'
 p924
-S'Custom Entity28 Sg Assets Connection'
+S'Page Setting'
 p925
-sssS'RvLicense'
+sssS'Episode'
 p926
 (dp927
 S'visible'
@@ -1867,9 +1867,9 @@ p934
 I00
 sS'value'
 p935
-S'Rv License'
+S'Episode'
 p936
-sssS'PerformerRoutineConnection'
+sssS'CustomEntity28_sg_assets_Connection'
 p937
 (dp938
 S'visible'
@@ -1889,9 +1889,9 @@ p945
 I00
 sS'value'
 p946
-S'Performer Routine Connection'
+S'Custom Entity28 Sg Assets Connection'
 p947
-sssS'Ticket_sg_related_assets_Connection'
+sssS'RvLicense'
 p948
 (dp949
 S'visible'
@@ -1911,9 +1911,9 @@ p956
 I00
 sS'value'
 p957
-S'Ticket Sg Related Assets Connection'
+S'Rv License'
 p958
-sssS'PermissionRuleSet'
+sssS'PerformerRoutineConnection'
 p959
 (dp960
 S'visible'
@@ -1933,9 +1933,9 @@ p967
 I00
 sS'value'
 p968
-S'Permission Rule Set'
+S'Performer Routine Connection'
 p969
-sssS'GroupUserConnection'
+sssS'Ticket_sg_related_assets_Connection'
 p970
 (dp971
 S'visible'
@@ -1955,9 +1955,9 @@ p978
 I00
 sS'value'
 p979
-S'Group User Connection'
+S'Ticket Sg Related Assets Connection'
 p980
-sssS'AssetSequenceConnection'
+sssS'PermissionRuleSet'
 p981
 (dp982
 S'visible'
@@ -1977,9 +1977,9 @@ p989
 I00
 sS'value'
 p990
-S'Asset Sequence Connection'
+S'Permission Rule Set'
 p991
-sssS'Page'
+sssS'GroupUserConnection'
 p992
 (dp993
 S'visible'
@@ -1999,9 +1999,9 @@ p1000
 I00
 sS'value'
 p1001
-S'Page'
+S'Group User Connection'
 p1002
-sssS'Sequence'
+sssS'AssetSequenceConnection'
 p1003
 (dp1004
 S'visible'
@@ -2021,9 +2021,9 @@ p1011
 I00
 sS'value'
 p1012
-S'Sequence'
+S'Asset Sequence Connection'
 p1013
-sssS'PerformerMocapTakeConnection'
+sssS'Page'
 p1014
 (dp1015
 S'visible'
@@ -2043,9 +2043,9 @@ p1022
 I00
 sS'value'
 p1023
-S'Performer Mocap Take Connection'
+S'Page'
 p1024
-sssS'RevisionRevisionConnection'
+sssS'TankPublishedFile'
 p1025
 (dp1026
 S'visible'
@@ -2065,6 +2065,116 @@ p1033
 I00
 sS'value'
 p1034
-S'Revision Revision Connection'
+S'Tank Published File'
 p1035
+sssS'Sequence'
+p1036
+(dp1037
+S'visible'
+p1038
+(dp1039
+S'editable'
+p1040
+I00
+sS'value'
+p1041
+I01
+ssS'name'
+p1042
+(dp1043
+S'editable'
+p1044
+I00
+sS'value'
+p1045
+S'Sequence'
+p1046
+sssS'TankDependency'
+p1047
+(dp1048
+S'visible'
+p1049
+(dp1050
+S'editable'
+p1051
+I00
+sS'value'
+p1052
+I01
+ssS'name'
+p1053
+(dp1054
+S'editable'
+p1055
+I00
+sS'value'
+p1056
+S'Tank Dependency'
+p1057
+sssS'Scene'
+p1058
+(dp1059
+S'visible'
+p1060
+(dp1061
+S'editable'
+p1062
+I00
+sS'value'
+p1063
+I01
+ssS'name'
+p1064
+(dp1065
+S'editable'
+p1066
+I00
+sS'value'
+p1067
+S'Scene'
+p1068
+sssS'PerformerMocapTakeConnection'
+p1069
+(dp1070
+S'visible'
+p1071
+(dp1072
+S'editable'
+p1073
+I00
+sS'value'
+p1074
+I01
+ssS'name'
+p1075
+(dp1076
+S'editable'
+p1077
+I00
+sS'value'
+p1078
+S'Performer Mocap Take Connection'
+p1079
+sssS'RevisionRevisionConnection'
+p1080
+(dp1081
+S'visible'
+p1082
+(dp1083
+S'editable'
+p1084
+I00
+sS'value'
+p1085
+I01
+ssS'name'
+p1086
+(dp1087
+S'editable'
+p1088
+I00
+sS'value'
+p1089
+S'Revision Revision Connection'
+p1090
 sss.
