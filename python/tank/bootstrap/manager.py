@@ -13,7 +13,6 @@ import os
 from . import constants
 from .errors import TankBootstrapError
 from .configuration import Configuration
-from .installed_configuration import InstalledConfiguration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
@@ -680,7 +679,7 @@ class ToolkitManager(object):
         self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
-        if not isinstance(config, InstalledConfiguration):
+        if config.has_local_bundle_cache:
             # make sure we have all the apps locally downloaded
             # this check is quick, so always perform the check, except for installed config, which are
             # self contained, even when the config is up to date - someone may have deleted their

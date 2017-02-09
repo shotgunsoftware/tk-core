@@ -518,12 +518,14 @@ class TestResolvedConfiguration(TankTestBase):
         """
         Makes sure an installed configuration is resolved.
         """
+        config = self._resolver.resolve_configuration(
+            {"type": "installed", "path": self.pipeline_config_root}, self.tk.shotgun
+        )
         self.assertIsInstance(
-            self._resolver.resolve_configuration(
-                {"type": "installed", "path": self.pipeline_config_root}, self.tk.shotgun
-            ),
+            config,
             sgtk.bootstrap.resolver.InstalledConfiguration
         )
+        self.assertEqual(config.has_local_bundle_cache, True)
 
     def test_resolve_baked_configuration(self):
         """
@@ -533,12 +535,15 @@ class TestResolvedConfiguration(TankTestBase):
             os.path.join(self._tmp_bundle_cache, "baked", "unit_tests", "v0.4.2")
         )
 
+        config = self._resolver.resolve_configuration(
+            {"type": "baked", "name": "unit_tests", "version": "v0.4.2"}, self.tk.shotgun
+        )
+
         self.assertIsInstance(
-            self._resolver.resolve_configuration(
-                {"type": "baked", "name": "unit_tests", "version": "v0.4.2"}, self.tk.shotgun
-            ),
+            config,
             sgtk.bootstrap.resolver.BakedConfiguration
         )
+        self.assertEqual(config.has_local_bundle_cache, True)
 
     def test_resolve_cached_configuration(self):
         """
@@ -548,12 +553,15 @@ class TestResolvedConfiguration(TankTestBase):
             os.path.join(self._tmp_bundle_cache, "app_store", "unit_tests", "v0.4.2")
         )
 
+        config = self._resolver.resolve_configuration(
+            {"type": "app_store", "name": "unit_tests", "version": "v0.4.2"}, self.tk.shotgun
+        )
+
         self.assertIsInstance(
-            self._resolver.resolve_configuration(
-                {"type": "app_store", "name": "unit_tests", "version": "v0.4.2"}, self.tk.shotgun
-            ),
+            config,
             sgtk.bootstrap.resolver.CachedConfiguration
         )
+        self.assertEqual(config.has_local_bundle_cache, False)
 
 
 class TestResolvePerId(TestResolverBase):
