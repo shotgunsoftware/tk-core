@@ -275,7 +275,14 @@ class ConfigurationResolver(object):
         for pc in pipeline_configs:
             # make sure configuration matches our plugin id
             if self._match_plugin_id(pc.get("plugin_ids")) or self._match_plugin_id(pc.get("sg_plugin_ids")):
-                yield pc
+                path = ShotgunPath.from_shotgun_dict(pc)
+                # If a location was specified to get access to that pipeline, return it. Note that we are
+                # potentially returning pipeline configurations that have been configured for one platform but
+                # not all.
+                if pc["descriptor"] or pc["sg_descriptor"] or path:
+                    yield pc
+                else:
+                    log.warning("")
 
     def resolve_shotgun_configuration(
         self,

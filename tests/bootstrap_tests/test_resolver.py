@@ -387,6 +387,45 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             {'name': 'tk-config-test', 'type': 'app_store', 'version': 'v3.1.2'}
         )
 
+    def test_pipeline_without_location(self):
+        """
+        Ensures that pipeline configurations without any location (descriptor or *_path)
+         are skipped.
+        """
+
+        # First make sure we return something when there the path is set.
+        pc_id = self._create_pc(
+            "Primary",
+        )["entity_id"]
+
+        pcs = list(self.resolver.find_matching_pipeline_configurations(
+            None,
+            "john.smith",
+            self.mockgun
+        ))
+        self.assertEqual(len(pcs), 1)
+        self.assertEqual(pcs[0]["id"], pc_id)
+
+        # Now remove every locators.
+        self.mockgun.update(
+            "PipelineConfiguration",
+            pc_id,
+            {
+                "windows_path": None,
+                "linux_path": None,
+                "mac_path": None,
+                "sg_descriptor": None
+            }
+        )
+
+        # Nothing should be found.
+        pcs = list(self.resolver.find_matching_pipeline_configurations(
+            None,
+            "john.smith",
+            self.mockgun
+        ))
+        self.assertEqual(len(pcs), 0)
+
 
 class TestResolverSiteConfig(TestResolverBase):
     """
