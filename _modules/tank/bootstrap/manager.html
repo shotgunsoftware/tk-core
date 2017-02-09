@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.bootstrap.manager &mdash; tk-core v0.18.53 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.57 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.53 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.57 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.53.<br>
+    <b>tk-core</b> v0.18.57.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -187,7 +187,7 @@
 <span class="kn">from</span> <span class="nn">..authentication</span> <span class="kn">import</span> <span class="n">ShotgunAuthenticator</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
 
-<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ToolkitManager"><a class="viewcode-back" href="../../../bootstrap.html#sgtk.bootstrap.ToolkitManager">[docs]</a><span class="k">class</span> <span class="nc">ToolkitManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -205,7 +205,7 @@
     <span class="c1"># - starting up the engine (with method _start_engine).</span>
     <span class="p">(</span><span class="n">TOOLKIT_BOOTSTRAP_PHASE</span><span class="p">,</span> <span class="n">ENGINE_STARTUP_PHASE</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_user</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_user</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param sg_user: Authenticated Shotgun User object. If you pass in None,</span>
 <span class="sd">                        the manager will provide a standard authentication for you</span>
@@ -236,7 +236,7 @@
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> instantiated&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
 
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">repr</span>  <span class="o">=</span> <span class="s2">&quot;&lt;TkManager &quot;</span>
         <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; User </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span>
         <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Cache fallback path </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span>
@@ -779,6 +779,10 @@
 <span class="sd">        :returns: Started :class:`~sgtk.platform.Engine` instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="c1"># Log a user activity metric saying which engine and entity are bootstrapping</span>
+        <span class="c1"># since we can now log into the logging queue of the new swapped core.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_bootstrap_metric</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
+
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Begin starting up engine </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">engine_name</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -903,7 +907,33 @@
 
         <span class="n">phase_name</span> <span class="o">=</span> <span class="s2">&quot;TOOLKIT_BOOTSTRAP_PHASE&quot;</span> <span class="k">if</span> <span class="n">phase</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">TOOLKIT_BOOTSTRAP_PHASE</span> <span class="k">else</span> <span class="s2">&quot;ENGINE_STARTUP_PHASE&quot;</span>
 
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Default failed callback (</span><span class="si">%s</span><span class="s2">): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">exception</span><span class="p">))</span></div>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Default failed callback (</span><span class="si">%s</span><span class="s2">): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">exception</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_log_bootstrap_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Logs a user activity metric when an engine is bootstrapped.</span>
+
+<span class="sd">        Module: ``tk-core``</span>
+<span class="sd">        Action: ``bootstrap &lt;bootstrap_type&gt; &lt;engine_name&gt; &lt;context_name&gt;``</span>
+
+<span class="sd">        :param engine_name: Name of the engine being bootstrapped.</span>
+<span class="sd">        :param entity: Shotgun entity to bootstrap into, or ``None`` for the site.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Perform an absolute import to ensure we get the new swapped core.</span>
+        <span class="c1"># This is required to make sure we log into the logging queue of this swapped core.</span>
+        <span class="kn">from</span> <span class="nn">tank.util</span> <span class="kn">import</span> <span class="n">log_user_activity_metric</span>
+
+        <span class="n">module</span> <span class="o">=</span> <span class="s2">&quot;tk-core&quot;</span>
+
+        <span class="n">bootstrap_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span> <span class="k">else</span> <span class="s2">&quot;classic&quot;</span>
+        <span class="n">context_name</span> <span class="o">=</span> <span class="s2">&quot;project&quot;</span> <span class="k">if</span> <span class="n">entity</span> <span class="k">else</span> <span class="s2">&quot;site&quot;</span>
+
+        <span class="n">action</span> <span class="o">=</span> <span class="s2">&quot;bootstrap </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bootstrap_type</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">context_name</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Logging user activity metric: module &#39;</span><span class="si">%s</span><span class="s2">&#39;, action &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">action</span><span class="p">))</span>
+
+        <span class="n">log_user_activity_metric</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -936,7 +966,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.53',
+            VERSION:'v0.18.57',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

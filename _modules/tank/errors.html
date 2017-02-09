@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.errors &mdash; tk-core v0.18.53 documentation</title>
+  <title>tank.errors &mdash; tk-core v0.18.57 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.53 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.57 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.53.<br>
+    <b>tk-core</b> v0.18.57.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -218,11 +218,11 @@
 <span class="sd">    Exception that indicates that a project already has a toolkit name but no pipeline configuration.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Include error message</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">TankErrorProjectIsSetup</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TankErrorProjectIsSetup</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="s2">&quot;You are trying to set up a project which has already been set up. &quot;</span>
             <span class="s2">&quot;If you want to do this, make sure to set the force parameter.&quot;</span>
         <span class="p">)</span></div>
@@ -231,6 +231,12 @@
 <span class="k">class</span> <span class="nc">TankContextDeserializationError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that something went wrong while deserializating a context.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">TankMultipleMatchingTemplatesError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exception that indicates that a path matches multiple templates.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 </pre></div>
@@ -265,7 +271,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.53',
+            VERSION:'v0.18.57',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

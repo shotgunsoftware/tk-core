@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.53 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.57 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.53 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.57 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.53.<br>
+    <b>tk-core</b> v0.18.57.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -220,7 +220,7 @@
 <span class="kn">from</span> <span class="nn">.engine_logging</span> <span class="kn">import</span> <span class="n">ToolkitEngineHandler</span><span class="p">,</span> <span class="n">ToolkitEngineLegacyHandler</span>
 
 <span class="c1"># std core level logger</span>
-<span class="n">core_logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">core_logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Engine"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine">[docs]</a><span class="k">class</span> <span class="nc">Engine</span><span class="p">(</span><span class="n">TankBundle</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -230,7 +230,7 @@
 
     <span class="n">_ASYNC_INVOKER</span><span class="p">,</span> <span class="n">_SYNC_INVOKER</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Engine instances are constructed by the toolkit launch process</span>
 <span class="sd">        and various factory methods such as :meth:`start_engine`.</span>
@@ -282,7 +282,7 @@
         <span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;env.</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">engine_instance_name</span><span class="p">))</span>
 
         <span class="c1"># init base class</span>
-        <span class="n">TankBundle</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+        <span class="n">TankBundle</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
 
         <span class="c1"># create a log handler to handle log dispatch from self.log</span>
         <span class="c1"># (and the rest of the sgtk logging ) to the user</span>
@@ -321,7 +321,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Engine init: Current Context: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">context</span><span class="p">)</span>
 
         <span class="c1"># now if a folder named python is defined in the engine, add it to the pythonpath</span>
-        <span class="n">my_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__module__</span><span class="p">]</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
+        <span class="n">my_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span><span class="p">]</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
         <span class="n">python_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">my_path</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">BUNDLE_PYTHON_FOLDER</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">python_path</span><span class="p">):</span>
             <span class="c1"># Only append if __init__.py doesn&#39;t exist. If it does then we</span>
@@ -441,7 +441,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_metrics_dispatcher</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Metrics dispatcher started.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk Engine 0x</span><span class="si">%08x</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, env: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span>  
                                                       <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> 
                                                       <span class="bp">self</span><span class="o">.</span><span class="n">__env</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -505,7 +505,7 @@
                 <span class="n">subclassed</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># pyton 2.6 and above use __func__</span>
-            <span class="k">if</span> <span class="n">running_method</span><span class="o">.</span><span class="n">__func__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">base_method</span><span class="o">.</span><span class="n">__func__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">running_method</span><span class="o">.</span><span class="vm">__func__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">base_method</span><span class="o">.</span><span class="vm">__func__</span><span class="p">:</span>
                 <span class="n">subclassed</span> <span class="o">=</span> <span class="bp">True</span>
 
         <span class="k">return</span> <span class="n">subclassed</span>
@@ -1523,7 +1523,7 @@
 <span class="sd">        Add the qt widget to a list of objects to be tracked. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">widget</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__qt_debug_info</span><span class="p">[</span><span class="n">widget</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()]</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__qt_debug_info</span><span class="p">[</span><span class="n">widget</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()]</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
         
     <span class="c1">##########################################################################################</span>
     <span class="c1"># private and protected methods</span>
@@ -2145,7 +2145,7 @@
             <span class="c1"># deserialize the palette</span>
             <span class="c1"># (store it for GC purposes)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QPalette</span><span class="p">()</span>
-            <span class="n">file_in</span><span class="o">.</span><span class="n">__rshift__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span><span class="p">)</span>
+            <span class="n">file_in</span><span class="o">.</span><span class="fm">__rshift__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span><span class="p">)</span>
             <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             
             <span class="c1"># set the std selection bg color to be &#39;shotgun blue&#39;</span>
@@ -2245,11 +2245,11 @@
 <span class="sd">                    Invoker class - implements a mechanism to execute a function with arbitrary</span>
 <span class="sd">                    args in the main thread.</span>
 <span class="sd">                    &quot;&quot;&quot;</span>
-                    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                        Construction</span>
 <span class="sd">                        &quot;&quot;&quot;</span>
-                        <span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                        <span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="bp">None</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_res</span> <span class="o">=</span> <span class="bp">None</span>
@@ -2293,11 +2293,11 @@
 <span class="sd">                    &quot;&quot;&quot;</span>
                     <span class="n">__signal</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
 
-                    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                        Construction</span>
 <span class="sd">                        &quot;&quot;&quot;</span>
-                        <span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                        <span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">__signal</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__execute_in_main_thread</span><span class="p">)</span>
 
                     <span class="k">def</span> <span class="nf">invoke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -2587,7 +2587,7 @@
 
 <span class="sd">        :return: full path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">this_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+        <span class="n">this_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">this_folder</span><span class="p">,</span> <span class="s2">&quot;qt&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__run_post_engine_inits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2722,7 +2722,7 @@
 
     <span class="n">_depth</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructor.</span>
 
@@ -2734,11 +2734,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_old_context</span> <span class="o">=</span> <span class="n">old_context</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_new_context</span> <span class="o">=</span> <span class="n">new_context</span>
 
-    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes the pre context change hook if we&#39;re the first guard instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">_depth</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_depth</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="c1"># If we&#39;re the first instance of the guard, notify.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_depth</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_execute_pre_context_change</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_old_context</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_context</span><span class="p">)</span>
@@ -2760,17 +2760,17 @@
             <span class="n">next_context</span><span class="o">=</span><span class="n">new_context</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_type</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_type</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes the post context change hook if we&#39;re the last guard instance.</span>
 
 <span class="sd">        :param ex_type: Type of the exception raised, if any.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># If we are the last instance of the guard and there&#39;s no exception, notify</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">_depth</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ex_type</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_depth</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ex_type</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_execute_post_context_change</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_old_context</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_context</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">_depth</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_depth</span> <span class="o">-=</span> <span class="mi">1</span>
 
     <span class="c1"># Made static so we can introspec the content of the guard during unit testing.</span>
     <span class="nd">@staticmethod</span>
@@ -3094,7 +3094,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.53',
+            VERSION:'v0.18.57',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

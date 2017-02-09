@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun &mdash; tk-core v0.18.53 documentation</title>
+  <title>tank.util.shotgun &mdash; tk-core v0.18.57 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.53 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.57 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.53.<br>
+    <b>tk-core</b> v0.18.57.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -189,6 +189,7 @@
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">urllib2</span>
 <span class="kn">import</span> <span class="nn">urlparse</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">threading</span>
@@ -198,7 +199,7 @@
 <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">shotgun_api3</span>
 
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">UnresolvableCoreConfigurationError</span><span class="p">,</span> <span class="n">ShotgunAttachmentDownloadError</span>
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">TankMultipleMatchingTemplatesError</span>
 <span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">hook</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
@@ -208,7 +209,7 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">filesystem</span>
 <span class="kn">from</span> <span class="nn">.metrics</span> <span class="kn">import</span> <span class="n">log_user_attribute_metric</span>
 
-<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">__get_api_core_config_location</span><span class="p">():</span>
@@ -233,7 +234,7 @@
     <span class="n">core_cfg</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">core_api_root</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="s2">&quot;core&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">core_cfg</span><span class="p">):</span>
-        <span class="n">full_path_to_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+        <span class="n">full_path_to_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
         <span class="k">raise</span> <span class="n">UnresolvableCoreConfigurationError</span><span class="p">(</span><span class="n">full_path_to_file</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">core_cfg</span>
@@ -383,22 +384,51 @@
     <span class="k">return</span> <span class="n">config_data</span>
 
 <span class="nd">@LogManager.log_timing</span>
-<div class="viewcode-block" id="download_url"><a class="viewcode-back" href="../../../utils.html#sgtk.util.download_url">[docs]</a><span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">location</span><span class="p">):</span>
+<div class="viewcode-block" id="download_url"><a class="viewcode-back" href="../../../utils.html#sgtk.util.download_url">[docs]</a><span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">use_url_extension</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience method that downloads a file from a given url.</span>
 <span class="sd">    This method will take into account any proxy settings which have</span>
 <span class="sd">    been defined in the Shotgun connection parameters.</span>
-<span class="sd">    </span>
+
+<span class="sd">    In some cases, the target content of the url is not known beforehand.</span>
+<span class="sd">    For example, the url ``https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227``</span>
+<span class="sd">    may redirect into ``https://some-site/path/to/a/thumbnail.png``. In</span>
+<span class="sd">    such cases, you can set the optional use_url_extension parameter to True - this</span>
+<span class="sd">    will cause the method to append the file extension of the resolved url to</span>
+<span class="sd">    the filename passed in via the location parameter. So for the urls given</span>
+<span class="sd">    above, you would get the following results:</span>
+
+<span class="sd">    - location=&quot;/path/to/file&quot; and use_url_extension=False would return &quot;/path/to/file&quot;</span>
+<span class="sd">    - location=&quot;/path/to/file&quot; and use_url_extension=True would return &quot;/path/to/file.png&quot;</span>
+
 <span class="sd">    :param sg: Shotgun API instance to get proxy connection settings from</span>
 <span class="sd">    :param url: url to download</span>
 <span class="sd">    :param location: path on disk where the payload should be written.</span>
 <span class="sd">                     this path needs to exists and the current user needs</span>
 <span class="sd">                     to have write permissions</span>
+<span class="sd">    :param bool use_url_extension: Optionally append the file extension of the</span>
+<span class="sd">                                   resolved URL&#39;s path to the input ``location``</span>
+<span class="sd">                                   to construct the full path name to the downloaded</span>
+<span class="sd">                                   contents. The newly constructed full path name</span>
+<span class="sd">                                   will be returned.</span>
+
+<span class="sd">    :returns: Full filepath to the downloaded file. This may have been altered from</span>
+<span class="sd">              the input ``location`` if ``use_url_extension`` is True and a file extension</span>
+<span class="sd">              could be determined from the resolved url.</span>
 <span class="sd">    :raises: :class:`TankError` on failure.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># grab proxy server settings from the shotgun API</span>
-    <span class="k">if</span> <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">:</span>
+    <span class="c1"># We only need to set the auth cookie for downloads from Shotgun server,</span>
+    <span class="c1"># input URLs like: https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227</span>
+    <span class="k">if</span> <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">server</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+        <span class="c1"># this method also handles proxy server settings from the shotgun API</span>
+        <span class="n">__setup_sg_auth_and_proxy</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">:</span>
+        <span class="c1"># These input URLs have generally already been authenticated and are</span>
+        <span class="c1"># in the form: https://sg-media-staging-usor-01.s3.amazonaws.com/9d93f...</span>
+        <span class="c1"># %3D&amp;response-content-disposition=filename%3D%22jackpot_icon.png%22.</span>
+        <span class="c1"># Grab proxy server settings from the shotgun API</span>
         <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">)</span>
+
         <span class="n">urllib2</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
     
     <span class="c1"># inherit the timeout value from the sg API    </span>
@@ -406,12 +436,21 @@
     
     <span class="c1"># download the given url</span>
     <span class="k">try</span><span class="p">:</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">timeout</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
             <span class="c1"># timeout parameter only available in python 2.6+</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># use system default</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">use_url_extension</span><span class="p">:</span>
+            <span class="c1"># Make sure the disk location has the same extension as the url path.</span>
+            <span class="c1"># Would be nice to see this functionality moved to back into Shotgun</span>
+            <span class="c1"># API and removed from here.</span>
+            <span class="n">url_ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">geturl</span><span class="p">())</span><span class="o">.</span><span class="n">path</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">url_ext</span><span class="p">:</span>
+                <span class="n">location</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">url_ext</span><span class="p">)</span>
             
         <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -419,7 +458,37 @@
         <span class="k">finally</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Could not download contents of url &#39;</span><span class="si">%s</span><span class="s2">&#39;. Error reported: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span></div>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Could not download contents of url &#39;</span><span class="si">%s</span><span class="s2">&#39;. Error reported: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">location</span></div>
+
+<span class="k">def</span> <span class="nf">__setup_sg_auth_and_proxy</span><span class="p">(</span><span class="n">sg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Borrowed from the Shotgun Python API, setup urllib2 with a cookie for authentication on</span>
+<span class="sd">    Shotgun instance.</span>
+
+<span class="sd">    Looks up session token and sets that in a cookie in the :mod:`urllib2` handler. This is</span>
+<span class="sd">    used internally for downloading attachments from the Shotgun server.</span>
+
+<span class="sd">    :param sg: Shotgun API instance</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Importing this module locally to reduce clutter and facilitate clean up when/if this</span>
+    <span class="c1"># functionality gets ported back into the Shotgun API.</span>
+    <span class="kn">import</span> <span class="nn">cookielib</span>
+
+    <span class="n">sid</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">get_session_token</span><span class="p">()</span>
+    <span class="n">cj</span> <span class="o">=</span> <span class="n">cookielib</span><span class="o">.</span><span class="n">LWPCookieJar</span><span class="p">()</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">cookielib</span><span class="o">.</span><span class="n">Cookie</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;_session_id&#39;</span><span class="p">,</span> <span class="n">sid</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">server</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">cj</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+    <span class="n">cookie_handler</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">HTTPCookieProcessor</span><span class="p">(</span><span class="n">cj</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">:</span>
+        <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">,</span> <span class="n">cookie_handler</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">cookie_handler</span><span class="p">)</span>
+    <span class="n">urllib2</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
+
 
 <span class="nd">@LogManager.log_timing</span>
 <span class="k">def</span> <span class="nf">download_and_unpack_attachment</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
@@ -538,9 +607,9 @@
 <span class="sd">    :return: Proxied SG API handle</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">class</span> <span class="nc">DeferredInitShotgunProxy</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sg</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_sg</span> <span class="o">=</span> <span class="n">get_sg_connection</span><span class="p">()</span>
             <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
@@ -1101,7 +1170,7 @@
 
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># no thumbnail found - instead use the default one</span>
-        <span class="n">this_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+        <span class="n">this_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
         <span class="n">no_thumb</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">this_folder</span><span class="p">,</span> <span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;no_preview.jpg&quot;</span><span class="p">)</span>
         <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span><span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">),</span> <span class="n">no_thumb</span><span class="p">)</span>
 
@@ -1119,17 +1188,26 @@
 <span class="sd">    For example, the path /foo/bar/xyz.0003.exr will be transformed into</span>
 <span class="sd">    /foo/bar/xyz.%04d.exr</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">template</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">template_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">template</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">template_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">TankMultipleMatchingTemplatesError</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Path matches multiple templates. Not translating abstract fields: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">template</span><span class="p">:</span>
+            <span class="n">abstract_key_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">template</span><span class="o">.</span><span class="n">keys</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">is_abstract</span><span class="p">]</span>
 
-        <span class="n">abstract_key_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">template</span><span class="o">.</span><span class="n">keys</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">is_abstract</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">abstract_key_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># we want to use the default values for abstract keys</span>
-            <span class="n">cur_fields</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">abstract_key_name</span> <span class="ow">in</span> <span class="n">abstract_key_names</span><span class="p">:</span>
-                <span class="k">del</span><span class="p">(</span><span class="n">cur_fields</span><span class="p">[</span><span class="n">abstract_key_name</span><span class="p">])</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">cur_fields</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">abstract_key_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># we want to use the default values for abstract keys</span>
+                <span class="n">cur_fields</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">abstract_key_name</span> <span class="ow">in</span> <span class="n">abstract_key_names</span><span class="p">:</span>
+                    <span class="k">del</span><span class="p">(</span><span class="n">cur_fields</span><span class="p">[</span><span class="n">abstract_key_name</span><span class="p">])</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">cur_fields</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Path does not match a template. Not translating abstract fields: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span>
+            <span class="p">)</span>
     <span class="k">return</span> <span class="n">path</span>
 
 <span class="k">def</span> <span class="nf">_create_dependencies</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">publish_entity</span><span class="p">,</span> <span class="n">dependency_paths</span><span class="p">,</span> <span class="n">dependency_ids</span><span class="p">):</span>
@@ -1263,7 +1341,12 @@
 
     <span class="c1"># handle the path definition</span>
     <span class="k">if</span> <span class="n">path_is_url</span><span class="p">:</span>
-        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">path</span><span class="p">}</span>
+        <span class="c1"># for quoting logic, see bugfix here:</span>
+        <span class="c1"># http://svn.python.org/view/python/trunk/Lib/urllib.py?r1=71780&amp;r2=71779&amp;pathrev=71780</span>
+        <span class="c1">#</span>
+        <span class="c1"># note: by appling a safe pattern like this, we guarantee that already quoted paths</span>
+        <span class="c1">#       are not touched, e.g. quote(&#39;foo bar&#39;) == quote(&#39;foo%20bar&#39;)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s2">&quot;%/:=&amp;?~#+!$,;&#39;@()*[]&quot;</span><span class="p">)}</span>
     <span class="k">else</span><span class="p">:</span>
 
         <span class="c1"># Make path platform agnostic.</span>
@@ -1388,7 +1471,7 @@
 <span class="sd">    Convenience wrapper to handle the user agent management</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sg</span> <span class="o">=</span> <span class="n">sg</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="bp">None</span>
@@ -1524,7 +1607,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.53',
+            VERSION:'v0.18.57',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

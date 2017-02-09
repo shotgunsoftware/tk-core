@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.53 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.57 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.53 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.57 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -168,7 +168,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.53.<br>
+    <b>tk-core</b> v0.18.57.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1925,7 +1925,7 @@ this method is used whenever you want to access code in the python location.</p>
    <span class="o">|-</span> <span class="n">app</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> <span class="n">engine</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> <span class="n">framework</span><span class="o">.</span><span class="n">py</span>
    <span class="o">|-</span> <span class="n">info</span><span class="o">.</span><span class="n">yml</span>
    \<span class="o">-</span> <span class="n">python</span>
-       <span class="o">|-</span> <span class="n">__init__</span><span class="o">.</span><span class="n">py</span>   <span class="o">&lt;---</span> <span class="n">Needs</span> <span class="n">to</span> <span class="n">contain</span> <span class="s1">&#39;from . import tk_multi_mybundle&#39;</span>
+       <span class="o">|-</span> <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>   <span class="o">&lt;---</span> <span class="n">Needs</span> <span class="n">to</span> <span class="n">contain</span> <span class="s1">&#39;from . import tk_multi_mybundle&#39;</span>
        \<span class="o">-</span> <span class="n">tk_multi_mybundle</span>
 </pre></div>
 </div>
@@ -2776,7 +2776,7 @@ this method is used whenever you want to access code in the python location.</p>
    <span class="o">|-</span> <span class="n">app</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> <span class="n">engine</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> <span class="n">framework</span><span class="o">.</span><span class="n">py</span>
    <span class="o">|-</span> <span class="n">info</span><span class="o">.</span><span class="n">yml</span>
    \<span class="o">-</span> <span class="n">python</span>
-       <span class="o">|-</span> <span class="n">__init__</span><span class="o">.</span><span class="n">py</span>   <span class="o">&lt;---</span> <span class="n">Needs</span> <span class="n">to</span> <span class="n">contain</span> <span class="s1">&#39;from . import tk_multi_mybundle&#39;</span>
+       <span class="o">|-</span> <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>   <span class="o">&lt;---</span> <span class="n">Needs</span> <span class="n">to</span> <span class="n">contain</span> <span class="s1">&#39;from . import tk_multi_mybundle&#39;</span>
        \<span class="o">-</span> <span class="n">tk_multi_mybundle</span>
 </pre></div>
 </div>
@@ -3587,7 +3587,7 @@ this method is used whenever you want to access code in the python location.</p>
    <span class="o">|-</span> <span class="n">app</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> <span class="n">engine</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> <span class="n">framework</span><span class="o">.</span><span class="n">py</span>
    <span class="o">|-</span> <span class="n">info</span><span class="o">.</span><span class="n">yml</span>
    \<span class="o">-</span> <span class="n">python</span>
-       <span class="o">|-</span> <span class="n">__init__</span><span class="o">.</span><span class="n">py</span>   <span class="o">&lt;---</span> <span class="n">Needs</span> <span class="n">to</span> <span class="n">contain</span> <span class="s1">&#39;from . import tk_multi_mybundle&#39;</span>
+       <span class="o">|-</span> <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>   <span class="o">&lt;---</span> <span class="n">Needs</span> <span class="n">to</span> <span class="n">contain</span> <span class="s1">&#39;from . import tk_multi_mybundle&#39;</span>
        \<span class="o">-</span> <span class="n">tk_multi_mybundle</span>
 </pre></div>
 </div>
@@ -3862,7 +3862,7 @@ inside of the <code class="docutils literal"><span class="pre">python</span></co
 <p>We recommend that the following pattern is used - at the top of your
 python files, include the following code:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>All subsequent code in the file then simply calls this object for logging.</p>
@@ -4398,7 +4398,7 @@ it to one of the UI factory methods that the engine has. For example:</p>
 <span class="k">class</span> <span class="nc">AppDialog</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">):</span>
-        <span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
 <span class="c1"># the engine is then used to correctly launch this dialog. In your app code</span>
 <span class="c1"># you can now do create a window using the engine&#39;s factory methods.</span>
@@ -4492,7 +4492,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.53',
+            VERSION:'v0.18.57',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

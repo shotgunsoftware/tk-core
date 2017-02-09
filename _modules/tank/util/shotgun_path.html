@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun_path &mdash; tk-core v0.18.53 documentation</title>
+  <title>tank.util.shotgun_path &mdash; tk-core v0.18.57 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.53 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.57 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.53.<br>
+    <b>tk-core</b> v0.18.57.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -267,7 +267,7 @@
             <span class="p">)</span></div>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="ShotgunPath.from_shotgun_dict"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.from_shotgun_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_shotgun_dict</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">sg_dict</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunPath.from_shotgun_dict"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.from_shotgun_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_shotgun_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sg_dict</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a path from data contained in a std shotgun data dict,</span>
 <span class="sd">        containing the paths windows_path, mac_path and linux_path</span>
@@ -279,10 +279,10 @@
         <span class="n">windows_path</span> <span class="o">=</span> <span class="n">sg_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;windows_path&quot;</span><span class="p">)</span>
         <span class="n">linux_path</span> <span class="o">=</span> <span class="n">sg_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;linux_path&quot;</span><span class="p">)</span>
         <span class="n">macosx_path</span> <span class="o">=</span> <span class="n">sg_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mac_path&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">windows_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">windows_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span></div>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="ShotgunPath.from_system_dict"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.from_system_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_system_dict</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">system_dict</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunPath.from_system_dict"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.from_system_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_system_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">system_dict</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a path from data contained in a dictionary keyed by</span>
 <span class="sd">        sys.platform constants.</span>
@@ -295,10 +295,10 @@
         <span class="n">linux_path</span> <span class="o">=</span> <span class="n">system_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;linux2&quot;</span><span class="p">)</span>
         <span class="n">macosx_path</span> <span class="o">=</span> <span class="n">system_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;darwin&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">windows_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">windows_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span></div>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="ShotgunPath.from_current_os_path"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.from_current_os_path">[docs]</a>    <span class="k">def</span> <span class="nf">from_current_os_path</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunPath.from_current_os_path"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.from_current_os_path">[docs]</a>    <span class="k">def</span> <span class="nf">from_current_os_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a path object for a path on the current platform only.</span>
 
@@ -318,9 +318,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported platform &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">windows_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">windows_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">windows_path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">linux_path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">macosx_path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">windows_path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">linux_path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">macosx_path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param windows_path: Path on windows to associate with this path object</span>
 <span class="sd">        :param linux_path: Path on linux to associate with this path object</span>
@@ -330,14 +330,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_linux_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_path</span><span class="p">(</span><span class="n">linux_path</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_macosx_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_path</span><span class="p">(</span><span class="n">macosx_path</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;Path win:&#39;</span><span class="si">%s</span><span class="s2">&#39;, linux:&#39;</span><span class="si">%s</span><span class="s2">&#39;, macosx:&#39;</span><span class="si">%s</span><span class="s2">&#39;&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_windows_path</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_linux_path</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_macosx_path</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if this ShotgunPath instance is equal to the other ShotgunPath instance</span>
 
@@ -349,14 +349,14 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">macosx</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">macosx</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">windows</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">linux</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">linux</span>
 
-    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if this path is not equal to the given path</span>
 
 <span class="sd">        :param other:   Other ShotgunPath instance to compare with</span>
 <span class="sd">        :returns:       True if self != other, False otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">is_equal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="n">is_equal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">is_equal</span> <span class="ow">is</span> <span class="bp">NotImplemented</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">NotImplemented</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="n">is_equal</span>
@@ -553,7 +553,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.53',
+            VERSION:'v0.18.57',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

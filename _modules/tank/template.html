@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.template &mdash; tk-core v0.18.53 documentation</title>
+  <title>tank.template &mdash; tk-core v0.18.57 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.53 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.57 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.53.<br>
+    <b>tk-core</b> v0.18.57.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -199,7 +199,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
        
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">_keys_from_definition</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">template_name</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_keys_from_definition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">template_name</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Extracts Template Keys from a definition.</span>
 
 <span class="sd">        :param definition: Template definition as string</span>
@@ -212,7 +212,7 @@
         <span class="n">names_keys</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">ordered_keys</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># regular expression to find key names</span>
-        <span class="n">regex</span> <span class="o">=</span> <span class="s2">r&quot;(?&lt;={)</span><span class="si">%s</span><span class="s2">(?=})&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">TEMPLATE_KEY_NAME_REGEX</span>
+        <span class="n">regex</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;(?&lt;={)</span><span class="si">%s</span><span class="s2">(?=})&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">TEMPLATE_KEY_NAME_REGEX</span>
         <span class="n">key_names</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key_name</span> <span class="ow">in</span> <span class="n">key_names</span><span class="p">:</span>
             <span class="n">key</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key_name</span><span class="p">)</span>
@@ -229,7 +229,7 @@
                 <span class="n">ordered_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">names_keys</span><span class="p">,</span> <span class="n">ordered_keys</span>
         
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This class is not designed to be used directly but</span>
 <span class="sd">        should be subclassed by any Template implementations.</span>
@@ -274,8 +274,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_static_tokens</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">class_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">class_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">class_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_repr_def</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -506,14 +506,14 @@
         <span class="c1"># Substitute key names for original key input names(key aliasing)</span>
         <span class="n">substitutions</span> <span class="o">=</span> <span class="p">[(</span><span class="n">key_name</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">key_name</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key_name</span> <span class="o">!=</span> <span class="n">key</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">old_name</span><span class="p">,</span> <span class="n">new_name</span> <span class="ow">in</span> <span class="n">substitutions</span><span class="p">:</span>
-            <span class="n">old_def</span> <span class="o">=</span> <span class="s2">r&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">old_name</span>
-            <span class="n">new_def</span> <span class="o">=</span> <span class="s2">r&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">new_name</span>
+            <span class="n">old_def</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">old_name</span>
+            <span class="n">new_def</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">new_name</span>
             <span class="n">definition</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">old_def</span><span class="p">,</span> <span class="n">new_def</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">definition</span>
 
     <span class="k">def</span> <span class="nf">_clean_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">):</span>
         <span class="c1"># Create definition with key names as strings with no format, enum or default values</span>
-        <span class="n">regex</span> <span class="o">=</span> <span class="s2">r&quot;{(</span><span class="si">%s</span><span class="s2">)}&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">TEMPLATE_KEY_NAME_REGEX</span>
+        <span class="n">regex</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;{(</span><span class="si">%s</span><span class="s2">)}&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">TEMPLATE_KEY_NAME_REGEX</span>
         <span class="n">cleaned_definition</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="s2">&quot;%(\g&lt;1&gt;)s&quot;</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cleaned_definition</span>
 
@@ -525,7 +525,7 @@
         <span class="c1"># case we just want to parse the prefix.  For example, in the case of a path template, </span>
         <span class="c1"># having an empty definition would result in expanding to the project/storage root</span>
         <span class="n">expanded_definition</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span> <span class="k">if</span> <span class="n">definition</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span>
-        <span class="n">regex</span> <span class="o">=</span> <span class="s2">r&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">TEMPLATE_KEY_NAME_REGEX</span>
+        <span class="n">regex</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">TEMPLATE_KEY_NAME_REGEX</span>
         <span class="n">tokens</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">expanded_definition</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
         <span class="c1"># Remove empty strings</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tokens</span> <span class="k">if</span> <span class="n">x</span><span class="p">]</span>
@@ -646,7 +646,7 @@
 <span class="sd">    :class:`Template` representing a complete path on disk. The template definition is multi-platform</span>
 <span class="sd">    and you can pass it per-os roots given by a separate :meth:`root_path`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">root_path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">per_platform_roots</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">root_path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">per_platform_roots</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        TemplatePath objects are typically created automatically by toolkit reading</span>
 <span class="sd">        the template configuration.</span>
@@ -658,7 +658,7 @@
 <span class="sd">        :param per_platform_roots: Root paths for all supported operating systems. </span>
 <span class="sd">                                   This is a dictionary with sys.platform-style keys</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">TemplatePath</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TemplatePath</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">=</span> <span class="n">root_path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_per_platform_roots</span> <span class="o">=</span> <span class="n">per_platform_roots</span>
 
@@ -764,7 +764,7 @@
 <span class="sd">    the formatting of strings, for example how a name or other string field should</span>
 <span class="sd">    be configured in Shotgun, given a series of key values.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">validate_with</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">validate_with</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        TemplatePath objects are typically created automatically by toolkit reading</span>
 <span class="sd">        the template configuration.</span>
@@ -774,7 +774,7 @@
 <span class="sd">        :param name: Optional name for this template.</span>
 <span class="sd">        :param validate_with: Optional :class:`Template` to use for validation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">TemplateString</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TemplateString</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_with</span> <span class="o">=</span> <span class="n">validate_with</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">=</span> <span class="s2">&quot;@&quot;</span>
 
@@ -1026,7 +1026,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.53',
+            VERSION:'v0.18.57',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.hook &mdash; tk-core v0.18.53 documentation</title>
+  <title>tank.hook &mdash; tk-core v0.18.57 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.53 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.57 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.53.<br>
+    <b>tk-core</b> v0.18.57.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -185,7 +185,9 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">urlparse</span>
 <span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
 <span class="kn">from</span> <span class="nn">.util.loader</span> <span class="kn">import</span> <span class="n">load_plugin</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="p">(</span>
@@ -194,7 +196,7 @@
     <span class="n">TankHookMethodDoesNotExistError</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Hook"><a class="viewcode-back" href="../../core.html#sgtk.Hook">[docs]</a><span class="k">class</span> <span class="nc">Hook</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -360,7 +362,7 @@
     <span class="c1"># default method to execute on hooks</span>
     <span class="n">DEFAULT_HOOK_METHOD</span> <span class="o">=</span> <span class="s2">&quot;execute&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span> <span class="o">=</span> <span class="n">parent</span>
 
     <span class="nd">@property</span>
@@ -411,15 +413,42 @@
         <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">sg_data</span> <span class="ow">in</span> <span class="n">sg_publish_data_list</span><span class="p">:</span>
             <span class="n">path_field</span> <span class="o">=</span> <span class="n">sg_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="n">path_field</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot resolve path from publish! The shotgun dictionary </span><span class="si">%s</span><span class="s2"> does &quot;</span>
                                 <span class="s2">&quot;not contain a valid path definition&quot;</span> <span class="o">%</span> <span class="n">sg_data</span><span class="p">)</span>
 
-            <span class="n">local_path</span> <span class="o">=</span> <span class="n">path_field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;local_path&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">local_path</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot resolve path from publish! The shotgun dictionary </span><span class="si">%s</span><span class="s2"> does &quot;</span>
-                                <span class="s2">&quot;not contain a valid path definition&quot;</span> <span class="o">%</span> <span class="n">sg_data</span><span class="p">)</span>
-            <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
+            <span class="n">resolved_path</span> <span class="o">=</span> <span class="bp">None</span>
+
+            <span class="k">if</span> <span class="s2">&quot;local_path&quot;</span> <span class="ow">in</span> <span class="n">path_field</span><span class="p">:</span>
+                <span class="c1"># first, look for a local file link</span>
+                <span class="n">resolved_path</span> <span class="o">=</span> <span class="n">path_field</span><span class="p">[</span><span class="s2">&quot;local_path&quot;</span><span class="p">]</span>
+
+            <span class="k">elif</span> <span class="s2">&quot;url&quot;</span> <span class="ow">in</span> <span class="n">path_field</span><span class="p">:</span>
+                <span class="c1"># secondly, look for a file:// style url</span>
+
+                <span class="n">url</span> <span class="o">=</span> <span class="n">path_field</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]</span>
+                <span class="c1"># url = &quot;file:///path/to/some/file.txt&quot;</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+                <span class="c1"># ParseResult(</span>
+                <span class="c1"># scheme=&#39;file&#39;,</span>
+                <span class="c1"># netloc=&#39;&#39;,</span>
+                <span class="c1"># path=&#39;/path/to/some/file.txt&#39;,</span>
+                <span class="c1"># params=&#39;&#39;,</span>
+                <span class="c1"># query=&#39;&#39;,</span>
+                <span class="c1"># fragment=&#39;&#39;</span>
+                <span class="c1"># )</span>
+
+                <span class="k">if</span> <span class="n">results</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span><span class="p">:</span>
+                    <span class="n">resolved_path</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">unquote</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">resolved_path</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
+                    <span class="s2">&quot;Cannot resolve path from publish! The shotgun dictionary </span><span class="si">%s</span><span class="s2"> does &quot;</span>
+                    <span class="s2">&quot;not contain a valid path definition&quot;</span> <span class="o">%</span> <span class="n">sg_data</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resolved_path</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">paths</span></div>
 
@@ -436,7 +465,7 @@
         <span class="c1">#       we don&#39;t want to return the location of the &#39;hook.py&#39;</span>
         <span class="c1">#       base class but rather the location of hook object that</span>
         <span class="c1">#       has been derived from this class.</span>
-        <span class="n">path_to_this_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__module__</span><span class="p">]</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
+        <span class="n">path_to_this_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span><span class="p">]</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path_to_this_file</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -480,7 +509,7 @@
             <span class="n">log_prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.hook&quot;</span> <span class="o">%</span> <span class="n">logger</span><span class="o">.</span><span class="n">name</span>
 
         <span class="c1"># name the logger after the name of the hook filename</span>
-        <span class="n">path_to_this_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__module__</span><span class="p">]</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
+        <span class="n">path_to_this_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span><span class="p">]</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
         <span class="n">hook_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path_to_this_file</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">full_log_path</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">log_prefix</span><span class="p">,</span> <span class="n">hook_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">full_log_path</span><span class="p">)</span>
@@ -547,7 +576,7 @@
 <span class="sd">    and base class as the key to cache all hooks loaded by Toolkit in</span>
 <span class="sd">    the current session.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Construction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -612,7 +641,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">hook_class</span>
 
     <span class="nd">@thread_exclusive</span>
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the number of items currently in the hook cache</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -808,7 +837,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.53',
+            VERSION:'v0.18.57',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

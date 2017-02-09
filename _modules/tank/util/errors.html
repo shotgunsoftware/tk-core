@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.errors &mdash; tk-core v0.18.53 documentation</title>
+  <title>tank.util.errors &mdash; tk-core v0.18.57 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.53 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.57 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.53.<br>
+    <b>tk-core</b> v0.18.57.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -194,11 +194,11 @@
 <span class="sd">    Raises when Toolkit is not able to resolve the path</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_path_to_file</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_path_to_file</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str full_path_to_file: Path to the folder where shotgun.yml was expected.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">TankError</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+        <span class="n">TankError</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="s2">&quot;Cannot resolve the core configuration from the location of the Sgtk Code! &quot;</span>
             <span class="s2">&quot;This can happen if you try to move or symlink the Sgtk API. The &quot;</span>
@@ -213,12 +213,12 @@
 <span class="sd">    file that doesn&#39;t exist.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str var_name: Name of the environment variable used.</span>
 <span class="sd">        :param str path: Path to the configuration file that doesn&#39;t exist.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">TankError</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+        <span class="n">TankError</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="s2">&quot;The environment variable &#39;</span><span class="si">%s</span><span class="s2">&#39; refers to a configuration file on disk at &#39;</span><span class="si">%s</span><span class="s2">&#39; that doesn&#39;t exist.&quot;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="n">var_name</span><span class="p">,</span>
@@ -258,7 +258,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.53',
+            VERSION:'v0.18.57',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
