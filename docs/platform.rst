@@ -823,10 +823,10 @@ Launching Software
 ---------------------------------------------------
 
 Following is an overview of Toolkit standards around launching DCC software. Most of the world of
-Toolkit exists and excecutes in an initialized state after the DCC and tk engine have already
-started up. The Toolkit launch interface is specialized to operate outside of this known state. 
-This section describes how to use the Toolkit launch interface to develop custom tk applications
-to launch any DCC as well as what a tk engine must implement to make this possible.
+Toolkit exists and excecutes in an initialized state after a DCC application and tk engine have already
+started up. The Toolkit launch interface is specialized to operate outside of this known state. This
+section describes core classes and methods that can be used to develop custom tk launch applications
+as well as what a tk engine must implement to make this possible.
 
 
 A Simple Launch Application
