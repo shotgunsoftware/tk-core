@@ -230,18 +230,22 @@ class TestConstraintValidation(TankTestBase):
         self._out_of_date_sg = Mockgun("https://foo.shotgunstudio.com")
         self._out_of_date_sg.server_info = {"version": (6, 6, 5)}
 
-    def _create_descriptor(self, version_constraints, supported_engines):
+    def _create_descriptor(self, version_constraints, supported_engines, sg_connection=None):
         """
         Creates a descriptor for a fictitious app and mocks the get_manifest method
         so we can have some settings from info.yml
 
         :param version_constraints: Dictionary with keys min_sg, min_core and min_engine
             which are used to specify minimum version of Shotgun, Core and Engine.
+        :param supported_engines: List of engines that are supported by this descriptor.
+        :param sg_connection: Connection to the current Shotgun site. This will be used
+            for comparing the version of Shotgun with the descriptor. If None, a
+            Shotgun connection to a site using version 6.6.6 will be used.
 
         :returns: A sgtk.bootstrap.BundleDescriptor
         """
         desc = sgtk.descriptor.create_descriptor(
-            self.mockgun,
+            sg_connection if sg_connection else self._up_to_date_sg,
             sgtk.descriptor.Descriptor.APP,
             "sgtk:descriptor:app_store?name=tk-test-app&version=v1.2.3"
         )
@@ -265,9 +269,7 @@ class TestConstraintValidation(TankTestBase):
         self._create_descriptor(
             version_constraints={"min_sg": "6.6.6"},
             supported_engines=None
-        ).check_version_constraints(
-            self._up_to_date_sg
-        )
+        ).check_version_constraints()
 
     def test_min_sg_constraint_fail(self):
         """
@@ -277,10 +279,9 @@ class TestConstraintValidation(TankTestBase):
         with self.assertRaises(CheckVersionConstraintsError) as ctx:
             self._create_descriptor(
                 version_constraints={"min_sg": "6.6.6"},
-                supported_engines=None
-            ).check_version_constraints(
-                self._out_of_date_sg
-            )
+                supported_engines=None,
+                sg_connection=self._out_of_date_sg
+            ).check_version_constraints()
 
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegexpMatches(
@@ -294,7 +295,7 @@ class TestConstraintValidation(TankTestBase):
         self._create_descriptor(
             version_constraints={"min_core": "v6.6.6"},
             supported_engines=None
-        ).check_version_constraints(self._up_to_date_sg, "v6.6.6")
+        ).check_version_constraints("v6.6.6")
 
     def test_min_core_constraint_fail(self):
         """
@@ -304,7 +305,7 @@ class TestConstraintValidation(TankTestBase):
             self._create_descriptor(
                 version_constraints={"min_core": "v6.6.6"},
                 supported_engines=None
-            ).check_version_constraints(self._up_to_date_sg, "v6.6.5")
+            ).check_version_constraints("v6.6.5")
 
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegexpMatches(
@@ -317,7 +318,7 @@ class TestConstraintValidation(TankTestBase):
             self._create_descriptor(
                 version_constraints={"min_core": "v6.6.6"},
                 supported_engines=None
-            ).check_version_constraints(self._up_to_date_sg, core_version=None)
+            ).check_version_constraints(core_version=None)
 
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegexpMatches(
@@ -332,7 +333,6 @@ class TestConstraintValidation(TankTestBase):
             version_constraints={"min_engine": "v6.6.6"},
             supported_engines=None
         ).check_version_constraints(
-            self._up_to_date_sg,
             engine_descriptor=SealedMock(version="v6.6.6")
         )
 
@@ -345,7 +345,6 @@ class TestConstraintValidation(TankTestBase):
                 version_constraints={"min_engine": "v6.6.6"},
                 supported_engines=None
             ).check_version_constraints(
-                self._up_to_date_sg,
                 engine_descriptor=SealedMock(version="v6.6.5", display_name="Tk Test")
             )
 
@@ -362,7 +361,6 @@ class TestConstraintValidation(TankTestBase):
             version_constraints={},
             supported_engines=["tk-test"]
         ).check_version_constraints(
-            self._up_to_date_sg,
             engine_descriptor=SealedMock(
                 system_name="tk-test",
                 display_name="Tk Test"
@@ -378,7 +376,6 @@ class TestConstraintValidation(TankTestBase):
                 version_constraints={},
                 supported_engines=["tk-test"]
             ).check_version_constraints(
-                self._up_to_date_sg,
                 engine_descriptor=SealedMock(
                     version="v6.6.5",
                     system_name="tk-another-test",
@@ -398,7 +395,6 @@ class TestConstraintValidation(TankTestBase):
             version_constraints={"min_desktop": "6.6.6"},
             supported_engines=None
         ).check_version_constraints(
-            self._up_to_date_sg,
             desktop_version="v6.6.6"
         )
 
@@ -411,7 +407,6 @@ class TestConstraintValidation(TankTestBase):
                 version_constraints={"min_desktop": "6.6.6"},
                 supported_engines=None
             ).check_version_constraints(
-                self._up_to_date_sg,
                 desktop_version="v6.6.5"
             )
 
@@ -437,7 +432,6 @@ class TestConstraintValidation(TankTestBase):
                 },
                 supported_engines=["tk-test"]
             ).check_version_constraints(
-                self._out_of_date_sg,
                 engine_descriptor=SealedMock(
                     version="v4.4.3",
                     system_name="tk-another-test",

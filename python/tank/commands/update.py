@@ -631,8 +631,10 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
             reasons.insert(0, "The latest version (%s) of the item requires an upgrade to one "
                            "or more of your installed components." % latest_desc.version)
             status = " ".join(reasons)
+            can_update = False
         else:
             status = "A new version (%s) of the item is available for installation." % latest_desc.version
+            can_update = True
 
     # prepare return data
     data = {}

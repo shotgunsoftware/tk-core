@@ -24,14 +24,16 @@ class BundleDescriptor(Descriptor):
     Descriptor that describes a Toolkit Bundle (App/Engine/Framework)
     """
 
-    def __init__(self, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor):
         """
         Use the factory method :meth:`create_descriptor` when
         creating new descriptor objects.
 
+        :param sg_descriptor: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
         """
         super(BundleDescriptor, self).__init__(io_descriptor)
+        self._sg_connection = sg_connection
 
     @property
     def version_constraints(self):
@@ -103,7 +105,6 @@ class BundleDescriptor(Descriptor):
 
     def check_version_constraints(
         self,
-        connection=None,
         core_version=None,
         engine_descriptor=None,
         desktop_version=None
@@ -111,9 +112,6 @@ class BundleDescriptor(Descriptor):
         """
         Checks if there are constraints blocking an upgrade or install.
 
-        :param connection: Shotgun connection to the site we are running the update for. If ``None``, the
-            current site will be used.
-        :type: :class:`shotgun_api3.Shotgun`
         :param core_version: Core version. If None, current core version will be used.
         :type core_version: str
         :param engine_descriptor: Descriptor of the engine this bundle will run under. None by default.
@@ -125,10 +123,8 @@ class BundleDescriptor(Descriptor):
         """
         reasons = []
 
-        connection = connection or shotgun.get_sg_connection()
-
         self._test_version_constraint(
-            "min_sg", self._get_sg_version(connection) if connection else None, "Shotgun", reasons
+            "min_sg", self._get_sg_version(self._sg_connection), "Shotgun", reasons
         )
         self._test_version_constraint(
             "min_core", core_version or pipelineconfig_utils.get_currently_running_api_version(), "Core API", reasons
@@ -395,14 +391,15 @@ class EngineDescriptor(BundleDescriptor):
     Descriptor that describes a Toolkit Engine
     """
 
-    def __init__(self, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor):
         """
         Use the factory method :meth:`create_descriptor` when
         creating new descriptor objects.
 
+        :param sg_descriptor: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
         """
-        super(EngineDescriptor, self).__init__(io_descriptor)
+        super(EngineDescriptor, self).__init__(sg_connection, io_descriptor)
 
 
 class AppDescriptor(BundleDescriptor):
@@ -410,14 +407,15 @@ class AppDescriptor(BundleDescriptor):
     Descriptor that describes a Toolkit App
     """
 
-    def __init__(self, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor):
         """
         Use the factory method :meth:`create_descriptor` when
         creating new descriptor objects.
 
+        :param sg_descriptor: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
         """
-        super(AppDescriptor, self).__init__(io_descriptor)
+        super(AppDescriptor, self).__init__(sg_connection, io_descriptor)
 
 
 class FrameworkDescriptor(BundleDescriptor):
@@ -425,14 +423,15 @@ class FrameworkDescriptor(BundleDescriptor):
     Descriptor that describes a Toolkit Framework
     """
 
-    def __init__(self, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor):
         """
         Use the factory method :meth:`create_descriptor` when
         creating new descriptor objects.
 
+        :param sg_descriptor: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
         """
-        super(FrameworkDescriptor, self).__init__(io_descriptor)
+        super(FrameworkDescriptor, self).__init__(sg_connection, io_descriptor)
 
     def is_shared_framework(self):
         """
