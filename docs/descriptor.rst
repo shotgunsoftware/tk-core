@@ -329,3 +329,5 @@ Exceptions
 .. autoclass:: TankAppStoreConnectionError
 .. autoclass:: TankAppStoreError
 .. autoclass:: TankDescriptorError
+.. autoclass:: CheckVersionConstraintsError
+    :members:

@@ -14,8 +14,11 @@ from .action_base import Action
 from . import console_utils
 from . import util
 from ..platform.environment import WritableEnvironment
+from ..descriptor import CheckVersionConstraintsError
 from . import constants
 from ..util.version import is_version_number, is_version_newer
+from ..util import shotgun
+from .. import pipelineconfig_utils
 
 
 class AppUpdatesAction(Action):
@@ -617,16 +620,22 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
     else:
         # maybe we can update!
         # look at constraints
-        (can_update, reasons) = console_utils._check_constraints(latest_desc, parent_engine_desc)
-        
-        # create status message
-        if can_update:
-            status = "A new version (%s) of the item is available for installation." % latest_desc.version
-        else:
+        try:
+            latest_desc.check_version_constraints(
+                shotgun.get_sg_connection(),
+                pipelineconfig_utils.get_currently_running_api_version(),
+                parent_engine_desc
+            )
+        except CheckVersionConstraintsError, e:
+            reasons = e.reasons
             reasons.insert(0, "The latest version (%s) of the item requires an upgrade to one "
                            "or more of your installed components." % latest_desc.version)
             status = " ".join(reasons)
-            
+            can_update = False
+        else:
+            status = "A new version (%s) of the item is available for installation." % latest_desc.version
+            can_update = True
+
     # prepare return data
     data = {}
     data["current"] = curr_desc
