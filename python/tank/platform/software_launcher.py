@@ -294,7 +294,7 @@ class SoftwareVersion(object):
     Container class that stores properties of a DCC that
     are useful for Toolkit Engine Startup functionality.
     """
-    def __init__(self, version, display_name, path, icon=None, group=None, group_default=None):
+    def __init__(self, version, display_name, path, icon=None):
         """
         Constructor.
 
@@ -305,16 +305,11 @@ class SoftwareVersion(object):
         :param str icon: (optional) Full path to a 256x256 (or smaller)
                          png file to use for graphical displays of
                          this SoftwareVersion.
-        :param str group: (Optional) Group name this SoftwareVersion belongs to.
-        :param bool group_default: (Optional) Whether this SoftwareVersion is the default value
-                                   for the specified group name.
         """
         self._version = version
         self._display_name = display_name
         self._path = path
         self._icon_path = icon
-        self._group = group
-        self._group_default = group_default
 
     @property
     def version(self):
@@ -353,14 +348,6 @@ class SoftwareVersion(object):
         :returns: String path
         """
         return self._icon_path
-
-    @property
-    def group(self):
-        return self._group
-
-    @property
-    def group_default(self):
-        return self._group_default
 
 
 class LaunchInformation(object):
