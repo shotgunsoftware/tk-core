@@ -589,9 +589,9 @@ class IODescriptorBase(object):
         cache exists for this path, None is returned.
         """
         for path in self._get_cache_paths():
-            # we determine local existence based on the info.yml
-            info_yml_path = os.path.join(path, constants.BUNDLE_METADATA_FILE)
-            if os.path.exists(info_yml_path):
+            # we determine local existence based on the existence of the
+            # bundle's directory on disk.
+            if os.path.exists(path):
                 return path
 
         return None
