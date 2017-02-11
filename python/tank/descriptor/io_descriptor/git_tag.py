@@ -240,7 +240,7 @@ class IODescriptorGitTag(IODescriptorGit):
             # clone the repo, find the latest tag (chronologically)
             # for the repository, across all branches
             commands = [
-                "for-each-ref refs/tags --sort=-taggerdate --format='%(refname:short)' --count=1"
+                "for-each-ref refs/tags --sort=-creatordate --format='%(refname:short)' --count=1"
             ]
             latest_tag = self._tmp_clone_then_execute_git_commands(commands)
 
