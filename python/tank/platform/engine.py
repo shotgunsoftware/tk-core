@@ -906,6 +906,12 @@ class Engine(TankBundle):
             - ``node`` - For applications that have a specific node menu (like Nuke),
               place the command there.
 
+        - ``group`` - The name for a group this command should be considered a member of.
+
+        - ``group_default`` - Boolean value indicating whether this command should represent the group
+          as a whole. Setting this value to True indicates that this is the command to run and display
+          in applications that show a single button for each command group.
+
         Specifically for the Shotgun engine, the following parameters are supported:
 
         - ``title`` - Title to appear on shotgun action menu (e.g. "Create Folders")
