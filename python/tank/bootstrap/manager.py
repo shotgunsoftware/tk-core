@@ -113,7 +113,7 @@ class ToolkitManager(object):
         :type project: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
 
         :returns: List of pipeline configurations.
-        :rtype: List of dictionaries with keys ``type``, ``id`` and ``name``.
+        :rtype: List of dictionaries with keys ``type``, ``id``, ``name`` and ``project``.
         """
 
         if isinstance(self.pipeline_configuration, int):
@@ -134,7 +134,8 @@ class ToolkitManager(object):
             pcs.append({
                 "id": pc["id"],
                 "type": pc["type"],
-                "name": pc["code"]
+                "name": pc["code"],
+                "project": pc["project"]
             })
 
         return pcs

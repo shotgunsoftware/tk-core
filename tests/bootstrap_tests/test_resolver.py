@@ -343,6 +343,47 @@ class TestResolverPriority(TestResolverBase):
         link = self._create_project_sandbox_pc()
         self._test_priority(self.PROJECT_SANDBOX_PC_PATH)
 
+    def test_site_primary_hidden(self):
+        """
+        Ensure that site primary pipeline configurations are hidden by project primary pipeline
+        configurations, but user sandboxes are all returned.
+        """
+        self._create_project_sandbox_pc()
+        self._create_project_pc()
+        self._create_site_sandbox_pc()
+        self._create_site_pc()
+
+        pcs = list(self.resolver.find_matching_pipeline_configurations(
+            None, "john.smith", self.mockgun
+        ))
+
+        self.assertEqual(len(pcs), 3)
+        for pc in pcs:
+            # Make sure that the pipeline is attached to a project or if it isn't ensure it is
+            # a user sandbox.
+            self.assertTrue(
+                pc["project"] is not None or pc["code"] != "Primary"
+            )
+
+    @patch("os.path.exists", return_value=True)
+    def test_more_recent_pipeline_is_shadowed(self, _):
+        """
+        When two pipeline configurations could have be chosen during resolve_shotgun_configuration
+        because they were of the same type, ensure we are always returning the one with the lowest id.
+        """
+
+        first = self._create_pc("Primary", path="first_pipeline_path", plugin_ids="foo.*")
+        second = self._create_pc("Primary", path="second_pipeline_path", plugin_ids="foo.*")
+
+        config = self.resolver.resolve_shotgun_configuration(
+            None,
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login="john.smith"
+        )
+
+        self.assertEqual(config._path.current_os, "first_pipeline_path")
+
 
 class TestPipelineLocationFieldPriority(TestResolverBase):
 
@@ -444,28 +485,6 @@ class TestResolverSiteConfig(TestResolverBase):
             project_id=None,
             bundle_cache_fallback_paths=[self.install_root]
         )
-
-    @patch("os.path.exists", return_value=True)
-    def test_site_override(self, _):
-        """
-        When multiple primaries match, the latest one is picked.
-        """
-
-        self._create_pc(
-            "Primary", path="not_the_pipeline_we_want", plugin_ids="foo.*"
-        )
-        self._create_pc(
-            "Primary", path="the_pipeline_we_want", plugin_ids="foo.*"
-        )
-
-        config = self.resolver.resolve_shotgun_configuration(
-            pipeline_config_identifier=None,
-            fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
-            current_login="john.smith"
-        )
-
-        self.assertEqual(config._path.current_os, "the_pipeline_we_want")
 
     @patch("os.path.exists", return_value=True)
     def test_resolve_installed_from_sg(self, _):
