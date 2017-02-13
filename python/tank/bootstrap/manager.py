@@ -102,7 +102,13 @@ class ToolkitManager(object):
         """
         Retrieves the pipeline configurations available for a given project.
 
-        It also takes into account the current user and optional pipeline_configuration name or id. If the
+        In order for a pipeline configuration to be considered as available, the following conditions must be met:
+           - There can only be one primary
+           - If there is one site level and one project level primary, the site level primary is not available.
+           - If there are two site level or two project level primaries, only the one with the lowest id is available.
+           - All sandboxes are available
+
+        This filtering also takes into account the current user and optional pipeline configuration name or id. If the
         :method:``ToolkitManager.pipeline_configuration`` attribute has been set to a string, it will look
         for pipeline configurations with that specific name. If it has been set to ``None``, any pipeline
         that can be applied for the current user and project will be retrieved. Note that this method does
@@ -110,7 +116,7 @@ class ToolkitManager(object):
 
         :param project: Project entity link to enumerate pipeline configurations for. If ``None``, this will enumerate
             the pipeline configurations for the site configuration.
-        :type project: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
+        :type project: Dictionary with keys ``type`` and ``id``.
 
         :returns: List of pipeline configurations.
         :rtype: List of dictionaries with keys ``type``, ``id``, ``name`` and ``project``.

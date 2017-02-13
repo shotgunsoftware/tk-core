@@ -14,7 +14,6 @@ on disk.
 """
 
 import sys
-import itertools
 import os
 import fnmatch
 import pprint
@@ -207,9 +206,9 @@ class ConfigurationResolver(object):
                 self._bundle_cache_fallback_paths
             )
 
-    def _get_unsorted_pipelines_from_shotgun(self, pipeline_config_name, current_login, sg_connection):
+    def _get_all_pipelines_for_project(self, pipeline_config_name, current_login, sg_connection):
         """
-        Retrieves pipeline configurations from Shotgun.
+        Retrieves pipeline configurations from Shotgun that are compatible with the project.
 
         :param str pipeline_config_name: Name of the pipeline configuration requested for. If ``None``,
             all pipeline configurations from the project will be matched.
@@ -225,39 +224,38 @@ class ConfigurationResolver(object):
 
         # If nothing was specified, we need to pick pipelines owned by the user and the primary.
         if pipeline_config_name is None:
-            ownership_filters = [
-                ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
-                ["users.HumanUser.login", "is", current_login]
-            ]
+            ownership_filter = {
+                "filter_operator": "any",
+                "filters": [
+                    ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
+                    ["users.HumanUser.login", "is", current_login]
+                ]
+            }
         elif pipeline_config_name == constants.PRIMARY_PIPELINE_CONFIG_NAME:
             # Only retrieve primary.
             # This makes sense if you don't want sandboxes and specifically want the Primary.
-            ownership_filters = [
-                ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME]
-            ]
+            ownership_filter = ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME]
         else:
-            # If something other than primary was asked for, only get the ones the user owns.
-            ownership_filters = [
-                ["code", "is", pipeline_config_name],
-                ["users.HumanUser.login", "is", current_login]
-            ]
+            # If something other than primary was asked for, only get the ones the user owns with the given
+            # name.
+            ownership_filter = {
+                "filter_operator": "all",
+                "filters": [
+                    ["code", "is", pipeline_config_name],
+                    ["users.HumanUser.login", "is", current_login]
+                ]
+            }
 
-        filters = [{
-            "filter_operator": "all",
-            "filters": [
-                {
-                    "filter_operator": "any",
-                    "filters": [
-                        ["project", "is", self._proj_entity_dict],
-                        ["project", "is", None],
-                    ]
-                },
-                {
-                    "filter_operator": "any",
-                    "filters": ownership_filters
-                }
-            ]
-        }]
+        filters = [
+            {
+                "filter_operator": "any",
+                "filters": [
+                    ["project", "is", self._proj_entity_dict],
+                    ["project", "is", None],
+                ]
+            },
+            ownership_filter
+        ]
 
         log.debug("Retrieving the pipeline configuration list:")
         log.debug(pprint.pformat(filters))
@@ -285,23 +283,58 @@ class ConfigurationResolver(object):
                 else:
                     log.warning("Pipeline configuration is missing a 'path' or 'descriptor' field: %s" % pc)
 
-    def _sort_pipelines(self, pcs):
+    def _keep_latest_primary(self, configs, level_name):
         """
-        Sorts pipelines into four categories:
-            - Project level primary configurations
-            - Project level user sandbox configurations
-            - Site level primary configurations
-            - Site level user sandbox configurations
+        Keeps the first primary pipeline configuration and logs warnings if where are any extra ones.
+
+        :param list configs: Pipeline configurations entities sorted by id from lowest to highest.
+        :param str level_name: Name of the scope for the pipeline configurations.
+
+        :returns: The first pipeline configuration from ``configs`` or ``None`` if it was empty.
+        """
+        first, remainder = configs[0: 1], configs[1:]
+
+        if remainder:
+            log.warning(
+                "Too many %s level pipeline configurations found. The following were skipped",
+                level_name
+            )
+            for pc in remainder:
+                log.warning(
+                    "    - Name: %s, Id: %s", pc["code"], pc["id"]
+                )
+
+        # Return the first item if available, None otherwise.
+        return first[0] if first else None
+
+    def _filter_pipelines(self, pcs):
+        """
+        Filters pipelines that are not needed.
+
+        Here are the rules for being kept:
+           - There can only be one primary
+           - If there is one site level and one project level primary,
+             the project level one is returned.
+           - If there are two site level or two project level primaries, the one with the lowest id is kept.
+           - All sandboxes are returned.
+
+        .. note: This code assumes that pipeline configurations are sorted by id.
 
         :param list pcs: List of pipeline configuration entities with keys `code` and `project`.
 
-        :returns: Four lists of entities. The list are ordered as mentioned above.
+        :returns: A tuple containing:
+            - The primary pipeline configuration, if found.
+            - An array of dev sandboxes for the current project, if found.
+            - The primary site level pipeline configuration, if found and theres no primary project configuration.
+
+        :rtype: tuple(dict, list, list)
         """
         primary_project_configs = []
         user_project_configs = []
         primary_site_configs = []
         user_site_configs = []
 
+        # Step 1: Sort each pipeline in its respective bucket.
         for pc in pcs:
             if self._is_project_pc(pc):
                 if self._is_primary_pc(pc):
@@ -319,54 +352,35 @@ class ConfigurationResolver(object):
                     user_site_configs.append(pc)
                     log.debug("Found per-user fallback match: %s" % pc)
 
-        return primary_project_configs, user_project_configs, primary_site_configs, user_site_configs
+        # Step 2: Ensure each primary category only has one item.
+        project_primary = self._keep_latest_primary(primary_project_configs, "project")
+        site_primary = self._keep_latest_primary(primary_site_configs, "site")
 
-    def _get_sorted_pipeline_configurations(self, pipeline_config_name, current_login, sg_connection):
-        """
-        Retrieves the pipeline configurations and sorts them into four different categories:
-            - Project level primary configurations
-            - Project level user sandbox configurations
-            - Site level primary configurations
-            - Site level user sandbox configurations
+        # Step 3: Ensure project primary override the site primary.
+        if project_primary and site_primary:
+            log.debug("Project level primary overrides site level primary.")
+        primary = project_primary or site_primary
 
-        :param str pipeline_config_name: Name of the pipeline configuration requested for. If ``None``,
-            all pipeline configurations from the project will be matched.
-        :param str current_login: Only retains non-primary configs from the specified user.
-        :param ``shotgun_api3.Shotgun`` sg_connection: Connection to the Shotgun site.
-
-        :returns: Four lists of entities. The list are ordered as mentioned above.
-
-        """
-        pcs = self._get_unsorted_pipelines_from_shotgun(pipeline_config_name, current_login, sg_connection)
-        # Sort all the pipeline configurations in their respective bucket.
-        return self._sort_pipelines(pcs)
+        return primary, user_project_configs, user_site_configs
 
     def find_matching_pipeline_configurations(self, pipeline_config_name, current_login, sg_connection):
         """
-        Finds all the pipelines matching the query parameters.
+        Retrieves the pipeline configurations that can be used with this project.
+
+        See _filter_pipelines to learn more about the pipeline configurations that are considered usable.
 
         :param str pipeline_config_name: Name of the pipeline configuration requested for. If ``None``,
             all pipeline configurations from the project will be matched.
         :param str current_login: Only retains non-primary configs from the specified user.
         :param ``shotgun_api3.Shotgun`` sg_connection: Connection to the Shotgun site.
 
-        :returns: Iterator over the matching pipeline configurations.
+        :returns: The pipeline configurations that can be used with this project.
+
         """
-
-        # Get all the pipeline configurations, each sorted in their right category.
-        (primary_project_configs,
-         user_project_configs,
-         primary_site_configs,
-         user_site_configs) = self._get_sorted_pipeline_configurations(
-            pipeline_config_name, current_login, sg_connection
-        )
-
-        # If there is a primary project configuration, then we don't want to use site configurations
-        # on this project.
-        if primary_project_configs:
-            primary_site_configs = []
-
-        return itertools.chain(user_project_configs, primary_project_configs, user_site_configs, primary_site_configs)
+        pcs = self._get_all_pipelines_for_project(pipeline_config_name, current_login, sg_connection)
+        # Sort all the pipeline configurations in their respective bucket.
+        primary, user_sanboxes_project, user_sandboxes_site = self._filter_pipelines(pcs)
+        return ([primary] if primary else []) + user_sanboxes_project + user_sandboxes_site
 
     def _is_primary_pc(self, pc):
         """
@@ -422,32 +436,31 @@ class ConfigurationResolver(object):
 
             # Get all the pipeline configurations that can be used given our project
             # restriction.
-            pcs = self._get_unsorted_pipelines_from_shotgun(
+            pcs = self._get_all_pipelines_for_project(
                 pipeline_config_identifier, current_login, sg_connection
             )
 
             # Sort all the pipeline configurations in their respective bucket.
-            (primary_project_configs, user_project_configs,
-             primary_site_configs, user_site_configs) = self._sort_pipelines(pcs)
+            (primary, user_project_configs, user_site_configs) = self._filter_pipelines(pcs)
 
-            # Now select in order of priority. Note that the last pipeline encountered in the
-            # a any given level is the one we will use.
+            # Now select in order of priority. Note that the earliest pipeline encountered for sandboxes
+            # is the one that will be selected.
             if user_project_configs:
                 # A per-user pipeline config for the current project has top priority
                 pipeline_config = user_project_configs[0]
 
-            elif primary_project_configs:
+            elif primary and self._is_project_pc(primary):
                 # if there is a primary config for our current project, this takes precedence
-                pipeline_config = primary_project_configs[0]
+                pipeline_config = primary
 
             elif user_site_configs:
                 # if there is a pipeline config for our current user with project field None
                 # that takes precedence
                 pipeline_config = user_site_configs[0]
 
-            elif primary_site_configs:
+            elif primary and not self._is_project_pc(primary):
                 # Lowest priority - A Primary pipeline configuration with project field None
-                pipeline_config = primary_site_configs[0]
+                pipeline_config = primary
 
             else:
                 # we may not have any pipeline configuration matches at all:

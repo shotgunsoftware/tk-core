@@ -34,7 +34,7 @@ class TestResolverBase(TankTestBase):
 
         self.config_1 = {"type": "app_store", "version": "v0.1.2", "name": "tk-config-test"}
 
-        self._user = self.mockgun.create("HumanUser", {"login": "john.smith"})
+        self._user = self.mockgun.create("HumanUser", {"login": "john.smith", "name": "John Smith"})
         self._project = self.mockgun.create("Project", {"name": "my_project"})
 
         # set up a resolver
@@ -290,14 +290,14 @@ class TestResolverPriority(TestResolverBase):
             )
         self.assertEqual(config._path.current_os, expected_path)
 
-    def test_resolve_site_config(self):
+    def test_site_overrides_fallback(self):
         """
         Makes sure a site config takes is higher priority than the fallback.
         """
         self._create_site_pc()
         self._test_priority(self.SITE_PC_PATH)
 
-    def test_resolve_sandboxed_site_config(self):
+    def test_site_sandbox_overrides_site(self):
         """
         Makes sure a sandboxed site configuration overrides the site config.
         """
@@ -305,7 +305,7 @@ class TestResolverPriority(TestResolverBase):
         self._create_site_pc()
         self._test_priority(self.SITE_SANDBOX_PC_PATH)
 
-    def test_resolve_project_config(self):
+    def test_project_overrides_any_site(self):
         """
         Makes sure a project configuration overrides the sandboxed site config.
         """
@@ -314,7 +314,7 @@ class TestResolverPriority(TestResolverBase):
         self._create_site_pc()
         self._test_priority(self.PROJECT_PC_PATH)
 
-    def test_resolve_sandboxed_project_config(self):
+    def test_project_sandbox_overrides_everything(self):
         """
         Makes sure a sandboxed project configuration sandbox overrides project configuration.
         """
@@ -324,7 +324,7 @@ class TestResolverPriority(TestResolverBase):
         self._create_site_pc()
         self._test_priority(self.PROJECT_SANDBOX_PC_PATH)
 
-    def test_resolve_pc(self):
+    def test_resolve_one_config(self):
         """
         Ensure that if there is only one pipeline configuration it will always be resolved.
         """
@@ -343,7 +343,7 @@ class TestResolverPriority(TestResolverBase):
         link = self._create_project_sandbox_pc()
         self._test_priority(self.PROJECT_SANDBOX_PC_PATH)
 
-    def test_site_primary_hidden(self):
+    def test_project_primary_overrides_site_primary(self):
         """
         Ensure that site primary pipeline configurations are hidden by project primary pipeline
         configurations, but user sandboxes are all returned.
@@ -353,9 +353,9 @@ class TestResolverPriority(TestResolverBase):
         self._create_site_sandbox_pc()
         self._create_site_pc()
 
-        pcs = list(self.resolver.find_matching_pipeline_configurations(
+        pcs = self.resolver.find_matching_pipeline_configurations(
             None, "john.smith", self.mockgun
-        ))
+        )
 
         self.assertEqual(len(pcs), 3)
         for pc in pcs:
@@ -372,8 +372,8 @@ class TestResolverPriority(TestResolverBase):
         because they were of the same type, ensure we are always returning the one with the lowest id.
         """
 
-        first = self._create_pc("Primary", path="first_pipeline_path", plugin_ids="foo.*")
-        second = self._create_pc("Primary", path="second_pipeline_path", plugin_ids="foo.*")
+        self._create_pc("Primary", path="first_pipeline_path", plugin_ids="foo.*")
+        self._create_pc("Primary", path="second_pipeline_path", plugin_ids="foo.*")
 
         config = self.resolver.resolve_shotgun_configuration(
             None,
@@ -442,11 +442,11 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             plugin_ids="foo.*",
         )["entity_id"]
 
-        pcs = list(self.resolver.find_matching_pipeline_configurations(
+        pcs = self.resolver.find_matching_pipeline_configurations(
             None,
             "john.smith",
             self.mockgun
-        ))
+        )
         self.assertEqual(len(pcs), 1)
         self.assertEqual(pcs[0]["id"], pc_id)
 
@@ -463,11 +463,11 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         )
 
         # Nothing should be found.
-        pcs = list(self.resolver.find_matching_pipeline_configurations(
+        pcs = self.resolver.find_matching_pipeline_configurations(
             None,
             "john.smith",
             self.mockgun
-        ))
+        )
         self.assertEqual(len(pcs), 0)
 
 
@@ -583,7 +583,7 @@ class TestResolvedConfiguration(TankTestBase):
         self.assertEqual(config.has_local_bundle_cache, False)
 
 
-class TestResolvePerId(TestResolverBase):
+class TestResolveWithFilter(TestResolverBase):
 
     @patch("os.path.exists", return_value=True)
     def test_existing_pc_ic(self, _):
@@ -615,6 +615,78 @@ class TestResolvePerId(TestResolverBase):
                 sg_connection=self.tk.shotgun,
                 current_login="john.smith"
             )
+
+    @patch("os.path.exists", return_value=True)
+    def test_resolve_by_name(self, _):
+
+        # Create a second user that will own similar sandboxes.
+        self.mockgun.create("HumanUser", {"login": "john.doe"})
+
+        # Create site primary
+        self._create_pc("Primary", path="primary_configuration", plugin_ids="foo.*")
+
+        # Create a second user that will own similar sandboxes.
+        john_doe = self.mockgun.create("HumanUser", {"login": "john.doe", "name": "John Doe"})
+
+        for user in [john_doe, self._user]:
+            # Create project sandbox.
+            self._create_pc(
+                "Project sandbox",
+                path="project_sandbox",
+                plugin_ids="foo.*",
+                users=[user],
+                project=self._project
+            )
+            # Create site sandbox.
+            self._create_pc(
+                "Site sandbox",
+                path="site_sandbox",
+                plugin_ids="foo.*",
+                users=[user]
+            )
+
+        # Ensure we are resolving only three and they are the primary or owned by John Smith.
+        pcs = self.resolver.find_matching_pipeline_configurations(
+            pipeline_config_name=None,
+            current_login="john.smith",
+            sg_connection=self.tk.shotgun
+        )
+        self.assertEqual(len(pcs), 3)
+        for pc in pcs:
+            self.assertTrue(pc["code"] == "Primary" or pc["users"][0]["id"] == self._user["id"])
+
+        # Ensure we are resolving only the primary sandbox.
+        pcs = self.resolver.find_matching_pipeline_configurations(
+            pipeline_config_name="Primary",
+            current_login="john.smith",
+            sg_connection=self.tk.shotgun
+        )
+        self.assertEqual(len(pcs), 1)
+        self.assertEqual(pcs[0]["code"], "Primary")
+
+        # Ensure we are resolving the project sandbox from John Doe.
+        pcs = self.resolver.find_matching_pipeline_configurations(
+            pipeline_config_name="Site sandbox",
+            current_login="john.doe",
+            sg_connection=self.tk.shotgun
+        )
+
+        self.assertEqual(len(pcs), 1)
+        pc = pcs[0]
+        self.assertEqual(pc["code"], "Site sandbox")
+        self.assertEqual(pc["users"][0]["id"], john_doe["id"])
+
+        # Ensure we are resolving the project sandbox from John Smith.
+        pcs = self.resolver.find_matching_pipeline_configurations(
+            pipeline_config_name="Site sandbox",
+            current_login="john.smith",
+            sg_connection=self.tk.shotgun
+        )
+
+        self.assertEqual(len(pcs), 1)
+        pc = pcs[0]
+        self.assertEqual(pc["code"], "Site sandbox")
+        self.assertEqual(pc["users"][0]["id"], self._user["id"])
 
 
 class TestErrorHandling(TestResolverBase):
