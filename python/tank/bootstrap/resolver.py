@@ -278,7 +278,7 @@ class ConfigurationResolver(object):
                 # If a location was specified to get access to that pipeline, return it. Note that we are
                 # potentially returning pipeline configurations that have been configured for one platform but
                 # not all.
-                if pc["descriptor"] or pc["sg_descriptor"] or path:
+                if pc.get("descriptor") or pc.get("sg_descriptor") or path:
                     yield pc
                 else:
                     log.warning("Pipeline configuration is missing a 'path' or 'descriptor' field: %s" % pc)

@@ -686,7 +686,7 @@ class ToolkitManager(object):
         self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
-        if config.has_local_bundle_cache:
+        if not config.has_local_bundle_cache:
             # make sure we have all the apps locally downloaded
             # this check is quick, so always perform the check, except for installed config, which are
             # self contained, even when the config is up to date - someone may have deleted their
@@ -696,6 +696,8 @@ class ToolkitManager(object):
                 engine_name,
                 progress_callback
             )
+        else:
+            log.debug("Configuration has local bundle cache, skipping bundle caching.")
 
         return tk
 
@@ -723,12 +725,14 @@ class ToolkitManager(object):
         except TankError, e:
             raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
 
-        if not isinstance(config, InstalledConfiguration):
+        if not config.has_local_bundle_cache:
             # make sure we have all the apps locally downloaded
             # this check is quick, so always perform the check, except for installed config, which are
             # self contained, even when the config is up to date - someone may have deleted their
             # bundle cache
             self._cache_apps(pc, engine_name, self.progress_callback)
+        else:
+            log.debug("Configuration has local bundle cache, skipping bundle caching.")
 
         self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine ready.")
 

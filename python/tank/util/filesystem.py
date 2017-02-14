@@ -124,7 +124,6 @@ def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
     """
     if not os.path.exists(path):
         try:
-            log.debug("Creating folder %s [%o].." % (path, permissions))
             os.makedirs(path, permissions)
 
             if create_placeholder_file:
@@ -227,7 +226,6 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
     files = []
 
     if not os.path.exists(dst):
-        log.debug("Creating folder %s [%o].." % (dst, folder_permissions))
         os.mkdir(dst, folder_permissions)
 
     names = os.listdir(src)
@@ -345,4 +343,3 @@ def create_valid_filename(value):
         # so that we return a string
         u_src = value.decode("utf-8")
         return exp.sub("_", u_src).encode("utf-8")
-
