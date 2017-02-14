@@ -887,17 +887,17 @@ directory:
 
 .. image:: ./images/tk_engine_root_directory_structure.png
 
-Since the launch logic for the engine is invoked while the engine is not actually running, the base
-:class:`~SoftwareLauncher` class provides functionality similar to the :class:`~Engine` base class.
-Two SoftwareLauncher methods that must be specifically implemented by the engine are
-:meth:`~SoftwareLauncher.scan_software` and :meth:`~SoftwareLauncher.prepare_launch`. The
-scan_software method is responsible for discovering all executable paths for the related DCC
-installed on the local filesystem and returns a list of :class:`SoftwareVersion` instances 
-representing each executable found. The prepare_launch method establishes the environment to launch
-the DCC in, confirms the correct executable path to launch, and supplies command line arguments
-required for launch. This method returns a :class:`LaunchInformation` instance that contains all
-information required to successfully launch the DCC and startup the engine integration. To recap,
-a skeleton ``startup.py`` file for the Maya engine contains the following::
+Since the launch logic for the engine is invoked while the engine is not actually running, the
+:class:`~SoftwareLauncher` base class provides functionality similar to the :class:`~Engine` base
+class. Two SoftwareLauncher methods that *must* be implemented by the engine are :meth:`~SoftwareLauncher.scan_software`
+and :meth:`~SoftwareLauncher.prepare_launch`. The scan_software method is responsible for 
+discovering all executable paths for the related DCC installed on the local filesystem and returns
+a list of :class:`SoftwareVersion` instances representing each executable found. The prepare_launch
+method establishes the environment to launch the DCC in, confirms the correct executable path to
+launch, and supplies command line arguments required for launch. This method returns a :class:`LaunchInformation`
+instance that contains all information required to successfully launch the DCC and startup the
+engine integration. To recap, a skeleton ``startup.py`` file for the Maya engine contains the
+following::
 
     from sgtk.platform import SoftwareLauncher, SoftwareVersion, LaunchInformation
 
@@ -931,12 +931,12 @@ are set and a startup script calling :meth:`~sgtk.platform.start_engine` with th
 from the environment is registered with the DCC. For plugin mode, values for required environment
 variables are set and a startup script to load the plugin(s) is registered with the DCC. Which mode
 to use at runtime is controlled by the ``launch_builtin_plugin`` engine configuration setting. If
-the resolved setting is None or empty, Classic mode is invoked. Otherwise, the comma-separated list
-of plugins will be loaded. For either case, the prepare_launch method must assure the paths to ``sgtk``
-and any startup files are specified in the ``PYTHONPATH`` environment variable. It is also considered
-good practice to account for the name of a file to open on launch (e.g. SGTK_FILE_TO_OPEN).
+the resolved setting value is None or empty, Classic mode is invoked. Otherwise, the comma-separated
+list of plugins will be loaded. For either case, the prepare_launch method must assure the paths
+to ``sgtk`` and any startup files are specified in the ``PYTHONPATH`` environment variable. It is
+also considered good practice to account for the name of a file to open on launch (e.g. SGTK_FILE_TO_OPEN).
 
-.. note:: When setting an environment variable containing the current context value, be sure to use a serialized version of the context to hide login information in the shell.
+.. note:: When setting an environment variable containing the current context value, be sure to use a serialized version of the context to encode login information in the shell.
 
 To put this into practice, here is ``tk-maya``'s implementation of prepare_launch()::
 
@@ -1004,6 +1004,32 @@ To put this into practice, here is ``tk-maya``'s implementation of prepare_launc
 
 Configuration Using the Software Entity in Shotgun
 ===================================================
+
+Software entities are used to specify and configure locally installed DCC applications that are 
+launchable from Toolkit and/or Shotgun for a user on the site. They are readable by all users, but
+writeable only by admins. The ``tk-multi-launchapp`` Toolkit application (installed by default with
+Desktop and available in the App Store for download) parses the site Software entries to determine
+which launch commands to present in Desktop for a specific Project and user. At minimum, a ``Software Name``
+and ``Engine`` for DCCs that have Toolkit integrations or ``<platform> Path`` for those that do not
+must be specified for a launch command to be added to Desktop. The full list of launch commands a
+user has access to may be limited by Project, user name, Group membership, or DCC version.
+
+The Software site page can be accessed from either "All Pages > Global Pages > Software" or "User Menu >
+Admin > Software" menus. Here are sample Software entries with field value explanataions: 
+
+.. image:: ./images/sg_software_samples.png
+
+... note:: Since the engine field is optional, any locally installed DCC application can be registered to launch by specifying a ``Software Name``, ``<platform> Path``, and ``Thumbnail``. A proper Toolkit integration for this DCC is not required. This is demonstrated by the GIMP entry on the sample Software page.
+
+As configured, these Software entries will display the following Desktop launch commands per user:
+
+.. image:: ./images/desktop_software_samples.png
+
+
+Software Entity Field Reference
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. image:: ./images/software_entity_field_reference.png
 
 
 
