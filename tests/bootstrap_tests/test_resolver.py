@@ -20,7 +20,7 @@ from tank_test.tank_test_base import TankTestBase
 
 
 class TestResolverBase(TankTestBase):
-    def setUp(self, no_project=False):
+    def setUp(self):
         super(TestResolverBase, self).setUp()
 
         self.install_root = os.path.join(
@@ -40,7 +40,7 @@ class TestResolverBase(TankTestBase):
         # set up a resolver
         self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="foo.maya",
-            project_id=None if no_project else self._project["id"],
+            project_id=self._project["id"],
             bundle_cache_fallback_paths=[self.install_root]
         )
 
@@ -158,7 +158,7 @@ class TestPluginMatching(TestResolverBase):
             current_login="john.smith"
         )
 
-        self.assertEqual(config._path.current_os, 'path_we_want')
+        self.assertEqual(config._path.current_os, "path_we_want")
 
     def test_no_plugin_id_matching(self):
         """
@@ -405,7 +405,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             current_login="john.smith"
         )
 
-        self.assertEqual(config._path.current_os, 'sg_path')
+        self.assertEqual(config._path.current_os, "sg_path")
 
     def test_pc_descriptor(self):
         """
@@ -426,7 +426,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
 
         self.assertEqual(
             config._descriptor.get_dict(),
-            {'name': 'tk-config-test', 'type': 'app_store', 'version': 'v3.1.2'}
+            {"name": "tk-config-test", "type": "app_store", "version": "v3.1.2"}
         )
 
     def test_pipeline_without_location(self):
@@ -601,7 +601,7 @@ class TestResolveWithFilter(TestResolverBase):
             current_login="john.smith"
         )
 
-        self.assertEqual(config._path.current_os, 'sg_path')
+        self.assertEqual(config._path.current_os, "sg_path")
 
     @patch("os.path.exists", return_value=True)
     def test_non_existing_pc_ic(self, _):
@@ -618,6 +618,9 @@ class TestResolveWithFilter(TestResolverBase):
 
     @patch("os.path.exists", return_value=True)
     def test_resolve_by_name(self, _):
+        """
+        Ensure that specifying for pipeline by name works.
+        """
 
         # Create a second user that will own similar sandboxes.
         self.mockgun.create("HumanUser", {"login": "john.doe"})

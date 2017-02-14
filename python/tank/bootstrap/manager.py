@@ -102,10 +102,13 @@ class ToolkitManager(object):
         """
         Retrieves the pipeline configurations available for a given project.
 
-        In order for a pipeline configuration to be considered as available, the following conditions must be met:
+        In order for a pipeline configuration to be considered as available, the following
+        conditions must be met:
            - There can only be one primary
-           - If there is one site level and one project level primary, the site level primary is not available.
-           - If there are two site level or two project level primaries, only the one with the lowest id is available.
+           - If there is one site level and one project level primary, the site level
+             primary is not available.
+           - If there are multiple site level or multiple project level primaries,
+             only the one with the lowest id is available.
            - All sandboxes are available
 
         This filtering also takes into account the current user and optional pipeline configuration name or id. If the
