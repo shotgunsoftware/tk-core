@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+
 import sgtk
 from sgtk.descriptor import Descriptor
 from tank_test.tank_test_base import *
@@ -32,6 +33,7 @@ class TestGitIODescriptor(TankTestBase):
 
         # Bare-minimum repo with both annotated and lightweight tags
         self.git_tag_repo_uri = os.path.join(self.fixtures_root, "misc", "tag-test-repo.git")
+
         self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
 
     def _create_desc(self, location, resolve_latest=False, desc_type=Descriptor.CONFIG):
