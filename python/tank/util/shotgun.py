@@ -840,14 +840,15 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
         >>> version_number = 1
         >>> file_path = '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma'
-        >>> name = 'layout'
-        >>> sgtk.util.register_publish(tk, ctx, file_path, name, version_number)
+        >>> name = 'layout.ma'
+        >>> sgtk.util.register_publish(tk, ctx, file_path, name, version_number, published_file_type='Maya Scene')
         {'code': 'layout.v001.ma',
          'created_by': {'id': 40, 'name': 'John Smith', 'type': 'HumanUser'},
          'description': None,
          'entity': {'id': 2, 'name': 'shot_010', 'type': 'Shot'},
          'id': 2,
-         'name': 'layout',
+         'published_file_type': {'id': 134, 'type': 'PublishedFileType'},
+         'name': 'layout.ma',
          'path': {'content_type': None,
           'link_type': 'local',
           'local_path': '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma',
@@ -863,8 +864,36 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
          'type': 'PublishedFile',
          'version_number': 1}
 
-    The above example shows a basic publish. In addition to the required parameters, it is
-    recommended to supply at least a description and a Publish Type.
+    The above example shows a basic publish.
+
+    .. note:: Shotgun follows a convention where the name passed to the register publish method is used
+              to control how things are grouped together. When Shotgun and Toolkit groups things together,
+              things are typically grouped first by project/entity/task and then by publish name and version.
+
+              If you create three publishes in Shotgun, all having the name 'foreground' and version numbers
+              1, 2 and 3, Shotgun will assume that these are three revisions of the same content and will
+              group them together in a group called 'foreground'.
+
+              We recommend a convention where the ``name`` parameter reflects the filename passed in via
+              the ``file_path``, but with the version number removed. For example:
+
+              - ``file_path: /tmp/layout.v027.ma, name: layout.ma, version_number: 27``
+              - ``file_path: /tmp/main_foreground_v002.%04d.exr, name: main_foreground.exr, version_number: 2``
+
+    .. note:: By default, the publish method will create a local file link to the publish, making it clickable
+              directly from within Shotgun (Read about them in the `Shotgun API <http://developer.shotgunsoftware.com/python-api/cookbook/attachments.html#working-with-local-file-types>`_ reference).
+              In order for this to work, a `Local Storage <https://support.shotgunsoftware.com/hc/en-us/articles/219030938-Linking-to-local-files>`_
+              needs to be defined in Shotgun, defining the filesystem roots under which the data should reside. This is
+              generally good practice and helps organizing your content. If you want to bypass this requirement,
+              set the ``as_file_url`` option to True. This will register your file paths as ``file://`` urls
+              instead and allows you to publish arbitrary paths.
+
+    .. note:: When publishing file sequences, the method will try to normalize your path based on the
+              current template configuration. For example, if you supply the path ``.../render.$F4.dpx``,
+              it will translated to ``.../render.%04d.dpx`` automatically, assuming there is a matching
+              template defined. If you are not using templates or publishing files that do not match
+              any configured templates, always provide sequences on a ``%0xd`` or ``%xd`` `printf <https://en.wikipedia.org/wiki/Printf_format_string>`_ style
+              pattern.
 
     :param tk: :class:`~sgtk.Sgtk` instance
     :param context: A :class:`~sgtk.Context` to associate with the publish. This will
@@ -882,13 +911,12 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                name, the name of the AOV and the name of the render layer.
     :param version_number: The version number of the item we are publishing.
 
-
     In addition to the above, the following optional arguments exist:
 
         - ``task`` - A shotgun entity dictionary with id and type (which should always be Task).
           if no value is specified, the task will be grabbed from the context object.
 
-        - ``comment`` - A string containing a description of the comment
+        - ``comment`` - A string containing a description of what is being published.
 
         - ``thumbnail_path`` - A path to a thumbnail (png or jpeg) which will be uploaded to shotgun
           and associated with the publish.
@@ -898,15 +926,15 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
         - ``dependency_ids`` - A list of publish ids which should be registered as dependencies.
 
-        - ``published_file_type`` - A tank type in the form of a string which should match a tank type
-          that is registered in Shotgun.
+        - ``published_file_type`` - A publish type in the form of a string. If the publish type does not
+          already exist in Shotgun, it will be created.
 
-        - ``update_entity_thumbnail`` - Push thumbnail up to the attached entity
+        - ``update_entity_thumbnail`` - Push the publish thumbnail up to the associated entity
 
-        - ``update_task_thumbnail`` - Push thumbnail up to the attached task
+        - ``update_task_thumbnail`` - Push thumbnail up to the associated task
 
         - ``created_by`` - Override for the user that will be marked as creating the publish.  This should
-          be in the form of shotgun entity, e.g. {"type":"HumanUser", "id":7}
+          be in the form of shotgun entity, e.g. {"type":"HumanUser", "id":7}.
 
         - ``created_at`` - Override for the date the publish is created at.  This should be a python
           datetime object
@@ -914,6 +942,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         - ``version_entity`` - The Shotgun version entity this published file should be linked to
 
         - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{'tag_list': ['foo', 'bar']}``)
+
+        - ``as_file_url`` - Set to True to convert path given by the ``path`` parameter into a ``file://`` url.
 
     :returns: The created entity dictionary
     """
@@ -938,10 +968,13 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     created_at = kwargs.get("created_at")
     version_entity = kwargs.get("version_entity")
     sg_fields = kwargs.get("sg_fields", {})
+    use_file_url = kwargs.get("as_file_url") or False
 
     # convert the abstract fields to their defaults
+    # based on templates, /foo/bar/xyz.0003.exr -> /foo/bar/xyz.%04d.exr
     path = _translate_abstract_fields(tk, path)
 
+    # see if we should use tanktype or publishtype
     published_file_entity_type = get_published_file_entity_type(tk)
 
     log.debug("Publish: Resolving the published file type")
@@ -970,7 +1003,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     log.debug("Publish: Creating publish in Shotgun")
     entity = _create_published_file(tk,
                                     context, 
-                                    path, 
+                                    path,
+                                    use_file_url,
                                     name, 
                                     version_number, 
                                     task, 
@@ -986,16 +1020,19 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     if thumbnail_path and os.path.exists(thumbnail_path):
 
         # publish
+        log.debug("Publish: Uploading publish thumbnail")
         tk.shotgun.upload_thumbnail(published_file_entity_type, entity["id"], thumbnail_path)
 
         # entity
         if update_entity_thumbnail == True and context.entity is not None:
+            log.debug("Publish: Uploading associated entity thumbnail")
             tk.shotgun.upload_thumbnail(context.entity["type"],
                                         context.entity["id"],
                                         thumbnail_path)
 
         # task
         if update_task_thumbnail == True and task is not None:
+            log.debug("Publish: Uploading associated task thumbnail")
             tk.shotgun.upload_thumbnail("Task", task["id"], thumbnail_path)
 
     else:
@@ -1116,13 +1153,38 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
         tk.shotgun.batch(sg_batch_data)
                 
 
-def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type, 
-                           created_by_user, created_at, version_entity, sg_fields=None):
+def _create_published_file(tk, context, path, use_file_url, name, version_number, task, comment, published_file_type,
+                           created_by_user, created_at, version_entity, sg_fields):
     """
     Creates a publish entity in shotgun given some standard fields.
+
+
+    :param tk: :class:`~sgtk.Sgtk` instance
+    :param context: A :class:`~sgtk.Context` to associate with the publish. This will
+        populate the task and entity link in Shotgun.
+    :param path: The path to the file or sequence we want to publish.
+    :param use_file_url: If true, convert path to a ``file://`` url, else use a local file link.
+    :param name: A name, without version number, which helps distinguish
+        this publish from other publishes.
+    :param version_number: The version number of the item we are publishing or None.
+    :param task: A shotgun entity dictionary with id and type (which should always be Task) or None.
+    :param comment: A string containing a description of what is being published or None.
+    :param published_file_type: A publish type in the form of a string. If the publish type does not
+        already exist in Shotgun, it will be created.
+    :param created_by_user: Override for the user that will be marked as creating the publish.
+        This should be in the form of shotgun entity, e.g. {"type":"HumanUser", "id":7} or None.
+    :param created_at: Override for the date the publish is created at. This should be a python
+          datetime object or None.
+    :param version_entity: The Shotgun version entity this published file should be linked to or None.
+    :param sg_fields: Some additional Shotgun fields to add to the publish
+        as a dict (e.g. ``{'tag_list': ['foo', 'bar']}``)
+
+    :returns: The created Shotgun entity dictionary
     """
     published_file_entity_type = get_published_file_entity_type(tk)
 
+    # apply some smarts to the path string to analyze it:
+    #
     # Check if path is a url or a straight file path.  Path
     # is assumed to be a url if it has a scheme or netloc, e.g.:
     #
@@ -1136,14 +1198,21 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         # schemes are unlikely!
         if len(res.scheme) > 1 or not res.scheme.isalpha():
             path_is_url = True
+
     elif res.netloc:
         path_is_url = True
-        
+
+    # now extract the filename to use as the publish name
     code = ""
     if path_is_url:
         code = os.path.basename(res.path)
     else:
         code = os.path.basename(path)
+
+    # see if we need to turn the path into a file:// url
+    if not path_is_url and use_file_url:
+        # todo - implement this!
+
 
     # if the context does not have an entity, link it up to the project
     if context.entity is None:
@@ -1171,6 +1240,9 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
     # handle the path definition
     if path_is_url:
+        # make sure spaces are converted into %20 etc. in order to
+        # produce a valid url that shotgun accepts.
+        #
         # for quoting logic, see bugfix here:
         # http://svn.python.org/view/python/trunk/Lib/urllib.py?r1=71780&r2=71779&pathrev=71780
         #
