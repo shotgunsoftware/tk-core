@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import shutil
 
 import sgtk
 from sgtk.descriptor import Descriptor
