@@ -1176,7 +1176,12 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         #
         # note: by appling a safe pattern like this, we guarantee that already quoted paths
         #       are not touched, e.g. quote('foo bar') == quote('foo%20bar')
-        data["path"] = {"url": urllib.quote(path, safe="%/:=&?~#+!$,;'@()*[]")}
+        data["path"] = {
+            "url": urllib.quote(path, safe="%/:=&?~#+!$,;'@()*[]"),
+            # name the url consistently with local file links, e.g. just
+            # display the filename.
+            "name": code
+        }
     else:
 
         # Make path platform agnostic.
