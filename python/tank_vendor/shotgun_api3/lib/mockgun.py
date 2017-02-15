@@ -573,7 +573,7 @@ class Shotgun(object):
         """
         # If we have a list of scalar values
         if isinstance(lval, list) and field_type != "multi_entity":
-            # Compare each one. If one matches the predicatet we're good!
+            # Compare each one. If one matches the predicate we're good!
             return any((self._compare(field_type, sub_val, operator, rval)) for sub_val in lval)
 
         if field_type == "checkbox":
@@ -625,20 +625,14 @@ class Shotgun(object):
                 return lval.endswith(rval)
         elif field_type == "entity":
             if operator == "is":
-                # If the field is set to None
-                if lval is None:
-                    # Return true if rval is None too.
-                    return rval is None
-                if rval is None:
-                    # We already know lval is not None, so we know they are not equal.
-                    return False
+                # If one of the two is None, ensure both are.
+                if lval is None or rval is None:
+                    return lval == rval
                 # Both values are set, compare them.
                 return lval["type"] == rval["type"] and lval["id"] == rval["id"]
             elif operator == "is_not":
-                # If the field is set to None
-                if lval is None:
-                    # Return true if rval is not None.
-                    return rval is not None
+                if lval is None or rval is None:
+                    return lval != rval
                 if rval is None:
                     # We already know lval is not None, so we know they are not equal.
                     return True
@@ -749,7 +743,9 @@ class Shotgun(object):
             if field_type == "entity":
                 # If the entity field is set, we'll retrieve the name of the entity.
                 if lval is not None:
-                    lval_row = self._db[lval["type"]][lval["id"]]
+                    link_type = lval["type"]
+                    link_id = lval["id"]
+                    lval_row = self._db[link_type][link_id]
                     if "name" in lval_row:
                         lval["name"] = lval_row["name"]
                     elif "code" in lval_row:
