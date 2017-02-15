@@ -59,6 +59,13 @@ class TestIODescriptors(TankTestBase):
             bundle_cache_root_override=root
         )
 
+        d3 = sgtk.descriptor.create_descriptor(
+            sg,
+            sgtk.descriptor.Descriptor.APP,
+            {"type": "app_store", "version": "v1.3.1", "name": "tk-bundle"},
+            bundle_cache_root_override=root
+        )
+
         self.assertEqual(d.get_path(), None)
         self.assertEqual(d.find_latest_cached_version(), None)
 
@@ -87,9 +94,17 @@ class TestIODescriptors(TankTestBase):
         self.assertEqual(d2.get_path(), app_path)
         self.assertEqual(d.find_latest_cached_version(), d2)
 
+        # Check to make sure we find a bundle that doesn't have an info.yml.
+        app_path = os.path.join(root, "app_store", "tk-bundle", "v1.3.1")
+        os.makedirs(app_path)
+
+        self.assertEqual(d3.get_path(), app_path)
+        self.assertEqual(d.find_latest_cached_version(), d3)
+
         # now check constraints
         self.assertEqual(d.find_latest_cached_version("v1.1.x"), d)
-        self.assertEqual(d.find_latest_cached_version("v1.x.x"), d2)
+        self.assertEqual(d.find_latest_cached_version("v1.2.x"), d2)
+        self.assertEqual(d.find_latest_cached_version("v1.x.x"), d3)
         self.assertEqual(d.find_latest_cached_version("v2.x.x"), None)
 
 
