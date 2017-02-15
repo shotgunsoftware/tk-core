@@ -35,26 +35,7 @@ class TestGitIODescriptor(TankTestBase):
         # Bare-minimum repo with both annotated and lightweight tags
         self.git_tag_repo_uri = os.path.join(self.fixtures_root, "misc", "tag-test-repo.git")
 
-        # We need to rename the included "git" directory in our tag repo to be
-        # ".git" so that it can be used as a git repo by tests. It'll be named
-        # back to "git" during tearDown.
-        self.git_tag_repo_git = os.path.join(self.git_tag_repo_uri, "git")
-        self.git_tag_repo_dot_git = os.path.join(self.git_tag_repo_uri, ".git")
-        shutil.move(
-            self.git_tag_repo_git,
-            self.git_tag_repo_dot_git
-        )
-
         self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
-
-    def tearDown(self):
-        TankTestBase.tearDown(self)
-
-        # Rename the .git file back to its original name.
-        shutil.move(
-            self.git_tag_repo_dot_git,
-            self.git_tag_repo_git
-        )
 
     def _create_desc(self, location, resolve_latest=False, desc_type=Descriptor.CONFIG):
         """

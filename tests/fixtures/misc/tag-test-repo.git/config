@@ -1,7 +1,8 @@
 [core]
 	repositoryformatversion = 0
 	filemode = true
-	bare = false
-	logallrefupdates = true
+	bare = true
 	ignorecase = true
 	precomposeunicode = true
+[remote "origin"]
+	url = /Users/jeff/Documents/repositories/./tag-test-repo
