@@ -10,7 +10,6 @@
 
 from . import session_cache
 
-
 class DefaultsManager(object):
     """
     The defaults manager allows a client of the Shotgun Authenticator class
@@ -23,7 +22,7 @@ class DefaultsManager(object):
     host.
 
     If a setting isn't found, the DefaultsManager will fall back to the value stored inside
-    ``toolkit.ini`` See :ref:`centralizing_settings` for more information.
+    ``config.ini`` See :ref:`centralizing_settings` for more information.
 
     If, however, you want to implement a custom behavior around how defaults
     are managed, simply derive from this class and pass your custom instance
@@ -33,9 +32,7 @@ class DefaultsManager(object):
     def __init__(self):
         # Breaks circular dependency between util and authentication framework
         from ..util.user_settings import UserSettings
-        from ..util.system_settings import SystemSettings
         self._user_settings = UserSettings()
-        self._system_settings = SystemSettings()
 
     def is_host_fixed(self):
         """
@@ -90,21 +87,13 @@ class DefaultsManager(object):
         Called by the authentication system when it needs to retrieve the
         proxy settings to use for a Shotgun connection.
 
-        .. note:: If the centralized settings do not specify an HTTP proxy, Toolkit will rely on
-            Python's `urllib.getproxies <https://docs.python.org/2/library/urllib.html#urllib.getproxies>`_
-            to find an HTTP proxy.
-
-            There is a restriction when looking for proxy information from Mac OS X System Configuration or
-            Windows Systems Registry: in these cases, Toolkit does not support the use of proxies
-            which require authentication (username and password).
-
-        The returned format will be the same as is being used in the Shotgun API.
-        For more information, see the `Shotgun API documentation
-        <http://developer.shotgunsoftware.com/python-api/reference.html#shotgun>`_.
+        The format should be the same as is being used in the Shotgun API.
+        For more information, see the Shotgun API documentation:
+        https://github.com/shotgunsoftware/python-api/wiki/Reference%3A-Methods#shotgun
 
         :returns: String containing the default http proxy, None by default.
         """
-        return self._user_settings.shotgun_proxy or self._system_settings.http_proxy
+        return self._user_settings.shotgun_proxy
 
     def get_login(self):
         """

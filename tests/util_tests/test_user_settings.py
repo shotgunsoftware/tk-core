@@ -11,61 +11,67 @@
 from __future__ import with_statement
 
 import os
-import uuid
-
-from tank_test.tank_test_base import TankTestBase
-from tank_test.tank_test_base import setUpModule # noqa
-
+import unittest2 as unittest
 from mock import patch
 
 from tank.util import EnvironmentVariableFileLookupError
 from tank.util.user_settings import UserSettings
-from sgtk import TankError
 
 
-class UserSettingsTests(TankTestBase):
+class MockConfigParser(object):
     """
-    Tests functionality around toolkit.ini
+    Mocks the config parser object used internally by the UserSettings class.
+    """
+
+    def __init__(self, data):
+        """
+        Constructor.
+        """
+        self._data = {
+            "Login": data
+        }
+
+    def has_section(self, name):
+        """
+        Checks if a section [name] is present.
+        """
+        return name in self._data
+
+    def has_option(self, name, key):
+        """
+        Checks for setting key: inside [name].
+        """
+        return self.has_section(name) and key in self._data[name]
+
+    def get(self, name, key):
+        """
+        Retrieves setting from ini file.
+        """
+        return self._data[name][key]
+
+    def read(self, path):
+        """
+        Mocked to please the UserSettings implementation.
+        """
+        pass
+
+
+# Got get the tank test harness, we don't want part of the API mocked, we'll
+# mock the parsing and be done with it.
+class UserSettingsTests(unittest.TestCase):
+    """
+    Tests functionality around config.ini
     """
 
     def setUp(self):
         """
         Make sure the singleton is reset at the beginning of this test.
         """
-        super(UserSettingsTests, self).setUp()
         UserSettings.clear_singleton()
         self.addCleanup(UserSettings.clear_singleton)
 
-    def _mock_ini_file(self, login_section={}, custom_section={}):
-        """
-        Creates an ini file in a unique location with te user settings.
-
-        :param login_section: Dictionary of settings that will be stored in the [Login] section.
-        :param custom_section: Dictionary of settings that will be stored in the [Custom] section.
-        """
-        # Create a unique folder for this test.
-        folder = os.path.join(self.tank_temp, str(uuid.uuid4()))
-        os.makedirs(folder)
-
-        # Manually write the file as this is the format we're expecting the UserSettings
-        # to parse.
-
-        ini_file_location = os.path.join(folder, "toolkit.ini")
-        with open(ini_file_location, "w") as f:
-            f.writelines(["[Login]\n"])
-            for key, value in login_section.iteritems():
-                f.writelines(["%s=%s\n" % (key, value)])
-
-            f.writelines(["[Custom]\n"])
-            for key, value in custom_section.iteritems():
-                f.writelines(["%s=%s\n" % (key, value)])
-
-        # The setUp phase cleared the singleton. So set the preferences environment variable and
-        # instantiate the singleton, which will read the env var and open that location.
-        with patch.dict(os.environ, {"SGTK_PREFERENCES_LOCATION": ini_file_location}):
-            UserSettings()
-
-    def test_empty_file(self):
+    @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({}))
+    def test_empty_file(self, mock):
         """
         Tests a complete yaml file.
         """
@@ -73,111 +79,56 @@ class UserSettingsTests(TankTestBase):
         self.assertIsNone(settings.default_site)
         self.assertIsNone(settings.default_login)
         self.assertIsNone(settings.shotgun_proxy)
-        self.assertIsNone(settings.app_store_proxy)
+        self.assertFalse(settings.is_app_store_proxy_set())
 
-    def test_filled_file(self):
+    @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({
+        "default_site": "site",
+        "default_login": "login",
+        "http_proxy": "http_proxy",
+        "app_store_http_proxy": "app_store_http_proxy"
+    }))
+    def test_filled_file(self, mock):
         """
         Tests a complete yaml file.
         """
-        self._mock_ini_file({
-            "default_site": "site",
-            "default_login": "login",
-            "http_proxy": "http_proxy",
-            "app_store_http_proxy": "app_store_http_proxy"
-        })
-
         settings = UserSettings()
         self.assertEqual(settings.default_site, "site")
         self.assertEqual(settings.default_login, "login")
         self.assertEqual(settings.shotgun_proxy, "http_proxy")
+        self.assertTrue(settings.is_app_store_proxy_set())
         self.assertEqual(settings.app_store_proxy, "app_store_http_proxy")
 
-    def test_empty_settings(self):
+    @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({}))
+    def test_system_proxy(self, mock):
         """
-        Tests a yaml file with the settings present but empty.
+        Tests the fallback on the operating system http proxy.
         """
-        self._mock_ini_file({
-            "default_site": "",
-            "default_login": "",
-            "http_proxy": "",
-            "app_store_http_proxy": ""
-        })
+        http_proxy = "foo:bar@74.50.63.111:80"  # IP address of shotgunstudio.com
 
+        with patch.dict(os.environ, {"http_proxy": "http://" + http_proxy}):
+            settings = UserSettings()
+            self.assertEqual(settings.shotgun_proxy, http_proxy)
+
+    @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({
+        # Config parser represent empty settings as empty strings
+        "app_store_http_proxy": ""
+    }))
+    def test_app_store_to_none(self, mock):
+        """
+        Tests a file with a present but empty app store proxy setting.
+        """
         settings = UserSettings()
-        self.assertEqual(settings.default_site, "")
-        self.assertEqual(settings.default_login, "")
-        self.assertEqual(settings.shotgun_proxy, "")
-        self.assertEqual(settings.app_store_proxy, "")
+        self.assertTrue(settings.is_app_store_proxy_set())
+        self.assertEqual(settings.app_store_proxy, None)
 
-    def test_custom_settings(self):
-        """
-        Tests that we can read settings in any section of the file.
-        """
-
-        self._mock_ini_file(
-            custom_section={
-                "custom_key": "custom_value"
-            }
-        )
-
-        self.assertEqual(
-            UserSettings().get_setting("Custom", "custom_key"),
-            "custom_value"
-        )
-
-    def test_boolean_setting(self):
-        """
-        Tests that we can read a setting into a boolean.
-        """
-        self._mock_ini_file(
-            custom_section={
-                "valid": "ON",
-                "invalid": "L"
-            }
-        )
-
-        self.assertEqual(
-            UserSettings().get_boolean_setting("Custom", "valid"), True
-        )
-        with self.assertRaisesRegexp(
-            TankError,
-            "Invalid value 'L' in '.*' for setting 'invalid' in section 'Custom': expecting one of .*."
-        ):
-            UserSettings().get_boolean_setting("Custom", "invalid")
-
-    def test_integer_setting(self):
-        """
-        Tests that we can read a setting into an integer
-        """
-
-        self._mock_ini_file(
-            custom_section={
-                "valid": "1",
-                "also_valid": "-1",
-                "invalid": "L"
-            }
-        )
-
-        self.assertEqual(
-            UserSettings().get_integer_setting("Custom", "valid"), 1
-        )
-        self.assertEqual(
-            UserSettings().get_integer_setting("Custom", "also_valid"), -1
-        )
-        with self.assertRaisesRegexp(
-            TankError,
-            "Invalid value 'L' in '.*' for setting 'invalid' in section 'Custom': expecting integer."
-        ):
-            UserSettings().get_integer_setting("Custom", "invalid")
-
-    def test_environment_variable_expansions(self):
+    @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({
+        # Config parser represent empty settings as empty strings
+        "default_site": "https://${SGTK_TEST_SHOTGUN_SITE}.shotgunstudio.com"
+    }))
+    def test_environment_variable_expansions(self, mock):
         """
         Tests that setting an environment variable will be resolved.
         """
-        self._mock_ini_file({
-            # Config parser represent empty settings as empty strings
-            "default_site": "https://${SGTK_TEST_SHOTGUN_SITE}.shotgunstudio.com"
-        })
         with patch.dict(os.environ, {"SGTK_TEST_SHOTGUN_SITE": "shotgun_site"}):
             settings = UserSettings()
             self.assertEqual(settings.default_site, "https://shotgun_site.shotgunstudio.com")

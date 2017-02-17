@@ -214,9 +214,7 @@ class _BootstrapToolkitWorker(QtCore.QObject):
 
             # Bootstrap a toolkit instance for the given engine and entity,
             # using a local thread-safe progress reporting callback.
-            self._sgtk = self._toolkit_manager._bootstrap_sgtk(
-                self._engine_name, self._entity, self._report_progress
-            )
+            self._sgtk = self._toolkit_manager._bootstrap_sgtk(self._engine_name, self._entity, self._report_progress)
 
             # Signal completion of the toolkit bootstrap.
             self.completed.emit()

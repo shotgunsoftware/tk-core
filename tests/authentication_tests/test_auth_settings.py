@@ -13,10 +13,9 @@ Tests settings retrieval through the DefaultsManager
 """
 
 from __future__ import with_statement
-from mock import patch, Mock, PropertyMock
+from mock import patch, Mock
 
-from tank_test.tank_test_base import TankTestBase
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import *
 
 from tank.util import CoreDefaultsManager
 from tank.authentication import DefaultsManager
@@ -55,9 +54,9 @@ class DefaultsManagerTest(TankTestBase):
         "tank.authentication.session_cache.get_current_user",
         return_value=_SESSION_CACHE_USER
     )
-    def test_no_settings(self, *unused_mocks):
+    def test_no_global_settings(self, *unused_mocks):
         """
-        Test the behaviour of the defaults manager when there are no settings.
+        Test the behaviour of the defaults manager when there are no global settings.
         """
         instance = UserSettings._instance = Mock()
         instance.shotgun_proxy = None
@@ -69,25 +68,6 @@ class DefaultsManagerTest(TankTestBase):
         self.assertEqual(dm.get_host(), self._SESSION_CACHE_HOST)
         self.assertEqual(dm.get_login(), self._SESSION_CACHE_USER)
         self.assertIs(dm.get_http_proxy(), None)
-
-    def test_with_system_settings(self, *unused_mocks):
-        """
-        Test the behaviour of the defaults manager when there are no settings.
-        """
-        # Mock user settings singleton.
-        instance = UserSettings._instance = Mock()
-        instance.shotgun_proxy = None
-        instance.default_site = self._CONFIG_HOST
-        instance.default_login = self._CONFIG_USER
-        instance.app_store_proxy = None
-
-        with patch(
-            "tank.util.system_settings.SystemSettings.http_proxy",
-            new_callable=PropertyMock,
-            return_value="192.168.10.1"
-        ):
-            dm = DefaultsManager()
-            self.assertIs(dm.get_http_proxy(), "192.168.10.1")
 
     @patch(
         "tank.authentication.session_cache.get_current_host",

@@ -160,15 +160,6 @@ class ShotgunPath(object):
         self._linux_path = self._sanitize_path(linux_path, "/")
         self._macosx_path = self._sanitize_path(macosx_path, "/")
 
-    def __nonzero__(self):
-        """
-        Checks if one or more of the OSes have a path specified.
-
-        :returns: True if one or more of the OSes has a path specified. False if all are None.
-        """
-        # If we're different than an empty path, we're not zero!
-        return True if self.windows or self.linux or self.macosx else False
-
     def __repr__(self):
         return "<Path win:'%s', linux:'%s', macosx:'%s'>" % (
             self._windows_path,

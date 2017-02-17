@@ -741,12 +741,11 @@ class IODescriptorAppStore(IODescriptorBase):
             return config_data[constants.APP_STORE_HTTP_PROXY]
 
         settings = UserSettings()
-        if settings.app_store_proxy is not None:
+        if settings.is_app_store_proxy_set():
             return settings.app_store_proxy
 
         # Use the http proxy from the connection so we don't have to run
-        # the connection hook again or look up the system settings as they
-        # will have been previously looked up to create the connection to Shotgun.
+        # the connection hook again.
         return self._sg_connection.config.raw_http_proxy
 
     @LogManager.log_timing

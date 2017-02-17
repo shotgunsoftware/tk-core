@@ -17,7 +17,7 @@ import ConfigParser
 import urllib
 
 from .local_file_storage import LocalFileStorageManager
-from .errors import EnvironmentVariableFileLookupError, TankError
+from .errors import EnvironmentVariableFileLookupError
 from .. import LogManager
 from .singleton import Singleton
 
@@ -27,13 +27,7 @@ logger = LogManager.get_logger(__name__)
 
 class UserSettings(Singleton):
     """
-    Handles finding and loading the user settings for Toolkit. The settings are cached in memory
-    so the user settings object can be instantiated multiple times without any issue.
-
-    All the settings are returned as strings. If a setting is missing from the file, ``None`` will
-    be returned. If the setting is present but has no value, an empty string will be returned.
-
-    As of this writing, settings can only be updated by editing the ``ini`` file manually.
+    Handles finding and loading the user settings for Toolkit.
     """
 
     _LOGIN = "Login"
@@ -42,137 +36,101 @@ class UserSettings(Singleton):
         """
         Singleton initialization.
         """
-        self._path = self._compute_config_location()
-        logger.debug("Reading user settings from %s", self._path)
+        path = self._compute_config_location()
+        logger.debug("Reading user settings from %s" % path)
 
-        self._user_config = self._load_config(self._path)
+        self._user_config = self._load_config(path)
 
         # Log the default settings
-        logger.debug("Default site: %s", self._to_display_value(self.default_site))
-        logger.debug("Default login: %s", self._to_display_value(self.default_login))
+        logger.debug("Default site: %s" % (self.default_site or "<missing>",))
+        logger.debug("Default login: %s" % (self.default_login or "<missing>",))
 
-        proxy = self._get_filtered_proxy(self.shotgun_proxy)
-        logger.debug("Shotgun proxy: %s", self._to_display_value(proxy))
+        self._settings_proxy = self._get_settings_proxy()
+        self._system_proxy = None
+        if self._settings_proxy:
+            logger.debug("Shotgun proxy (from settings): %s" % self._get_filtered_proxy(self._settings_proxy))
+        else:
+            self._system_proxy = self._get_system_proxy()
+            if self._system_proxy:
+                logger.debug("Shotgun proxy (from system): %s" % self._get_filtered_proxy(self._system_proxy))
+            else:
+                logger.debug("Shotgun proxy: <missing>")
 
         proxy = self._get_filtered_proxy(self.app_store_proxy)
-        logger.debug("App Store proxy: %s", self._to_display_value(proxy))
+        if self.is_app_store_proxy_set():
+            logger.debug("App Store proxy: %s" % (proxy or "<empty>",))
+        else:
+            logger.debug("App Store proxy: <missing>")
 
     @property
     def shotgun_proxy(self):
         """
-        Retrieves the value from the ``http_proxy`` setting.
+        :returns: The default proxy.
         """
 
         # Return the configuration settings http proxy string when it is specified;
         # otherwise, return the operating system http proxy string.
-        return self.get_setting(self._LOGIN, "http_proxy")
+        return self._settings_proxy or self._system_proxy
+
+    def is_app_store_proxy_set(self):
+        """
+        :returns: ``True`` if ``app_store_http_proxy`` is set, ``False`` otherwise.
+        """
+        return self._is_setting_found("app_store_http_proxy")
 
     @property
     def app_store_proxy(self):
         """
-        Retrieves the value from the ``app_store_http_proxy`` setting.
+        :returns: The app store specific proxy. If ``None``, it means the setting is absent from the
+            file or set to an empty value. Use `is_app_store_proxy_set` to disambiguate.
         """
-        return self.get_setting(self._LOGIN, "app_store_http_proxy")
+        # If the config parser returned a falsy value, it meant that the app_store_http_proxy
+        # setting was present but empty. We'll advertise that fact as None instead.
+        return self._get_value("app_store_http_proxy") or None
 
     @property
     def default_site(self):
         """
-        Retrieves the value from the ``default_site`` setting.
+        :returns: The default site.
         """
-        return self.get_setting(self._LOGIN, "default_site")
+        return self._get_value("default_site")
 
     @property
     def default_login(self):
         """
-        Retrieves the value from the ``default_login`` setting.
+        :returns: The default login.
         """
-        return self.get_setting(self._LOGIN, "default_login")
+        return self._get_value("default_login")
 
-    def get_setting(self, section, name):
+    def _get_value(self, key):
         """
-        Provides access to any setting, including ones in user defined sections.
+        Retrieves a value from the ``config.ini`` file. If the value is not set, returns the default.
+        Since all values are strings inside the file, you can optionally cast the data to another type.
 
-        :param str section: Name of the section to retrieve the setting from. Do not include the brackets.
-        :param str name: Name of the setting under the provided section.
+        :param key: Name of the setting within the Login section.
 
-        :returns: The setting's value if found, ``None`` if the setting is missing from the file or
-            an empty string if the setting is present but has no value associated.
-        :rtype: str
+        :returns: The appropriately type casted value if the value is found, default otherwise.
         """
-        if not self._user_config.has_section(section) or not self._user_config.has_option(section, name):
+        if not self._is_setting_found(key):
             return None
-
-        value = os.path.expanduser(
-            os.path.expandvars(
-                self._user_config.get(section, name)
-            )
-        )
-        return value.strip()
-
-    # Unfortunately here for get_boolean_setting and get_integer_setting we're replicating some of the
-    # logic from the ConfigParser class. We have to do this because ConfigParser doesn't expand environment
-    # variables which is a requirement here, so get_setting does the job of using expandvars so everything
-    # gets expanded and then the get_*_setting methods so the necessary casting.
-
-    # This is taken from RawConfigParser. Values are copied in case future Python implementation
-    # rename this. (like Python 3, not that this is going to be an issue in the foreseable future. :p)
-    _boolean_states = {'1': True, 'yes': True, 'true': True, 'on': True,
-                       '0': False, 'no': False, 'false': False, 'off': False}
-
-    def get_boolean_setting(self, section, name):
-        """
-        Provides access to any setting, including ones in user defined sections, and casts it
-        into a boolean.
-
-        Values ``1``, ``yes``, ``true`` and ``on`` are converted to ``True`` while ``0``, ``no``,
-        ``false``and ``off`` are converted to false. Case is insensitive.
-
-        :param str section: Name of the section to retrieve the setting from. Do not include the brackets.
-        :param str name: Name of the setting under the provided section.
-
-        :returns: Boolean if the value is valid, None if not set.
-        :rtype: bool
-
-        :raises TankError: Raised if the value is not one of the accepted values.
-        """
-        value = self.get_setting(section, name)
-        if value is None:
-            return None
-
-        if value.lower() in self._boolean_states:
-            return self._boolean_states[value.lower()]
         else:
-            raise TankError(
-                "Invalid value '%s' in '%s' for setting '%s' in section '%s': expecting one of '%s'." % (
-                    value, self._path, name, section, "', '".join(self._boolean_states.keys())
-                )
-            )
+            # Read the value, remove any extra whitespace.
+            value = os.path.expandvars(self._user_config.get(self._LOGIN, key))
+            return value.strip()
 
-    def get_integer_setting(self, section, name):
+    def _is_setting_found(self, key):
         """
-        Provides access to any setting, including ones in user defined sections, and casts it
-        into an integer.
+        Checks if the setting is in the file.
 
-        :param str section: Name of the section to retrieve the setting from. Do not include the brackets.
-        :param str name: Name of the setting under the provided section.
+        :param key: Name of the setting within the Login section.
 
-        :returns: Boolean if the value is valid, None if not set.
-        :rtype: bool
-
-        :raises TankError: Raised if the value is not one of the accepted values.
+        :returns: True if found, False otherwise.
         """
-        value = self.get_setting(section, name)
-        if value is None:
-            return None
-
-        try:
-            return int(value)
-        except ValueError:
-            raise TankError(
-                "Invalid value '%s' in '%s' for setting '%s' in section '%s': expecting integer." % (
-                    value, self._path, name, section
-                )
-            )
+        if not self._user_config.has_section(self._LOGIN):
+            return False
+        elif not self._user_config.has_option(self._LOGIN, key):
+            return False
+        return True
 
     def _evaluate_env_var(self, var_name):
         """
@@ -202,7 +160,7 @@ class UserSettings(Singleton):
         """
         Retrieves the location of the ``config.ini`` file. It will look in multiple locations:
 
-            - The ``SGTK_PREFERENCES_LOCATION`` environment variable.
+            - The ``SGTK_CONFIG_LOCATION`` environment variable.
             - The ``SGTK_DESKTOP_CONFIG_LOCATION`` environment variable.
             - The Shotgun folder.
             - The Shotgun Desktop folder.
@@ -269,17 +227,50 @@ class UserSettings(Singleton):
         else:
             return proxy
 
-    def _to_display_value(self, value):
+    def _get_settings_proxy(self):
         """
-        Converts the value into a meaningful value for the user if the setting is missing or
-        empty.
+        Retrieves the configuration settings http proxy.
 
-        :returns: If None, returns ``<missing>``. If an empty string, returns ``<empty>`. Otherwise
-            returns the value as is.
+        :returns: The configuration settings http proxy string or ``None`` when it is not specified.
         """
-        if value is None:
-            return "<missing>"
-        elif value is "":
-            return "<empty>"
-        else:
-            return value
+
+        return self._get_value("http_proxy")
+
+    def _get_system_proxy(self):
+        """
+        Retrieves the operating system http proxy.
+
+        First, the method scans the environment for variables named http_proxy, in case insensitive way.
+        If both lowercase and uppercase environment variables exist (and disagree), lowercase is preferred.
+
+        When the method cannot find such environment variables:
+        - for Mac OS X, it will look for proxy information from Mac OS X System Configuration,
+        - for Windows, it will look for proxy information from Windows Systems Registry.
+
+        .. note:: There is a restriction when looking for proxy information from
+                  Mac OS X System Configuration or Windows Systems Registry:
+                  in these cases, the Toolkit does not support the use of proxies
+                  which require authentication (username and password).
+
+        :returns: The operating system http proxy string or ``None`` when it is not defined.
+        """
+
+        # Get the dictionary of scheme to proxy server URL mappings; for example:
+        #     {"http": "http://foo:bar@74.50.63.111:80", "https": "http://74.50.63.111:443"}
+        # "getproxies" scans the environment for variables named <scheme>_proxy, in case insensitive way.
+        # When it cannot find it, for Mac OS X it looks for proxy information from Mac OSX System Configuration,
+        # and for Windows it looks for proxy information from Windows Systems Registry.
+        # If both lowercase and uppercase environment variables exist (and disagree), lowercase is preferred.
+        # Note the following restriction: "getproxies" does not support the use of proxies which
+        # require authentication (user and password) when looking for proxy information from
+        # Mac OSX System Configuration or Windows Systems Registry.
+        system_proxies = urllib.getproxies()
+
+        # Get the http proxy when it exists in the dictionary.
+        proxy = system_proxies.get("http")
+
+        if proxy:
+            # Remove any spurious "http://" from the http proxy string.
+            proxy = proxy.replace("http://", "", 1)
+
+        return proxy

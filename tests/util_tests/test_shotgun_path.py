@@ -8,13 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import os
 import sys
+import copy
 
-from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import *
 
 from tank.util import ShotgunPath
-
 
 class TestShotgunPath(TankTestBase):
     """
@@ -91,6 +91,7 @@ class TestShotgunPath(TankTestBase):
         self.assertEqual(std_constructor.macosx, "/tmp2")
         self.assertEqual(std_constructor.linux, "/tmp")
 
+
     def test_sanitize(self):
         """
         Tests site cache root
@@ -112,25 +113,28 @@ class TestShotgunPath(TankTestBase):
 
         # test raw sanitize logic
         sp = std_constructor._sanitize_path
-        self.assertEqual(sp("/foo/bar/baz", "/"), "/foo/bar/baz")
-        self.assertEqual(sp("/foo/bar/baz/", "/"), "/foo/bar/baz")
-        self.assertEqual(sp("//foo//bar//baz", "/"), "/foo/bar/baz")
-        self.assertEqual(sp("/foo/bar//baz", "/"), "/foo/bar/baz")
-        self.assertEqual(sp("/foo\\bar//baz/////", "/"), "/foo/bar/baz")
+        self.assertEqual( sp("/foo/bar/baz", "/"), "/foo/bar/baz")
+        self.assertEqual( sp("/foo/bar/baz/", "/"), "/foo/bar/baz")
+        self.assertEqual( sp("//foo//bar//baz", "/"), "/foo/bar/baz")
+        self.assertEqual( sp("/foo/bar//baz", "/"), "/foo/bar/baz")
+        self.assertEqual( sp("/foo\\bar//baz/////", "/"), "/foo/bar/baz")
 
-        self.assertEqual(sp("/foo/bar/baz", "\\"), "\\foo\\bar\\baz")
-        self.assertEqual(sp("c:/foo/bar/baz", "\\"), "c:\\foo\\bar\\baz")
-        self.assertEqual(sp("c:/foo///bar\\\\baz//", "\\"), "c:\\foo\\bar\\baz")
-        self.assertEqual(sp("/foo///bar\\\\baz//", "\\"), "\\foo\\bar\\baz")
 
-        self.assertEqual(sp("\\\\server\\share\\foo\\bar", "\\"), "\\\\server\\share\\foo\\bar")
-        self.assertEqual(sp("\\\\server\\share\\foo\\bar\\", "\\"), "\\\\server\\share\\foo\\bar")
-        self.assertEqual(sp("//server/share/foo//bar", "\\"), "\\\\server\\share\\foo\\bar")
+        self.assertEqual( sp("/foo/bar/baz", "\\"), "\\foo\\bar\\baz")
+        self.assertEqual( sp("c:/foo/bar/baz", "\\"), "c:\\foo\\bar\\baz")
+        self.assertEqual( sp("c:/foo///bar\\\\baz//", "\\"), "c:\\foo\\bar\\baz")
+        self.assertEqual( sp("/foo///bar\\\\baz//", "\\"), "\\foo\\bar\\baz")
 
-        self.assertEqual(sp("z:/", "\\"), "z:\\")
-        self.assertEqual(sp("z:\\", "\\"), "z:\\")
+        self.assertEqual( sp("\\\\server\\share\\foo\\bar", "\\"), "\\\\server\\share\\foo\\bar")
+        self.assertEqual( sp("\\\\server\\share\\foo\\bar\\", "\\"), "\\\\server\\share\\foo\\bar")
+        self.assertEqual( sp("//server/share/foo//bar", "\\"), "\\\\server\\share\\foo\\bar")
 
-        self.assertEqual(sp(None, "/"), None)
+        self.assertEqual( sp("z:/", "\\"), "z:\\")
+        self.assertEqual( sp("z:\\", "\\"), "z:\\")
+
+        self.assertEqual( sp(None, "/"), None)
+
+
 
     def test_equality(self):
         """
@@ -191,13 +195,3 @@ class TestShotgunPath(TankTestBase):
             self.assertEqual(gssk(), "mac_path")
         if sys.platform == "linux2":
             self.assertEqual(gssk(), "linux_path")
-
-    def test_truthiness(self):
-        """
-        Tests that a ShotgunPath that has no path set evaluates to False.
-        """
-
-        self.assertFalse(bool(ShotgunPath()))
-        self.assertTrue(bool(ShotgunPath(windows_path="abc")))
-        self.assertTrue(bool(ShotgunPath(linux_path="abc")))
-        self.assertTrue(bool(ShotgunPath(macosx_path="abc")))

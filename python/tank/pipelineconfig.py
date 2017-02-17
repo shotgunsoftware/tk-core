@@ -283,12 +283,6 @@ class PipelineConfiguration(object):
         """
         return self._pc_root
 
-    def get_bundle_cache_fallback_paths(self):
-        """
-        Returns the list of bundle cache fallback location for this pipeline configuration.
-        """
-        return self._bundle_cache_fallback_paths
-
     def get_all_os_paths(self):
         """
         Returns the path to this config for all operating systems,

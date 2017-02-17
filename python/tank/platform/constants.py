@@ -54,9 +54,6 @@ USE_LEGACY_YAML_ENV_VAR = "TK_USE_LEGACY_YAML"
 # the file to look for that defines and bootstraps an engine
 ENGINE_FILE = "engine.py"
 
-# the file to look for that defines how to launch a DCC for a given engine
-ENGINE_SOFTWARE_LAUNCHER_FILE = "startup.py"
-
 # inside the engine location, the folder in which to look for apps
 ENGINE_APPS_LOCATION = "apps"
 
@@ -149,4 +146,3 @@ MULTI_INCLUDE_SECTION = "includes"
 
 # hook that is executed whenever a cache location should be determined
 CACHE_LOCATION_HOOK_NAME = "cache_location"
-

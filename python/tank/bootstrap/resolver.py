@@ -13,7 +13,6 @@ Resolver module. This module provides a way to resolve a pipeline configuration
 on disk.
 """
 
-import sys
 import os
 import fnmatch
 import pprint
@@ -22,7 +21,6 @@ from ..descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
 from .errors import TankBootstrapError
 from .baked_configuration import BakedConfiguration
 from .cached_configuration import CachedConfiguration
-from .installed_configuration import InstalledConfiguration
 from ..util import filesystem
 from ..util import ShotgunPath
 from ..util import LocalFileStorageManager
@@ -38,40 +36,31 @@ class ConfigurationResolver(object):
     object given a set of parameters.
     """
 
-    _PIPELINE_CONFIG_FIELDS = [
-        "code",
-        "project",
-        "users",
-        "plugin_ids",
-        "sg_plugin_ids",
-        "windows_path",
-        "linux_path",
-        "mac_path",
-        "sg_descriptor",
-        "descriptor"
-    ]
-
     def __init__(
-        self,
-        plugin_id,
-        project_id=None,
-        bundle_cache_fallback_paths=None
+            self,
+            plugin_id,
+            engine_name,
+            project_id=None,
+            bundle_cache_fallback_paths=None
     ):
         """
         Constructor
 
         :param plugin_id: The plugin id of the system that is being bootstrapped.
+        :param engine_name: Name of the engine that is about to be launched.
         :param project_id: Project id to create a config object for, None for the site config.
         :param bundle_cache_fallback_paths: Optional list of additional paths where apps are cached.
         """
         self._project_id = project_id
         self._proj_entity_dict = {"type": "Project", "id": self._project_id} if self._project_id else None
         self._plugin_id = plugin_id
+        self._engine_name = engine_name
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths or []
 
     def __repr__(self):
-        return "<Resolver: proj id %s, plugin id %s>" % (
+        return "<Resolver: proj id %s, engine %s, plugin id %s>" % (
             self._project_id,
+            self._engine_name,
             self._plugin_id,
         )
 
@@ -95,22 +84,7 @@ class ConfigurationResolver(object):
             # convert to dict so we can introspect
             config_descriptor = descriptor_uri_to_dict(config_descriptor)
 
-        if config_descriptor["type"] == constants.INSTALLED_DESCRIPTOR_TYPE:
-
-            config_path = os.path.expanduser(os.path.expandvars(config_descriptor["path"]))
-            if not os.path.exists(config_path):
-                raise TankBootstrapError(
-                    "Installed pipeline configuration '%s' does not exist on disk!" % (config_path,)
-                )
-
-            # Convert into a ShotgunPath.
-            config_path = ShotgunPath.from_current_os_path(config_path)
-
-            # The configuration path here points to the actual pipeline configuration that contains
-            # config, cache and install folders.
-            return InstalledConfiguration(config_path)
-
-        elif config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
+        if config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
 
             # special case -- this is a full configuration scaffold that
             # has been pre-baked and can be used directly at runtime
@@ -206,80 +180,9 @@ class ConfigurationResolver(object):
                 self._bundle_cache_fallback_paths
             )
 
-    def find_matching_pipeline_configurations(self, pipeline_config_name, current_login, sg_connection):
-        """
-        Finds all the pipelines matching the query parameters.
-
-        :param str pipeline_config_name: Name of the pipeline configuration requested for. If ``None``,
-            all pipeline configurations from the project will be matched.
-        :param str current_login: Only retains non-primary configs from the specified user.
-        :param ``shotgun_api3.Shotgun`` sg_connection: Connection to the Shotgun site.
-
-        :returns iterator: Returns an iterator over the pipeline configurations matching the
-            search criteria.
-        """
-        # get the pipeline configs for the current project which are
-        # either the primary or is associated with the currently logged in user.
-        # also get the pipeline configs for the site level (project=None)
-        log.debug("Requesting pipeline configurations from Shotgun...")
-
-        # If nothing was specified, we need to pick pipelines owned by the user and the primary.
-        if pipeline_config_name is None:
-            ownership_filters = [
-                ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
-                ["users.HumanUser.login", "contains", current_login]
-            ]
-        elif pipeline_config_name == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-            # Only retrieve primary.
-            # This makes sense if you don't want sandboxes and specifically want the Primary.
-            ownership_filters = [
-                ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME]
-            ]
-        else:
-            # If something other than primary was asked for, only get the ones the user owns.
-            ownership_filters = [
-                ["code", "is", pipeline_config_name],
-                ["users.HumanUser.login", "contains", current_login]
-            ]
-
-        filters = [{
-            "filter_operator": "all",
-            "filters": [
-                {
-                    "filter_operator": "any",
-                    "filters": [
-                        ["project", "is", self._proj_entity_dict],
-                        ["project", "is", None],
-                    ]
-                },
-                {
-                    "filter_operator": "any",
-                    "filters": ownership_filters
-                }
-            ]
-        }]
-
-        log.debug("Retrieving the pipeline configuration list:")
-        log.debug(pprint.pformat(filters))
-
-        pipeline_configs = sg_connection.find(
-            "PipelineConfiguration",
-            filters,
-            self._PIPELINE_CONFIG_FIELDS, order=[{"field_name": "updated_at", "direction": "asc"}]
-        )
-
-        log.debug(
-            "The following pipeline configurations were found: %s" % pprint.pformat(pipeline_configs)
-        )
-
-        for pc in pipeline_configs:
-            # make sure configuration matches our plugin id
-            if self._match_plugin_id(pc.get("plugin_ids")) or self._match_plugin_id(pc.get("sg_plugin_ids")):
-                yield pc
-
     def resolve_shotgun_configuration(
         self,
-        pipeline_config_identifier,
+        pipeline_config_name,
         fallback_config_descriptor,
         sg_connection,
         current_login
@@ -289,11 +192,11 @@ class ConfigurationResolver(object):
         in Shotgun. If no suitable configuration is found, return a configuration
         for the given fallback config.
 
-        :param pipeline_config_identifier: Name or id of configuration branch (e.g Primary).
-                                           If None, the method will automatically attempt
-                                           to resolve the right configuration based on the
-                                           current user and the users field on the pipeline
-                                           configuration.
+        :param pipeline_config_name: Name of configuration branch (e.g Primary).
+                                     if None, the method will automatically attempt
+                                     to resolve the right configuration based on the
+                                     current user and the users field on the pipeline
+                                     configuration.
         :param fallback_config_descriptor: descriptor dict or string for fallback config.
         :param sg_connection: Shotgun API instance
         :param current_login: The login of the currently logged in user.
@@ -301,13 +204,62 @@ class ConfigurationResolver(object):
         :return: :class:`Configuration` instance
         """
         log.debug(
-            "%s resolving configuration from Shotgun Pipeline Configuration %s" % (self, pipeline_config_identifier)
+            "%s resolving configuration from Shotgun Pipeline Configuration %s" % (self, pipeline_config_name)
         )
+
+        fields = [
+            "code",
+            "project",
+            "users",
+            "plugin_ids",
+            "sg_plugin_ids",
+            "windows_path",
+            "linux_path",
+            "mac_path",
+            "sg_descriptor",
+            "descriptor"
+        ]
 
         pipeline_config = None
 
-        if not isinstance(pipeline_config_identifier, int):
+        if pipeline_config_name is None:
             log.debug("Will auto-detect which pipeline configuration to use.")
+
+            # get the pipeline configs for the current project which are
+            # either the primary or is associated with the currently logged in user.
+            # also get the pipeline configs for the site level (project=None)
+            log.debug("Requesting pipeline configurations from Shotgun...")
+
+            pipeline_configs = sg_connection.find(
+                "PipelineConfiguration",
+                [{
+                    "filter_operator": "all",
+                    "filters": [
+
+                        {
+                            "filter_operator": "any",
+                            "filters": [
+                                ["project", "is", self._proj_entity_dict],
+                                ["project", "is", None],
+                            ]
+                        },
+
+                        {
+                            "filter_operator": "any",
+                            "filters": [
+                                ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
+                                ["users.HumanUser.login", "contains", current_login]
+                            ]
+                        }
+                    ]
+                }],
+                fields,
+                order=[{"field_name": "updated_at", "direction": "asc"}]
+            )
+
+            log.debug(
+                "The following pipeline configurations were found: %s" % pprint.pformat(pipeline_configs)
+            )
 
             # resolve primary and user config
             primary_config = None
@@ -315,53 +267,56 @@ class ConfigurationResolver(object):
             primary_config_fallback = None
             user_config_fallback = None
 
-            for pc in self.find_matching_pipeline_configurations(
-                pipeline_config_identifier, current_login, sg_connection
-            ):
-                # we have a matching pipeline configuration!
+            for pc in pipeline_configs:
 
-                if pc["project"] == self._proj_entity_dict:
+                # make sure configuration matches our plugin id
+                if self._match_plugin_id(pc.get("plugin_ids")) or self._match_plugin_id(pc.get("sg_plugin_ids")):
+                    # we have a matching pipeline configuration!
 
-                    # this pipeline configuration matches our current project exactly!
-                    # alternatively, we may be in site mode, where project id is always None.
-                    # this kind of exact match takes precdence (see logic below)
-                    if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-                        log.debug("Primary match: %s" % pc)
-                        primary_config = pc
+                    if pc["project"] == self._proj_entity_dict:
+
+                        # this pipeline configuration matches our current project exactly!
+                        # alternatively, we may be in site mode, where project id is always None.
+                        # this kind of exact match takes precdence (see logic below)
+                        if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                            log.debug("Primary match: %s" % pc)
+                            primary_config = pc
+                        else:
+                            user_config = pc
+                            log.debug("Per-user match: %s" % pc)
+
                     else:
-                        user_config = pc
-                        log.debug("Per-user match: %s" % pc)
 
-                else:
+                        # alternatively, this is a pipeline configuration record
+                        # which doesn't match directly - typically this is a
+                        # pipeline config record with project id set to None, in this
+                        # case indicating that this configuration can be used for
+                        # *any* project on the site (one config used for all projects).
+                        # this has a lower priority than the exact match above, so if
+                        # a project has specific pipeline configuration specified, this
+                        # always takes precedence.
+                        if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
+                            primary_config_fallback = pc
+                            log.debug("Found primary fallback match: %s" % pc)
+                        else:
+                            user_config_fallback = pc
+                            log.debug("Found per-user fallback match: %s" % pc)
 
-                    # alternatively, this is a pipeline configuration record
-                    # which doesn't match directly - typically this is a
-                    # pipeline config record with project id set to None, in this
-                    # case indicating that this configuration can be used for
-                    # *any* project on the site (one config used for all projects).
-                    # this has a lower priority than the exact match above, so if
-                    # a project has specific pipeline configuration specified, this
-                    # always takes precedence.
-                    if pc["code"] == constants.PRIMARY_PIPELINE_CONFIG_NAME:
-                        primary_config_fallback = pc
-                        log.debug("Found primary fallback match: %s" % pc)
-                    else:
-                        user_config_fallback = pc
-                        log.debug("Found per-user fallback match: %s" % pc)
 
             # Now select in order of priority:
+
             if user_config:
                 # A per-user pipeline config for the current project has top priority
                 pipeline_config = user_config
-
-            elif primary_config:
-                # if there is a primary config for our current project, this takes precedence
-                pipeline_config = primary_config
 
             elif user_config_fallback:
                 # if there is a pipeline config for our current user with project field None
                 # that takes precedence
                 pipeline_config = user_config_fallback
+
+            elif primary_config:
+                # if there is a primary config for our current project, this takes precedence
+                pipeline_config = primary_config
 
             elif primary_config_fallback:
                 # Lowest priority - A Primary pipeline configuration with project field None
@@ -370,26 +325,39 @@ class ConfigurationResolver(object):
             else:
                 # we may not have any pipeline configuration matches at all:
                 pipeline_config = None
+
+
         else:
-            log.debug("Will use pipeline configuration id '%s'" % pipeline_config_identifier)
+            # there is a fixed pipeline configuration name specified.
+            log.debug("Will use pipeline configuration '%s'" % pipeline_config_name)
 
             log.debug("Requesting pipeline configuration data from Shotgun...")
 
-            # Fetch the one and only config that matches this id.
-            pipeline_config = sg_connection.find_one(
+            pipeline_configs = sg_connection.find(
                 "PipelineConfiguration",
                 [
-                    ["id", "is", pipeline_config_identifier],
+                    ["project", "is", self._proj_entity_dict],
+                    ["code", "is", pipeline_config_name],
                 ],
-                self._PIPELINE_CONFIG_FIELDS
+                fields,
+                order=[{"field_name": "updated_at", "direction": "asc"}]
             )
 
-            # If it doesn't exist, we're in trouble.
-            if pipeline_config is None:
-                raise TankBootstrapError(
-                    "Pipeline configuration with id '%d' doesn't exist for project id '%d' in Shotgun." %
-                    (pipeline_config_identifier, self._proj_entity_dict["id"])
-                )
+            log.debug(
+                "The following pipeline configurations were found: %s" % pprint.pformat(pipeline_configs)
+            )
+
+            for pc in pipeline_configs:
+
+                if self._match_plugin_id(pc.get("plugin_ids")) or self._match_plugin_id(pc.get("sg_plugin_ids")):
+                    # we have a matching pipeline configuration!
+
+                    if pipeline_config:
+                        log.warning(
+                            "More than one pipeline config detected. Will use the most "
+                            "recently updated one."
+                        )
+                    pipeline_config = pc
 
         # now resolve the descriptor to use based on the pipeline config record
 
@@ -413,28 +381,10 @@ class ConfigurationResolver(object):
 
             path = ShotgunPath.from_shotgun_dict(pipeline_config)
 
-            if path and not path.current_os:
-                log.debug(
-                    "No path set for %s on the Pipeline Configuration \"%s\" (id %d).",
-                    sys.platform,
-                    pipeline_config["code"],
-                    pipeline_config["id"]
-                )
-                raise TankBootstrapError("The Toolkit configuration path has not\n"
-                                         "been set for your operating system.")
-            elif path:
-                # Emit a warning when both the OS field and descriptor field is set.
-                if pipeline_config.get("descriptor") or pipeline_config.get("sg_descriptor"):
-                    log.warning("Fields for path based and descriptor based pipeline configuration are both set. "
-                                "Using path based field.")
-
+            if path.current_os:
                 log.debug("Descriptor will be based off the path in the pipeline configuration")
-                descriptor = {"type": constants.INSTALLED_DESCRIPTOR_TYPE, "path": path.current_os}
+                descriptor = {"type": "path", "path": path.current_os}
             elif pipeline_config.get("descriptor"):
-                # Emit a warning when the sg_descriptor is set as well.
-                if pipeline_config.get("sg_descriptor"):
-                    log.warning("Both sg_descriptor and descriptor fields are set. Using descriptor field.")
-
                 log.debug("Descriptor will be based off the descriptor field in the pipeline configuration")
                 descriptor = pipeline_config.get("descriptor")
             elif pipeline_config.get("sg_descriptor"):
@@ -472,3 +422,4 @@ class ConfigurationResolver(object):
                 return True
 
         return False
+

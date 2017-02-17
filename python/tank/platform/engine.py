@@ -749,7 +749,7 @@ class Engine(TankBundle):
         # context change, it's that the target context isn't configured properly.
         # As such, we'll let any exceptions (mostly TankEngineInitError) bubble
         # up since it's a critical error case.
-        (new_env, engine_descriptor) = get_env_and_descriptor_for_engine(
+        (new_env, engine_descriptor) = _get_env_and_descriptor_for_engine(
             engine_name=self.instance_name,
             tk=self.tank,
             context=new_context,
@@ -905,12 +905,6 @@ class Engine(TankBundle):
               the command there. (supported by for example Nuke)
             - ``node`` - For applications that have a specific node menu (like Nuke),
               place the command there.
-
-        - ``group`` - The name for a group this command should be considered a member of.
-
-        - ``group_default`` - Boolean value indicating whether this command should represent the group
-          as a whole. Setting this value to True indicates that this is the command to run and display
-          in applications that show a single button for each command group.
 
         Specifically for the Shotgun engine, the following parameters are supported:
 
@@ -2490,7 +2484,7 @@ def get_engine_path(engine_name, tk, context):
     """
     # get environment and engine location
     try:
-        (env, engine_descriptor) = get_env_and_descriptor_for_engine(engine_name, tk, context)
+        (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, context)
     except TankEngineInitError:
         return None
 
@@ -2652,7 +2646,7 @@ def _start_engine(engine_name, tk, old_context, new_context):
             LogManager().initialize_base_file_handler(engine_name)
 
         # get environment and engine location
-        (env, engine_descriptor) = get_env_and_descriptor_for_engine(engine_name, tk, new_context)
+        (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, new_context)
 
         # make sure it exists locally
         if not engine_descriptor.exists_local():
@@ -2843,7 +2837,7 @@ def clear_global_busy():
 ##########################################################################################
 # utilities
 
-def get_env_and_descriptor_for_engine(engine_name, tk, context):
+def _get_env_and_descriptor_for_engine(engine_name, tk, context):
     """
     Utility method to return commonly needed objects when instantiating engines.
 

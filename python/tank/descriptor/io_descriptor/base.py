@@ -631,7 +631,7 @@ class IODescriptorBase(object):
         # check that we aren't trying to copy onto ourself
         if new_cache_path == self.get_path():
             log.debug("Clone cache for %r: No need to copy, source and target are same." % self)
-            return False
+            return
 
         # and to the actual I/O
         # pass an empty skip list to ensure we copy things like the .git folder

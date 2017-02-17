@@ -23,7 +23,7 @@ class LocalFileStorageManager(object):
     Class that encapsulates logic for resolving local storage paths.
 
     Toolkit needs to store cache data, logs and other items at runtime.
-    Some of this data is global, other is per site or per configuration.
+    Some of this data is global, other is per site or per configuraiton.
 
     This class provides a consistent and centralized interface for resolving
     such paths and also handles compatibility across generations of path
@@ -31,17 +31,6 @@ class LocalFileStorageManager(object):
 
     .. note:: All paths returned by this class are local to the currently running
               user and typically private or with limited access settings for other users.
-
-              If the current user's home directory is not an appropriate location to store
-              your user files, you can use the ``SHOTGUN_HOME`` environment variable to
-              override the root location of the files. In that case, the location for the
-              user files on each platform will be:
-
-              - Logging:     ``$SHOTGUN_HOME/logs``
-              - Cache:       ``$SHOTGUN_HOME``
-              - Persistent:  ``$SHOTGUN_HOME/data``
-              - Preferences: ``$SHOTGUN_HOME/preferences``
-
 
     :constant CORE_V17: Indicates compatibility with Core 0.17 or earlier
     :constant CORE_V18: Indicates compatibility with Core 0.18 or later

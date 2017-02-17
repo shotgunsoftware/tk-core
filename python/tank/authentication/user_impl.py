@@ -196,16 +196,6 @@ class SessionUser(ShotgunUserImpl):
 
         self._try_save()
 
-    def refresh_credentials(self):
-        """
-        Refreshes the credentials of this user so that they don't expire.
-        If they are expired, you will be prompted for the user's password.
-        """
-        # Make a very simple authenticated request that returns as little information as possible.
-        # If the session token was expired, the ShotgunWrapper returned by create_sg_connection
-        # will take care of the session renewal.
-        self.create_sg_connection().find_one("HumanUser", [])
-
     def get_login(self):
         """
         Returns the login name for this user.
@@ -362,11 +352,6 @@ class ScriptUser(ShotgunUserImpl):
             http_proxy=self._http_proxy,
             connect=False
         )
-
-    def refresh_credentials(self):
-        """
-        This method does nothing, as script user's credentials don't expire.
-        """
 
     def are_credentials_expired(self):
         """

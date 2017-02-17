@@ -117,8 +117,7 @@ class Sgtk(object):
                                                                              **kwargs)
 
     def log_metric(self, action, log_once=False):
-        """
-        Log a core metric.
+        """Log a core metric.
 
         :param action: Action string to log, e.g. 'Init'
         :param bool log_once: ``True`` if this metric should be ignored if it
@@ -138,13 +137,6 @@ class Sgtk(object):
 
     ################################################################################################
     # properties
-
-    @property
-    def bundle_cache_fallback_paths(self):
-        """
-        List of paths to the fallback bundle caches for the pipeline configuration.
-        """
-        return self.__pipeline_config.get_bundle_cache_fallback_paths()
 
     @property
     def project_path(self):
