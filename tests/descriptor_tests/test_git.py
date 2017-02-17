@@ -117,22 +117,6 @@ class TestGitIODescriptor(TankTestBase):
         latest_desc.copy(copy_target)
         self.assertTrue(os.path.exists(os.path.join(copy_target, ".git")))
 
-    @skip_if_git_missing
-    def test_tag_sorting(self):
-        # Ensures that tag sorting works when both annotated and lightweight
-        # tags are present.
-        location_dict = dict(
-            type="git",
-            path=self.git_tag_repo_uri,
-            version="v1.0.1",
-        )
-
-        desc = self._create_desc(location_dict)
-        self.assertEqual(
-            desc._io_descriptor.get_latest_version().get_dict(),
-            desc._io_descriptor.get_dict(),
-        )
-
 
     @skip_if_git_missing
     def test_branch_shorthash(self):
