@@ -37,7 +37,7 @@ class RenameGuard(object):
     def __init__(self, undo_on_error):
         """
         :param bool undo_on_error: If true, the renames will be undone when an exception
-            is raised.
+            is raised. If false, the files won't be renamed when an exception is raised.
         """
         self._undo_on_error = undo_on_error
         self._renames = []
@@ -179,6 +179,11 @@ class ConfigurationWriter(object):
 
         """
 
+        # The rename guard's role is to keep track of every rename operation that has happened
+        # in a given scope and undo all the renames if something went wrong. This feels a lot simpler
+        # than having a try/except block as we'd have to have different try/except blocks for different
+        # code sections. Its also a great way to avoid having to deal with variables that haven't been
+        # defined yet when dealing with the exceptions.
         with RenameGuard(undo_on_error) as guard:
             config_backup_path = None
             core_backup_path = None
