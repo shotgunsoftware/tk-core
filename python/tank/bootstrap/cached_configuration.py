@@ -175,7 +175,7 @@ class CachedConfiguration(Configuration):
             # Move to backup needs to undo changes when failing because we need to put the configuration
             # in a usable state.
             (config_backup_path, core_backup_path) = self._config_writer.move_to_backup(undo_on_error=True)
-        except:
+        except Exception, e:
             log.exception(
                 "Unexpected error while making a backup of the configuration. Toolkit will use the "
                 "original configuration."
@@ -210,6 +210,9 @@ class CachedConfiguration(Configuration):
             log.exception("Failed to update configuration. Attempting Rollback. Error Traceback:")
             # step 1 - clear core and config locations
             log.debug("Cleaning out faulty config location...")
+            # we're purposefully moving the bad pipeline configuration out of the way so we can restore
+            # the original one, so move the failed one to backup so it can hopefully be debugged in the future
+            # and restore the original one.
             self._config_writer.move_to_backup(undo_on_error=False)
             # step 2 - recover previous core and backup
             if config_backup_path is None or core_backup_path is None:
