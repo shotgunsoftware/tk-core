@@ -18,7 +18,7 @@ import glob
 from . import folder
 from . import context
 from .util import shotgun, yaml_cache
-from .errors import TankError
+from .errors import TankError, TankMultipleMatchingTemplatesError
 from .path_cache import PathCache
 from .template import read_templates
 from . import constants
@@ -350,7 +350,7 @@ class Sgtk(object):
             msg += "The overlapping templates are:\n"
             for fields, template in zip(matched_fields, matched_templates):
                 msg += "%s\n%s\n" % (template, fields)
-            raise TankError(msg)
+            raise TankMultipleMatchingTemplatesError(msg)
 
     def paths_from_template(self, template, fields, skip_keys=None, skip_missing_optional_keys=False):
         """
