@@ -359,7 +359,13 @@ class ConfigurationResolver(object):
 
         # Step 3: Ensure project primary override the site primary.
         if project_primary and site_primary:
-            log.debug("Project level primary overrides site level primary.")
+            log.info(
+                "'Primary' pipeline configuration '%d' for project '%d' overrides "
+                "'Primary' pipeline configuration '%d' for site.",
+                project_primary["id"],
+                self._project_id,
+                site_primary["id"]
+            )
         primary = project_primary or site_primary
 
         return primary, user_project_configs, user_site_configs
