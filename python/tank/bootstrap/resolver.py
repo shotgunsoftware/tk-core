@@ -206,7 +206,7 @@ class ConfigurationResolver(object):
                 self._bundle_cache_fallback_paths
             )
 
-    def _get_all_pipelines_for_project(self, pipeline_config_name, current_login, sg_connection):
+    def _get_pipeline_configurations_for_project(self, pipeline_config_name, current_login, sg_connection):
         """
         Retrieves pipeline configurations from Shotgun that are compatible with the project.
 
@@ -222,7 +222,8 @@ class ConfigurationResolver(object):
         # also get the pipeline configs for the site level (project=None)
         log.debug("Requesting pipeline configurations from Shotgun...")
 
-        # If nothing was specified, we need to pick pipelines owned by the user and the primary.
+        # If nothing was specified, we need to pick pipeline configurations owned by the user and
+        # the primary.
         if pipeline_config_name is None:
             ownership_filter = {
                 "filter_operator": "any",
@@ -307,9 +308,9 @@ class ConfigurationResolver(object):
         # Return the first item if available, None otherwise.
         return first[0] if first else None
 
-    def _filter_pipelines(self, pcs):
+    def _filter_pipeline_configurations(self, pcs):
         """
-        Filters pipelines that are not needed.
+        Filters pipeline configurations that are not needed.
 
         Here are the rules for being kept:
            - There can only be one primary
@@ -367,7 +368,7 @@ class ConfigurationResolver(object):
         """
         Retrieves the pipeline configurations that can be used with this project.
 
-        See _filter_pipelines to learn more about the pipeline configurations that are considered usable.
+        See _filter_pipeline_configurations to learn more about the pipeline configurations that are considered usable.
 
         :param str pipeline_config_name: Name of the pipeline configuration requested for. If ``None``,
             all pipeline configurations from the project will be matched.
@@ -377,9 +378,9 @@ class ConfigurationResolver(object):
         :returns: The pipeline configurations that can be used with this project.
 
         """
-        pcs = self._get_all_pipelines_for_project(pipeline_config_name, current_login, sg_connection)
+        pcs = self._get_pipeline_configurations_for_project(pipeline_config_name, current_login, sg_connection)
         # Sort all the pipeline configurations in their respective bucket.
-        primary, user_sanboxes_project, user_sandboxes_site = self._filter_pipelines(pcs)
+        primary, user_sanboxes_project, user_sandboxes_site = self._filter_pipeline_configurations(pcs)
         return ([primary] if primary else []) + user_sanboxes_project + user_sandboxes_site
 
     def _is_primary_pc(self, pc):
@@ -436,12 +437,12 @@ class ConfigurationResolver(object):
 
             # Get all the pipeline configurations that can be used given our project
             # restriction.
-            pcs = self._get_all_pipelines_for_project(
+            pcs = self._get_pipeline_configurations_for_project(
                 pipeline_config_identifier, current_login, sg_connection
             )
 
             # Sort all the pipeline configurations in their respective bucket.
-            (primary, user_project_configs, user_site_configs) = self._filter_pipelines(pcs)
+            (primary, user_project_configs, user_site_configs) = self._filter_pipeline_configurations(pcs)
 
             # Now select in order of priority. Note that the earliest pipeline encountered for sandboxes
             # is the one that will be selected.
