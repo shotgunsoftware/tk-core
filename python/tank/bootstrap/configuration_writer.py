@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
@@ -26,6 +26,50 @@ from tank_vendor import yaml
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
+
+
+class MoveGuard(object):
+    """
+    Ensures that files that were moved during a scope are moved to their
+    original location if an exception was raised during that scope.
+    """
+
+    def __init__(self, undo_on_error):
+        """
+        :param bool undo_on_error: If true, the moves will be undone when an exception
+            is raised. If false, the files won't be moved back when an exception is raised.
+        """
+        self._undo_on_error = undo_on_error
+        self._moves = []
+
+    def __enter__(self):
+        """
+        Returns itself so files can be moved and tracked.
+        """
+        return self
+
+    def move(self, source, dest):
+        """
+        Moves a file and keeps track of the move operation if it succeeded.
+
+        :param str source: File to move.
+        :param str dest: New location for that file.
+        """
+        os.rename(source, dest)
+        self._moves.append((source, dest))
+
+    def __exit__(self, ex_type, value, traceback):
+        """
+        Invoked when leaving the scope of the guard.
+
+        If some files have been moved, move them back to their original location.
+        """
+        if (ex_type or value or traceback) and self._undo_on_error and self._moves:
+            log.debug("Reverting changes!")
+            # Move files back to their original location.
+            for source, dest in self._moves:
+                log.debug("Moving %s -> %s" % (dest, source))
+                os.rename(dest, source)
 
 
 class ConfigurationWriter(object):
@@ -119,7 +163,7 @@ class ConfigurationWriter(object):
         filesystem.ensure_folder_exists(os.path.dirname(path))
         return path
 
-    def move_to_backup(self):
+    def move_to_backup(self, undo_on_error):
         """
         Move any existing config and core to a backup location.
 
@@ -127,68 +171,78 @@ class ConfigurationWriter(object):
         no install/core folder present in the configuration scaffold.
         Both have been moved into their respective backup locations.
 
+        :param bool undo_on_error: If True, the move to backup will be undone if there is an error during
+            the backup process.
+
         :returns: (config_backup_path, core_backup_path) where the paths
                   can be None in case nothing was carried over.
 
         """
-        config_backup_path = None
-        core_backup_path = None
 
-        # get backup root location
-        config_path = self._path.current_os
-        configuration_payload = os.path.join(config_path, "config")
+        # The move guard's role is to keep track of every move operation that has happened
+        # in a given scope and undo all the moves if something went wrong. This feels a lot simpler
+        # than having a try/except block as we'd have to have different try/except blocks for different
+        # code sections. Its also a great way to avoid having to deal with variables that haven't been
+        # defined yet when dealing with the exceptions.
+        with MoveGuard(undo_on_error) as guard:
+            config_backup_path = None
+            core_backup_path = None
 
-        # timestamp for rollback backup folders
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            # get backup root location
+            config_path = self._path.current_os
+            configuration_payload = os.path.join(config_path, "config")
 
-        if os.path.exists(configuration_payload):
+            # timestamp for rollback backup folders
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
-            config_backup_root = os.path.join(config_path, "install", "config.backup")
+            if os.path.exists(configuration_payload):
 
-            # make sure we have a backup folder present
-            # sometimes, execution and rollback is so quick that several backup folders
-            # are created in a single second. In that case, append a suffix
-            config_backup_path = os.path.join(config_backup_root, timestamp)
-            counter = 0
-            while os.path.exists(config_backup_path):
-                # that backup path already exists. Try another one
-                counter += 1
-                config_backup_path = os.path.join(config_backup_root, "%s.%d" % (timestamp, counter))
+                config_backup_root = os.path.join(config_path, "install", "config.backup")
 
-            # now that we have found a spot for our backup, make sure folder exists
-            # and then move the existing config *into* this folder.
-            filesystem.ensure_folder_exists(config_backup_path)
+                # make sure we have a backup folder present
+                # sometimes, execution and rollback is so quick that several backup folders
+                # are created in a single second. In that case, append a suffix
+                config_backup_path = os.path.join(config_backup_root, timestamp)
+                counter = 0
+                while os.path.exists(config_backup_path):
+                    # that backup path already exists. Try another one
+                    counter += 1
+                    config_backup_path = os.path.join(config_backup_root, "%s.%d" % (timestamp, counter))
 
-            log.debug("Moving config %s -> %s" % (configuration_payload, config_backup_path))
-            backup_target_path = os.path.join(config_backup_path, os.path.basename(configuration_payload))
-            os.rename(configuration_payload, backup_target_path)
-            log.debug("Backup complete.")
-            config_backup_path = backup_target_path
+                # now that we have found a spot for our backup, make sure folder exists
+                # and then move the existing config *into* this folder.
+                filesystem.ensure_folder_exists(config_backup_path)
 
-        # now back up the core API
-        core_payload = os.path.join(config_path, "install", "core")
+                log.debug("Moving config %s -> %s" % (configuration_payload, config_backup_path))
+                backup_target_path = os.path.join(config_backup_path, os.path.basename(configuration_payload))
+                guard.move(configuration_payload, backup_target_path)
+                log.debug("Backup complete.")
+                config_backup_path = backup_target_path
 
-        if os.path.exists(core_payload):
-            core_backup_root = os.path.join(config_path, "install", "core.backup")
-            # should not be necessary but just in case.
-            filesystem.ensure_folder_exists(core_backup_root)
+            # now back up the core API
+            core_payload = os.path.join(config_path, "install", "core")
 
-            # make sure we have a backup folder present
-            # sometimes, execution and rollback is so quick that several backup folders
-            # are created in a single second. In that case, append a suffix
-            core_backup_path = os.path.join(core_backup_root, timestamp)
-            counter = 0
-            while os.path.exists(core_backup_path):
-                # that backup path already exists. Try another one
-                counter += 1
-                core_backup_path = os.path.join(core_backup_root, "%s.%d" % (timestamp, counter))
+            if os.path.exists(core_payload):
+                core_backup_root = os.path.join(config_path, "install", "core.backup")
+                # should not be necessary but just in case.
+                filesystem.ensure_folder_exists(core_backup_root)
 
-            log.debug("Moving core %s -> %s" % (core_payload, core_backup_path))
-            os.rename(core_payload, core_backup_path)
-            log.debug("Backup complete.")
-            core_backup_path = core_backup_path
+                # make sure we have a backup folder present
+                # sometimes, execution and rollback is so quick that several backup folders
+                # are created in a single second. In that case, append a suffix
+                core_backup_path = os.path.join(core_backup_root, timestamp)
+                counter = 0
+                while os.path.exists(core_backup_path):
+                    # that backup path already exists. Try another one
+                    counter += 1
+                    core_backup_path = os.path.join(core_backup_root, "%s.%d" % (timestamp, counter))
 
-        return (config_backup_path, core_backup_path)
+                log.debug("Moving core %s -> %s" % (core_payload, core_backup_path))
+                guard.rename(core_payload, core_backup_path)
+                log.debug("Backup complete.")
+                core_backup_path = core_backup_path
+
+            return (config_backup_path, core_backup_path)
 
     @filesystem.with_cleared_umask
     def create_tank_command(self, win_python=None, mac_python=None, linux_python=None):
