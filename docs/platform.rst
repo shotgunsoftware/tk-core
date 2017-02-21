@@ -827,7 +827,7 @@ is made up of three main components:
     - Standard practices for engines to implement the core interface
     - Software Entity in Shotgun to facilitate end-user configuration
 
-.. image:: ./images/tk_launch_interface_diagram.png
+.. image:: ./resources/tk_launch_interface_diagram.png
 
 
 A Simple Launch Application
@@ -885,7 +885,7 @@ To plug into the core API software launch interface, a Toolkit engine must imple
 initialize the engine once the DCC has started up should reside under a sibiling ``startup``
 directory:
 
-.. image:: ./images/tk_engine_root_directory_structure.png
+.. image:: ./resources/tk_engine_root_directory_structure.png
 
 Since the launch logic for the engine is invoked while the engine is not actually running, the
 :class:`~SoftwareLauncher` base class provides functionality similar to the :class:`~Engine` base
@@ -1015,26 +1015,29 @@ must be specified for a launch command to be added to Desktop. The full list of 
 user has access to may be limited by Project, user name, Group membership, or DCC version.
 
 The Software site page can be accessed from either "All Pages > Global Pages > Software" or "User Menu >
-Admin > Software" menus. Here are sample Software entries with field value explanataions: 
+Admin > Software" menus. Here are sample Software entries with field value explanations: 
 
-.. image:: ./images/sg_software_samples.png
+.. image:: ./resources/sg_software_samples.png
 
-... note:: Since the engine field is optional, any locally installed DCC application can be registered to launch by specifying a ``Software Name``, ``<platform> Path``, and ``Thumbnail``. A proper Toolkit integration for this DCC is not required. This is demonstrated by the GIMP entry on the sample Software page.
+.. note:: Since the engine field is optional, any locally installed DCC application can be registered to launch by specifying a ``Software Name``, ``<platform> Path``, and ``Thumbnail``. A proper Toolkit integration for this DCC is not required. This is demonstrated by the GIMP entry on the sample Software page.
 
 As configured, these Software entries will display the following Desktop launch commands per user:
 
-.. image:: ./images/desktop_software_samples.png
+.. image:: ./resources/desktop_software_samples.png
 
 
 Software Entity Field Reference
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. image:: ./images/software_entity_field_reference.png
+.. image:: ./resources/software_entity_field_reference.png
 
 
 
 SoftwareLauncher
 ---------------------------------------------------
+
+This section contains the techincal documentation for the core classes and methods described in the
+`~LaunchingSoftware` section above. 
 
 .. autofunction:: create_engine_launcher
 
