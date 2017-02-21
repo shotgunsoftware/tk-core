@@ -80,6 +80,31 @@ class ToolkitManager(object):
         self._plugin_id = None
         self._pre_engine_start_callback = None
 
+        # look for the standard env var SHOTGUN_PIPELINE_CONFIGURATION_ID
+        # and in case this is set, use it as a default
+        if constants.PIPELINE_CONFIG_ID_ENV_VAR in os.environ:
+            pipeline_config_str = os.environ[constants.PIPELINE_CONFIG_ID_ENV_VAR]
+            log.debug(
+                "Detected %s environment variable set to '%s'" % (
+                    constants.PIPELINE_CONFIG_ID_ENV_VAR,
+                    pipeline_config_str
+                )
+            )
+            # try to convert it to an integer
+            try:
+                pipeline_config_id = int(pipeline_config_str)
+            except ValueError:
+                log.error(
+                    "Environment variable %s value '%s' is not "
+                    "an integer number and will be ignored." % (
+                        constants.PIPELINE_CONFIG_ID_ENV_VAR,
+                        pipeline_config_str
+                    )
+                )
+            else:
+                log.debug("Setting pipeline configuration to %s" % pipeline_config_id)
+                self.pipeline_configuration = pipeline_config_id
+
         log.debug("%s instantiated" % self)
 
     def __repr__(self):
