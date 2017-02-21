@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+
 import sgtk
 from sgtk.descriptor import Descriptor
 from tank_test.tank_test_base import *
@@ -29,15 +30,19 @@ class TestGitIODescriptor(TankTestBase):
         # bare repo cloned from our official default config
         # multiple branches and tags
         self.git_repo_uri = os.path.join(self.fixtures_root, "misc", "tk-config-default.git")
+
+        # Bare-minimum repo with both annotated and lightweight tags
+        self.git_tag_repo_uri = os.path.join(self.fixtures_root, "misc", "tag-test-repo.git")
+
         self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
 
-    def _create_desc(self, location, resolve_latest=False):
+    def _create_desc(self, location, resolve_latest=False, desc_type=Descriptor.CONFIG):
         """
         Helper method around create_descriptor
         """
         return sgtk.descriptor.create_descriptor(
             self.tk.shotgun,
-            Descriptor.CONFIG,
+            desc_type,
             location,
             bundle_cache_root_override=self.bundle_cache,
             resolve_latest=resolve_latest)

@@ -80,3 +80,9 @@ class TankContextDeserializationError(TankError):
     """
     Exception that indicates that something went wrong while deserializating a context.
     """
+
+
+class TankMultipleMatchingTemplatesError(TankError):
+    """
+    Exception that indicates that a path matches multiple templates.
+    """
