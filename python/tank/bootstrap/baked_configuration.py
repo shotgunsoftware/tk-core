@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -20,6 +20,7 @@ import cPickle as pickle
 from ..util import ShotgunPath
 
 log = LogManager.get_logger(__name__)
+
 
 class BakedConfiguration(Configuration):
     """
@@ -145,3 +146,11 @@ class BakedConfiguration(Configuration):
             bundle_cache_fallback_paths=[]
         )
 
+    @property
+    def has_local_bundle_cache(self):
+        """
+        If True, indicates that pipeline configuration has a local bundle cache. If False, it
+        depends on the global bundle cache.
+        """
+        # Baked configurations always have a local bundle cache.
+        return True

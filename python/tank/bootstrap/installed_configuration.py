@@ -24,7 +24,10 @@ class InstalledConfiguration(Configuration):
 
     def __init__(self, path):
         """
-        :param path: ShotgunPath object describing the path to this configuration
+        :param str path: ShotgunPath object describing the path to this configuration
+        :param bool has_local_bundle_cache: If True, is means this configuration
+            has a local cache and therefore doesn't need the global bundle cache be populated
+            with its bundles.
         """
         super(InstalledConfiguration, self).__init__(path)
 
@@ -55,3 +58,11 @@ class InstalledConfiguration(Configuration):
         No need to update anything, as this configuration type is always up-to-date.
         """
         pass
+
+    @property
+    def has_local_bundle_cache(self):
+        """
+        If True, indicates that pipeline configuration has a local bundle cache. If False, it
+        depends on the global bundle cache.
+        """
+        return True

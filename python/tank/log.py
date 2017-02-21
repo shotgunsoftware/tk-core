@@ -692,7 +692,7 @@ class LogManager(object):
         exist per session.
 
         :param log_name: Name of logger to create. This will form the
-                         filename of the log file.
+                         filename of the log file. The ``.log`` will be suffixed.
 
         :returns: The path to the previous log file that is being switched away from,
                   None if no base logger was previously active.
