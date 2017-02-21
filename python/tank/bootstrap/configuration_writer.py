@@ -28,46 +28,46 @@ from .. import LogManager
 log = LogManager.get_logger(__name__)
 
 
-class RenameGuard(object):
+class MoveGuard(object):
     """
-    Ensures that file that were renamed during a scope are renamed to their
-    original name if an exception was raised during that scope.
+    Ensures that files that were moved during a scope are moved to their
+    original location if an exception was raised during that scope.
     """
 
     def __init__(self, undo_on_error):
         """
-        :param bool undo_on_error: If true, the renames will be undone when an exception
-            is raised. If false, the files won't be renamed when an exception is raised.
+        :param bool undo_on_error: If true, the moves will be undone when an exception
+            is raised. If false, the files won't be moved back when an exception is raised.
         """
         self._undo_on_error = undo_on_error
-        self._renames = []
+        self._moves = []
 
     def __enter__(self):
         """
-        Returns itself so files can be renamed and tracked.
+        Returns itself so files can be moved and tracked.
         """
         return self
 
-    def rename(self, source, dest):
+    def move(self, source, dest):
         """
-        Renames a file and keeps track of the rename if it succeeded.
+        Moves a file and keeps track of the move operation if it succeeded.
 
-        :param str source: File to rename.
-        :param str dest: New name of the file.
+        :param str source: File to move.
+        :param str dest: New location for that file.
         """
         os.rename(source, dest)
-        self._renames.append((source, dest))
+        self._moves.append((source, dest))
 
     def __exit__(self, ex_type, value, traceback):
         """
         Invoked when leaving the scope of the guard.
 
-        If some files have been renamed, move them back to their original location.
+        If some files have been moved, move them back to their original location.
         """
-        if (ex_type or value or traceback) and self._undo_on_error and self._renames:
+        if (ex_type or value or traceback) and self._undo_on_error and self._moves:
             log.debug("Reverting changes!")
             # Move files back to their original location.
-            for source, dest in self._renames:
+            for source, dest in self._moves:
                 log.debug("Moving %s -> %s" % (dest, source))
                 os.rename(dest, source)
 
@@ -179,12 +179,12 @@ class ConfigurationWriter(object):
 
         """
 
-        # The rename guard's role is to keep track of every rename operation that has happened
-        # in a given scope and undo all the renames if something went wrong. This feels a lot simpler
+        # The move guard's role is to keep track of every move operation that has happened
+        # in a given scope and undo all the moves if something went wrong. This feels a lot simpler
         # than having a try/except block as we'd have to have different try/except blocks for different
         # code sections. Its also a great way to avoid having to deal with variables that haven't been
         # defined yet when dealing with the exceptions.
-        with RenameGuard(undo_on_error) as guard:
+        with MoveGuard(undo_on_error) as guard:
             config_backup_path = None
             core_backup_path = None
 
@@ -215,7 +215,7 @@ class ConfigurationWriter(object):
 
                 log.debug("Moving config %s -> %s" % (configuration_payload, config_backup_path))
                 backup_target_path = os.path.join(config_backup_path, os.path.basename(configuration_payload))
-                guard.rename(configuration_payload, backup_target_path)
+                guard.move(configuration_payload, backup_target_path)
                 log.debug("Backup complete.")
                 config_backup_path = backup_target_path
 
