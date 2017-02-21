@@ -15,6 +15,7 @@ should implement.
 
 import os
 import sys
+import pprint
 
 from ..errors import TankError
 from ..log import LogManager
@@ -28,6 +29,7 @@ from .engine import get_env_and_descriptor_for_engine
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
+
 
 def create_engine_launcher(tk, context, engine_name):
     """
@@ -287,6 +289,60 @@ class SoftwareLauncher(object):
         return resolve_setting_value(
             self.sgtk, self.engine_name, schema, self.settings, key, default
         )
+
+    def get_standard_plugin_environment(self):
+        """
+        Create a standard plugin environment, suitable for
+        plugins to utilize. This will compute the following
+        environment variables:
+
+        - ``SHOTGUN_SITE``: The current shotgun site url
+        - ``SHOTGUN_ENTITY_TYPE``: The current context
+        - ``SHOTGUN_ENTITY_ID``: The current context
+        - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: The current pipeline config id
+
+        :returns: dictionary of environment variables
+        """
+        self.logger.debug("Computing standard plugin environment variables...")
+        env = {}
+
+        # site
+        env["SHOTGUN_SITE"] = self.sgtk.shotgun_url
+
+        # pipeline config id
+        # note: get_shotgun_id() returns None for unmanaged configs.
+        pipeline_config_id = self.sgtk.pipeline_configuration.get_shotgun_id()
+        if pipeline_config_id:
+            env["SHOTGUN_PIPELINE_CONFIGURATION_ID"] = str(pipeline_config_id)
+        else:
+            self.logger.debug("Unmanaged config. Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID.")
+
+        # context
+        entity_dict = None
+
+        # see if there is a project
+        if self.context.project:
+            entity_dict = self.context.project
+
+        # if there is an entity then that takes precedence
+        if self.context.entity:
+            entity_dict = self.context.entity
+
+        # and if there is a Task that is even better
+        if self.context.task:
+            entity_dict = self.context.task
+
+        if entity_dict:
+            env["SHOTGUN_ENTITY_TYPE"] = entity_dict["type"]
+            env["SHOTGUN_ENTITY_ID"] = str(entity_dict["id"])
+        else:
+            self.logger.debug(
+                "No context found. Not setting SHOTGUN_ENTITY_TYPE and SHOTGUN_ENTITY_ID."
+            )
+
+        self.logger.debug("Returning Plugin Environment: \n%s" % pprint.pformat(env))
+
+        return env
 
 
 class SoftwareVersion(object):
