@@ -158,7 +158,65 @@ class TestShotgunFindPublish(TankTestBase):
         paths = [os.path.join(self.project_root, "foo", "doesnotexist")]
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 0)
-        
+
+    def test_translate_abstract_fields(self):
+        # We should get back what we gave since there won't be a matching
+        # template for this path.
+        self.assertEqual(
+            "/jbee/is/awesome.0001.jpg",
+            tank.util.shotgun._translate_abstract_fields(
+                self.tk,
+                "/jbee/is/awesome.0001.jpg",
+            ),
+        )
+
+        # Build a set of matching templates.
+        keys = dict(
+            seq=tank.templatekey.SequenceKey(
+                "seq",
+                format_spec="03",
+            ),
+            frame=SequenceKey(
+                "frame",
+                format_spec="04",
+            ),
+        )
+        template = TemplatePath(
+            "folder/name_{seq}.{frame}.ext",
+            keys,
+            self.project_root,
+        )
+        dup_template = TemplatePath(
+            "folder/name_{seq}.{frame}.ext",
+            keys,
+            self.project_root,
+        )
+
+        self.tk.templates["translate_fields_test"] = template
+
+        # We should get back a transformed path since there's a single
+        # matching template.
+        path = os.path.join(self.project_root, "folder", "name_001.9999.ext")
+        t_path = os.path.join(self.project_root, "folder", "name_%03d.%04d.ext")
+
+        self.assertEqual(
+            t_path,
+            tank.util.shotgun._translate_abstract_fields(
+                self.tk,
+                path,
+            ),
+        )
+
+        self.tk.templates["translate_fields_test_dup"] = dup_template
+
+        # We should get back what we gave due to multiple matching templates.
+        self.assertEqual(
+            path,
+            tank.util.shotgun._translate_abstract_fields(
+                self.tk,
+                path,
+            ),
+        )
 
 
 
