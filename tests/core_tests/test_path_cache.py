@@ -13,22 +13,27 @@ import sys
 import time
 import Queue
 import StringIO
-import cPickle as pickle
-import sqlite3
 import shutil
 import logging
 
-from tank_test.tank_test_base import *
+from mock import Mock
+
+from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import setUpModule # noqa
 
 from tank import path_cache
 from tank import folder
 from tank import constants
+from tank import LogManager
 
-def add_item_to_cache(path_cache, entity, path, primary = True):
-    
-    data = [{"entity": entity, "path": path, "primary": primary, "metadata": {} }]    
-    path_cache.add_mappings(data, None, [])    
-    
+log = LogManager.get_logger(__name__)
+
+
+def add_item_to_cache(path_cache, entity, path, primary=True):
+    data = [{"entity": entity, "path": path, "primary": primary, "metadata": {}}]
+    # Last two parameters are only used for debug logging, they can be empty.
+    path_cache.add_mappings(data, None, [])
+
 
 def sync_path_cache(tk, force_full_sync=False):
     """
@@ -847,3 +852,92 @@ class TestConcurrentShotgunSync(TankTestBase):
                     pass
 
         self.assertFalse(self._multiprocess_fail)
+
+
+class TestPathCacheDelete(TankTestBase):
+
+    def setUp(self):
+        super(TestPathCacheDelete, self).setUp()
+
+        # Create a bunch of entities for unit testing.
+        self._project_link = self.mockgun.create("Project", {"name": "MyProject"})
+
+        self._shot_entity = self.mockgun.create("Shot", {"code": "MyShot", "project": self._project_link})
+        self._shot_entity["name"] = "MyShot"
+        self._shot_full_path = os.path.join(self.project_root, "shot")
+
+        self._asset_entity = self.mockgun.create("Asset", {"code": "MyAsset", "project": self._project_link})
+        self._asset_entity["name"] = "MyAsset"
+        self._asset_full_path = os.path.join(self.project_root, "asset")
+
+        # Prevent logging to the console during unit tests.
+        self._unregister_folder_command = self.tk.get_command("unregister_folders")
+        self._unregister_folder_command.set_logger(log)
+
+        self._pc = path_cache.PathCache(self.tk)
+        self._pc.synchronize()
+        self._pc._do_full_sync = Mock()
+
+        # Register the asset. This will be our sentinel to make sure we are not deleting too much stuff during
+        # the tests.
+        add_item_to_cache(self._pc, self._asset_entity, self._asset_full_path)
+
+    def tearDown(self):
+        super(TestPathCacheDelete, self).setUp()
+
+        # Ensure nothing has messed with our asset.
+        paths = self._pc.get_paths(self._asset_entity["type"], self._asset_entity["id"], primary_only=True)
+        self.assertEqual(len(paths), 1)
+
+        # Ensure no full sync has taken place.
+        self.assertEqual(self._pc._do_full_sync.called, False)
+
+    def test_simple_delete_by_paths(self):
+        """
+        Register and then unregister a folder for a shot.
+        """
+        add_item_to_cache(self._pc, self._shot_entity, self._shot_full_path)
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.assertEqual(len(paths), 1)
+
+        self._remove_filesystem_locations_by_paths(paths)
+
+        self._pc.synchronize()
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.assertEqual(len(paths), 0)
+
+    def test_create_then_delete_then_recreate(self):
+
+        add_item_to_cache(self._pc, self._shot_entity, self._shot_full_path)
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.assertEqual(len(paths), 1)
+
+        # Remove these paths from Shotgun.
+        self._remove_filesystem_locations_by_paths(paths)
+
+        new_shot_path = os.path.join(self.project_root, "new_shot")
+
+        # Update Shotgun with new entries.
+        self._pc.add_filesystem_location_entries(
+            [{
+                "entity": self._shot_entity,
+                "primary": True,
+                "path": new_shot_path,
+                "metadata": {},
+
+            }],
+            "This is generated from the unit tests."
+        )
+
+        self._pc.synchronize()
+
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.assertEqual(len(paths), 1)
+        self.assertEqual(paths[0], new_shot_path)
+
+    def _remove_filesystem_locations_by_paths(self, paths):
+        """
+        Removes the given paths from the path cache.
+        """
+        path_ids = [self._pc.get_shotgun_id_from_path(p) for p in paths]
+        self._pc.remove_filesystem_location_entries(self.tk, path_ids)

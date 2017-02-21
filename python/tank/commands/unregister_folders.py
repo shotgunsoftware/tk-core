@@ -247,29 +247,26 @@ class UnregisterFoldersAction(Action):
         log.debug("The following path cache ids are linked to the entity: %s" % sg_ids)        
         return self._unregister_filesystem_location_ids(sg_ids, log, prompt)                              
 
-        
     def _unregister_filesystem_location_ids(self, ids, log, prompt):
         """
         Performs the unregistration of a path from the path cache database.
         Will recursively unregister any child items parented to the given
         filesystem location id.
-        
+
         :param ids: List of filesystem location ids to unregister
         :param log: Logging instance
         :param prompt: Should the user be presented with confirmation prompts?
         :returns: List of dictionaries to represents the items that were unregistered.
                   Each dictionary has keys path and entity, where entity is a standard
-                  Shotgun-style link dictionary containing the keys type and id. 
-                  Note that the shotgun ids returned will refer to retired objects in 
+                  Shotgun-style link dictionary containing the keys type and id.
+                  Note that the shotgun ids returned will refer to retired objects in
                   Shotgun rather than live ones.
         """
         # tuple index constants for readability
-        PATH_IDX = 0
-        SG_ID_IDX = 1
-        
+
         if len(ids) == 0:
             log.info("No associated folders found!")
-            return []        
+            return []
 
         # first of all, make sure we are up to date.
         pc = path_cache.PathCache(self.tk)
@@ -277,27 +274,30 @@ class UnregisterFoldersAction(Action):
             pc.synchronize()
         finally:
             pc.close()
-        
+
         # now use the path cache to get a list of all folders (recursively) that are
         # linked up to the folders registered for this entity.
         # store this in a set so that we ensure a unique set of matches
-        
+
         paths = set()
         pc = path_cache.PathCache(self.tk)
+        path_ids = []
+        paths = []
         try:
             for sg_fs_id in ids:
                 # get path subtree for this id via the path cache
                 for path_obj in pc.get_folder_tree_from_sg_id(sg_fs_id):
                     # store in the set as a tuple which is immutable
-                    paths.add( (path_obj["path"], path_obj["sg_id"]) )
+                    paths.append(path_obj["path"])
+                    path_ids.append(path_obj["sg_id"])
         finally:
             pc.close()
-                
+
         log.info("")
         log.info("The following folders will be unregistered:")
         for p in paths:
-            log.info(" - %s" % p[PATH_IDX])
-        
+            log.info(" - %s" % p)
+
         log.info("")
         log.info("Proceeding will unregister the above paths from Toolkit's path cache. "
                  "This will not alter any of the content in the file system, but once you have "
@@ -315,62 +315,12 @@ class UnregisterFoldersAction(Action):
             if val != "" and not val.lower().startswith("y"):
                 log.info("Exiting! Nothing was unregistered.")
                 return []
-        
+
         log.info("Unregistering folders from Shotgun...")
         log.info("")
-        
-        sg_batch_data = []
-        for p in paths: 
-            req = {"request_type":"delete", 
-                   "entity_type": path_cache.SHOTGUN_ENTITY, 
-                   "entity_id": p[SG_ID_IDX] }
-            sg_batch_data.append(req)
-        
-        try:    
-            self.tk.shotgun.batch(sg_batch_data)
-        except Exception, e:
-            raise TankError("Shotgun reported an error while attempting to delete FilesystemLocation entities. "
-                            "Please contact support. Details: %s Data: %s" % (e, sg_batch_data))
-        
-        # now register the deleted ids in the event log
-        # this will later on be read by the synchronization            
-        # now, based on the entities we just deleted, assemble a metadata chunk that 
-        # the sync calls can use later on.
-        
-        if self.tk.pipeline_configuration.is_unmanaged():
-            pc_link = None
-        else:
-            pc_link = {
-                "type": "PipelineConfiguration",
-                "id": self.tk.pipeline_configuration.get_shotgun_id()
-            }
 
-        if self.tk.pipeline_configuration.is_site_configuration():
-            project_link = None
-        else:
-            project_link = {"type": "Project", "id": self.tk.pipeline_configuration.get_project_id()}
+        path_cache.PathCache.remove_filesystem_location_entries(self.tk, path_ids)
 
-        meta = {}
-        # the api version used is always useful to know
-        meta["core_api_version"] = self.tk.version
-        # shotgun ids created
-        meta["sg_folder_ids"] = [ x[SG_ID_IDX] for x in paths]
-        
-        sg_event_data = {}
-        sg_event_data["event_type"] = "Toolkit_Folders_Delete"
-        sg_event_data["description"] = "Toolkit %s: Unregistered %s folders." % (self.tk.version, len(paths))
-        sg_event_data["project"] = project_link
-        sg_event_data["entity"] = pc_link
-        sg_event_data["meta"] = meta        
-        sg_event_data["user"] = get_current_user(self.tk)
-    
-        try:
-            self.tk.shotgun.create("EventLogEntry", sg_event_data)
-        except Exception, e:
-            raise TankError("Shotgun Reported an error while trying to write a Toolkit_Folders_Delete event "
-                            "log entry after having successfully removed folders. Please contact support for "
-                            "assistance. Error details: %s Data: %s" % (e, sg_event_data))
-        
         # lastly, another sync
         pc = path_cache.PathCache(self.tk)
         try:
@@ -380,12 +330,11 @@ class UnregisterFoldersAction(Action):
 
         log.info("")
         log.info("Unregister complete. %s paths were unregistered." % len(paths))
-        
+
         # now shuffle the return data into a list of dicts
         return_data = []
-        for p in paths:
-            return_data.append( {"path": p[PATH_IDX], 
-                                 "entity": {"type": path_cache.SHOTGUN_ENTITY, "id": p[SG_ID_IDX]}})
-        
+        for path_id, path in zip(path_ids, paths):
+            return_data.append({"path": path,
+                                "entity": {"type": path_cache.SHOTGUN_ENTITY, "id": path_id}})
+
         return return_data
-        
