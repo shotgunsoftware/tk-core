@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -24,6 +24,7 @@ from .configuration_writer import ConfigurationWriter
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
+
 
 class CachedConfiguration(Configuration):
     """
@@ -207,7 +208,7 @@ class CachedConfiguration(Configuration):
                 log.error(
                     "Irrecoverable error - failed to update config but no previous config to "
                     "fall back on. Raising TankBootstrapError to abort bootstrap."
-                    )
+                )
                 raise TankBootstrapError("Configuration could not be installed: %s." % e)
 
             else:
@@ -262,4 +263,11 @@ class CachedConfiguration(Configuration):
                     self.path.as_shotgun_dict()
                 )
 
-
+    @property
+    def has_local_bundle_cache(self):
+        """
+        If True, indicates that pipeline configuration has a local bundle cache. If False, it
+        depends on the global bundle cache.
+        """
+        # CachedConfiguration always depend on the global bundle cache.
+        return False
