@@ -84,17 +84,11 @@ class TestEngineLauncher(TankTestBase):
         self.assertEqual(sw_versions, [])
 
         scan_versions = [str(v) for v in range(10, 100, 20)]
-        scan_display = "UT Display Name"
-        scan_icon = "/some/path/to/a/ut/icon.png"
-        sw_versions = launcher.scan_software(
-            scan_versions, scan_display, scan_icon
-        )
+        sw_versions = launcher.scan_software(scan_versions)
         self.assertIsInstance(sw_versions, list)
         for i, swv in enumerate(sw_versions):
             self.assertIsInstance(swv, SoftwareVersion)
             self.assertEqual(swv.version, scan_versions[i])
-            self.assertEqual(swv.display_name, scan_display)
-            self.assertEqual(swv.icon, scan_icon)
 
 
     def test_launcher_prepare_launch(self):
