@@ -407,8 +407,12 @@ class PathCache(object):
                 # nothing has changed since the last sync
                 log.debug("Path cache syncing not necessary - local folders already up to date!")
                 return []
-            
-            elif num_deletions > 0 or num_creations > 0:
+
+            elif num_deletions > 0:
+                # some stuff was deleted. fall back on full sync
+                log.debug("Deletions detected, doing full sync")
+                return self._do_full_sync(c)
+            elif num_creations > 0:
                 # we have a complete trail of increments. 
                 # note that we skip the current entity.
                 log.debug("Full event log history traced. Running incremental sync.")
@@ -581,7 +585,7 @@ class PathCache(object):
                 max_event_log_id = 0
             else:
                 max_event_log_id = sg_data["id"]
-            
+
             data = self._replay_folder_entities(cursor, max_event_log_id)
 
         finally:
@@ -635,11 +639,219 @@ class PathCache(object):
             ]
         )
 
+        ids = []
+
+        for d in sg_data:
+            log.debug("Looking at event log entry %s" % d)
+            if d["event_type"] == FOLDER_REGISTERED_EVENT_TYPE:
+                # this is a creation request! Replay it on our database
+                ids.extend(d["meta"]["sg_folder_ids"])
+
         # run the actual sync - and at the end, inser the event_log_sync data marker
         # into the database to show where to start syncing from next time.
-        return self._replay_folder_entities(cursor, max_event_log_id, sg_data)
+        return self._replay_folder_entities(cursor, max_event_log_id, ids)
 
-    def _replay_folder_entities(self, cursor, max_event_log_id, folder_events=None):
+    def _replay_folder_entities(self, cursor, max_event_log_id, ids=None):
+        """
+        Does the actual download from shotgun and pushes those changes
+        to the path cache. If ids is None, this indicates a full sync, and
+        the path cache db table is cleared first. If not, the table
+        is appended to.
+
+        Lastly, this method updates the event_log_sync marker in the sqlite database
+        that tracks what the most recent event log id was being synced.
+
+        :param cursor: Sqlite database cursor
+        :param max_event_log_id: max event log marker to write to the path
+                                 cache database after a full operation.
+        :param ids: List of FilesystemLocation ids to replay. If set to None,
+                    a full sync will take place.
+        :returns: A list of remote items which were detected, created remotely
+                  and not existing in this path cache. These are returned as a list of
+                  dictionaries, each containing keys:
+                    - entity
+                    - metadata
+                    - path
+
+        """
+        log.debug("Fetching already registered folders from Shotgun...")
+
+        sg_data = []
+
+        if ids is None:
+            # get all folder data from shotgun
+            log.debug(
+                "Doing a full sync, so getting all the FilesystemLocations for the current project..."
+            )
+            sg_data = self._tk.shotgun.find(
+                SHOTGUN_ENTITY,
+                [["project", "is", self._get_project_link()]],
+                [
+                    "id",
+                    SG_METADATA_FIELD,
+                    SG_IS_PRIMARY_FIELD,
+                    SG_ENTITY_ID_FIELD,
+                    SG_PATH_FIELD,
+                    SG_ENTITY_TYPE_FIELD,
+                    SG_ENTITY_NAME_FIELD
+                ],
+                [{"field_name": "id", "direction": "asc"}])
+        elif ids == []:
+            # incremental sync but with no folders
+            log.debug("No folders need to be replayed, won't fetch anything from Shotgun...")
+        else:
+            # get the ids that are missing from shotgun
+            # need to use this weird special filter syntax
+            log.debug(
+                "Doing an incremental sync, so getting FilesystemLocation entries for "
+                "the following ids: %s" % ids
+            )
+
+            id_in_filter = ["id", "in"]
+            id_in_filter.extend(ids)
+            sg_data = self._tk.shotgun.find(
+                SHOTGUN_ENTITY,
+                [id_in_filter],
+                [
+                    "id",
+                    SG_METADATA_FIELD,
+                    SG_IS_PRIMARY_FIELD,
+                    SG_ENTITY_ID_FIELD,
+                    SG_PATH_FIELD,
+                    SG_ENTITY_TYPE_FIELD,
+                    SG_ENTITY_NAME_FIELD
+                ],
+                [{"field_name": "id", "direction": "asc"}]
+            )
+
+        log.debug("...Retrieved %s records." % len(sg_data))
+
+        # now start a single transaction in which we do all our work
+        if ids is None:
+            # complete sync - clear our tables first
+            log.debug("Full sync - clearing local sqlite path cache tables...")
+            cursor.execute("DELETE FROM event_log_sync")
+            cursor.execute("DELETE FROM shotgun_status")
+            cursor.execute("DELETE FROM path_cache")
+
+        return_data = []
+
+        for x in sg_data:
+
+            data = self._import_mapping_from_shotgun(cursor, x)
+            if data:
+                return_data.append(data)
+
+        # lastly, id of this event log entry for purpose of future syncing
+        # note - we don't maintain a list of event log entries but just a single
+        # value in the db, so start by clearing the table.
+        log.debug("Inserting path cache marker %s in the sqlite db" % max_event_log_id)
+        cursor.execute("DELETE FROM event_log_sync")
+        cursor.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (max_event_log_id, ))
+
+        self._connection.commit()
+
+        return return_data
+
+    def _import_mapping_from_shotgun(self, cursor, x):
+
+        # get entity data from our entry
+        entity = {"id": x[SG_ENTITY_ID_FIELD],
+                  "name": x[SG_ENTITY_NAME_FIELD],
+                  "type": x[SG_ENTITY_TYPE_FIELD]}
+        is_primary = x[SG_IS_PRIMARY_FIELD]
+
+        # note! If a local storage which is associated with a path is retired,
+        # parts of the entity data returned by shotgun will be omitted.
+        #
+        # A valid, active path entry will be on the form:
+        #  {'id': 653,
+        #   'path': {'content_type': None,
+        #            'id': 2186,
+        #            'link_type': 'local',
+        #            'local_path': '/Volumes/xyz/proj1/sequences/aaa',
+        #            'local_path_linux': '/Volumes/xyz/proj1/sequences/aaa',
+        #            'local_path_mac': '/Volumes/xyz/proj1/sequences/aaa',
+        #            'local_path_windows': None,
+        #            'local_storage': {'id': 2,
+        #                              'name': 'primary',
+        #                              'type': 'LocalStorage'},
+        #            'name': '[primary] /sequences/aaa',
+        #            'type': 'Attachment',
+        #            'url': 'file:///Volumes/xyz/proj1/sequences/aaa'},
+        #   'type': 'FilesystemLocation'},
+        #
+        # With a retired storage, the returned data from the SG API is
+        #  {'id': 646,
+        #   'path': {'content_type': None,
+        #            'id': 2141,
+        #            'link_type': 'local',
+        #            'local_storage': None,
+        #            'name': '[primary] /sequences/aaa/missing',
+        #            'type': 'Attachment'},
+        #   'type': 'FilesystemLocation'},
+        #
+
+        # no path at all - this is an anomaly but handle it gracefully regardless
+        if x[SG_PATH_FIELD] is None:
+            log.debug("No path associated with entry for %s. Skipping." % entity)
+            return None
+
+        # retired storage case - see above for details
+        if x[SG_PATH_FIELD].get("local_storage") is None:
+            log.debug("The storage for the path for %s has been deleted. Skipping." % entity)
+            return None
+
+        # get the local path from our attachment entity dict
+        sg_local_storage_os_map = {"linux2": "local_path_linux",
+                                   "win32": "local_path_windows",
+                                   "darwin": "local_path_mac"}
+        local_os_path_field = sg_local_storage_os_map[sys.platform]
+        local_os_path = x[SG_PATH_FIELD].get(local_os_path_field)
+
+        # if the storage is not correctly configured for an OS, it is possible
+        # that the path comes back as null. Skip such paths and report them in the log.
+        if local_os_path is None:
+            log.debug("No local os path associated with entry for %s. Skipping." % entity)
+            return None
+
+        # if the path cannot be split up into a root_name and a leaf path
+        # using the roots.yml file, log a warning and continue. This can happen
+        # if roots files and storage setups change half-way through a project,
+        # or if roots files are not in sync with the main storage definition
+        # in this case, we want to just warn and skip rather than raise
+        # an exception which will stop execution entirely.
+        try:
+            root_name, relative_path = self._separate_root(self._roots, local_os_path)
+        except TankError, e:
+            log.debug("Could not resolve storages - skipping: %s" % e)
+            return None
+
+        # all validation checks seem ok - go ahead and make the changes.
+        new_rowid = self._add_db_mapping(cursor, local_os_path, entity, is_primary)
+        if new_rowid:
+            # something was inserted into the db!
+            # because this record came from shotgun, insert a record in the
+            # shotgun_status table to indicate that this record exists in sg
+            cursor.execute("INSERT INTO shotgun_status(path_cache_id, shotgun_id) "
+                           "VALUES(?, ?)", (new_rowid, x["id"]))
+
+            # and add this entry to our list of new things that we will return later on.
+            return {
+                "entity": entity,
+                "path": local_os_path,
+                "metadata": SG_METADATA_FIELD
+            }
+
+        else:
+            # Note: edge case - for some reason there was already an entry in the path cache
+            # representing this. This could be because of duplicate entries and is
+            # not necessarily an anomaly. It could also happen because a previous sync failed
+            # at some point half way through.
+            log.debug("Found existing record for '%s', %s. Skipping." % (local_os_path, entity))
+            return None
+
+    def _replay_folder_entities_2(self, cursor, max_event_log_id, folder_events=None):
         """
         Does the actual download from shotgun and pushes those changes
         to the path cache. If ids is None, this indicates a full sync, and
@@ -748,8 +960,10 @@ class PathCache(object):
 
         return_data = []
 
+        print map(itemgetter("id"), fsl_data)
+
         # Index file system locations by id.
-        fsl_data = dict(map(itemgetter("id"), fsl_data))
+        fsl_data = dict((itemgetter("id"), data) for data in fsl_data)
 
         for folder_event in folder_events:
 

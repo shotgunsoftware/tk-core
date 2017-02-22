@@ -25,6 +25,7 @@ from tank import path_cache
 from tank import folder
 from tank import constants
 from tank import LogManager
+import tank
 
 log = LogManager.get_logger(__name__)
 
@@ -330,7 +331,7 @@ class Test_SeperateRoots(TestPathCache):
         relative_path = os.path.join("Some", "Path")
         full_path = os.path.join(self.project_root.swapcase(), relative_path)
 
-        root_name, relative_result = self.path_cache._separate_root(full_path)
+        root_name, relative_result = self.path_cache._separate_root(self.path_cache._roots, full_path)
         self.assertEquals("primary", root_name)
         # returns relative path starting with seperator
         self.assertEquals(os.sep + relative_path, relative_result)
@@ -919,6 +920,8 @@ class TestPathCacheDelete(TankTestBase):
 
         # Update Shotgun with new entries.
         self._pc.add_filesystem_location_entries(
+            self.tk,
+            self._project_link,
             [{
                 "entity": self._shot_entity,
                 "primary": True,
