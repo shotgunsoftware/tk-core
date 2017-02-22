@@ -920,7 +920,7 @@ class TestPathCacheDelete(TankTestBase):
 
     def test_create_then_delete_then_recreate(self):
         """
-        Ensures that unregisterering something and then recreating it with another name on "another computer" will yield
+        Ensures that unregistering something and then recreating it with another name on "another computer" will yield
         the new name.
         """
 

@@ -822,7 +822,8 @@ class PathCache(object):
         """
         Saves into the db the last event processed from Shotgun.
 
-        :param :class:`sqlite3.Cursor` cursor: Database cursor.
+        :param cursor: Database cursor.
+        :type cursor: :class:`sqlite3.Cursor`
         :param int event_log_id: New last event log
         """
         log.debug("Inserting path cache marker %s in the sqlite db" % event_log_id)
@@ -928,6 +929,13 @@ class PathCache(object):
             return None
 
     def __remove_filesystem_location_entities(self, cursor, folder_ids):
+        """
+        Removes all the requested filesystem locations from the path cache.
+
+        :param cursor: Database cursor.
+        :type cursor: :class:`sqlite3.Cursor`
+        :param list folder_ids: List of folder ids to remove from the path cache.
+        """
 
         # For every folder id, find the associated path cache id.
         path_cache_ids = cursor.execute(
