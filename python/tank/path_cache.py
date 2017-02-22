@@ -369,7 +369,6 @@ class PathCache(object):
                 log.debug("No sync information in the event log. Falling back on a full sync.")
                 return self._do_full_sync(c)
                 
-            
             elif response[0]["id"] != event_log_id:
                 # there is either no event log data at all or a gap
                 # in the event log. Assume that some culling has occured and
@@ -386,18 +385,18 @@ class PathCache(object):
                 # nothing has changed since the last sync
                 log.debug("Path cache syncing not necessary - local folders already up to date!")
                 return []
-            
+
             elif num_deletions > 0:
                 # some stuff was deleted. fall back on full sync
                 log.debug("Deletions detected, doing full sync")
                 return self._do_full_sync(c)
-            
+
             elif num_creations > 0:
-                # we have a complete trail of increments. 
+                # we have a complete trail of increments.
                 # note that we skip the current entity.
                 log.debug("Full event log history traced. Running incremental sync.")
                 return self._do_incremental_sync(c, response[1:])
-            
+
             else:
                 # should never be here
                 raise Exception("Unknown error - please contact support.")
@@ -634,61 +633,87 @@ class PathCache(object):
     def _do_incremental_sync(self, cursor, sg_data):
         """
         Ensure the local path cache is in sync with Shotgun.
-        
+
         Patch the existing cache with the events passed via sg_data.
-        
+
         Assumptions:
         - sg_data list always contains some entries
         - sg_data list only contains Toolkit_Folders_Create records
-        
-        This is a list of dicts ordered by id from low to high (old to new), 
+
+        This is a list of dicts ordered by id from low to high (old to new),
         each with keys
             - id
             - meta
             - attribute_name
-        
+
         Example of items:
-        {'event_type': 'Toolkit_Folders_Create', 
-         'meta': {'core_api_version': 'HEAD', 
-                  'sg_folder_ids': [123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133]}, 
-         'type': 'EventLogEntry', 
+        {'event_type': 'Toolkit_Folders_Create',
+         'meta': {'core_api_version': 'HEAD',
+                  'sg_folder_ids': [123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133]},
+         'type': 'EventLogEntry',
          'id': 249240}
-        
+
         :param cursor: Sqlite database cursor
         :param sg_data: see details above
         :returns: A list of remote items which were detected, created remotely
-                  and not existing in this path cache. These are returned as a list of 
+                  and not existing in this path cache. These are returned as a list of
                   dictionaries, each containing keys:
                     - entity
                     - metadata
-                    - path 
+                    - path
         """
-        
+
         if len(sg_data) == 0:
             return []
-        
+
         log.debug("Begin replaying FilesystemLocation entities locally...")
-        
+
         # find the max event log id in sg_data. We will store this in the sync db later.
-        max_event_log_id = max( [x["id"] for x in sg_data] )
-        
+        max_event_log_id = max([x["id"] for x in sg_data])
+
         created_folder_ids = []
         for d in sg_data:
             log.debug("Looking at event log entry %s" % d)
             if d["event_type"] == "Toolkit_Folders_Create":
                 # this is a creation request! Replay it on our database
-                created_folder_ids.extend( d["meta"]["sg_folder_ids"] )
+                created_folder_ids.extend(d["meta"]["sg_folder_ids"])
             else:
                 # should never come here
                 raise Exception("Unsupported event type '%s'" % d)
         log.debug("Event log analysis complete.")
-        
+
         log.debug("The following FilesystemLocation ids need replaying: %s" % created_folder_ids)
-        
+
         # run the actual sync - and at the end, inser the event_log_sync data marker
         # into the database to show where to start syncing from next time.
         return self._replay_folder_entities(cursor, max_event_log_id, created_folder_ids)
 
+    def _get_filesystem_location_entites(self, folder_ids):
+
+        if folder_ids:
+            entity_filter = [["id", "in"]]
+            entity_filter[0].extend(folder_ids)
+        else:
+            entity_filter = []
+
+        sg_data = self._tk.shotgun.find(
+            SHOTGUN_ENTITY,
+            entity_filter,
+            [
+                "id",
+                SG_METADATA_FIELD,
+                SG_IS_PRIMARY_FIELD,
+                SG_ENTITY_ID_FIELD,
+                SG_PATH_FIELD,
+                SG_ENTITY_TYPE_FIELD,
+                SG_ENTITY_NAME_FIELD
+            ],
+            [{"field_name": "id", "direction": "asc"}]
+        )
+
+        log.debug("...Retrieved %s records." % len(sg_data))
+
+        return sg_data
 
     def _replay_folder_entities(self, cursor, max_event_log_id, ids=None):
         """
@@ -722,16 +747,7 @@ class PathCache(object):
             log.debug(
                 "Doing a full sync, so getting all the FilesystemLocations for the current project..."
             )
-            sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
-                                  [["project", "is", self._get_project_link()]],
-                                  ["id",
-                                   SG_METADATA_FIELD, 
-                                   SG_IS_PRIMARY_FIELD, 
-                                   SG_ENTITY_ID_FIELD,
-                                   SG_PATH_FIELD,
-                                   SG_ENTITY_TYPE_FIELD, 
-                                   SG_ENTITY_NAME_FIELD],
-                                  [{"field_name": "id", "direction": "asc"},])
+            sg_data = self._get_filesystem_location_entites(ids)
         elif ids == []:
             # incremental sync but with no folders
             log.debug("No folders need to be replayed, won't fetch anything from Shotgun...")
@@ -743,21 +759,7 @@ class PathCache(object):
                 "Doing an incremental sync, so getting FilesystemLocation entries for "
                 "the following ids: %s" % ids
             )
-            
-            id_in_filter = ["id", "in"]
-            id_in_filter.extend(ids)
-            sg_data = self._tk.shotgun.find(SHOTGUN_ENTITY, 
-                                  [id_in_filter],
-                                  ["id",
-                                   SG_METADATA_FIELD, 
-                                   SG_IS_PRIMARY_FIELD, 
-                                   SG_ENTITY_ID_FIELD,
-                                   SG_PATH_FIELD,
-                                   SG_ENTITY_TYPE_FIELD, 
-                                   SG_ENTITY_NAME_FIELD],
-                                  [{"field_name": "id", "direction": "asc"},])
-        
-        log.debug("...Retrieved %s records." % len(sg_data))
+            sg_data = self._get_filesystem_location_entites(ids)
             
         # now start a single transaction in which we do all our work
         if ids is None:
