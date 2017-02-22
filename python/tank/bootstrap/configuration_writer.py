@@ -195,7 +195,7 @@ class ConfigurationWriter(object):
                     core_backup_path = os.path.join(core_backup_root, "%s.%d" % (timestamp, counter))
 
                 log.debug("Moving core %s -> %s" % (core_payload, core_backup_path))
-                guard.rename(core_payload, core_backup_path)
+                guard.move(core_payload, core_backup_path)
                 guard.done()
                 log.debug("Backup complete.")
                 core_backup_path = core_backup_path
