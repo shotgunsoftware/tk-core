@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
+
 import os
 import sys
 import time
@@ -57,8 +59,11 @@ def sync_path_cache(tk, force_full_sync=False):
     pc.synchronize(force_full_sync)
     pc.close()
 
+    # Do not close StringIO here, as on Python 2.5 this will cause some garbage to be printed
+    # when the unit tests are complete. The SteamIO object will be gc'ed anyway, so it shouldn't
+    # be too bad.
+
     log_contents = stream.getvalue()
-    stream.close()
     log.removeHandler(handler)
     return log_contents
 
@@ -740,7 +745,7 @@ class TestConcurrentShotgunSync(TankTestBase):
         while not all_processes_finished:
             time.sleep(0.1)
             sys.stderr.write(".")
-            all_processes_finished = all([not(p.is_alive()) for p in processes])
+            all_processes_finished = all(not(p.is_alive()) for p in processes)
 
         self.assertFalse(self._multiprocess_fail)
 
@@ -842,7 +847,7 @@ class TestConcurrentShotgunSync(TankTestBase):
 
             self.add_to_sg_mock_db([sg_shot, sg_folder, sg_event_log_entry])
 
-            if all([not(p.is_alive()) for p in processes]):
+            if all(not(p.is_alive()) for p in processes):
                 # all procs finished
                 break
 
@@ -856,9 +861,12 @@ class TestConcurrentShotgunSync(TankTestBase):
         self.assertFalse(self._multiprocess_fail)
 
 
-class TestPathCacheDelete(TestPathCache):
+class TestPathCacheDelete(TankTestBase):
 
     def setUp(self):
+        """
+        Creates a bunch of entities in Mockgun and adds an entry to the FilesystemLocation.
+        """
         super(TestPathCacheDelete, self).setUp()
 
         # Create a bunch of entities for unit testing.
@@ -872,43 +880,52 @@ class TestPathCacheDelete(TestPathCache):
         self._asset_entity["name"] = "MyAsset"
         self._asset_full_path = os.path.join(self.project_root, "asset")
 
-        # Prevent logging to the console during unit tests.
-        self._unregister_folder_command = self.tk.get_command("unregister_folders")
-        self._unregister_folder_command.set_logger(log)
+        self._pc = path_cache.PathCache(self.tk)
 
         # Register the asset. This will be our sentinel to make sure we are not deleting too much stuff during
         # the tests.
-        add_item_to_cache(self.path_cache, self._asset_entity, self._asset_full_path)
+        add_item_to_cache(self._pc, self._asset_entity, self._asset_full_path)
 
     def tearDown(self):
+        """
+        Ensures our sentinel is still present.
+        """
         # Ensure nothing has messed with our asset.
-        paths = self.path_cache.get_paths(self._asset_entity["type"], self._asset_entity["id"], primary_only=True)
+        paths = self._pc.get_paths(self._asset_entity["type"], self._asset_entity["id"], primary_only=True)
         self.assertEqual(len(paths), 1)
         super(TestPathCacheDelete, self).tearDown()
+
+    @contextlib.contextmanager
+    def mock_remote_path_cache(self):
+        """
+        Mocks a remote path cache that can be updated.
+        """
+        # Override the SHOTGUN_HOME so that path cache is read from another location.
+        with temp_env_var(SHOTGUN_HOME=os.path.join(self.tank_temp, "other_path_cache_root")):
+            yield path_cache.PathCache(self.tk)
 
     def test_simple_delete_by_paths(self):
         """
         Register and then unregister a folder for a shot.
         """
-        add_item_to_cache(self.path_cache, self._shot_entity, self._shot_full_path)
-        paths = self.path_cache.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        add_item_to_cache(self._pc, self._shot_entity, self._shot_full_path)
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
         self.assertEqual(len(paths), 1)
 
         self._remove_filesystem_locations_by_paths(paths)
 
-        self.path_cache.synchronize()
-        paths = self.path_cache.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self._pc.synchronize()
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
         self.assertEqual(len(paths), 0)
 
-    @contextlib.contextmanager
-    def other_path_cache_instance(self):
-        with temp_env_var(SHOTGUN_HOME=os.path.join(self.tank_temp, "other_path_cache_root")):
-            yield path_cache.PathCache(self.tk)
-
     def test_create_then_delete_then_recreate(self):
+        """
+        Ensures that unregisterering something and then recreating it with another name on "another computer" will yield
+        the new name.
+        """
 
-        add_item_to_cache(self.path_cache, self._shot_entity, self._shot_full_path)
-        paths = self.path_cache.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        add_item_to_cache(self._pc, self._shot_entity, self._shot_full_path)
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
         self.assertEqual(len(paths), 1)
 
         # Remove these paths from Shotgun.
@@ -916,19 +933,22 @@ class TestPathCacheDelete(TestPathCache):
 
         new_shot_path = os.path.join(self.project_root, "new_shot")
 
-        # Update Shotgun with new entries.
-        with self.other_path_cache_instance() as pc:
+        # Let's pretend another computer created entries in Shotgun.
+        with self.mock_remote_path_cache() as pc:
             add_item_to_cache(pc, self._shot_entity, new_shot_path)
 
-        self.path_cache.synchronize()
+        # Now lets sync back those entries.
+        self._pc.synchronize()
 
-        paths = self.path_cache.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
         self.assertEqual(len(paths), 1)
         self.assertEqual(paths[0], new_shot_path)
 
     def _remove_filesystem_locations_by_paths(self, paths):
         """
-        Removes the given paths from the path cache.
+        Removes the FilesystemLocations entities from Shotgun associated with a given set of paths.
+
+        :param list paths: Paths that need to be unregistered.
         """
-        path_ids = [self.path_cache.get_shotgun_id_from_path(p) for p in paths]
-        self.path_cache.remove_filesystem_location_entries(self.tk, path_ids)
+        path_ids = [self._pc.get_shotgun_id_from_path(p) for p in paths]
+        self._pc.remove_filesystem_location_entries(self.tk, path_ids)
