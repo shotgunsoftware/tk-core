@@ -14,11 +14,12 @@ import time
 import Queue
 import StringIO
 import shutil
+import contextlib
 import logging
 
 from mock import Mock
 
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import TankTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
 
 from tank import path_cache
@@ -331,7 +332,7 @@ class Test_SeperateRoots(TestPathCache):
         relative_path = os.path.join("Some", "Path")
         full_path = os.path.join(self.project_root.swapcase(), relative_path)
 
-        root_name, relative_result = self.path_cache._separate_root(self.path_cache._roots, full_path)
+        root_name, relative_result = self.path_cache._separate_root(full_path)
         self.assertEquals("primary", root_name)
         # returns relative path starting with seperator
         self.assertEquals(os.sep + relative_path, relative_result)
@@ -855,7 +856,7 @@ class TestConcurrentShotgunSync(TankTestBase):
         self.assertFalse(self._multiprocess_fail)
 
 
-class TestPathCacheDelete(TankTestBase):
+class TestPathCacheDelete(TestPathCache):
 
     def setUp(self):
         super(TestPathCacheDelete, self).setUp()
@@ -875,42 +876,39 @@ class TestPathCacheDelete(TankTestBase):
         self._unregister_folder_command = self.tk.get_command("unregister_folders")
         self._unregister_folder_command.set_logger(log)
 
-        self._pc = path_cache.PathCache(self.tk)
-        self._pc.synchronize()
-        self._pc._do_full_sync = Mock()
-
         # Register the asset. This will be our sentinel to make sure we are not deleting too much stuff during
         # the tests.
-        add_item_to_cache(self._pc, self._asset_entity, self._asset_full_path)
+        add_item_to_cache(self.path_cache, self._asset_entity, self._asset_full_path)
 
     def tearDown(self):
-        super(TestPathCacheDelete, self).setUp()
-
         # Ensure nothing has messed with our asset.
-        paths = self._pc.get_paths(self._asset_entity["type"], self._asset_entity["id"], primary_only=True)
+        paths = self.path_cache.get_paths(self._asset_entity["type"], self._asset_entity["id"], primary_only=True)
         self.assertEqual(len(paths), 1)
-
-        # Ensure no full sync has taken place.
-        self.assertEqual(self._pc._do_full_sync.called, False)
+        super(TestPathCacheDelete, self).tearDown()
 
     def test_simple_delete_by_paths(self):
         """
         Register and then unregister a folder for a shot.
         """
-        add_item_to_cache(self._pc, self._shot_entity, self._shot_full_path)
-        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        add_item_to_cache(self.path_cache, self._shot_entity, self._shot_full_path)
+        paths = self.path_cache.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
         self.assertEqual(len(paths), 1)
 
         self._remove_filesystem_locations_by_paths(paths)
 
-        self._pc.synchronize()
-        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.path_cache.synchronize()
+        paths = self.path_cache.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
         self.assertEqual(len(paths), 0)
+
+    @contextlib.contextmanager
+    def other_path_cache_instance(self):
+        with temp_env_var(SHOTGUN_HOME=os.path.join(self.tank_temp, "other_path_cache_root")):
+            yield path_cache.PathCache(self.tk)
 
     def test_create_then_delete_then_recreate(self):
 
-        add_item_to_cache(self._pc, self._shot_entity, self._shot_full_path)
-        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        add_item_to_cache(self.path_cache, self._shot_entity, self._shot_full_path)
+        paths = self.path_cache.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
         self.assertEqual(len(paths), 1)
 
         # Remove these paths from Shotgun.
@@ -919,22 +917,12 @@ class TestPathCacheDelete(TankTestBase):
         new_shot_path = os.path.join(self.project_root, "new_shot")
 
         # Update Shotgun with new entries.
-        self._pc.add_filesystem_location_entries(
-            self.tk,
-            self._project_link,
-            [{
-                "entity": self._shot_entity,
-                "primary": True,
-                "path": new_shot_path,
-                "metadata": {},
+        with self.other_path_cache_instance() as pc:
+            add_item_to_cache(pc, self._shot_entity, new_shot_path)
 
-            }],
-            "This is generated from the unit tests."
-        )
+        self.path_cache.synchronize()
 
-        self._pc.synchronize()
-
-        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        paths = self.path_cache.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
         self.assertEqual(len(paths), 1)
         self.assertEqual(paths[0], new_shot_path)
 
@@ -942,5 +930,5 @@ class TestPathCacheDelete(TankTestBase):
         """
         Removes the given paths from the path cache.
         """
-        path_ids = [self._pc.get_shotgun_id_from_path(p) for p in paths]
-        self._pc.remove_filesystem_location_entries(self.tk, path_ids)
+        path_ids = [self.path_cache.get_shotgun_id_from_path(p) for p in paths]
+        self.path_cache.remove_filesystem_location_entries(self.tk, path_ids)
