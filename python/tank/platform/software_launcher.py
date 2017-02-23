@@ -20,6 +20,7 @@ import pprint
 from ..errors import TankError
 from ..log import LogManager
 from ..util.loader import load_plugin
+from ..util.version import is_version_older
 
 from . import constants
 from . import validation
@@ -81,20 +82,18 @@ def create_engine_launcher(tk, context, engine_name):
 class SoftwareLauncher(object):
     """
     Functionality related to the discovery and launch of a DCC. This class
-    should only be constructed through the 'create_engine_launcher()'
-    public factory method above.
+    should only be constructed through the :meth:`create_engine_launcher()`
+    factory method.
     """
     def __init__(self, tk, context, engine_name, env):
         """
-        Constructor.
-
         :param tk: :class:`~sgtk.Sgtk` Toolkit instance
         :param context: :class:`~sgtk.Context` A context object to
                         define the context on disk where the engine
                         is operating
         :param str engine_name: Name of the Toolkit engine associated
                                 with the DCC(s) to launch.
-        :param env: An sgtk.platform.environment.Environment object to
+        :param env: An :class:`~sgtk.platform.environment.Environment` object to
                     associate with this launcher.
         """
         # get the engine settings
@@ -130,6 +129,7 @@ class SoftwareLauncher(object):
         self.__engine_settings = settings
         self.__engine_descriptor = descriptor
         self.__engine_name = engine_name
+        self.__minimum_supported_version = None
 
     ##########################################################################################
     # properties
@@ -217,7 +217,7 @@ class SoftwareLauncher(object):
         Standard python logger for this engine, app or framework.
         Use this whenever you want to emit or process log messages.
 
-        :returns: logging.Logger instance
+        :returns: :class:`logging.Logger` instance
         """
         return LogManager.get_logger("env.%s.%s.startup" %
             (self.__environment.name, self.__engine_name)
@@ -233,6 +233,21 @@ class SoftwareLauncher(object):
         :returns: Shotgun API handle
         """
         return self.sgtk.shotgun
+
+    def _get_minimum_supported_version(self):
+        """
+        The minimum software version that is supported by the launcher.
+        Returned as a string, for example "2015" or "2015.3.sp3".
+        Returns ``None`` if no constraint has been set.
+        Also see related method :meth:`~is_version_supported`.
+        """
+        return self.__minimum_supported_version
+
+    def _set_minimum_supported_version(self, version):
+        # setter for minimum_supported_version
+        self.__minimum_supported_version = version
+
+    minimum_supported_version = property(_get_minimum_supported_version, _set_minimum_supported_version)
 
 
     ##########################################################################################
@@ -326,6 +341,24 @@ class SoftwareLauncher(object):
         self.logger.debug("Returning Plugin Environment: \n%s" % pprint.pformat(env))
 
         return env
+
+    def is_version_supported(self, version):
+        """
+        Compares the given version string with the :meth:`~minimum_supported_version`
+        and returns a boolean to indicate whether it is supported by the launcher
+        or not.
+
+        :param str version: Version string to test, e.g. "2015" or "2017.3.sp4"
+        :returns: True if supported, False otherwise.
+        """
+        if self.minimum_supported_version is None:
+            return True
+
+        if is_version_older(version, self.minimum_supported_version):
+            return False
+        else:
+            return True
+
 
 
 class SoftwareVersion(object):
