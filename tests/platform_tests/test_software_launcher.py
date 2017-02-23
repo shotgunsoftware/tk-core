@@ -26,21 +26,32 @@ class TestEngineLauncher(TankTestBase):
         self.setup_fixtures()
 
         # setup shot
-        seq = {"type":"Sequence", "name":"seq_name", "id":3}
+        seq = {"type": "Sequence", "name": "seq_name", "id": 3}
         seq_path = os.path.join(self.project_root, "sequences/Seq")
         self.add_production_path(seq_path, seq)
 
-        shot = {"type":"Shot", "name": "shot_name", "id":2,
-                "project": self.project}
+        self.shot = {"type": "Shot", "name": "shot_name", "id": 2, "project": self.project}
         shot_path = os.path.join(seq_path, "shot_code")
-        self.add_production_path(shot_path, shot)
+        self.add_production_path(shot_path, self.shot)
 
-        step = {"type":"Step", "name":"step_name", "id":4}
+        self.step = {"type": "Step", "name": "step_name", "id": 4}
         self.shot_step_path = os.path.join(shot_path, "step_name")
-        self.add_production_path(self.shot_step_path, step)
+        self.add_production_path(self.shot_step_path, self.step)
 
         self.context = self.tk.context_from_path(self.shot_step_path)
         self.engine_name = "test_engine"
+
+        self.task = {"type": "Task",
+                     "id": 23,
+                     "entity": self.shot,
+                     "step": self.step,
+                     "project": self.project}
+
+        entities = [self.task]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
 
     def test_create_launcher(self):
         """
@@ -90,6 +101,27 @@ class TestEngineLauncher(TankTestBase):
             self.assertIsInstance(swv, SoftwareVersion)
             self.assertEqual(swv.version, scan_versions[i])
 
+    def get_standard_plugin_environment(self):
+
+        for entity in [self.shot, self.project, self.task]:
+
+            ctx = self.tk.context_from_entity(entity["type"], entity["id"])
+            launcher = create_engine_launcher(self.tk, ctx, self.engine_name)
+            env = launcher.get_standard_plugin_environment()
+            self.assertEqual(env["SHOTGUN_PIPELINE_CONFIGURATION_ID"], "123")
+            self.assertEqual(env["SHOTGUN_SITE"], "http://unit_test_mock_sg")
+            self.assertEqual(env["SHOTGUN_ENTITY_TYPE"], entity["type"])
+            self.assertEqual(env["SHOTGUN_ENTITY_ID"], str(entity["id"]))
+
+    def get_standard_plugin_environment_empty(self):
+
+        ctx = self.tk.context_empty()
+        launcher = create_engine_launcher(self.tk, ctx, self.engine_name)
+        env = launcher.get_standard_plugin_environment()
+        self.assertEqual(env["SHOTGUN_PIPELINE_CONFIGURATION_ID"], "123")
+        self.assertEqual(env["SHOTGUN_SITE"], "http://unit_test_mock_sg")
+        self.assertTrue("SHOTGUN_ENTITY_TYPE" not in env)
+        self.assertTrue("SHOTGUN_ENTITY_ID" not in env)
 
     def test_launcher_prepare_launch(self):
         prep_path = "/some/path/to/an/executable"

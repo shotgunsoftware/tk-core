@@ -312,20 +312,8 @@ class SoftwareLauncher(object):
         else:
             self.logger.debug("Unmanaged config. Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID.")
 
-        # context
-        entity_dict = None
-
-        # see if there is a project
-        if self.context.project:
-            entity_dict = self.context.project
-
-        # if there is an entity then that takes precedence
-        if self.context.entity:
-            entity_dict = self.context.entity
-
-        # and if there is a Task that is even better
-        if self.context.task:
-            entity_dict = self.context.task
+        # get the most accurate entity, first see if there is a task, then entity then project
+        entity_dict = self.context.task or self.context.entity or self.context.project
 
         if entity_dict:
             env["SHOTGUN_ENTITY_TYPE"] = entity_dict["type"]
