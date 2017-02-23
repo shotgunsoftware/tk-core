@@ -11,6 +11,7 @@
 import os
 
 from tank_test.tank_test_base import *
+from mock import PropertyMock, patch
 import tank
 
 from tank.platform import create_engine_launcher
@@ -126,30 +127,37 @@ class TestEngineLauncher(TankTestBase):
     def test_minimum_version(self):
 
         launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
+
         # if no version has been set, anything goes
         self.assertEqual(launcher.is_version_supported("foo"), True)
         self.assertEqual(launcher.is_version_supported("v1204"), True)
 
         self.assertEqual(launcher.minimum_supported_version, None)
 
-        launcher.minimum_supported_version = "2017.2"
-        self.assertEqual(launcher.minimum_supported_version, "2017.2")
-        self.assertEqual(launcher.is_version_supported("2017"), False)
-        self.assertEqual(launcher.is_version_supported("2017.2"), True)
-        self.assertEqual(launcher.is_version_supported("2017.2.sp1"), True)
-        self.assertEqual(launcher.is_version_supported("2017.2sp1"), True)
-        self.assertEqual(launcher.is_version_supported("2017.3"), True)
-        self.assertEqual(launcher.is_version_supported("2018"), True)
-        self.assertEqual(launcher.is_version_supported("2018.1"), True)
+        # mock the property
+        min_version_method = "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
+        with patch(min_version_method, new_callable=PropertyMock) as min_version_mock:
 
-        launcher.minimum_supported_version = "2017.2sp1"
-        self.assertEqual(launcher.minimum_supported_version, "2017.2sp1")
-        self.assertEqual(launcher.is_version_supported("2017"), False)
-        self.assertEqual(launcher.is_version_supported("2017.2"), False)
-        self.assertEqual(launcher.is_version_supported("2017.2sp1"), True)
-        self.assertEqual(launcher.is_version_supported("2017.3"), True)
-        self.assertEqual(launcher.is_version_supported("2018"), True)
-        self.assertEqual(launcher.is_version_supported("2018.1"), True)
+            min_version_mock.return_value = "2017.2"
+
+            self.assertEqual(launcher.minimum_supported_version, "2017.2")
+            self.assertEqual(launcher.is_version_supported("2017"), False)
+            self.assertEqual(launcher.is_version_supported("2017.2"), True)
+            self.assertEqual(launcher.is_version_supported("2017.2.sp1"), True)
+            self.assertEqual(launcher.is_version_supported("2017.2sp1"), True)
+            self.assertEqual(launcher.is_version_supported("2017.3"), True)
+            self.assertEqual(launcher.is_version_supported("2018"), True)
+            self.assertEqual(launcher.is_version_supported("2018.1"), True)
+
+            min_version_mock.return_value = "2017.2sp1"
+
+            self.assertEqual(launcher.minimum_supported_version, "2017.2sp1")
+            self.assertEqual(launcher.is_version_supported("2017"), False)
+            self.assertEqual(launcher.is_version_supported("2017.2"), False)
+            self.assertEqual(launcher.is_version_supported("2017.2sp1"), True)
+            self.assertEqual(launcher.is_version_supported("2017.3"), True)
+            self.assertEqual(launcher.is_version_supported("2018"), True)
+            self.assertEqual(launcher.is_version_supported("2018.1"), True)
 
 
     def test_launcher_prepare_launch(self):
