@@ -386,7 +386,7 @@ class PathCache(object):
                 # nothing has changed since the last sync
                 log.debug("Path cache syncing not necessary - local folders already up to date!")
                 return []
-            elif num_creations > 0 and num_deletions > 0:
+            elif num_creations > 0 or num_deletions > 0:
                 # we have a complete trail of increments.
                 # note that we skip the current entity.
                 log.debug("Full event log history traced. Running incremental sync.")
@@ -713,6 +713,21 @@ class PathCache(object):
         return new_items
 
     def _get_filesystem_location_entites(self, folder_ids):
+        """
+        Retrieves filesystem location entities from Shotgun.
+
+        :param list folder_ids: List of ids of entities to retrieve. If None, every entry is returned.
+
+        :returns: List of FilesystemLocation entity dictionaries with keys:
+            - id
+            - type
+            - configuration_metadata
+            - is_primary
+            - linked_entity_id
+            - path
+            - linked_entity_type
+            - code
+        """
 
         if folder_ids:
             entity_filter = [["id", "in"]]
@@ -739,68 +754,45 @@ class PathCache(object):
 
         return sg_data
 
-    def _replay_folder_entities(self, cursor, max_event_log_id, ids=None):
+    def _replay_folder_entities(self, cursor, max_event_log_id):
         """
-        Does the actual download from shotgun and pushes those changes
-        to the path cache. If ids is None, this indicates a full sync, and 
-        the path cache db table is cleared first. If not, the table
-        is appended to.
-        
+        Downloads all the filesystem location entities from Shotgun and repopulates the
+        path cache with them.
+
         Lastly, this method updates the event_log_sync marker in the sqlite database
         that tracks what the most recent event log id was being synced.
 
         :param cursor: Sqlite database cursor
         :param max_event_log_id: max event log marker to write to the path
                                  cache database after a full operation.
-        :param ids: List of FilesystemLocation ids to replay. If set to None,
-                    a full sync will take place.
         :returns: A list of remote items which were detected, created remotely
-                  and not existing in this path cache. These are returned as a list of 
+                  and not existing in this path cache. These are returned as a list of
                   dictionaries, each containing keys:
                     - entity
-                    - metadata 
+                    - metadata
                     - path
-        
+
         """
         log.debug("Fetching already registered folders from Shotgun...")
-        
+
         sg_data = []
-        
-        if ids is None:
-            # get all folder data from shotgun
-            log.debug(
-                "Doing a full sync, so getting all the FilesystemLocations for the current project..."
-            )
-            sg_data = self._get_filesystem_location_entites(ids)
-        elif ids == []:
-            # incremental sync but with no folders
-            log.debug("No folders need to be replayed, won't fetch anything from Shotgun...")
-        
-        else:
-            # get the ids that are missing from shotgun
-            # need to use this weird special filter syntax
-            log.debug(
-                "Doing an incremental sync, so getting FilesystemLocation entries for "
-                "the following ids: %s" % ids
-            )
-            sg_data = self._get_filesystem_location_entites(ids)
-            
-        # now start a single transaction in which we do all our work
-        if ids is None:
-            # complete sync - clear our tables first
-            log.debug("Full sync - clearing local sqlite path cache tables...")
-            cursor.execute("DELETE FROM event_log_sync")
-            cursor.execute("DELETE FROM shotgun_status")
-            cursor.execute("DELETE FROM path_cache")
-            
+
+        sg_data = self._get_filesystem_location_entites(None)
+
+        # complete sync - clear our tables first
+        log.debug("Full sync - clearing local sqlite path cache tables...")
+        cursor.execute("DELETE FROM event_log_sync")
+        cursor.execute("DELETE FROM shotgun_status")
+        cursor.execute("DELETE FROM path_cache")
+
         return_data = []
-            
+
         for x in sg_data:
             imported_data = self._import_filesystem_location_entry(cursor, x)
             if imported_data:
                 return_data.append(imported_data)
 
-        # lastly, id of this event log entry for purpose of future syncing
+        # lastly, save the id of this event log entry for purpose of future syncing
         # note - we don't maintain a list of event log entries but just a single
         # value in the db, so start by clearing the table.
 
@@ -823,6 +815,21 @@ class PathCache(object):
         cursor.execute("INSERT INTO event_log_sync(last_id) VALUES(?)", (event_log_id, ))
 
     def _import_filesystem_location_entry(self, cursor, fsl_entity):
+        """
+        Imports a single filesystem location into the path cache.
+
+        :param cursor: Database cursor.
+        :type :class:`sqlite3.Cursor`
+        :param dict fsl_entry: Filesystem location entity dictionary with keys:
+            - id
+            - type
+            - configuration_metadata
+            - is_primary
+            - linked_entity_id
+            - path
+            - linked_entity_type
+            - code
+        """
 
         log.debug("Processing Toolkit_Folders_Create event for folder entity %s", pprint.pformat(fsl_entity))
 
