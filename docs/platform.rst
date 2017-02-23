@@ -932,9 +932,10 @@ from the environment is registered with the DCC. For plugin mode, values for req
 variables are set and a startup script to load the plugin(s) is registered with the DCC. Which mode
 to use at runtime is controlled by the ``launch_builtin_plugin`` engine configuration setting. If
 the resolved setting value is None or empty, Classic mode is invoked. Otherwise, the comma-separated
-list of plugins will be loaded. For either case, the prepare_launch method must assure the paths
-to ``sgtk`` and any startup files are specified in the ``PYTHONPATH`` environment variable. It is
-also considered good practice to account for the name of a file to open on launch (e.g. SGTK_FILE_TO_OPEN).
+list of plugins will be loaded. For either case, the :meth:`~SoftwareLauncher.prepare_launch` method
+must assure the paths to ``sgtk`` and any startup files are specified in the ``PYTHONPATH`` environment
+variable. It is also considered good practice to account for the name of a file to open on launch in 
+the environment (e.g. SGTK_FILE_TO_OPEN).
 
 .. note:: When setting an environment variable containing the current context value, be sure to use a serialized version of the context to encode login information in the shell.
 
@@ -948,7 +949,8 @@ To put this into practice, here is ``tk-maya``'s implementation of prepare_launc
         def prepare_launch(self, exec_path, args, file_to_open=None):
             required_env = {}
 
-            # Run the engine's userSetup.py file when Maya starts up by appending it to the env PYTHONPATH.
+            # Run the engine's userSetup.py file when Maya starts up by appending
+            # it to the env PYTHONPATH.
             startup_path = os.path.join(self.disk_location, "startup")
             sgtk.util.append_path_to_env_var("PYTHONPATH", startup_path)
             required_env["PYTHONPATH"] = os.environ["PYTHONPATH"]
@@ -959,8 +961,8 @@ To put this into practice, here is ``tk-maya``'s implementation of prepare_launc
                 # Parse the specified comma-separated list of plugins
                 find_plugins = [p.strip() for p in load_plugins.split(",") if p.strip()]
 
-                # Keep track of the specific list of Toolkit plugins to load when launching Maya. This
-                # list is passed through the environment and used by the startup/userSetup.py file.
+                # Keep track of the specific list of Toolkit plugins to load when launching Maya.
+                # This list is passed through the environment and used by the startup/userSetup.py file.
                 load_maya_plugins = []
 
                 # Add Toolkit plugins to load to the MAYA_MODULE_PATH environment variable so the 
@@ -991,7 +993,8 @@ To put this into practice, here is ``tk-maya``'s implementation of prepare_launc
                 required_env["SHOTGUN_ENTITY_TYPE"] = entity_type
                 required_env["SHOTGUN_ENTITY_ID"] = str(entity_id)
             else:
-                # Prepare the launch environment with variables required by the classic bootstrap approach.
+                # Prepare the launch environment with variables required by the
+                # classic bootstrap approach.
                 required_env["SGTK_ENGINE"] = self.engine_name
                 required_env["SGTK_CONTEXT"] = sgtk.context.serialize(self.context)
 
@@ -999,6 +1002,8 @@ To put this into practice, here is ``tk-maya``'s implementation of prepare_launc
                 # Add the file name to open to the launch environment
                 required_env["SGTK_FILE_TO_OPEN"] = file_to_open
 
+            # Always return the required information to launch the DCC successfully as a
+            # LaunchInformation instance
             return LaunchInformation(exec_path, args, required_env)
 
 
@@ -1007,7 +1012,7 @@ Configuration Using the Software Entity in Shotgun
 
 Software entities are used to specify and configure locally installed DCC applications that are 
 launchable from Toolkit and/or Shotgun for a user on the site. They are readable by all users, but
-writeable only by admins. The ``tk-multi-launchapp`` Toolkit application (installed by default with
+only writeable by admins. The ``tk-multi-launchapp`` Toolkit application (installed by default with
 Desktop and available in the App Store for download) parses the site Software entries to determine
 which launch commands to present in Desktop for a specific Project and user. At minimum, a ``Software Name``
 and ``Engine`` for DCCs that have Toolkit integrations or ``<platform> Path`` for those that do not
