@@ -18,6 +18,7 @@ import os
 import re
 import sys
 import logging
+import pprint
 import traceback
 import inspect
 import weakref
@@ -1018,6 +1019,10 @@ class Engine(TankBundle):
 
             # run the actual payload callback
             return callback(*args, **kwargs)
+
+        self.log_debug(
+            "Registering command '%s' with options:\n%s" % (name, pprint.pformat(properties))
+        )
 
         self.__commands[name] = {
             "callback": callback_wrapper,

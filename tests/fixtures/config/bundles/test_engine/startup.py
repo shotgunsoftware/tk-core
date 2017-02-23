@@ -18,7 +18,7 @@ class TestLauncher(SoftwareLauncher):
     """
     SoftwareLauncher stub for unit testing.
     """
-    def scan_software(self, versions=None, display_name=None, icon=None):
+    def scan_software(self, versions=None):
         """
         Performs a scan for software installations.
 
@@ -27,12 +27,6 @@ class TestLauncher(SoftwareLauncher):
                               for all versions. A version string is
                               DCC-specific but could be something
                               like "2017", "6.3v7" or "1.2.3.52".
-        :param str display_name : (optional) Name to use in graphical
-                                  displays to describe the
-                                  SoftwareVersions that were found.
-        :param icon: (optional) Path to a 256x256 (or smaller) png file
-                     to use in graphical displays for every SoftwareVersion
-                     found.
         :returns: List of :class:`SoftwareVersion` instances
         """
         sw_versions = []
@@ -40,8 +34,8 @@ class TestLauncher(SoftwareLauncher):
             sw_path = "/path/to/unit/test/app/%s/executable"
             sw_icon = "%s/icons/exec.png" % os.path.dirname(sw_path)
             sw_versions.append(SoftwareVersion(
-                version, (display_name or "Unit Test App"),
-                sw_path, (icon or sw_icon),
+                version, "Unit Test App",
+                sw_path, sw_icon,
             ))
         return sw_versions
 

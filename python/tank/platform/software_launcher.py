@@ -15,6 +15,7 @@ should implement.
 
 import os
 import sys
+import pprint
 
 from ..errors import TankError
 from ..log import LogManager
@@ -28,6 +29,7 @@ from .engine import get_env_and_descriptor_for_engine
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
+
 
 def create_engine_launcher(tk, context, engine_name):
     """
@@ -236,20 +238,15 @@ class SoftwareLauncher(object):
     ##########################################################################################
     # abstract methods
 
-    def scan_software(self, versions=None, display_name=None, icon=None):
+    def scan_software(self, versions=None):
         """
         Performs a scan for software installations.
 
         :param list versions: List of strings representing versions
-                              to search for. If set to None, search
+                              to search for. If set to None or [], search
                               for all versions. A version string is
                               DCC-specific but could be something
                               like "2017", "6.3v7" or "1.2.3.52"
-        :param str display_name : (optional) Name to use in graphical
-                                  displays to describe the
-                                  SoftwareVersions that were found.
-        :param icon: (optional) Path to a 256x256 (or smaller) png file
-                     that will represent every SoftwareVersion found.
         :returns: List of :class:`SoftwareVersion` instances
         """
         raise NotImplementedError
@@ -287,6 +284,48 @@ class SoftwareLauncher(object):
         return resolve_setting_value(
             self.sgtk, self.engine_name, schema, self.settings, key, default
         )
+
+    def get_standard_plugin_environment(self):
+        """
+        Create a standard plugin environment, suitable for
+        plugins to utilize. This will compute the following
+        environment variables:
+
+        - ``SHOTGUN_SITE``: The current shotgun site url
+        - ``SHOTGUN_ENTITY_TYPE``: The current context
+        - ``SHOTGUN_ENTITY_ID``: The current context
+        - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: The current pipeline config id
+
+        :returns: dictionary of environment variables
+        """
+        self.logger.debug("Computing standard plugin environment variables...")
+        env = {}
+
+        # site
+        env["SHOTGUN_SITE"] = self.sgtk.shotgun_url
+
+        # pipeline config id
+        # note: get_shotgun_id() returns None for unmanaged configs.
+        pipeline_config_id = self.sgtk.pipeline_configuration.get_shotgun_id()
+        if pipeline_config_id:
+            env["SHOTGUN_PIPELINE_CONFIGURATION_ID"] = str(pipeline_config_id)
+        else:
+            self.logger.debug("Unmanaged config. Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID.")
+
+        # get the most accurate entity, first see if there is a task, then entity then project
+        entity_dict = self.context.task or self.context.entity or self.context.project
+
+        if entity_dict:
+            env["SHOTGUN_ENTITY_TYPE"] = entity_dict["type"]
+            env["SHOTGUN_ENTITY_ID"] = str(entity_dict["id"])
+        else:
+            self.logger.debug(
+                "No context found. Not setting SHOTGUN_ENTITY_TYPE and SHOTGUN_ENTITY_ID."
+            )
+
+        self.logger.debug("Returning Plugin Environment: \n%s" % pprint.pformat(env))
+
+        return env
 
 
 class SoftwareVersion(object):
