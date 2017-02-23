@@ -18,6 +18,7 @@ import collections
 import sqlite3
 import sys
 import os
+import pprint
 
 # use api json to cover py 2.5
 # todo - replace with proper external library  
@@ -385,13 +386,7 @@ class PathCache(object):
                 # nothing has changed since the last sync
                 log.debug("Path cache syncing not necessary - local folders already up to date!")
                 return []
-
-            elif num_deletions > 0:
-                # some stuff was deleted. fall back on full sync
-                log.debug("Deletions detected, doing full sync")
-                return self._do_full_sync(c)
-
-            elif num_creations > 0:
+            elif num_creations > 0 and num_deletions > 0:
                 # we have a complete trail of increments.
                 # note that we skip the current entity.
                 log.debug("Full event log history traced. Running incremental sync.")
@@ -677,9 +672,6 @@ class PathCache(object):
             if d["event_type"] == "Toolkit_Folders_Create":
                 # this is a creation request! Replay it on our database
                 created_folder_ids.extend(d["meta"]["sg_folder_ids"])
-            else:
-                # should never come here
-                raise Exception("Unsupported event type '%s'" % d)
         log.debug("Event log analysis complete.")
 
         # get the ids that are missing from shotgun
@@ -701,7 +693,7 @@ class PathCache(object):
 
             if event["event_type"] == "Toolkit_Folders_Delete":
                 # Remove all the entries associated with that event.
-                self.__remove_filesystem_location_entities(cursor, sg_folder_ids)
+                self._remove_filesystem_location_entities(cursor, sg_folder_ids)
             elif event["event_type"] == "Toolkit_Folders_Create":
                 # For every folder in the create event.
                 for folder_id in sg_folder_ids:
@@ -832,6 +824,8 @@ class PathCache(object):
 
     def _import_filesystem_location_entry(self, cursor, fsl_entity):
 
+        log.debug("Processing Toolkit_Folders_Create event for folder entity %s", pprint.pformat(fsl_entity))
+
         # get entity data from our entry
         entity = {"id": fsl_entity[SG_ENTITY_ID_FIELD],
                   "name": fsl_entity[SG_ENTITY_NAME_FIELD],
@@ -928,7 +922,7 @@ class PathCache(object):
             log.debug("Found existing record for '%s', %s. Skipping." % (local_os_path, entity))
             return None
 
-    def __remove_filesystem_location_entities(self, cursor, folder_ids):
+    def _remove_filesystem_location_entities(self, cursor, folder_ids):
         """
         Removes all the requested filesystem locations from the path cache.
 
@@ -936,6 +930,8 @@ class PathCache(object):
         :type cursor: :class:`sqlite3.Cursor`
         :param list folder_ids: List of folder ids to remove from the path cache.
         """
+
+        log.debug("Processing Toolkit_Folders_Delete event for folder ids %s", folder_ids)
 
         # For every folder id, find the associated path cache id.
         path_cache_ids = cursor.execute(
@@ -945,6 +941,22 @@ class PathCache(object):
 
         # Flatten the list of one element tuples into a list of ids.
         path_cache_ids = [path_cache_id[0] for path_cache_id in path_cache_ids]
+
+        # Consider the following sequence
+        # - Add 1
+        # - Remove 1
+        # - Add 2
+        #
+        # The final result is that only add 2 will be in the path cache.
+        #
+        # While incrementally updating the path cache, entry 1 will never be added to the path cache
+        # because it doesn't exist in Shotgun anymore. Because of this, _import_filesystem_location_entry
+        # will skip importing entry 1 because it isn't in the result final set of entities. When this 
+        # happens, it means that it also can't be removed from the path cache. As such, shotgun_status
+        # will not report any mapping between the path cache and the Shotgun filesystem location
+        # entity.
+        if not path_cache_ids:
+            return
 
         # Delete all the path cache entries associated with the file system locations.
         cursor.execute(
