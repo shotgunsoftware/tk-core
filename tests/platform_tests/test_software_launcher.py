@@ -11,6 +11,7 @@
 import os
 
 from tank_test.tank_test_base import *
+from mock import PropertyMock, patch
 import tank
 
 from tank.platform import create_engine_launcher
@@ -101,7 +102,7 @@ class TestEngineLauncher(TankTestBase):
             self.assertIsInstance(swv, SoftwareVersion)
             self.assertEqual(swv.version, scan_versions[i])
 
-    def get_standard_plugin_environment(self):
+    def test_get_standard_plugin_environment(self):
 
         for entity in [self.shot, self.project, self.task]:
 
@@ -113,7 +114,7 @@ class TestEngineLauncher(TankTestBase):
             self.assertEqual(env["SHOTGUN_ENTITY_TYPE"], entity["type"])
             self.assertEqual(env["SHOTGUN_ENTITY_ID"], str(entity["id"]))
 
-    def get_standard_plugin_environment_empty(self):
+    def test_get_standard_plugin_environment_empty(self):
 
         ctx = self.tk.context_empty()
         launcher = create_engine_launcher(self.tk, ctx, self.engine_name)
@@ -122,6 +123,42 @@ class TestEngineLauncher(TankTestBase):
         self.assertEqual(env["SHOTGUN_SITE"], "http://unit_test_mock_sg")
         self.assertTrue("SHOTGUN_ENTITY_TYPE" not in env)
         self.assertTrue("SHOTGUN_ENTITY_ID" not in env)
+
+    def test_minimum_version(self):
+
+        launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
+
+        # if no version has been set, anything goes
+        self.assertEqual(launcher.is_version_supported("foo"), True)
+        self.assertEqual(launcher.is_version_supported("v1204"), True)
+
+        self.assertEqual(launcher.minimum_supported_version, None)
+
+        # mock the property
+        min_version_method = "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
+        with patch(min_version_method, new_callable=PropertyMock) as min_version_mock:
+
+            min_version_mock.return_value = "2017.2"
+
+            self.assertEqual(launcher.minimum_supported_version, "2017.2")
+            self.assertEqual(launcher.is_version_supported("2017"), False)
+            self.assertEqual(launcher.is_version_supported("2017.2"), True)
+            self.assertEqual(launcher.is_version_supported("2017.2.sp1"), True)
+            self.assertEqual(launcher.is_version_supported("2017.2sp1"), True)
+            self.assertEqual(launcher.is_version_supported("2017.3"), True)
+            self.assertEqual(launcher.is_version_supported("2018"), True)
+            self.assertEqual(launcher.is_version_supported("2018.1"), True)
+
+            min_version_mock.return_value = "2017.2sp1"
+
+            self.assertEqual(launcher.minimum_supported_version, "2017.2sp1")
+            self.assertEqual(launcher.is_version_supported("2017"), False)
+            self.assertEqual(launcher.is_version_supported("2017.2"), False)
+            self.assertEqual(launcher.is_version_supported("2017.2sp1"), True)
+            self.assertEqual(launcher.is_version_supported("2017.3"), True)
+            self.assertEqual(launcher.is_version_supported("2018"), True)
+            self.assertEqual(launcher.is_version_supported("2018.1"), True)
+
 
     def test_launcher_prepare_launch(self):
         prep_path = "/some/path/to/an/executable"
