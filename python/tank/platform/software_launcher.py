@@ -129,7 +129,6 @@ class SoftwareLauncher(object):
         self.__engine_settings = settings
         self.__engine_descriptor = descriptor
         self.__engine_name = engine_name
-        self.__minimum_supported_version = None
 
     ##########################################################################################
     # properties
@@ -234,21 +233,16 @@ class SoftwareLauncher(object):
         """
         return self.sgtk.shotgun
 
-    def _get_minimum_supported_version(self):
+    @property
+    def minimum_supported_version(self):
         """
         The minimum software version that is supported by the launcher.
         Returned as a string, for example "2015" or "2015.3.sp3".
         Returns ``None`` if no constraint has been set.
         Also see related method :meth:`~is_version_supported`.
         """
-        return self.__minimum_supported_version
-
-    def _set_minimum_supported_version(self, version):
-        # setter for minimum_supported_version
-        self.__minimum_supported_version = version
-
-    minimum_supported_version = property(_get_minimum_supported_version, _set_minimum_supported_version)
-
+        # returns none by default, subclassed by implementing classes
+        return None
 
     ##########################################################################################
     # abstract methods
