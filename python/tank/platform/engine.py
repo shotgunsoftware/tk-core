@@ -962,15 +962,10 @@ class Engine(TankBundle):
         if "icon" not in properties and self.__currently_initializing_app:
             properties["icon"] = self.__currently_initializing_app.descriptor.icon_256
 
-        print "\n\nEngine.register_command -- "
-        print "     name : ",name
-        print "     properties : ",properties
-
         # check for duplicates!
         if name in self.__commands:
             # already something in the dict with this name
             existing_item = self.__commands[name]
-            print "     existing item : ",existing_item
             if existing_item["properties"].get("app"):
                 # we know the app for the existing item.
                 # so prefix with app name
@@ -978,10 +973,6 @@ class Engine(TankBundle):
                 if existing_item["properties"].get("group"):
                     prefix = "%s:%s" % (prefix, existing_item["properties"]["group"])
                 new_name_for_existing = "%s:%s" % (prefix, name)
-                print "     existing_item['properties'].get('group') : ",existing_item["properties"].get("group")
-                print "     prefix : ",prefix
-                print "     new name for existing : ",new_name_for_existing
-                
                 self.__commands[new_name_for_existing] = existing_item
                 self.__commands[new_name_for_existing]["properties"]["prefix"] = prefix 
                 del(self.__commands[name])
@@ -1030,12 +1021,10 @@ class Engine(TankBundle):
             # run the actual payload callback
             return callback(*args, **kwargs)
 
-        print "     Registering command '%s' properties : %s" % (name, properties)
         self.__commands[name] = {
             "callback": callback_wrapper,
             "properties": properties,
         }
-        print "     -----> Registered commands : %s <------" % self.__commands.keys()
 
 
     def register_panel(self, callback, panel_name="main", properties=None):
