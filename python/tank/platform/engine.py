@@ -908,9 +908,12 @@ class Engine(TankBundle):
 
         - ``group`` - The name for a group this command should be considered a member of.
 
-        - ``group_default`` - Boolean value indicating whether this command should represent the group
-          as a whole. Setting this value to True indicates that this is the command to run and display
-          in applications that show a single representation for any command group.
+        - ``group_default`` - Boolean value indicating whether this command should represent the
+          ``group`` as a whole. Setting this value to ``True`` indicates that this is the command
+          to run and display in engines and/or applications that show a single representation for
+          any command ``group``. Cases where multiple or no ``group_default`` values are specified
+          for a command ``group`` should be handled accordingly by the bundle parsing the
+          registered commands.
 
         Specifically for the Shotgun engine, the following parameters are supported:
 
