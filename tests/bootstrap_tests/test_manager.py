@@ -11,6 +11,7 @@
 from __future__ import with_statement
 
 import sgtk
+import os
 from sgtk.bootstrap import ToolkitManager
 
 from tank_test.tank_test_base import setUpModule # noqa
@@ -32,3 +33,73 @@ class TestErrorHandling(TankTestBase):
                 "Can't enumerate pipeline configurations matching a specific id."
             ):
                 mgr.get_pipeline_configurations(None)
+
+
+
+class TestFunctionality(TankTestBase):
+
+    def test_pipeline_config_id_env_var(self):
+        """
+        Tests the SHOTGUN_PIPELINE_CONFIGURATION_ID being picked up at init
+        """
+        mgr = ToolkitManager()
+        self.assertEqual(mgr.pipeline_configuration, None)
+
+        os.environ["SHOTGUN_PIPELINE_CONFIGURATION_ID"] = "123"
+        try:
+            mgr = ToolkitManager()
+            self.assertEqual(mgr.pipeline_configuration, 123)
+        finally:
+            del os.environ["SHOTGUN_PIPELINE_CONFIGURATION_ID"]
+
+        os.environ["SHOTGUN_PIPELINE_CONFIGURATION_ID"] = "invalid"
+        try:
+            mgr = ToolkitManager()
+            self.assertEqual(mgr.pipeline_configuration, None)
+        finally:
+            del os.environ["SHOTGUN_PIPELINE_CONFIGURATION_ID"]
+
+
+    def test_get_entity_from_environment(self):
+
+        # no env set
+        mgr = ToolkitManager()
+        self.assertEqual(mgr.get_entity_from_environment(), None)
+
+        # std case
+        os.environ["SHOTGUN_ENTITY_TYPE"] = "Shot"
+        os.environ["SHOTGUN_ENTITY_ID"] = "123"
+        try:
+            self.assertEqual(
+                mgr.get_entity_from_environment(),
+                {"type": "Shot", "id": 123}
+            )
+        finally:
+            del os.environ["SHOTGUN_ENTITY_TYPE"]
+            del os.environ["SHOTGUN_ENTITY_ID"]
+
+        # site mismatch
+        os.environ["SHOTGUN_SITE"] = "https://some.other.site"
+        os.environ["SHOTGUN_ENTITY_TYPE"] = "Shot"
+        os.environ["SHOTGUN_ENTITY_ID"] = "123"
+        try:
+            self.assertEqual(
+                mgr.get_entity_from_environment(),
+                None
+            )
+        finally:
+            del os.environ["SHOTGUN_ENTITY_TYPE"]
+            del os.environ["SHOTGUN_ENTITY_ID"]
+            del os.environ["SHOTGUN_SITE"]
+
+        # invalid data case
+        os.environ["SHOTGUN_ENTITY_TYPE"] = "Shot"
+        os.environ["SHOTGUN_ENTITY_ID"] = "invalid"
+        try:
+            self.assertEqual(
+                mgr.get_entity_from_environment(),
+                None
+            )
+        finally:
+            del os.environ["SHOTGUN_ENTITY_TYPE"]
+            del os.environ["SHOTGUN_ENTITY_ID"]
