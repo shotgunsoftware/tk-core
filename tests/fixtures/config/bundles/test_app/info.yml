@@ -97,6 +97,12 @@ configuration:
     test_icon:
         type: config_path
 
+    test_tank_type:
+        type: tank_type
+
+    test_publish_type:
+        type: publish_type
+
     test_simple_dictionary:
         type: dict
         items:

@@ -44,9 +44,11 @@ engines:
         test_icon: foo/bar.png
         test_int: 1
         test_no_schema: 1234.5678
+        test_publish_type: Render Scene
         test_simple_dictionary: {test_int: 1, test_str: a}
         test_simple_list: [a, b, c, d]
         test_str: a
+        test_tank_type: Render Scene Tank
         test_template: maya_publish_name
         test_very_complex_list:
         - test_list:
