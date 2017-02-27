@@ -247,7 +247,7 @@ class SoftwareLauncher(object):
     ##########################################################################################
     # abstract methods
 
-    def scan_software(self, versions=None):
+    def scan_software(self, versions=None, products=None):
         """
         Performs a scan for software installations.
 
@@ -256,6 +256,13 @@ class SoftwareLauncher(object):
                               for all versions. A version string is
                               DCC-specific but could be something
                               like "2017", "6.3v7" or "1.2.3.52"
+
+        :param list products: List of strings representing product names
+                              to search for. If set to None or [], search
+                              for all products. A product string is
+                              DCC-specific but could be something
+                              like "Houdini FX", "Houdini Core" or "Houdini"
+
         :returns: List of :class:`SoftwareVersion` instances
         """
         raise NotImplementedError
@@ -360,12 +367,14 @@ class SoftwareVersion(object):
     Container class that stores properties of a DCC that
     are useful for Toolkit Engine Startup functionality.
     """
-    def __init__(self, version, display_name, path, icon=None):
+    def __init__(self, version, product, display_name, path, icon=None):
         """
         Constructor.
 
         :param str version: Explicit version of the DCC represented
                             (e.g. 2017)
+        :param str version: Explicit product name of the DCC represented
+                            (e.g. Houdini Apprentice)
         :param str display_name: Name to use for any graphical displays
         :param str path: Full path to the DCC executable.
         :param str icon: (optional) Full path to a 256x256 (or smaller)
@@ -373,6 +382,7 @@ class SoftwareVersion(object):
                          this SoftwareVersion.
         """
         self._version = version
+        self._product = product
         self._display_name = display_name
         self._path = path
         self._icon_path = icon
@@ -385,6 +395,16 @@ class SoftwareVersion(object):
         :returns: String version
         """
         return self._version
+
+    @property
+    def product(self):
+        """
+        An explicit product name of the DCC represented by this Software Version.
+
+        :return: String product name
+        """
+
+        return self._product
 
     @property
     def display_name(self):
