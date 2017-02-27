@@ -931,7 +931,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     published_file_type = kwargs.get("published_file_type")
     if not published_file_type:
         # check for legacy name:
-        published_file_type = kwargs.get('tank_type')
+        published_file_type = kwargs.get("tank_type")
     update_entity_thumbnail = kwargs.get("update_entity_thumbnail", False)
     update_task_thumbnail = kwargs.get("update_task_thumbnail", False)
     created_by_user = kwargs.get("created_by")
@@ -1244,7 +1244,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     if published_file_type:
         if published_file_entity_type == "PublishedFile":
             data["published_file_type"] = published_file_type
-        else:# == TankPublishedFile
+        else: # == TankPublishedFile
             data["tank_type"] = published_file_type
 
     if version_entity:

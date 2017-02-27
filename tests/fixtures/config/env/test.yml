@@ -24,6 +24,8 @@ engines:
                 test_bool: true
                 test_template: maya_publish_name
                 test_icon: "foo/bar.png"
+                test_tank_type: Render Scene Tank
+                test_publish_type: Render Scene
 
                 #
 
