@@ -32,15 +32,19 @@ from .engine import get_env_and_descriptor_for_engine
 core_logger = LogManager.get_logger(__name__)
 
 
-def create_engine_launcher(tk, context, engine_name):
+def create_engine_launcher(tk, context, engine_name, versions=None, products=None):
     """
     Factory method that creates a Toolkit engine specific
     SoftwareLauncher instance.
 
     :param tk: :class:`~sgtk.Sgtk` Toolkit instance.
     :param context: :class:`~sgtk.Context` Context to launch the DCC in.
-    :param str engine_name: Name of the Toolkit engine associated with
-                            the DCC(s) to launch.
+    :param str engine_name: Name of the Toolkit engine associated with the
+        DCC(s) to launch.
+    :param list versions: A list of version strings for filtering software
+        versions. See the :class:`SoftwareLauncher` for more info.
+    :param list products: A list of product strings for filtering software
+        versions. See the :class:`SoftwareLauncher` for more info.
     :rtype: :class:`SoftwareLauncher` instance or None.
     """
     # Get the engine environment and descriptor using engine.py code
@@ -72,7 +76,7 @@ def create_engine_launcher(tk, context, engine_name):
 
     core_logger.debug("Loading SoftwareLauncher plugin '%s' ..." % plugin_file)
     class_obj = load_plugin(plugin_file, SoftwareLauncher)
-    launcher = class_obj(tk, context, engine_name, env)
+    launcher = class_obj(tk, context, engine_name, env, versions, products)
     core_logger.debug("Created SoftwareLauncher instance: %s" % launcher)
 
     # Return the SoftwareLauncher instance
@@ -85,16 +89,30 @@ class SoftwareLauncher(object):
     should only be constructed through the :meth:`create_engine_launcher()`
     factory method.
     """
-    def __init__(self, tk, context, engine_name, env):
+    def __init__(self, tk, context, engine_name, env, versions=None, products=None):
         """
         :param tk: :class:`~sgtk.Sgtk` Toolkit instance
-        :param context: :class:`~sgtk.Context` A context object to
-                        define the context on disk where the engine
-                        is operating
+
+        :param context: :class:`~sgtk.Context` A context object to define the
+            context on disk where the engine is operating
+
         :param str engine_name: Name of the Toolkit engine associated
-                                with the DCC(s) to launch.
+            with the DCC(s) to launch.
+
         :param env: An :class:`~sgtk.platform.environment.Environment` object to
-                    associate with this launcher.
+            associate with this launcher.
+
+        :param list versions: List of strings representing versions to search
+            for. If set to None or [], search for all versions. A version string
+            is DCC-specific but could be something like "2017", "6.3v7" or
+            "1.2.3.52"
+
+        :param list products: List of strings representing product names to
+            search for. If set to None or [], search for all products. A product
+            string is DCC-specific but could be something like "Houdini FX",
+            "Houdini Core" or "Houdini"
+
+        :returns: List of :class:`SoftwareVersion` instances
         """
         # get the engine settings
         settings = env.get_engine_settings(engine_name)
@@ -129,6 +147,10 @@ class SoftwareLauncher(object):
         self.__engine_settings = settings
         self.__engine_descriptor = descriptor
         self.__engine_name = engine_name
+
+        # product and version string lists to limit the scope of sw discovery
+        self._products = products or []
+        self._versions = versions or []
 
     ##########################################################################################
     # properties
@@ -244,26 +266,36 @@ class SoftwareLauncher(object):
         # returns none by default, subclassed by implementing classes
         return None
 
+    @property
+    def products(self):
+        """
+        A list of product names limiting executable discovery.
+
+        Example::
+
+            ["Houdini", "Houdini Core", "Houdini FX"]
+        """
+        return self._products
+
+    @property
+    def versions(self):
+        """
+        A list of versions limiting executable discovery.
+
+        Example::
+
+            ["15.5.324", "16.0.1.322"]
+        """
+        return self._versions
+
+
     ##########################################################################################
     # abstract methods
 
-    def scan_software(self, versions=None, products=None):
+    def scan_software(self):
         """
         Performs a scan for software installations.
 
-        :param list versions: List of strings representing versions
-                              to search for. If set to None or [], search
-                              for all versions. A version string is
-                              DCC-specific but could be something
-                              like "2017", "6.3v7" or "1.2.3.52"
-
-        :param list products: List of strings representing product names
-                              to search for. If set to None or [], search
-                              for all products. A product string is
-                              DCC-specific but could be something
-                              like "Houdini FX", "Houdini Core" or "Houdini"
-
-        :returns: List of :class:`SoftwareVersion` instances
         """
         raise NotImplementedError
 
@@ -343,24 +375,46 @@ class SoftwareLauncher(object):
 
         return env
 
-    def is_version_supported(self, version):
+    def is_version_supported(self, sw_version):
         """
-        Compares the given version string with the :meth:`~minimum_supported_version`
-        and returns a boolean to indicate whether it is supported by the launcher
-        or not.
+        Inspects the supplied :class:`SoftwareVersion` object to see if aligns
+        with this launcher's known product and version limitation. Will check
+        the :meth:`~minimum_supported_version` as well as the list of product
+        and version filters.
 
-        :param str version: Version string to test, e.g. "2015" or "2017.3.sp4"
+        :param sw_version: :class:`SoftwareVersion` object to test against the
+            launcher's product and version limitations.
+
         :returns: True if supported, False otherwise.
         """
-        if self.minimum_supported_version is None:
-            return True
 
-        if is_version_older(version, self.minimum_supported_version):
+        # check the minimum version
+        min_version = self.minimum_supported_version
+        if min_version and is_version_older(sw_version.version, min_version):
+            self.logger.debug(
+                "Executable %s not supported. Failed minimum check. (%s < %s)" %
+                (sw_version.path, sw_version.version, min_version)
+            )
             return False
-        else:
-            return True
 
+        # check versions list
+        if self.versions and sw_version.version not in self.versions:
+            self.logger.debug(
+                "Executable %s not supported. Failed version check. (%s not in %s)" %
+                (sw_version.path, sw_version.version, self.versions)
+            )
+            return False
 
+        # check products list
+        if self.products and sw_version.product not in self.products:
+            self.logger.debug(
+                "Executable %s not supported. Failed product check. (%s not in %s)" %
+                (sw_version.path, sw_version.product, self.products)
+            )
+            return False
+
+        # passed all checks. must be supported!
+        return True
 
 class SoftwareVersion(object):
     """
