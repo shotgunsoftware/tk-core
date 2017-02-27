@@ -15,6 +15,7 @@ Defines the base class for all Tank Hooks.
 import os
 import sys
 import logging
+import inspect
 import urlparse
 import threading
 import urllib
@@ -291,12 +292,53 @@ class Hook(object):
 
             hook_icon = os.path.join(self.disk_location, "icon.png")
         """
-        # note: the reason we don't call __file__ directly is because
-        #       we don't want to return the location of the 'hook.py'
-        #       base class but rather the location of hook object that
-        #       has been derived from this class.
-        path_to_this_file = os.path.abspath(sys.modules[self.__module__].__file__)
-        return os.path.dirname(path_to_this_file)
+        # NOTE: this method contains complex logic to correctly handle
+        # the following inheritance case:
+        #
+        # A. Hook base class >
+        # B. general implementation (hook_b.py) >
+        # C. custom implementation  (hook_c.py)
+        #
+        # in (B), there is a method which returns an icon:
+        # return os.path.join(self.disk_location, "icon.png")
+        #
+        # in this case, we want the code in B to return a path
+        # relative to hook_b.py.
+        #
+        # However, although intended to be primarily used
+        # from within a hook, the disk_location is a public method.
+        # Whenever called from an external location, the
+        # disk location is computed to be relative to
+        # the leaf inheritance, e.g. hook_c.py in this case.
+
+        # in order to handle the case above, we look for the
+        # caller. If the caller is part of the inheritance
+        # chain, we simply compute the path relative to
+        # the caller method.
+        #
+        # however if the caller is external, we compute the path
+        # relative to self. Self represents the leaf in the
+        # inheritance tree.
+        #
+        path_to_file = None
+
+        current_frame = inspect.currentframe()
+        all_frames = inspect.getouterframes(current_frame)
+        parent_frame = all_frames[1]
+        if "self" in parent_frame[0].f_locals:
+            # the calling method is a class instance method
+            path_to_calling_file = parent_frame[1]
+            if parent_frame[0].f_locals["self"] is self:
+                # this call is coming from within the
+                # class hierarchy
+                path_to_file = path_to_calling_file
+
+        # first check failed. fall back on computing
+        # the location relative to self
+        if path_to_file is None:
+            path_to_file = os.path.abspath(sys.modules[self.__module__].__file__)
+
+        return os.path.dirname(path_to_file)
 
     @property
     def logger(self):

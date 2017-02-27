@@ -304,13 +304,57 @@ class TestExecuteHook(TestApplication):
 
     def test_disk_location(self):
         """
-        tests the built-in get_instance() method
+        tests the hook.disk_location property
         """
         app = self.engine.apps["test_app"]
         disk_location = app.execute_hook_method("test_hook_std", "test_disk_location")
         self.assertEquals(
             disk_location,
             os.path.join(self.pipeline_config_root, "config", "hooks", "toolkitty.png")
+        )
+
+    def test_inheritance_disk_location(self):
+        """
+        tests the hook.disk_location property in a multi inheritance scenarios
+        """
+        app = self.engine.apps["test_app"]
+
+        hook = app.create_hook_instance(
+            "{config}/config_test_hook.py:{config}/more_hooks/config_test_hook.py"
+        )
+
+        (disk_location_1, disk_location_2) = hook.test_inheritance_disk_location()
+
+        self.assertEquals(
+            disk_location_1,
+            os.path.join(
+                self.pipeline_config_root,
+                "config",
+                "hooks",
+                "toolkitty.png"
+            )
+        )
+        self.assertEquals(
+            disk_location_2,
+            os.path.join(
+                self.pipeline_config_root,
+                "config",
+                "hooks",
+                "more_hooks",
+                "toolkitty.png"
+            )
+        )
+
+        # edge case: also make sure that if we call the method externally,
+        # we get the location of self
+        self.assertEquals(
+            hook.disk_location,
+            os.path.join(
+                self.pipeline_config_root,
+                "config",
+                "hooks",
+                "more_hooks"
+            )
         )
 
     def test_self_format(self):
