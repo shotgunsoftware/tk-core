@@ -1062,7 +1062,7 @@ class PublishedFileEntityMigrator(EntityMigrator):
     """
     FIELD_MAPPINGS = {"downstream_tank_published_files":"downstream_published_files",
                       "upstream_tank_published_files":"upstream_published_files",
-                      "tank_type":"published_file_type"}
+                      "tank_type": "published_file_type"}
     
     def __init__(self, log, sg, sg_project, migrate_tank_primary_storage=True):
         """

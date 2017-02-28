@@ -27,6 +27,7 @@ TANK_SCHEMA_VALID_TYPES = [
     "list",
     "dict",
     "tank_type",
+    "publish_type",
     "template",
     "hook",
     "shotgun_entity_type",
@@ -38,6 +39,7 @@ TANK_SCHEMA_VALID_TYPES = [
 # Types from the list above that expect "str" values.
 TANK_SCHEMA_STRING_TYPES = [
     "tank_type",
+    "publish_type",
     "template",
     "hook",
     "shotgun_entity_type",
