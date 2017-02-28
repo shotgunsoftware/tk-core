@@ -982,7 +982,7 @@ class Engine(TankBundle):
             # Duplicate command name detected! Attempt to make commands unique by prepending the
             # a prefix derived from information in the properties.
             existing_item = self.__commands[name]
-            command_prefix = __get_command_prefix(existing_item["properties"])
+            command_prefix = _get_command_prefix(existing_item["properties"])
             if command_prefix:
                 new_name_for_existing = "%s:%s" % (command_prefix, name)
                 self.__commands[new_name_for_existing] = existing_item
@@ -995,7 +995,7 @@ class Engine(TankBundle):
         if name in self.__commands_that_need_prefixing:
             # At least one instance of this command name has already been detected.
             # Resolve the duplicate command by application name and/or group name.
-            command_prefix = __get_command_prefix(properties)
+            command_prefix = _get_command_prefix(properties)
             if command_prefix:
                 name = "%s:%s" % (command_prefix, name)
                 # Add the prefix to the properties dict for future reference.
@@ -2914,7 +2914,7 @@ def __pick_environment(engine_name, tk, context):
 
     return env_name
 
-def __get_command_prefix(properties):
+def _get_command_prefix(properties):
     """
     If multiple commands are registered with the same name, attempt to construct a unique
     prefix from other information in the command's properties dictionary to distinguish one
