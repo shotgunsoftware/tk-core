@@ -435,8 +435,8 @@ class SoftwareVersion(object):
         :param str icon: (optional) Full path to a 256x256 (or smaller)
                          png file to use for graphical displays of
                          this SoftwareVersion.
-        :param str arguments: (optional) Command line arguments that need to be passed
-            down to the DCC.
+        :param list arguments: (optional) List of command line arguments
+                               that need to be passed down to the DCC.
         """
         self._version = version
         self._product = product
