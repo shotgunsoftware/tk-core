@@ -507,6 +507,7 @@ class SoftwareVersion(object):
 
         :returns: List of string arguments.
         """
+        return self._arguments
 
 
 class LaunchInformation(object):
