@@ -633,10 +633,15 @@ class IODescriptorBase(object):
             log.debug("Clone cache for %r: No need to copy, source and target are same." % self)
             return False
 
+        # Cache the source cache path because we're about to create the destination folder,
+        # which might be a bundle cache root.
+        source_cache_path = self.get_path()
+        log.debug("Source cache is located at %s", source_cache_path)
+
         # and to the actual I/O
         # pass an empty skip list to ensure we copy things like the .git folder
         filesystem.ensure_folder_exists(new_cache_path, permissions=0777)
-        filesystem.copy_folder(self.get_path(), new_cache_path, skip_list=[])
+        filesystem.copy_folder(source_cache_path, new_cache_path, skip_list=[])
         return True
 
     ###############################################################################################

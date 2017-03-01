@@ -563,16 +563,19 @@ slash and using slashes as its path separator. Sgtk will translate it into a val
         description: A config centric path that points to a square icon png file.
 
 
-The tank_type data type
+The publish_type data type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use this when you want a setting which expects a **Tank Type** - these are typically used
-when publishing data to Shotgun. Value is a string matching TankType.code::
+Use this when you want a setting which expects a **Publish Type** - these are typically used
+when publishing data to Shotgun. Value is a string matching ``PublishedFileType.code``::
 
 
-    published_script_tank_type:
-        type: tank_type
-        description: The string value of the TankType used for published Nuke scripts.
+    published_script_type:
+        type: publish_type
+        description: The Published file type for published Nuke scripts.
+
+.. note:: The equivalent ``tank_type`` data type is also supported for backwards compatibility.
+
 
 The shotgun_entity_type data type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -773,10 +776,10 @@ You must supply values dict that describes the data type of the list items::
 
 Optionally you can also specify an **allows_empty** option if an empty list is a valid value::
 
-    tank_types:
+    publish_types:
         type: list
         allows_empty: True
-        values: {type: tank_type}
+        values: {type: pubish_type}
 
 You would then be able to specify an empty list in your environment configuration::
 

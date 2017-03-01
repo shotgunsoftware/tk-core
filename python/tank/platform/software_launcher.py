@@ -15,10 +15,12 @@ should implement.
 
 import os
 import sys
+import pprint
 
 from ..errors import TankError
 from ..log import LogManager
 from ..util.loader import load_plugin
+from ..util.version import is_version_older
 
 from . import constants
 from . import validation
@@ -28,6 +30,7 @@ from .engine import get_env_and_descriptor_for_engine
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
+
 
 def create_engine_launcher(tk, context, engine_name):
     """
@@ -103,12 +106,9 @@ def create_engine_launcher(tk, context, engine_name):
 
 class SoftwareLauncher(object):
     """
-    Base class that defines an interface for discovering and launching DCC
-    applications within a toolkit context. Includes properties analogous to
-    those provided by the :class:`Engine` base class. This class should never
-    be constructed directly. Instead, use the
-    :meth:`sgtk.platform.create_engine_launcher` factory method which returns
-    a subclass instance implemented by the requested engine or ``None``.
+    Functionality related to the discovery and launch of a DCC. This class
+    should only be constructed through the :meth:`create_engine_launcher()`
+    factory method.
     """
     def __init__(self, tk, context, engine_name, env):
         """
@@ -118,7 +118,7 @@ class SoftwareLauncher(object):
                         is operating
         :param str engine_name: Name of the Toolkit engine associated
                                 with the DCC(s) to launch.
-        :param env: An sgtk.platform.environment.Environment object to
+        :param env: An :class:`~sgtk.platform.environment.Environment` object to
                     associate with this launcher.
         """
         # get the engine settings
@@ -241,7 +241,7 @@ class SoftwareLauncher(object):
         Standard python logger for this engine, app or framework.
         Use this whenever you want to emit or process log messages.
 
-        :returns: :class:`~logging.Logger` instance
+        :returns: :class:`logging.Logger` instance
         """
         return LogManager.get_logger("sgtk.env.%s.%s.startup" %
             (self.__environment.name, self.__engine_name)
@@ -258,28 +258,29 @@ class SoftwareLauncher(object):
         """
         return self.sgtk.shotgun
 
+    @property
+    def minimum_supported_version(self):
+        """
+        The minimum software version that is supported by the launcher.
+        Returned as a string, for example "2015" or "2015.3.sp3".
+        Returns ``None`` if no constraint has been set.
+        Also see related method :meth:`~is_version_supported`.
+        """
+        # returns none by default, subclassed by implementing classes
+        return None
 
     ##########################################################################################
     # abstract methods
 
-    def scan_software(self, versions=None, display_name=None, icon=None):
+    def scan_software(self, versions=None):
         """
-        This is an abstract method that must be implemented by a subclass. The
-        engine implementation should scan the local filesystem to find installed
-        executables for related DCCs. If a list of versions is specified,
-        only return executable paths that match one of the specified versions.
+        Performs a scan for software installations.
 
-        :param list versions: Strings representing versions to search for. If
-                              set to ``None``, search for all versions. A version
-                              string is DCC-specific but could be something like
-                              2017, 6.3v7 or 1.2.3.52
-        :param str display_name: (optional) Label to use in graphical displays
-                                 to describe each :class:`SoftwareVersion`
-                                 that may be discovered.
-        :param str icon: (optional) Path to a 256x256 (or smaller) png file
-                         to represent every :class:`SoftwareVersion` found
-                         wherever an icon is called for.
-
+        :param list versions: List of strings representing versions
+                              to search for. If set to None or [], search
+                              for all versions. A version string is
+                              DCC-specific but could be something
+                              like "2017", "6.3v7" or "1.2.3.52"
         :returns: List of :class:`SoftwareVersion` instances
         """
         raise NotImplementedError
@@ -327,6 +328,66 @@ class SoftwareLauncher(object):
         return resolve_setting_value(
             self.sgtk, self.engine_name, schema, self.settings, key, default
         )
+
+    def get_standard_plugin_environment(self):
+        """
+        Create a standard plugin environment, suitable for
+        plugins to utilize. This will compute the following
+        environment variables:
+
+        - ``SHOTGUN_SITE``: The current shotgun site url
+        - ``SHOTGUN_ENTITY_TYPE``: The current context
+        - ``SHOTGUN_ENTITY_ID``: The current context
+        - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: The current pipeline config id
+
+        :returns: dictionary of environment variables
+        """
+        self.logger.debug("Computing standard plugin environment variables...")
+        env = {}
+
+        # site
+        env["SHOTGUN_SITE"] = self.sgtk.shotgun_url
+
+        # pipeline config id
+        # note: get_shotgun_id() returns None for unmanaged configs.
+        pipeline_config_id = self.sgtk.pipeline_configuration.get_shotgun_id()
+        if pipeline_config_id:
+            env["SHOTGUN_PIPELINE_CONFIGURATION_ID"] = str(pipeline_config_id)
+        else:
+            self.logger.debug("Unmanaged config. Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID.")
+
+        # get the most accurate entity, first see if there is a task, then entity then project
+        entity_dict = self.context.task or self.context.entity or self.context.project
+
+        if entity_dict:
+            env["SHOTGUN_ENTITY_TYPE"] = entity_dict["type"]
+            env["SHOTGUN_ENTITY_ID"] = str(entity_dict["id"])
+        else:
+            self.logger.debug(
+                "No context found. Not setting SHOTGUN_ENTITY_TYPE and SHOTGUN_ENTITY_ID."
+            )
+
+        self.logger.debug("Returning Plugin Environment: \n%s" % pprint.pformat(env))
+
+        return env
+
+    def is_version_supported(self, version):
+        """
+        Compares the given version string with the :meth:`~minimum_supported_version`
+        and returns a boolean to indicate whether it is supported by the launcher
+        or not.
+
+        :param str version: Version string to test, e.g. "2015" or "2017.3.sp4"
+        :returns: True if supported, False otherwise.
+        """
+        if self.minimum_supported_version is None:
+            return True
+
+        if is_version_older(version, self.minimum_supported_version):
+            return False
+        else:
+            return True
+
 
 
 class SoftwareVersion(object):

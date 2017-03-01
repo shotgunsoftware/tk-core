@@ -79,6 +79,31 @@ class ToolkitManager(object):
         self._plugin_id = None
         self._pre_engine_start_callback = None
 
+        # look for the standard env var SHOTGUN_PIPELINE_CONFIGURATION_ID
+        # and in case this is set, use it as a default
+        if constants.PIPELINE_CONFIG_ID_ENV_VAR in os.environ:
+            pipeline_config_str = os.environ[constants.PIPELINE_CONFIG_ID_ENV_VAR]
+            log.debug(
+                "Detected %s environment variable set to '%s'" % (
+                    constants.PIPELINE_CONFIG_ID_ENV_VAR,
+                    pipeline_config_str
+                )
+            )
+            # try to convert it to an integer
+            try:
+                pipeline_config_id = int(pipeline_config_str)
+            except ValueError:
+                log.error(
+                    "Environment variable %s value '%s' is not "
+                    "an integer number and will be ignored." % (
+                        constants.PIPELINE_CONFIG_ID_ENV_VAR,
+                        pipeline_config_str
+                    )
+                )
+            else:
+                log.debug("Setting pipeline configuration to %s" % pipeline_config_id)
+                self.pipeline_configuration = pipeline_config_id
+
         log.debug("%s instantiated" % self)
 
     def __repr__(self):
@@ -97,57 +122,6 @@ class ToolkitManager(object):
         repr += " Config %s %s\n" % (identifier_type, self._pipeline_configuration_identifier)
         repr += " Base %s >" % self._base_config_descriptor
         return repr
-
-    def get_pipeline_configurations(self, project):
-        """
-        Retrieves the pipeline configurations available for a given project.
-
-        In order for a pipeline configuration to be considered as available, the following
-        conditions must be met:
-           - There can only be one primary
-           - If there is one site level and one project level primary, the site level
-             primary is not available.
-           - If there are multiple site level or multiple project level primaries,
-             only the one with the lowest id is available.
-           - All sandboxes are available
-
-        This filtering also takes into account the current user and optional pipeline configuration name or id. If the
-        :method:``ToolkitManager.pipeline_configuration`` attribute has been set to a string, it will look
-        for pipeline configurations with that specific name. If it has been set to ``None``, any pipeline
-        that can be applied for the current user and project will be retrieved. Note that this method does
-        not support ``ToolkitManager.pipeline_configuration`` being an integer.
-
-        :param project: Project entity link to enumerate pipeline configurations for. If ``None``, this will enumerate
-            the pipeline configurations for the site configuration.
-        :type project: Dictionary with keys ``type`` and ``id``.
-
-        :returns: List of pipeline configurations.
-        :rtype: List of dictionaries with keys ``type``, ``id``, ``name`` and ``project``.
-        """
-
-        if isinstance(self.pipeline_configuration, int):
-            raise TankBootstrapError("Can't enumerate pipeline configurations matching a specific id.")
-
-        resolver = ConfigurationResolver(
-            self.plugin_id,
-            project["id"] if project else None
-        )
-
-        # Only return id, type and code fields.
-        pcs = []
-        for pc in resolver.find_matching_pipeline_configurations(
-            pipeline_config_name=None,
-            current_login=self._sg_user.login,
-            sg_connection=self._sg_connection
-        ):
-            pcs.append({
-                "id": pc["id"],
-                "type": pc["type"],
-                "name": pc["code"],
-                "project": pc["project"]
-            })
-
-        return pcs
 
     def _get_pipeline_configuration(self):
         """
@@ -505,6 +479,157 @@ class ToolkitManager(object):
             # Handle cleanup after successful completion of the engine bootstrap.
             completed_callback(engine)
 
+    def prepare_engine(self, engine_name, entity):
+        """
+        Updates and caches a configuration on disk for a given project. The resolution of the pipeline
+        configuration will follow the same rules as the method :meth:`ToolkitManager.bootstrap_engine`,
+        but it simply caches all the bundles for later use instead of bootstrapping directly into it.
+
+        :param str engine_name: Name of the engine instance to cache if using sparse caching. If ``None``,
+            all engine instances will be cached.
+
+        :param entity: An entity link. If the entity is not a project, the project for that entity will be resolved.
+        :type project: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
+
+        :returns: Path to the pipeline configuration.
+        :rtype: str
+        """
+        config = self._get_configuration(entity, self.progress_callback)
+
+        path = config.path.current_os
+
+        try:
+            pc = PipelineConfiguration(path)
+        except TankError, e:
+            raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
+
+        if not config.has_local_bundle_cache:
+            # make sure we have all the apps locally downloaded
+            # this check is quick, so always perform the check, except for installed config, which are
+            # self contained, even when the config is up to date - someone may have deleted their
+            # bundle cache
+            self._cache_apps(pc, engine_name, self.progress_callback)
+        else:
+            log.debug("Configuration has local bundle cache, skipping bundle caching.")
+
+        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine ready.")
+
+        return path
+
+    def get_pipeline_configurations(self, project):
+        """
+        Retrieves the pipeline configurations available for a given project.
+
+        In order for a pipeline configuration to be considered as available, the following
+        conditions must be met:
+
+           - There can only be one primary
+           - If there is one site level and one project level primary, the site level
+             primary is not available.
+           - If there are multiple site level or multiple project level primaries,
+             only the one with the lowest id is available.
+           - All sandboxes are available
+
+        This filtering also takes into account the current user and optional pipeline
+        configuration name or id. If the :meth:`pipeline_configuration` property has been
+        set to a string, it will look for pipeline configurations with that specific name.
+        If it has been set to ``None``, any pipeline that can be applied for the current
+        user and project will be retrieved. Note that this method does not support
+        :meth:`pipeline_configuration` being an integer.
+
+        :param project: Project entity link to enumerate pipeline configurations for.
+            If ``None``, this will enumerate the pipeline configurations
+            for the site configuration.
+        :type project: Dictionary with keys ``type`` and ``id``.
+
+        :returns: List of pipeline configurations.
+        :rtype: List of dictionaries with keys ``type``, ``id``, ``name`` and ``project``.
+        """
+
+        if isinstance(self.pipeline_configuration, int):
+            raise TankBootstrapError("Can't enumerate pipeline configurations matching a specific id.")
+
+        resolver = ConfigurationResolver(
+            self.plugin_id,
+            project["id"] if project else None
+        )
+
+        # Only return id, type and code fields.
+        pcs = []
+        for pc in resolver.find_matching_pipeline_configurations(
+            pipeline_config_name=None,
+            current_login=self._sg_user.login,
+            sg_connection=self._sg_connection
+        ):
+            pcs.append({
+                "id": pc["id"],
+                "type": pc["type"],
+                "name": pc["code"],
+                "project": pc["project"]
+            })
+
+        return pcs
+
+    def get_entity_from_environment(self):
+        """
+        Helper method that looks for the standard environment variables
+        ``SHOTGUN_SITE``, ``SHOTGUN_ENTITY_TYPE`` and
+        ``SHOTGUN_ENTITY_ID`` and attempts to extract and validate them.
+        This is typically used in conjunction with :meth:`bootstrap_engine`.
+        The standard environment variables read by this method can be
+        generated by :meth:`~sgtk.platform.SoftwareLauncher.get_standard_plugin_environment`.
+
+        :returns: Standard Shotgun entity dictionary with type and id or
+            None if not defined.
+        """
+        shotgun_site = os.environ.get("SHOTGUN_SITE")
+        entity_type = os.environ.get("SHOTGUN_ENTITY_TYPE")
+        entity_id = os.environ.get("SHOTGUN_ENTITY_ID")
+
+        # Check that the shotgun site (if set) matches the site we are currently
+        # logged in to. If not, issue a warning and ignore the entity type/id variables
+        if shotgun_site and self._sg_user.host != shotgun_site:
+            log.warning(
+                "You are currently logged in to site %s but your launch environment "
+                "is set to start up %s %s on site %s. The Shotgun integration "
+                "currently doesn't support switching between sites and the contents of "
+                "SHOTGUN_ENTITY_TYPE and SHOTGUN_ENTITY_ID will therefore be ignored." % (
+                    self._sg_user.host,
+                    entity_type,
+                    entity_id,
+                    shotgun_site
+                )
+            )
+            entity_type = None
+            entity_id = None
+
+        if (entity_type and not entity_id) or (not entity_type and entity_id):
+            log.error(
+                "Both environment variables SHOTGUN_ENTITY_TYPE and SHOTGUN_ENTITY_ID must be provided "
+                "to set a context entity."
+            )
+
+        if entity_id:
+            # The entity id must be an integer number.
+            try:
+                entity_id = int(entity_id)
+            except ValueError:
+                log.error(
+                    "The environment variable SHOTGUN_ENTITY_ID value '%s' "
+                    "is not an integer and will be ignored." % entity_id
+                )
+                entity_type = None
+                entity_id = None
+
+        if entity_type and entity_id:
+            # Set the entity to launch the engine for.
+            entity = {"type": entity_type, "id": entity_id}
+        else:
+            # Set the entity to launch the engine in site context.
+            entity = None
+
+        return entity
+
     def _log_startup_message(self, engine_name, entity):
         """
         Helper method that logs information about the current session
@@ -703,43 +828,6 @@ class ToolkitManager(object):
             log.debug("Configuration has local bundle cache, skipping bundle caching.")
 
         return tk
-
-    def prepare_engine(self, engine_name, entity):
-        """
-        Updates and caches a configuration on disk for a given project. The resolution of the pipeline
-        configuration will follow the same rules as the method :meth:`ToolkitManager.bootstrap_engine`,
-        but it simply caches all the bundles for later use instead of bootstrapping directly into it.
-
-        :param str engine_name: Name of the engine instance to cache if using sparse caching. If ``None``,
-            all engine instances will be cached.
-
-        :param entity: An entity link. If the entity is not a project, the project for that entity will be resolved.
-        :type project: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
-
-        :returns: Path to the pipeline configuration.
-        :rtype: str
-        """
-        config = self._get_configuration(entity, self.progress_callback)
-
-        path = config.path.current_os
-
-        try:
-            pc = PipelineConfiguration(path)
-        except TankError, e:
-            raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
-
-        if not config.has_local_bundle_cache:
-            # make sure we have all the apps locally downloaded
-            # this check is quick, so always perform the check, except for installed config, which are
-            # self contained, even when the config is up to date - someone may have deleted their
-            # bundle cache
-            self._cache_apps(pc, engine_name, self.progress_callback)
-        else:
-            log.debug("Configuration has local bundle cache, skipping bundle caching.")
-
-        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine ready.")
-
-        return path
 
     def _start_engine(self, tk, engine_name, entity, progress_callback=None):
         """

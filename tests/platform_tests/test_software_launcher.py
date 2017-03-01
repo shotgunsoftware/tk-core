@@ -11,6 +11,7 @@
 import os
 
 from tank_test.tank_test_base import *
+from mock import PropertyMock, patch
 import tank
 
 from tank.platform import create_engine_launcher
@@ -26,21 +27,32 @@ class TestEngineLauncher(TankTestBase):
         self.setup_fixtures()
 
         # setup shot
-        seq = {"type":"Sequence", "name":"seq_name", "id":3}
+        seq = {"type": "Sequence", "name": "seq_name", "id": 3}
         seq_path = os.path.join(self.project_root, "sequences/Seq")
         self.add_production_path(seq_path, seq)
 
-        shot = {"type":"Shot", "name": "shot_name", "id":2,
-                "project": self.project}
+        self.shot = {"type": "Shot", "name": "shot_name", "id": 2, "project": self.project}
         shot_path = os.path.join(seq_path, "shot_code")
-        self.add_production_path(shot_path, shot)
+        self.add_production_path(shot_path, self.shot)
 
-        step = {"type":"Step", "name":"step_name", "id":4}
+        self.step = {"type": "Step", "name": "step_name", "id": 4}
         self.shot_step_path = os.path.join(shot_path, "step_name")
-        self.add_production_path(self.shot_step_path, step)
+        self.add_production_path(self.shot_step_path, self.step)
 
         self.context = self.tk.context_from_path(self.shot_step_path)
         self.engine_name = "test_engine"
+
+        self.task = {"type": "Task",
+                     "id": 23,
+                     "entity": self.shot,
+                     "step": self.step,
+                     "project": self.project}
+
+        entities = [self.task]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
 
     def test_create_launcher(self):
         """
@@ -84,17 +96,68 @@ class TestEngineLauncher(TankTestBase):
         self.assertEqual(sw_versions, [])
 
         scan_versions = [str(v) for v in range(10, 100, 20)]
-        scan_display = "UT Display Name"
-        scan_icon = "/some/path/to/a/ut/icon.png"
-        sw_versions = launcher.scan_software(
-            scan_versions, scan_display, scan_icon
-        )
+        sw_versions = launcher.scan_software(scan_versions)
         self.assertIsInstance(sw_versions, list)
         for i, swv in enumerate(sw_versions):
             self.assertIsInstance(swv, SoftwareVersion)
             self.assertEqual(swv.version, scan_versions[i])
-            self.assertEqual(swv.display_name, scan_display)
-            self.assertEqual(swv.icon, scan_icon)
+
+    def test_get_standard_plugin_environment(self):
+
+        for entity in [self.shot, self.project, self.task]:
+
+            ctx = self.tk.context_from_entity(entity["type"], entity["id"])
+            launcher = create_engine_launcher(self.tk, ctx, self.engine_name)
+            env = launcher.get_standard_plugin_environment()
+            self.assertEqual(env["SHOTGUN_PIPELINE_CONFIGURATION_ID"], "123")
+            self.assertEqual(env["SHOTGUN_SITE"], "http://unit_test_mock_sg")
+            self.assertEqual(env["SHOTGUN_ENTITY_TYPE"], entity["type"])
+            self.assertEqual(env["SHOTGUN_ENTITY_ID"], str(entity["id"]))
+
+    def test_get_standard_plugin_environment_empty(self):
+
+        ctx = self.tk.context_empty()
+        launcher = create_engine_launcher(self.tk, ctx, self.engine_name)
+        env = launcher.get_standard_plugin_environment()
+        self.assertEqual(env["SHOTGUN_PIPELINE_CONFIGURATION_ID"], "123")
+        self.assertEqual(env["SHOTGUN_SITE"], "http://unit_test_mock_sg")
+        self.assertTrue("SHOTGUN_ENTITY_TYPE" not in env)
+        self.assertTrue("SHOTGUN_ENTITY_ID" not in env)
+
+    def test_minimum_version(self):
+
+        launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
+
+        # if no version has been set, anything goes
+        self.assertEqual(launcher.is_version_supported("foo"), True)
+        self.assertEqual(launcher.is_version_supported("v1204"), True)
+
+        self.assertEqual(launcher.minimum_supported_version, None)
+
+        # mock the property
+        min_version_method = "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
+        with patch(min_version_method, new_callable=PropertyMock) as min_version_mock:
+
+            min_version_mock.return_value = "2017.2"
+
+            self.assertEqual(launcher.minimum_supported_version, "2017.2")
+            self.assertEqual(launcher.is_version_supported("2017"), False)
+            self.assertEqual(launcher.is_version_supported("2017.2"), True)
+            self.assertEqual(launcher.is_version_supported("2017.2.sp1"), True)
+            self.assertEqual(launcher.is_version_supported("2017.2sp1"), True)
+            self.assertEqual(launcher.is_version_supported("2017.3"), True)
+            self.assertEqual(launcher.is_version_supported("2018"), True)
+            self.assertEqual(launcher.is_version_supported("2018.1"), True)
+
+            min_version_mock.return_value = "2017.2sp1"
+
+            self.assertEqual(launcher.minimum_supported_version, "2017.2sp1")
+            self.assertEqual(launcher.is_version_supported("2017"), False)
+            self.assertEqual(launcher.is_version_supported("2017.2"), False)
+            self.assertEqual(launcher.is_version_supported("2017.2sp1"), True)
+            self.assertEqual(launcher.is_version_supported("2017.3"), True)
+            self.assertEqual(launcher.is_version_supported("2018"), True)
+            self.assertEqual(launcher.is_version_supported("2018.1"), True)
 
 
     def test_launcher_prepare_launch(self):
