@@ -1042,7 +1042,7 @@ SoftwareLauncher
 ---------------------------------------------------
 
 This section contains the techincal documentation for the core classes and methods described in the
-`~LaunchingSoftware` section above. 
+:ref:`Launching Software` section above. 
 
 .. autofunction:: create_engine_launcher
 
