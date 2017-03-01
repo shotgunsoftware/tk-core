@@ -444,6 +444,27 @@ class TestShotgunRegisterPublish(TankTestBase):
         self.assertEqual(sg_dict["path"], {'url': 'file:///path/to/file%20with%20spaces.png'})
         self.assertEqual("pathcache" not in sg_dict, True)
 
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    def test_local_paths(self, create_mock):
+        """Tests the passing of local paths."""
+
+        for local_path in [
+            "/path/to/file with spaces.png",
+            "//path/to/file with spaces.png",
+        ]:
+            tank.util.register_publish(
+                self.tk,
+                self.context,
+                local_path,
+                self.name,
+                self.version)
+
+            create_data = create_mock.call_args
+            args, kwargs = create_data
+            sg_dict = args[1]
+
+            self.assertEqual(sg_dict["path"], {"local_path": local_path})
+            self.assertEqual("pathcache" not in sg_dict, True)
 
 class TestShotgunDownloadUrl(TankTestBase):
 
