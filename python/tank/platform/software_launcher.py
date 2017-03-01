@@ -447,13 +447,6 @@ class SoftwareVersion(object):
 
     def __repr__(self):
         """
-        Returns a string representation of the software entity, formatted as
-        ``<SoftwareVersion <product> <version>``.
-        """
-        return "<SoftwareVersion %s %s>" % (self.product, self.version)
-
-    def __repr__(self):
-        """
         Returns unique str representation of the software version
         """
         return "<SoftwareVersion 0x%08x: %s %s, path: %s>" % (
