@@ -452,6 +452,17 @@ class SoftwareVersion(object):
         """
         return "<SoftwareVersion %s %s>" % (self.product, self.version)
 
+    def __repr__(self):
+        """
+        Returns unique str representation of the software version
+        """
+        return "<SoftwareVersion 0x%08x: %s %s, path: %s>" % (
+            id(self),
+            self.product,
+            self.version,
+            self.path
+        )
+
     @property
     def version(self):
         """
