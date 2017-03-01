@@ -441,6 +441,17 @@ class SoftwareVersion(object):
         self._path = path
         self._icon_path = icon
 
+    def __repr__(self):
+        """
+        Returns unique str representation of the software version
+        """
+        return "<SoftwareVersion 0x%08x: %s %s, path: %s>" % (
+            id(self),
+            self.product,
+            self.version,
+            self.path
+        )
+
     @property
     def version(self):
         """
