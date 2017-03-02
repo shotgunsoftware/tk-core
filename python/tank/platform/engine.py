@@ -895,6 +895,8 @@ class Engine(TankBundle):
         - ``description`` - a one line description of the command, suitable for a tooltip.
           If no description is passed, the one provided in the app manifest will be used.
 
+        - ``title`` - Title to appear on shotgun action menu (e.g. "Create Folders")
+
         - ``type`` - The type of command - hinting where it should appear. Options vary between
           engines and the following three are supported:
 
@@ -906,15 +908,29 @@ class Engine(TankBundle):
             - ``node`` - For applications that have a specific node menu (like Nuke),
               place the command there.
 
+        **Grouping commands into collections**
+
+        It is possible to group several commands into a collection. Such a collection is called
+        a *group*.  For example, you may have three separate commands to launch Maya 2017,
+        Maya 2016 and Maya 2015, all under a 'Launch Maya' group. It is up to each engine to
+        implement this specification in a suitable way but typically, it would be displayed as a
+        "Launch Maya" menu with three sub menu items to represent each version of Maya.
+
+        Each group has a concept of a group default - this is what would get executed if you click
+        on the 'Launch Maya' group.
+
+        To register commands with groups, pass the following two parameters in the properties
+        dictionary:
+
         - ``group`` - The name for a group this command should be considered a member of.
 
-        - ``group_default`` - Boolean value indicating whether this command should represent the group
-          as a whole. Setting this value to True indicates that this is the command to run and display
-          in applications that show a single button for each command group.
+        - ``group_default`` - Boolean value indicating whether this command should represent the
+          group as a whole.
 
-        Specifically for the Shotgun engine, the following parameters are supported:
+        .. note:: It is up to each engine to implement grouping and group defaults in an appropriate way. Some engines may not support grouping.
 
-        - ``title`` - Title to appear on shotgun action menu (e.g. "Create Folders")
+
+        The following properties are supported for the Shotgun engine specifically:
 
         - ``deny_permissions`` - List of permission groups to exclude this
           menu item for (e.g. ``["Artist"]``)
@@ -962,28 +978,29 @@ class Engine(TankBundle):
         if "icon" not in properties and self.__currently_initializing_app:
             properties["icon"] = self.__currently_initializing_app.descriptor.icon_256
 
-        # check for duplicates!
         if name in self.__commands:
-            # already something in the dict with this name
+            # Duplicate command name detected! Attempt to make commands unique by prepending the
+            # a prefix derived from information in the properties.
             existing_item = self.__commands[name]
-            if existing_item["properties"].get("app"):
-                # we know the app for the existing item.
-                # so prefix with app name
-                prefix = existing_item["properties"].get("app").instance_name
-                new_name_for_existing = "%s:%s" % (prefix, name)
+            command_prefix = _get_command_prefix(existing_item["properties"])
+            if command_prefix:
+                new_name_for_existing = "%s:%s" % (command_prefix, name)
                 self.__commands[new_name_for_existing] = existing_item
-                self.__commands[new_name_for_existing]["properties"]["prefix"] = prefix 
+                # Record the command prefix in the properties dictionary for future reference.
+                self.__commands[new_name_for_existing]["properties"]["prefix"] = command_prefix
                 del(self.__commands[name])
-                # add it to our list
+                # Record the original command name to make sure any additional commands
+                # registered with this name are treated as duplicates and fully prefixed.
                 self.__commands_that_need_prefixing.append(name)
                       
         if name in self.__commands_that_need_prefixing:
-            # try to append a prefix if possible
-            if properties.get("app"):
-                prefix = properties.get("app").instance_name
-                name = "%s:%s" % (prefix, name)
-                # also add a prefix key in the properties dict
-                properties["prefix"] = prefix
+            # At least one instance of this command name has already been detected.
+            # Resolve the duplicate command by application name and/or group name.
+            command_prefix = _get_command_prefix(properties)
+            if command_prefix:
+                name = "%s:%s" % (command_prefix, name)
+                # Record the command prefix in the properties dictionary for future reference.
+                properties["prefix"] = command_prefix
 
         # now define command wrappers to capture metrics logging
         # on command execution. The toolkit callback system supports
@@ -2898,3 +2915,21 @@ def __pick_environment(engine_name, tk, context):
 
     return env_name
 
+def _get_command_prefix(properties):
+    """
+    If multiple commands are registered with the same name, attempt to construct a unique
+    prefix from other information in the command's properties dictionary to distinguish one
+    command from another. Uses the properties' ``app`` and/or ``group`` keys to create the
+    prefix.
+
+    :param dict properties: Arbitrary key/value information related to a registered command.
+    :returns: A unique identifier for the command as a str.
+    """
+    prefix_parts = []
+    if properties.get("app"):
+        # First, distinguish commands by app name.
+        prefix_parts.append(properties["app"].instance_name)
+    if properties.get("group"):
+        # Second, distinguish commands by group name.
+        prefix_parts.append(properties["group"])
+    return ":".join(prefix_parts)

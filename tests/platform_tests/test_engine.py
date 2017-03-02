@@ -406,3 +406,128 @@ class TestContextChange(TestEngineBase):
         # Make sure the engine was destroyed and recreated.
         self.assertNotEqual(id(cur_engine), id(sgtk.platform.current_engine()))
 
+
+class TestRegisteredCommands(TestEngineBase):
+    """
+    Test functionality related to registering commands with an engine.
+    """
+    def _command_callback(self):
+        pass
+
+    def test_register_command(self):
+        """
+        Test the command registration process. Validate the input properties
+        dictionary is set correctly and no unique prefix is set.
+        """
+        engine = sgtk.platform.current_engine()
+        if engine is None:
+            engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+        test_app = engine.apps["test_app"]
+
+        register_properties = {
+            "short_name": "cmd1_sn",
+            "title": "Command One",
+            "description": "This is test command one.",
+            "app": test_app,
+            "group": "Group One",
+        }
+        engine.register_command(
+            "test_command", self._command_callback, register_properties
+        )
+        # Verify a command was registered with the engine
+        self.assertIsInstance(engine.commands, dict)
+        self.assertIsInstance(engine.commands.get("test_command"), dict)
+
+        command_properties = engine.commands["test_command"].get("properties")
+        self.assertIsInstance(command_properties, dict)
+
+        for property, reg_value in register_properties.iteritems():
+            self.assertEqual(command_properties[property], reg_value)
+        self.assertIsNone(command_properties["prefix"])
+
+    def test_duplicate_commands(self):
+        """
+        Register duplicate command names to verify the correct unique prefix is being
+        created to distinguish them.
+        """
+        engine = sgtk.platform.current_engine()
+        if engine is None:
+            engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+        # For the purposes of this test, the engine itself can be considered
+        # an app because it also has an `instance_name` property.
+        test_app_1 = engine
+        test_app_2 = engine.apps["test_app"]
+
+        # Define four commands to register. In the end, we should have the following
+        # keys in the `engine.commands` dictionary:
+        #   "test_engine:Group One:test_command"
+        #   "test_engine:Group Two:test_command"
+        #   "test_app:Group One:test_command"
+        #   "test_app:test_command"
+        register_properties = [
+            {
+                "short_name": "cmd1_sn",
+                "title": "Command One",
+                "description": "This is test command one.",
+                "app": test_app_1,
+                "group": "Group One",
+            }, {
+                "short_name": "cmd2_sn",
+                "title": "Command Two",
+                "description": "This is test command two.",
+                "app": test_app_1,
+                "group": "Group Two",
+            }, {
+                "short_name": "cmd3_sn",
+                "title": "Command Three",
+                "description": "This is test command three.",
+                "app": test_app_2,
+                "group": "Group One",
+            }, {
+                "short_name": "cmd4_sn",
+                "title": "Command Four",
+                "description": "This is test command four.",
+                "app": test_app_2,
+            }, {
+                "short_name": "cmd5_sn",
+                "title": "Command Five",
+                "description": "This is test command five.",
+                "group": "Group One",
+            }
+        ]
+
+        # Register the first command and verify the command name key is
+        # what we expect. Later we will verify this key has been deleted.
+        engine.register_command(
+            "test_command", self._command_callback, register_properties[0]
+        )
+        self.assertIsInstance(engine.commands.get("test_command"), dict)
+
+        # Now register the duplicate commands.
+        for command_properties in register_properties[1:]:
+            engine.register_command(
+                "test_command", self._command_callback, command_properties
+            )
+
+        # Verify command prefixes and property values for each of the duplicate
+        # commands after everything has been registered.
+        for command_properties in register_properties:
+            # The command_prefix should take the form app.instance_name:group
+            prefix_parts = []
+            if command_properties.get("app"):
+                prefix_parts.append(command_properties["app"].instance_name)
+            if command_properties.get("group"):
+                prefix_parts.append(command_properties["group"])
+            command_prefix = ":".join(prefix_parts)
+            command_key = ":".join(prefix_parts + ["test_command"])
+
+            self.assertIsInstance(engine.commands[command_key], dict)
+            engine_command_properties = engine.commands[command_key]["properties"]
+            for property, reg_value in command_properties.iteritems():
+                self.assertEqual(engine_command_properties[property], reg_value)
+            self.assertEqual(engine_command_properties["prefix"], command_prefix)
+
+        # Validate the original 'test_command' first registered has been deleted.
+        self.assertIsNone(engine.commands.get("test_command"))
