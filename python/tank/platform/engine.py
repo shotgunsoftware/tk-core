@@ -2925,13 +2925,11 @@ def _get_command_prefix(properties):
     :param dict properties: Arbitrary key/value information related to a registered command.
     :returns: A unique identifier for the command as a str.
     """
-    prefix = ""
+    prefix_parts = []
     if properties.get("app"):
         # First, distinguish commands by app name.
-        prefix = properties["app"].instance_name
+        prefix_parts.append(properties["app"].instance_name)
     if properties.get("group"):
         # Second, distinguish commands by group name.
-        prefix = "%s%s%s" % (
-            prefix, ":" if prefix else "", properties["group"]
-        )
-    return prefix
+        prefix_parts.append(properties["group"])
+    return ":".join(prefix_parts)
