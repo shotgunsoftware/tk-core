@@ -111,8 +111,6 @@ class SoftwareLauncher(object):
             search for. If set to None or [], search for all products. A product
             string is DCC-specific but could be something like "Houdini FX",
             "Houdini Core" or "Houdini"
-
-        :returns: List of :class:`SoftwareVersion` instances
         """
         # get the engine settings
         settings = env.get_engine_settings(engine_name)
@@ -377,10 +375,10 @@ class SoftwareLauncher(object):
 
     def is_version_supported(self, sw_version):
         """
-        Inspects the supplied :class:`SoftwareVersion` object to see if aligns
-        with this launcher's known product and version limitation. Will check
-        the :meth:`~minimum_supported_version` as well as the list of product
-        and version filters.
+        Inspects the supplied :class:`SoftwareVersion` object to see if it
+        aligns with this launcher's known product and version limitation. Will
+        check the :meth:`~minimum_supported_version` as well as the list of
+        product and version filters.
 
         :param sw_version: :class:`SoftwareVersion` object to test against the
             launcher's product and version limitations.
@@ -427,7 +425,7 @@ class SoftwareVersion(object):
 
         :param str version: Explicit version of the DCC represented
                             (e.g. 2017)
-        :param str version: Explicit product name of the DCC represented
+        :param str product: Explicit product name of the DCC represented
                             (e.g. Houdini Apprentice)
         :param str display_name: Name to use for any graphical displays
         :param str path: Full path to the DCC executable.
@@ -464,7 +462,8 @@ class SoftwareVersion(object):
     @property
     def product(self):
         """
-        An explicit product name of the DCC represented by this Software Version.
+        An explicit product name for the DCC represented by this Software
+        Version. Example: "Houdini Fx"
 
         :return: String product name
         """
