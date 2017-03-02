@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import logging
 import os
 
 from tank_test.tank_test_base import *
@@ -81,26 +82,39 @@ class TestEngineLauncher(TankTestBase):
             self.pipeline_config_root, "config", "bundles", "test_engine"
         )
         os.rename(startup_copy, startup_plugin)
-        launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
+
+        versions_list =[1, 2, 3, 4]
+        products_list =["A", "B", "C"]
+
+        launcher = create_engine_launcher(
+            self.tk,
+            self.context,
+            self.engine_name,
+            versions=versions_list,
+            products=products_list
+        )
         self.assertIsInstance(launcher, SoftwareLauncher)
+        self.assertIsInstance(launcher.logger, logging.Logger)
         self.assertEqual(self.engine_name, launcher.engine_name)
         self.assertEqual(self.tk, launcher.sgtk)
         self.assertEqual(self.context, launcher.context)
+        self.assertEqual(versions_list, launcher.versions)
+        self.assertEqual(products_list, launcher.products)
         self.assertEqual("%s Startup" % self.engine_name, launcher.display_name)
         self.assertEqual(expected_disk_location, launcher.disk_location)
 
-
     def test_launcher_scan_software(self):
-        launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
-        sw_versions = launcher.scan_software()
-        self.assertEqual(sw_versions, [])
 
-        scan_versions = [str(v) for v in range(10, 100, 20)]
-        sw_versions = launcher.scan_software(scan_versions)
+        # test engine launcher hardcoded to return 10 paths
+        launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
+        sw_versions = launcher._scan_software()
+        self.assertEqual(len(sw_versions), 10)
+
+        launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
+        sw_versions = launcher._scan_software()
         self.assertIsInstance(sw_versions, list)
         for i, swv in enumerate(sw_versions):
             self.assertIsInstance(swv, SoftwareVersion)
-            self.assertEqual(swv.version, scan_versions[i])
 
     def test_get_standard_plugin_environment(self):
 
@@ -129,8 +143,8 @@ class TestEngineLauncher(TankTestBase):
         launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
 
         # if no version has been set, anything goes
-        self.assertEqual(launcher.is_version_supported("foo"), True)
-        self.assertEqual(launcher.is_version_supported("v1204"), True)
+        self.assertEqual(launcher._is_version_supported("foo"), True)
+        self.assertEqual(launcher._is_version_supported("v1204"), True)
 
         self.assertEqual(launcher.minimum_supported_version, None)
 
@@ -141,23 +155,110 @@ class TestEngineLauncher(TankTestBase):
             min_version_mock.return_value = "2017.2"
 
             self.assertEqual(launcher.minimum_supported_version, "2017.2")
-            self.assertEqual(launcher.is_version_supported("2017"), False)
-            self.assertEqual(launcher.is_version_supported("2017.2"), True)
-            self.assertEqual(launcher.is_version_supported("2017.2.sp1"), True)
-            self.assertEqual(launcher.is_version_supported("2017.2sp1"), True)
-            self.assertEqual(launcher.is_version_supported("2017.3"), True)
-            self.assertEqual(launcher.is_version_supported("2018"), True)
-            self.assertEqual(launcher.is_version_supported("2018.1"), True)
+            self.assertEqual(launcher._is_version_supported("2017"), False)
+            self.assertEqual(launcher._is_version_supported("2017.2"), True)
+            self.assertEqual(launcher._is_version_supported("2017.2.sp1"), True)
+            self.assertEqual(launcher._is_version_supported("2017.2sp1"), True)
+            self.assertEqual(launcher._is_version_supported("2017.3"), True)
+            self.assertEqual(launcher._is_version_supported("2018"), True)
+            self.assertEqual(launcher._is_version_supported("2018.1"), True)
 
             min_version_mock.return_value = "2017.2sp1"
 
             self.assertEqual(launcher.minimum_supported_version, "2017.2sp1")
-            self.assertEqual(launcher.is_version_supported("2017"), False)
-            self.assertEqual(launcher.is_version_supported("2017.2"), False)
-            self.assertEqual(launcher.is_version_supported("2017.2sp1"), True)
-            self.assertEqual(launcher.is_version_supported("2017.3"), True)
-            self.assertEqual(launcher.is_version_supported("2018"), True)
-            self.assertEqual(launcher.is_version_supported("2018.1"), True)
+            self.assertEqual(launcher._is_version_supported("2017"), False)
+            self.assertEqual(launcher._is_version_supported("2017.2"), False)
+            self.assertEqual(launcher._is_version_supported("2017.2sp1"), True)
+            self.assertEqual(launcher._is_version_supported("2017.3"), True)
+            self.assertEqual(launcher._is_version_supported("2018"), True)
+            self.assertEqual(launcher._is_version_supported("2018.1"), True)
+
+    def test_version_supported(self):
+
+        launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
+
+        # all should pass since no version constraint
+        self.assertEqual(launcher._is_version_supported("2017"), True)
+        self.assertEqual(launcher._is_version_supported("2018"), True)
+        self.assertEqual(launcher._is_version_supported("2019"), True)
+        self.assertEqual(launcher._is_version_supported("2019v0"), True)
+        self.assertEqual(launcher._is_version_supported("2019v0.1"), True)
+        self.assertEqual(launcher._is_version_supported("2020.1"), True)
+        self.assertEqual(launcher._is_version_supported("2020"), True)
+        self.assertEqual(launcher._is_version_supported("v0.1.2"), True)
+        self.assertEqual(launcher._is_version_supported("v0.1"), True)
+
+        versions_list = [
+            "2018",
+            "2019v0.1",
+            "2020.1",
+            "v0.1.2"
+        ]
+
+        launcher = create_engine_launcher(self.tk, self.context, self.engine_name, versions=versions_list)
+
+        min_version_method = "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
+        with patch(min_version_method, new_callable=PropertyMock) as min_version_mock:
+
+            min_version_mock.return_value = "2019"
+
+            self.assertEqual(launcher._is_version_supported("2017"), False) # should fail min version
+            self.assertEqual(launcher._is_version_supported("2018"), False) # should fail min version
+            self.assertEqual(launcher._is_version_supported("2019"), False) # not in version list
+            self.assertEqual(launcher._is_version_supported("2019v0"), False) # not in version list
+            self.assertEqual(launcher._is_version_supported("2019v0.1"), True) # in version list
+            self.assertEqual(launcher._is_version_supported("2020.1"), True) # in version list
+            self.assertEqual(launcher._is_version_supported("2020"), False) # not in version list
+            self.assertEqual(launcher._is_version_supported("v0.1.2"), False) # fails min version
+            self.assertEqual(launcher._is_version_supported("v0.1"), False) # fails min version and not in list
+
+    def test_product_supported(self):
+
+        launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
+
+        # all should pass since no product constraing
+        self.assertEqual(launcher._is_product_supported("asfasdfakj"), True)
+        self.assertEqual(launcher._is_product_supported("asfa sdfakj"), True)
+        self.assertEqual(launcher._is_product_supported("asfa sdf akj"), True)
+        self.assertEqual(launcher._is_product_supported("asfas1 124 1231 dfakj"), True)
+        self.assertEqual(launcher._is_product_supported("111 1 1asfasdfakj"), True)
+
+        products_list = [
+            "A B C",
+            "DEF",
+            "G HI",
+        ]
+
+        launcher = create_engine_launcher(self.tk, self.context, self.engine_name, products=products_list)
+
+        self.assertEqual(launcher._is_product_supported("A B C"), True)
+        self.assertEqual(launcher._is_product_supported("ABC"), False)
+        self.assertEqual(launcher._is_product_supported("DEF"), True)
+        self.assertEqual(launcher._is_product_supported("D E F"), False)
+        self.assertEqual(launcher._is_product_supported("G HI"), True)
+        self.assertEqual(launcher._is_product_supported(" G HI "), False)
+
+    def test_is_supported(self):
+
+        # versions returned are range(0, 10)
+        versions_list = [2, 3, 4]
+
+        launcher = create_engine_launcher(
+            self.tk,
+            self.context,
+            self.engine_name,
+            versions=versions_list,
+        )
+        sw_versions = launcher._scan_software()
+        for sw_version in sw_versions:
+            (supported, reason) = launcher._is_supported(sw_version)
+            if sw_version.version in [2, 3, 4]:
+                self.assertEqual(supported, True)
+                self.assertEqual(reason, "")
+            else:
+                self.assertEqual(supported, False)
+                self.assertIsInstance(reason, basestring)
+
 
 
     def test_launcher_prepare_launch(self):
@@ -187,20 +288,21 @@ class TestSoftwareVersion(TankTestBase):
         super(TestSoftwareVersion, self).setUp()
 
         self._version = "v293.49.2.dev"
-        self._display_name = "My Custom App {version}"
+        self._product = "My Custom App"
         self._path = "/my/path/to/app/{version}/my_custom_app"
         self._icon = "%s/icon.png" % self._path
 
     def test_init_software_version(self):
         sw_version = SoftwareVersion(
             self._version,
-            self._display_name,
+            self._product,
             self._path,
             self._icon,
         )
 
         self.assertEqual(self._version, sw_version.version)
-        self.assertEqual(self._display_name, sw_version.display_name)
+        self.assertEqual(self._product, sw_version.product)
+        self.assertEqual("%s %s" % (self._product, self._version), sw_version.display_name)
         self.assertEqual(self._path, sw_version.path)
         self.assertEqual(self._icon, sw_version.icon)
 
