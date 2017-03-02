@@ -18,7 +18,7 @@ class TestLauncher(SoftwareLauncher):
     """
     SoftwareLauncher stub for unit testing.
     """
-    def scan_software(self, versions=None):
+    def _scan_software(self):
         """
         Performs a scan for software installations.
 
@@ -30,13 +30,17 @@ class TestLauncher(SoftwareLauncher):
         :returns: List of :class:`SoftwareVersion` instances
         """
         sw_versions = []
-        for version in versions or []:
+        for version in range(0, 10):
             sw_path = "/path/to/unit/test/app/%s/executable"
             sw_icon = "%s/icons/exec.png" % os.path.dirname(sw_path)
-            sw_versions.append(SoftwareVersion(
-                version, "Unit Test App",
-                sw_path, sw_icon,
-            ))
+            sw_versions.append(
+                SoftwareVersion(
+                    version,
+                    "Unit Test App",  # product
+                    sw_path,
+                    sw_icon,
+                )
+            )
         return sw_versions
 
     def prepare_launch(self, exec_path, args, file_to_open=None):

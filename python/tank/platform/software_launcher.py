@@ -32,15 +32,19 @@ from .engine import get_env_and_descriptor_for_engine
 core_logger = LogManager.get_logger(__name__)
 
 
-def create_engine_launcher(tk, context, engine_name):
+def create_engine_launcher(tk, context, engine_name, versions=None, products=None):
     """
     Factory method that creates a Toolkit engine specific
     SoftwareLauncher instance.
 
     :param tk: :class:`~sgtk.Sgtk` Toolkit instance.
     :param context: :class:`~sgtk.Context` Context to launch the DCC in.
-    :param str engine_name: Name of the Toolkit engine associated with
-                            the DCC(s) to launch.
+    :param str engine_name: Name of the Toolkit engine associated with the
+        DCC(s) to launch.
+    :param list versions: A list of version strings for filtering software
+        versions. See the :class:`SoftwareLauncher` for more info.
+    :param list products: A list of product strings for filtering software
+        versions. See the :class:`SoftwareLauncher` for more info.
     :rtype: :class:`SoftwareLauncher` instance or None.
     """
     # Get the engine environment and descriptor using engine.py code
@@ -72,7 +76,7 @@ def create_engine_launcher(tk, context, engine_name):
 
     core_logger.debug("Loading SoftwareLauncher plugin '%s' ..." % plugin_file)
     class_obj = load_plugin(plugin_file, SoftwareLauncher)
-    launcher = class_obj(tk, context, engine_name, env)
+    launcher = class_obj(tk, context, engine_name, env, versions, products)
     core_logger.debug("Created SoftwareLauncher instance: %s" % launcher)
 
     # Return the SoftwareLauncher instance
@@ -85,16 +89,28 @@ class SoftwareLauncher(object):
     should only be constructed through the :meth:`create_engine_launcher()`
     factory method.
     """
-    def __init__(self, tk, context, engine_name, env):
+    def __init__(self, tk, context, engine_name, env, versions=None, products=None):
         """
         :param tk: :class:`~sgtk.Sgtk` Toolkit instance
-        :param context: :class:`~sgtk.Context` A context object to
-                        define the context on disk where the engine
-                        is operating
+
+        :param context: :class:`~sgtk.Context` A context object to define the
+            context on disk where the engine is operating
+
         :param str engine_name: Name of the Toolkit engine associated
-                                with the DCC(s) to launch.
+            with the DCC(s) to launch.
+
         :param env: An :class:`~sgtk.platform.environment.Environment` object to
-                    associate with this launcher.
+            associate with this launcher.
+
+        :param list versions: List of strings representing versions to search
+            for. If set to None or [], search for all versions. A version string
+            is DCC-specific but could be something like "2017", "6.3v7" or
+            "1.2.3.52"
+
+        :param list products: List of strings representing product names to
+            search for. If set to None or [], search for all products. A product
+            string is DCC-specific but could be something like "Houdini FX",
+            "Houdini Core" or "Houdini"
         """
         # get the engine settings
         settings = env.get_engine_settings(engine_name)
@@ -129,6 +145,10 @@ class SoftwareLauncher(object):
         self.__engine_settings = settings
         self.__engine_descriptor = descriptor
         self.__engine_name = engine_name
+
+        # product and version string lists to limit the scope of sw discovery
+        self._products = products or []
+        self._versions = versions or []
 
     ##########################################################################################
     # properties
@@ -239,26 +259,35 @@ class SoftwareLauncher(object):
         The minimum software version that is supported by the launcher.
         Returned as a string, for example "2015" or "2015.3.sp3".
         Returns ``None`` if no constraint has been set.
-        Also see related method :meth:`~is_version_supported`.
         """
         # returns none by default, subclassed by implementing classes
         return None
 
+    @property
+    def products(self):
+        """
+        A list of product names limiting executable discovery.
+
+        Example::
+
+            ["Houdini", "Houdini Core", "Houdini FX"]
+        """
+        return self._products
+
+    @property
+    def versions(self):
+        """
+        A list of versions limiting executable discovery.
+
+        Example::
+
+            ["15.5.324", "16.0.1.322"]
+        """
+        return self._versions
+
+
     ##########################################################################################
     # abstract methods
-
-    def scan_software(self, versions=None):
-        """
-        Performs a scan for software installations.
-
-        :param list versions: List of strings representing versions
-                              to search for. If set to None or [], search
-                              for all versions. A version string is
-                              DCC-specific but could be something
-                              like "2017", "6.3v7" or "1.2.3.52"
-        :returns: List of :class:`SoftwareVersion` instances
-        """
-        raise NotImplementedError
 
     def prepare_launch(self, exec_path, args, file_to_open=None):
         """
@@ -266,9 +295,26 @@ class SoftwareLauncher(object):
 
         :param str exec_path: Path to DCC executable to launch
         :param str args: Command line arguments as strings
-        :param str file_to_open: (optional) Full path name of a file to open on launch
+        :param str file_to_open: (optional) Full path name of a file to open on
+            launch
         :returns: :class:`LaunchInformation` instance
         """
+        raise NotImplementedError
+
+    def _scan_software(self):
+        """
+        Abstract method that must be implemented by subclasses to return a list
+        of ``SoftwareVersion`` objects on the local filesystem.
+
+        Typical implementations will use functionality such as ``glob`` to
+        locate all versions and variations of executables on disk and then
+        creating ``SoftwareVersion`` objects for each executable. This method
+        is called by the ``get_supported_software()`` method, and each
+        ``SoftwareVersion`` object returned is checked against the launcher's
+        lists of supported version and product variations via the
+        ``_is_supported`` method.
+        """
+
         raise NotImplementedError
 
     ##########################################################################################
@@ -336,46 +382,185 @@ class SoftwareLauncher(object):
 
         return env
 
-    def is_version_supported(self, version):
+    def get_supported_software(self):
         """
-        Compares the given version string with the :meth:`~minimum_supported_version`
-        and returns a boolean to indicate whether it is supported by the launcher
-        or not.
+        Performs a search for supported software installations.
 
-        :param str version: Version string to test, e.g. "2015" or "2017.3.sp4"
-        :returns: True if supported, False otherwise.
+        This method can be overridden by a subclass to completely override
+        supported software discovery. The typical requirement, however, is for
+        a subclasses to simply implement the ``_scan_software()`` abstract
+        method to return all variations of the software on the local filesystem.
+
+        The default implementation calls ``_scan_software()`` to return
+        a list of ``SoftwareVersion`` objects, then calls ``_is_supported()`` on
+        each to determine the final list of supported executables.
         """
-        if self.minimum_supported_version is None:
-            return True
 
-        if is_version_older(version, self.minimum_supported_version):
+        software_versions = []
+
+        # retrieve a list of SoftwareVersion objects for all executables
+        for sw_version in self._scan_software():
+            (supported, reason) = self._is_supported(sw_version)
+            if supported:
+                self.logger.debug("Accepting %s" % (sw_version,))
+                software_versions.append(sw_version)
+            else:
+                self.logger.debug(
+                    "Rejecting %s. Reason: %s" % (sw_version, reason))
+                continue
+
+        return software_versions
+
+    ##########################################################################################
+    # protected methods
+
+    def _is_supported(self, sw_version):
+        """
+        Inspects the supplied :class:`SoftwareVersion` object to see if it
+        aligns with this launcher's known product and version limitations. Will
+        check the :meth:`~minimum_supported_version` as well as the list of
+        product and version filters.
+
+        :param sw_version: :class:`SoftwareVersion` object to test against the
+            launcher's product and version limitations.
+
+        :returns: A tuple of the form: ``(bool, str)`` where the first item
+            is a boolean indicating whether the supplied ``SoftwareVersion`` is
+            supported or not. The second argument is ``""`` if supported, but if
+            not supported will be a string representing the reason the support
+            check failed.
+
+        This method can be used by subclasses that override the
+        ``get_supported_software`` method.
+
+        The method can be overridden by subclasses that require more
+        sophisticated ``SoftwareVersion`` support checks. Alternatively, the
+        ``get_supported_software`` can implement its own support checks using
+        the more specific convenience methods ``_is_version_supported`` and
+        ``_is_product_supported``, the properties ``products`` and ``versions``,
+        or by implementing custom logic.
+        """
+
+        # check version support
+        if not self._is_version_supported(sw_version.version):
+            return (False,
+                "Executable '%s' not supported. Failed version check. "
+                "(%s not in %s or is older than %s)" % (
+                    sw_version.path,
+                    sw_version.version,
+                    self.versions,
+                    self.minimum_supported_version
+                )
+            )
+
+        # check products list
+        if not self._is_product_supported(sw_version.product):
+            return (False,
+                "Executable '%s' not supported. Failed product check. "
+                "(%s not in %s)" % (
+                    sw_version.path,
+                    sw_version.product,
+                    self.products
+                )
+            )
+
+        # passed all checks. must be supported!
+        return (True, "")
+
+    def _is_version_supported(self, version):
+        """
+        Returns ``True`` if the supplied version string is supported by the
+        launcher, ``False`` otherwise.
+
+        The method first checks against the minimum supported version. If the
+        supplied version is greater it then checks to ensure that it is in the
+        launcher's ``versions`` constraint. If there are no constraints on the
+        versions, the method will return ``True``.
+
+        :param str version: A string representing the version to check against.
+
+        :return: Boolean indicating if the supplied version string is supported.
+
+        This method can be overridden in subclasses that require more
+        sophisticated version support checks. Note: this method is used by
+        ``_is_supported()`` to check version support for the supplied
+        ``SoftwareVersion``.
+        """
+
+        # first, compare against the minimum version
+        min_version = self.minimum_supported_version
+        if min_version and is_version_older(version, min_version):
+            # the version is older than the minimum supported version
             return False
-        else:
+
+        if not self.versions:
+            # No version restriction. All versions supported
             return True
 
+        # check versions list
+        return version in self.versions
 
+    def _is_product_supported(self, product):
+        """
+        Returns ``True`` if the supplied product name string is supported by the
+        launcher, ``False`` otherwise.
+
+        The method checks to ensure that the product name is in the launcher's
+        ``products`` constraint. If there are no constraints on the products,
+        the method will return ``True``.
+
+        :param str product: A string representing the product name to check
+            against.
+
+        :return: Boolean indicating if the supplied product name string is
+            supported.
+
+        This method can be overridden in subclasses that require more
+        sophisticated product name support checks. Note: this method is used by
+        ``_is_supported()`` to check product name support for the supplied
+        ``SoftwareVersion``.
+        """
+
+        if not self.products:
+            # No product restriction. All product variations are supported
+            return True
+
+        # check products list
+        return product in self.products
 
 class SoftwareVersion(object):
     """
     Container class that stores properties of a DCC that
     are useful for Toolkit Engine Startup functionality.
     """
-    def __init__(self, version, display_name, path, icon=None):
+    def __init__(self, version, product, path, icon=None):
         """
         Constructor.
 
         :param str version: Explicit version of the DCC represented
                             (e.g. 2017)
-        :param str display_name: Name to use for any graphical displays
+        :param str product: Explicit product name of the DCC represented
+                            (e.g. "Houdini Apprentice")
         :param str path: Full path to the DCC executable.
         :param str icon: (optional) Full path to a 256x256 (or smaller)
                          png file to use for graphical displays of
                          this SoftwareVersion.
         """
         self._version = version
-        self._display_name = display_name
+        self._product = product
         self._path = path
         self._icon_path = icon
+
+    def __repr__(self):
+        """
+        Returns unique str representation of the software version
+        """
+        return "<SoftwareVersion 0x%08x: %s %s, path: %s>" % (
+            id(self),
+            self.product,
+            self.version,
+            self.path
+        )
 
     @property
     def version(self):
@@ -387,13 +572,24 @@ class SoftwareVersion(object):
         return self._version
 
     @property
+    def product(self):
+        """
+        An explicit product name for the DCC represented by this Software
+        Version. Example: "Houdini FX"
+
+        :return: String product name
+        """
+
+        return self._product
+
+    @property
     def display_name(self):
         """
         Name to use for this SoftwareVersion in graphical displays.
 
-        :returns: String display name
+        :returns: String display name, a combination of the product and version.
         """
-        return self._display_name
+        return "%s %s" % (self.product, self.version)
 
     @property
     def path(self):
