@@ -986,10 +986,11 @@ class Engine(TankBundle):
             if command_prefix:
                 new_name_for_existing = "%s:%s" % (command_prefix, name)
                 self.__commands[new_name_for_existing] = existing_item
+                # Record the command prefix in the properties dictionary for future reference.
                 self.__commands[new_name_for_existing]["properties"]["prefix"] = command_prefix
                 del(self.__commands[name])
-                # Record the original command name as duplicate to make sure any additional
-                # commands registered with this name are also fully prefixed.
+                # Record the original command name to make sure any additional commands
+                # registered with this name are treated as duplicates and fully prefixed.
                 self.__commands_that_need_prefixing.append(name)
                       
         if name in self.__commands_that_need_prefixing:
@@ -998,7 +999,7 @@ class Engine(TankBundle):
             command_prefix = _get_command_prefix(properties)
             if command_prefix:
                 name = "%s:%s" % (command_prefix, name)
-                # Add the prefix to the properties dict for future reference.
+                # Record the command prefix in the properties dictionary for future reference.
                 properties["prefix"] = command_prefix
 
         # now define command wrappers to capture metrics logging
