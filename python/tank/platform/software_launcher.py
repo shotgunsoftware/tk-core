@@ -259,7 +259,6 @@ class SoftwareLauncher(object):
         The minimum software version that is supported by the launcher.
         Returned as a string, for example "2015" or "2015.3.sp3".
         Returns ``None`` if no constraint has been set.
-        Also see related method :meth:`~is_version_supported`.
         """
         # returns none by default, subclassed by implementing classes
         return None
@@ -290,22 +289,32 @@ class SoftwareLauncher(object):
     ##########################################################################################
     # abstract methods
 
-    def scan_software(self):
-        """
-        Performs a scan for software installations.
-
-        """
-        raise NotImplementedError
-
     def prepare_launch(self, exec_path, args, file_to_open=None):
         """
         Prepares the given software for launch
 
         :param str exec_path: Path to DCC executable to launch
         :param str args: Command line arguments as strings
-        :param str file_to_open: (optional) Full path name of a file to open on launch
+        :param str file_to_open: (optional) Full path name of a file to open on
+            launch
         :returns: :class:`LaunchInformation` instance
         """
+        raise NotImplementedError
+
+    def _scan_software(self):
+        """
+        Abstract method that must be implemented by subclasses to return a list
+        of ``SoftwareVersion`` objects on the local filesystem.
+
+        Typical implementations will use functionality such as ``glob`` to
+        locate all versions and variations of executables on disk and then
+        creating ``SoftwareVersion`` objects for each executable. This method
+        is called by the ``get_supported_software()`` method, and each
+        ``SoftwareVersion`` object returned is checked against the launcher's
+        lists of supported version and product variations via the
+        ``_is_supported`` method.
+        """
+
         raise NotImplementedError
 
     ##########################################################################################
@@ -373,61 +382,165 @@ class SoftwareLauncher(object):
 
         return env
 
-    def is_version_supported(self, sw_version):
+    def get_supported_software(self):
+        """
+        Performs a search for supported software installations.
+
+        This method can be overridden by a subclass to completely override
+        supported software discovery. The typical requirement, however, is for
+        a subclasses to simply implement the ``_scan_software()`` abstract
+        method to return all variations of the software on the local filesystem.
+
+        The default implementation calls ``_scan_software()`` to return
+        a list of ``SoftwareVersion`` objects, then calls ``_is_supported()`` on
+        each to determine the final list of supported executables.
+        """
+
+        software_versions = []
+
+        # retrieve a list of SoftwareVersion objects for all executables
+        for sw_version in self._scan_software():
+            (supported, reason) = self._is_supported(sw_version)
+            if supported:
+                self.logger.debug("Accepting %s" % (sw_version,))
+                software_versions.append(sw_version)
+            else:
+                self.logger.debug(
+                    "Rejecting %s. Reason: %s" % (sw_version, reason))
+                continue
+
+        return software_versions
+
+    ##########################################################################################
+    # protected methods
+
+    def _is_supported(self, sw_version):
         """
         Inspects the supplied :class:`SoftwareVersion` object to see if it
-        aligns with this launcher's known product and version limitation. Will
+        aligns with this launcher's known product and version limitations. Will
         check the :meth:`~minimum_supported_version` as well as the list of
         product and version filters.
 
         :param sw_version: :class:`SoftwareVersion` object to test against the
             launcher's product and version limitations.
 
-        :returns: True if supported, False otherwise.
+        :returns: A tuple of the form: ``(bool, str)`` where the first item
+            is a boolean indicating whether the supplied ``SoftwareVersion`` is
+            supported or not. The second argument is ``""`` if supported, but if
+            not supported will be a string representing the reason the support
+            check failed.
+
+        This method can be used by subclasses that override the
+        ``get_supported_software`` method.
+
+        The method can be overridden by subclasses that require more
+        sophisticated ``SoftwareVersion`` support checks. Alternatively, the
+        ``get_supported_software`` can implement its own support checks using
+        the more specific convenience methods ``_is_version_supported`` and
+        ``_is_product_supported``, the properties ``products`` and ``versions``,
+        or by implementing custom logic.
         """
 
-        # check the minimum version
-        min_version = self.minimum_supported_version
-        if min_version and is_version_older(sw_version.version, min_version):
-            self.logger.debug(
-                "Executable %s not supported. Failed minimum check. (%s < %s)" %
-                (sw_version.path, sw_version.version, min_version)
+        # check version support
+        if not self._is_version_supported(sw_version.version):
+            return (False,
+                "Executable '%s' not supported. Failed version check. "
+                "(%s not in %s or is older than %s)" % (
+                    sw_version.path,
+                    sw_version.version,
+                    self.versions,
+                    self.minimum_supported_version
+                )
             )
-            return False
-
-        # check versions list
-        if self.versions and sw_version.version not in self.versions:
-            self.logger.debug(
-                "Executable %s not supported. Failed version check. (%s not in %s)" %
-                (sw_version.path, sw_version.version, self.versions)
-            )
-            return False
 
         # check products list
-        if self.products and sw_version.product not in self.products:
-            self.logger.debug(
-                "Executable %s not supported. Failed product check. (%s not in %s)" %
-                (sw_version.path, sw_version.product, self.products)
+        if not self._is_product_supported(sw_version.product):
+            return (False,
+                "Executable '%s' not supported. Failed product check. "
+                "(%s not in %s)" % (
+                    sw_version.path,
+                    sw_version.product,
+                    self.products
+                )
             )
-            return False
 
         # passed all checks. must be supported!
-        return True
+        return (True, "")
+
+    def _is_version_supported(self, version):
+        """
+        Returns ``True`` if the supplied version string is supported by the
+        launcher, ``False`` otherwise.
+
+        The method first checks against the minimum supported version. If the
+        supplied version is greater it then checks to ensure that it is in the
+        launcher's ``versions`` constraint. If there are no constraints on the
+        versions, the method will return ``True``.
+
+        :param str version: A string representing the version to check against.
+
+        :return: Boolean indicating if the supplied version string is supported.
+
+        This method can be overridden in subclasses that require more
+        sophisticated version support checks. Note: this method is used by
+        ``_is_supported()`` to check version support for the supplied
+        ``SoftwareVersion``.
+        """
+
+        # first, compare against the minimum version
+        min_version = self.minimum_supported_version
+        if min_version and is_version_older(version, min_version):
+            # the version is older than the minimum supported version
+            return False
+
+        if not self.versions:
+            # No version restriction. All versions supported
+            return True
+
+        # check versions list
+        return version in self.versions
+
+    def _is_product_supported(self, product):
+        """
+        Returns ``True`` if the supplied product name string is supported by the
+        launcher, ``False`` otherwise.
+
+        The method checks to ensure that the product name is in the launcher's
+        ``products`` constraint. If there are no constraints on the products,
+        the method will return ``True``.
+
+        :param str product: A string representing the product name to check
+            against.
+
+        :return: Boolean indicating if the supplied product name string is
+            supported.
+
+        This method can be overridden in subclasses that require more
+        sophisticated product name support checks. Note: this method is used by
+        ``_is_supported()`` to check product name support for the supplied
+        ``SoftwareVersion``.
+        """
+
+        if not self.products:
+            # No product restriction. All product variations are supported
+            return True
+
+        # check products list
+        return product in self.products
 
 class SoftwareVersion(object):
     """
     Container class that stores properties of a DCC that
     are useful for Toolkit Engine Startup functionality.
     """
-    def __init__(self, version, product, display_name, path, icon=None):
+    def __init__(self, version, product, path, icon=None):
         """
         Constructor.
 
         :param str version: Explicit version of the DCC represented
                             (e.g. 2017)
         :param str product: Explicit product name of the DCC represented
-                            (e.g. Houdini Apprentice)
-        :param str display_name: Name to use for any graphical displays
+                            (e.g. "Houdini Apprentice")
         :param str path: Full path to the DCC executable.
         :param str icon: (optional) Full path to a 256x256 (or smaller)
                          png file to use for graphical displays of
@@ -435,7 +548,6 @@ class SoftwareVersion(object):
         """
         self._version = version
         self._product = product
-        self._display_name = display_name
         self._path = path
         self._icon_path = icon
 
@@ -463,7 +575,7 @@ class SoftwareVersion(object):
     def product(self):
         """
         An explicit product name for the DCC represented by this Software
-        Version. Example: "Houdini Fx"
+        Version. Example: "Houdini FX"
 
         :return: String product name
         """
@@ -475,9 +587,9 @@ class SoftwareVersion(object):
         """
         Name to use for this SoftwareVersion in graphical displays.
 
-        :returns: String display name
+        :returns: String display name, a combination of the product and version.
         """
-        return self._display_name
+        return "%s %s" % (self.product, self.version)
 
     @property
     def path(self):
