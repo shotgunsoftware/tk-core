@@ -490,6 +490,11 @@ class TestRegisteredCommands(TestEngineBase):
                 "title": "Command Four",
                 "description": "This is test command four.",
                 "app": test_app_2,
+            }, {
+                "short_name": "cmd5_sn",
+                "title": "Command Five",
+                "description": "This is test command five.",
+                "group": "Group One",
             }
         ]
 
@@ -510,9 +515,13 @@ class TestRegisteredCommands(TestEngineBase):
         # commands after everything has been registered.
         for command_properties in register_properties:
             # The command_prefix should take the form app.instance_name:group
-            command_prefix = "%s" % command_properties["app"].instance_name
+            command_prefix = ""
+            if command_properties.get("app"):
+                command_prefix = command_properties["app"].instance_name
             if command_properties.get("group"):
-                command_prefix = "%s:%s" % (command_prefix, command_properties["group"])
+                command_prefix = "%s%s%s" % (
+                    command_prefix, ":" if command_prefix else "", command_properties["group"]
+                )
             command_key = "%s:test_command" % command_prefix
 
             self.assertIsInstance(engine.commands[command_key], dict)
