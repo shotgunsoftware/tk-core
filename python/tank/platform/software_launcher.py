@@ -15,7 +15,9 @@ should implement.
 
 import os
 import sys
+import glob
 import pprint
+import re
 
 from ..errors import TankError
 from ..log import LogManager
@@ -30,6 +32,20 @@ from .engine import get_env_and_descriptor_for_engine
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
+
+
+def _format(template, tokens):
+    """
+    Super dumb implementation of Python 2.6-like str.format.
+
+    :param str template: String using {<name>} tokens for substitution.
+    :param dict tokens: Dictionary of <name> to substitute for <value>.
+
+    :returns: The substituted string, when "<name>" will yield "<value>".
+    """
+    for key, value in tokens.iteritems():
+        template = template.replace("{%s}" % key, value)
+    return template
 
 
 def create_engine_launcher(tk, context, engine_name, versions=None, products=None):
@@ -286,7 +302,6 @@ class SoftwareLauncher(object):
         """
         return self._versions
 
-
     ##########################################################################################
     # abstract methods
 
@@ -317,6 +332,99 @@ class SoftwareLauncher(object):
         """
 
         raise NotImplementedError
+
+    def _scan_software_with_expression(self, match_template, regular_expression):
+        """
+        This is a helper method that can be invoked in an implementation of :meth:`_scan_software`.
+
+        The ``match_template`` argument provides a template to use both for globing files and then pattern
+        matching them using regular expressions provided by the ``tokens`` dictionary.
+
+        The method will first substitute every token from the template with a ``*`` for globing files.
+        It will then replace the tokens in the template with the regular expressions that were
+        provided.
+
+        In the following example::
+
+            self._scan_software_with_expression(
+                "C:/Program Files/Nuke{full_version}/Nuke{major_minor_version}.exe",
+                {
+                    "full_version": r"(?P<version>[\d.v]+)",
+                    "major_minor_version": r"(?P<major_minor_version>[\d.]+)"
+                }
+            )
+
+        this would first look for every files matching C:\Program Files\Nuke*\Nuke*.exe and then
+        run the regular expression C:\\Program Files\\Nuke(?P<version>[\d.v]+)\\(?P<major_minor_version>[\d.]+).
+        and would return any files matching that pattern as well as any extracted tokens.
+
+        For the method to extract an argument from the matched string and return it back to the caller
+        the ``?P<variable>`` notation must be used when invoking this method.
+
+        :param str match_template: Template that will be used both for globing and performing a regular expression.
+            Note that you have to use ``/`` for the path separator, even on Windows.
+
+        :param dict regular_expressions: Dictionary of regular expressions that can be substituted
+            in the template. The key should be the name of the token to substitute.
+
+        :returns: A list of pairs containing the path and matching notes.
+            For example, if Nuke 10.0v1 had been installed on the computer running this, the
+            return value would have been::
+                [("C:\Program Files\Nuke10.0v1\Nuke10.1.exe", {"full_version": "10.0v1", "major_minor_version="10.0"})]
+        """
+
+        # First start by globing files.
+        glob_pattern = _format(match_template, dict((key, "*") for key in self.COMPONENT_REGEX_LOOKUP))
+        self.logger.debug(
+            "Globbing for executable matching: %s ..." % (glob_pattern,)
+        )
+        matching_paths = glob.glob(glob_pattern)
+
+        # If nothing was found, we can leave right away.
+        if not matching_paths:
+            self.logger.debug("No matches were found.")
+            return
+
+        self.logger.debug(
+            "Found %s matches: %s" % (
+                len(matching_paths),
+                matching_paths
+            )
+        )
+
+        # construct the regex string to extract the components
+        regex_pattern = _format(match_template, self.COMPONENT_REGEX_LOOKUP)
+
+        # accumulate the software version objects to return. this will include
+        # include the head/tail anchors in the regex
+        regex_pattern = "^%s$" % (regex_pattern,)
+
+        self.logger.debug(
+            "Now matching components with regex: %s" % (regex_pattern,)
+        )
+
+        # compile the regex
+        executable_regex = re.compile(regex_pattern, re.IGNORECASE)
+
+        # iterate over each executable found for the glob pattern and find
+        # matched components via the regex
+        matches = []
+        for matching_path in matching_paths:
+
+            self.logger.debug("Processing path: %s" % (matching_path,))
+
+            # Updating the slashes so all platform regexes can use forward slashes.
+            matching_path = matching_path.replace("\\", "/")
+
+            match = executable_regex.match(matching_path)
+
+            if not match:
+                self.logger.debug("Path did not match regex.")
+                continue
+
+            matches.append((matching_path, match.groupdict()))
+
+        return matches
 
     ##########################################################################################
     # public methods
@@ -444,7 +552,8 @@ class SoftwareLauncher(object):
 
         # check version support
         if not self._is_version_supported(sw_version.version):
-            return (False,
+            return (
+                False,
                 "Executable '%s' not supported. Failed version check. "
                 "(%s not in %s or is older than %s)" % (
                     sw_version.path,
@@ -456,7 +565,8 @@ class SoftwareLauncher(object):
 
         # check products list
         if not self._is_product_supported(sw_version.product):
-            return (False,
+            return (
+                False,
                 "Executable '%s' not supported. Failed product check. "
                 "(%s not in %s)" % (
                     sw_version.path,
