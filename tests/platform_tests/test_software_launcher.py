@@ -11,9 +11,10 @@
 import logging
 import os
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import setUpModule # noqa
+
 from mock import PropertyMock, patch
-import tank
 
 from tank.platform import create_engine_launcher
 from tank.platform import SoftwareLauncher
@@ -21,6 +22,7 @@ from tank.platform import SoftwareVersion
 from tank.platform import LaunchInformation
 
 from tank.errors import TankEngineInitError
+
 
 class TestEngineLauncher(TankTestBase):
     def setUp(self):
@@ -54,13 +56,12 @@ class TestEngineLauncher(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
 
-
     def test_create_launcher(self):
         """
         Makes sure a valid SoftwareLauncher instance gets created
         by the platform public factory method create_engine_launcher()
         """
-        # Verify the create method raises TankEngineInitError for 
+        # Verify the create method raises TankEngineInitError for
         # engines that cannot be found
         self.assertRaises(
             TankEngineInitError,
@@ -83,8 +84,8 @@ class TestEngineLauncher(TankTestBase):
         )
         os.rename(startup_copy, startup_plugin)
 
-        versions_list =[1, 2, 3, 4]
-        products_list =["A", "B", "C"]
+        versions_list = [1, 2, 3, 4]
+        products_list = ["A", "B", "C"]
 
         launcher = create_engine_launcher(
             self.tk,
@@ -258,8 +259,6 @@ class TestEngineLauncher(TankTestBase):
             else:
                 self.assertEqual(supported, False)
                 self.assertIsInstance(reason, basestring)
-
-
 
     def test_launcher_prepare_launch(self):
         prep_path = "/some/path/to/an/executable"
