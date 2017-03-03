@@ -862,7 +862,7 @@ using the core interface::
      
     # Use the SoftwareLauncher instance to find a list of Maya versions installed on the 
     # local filesystem. A list of SoftwareVersion instances is returned.
-    software_versions = software_launcher.scan_software()
+    software_versions = software_launcher.get_supported_software()
      
     # Ask the SoftwareLauncher instance to prepare an environment to launch Maya in.
     # For simplicity, use the first version returned from the list of software_versions.
@@ -875,8 +875,8 @@ using the core interface::
     launch_command = "%s %s" % (launch_info.path, launch_info.args)
     subprocess.Popen([launch_command], env=launch_info.environment)
 
-Additionally, more robust launch applications can utilize Software entries in Shotgun to determine
-information about DCCs that are available to launch.
+More robust launch applications can utilize :ref:`Configuration Using the Software Entity in Shotgun`
+to determine information about DCCs that are available to launch.
 
 
 Engine Implementation
@@ -892,10 +892,10 @@ directory:
 
 Since the launch logic for the engine is invoked while the engine is not actually running, the
 :class:`~SoftwareLauncher` base class provides functionality similar to the :class:`~Engine` base
-class. Two SoftwareLauncher methods that *must* be implemented by the engine are :meth:`~SoftwareLauncher.scan_software`
-and :meth:`~SoftwareLauncher.prepare_launch`. The scan_software method is responsible for 
+class. Two SoftwareLauncher methods that *must* be implemented by an engine are :meth:`~SoftwareLauncher._scan_software`
+and :meth:`~SoftwareLauncher.prepare_launch`. The ``_scan_software`` method is responsible for
 discovering all executable paths for the related DCC installed on the local filesystem and returns
-a list of :class:`SoftwareVersion` instances representing each executable found. The prepare_launch
+a list of :class:`SoftwareVersion` instances representing each executable found. The ``prepare_launch``
 method establishes the environment to launch the DCC in, confirms the correct executable path to
 launch, and supplies command line arguments required for launch. This method returns a :class:`LaunchInformation`
 instance that contains all information required to successfully launch the DCC and startup the
@@ -905,7 +905,7 @@ following::
     from sgtk.platform import SoftwareLauncher, SoftwareVersion, LaunchInformation
 
     class MayaLauncher(SoftwareLauncher):
-        def scan_software(self, versions=None, display_name=None, icon=None):
+        def _scan_software(self):
             # Construct a list of SoftwareVersion instances representing all versions of the DCC
             # installed on the local filesystem.
             software_versions = []
