@@ -1023,7 +1023,7 @@ must be specified for a launch command to be added to Desktop. The full list of 
 user has access to may be limited by Project, user name, Group membership, or DCC version.
 
 The Software site page can be accessed from either "All Pages > Global Pages > Software" or "User Menu >
-Admin > Software" menus. Here are sample Software entries with field value explanations: 
+Admin > Software" menus. Here are sample Software entries:
 
 .. image:: ./resources/sg_software_samples.png
 
