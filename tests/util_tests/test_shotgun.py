@@ -448,23 +448,31 @@ class TestShotgunRegisterPublish(TankTestBase):
     def test_local_paths(self, create_mock):
         """Tests the passing of local paths."""
 
+        # Various paths we support, Unix and Windows styles
         for local_path in [
             "/path/to/file with spaces.png",
+            "C:/path/to/file with spaces.png",
+            "e:/path/to/file with spaces.png",
             "//path/to/file with spaces.png",
+            r"\path\to\file with spaces.png",
+            r"C:\path\to\file with spaces.png",
+            r"e:\path\to\file with spaces.png",
+            r"\\path\to\file with spaces.png",
         ]:
             tank.util.register_publish(
                 self.tk,
                 self.context,
                 local_path,
                 self.name,
-                self.version)
+                self.version
+            )
 
             create_data = create_mock.call_args
             args, kwargs = create_data
             sg_dict = args[1]
 
             self.assertEqual(sg_dict["path"], {"local_path": local_path})
-            self.assertEqual("pathcache" not in sg_dict, True)
+            self.assertTrue("pathcache" not in sg_dict)
 
 class TestShotgunDownloadUrl(TankTestBase):
 
