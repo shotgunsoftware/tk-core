@@ -310,7 +310,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
                 fh.write("    # \n")
                 fh.write("    # For more information, see the documentation.\n")
                 fh.write("    # \n")
-                fh.write("    return '%s'\n" % os.path.sep.join(core_path_parts))
+                fh.write("    return r'%s'\n" % os.path.sep.join(core_path_parts))
                 fh.write("\n\n")
 
             # Write out helper function 'initialize_manager()'.
