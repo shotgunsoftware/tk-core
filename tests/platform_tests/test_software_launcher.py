@@ -291,6 +291,7 @@ class TestSoftwareVersion(TankTestBase):
         self._product = "My Custom App"
         self._path = "/my/path/to/app/{version}/my_custom_app"
         self._icon = "%s/icon.png" % self._path
+        self._arguments = ["--42"]
 
     def test_init_software_version(self):
         sw_version = SoftwareVersion(
@@ -298,6 +299,7 @@ class TestSoftwareVersion(TankTestBase):
             self._product,
             self._path,
             self._icon,
+            self._arguments
         )
 
         self.assertEqual(self._version, sw_version.version)
@@ -305,6 +307,7 @@ class TestSoftwareVersion(TankTestBase):
         self.assertEqual("%s %s" % (self._product, self._version), sw_version.display_name)
         self.assertEqual(self._path, sw_version.path)
         self.assertEqual(self._icon, sw_version.icon)
+        self.assertEqual(self._arguments, sw_version.arguments)
 
 
 class TestLaunchInformation(TankTestBase):
