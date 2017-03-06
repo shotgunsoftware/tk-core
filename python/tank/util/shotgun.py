@@ -915,102 +915,123 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
         - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{'tag_list': ['foo', 'bar']}``)
 
+    If an exception is raised during the publish, the raised exception will have the created entity (if any)
+    in its last args entry, allowing callers to catch the exception and report that an entity was created,
+    even if some errors happened.
+    e.g.
+        >>> try:
+        >>>    sgtk.util.register_publish(tk, ctx, file_path, name, version_number)
+        >>> except Exception, e:
+        >>>    if e.args[-1]:
+        >>>        print("Error: %s (%d) was created but had the following error %s" % (
+        >>>            e.args[-1]["type"], e.args[-1]["id"], e.message
+        >>>        ))
+        >>>    else:
+        >>>        print("Error: %s" % e)
+
     :returns: The created entity dictionary
     """
     log.debug("Publish: Begin register publish")
+    entity = None
+    try:
+        # get the task from the optional args, fall back on context task if not set
+        task = kwargs.get("task")
+        if task is None:
+            task = context.task
 
-    # get the task from the optional args, fall back on context task if not set
-    task = kwargs.get("task")
-    if task is None:
-        task = context.task
+        thumbnail_path = kwargs.get("thumbnail_path")
+        comment = kwargs.get("comment")
+        dependency_paths = kwargs.get('dependency_paths', [])
+        dependency_ids = kwargs.get('dependency_ids', [])
+        published_file_type = kwargs.get("published_file_type")
+        if not published_file_type:
+            # check for legacy name:
+            published_file_type = kwargs.get("tank_type")
+        update_entity_thumbnail = kwargs.get("update_entity_thumbnail", False)
+        update_task_thumbnail = kwargs.get("update_task_thumbnail", False)
+        created_by_user = kwargs.get("created_by")
+        created_at = kwargs.get("created_at")
+        version_entity = kwargs.get("version_entity")
+        sg_fields = kwargs.get("sg_fields", {})
 
-    thumbnail_path = kwargs.get("thumbnail_path")
-    comment = kwargs.get("comment")
-    dependency_paths = kwargs.get('dependency_paths', [])
-    dependency_ids = kwargs.get('dependency_ids', [])
-    published_file_type = kwargs.get("published_file_type")
-    if not published_file_type:
-        # check for legacy name:
-        published_file_type = kwargs.get("tank_type")
-    update_entity_thumbnail = kwargs.get("update_entity_thumbnail", False)
-    update_task_thumbnail = kwargs.get("update_task_thumbnail", False)
-    created_by_user = kwargs.get("created_by")
-    created_at = kwargs.get("created_at")
-    version_entity = kwargs.get("version_entity")
-    sg_fields = kwargs.get("sg_fields", {})
+        # convert the abstract fields to their defaults
+        path = _translate_abstract_fields(tk, path)
 
-    # convert the abstract fields to their defaults
-    path = _translate_abstract_fields(tk, path)
+        published_file_entity_type = get_published_file_entity_type(tk)
 
-    published_file_entity_type = get_published_file_entity_type(tk)
+        log.debug("Publish: Resolving the published file type")
+        sg_published_file_type = None
+        # query shotgun for the published_file_type
+        if published_file_type:
+            if not isinstance(published_file_type, basestring):
+                raise TankError("published_file_type must be a string")
 
-    log.debug("Publish: Resolving the published file type")
-    sg_published_file_type = None
-    # query shotgun for the published_file_type
-    if published_file_type:
-        if not isinstance(published_file_type, basestring):
-            raise TankError("published_file_type must be a string")
+            if published_file_entity_type == "PublishedFile":
+                filters = [["code", "is", published_file_type]]
+                sg_published_file_type = tk.shotgun.find_one('PublishedFileType', filters=filters)
 
-        if published_file_entity_type == "PublishedFile":
-            filters = [["code", "is", published_file_type]]
-            sg_published_file_type = tk.shotgun.find_one('PublishedFileType', filters=filters)
+                if not sg_published_file_type:
+                    # create a published file type on the fly
+                    sg_published_file_type = tk.shotgun.create("PublishedFileType", {"code": published_file_type})
+            else:# == TankPublishedFile
+                filters = [ ["code", "is", published_file_type], ["project", "is", context.project] ]
+                sg_published_file_type = tk.shotgun.find_one('TankType', filters=filters)
 
-            if not sg_published_file_type:
-                # create a published file type on the fly
-                sg_published_file_type = tk.shotgun.create("PublishedFileType", {"code": published_file_type})
-        else:# == TankPublishedFile
-            filters = [ ["code", "is", published_file_type], ["project", "is", context.project] ]
-            sg_published_file_type = tk.shotgun.find_one('TankType', filters=filters)
+                if not sg_published_file_type:
+                    # create a tank type on the fly
+                    sg_published_file_type = tk.shotgun.create("TankType", {"code": published_file_type, "project": context.project})
 
-            if not sg_published_file_type:
-                # create a tank type on the fly
-                sg_published_file_type = tk.shotgun.create("TankType", {"code": published_file_type, "project": context.project})
+        # create the publish
+        log.debug("Publish: Creating publish in Shotgun")
+        entity = _create_published_file(tk,
+                                        context, 
+                                        path, 
+                                        name, 
+                                        version_number, 
+                                        task, 
+                                        comment, 
+                                        sg_published_file_type, 
+                                        created_by_user, 
+                                        created_at, 
+                                        version_entity,
+                                        sg_fields)
 
-    # create the publish
-    log.debug("Publish: Creating publish in Shotgun")
-    entity = _create_published_file(tk,
-                                    context, 
-                                    path, 
-                                    name, 
-                                    version_number, 
-                                    task, 
-                                    comment, 
-                                    sg_published_file_type, 
-                                    created_by_user, 
-                                    created_at, 
-                                    version_entity,
-                                    sg_fields)
+        # upload thumbnails
+        log.debug("Publish: Uploading thumbnails")
+        if thumbnail_path and os.path.exists(thumbnail_path):
 
-    # upload thumbnails
-    log.debug("Publish: Uploading thumbnails")
-    if thumbnail_path and os.path.exists(thumbnail_path):
+            # publish
+            tk.shotgun.upload_thumbnail(published_file_entity_type, entity["id"], thumbnail_path)
 
-        # publish
-        tk.shotgun.upload_thumbnail(published_file_entity_type, entity["id"], thumbnail_path)
+            # entity
+            if update_entity_thumbnail == True and context.entity is not None:
+                tk.shotgun.upload_thumbnail(context.entity["type"],
+                                            context.entity["id"],
+                                            thumbnail_path)
 
-        # entity
-        if update_entity_thumbnail == True and context.entity is not None:
-            tk.shotgun.upload_thumbnail(context.entity["type"],
-                                        context.entity["id"],
-                                        thumbnail_path)
+            # task
+            if update_task_thumbnail == True and task is not None:
+                tk.shotgun.upload_thumbnail("Task", task["id"], thumbnail_path)
 
-        # task
-        if update_task_thumbnail == True and task is not None:
-            tk.shotgun.upload_thumbnail("Task", task["id"], thumbnail_path)
-
-    else:
-        # no thumbnail found - instead use the default one
-        this_folder = os.path.abspath(os.path.dirname(__file__))
-        no_thumb = os.path.join(this_folder, "resources", "no_preview.jpg")
-        tk.shotgun.upload_thumbnail(published_file_entity_type, entity.get("id"), no_thumb)
+        else:
+            # no thumbnail found - instead use the default one
+            this_folder = os.path.abspath(os.path.dirname(__file__))
+            no_thumb = os.path.join(this_folder, "resources", "no_preview.jpg")
+            tk.shotgun.upload_thumbnail(published_file_entity_type, entity.get("id"), no_thumb)
 
 
-    # register dependencies
-    log.debug("Publish: Register dependencies")
-    _create_dependencies(tk, entity, dependency_paths, dependency_ids)
+        # register dependencies
+        log.debug("Publish: Register dependencies")
+        _create_dependencies(tk, entity, dependency_paths, dependency_ids)
 
-    log.debug("Publish: Complete")
-    return entity
+        log.debug("Publish: Complete")
+        return entity
+    except Exception, e:
+        # Append the Entity to the Exception args so it can be used by callers to
+        # report that a PublishedFile was created or not
+        e.args = e.args + (entity,)
+        # re-raise the exception, preserving its traceback
+        raise
 
 def _translate_abstract_fields(tk, path):
     """
