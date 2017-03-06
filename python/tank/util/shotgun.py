@@ -1124,7 +1124,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     published_file_entity_type = get_published_file_entity_type(tk)
 
     # Check if path is a url or a straight file path.  Path
-    # is assumed to be a url if it has a scheme or netloc, e.g.:
+    # is assumed to be a url if it has a scheme:
     #
     #     scheme://netloc/path
     #
@@ -1136,8 +1136,6 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         # schemes are unlikely!
         if len(res.scheme) > 1 or not res.scheme.isalpha():
             path_is_url = True
-    elif res.netloc:
-        path_is_url = True
         
     code = ""
     if path_is_url:
