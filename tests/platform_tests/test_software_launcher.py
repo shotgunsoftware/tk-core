@@ -108,11 +108,11 @@ class TestEngineLauncher(TankTestBase):
 
         # test engine launcher hardcoded to return 10 paths
         launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
-        sw_versions = launcher._scan_software()
+        sw_versions = launcher.scan_software()
         self.assertEqual(len(sw_versions), 10)
 
         launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
-        sw_versions = launcher._scan_software()
+        sw_versions = launcher.scan_software()
         self.assertIsInstance(sw_versions, list)
         for i, swv in enumerate(sw_versions):
             self.assertIsInstance(swv, SoftwareVersion)
@@ -217,7 +217,7 @@ class TestEngineLauncher(TankTestBase):
 
         launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
 
-        # all should pass since no product constraing
+        # all should pass since no product constrain
         self.assertEqual(launcher._is_product_supported("asfasdfakj"), True)
         self.assertEqual(launcher._is_product_supported("asfa sdfakj"), True)
         self.assertEqual(launcher._is_product_supported("asfa sdf akj"), True)
@@ -250,7 +250,7 @@ class TestEngineLauncher(TankTestBase):
             self.engine_name,
             versions=versions_list,
         )
-        sw_versions = launcher._scan_software()
+        sw_versions = launcher.scan_software()
         for sw_version in sw_versions:
             (supported, reason) = launcher._is_supported(sw_version)
             if sw_version.version in [2, 3, 4]:

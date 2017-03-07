@@ -317,22 +317,6 @@ class SoftwareLauncher(object):
         """
         raise NotImplementedError
 
-    def _scan_software(self):
-        """
-        Abstract method that must be implemented by subclasses to return a list
-        of ``SoftwareVersion`` objects on the local filesystem.
-
-        Typical implementations will use functionality such as ``glob`` to
-        locate all versions and variations of executables on disk and then
-        creating ``SoftwareVersion`` objects for each executable. This method
-        is called by the ``get_supported_software()`` method, and each
-        ``SoftwareVersion`` object returned is checked against the launcher's
-        lists of supported version and product variations via the
-        ``_is_supported`` method.
-        """
-
-        raise NotImplementedError
-
     def _scan_software_with_expression(self, match_template, regular_expression):
         """
         This is a helper method that can be invoked in an implementation of :meth:`_scan_software`.
@@ -491,34 +475,18 @@ class SoftwareLauncher(object):
 
         return env
 
-    def get_supported_software(self):
+    def scan_software(self):
         """
         Performs a search for supported software installations.
 
-        This method can be overridden by a subclass to completely override
-        supported software discovery. The typical requirement, however, is for
-        a subclasses to simply implement the ``_scan_software()`` abstract
-        method to return all variations of the software on the local filesystem.
+        Typical implementations will use functionality such as :meth:`_scan_software_with_expression`
+        or ``glob`` to locate all versions and variations of executables on disk
+        and then create ``SoftwareVersion`` objects for each executable and check against the launcher's
+        lists of supported version and product variations via the :meth:`_is_supported` method.
 
-        The default implementation calls ``_scan_software()`` to return
-        a list of ``SoftwareVersion`` objects, then calls ``_is_supported()`` on
-        each to determine the final list of supported executables.
+        :returns: List of :class:`SoftwareVersion` supported by this launcher.
+        :rtype: list
         """
-
-        software_versions = []
-
-        # retrieve a list of SoftwareVersion objects for all executables
-        for sw_version in self._scan_software():
-            (supported, reason) = self._is_supported(sw_version)
-            if supported:
-                self.logger.debug("Accepting %s" % (sw_version,))
-                software_versions.append(sw_version)
-            else:
-                self.logger.debug(
-                    "Rejecting %s. Reason: %s" % (sw_version, reason))
-                continue
-
-        return software_versions
 
     ##########################################################################################
     # protected methods
@@ -539,19 +507,15 @@ class SoftwareLauncher(object):
             not supported will be a string representing the reason the support
             check failed.
 
-        This method can be used by subclasses that override the
-        ``get_supported_software`` method.
+        This helper method can be used by subclasses in the :meth:`scan_software`
+        method.
 
         The method can be overridden by subclasses that require more
-        sophisticated ``SoftwareVersion`` support checks. Alternatively, the
-        ``get_supported_software`` can implement its own support checks using
-        the more specific convenience methods ``_is_version_supported`` and
-        ``_is_product_supported``, the properties ``products`` and ``versions``,
-        or by implementing custom logic.
+        sophisticated ``SoftwareVersion`` support checks.
         """
 
         # check version support
-        if not self._is_version_supported(sw_version.version):
+        if not self.__is_version_supported(sw_version.version):
             return (
                 False,
                 "Executable '%s' not supported. Failed version check. "
@@ -564,7 +528,7 @@ class SoftwareLauncher(object):
             )
 
         # check products list
-        if not self._is_product_supported(sw_version.product):
+        if not self.__is_product_supported(sw_version.product):
             return (
                 False,
                 "Executable '%s' not supported. Failed product check. "
@@ -578,7 +542,7 @@ class SoftwareLauncher(object):
         # passed all checks. must be supported!
         return (True, "")
 
-    def _is_version_supported(self, version):
+    def __is_version_supported(self, version):
         """
         Returns ``True`` if the supplied version string is supported by the
         launcher, ``False`` otherwise.
@@ -611,7 +575,7 @@ class SoftwareLauncher(object):
         # check versions list
         return version in self.versions
 
-    def _is_product_supported(self, product):
+    def __is_product_supported(self, product):
         """
         Returns ``True`` if the supplied product name string is supported by the
         launcher, ``False`` otherwise.
