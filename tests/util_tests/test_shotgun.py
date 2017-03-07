@@ -14,6 +14,7 @@ import datetime
 import threading
 import urlparse
 import unittest2 as unittest
+import logging
 
 from mock import patch, call
 
@@ -473,6 +474,68 @@ class TestShotgunRegisterPublish(TankTestBase):
 
             self.assertEqual(sg_dict["path"], {"local_path": local_path})
             self.assertTrue("pathcache" not in sg_dict)
+
+    def test_publish_errors(self):
+        """Tests exceptions raised on publish errors."""
+
+        # Try publishing with various wrong arguments and test the exceptions
+        # being raised contain the PublishedEntity when it was created
+
+        # Publish with an invalid Version, no PublishEntity should have been
+        # created
+        with self.assertRaises(Exception) as cm:
+            tank.util.register_publish(
+                self.tk,
+                self.context,
+                "dummy_path.txt",
+                self.name,
+                { "id" : -1, "type" : "Version" }
+            )
+        self.assertEqual(len(cm.exception.args), 2)
+        self.assertIsNone(cm.exception.args[1])
+
+        # Force failure after the PublishedFile was created and check we get it
+        # in the Exception last args.
+
+        # Replace upload_thumbnail with a constant failure
+        def raise_value_error(*arg, **kwargs):
+            raise ValueError("Failed")
+        with patch(
+            "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
+            new=raise_value_error) as mock:
+            with self.assertRaises(Exception) as cm:
+                tank.util.register_publish(
+                    self.tk,
+                    self.context,
+                    "dummy_path.txt",
+                    self.name,
+                    self.version,
+                    dependencies= [-1]
+                )
+        self.assertEqual(len(cm.exception.args), 2)
+        self.assertIsInstance(cm.exception.args[1], dict)
+        self.assertTrue(cm.exception.args[1]["type"]==tank.util.get_published_file_entity_type(self.tk))
+
+        # Replace upload_thumbnail with a constant IO error
+        def raise_io_error(*arg, **kwargs):
+            open("/this/file/does/not/exist/or/we/are/very/unlucky.txt", "r")
+        with patch(
+            "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
+            new=raise_io_error) as mock:
+            with self.assertRaises(Exception) as cm:
+                tank.util.register_publish(
+                    self.tk,
+                    self.context,
+                    "dummy_path.txt",
+                    self.name,
+                    self.version,
+                    dependencies= [-1]
+                )
+        # Exceptions deriving from EnvironmentError, such as IOError have 2 args
+        # with the errno and the message
+        self.assertEqual(len(cm.exception.args), 3)
+        self.assertIsInstance(cm.exception.args[-1], dict)
+        self.assertTrue(cm.exception.args[-1]["type"]==tank.util.get_published_file_entity_type(self.tk))
 
 class TestShotgunDownloadUrl(TankTestBase):
 
