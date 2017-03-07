@@ -749,6 +749,7 @@ class Context(object):
         fields = {}
         # for any sg query field
         for key in template.keys.values():
+            print key, key.shotgun_field_name
             
             # check each key to see if it has shotgun query information that we should resolve
             if key.shotgun_field_name:

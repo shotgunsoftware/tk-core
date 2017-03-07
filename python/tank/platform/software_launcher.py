@@ -36,7 +36,7 @@ core_logger = LogManager.get_logger(__name__)
 
 def _format(template, tokens):
     """
-    Super dumb implementation of Python 2.6-like str.format.
+    Limited implementation of Python 2.6-like str.format.
 
     :param str template: String using {<name>} tokens for substitution.
     :param dict tokens: Dictionary of <name> to substitute for <value>.
@@ -109,8 +109,8 @@ class SoftwareLauncher(object):
         """
         :param tk: :class:`~sgtk.Sgtk` Toolkit instance
 
-        :param context: :class:`~sgtk.Context` A context object to define the
-            context on disk where the engine is operating
+        :param context: A :class:`~sgtk.Context` object to define the
+            context on disk where the engine is operating.
 
         :param str engine_name: Name of the Toolkit engine associated
             with the DCC(s) to launch.
@@ -337,10 +337,10 @@ class SoftwareLauncher(object):
         """
         This is a helper method that can be invoked in an implementation of :meth:`_scan_software`.
 
-        The ``match_template`` argument provides a template to use both for globing files and then pattern
+        The ``match_template`` argument provides a template to use both for globbing files and then pattern
         matching them using regular expressions provided by the ``tokens`` dictionary.
 
-        The method will first substitute every token from the template with a ``*`` for globing files.
+        The method will first substitute every token from the template with a ``*`` for globbing files.
         It will then replace the tokens in the template with the regular expressions that were
         provided.
 
@@ -361,7 +361,7 @@ class SoftwareLauncher(object):
         For the method to extract an argument from the matched string and return it back to the caller
         the ``?P<variable>`` notation must be used when invoking this method.
 
-        :param str match_template: Template that will be used both for globing and performing a regular expression.
+        :param str match_template: Template that will be used both for globbing and performing a regular expression.
             Note that you have to use ``/`` for the path separator, even on Windows.
 
         :param dict regular_expressions: Dictionary of regular expressions that can be substituted
@@ -373,7 +373,7 @@ class SoftwareLauncher(object):
                 [("C:\Program Files\Nuke10.0v1\Nuke10.1.exe", {"full_version": "10.0v1", "major_minor_version="10.0"})]
         """
 
-        # First start by globing files.
+        # First start by globbing files.
         glob_pattern = _format(match_template, dict((key, "*") for key in self.COMPONENT_REGEX_LOOKUP))
         self.logger.debug(
             "Globbing for executable matching: %s ..." % (glob_pattern,)
