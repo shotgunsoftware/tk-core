@@ -34,20 +34,6 @@ from .engine import get_env_and_descriptor_for_engine
 core_logger = LogManager.get_logger(__name__)
 
 
-def _format(template, tokens):
-    """
-    Limited implementation of Python 2.6-like str.format.
-
-    :param str template: String using {<name>} tokens for substitution.
-    :param dict tokens: Dictionary of <name> to substitute for <value>.
-
-    :returns: The substituted string, when "<name>" will yield "<value>".
-    """
-    for key, value in tokens.iteritems():
-        template = template.replace("{%s}" % key, value)
-    return template
-
-
 def create_engine_launcher(tk, context, engine_name, versions=None, products=None):
     """
     Factory method that creates a Toolkit engine specific
@@ -304,7 +290,20 @@ class SoftwareLauncher(object):
         """
         raise NotImplementedError
 
-    def _glob_and_match(self, match_template, tokens_expressions):
+    def _format(self, template, tokens):
+        """
+        Limited implementation of Python 2.6-like str.format.
+
+        :param str template: String using {<name>} tokens for substitution.
+        :param dict tokens: Dictionary of <name> to substitute for <value>.
+
+        :returns: The substituted string, when "<name>" will yield "<value>".
+        """
+        for key, value in tokens.iteritems():
+            template = template.replace("{%s}" % key, value)
+        return template
+
+    def _glob_and_match(self, match_template, template_key_expressions):
         """
         This is a helper method that can be invoked in an implementation of :meth:`scan_software`.
 
@@ -326,14 +325,16 @@ class SoftwareLauncher(object):
             )
 
         this would first look for every files matching C:/Program Files/Nuke*/Nuke*.exe and then
-        run the regular expression C:/Program Files/Nuke(?P<version>[\d.v]+)/(?P<major_minor_version>[\d.]+)
+        run the regular expression C:/Program Files/Nuke(?P<full_version>[\d.v]+)/(?P<major_minor_version>[\d.]+)
         and would return any files matching that pattern as well as any extracted tokens.
 
         .. note::
             The ``match_template`` argument must always use ``/`` for path separators. This allows to disambiguate
-            the meaning of `\\`` on Windows when matching executables with regular expressions.
+            the meaning of `\\`` on Windows when matching executables with regular expressions. For example
+            if scannning for Maya installs inside the ``C:\Program Files`` folder for example, specify your template
+            as ``C:/Program Files/Maya{version}``.
 
-        :param str match_template: Template that will be used both for globbing and performing a regular expression.
+        :param str match_template: String template that will be used both for globbing and performing a regular expression.
 
         :param dict tokens_expressions: Dictionary of regular expressions that can be substituted
             in the template. The key should be the name of the token to substitute.
@@ -347,7 +348,7 @@ class SoftwareLauncher(object):
         """
 
         # First start by globbing files.
-        glob_pattern = _format(match_template, dict((key, "*") for key in self.COMPONENT_REGEX_LOOKUP))
+        glob_pattern = self._format(match_template, dict((key, "*") for key in template_key_expressions))
         self.logger.debug(
             "Globbing for executable matching: %s ..." % (glob_pattern,)
         )
@@ -356,7 +357,7 @@ class SoftwareLauncher(object):
         # If nothing was found, we can leave right away.
         if not matching_paths:
             self.logger.debug("No matches were found.")
-            return
+            return []
 
         self.logger.debug(
             "Found %s matches: %s" % (
@@ -365,8 +366,7 @@ class SoftwareLauncher(object):
             )
         )
 
-        # construct the regex string to extract the components
-        regex_pattern = _format(match_template, self.COMPONENT_REGEX_LOOKUP)
+        regex_pattern = self._format(match_template, template_key_expressions)
 
         # accumulate the software version objects to return. this will include
         # include the head/tail anchors in the regex
@@ -386,7 +386,8 @@ class SoftwareLauncher(object):
 
             self.logger.debug("Processing path: %s" % (matching_path,))
 
-            # Updating the slashes so all platform regexes can use forward slashes.
+            # On Windows, even tough we search using / the results will contain \. We need to flip
+            # those so we can match the regular expression.
             matching_path = matching_path.replace("\\", "/")
 
             match = executable_regex.match(matching_path)
@@ -614,11 +615,12 @@ class SoftwareVersion(object):
         """
         Returns unique str representation of the software version
         """
-        return "<SoftwareVersion 0x%08x: %s %s, path: %s>" % (
+        return "<SoftwareVersion 0x%08x: %s %s, path: %s args: %s>" % (
             id(self),
             self.product,
             self.version,
-            self.path
+            self.path,
+            self.args
         )
 
     @property
