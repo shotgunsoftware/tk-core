@@ -913,3 +913,18 @@ especially when the contained widget is quite small. To hide the title bar, just
         def __init__(self):
             ...
 
+Software launching
+==================
+
+.. autoclass:: SoftwareLauncher
+  :members:
+  :exclude-members: descriptor,
+                    settings
+
+  The following methods can be used by subclasses to help implement :meth:`scan_software`.
+
+  .. automethod:: _is_supported
+  .. automethod:: _glob_and_match
+
+.. autoclass:: SoftwareVersion
+  :members:

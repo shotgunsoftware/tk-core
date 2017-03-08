@@ -14,11 +14,12 @@ import sgtk
 from sgtk import TankError
 from sgtk.platform import SoftwareLauncher, SoftwareVersion, LaunchInformation
 
+
 class TestLauncher(SoftwareLauncher):
     """
     SoftwareLauncher stub for unit testing.
     """
-    def scan_software(self, versions=None):
+    def scan_software(self):
         """
         Performs a scan for software installations.
 
@@ -30,13 +31,17 @@ class TestLauncher(SoftwareLauncher):
         :returns: List of :class:`SoftwareVersion` instances
         """
         sw_versions = []
-        for version in versions or []:
+        for version in range(0, 10):
             sw_path = "/path/to/unit/test/app/%s/executable"
             sw_icon = "%s/icons/exec.png" % os.path.dirname(sw_path)
-            sw_versions.append(SoftwareVersion(
-                version, "Unit Test App",
-                sw_path, sw_icon,
-            ))
+            sw_versions.append(
+                SoftwareVersion(
+                    version,
+                    "Unit Test App",  # product
+                    sw_path,
+                    sw_icon,
+                )
+            )
         return sw_versions
 
     def prepare_launch(self, exec_path, args, file_to_open=None):
@@ -56,3 +61,12 @@ class TestLauncher(SoftwareLauncher):
             required_env["FILE_TO_OPEN"] = file_to_open
 
         return LaunchInformation(exec_path, args, required_env)
+
+    # pass through methods to the private implementation of the base class so it can be
+    # unit tested easily.
+    def _is_version_supported(self, version):
+        return self._SoftwareLauncher__is_version_supported(version)
+
+    def _is_product_supported(self, version):
+        return self._SoftwareLauncher__is_product_supported(version)
+
