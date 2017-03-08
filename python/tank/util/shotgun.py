@@ -1279,7 +1279,10 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         # to a storage that is associated with this toolkit config.
         storage_name, path_cache = _calc_path_cache(tk, path)
 
+
+
         if path_cache:
+
             # there is a toolkit storage mapping defined for this storage
             log.debug(
                 "The path '%s' is associated with config root '%s'." % (path, storage_name)
@@ -1342,7 +1345,12 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
             matching_local_storage = False
             log.debug("Retrieving local storages from Shotgun...")
-            for storage in tk.shotgun.find("LocalStorage", []):
+            storages = tk.shotgun.find(
+                "LocalStorage",
+                [],
+                ["code"] + ShotgunPath.SHOTGUN_PATH_FIELDS
+            )
+            for storage in storages:
                 local_storage_path = ShotgunPath.from_shotgun_dict(storage).current_os
                 if local_storage_path and path.startswith(local_storage_path):
                     log.debug("Path matches Shotgun local storage '%s'" % storage["code"])
