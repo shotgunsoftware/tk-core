@@ -102,7 +102,7 @@ def create_engine_launcher(tk, context, engine_name, versions=None, products=Non
 class SoftwareLauncher(object):
     """
     Functionality related to the discovery and launch of a DCC. This class
-    should only be constructed through the :meth:`create_engine_launcher()`
+    should only be constructed through the :meth:`create_engine_launcher`
     factory method.
     """
     def __init__(self, tk, context, engine_name, env, versions=None, products=None):
@@ -124,7 +124,7 @@ class SoftwareLauncher(object):
             "1.2.3.52"
 
         :param list products: List of strings representing product names to
-            search for. If set to ``None` or ``[]``, search for all products. A product
+            search for. If set to ``None`` or ``[]``, search for all products. A product
             string is DCC-specific but could be something like "Houdini FX",
             "Houdini Core" or "Houdini"
         """
@@ -274,7 +274,7 @@ class SoftwareLauncher(object):
     def minimum_supported_version(self):
         """
         The minimum software version that is supported by the launcher.
-        Returned as a string, for example "2015" or "2015.3.sp3".
+        Returned as a string, for example `2015` or `2015.3.sp3`.
         Returns ``None`` if no constraint has been set.
         """
         # returns none by default, subclassed by implementing classes
@@ -403,7 +403,7 @@ class SoftwareLauncher(object):
                 self.logger.debug("Path did not match regex.")
                 continue
 
-            matches.append((matching_path, match.groups(), match.groupdicts()))
+            matches.append((matching_path, match.groups(), match.groupdict()))
 
         return matches
 
@@ -476,8 +476,8 @@ class SoftwareLauncher(object):
         """
         Performs a search for supported software installations.
 
-        Typical implementations will use functionality such as :meth:`_scan_software_with_expression`
-        or ``glob`` to locate all versions and variations of executables on disk
+        Typical implementations will use functionality such as :meth:`_glob_and_match`
+        or :meth:`glob.glob` to locate all versions and variations of executables on disk
         and then create :class:`SoftwareVersion` objects for each executable and check against the launcher's
         lists of supported version and product variations via the :meth:`_is_supported` method.
 
