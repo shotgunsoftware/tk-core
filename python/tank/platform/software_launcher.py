@@ -325,7 +325,7 @@ class SoftwareLauncher(object):
             )
 
         this would first look for every files matching C:/Program Files/Nuke*/Nuke*.exe and then
-        run the regular expression C:/Program Files/Nuke(?P<full_version>[\d.v]+)/(?P<major_minor_version>[\d.]+)
+        run the regular expression C:/Program Files/Nuke([\d.v]+)/([\d.]+)
         and would return any files matching that pattern as well as any extracted tokens.
 
         .. note::
@@ -334,7 +334,8 @@ class SoftwareLauncher(object):
             if scannning for Maya installs inside the ``C:\Program Files`` folder for example, specify your template
             as ``C:/Program Files/Maya{version}``.
 
-        :param str match_template: String template that will be used both for globbing and performing a regular expression.
+        :param str match_template: String template that will be used both for globbing and performing
+            a regular expression.
 
         :param dict tokens_expressions: Dictionary of regular expressions that can be substituted
             in the template. The key should be the name of the token to substitute.
