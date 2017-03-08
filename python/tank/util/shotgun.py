@@ -17,6 +17,7 @@ from __future__ import with_statement
 import os
 import sys
 import uuid
+import urllib
 import urllib2
 import urlparse
 import urllib
@@ -32,6 +33,7 @@ from .errors import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloa
 from ..errors import TankError, TankMultipleMatchingTemplatesError
 from ..log import LogManager
 from .. import hook
+from .shotgun_path import ShotgunPath
 from . import constants
 from . import login
 from . import yaml_cache
@@ -931,7 +933,9 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
     :returns: The created entity dictionary
     """
-    log.debug("Publish: Begin register publish")
+    log.debug(
+        "Publish: Begin register publish for context %s and path %s" % (context, path)
+    )
     entity = None
     try:
         # get the task from the optional args, fall back on context task if not set
@@ -953,6 +957,12 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         created_at = kwargs.get("created_at")
         version_entity = kwargs.get("version_entity")
         sg_fields = kwargs.get("sg_fields", {})
+
+        # normalize path by running it through the shotgun path
+        norm_path = ShotgunPath.from_current_os_path(path).current_os
+        if norm_path != path:
+            log.debug("Normalized input path '%s' -> '%s'" % (path, norm_path))
+            path = norm_path
 
         # convert the abstract fields to their defaults
         path = _translate_abstract_fields(tk, path)
@@ -1038,6 +1048,11 @@ def _translate_abstract_fields(tk, path):
     Translates abstract fields for a path into the default abstract value.
     For example, the path /foo/bar/xyz.0003.exr will be transformed into
     /foo/bar/xyz.%04d.exr
+
+    :param tk: :class:`~sgtk.Sgtk` instance
+    :param path: a normalized path with slashes matching os.path.sep
+
+    :returns: the path with any abstract fields normalized.
     """
     try:
         template = tk.template_from_path(path)
@@ -1157,8 +1172,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         # schemes are unlikely!
         if len(res.scheme) > 1 or not res.scheme.isalpha():
             path_is_url = True
-        
-    code = ""
+
     if path_is_url:
         code = os.path.basename(res.path)
     else:
@@ -1195,59 +1209,105 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         #
         # note: by appling a safe pattern like this, we guarantee that already quoted paths
         #       are not touched, e.g. quote('foo bar') == quote('foo%20bar')
-        data["path"] = {"url": urllib.quote(path, safe="%/:=&?~#+!$,;'@()*[]")}
+        data["path"] = {
+            "url": urllib.quote(path, safe="%/:=&?~#+!$,;'@()*[]"),
+            "name": code
+        }
     else:
 
-        # Make path platform agnostic.
+        # Make path platform agnostic and determine if it belongs
+        # to a storage that is associated with this toolkit config.
         storage_name, path_cache = _calc_path_cache(tk, path)
 
-        # specify the full path in shotgun
-        data["path"] = {"local_path": path}
+        if path_cache:
+            # there is a toolkit storage mapping defined for this storage
+            log.debug(
+                "The path '%s' is associated with config root '%s'." % (path, storage_name)
+            )
+            # specify the full path in shotgun
+            data["path"] = {"local_path": path}
 
-        # note - #30005 - there appears to be an issue on the serverside
-        # related to the explicit storage format and paths containing
-        # sequence tokens such as %04d. Commenting out the logic to handle
-        # the new explicit storage format for the time being while this is
-        # being investigated.
+            # note - #30005 - there appears to be an issue on the serverside
+            # related to the explicit storage format and paths containing
+            # sequence tokens such as %04d. Commenting out the logic to handle
+            # the new explicit storage format for the time being while this is
+            # being investigated.
 
-        # # check if the shotgun server supports the storage and relative_path parameters
-        # # which allows us to specify exactly which storage to bind a publish to rather
-        # # than relying on Shotgun to compute this
-        # supports_specific_storage_syntax = (
-        #     hasattr(tk.shotgun, "server_caps") and
-        #     tk.shotgun.server_caps.version and
-        #     tk.shotgun.server_caps.version >= (6, 3, 17)
-        # )
-        #
-        # if supports_specific_storage_syntax:
-        #     # explicitly pass relative path and storage to shotgun
-        #     storage = tk.shotgun.find_one("LocalStorage", [["code", "is", storage_name]])
-        #
-        #     if storage is None:
-        #         # there is no storage in Shotgun that matches the one toolkit expects.
-        #         # this *may* be ok because there may be another storage in Shotgun that
-        #         # magically picks up the publishes and associates with them. In this case,
-        #         # issue a warning and fall back on the server-side functionality
-        #         log.warning(
-        #             "Could not find the expected storage '%s' in Shotgun to associate "
-        #             "publish '%s' with - falling back to Shotgun's built-in storage "
-        #             "resolution logic. It is recommended that you add the '%s' storage "
-        #             "to Shotgun" % (storage_name, path, storage_name))
-        #         data["path"] = {"local_path": path}
-        #
-        #     else:
-        #         data["path"] = {"relative_path": path_cache, "local_storage": storage}
-        #
-        # else:
-        #     # use previous syntax where we pass the whole path to Shotgun
-        #     # and shotgun will do the storage/relative path split server side.
-        #     # This operation may do unexpected things if you have multiple
-        #     # storages that are identical or overlapping
-        #     data["path"] = {"local_path": path}
+            # # check if the shotgun server supports the storage and relative_path parameters
+            # # which allows us to specify exactly which storage to bind a publish to rather
+            # # than relying on Shotgun to compute this
+            # supports_specific_storage_syntax = (
+            #     hasattr(tk.shotgun, "server_caps") and
+            #     tk.shotgun.server_caps.version and
+            #     tk.shotgun.server_caps.version >= (6, 3, 17)
+            # )
+            #
+            # if supports_specific_storage_syntax:
+            #     # explicitly pass relative path and storage to shotgun
+            #     storage = tk.shotgun.find_one("LocalStorage", [["code", "is", storage_name]])
+            #
+            #     if storage is None:
+            #         # there is no storage in Shotgun that matches the one toolkit expects.
+            #         # this *may* be ok because there may be another storage in Shotgun that
+            #         # magically picks up the publishes and associates with them. In this case,
+            #         # issue a warning and fall back on the server-side functionality
+            #         log.warning(
+            #             "Could not find the expected storage '%s' in Shotgun to associate "
+            #             "publish '%s' with - falling back to Shotgun's built-in storage "
+            #             "resolution logic. It is recommended that you add the '%s' storage "
+            #             "to Shotgun" % (storage_name, path, storage_name))
+            #         data["path"] = {"local_path": path}
+            #
+            #     else:
+            #         data["path"] = {"relative_path": path_cache, "local_storage": storage}
+            #
+            # else:
+            #     # use previous syntax where we pass the whole path to Shotgun
+            #     # and shotgun will do the storage/relative path split server side.
+            #     # This operation may do unexpected things if you have multiple
+            #     # storages that are identical or overlapping
+            #     data["path"] = {"local_path": path}
 
-        # fill in the path cache field which is used for filtering in Shotgun
-        # (because SG does not support
-        data["path_cache"] = path_cache        
+            # fill in the path cache field which is used for filtering in Shotgun
+            # (because SG does not support
+            data["path_cache"] = path_cache
+
+        else:
+
+            # fall back gracefully:
+            # 1. look for storages in Shotgun and see if we can create a local path
+            # 2. failing that, just register the entry as a file:// resource.
+            log.debug("Path '%s' does not have an associated config root." % path)
+            log.debug("Will check shotgun local storages to see if there is a match.")
+
+            matching_local_storage = False
+            log.debug("Retrieving local storages from Shotgun...")
+            for storage in tk.shotgun.find("LocalStorage", []):
+                local_storage_path = ShotgunPath.from_shotgun_dict(storage).current_os
+                if local_storage_path and path.startswith(local_storage_path):
+                    log.debug("Path matches Shotgun local storage '%s'" % storage["code"])
+                    matching_local_storage = True
+                    break
+
+            if matching_local_storage:
+                # there is a local storage matching this path
+                # so use that when publishing
+                data["path"] = {"local_path": path}
+
+            else:
+                # no local storage defined so publish as a file:// url
+                log.debug(
+                    "No local storage matching path '%s' - path will be "
+                    "registered as a file:// url." % (path, )
+                )
+
+                # (see http://stackoverflow.com/questions/11687478/convert-a-filename-to-a-file-url)
+                file_url = urlparse.urljoin("file:", urllib.pathname2url(path))
+                log.debug("Converting '%s' -> '%s'" % (path, file_url))
+                data["path"] = {
+                    "url": file_url,
+                    "name": code
+                }
 
     if created_by_user:
         data["created_by"] = created_by_user
