@@ -958,15 +958,6 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         version_entity = kwargs.get("version_entity")
         sg_fields = kwargs.get("sg_fields", {})
 
-        # normalize path by running it through the shotgun path
-        norm_path = ShotgunPath.from_current_os_path(path).current_os
-        if norm_path != path:
-            log.debug("Normalized input path '%s' -> '%s'" % (path, norm_path))
-            path = norm_path
-
-        # convert the abstract fields to their defaults
-        path = _translate_abstract_fields(tk, path)
-
         published_file_entity_type = get_published_file_entity_type(tk)
 
         log.debug("Publish: Resolving the published file type")
@@ -1156,8 +1147,78 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
                            created_by_user, created_at, version_entity, sg_fields=None):
     """
     Creates a publish entity in shotgun given some standard fields.
+
+    :param tk: :class:`~sgtk.Sgtk` instance
+    :param context: A :class:`~sgtk.Context` to associate with the publish. This will
+                    populate the task and entity link in Shotgun.
+    :param path: The path to the file or sequence we want to publish. If the
+                 path is a sequence path it will be abstracted so that
+                 any sequence keys are replaced with their default values.
+    :param name: A name, without version number, which helps distinguish
+               this publish from other publishes. This is typically
+               used for grouping inside of Shotgun so that all the
+               versions of the same "file" can be grouped into a cluster.
+               For example, for a maya publish, where we track only
+               the scene name, the name would simply be that: the scene
+               name. For something like a render, it could be the scene
+               name, the name of the AOV and the name of the render layer.
+    :param version_number: The version number of the item we are publishing.
+    :param task: Shotgun Task dictionary to assciate with publish or none
+    :param comment: Comments string to associate with publish
+    :param published_file_type: Shotgun publish type dictionary to
+                associate with publish
+    :param created_by_user: User entity to associate with publish or None
+                if current user should be used.
+    :param created_at: timestamp to associate with publish or None for default.
+    :param version_entity: Version dictionary to associate with publish or None.
+    :param sg_fields: dictionary of additional data to add to publish.
+
+    :returns: the result of the shotgun API create method.
     """
+
+    data = {
+        "description": comment,
+        "name": name,
+        "project": context.project,
+        "task": task,
+        "version_number": version_number,
+        }
+
+    # we set the optional additional fields first so we don't allow overwriting the standard parameters
+    if sg_fields is None:
+        sg_fields = {}
+    data.update(sg_fields)
+
+    if created_by_user:
+        data["created_by"] = created_by_user
+    else:
+        # use current user
+        sg_user = login.get_current_user(tk)
+        if sg_user:
+            data["created_by"] = sg_user
+
+    if created_at:
+        data["created_at"] = created_at
+
     published_file_entity_type = get_published_file_entity_type(tk)
+
+    if published_file_type:
+        if published_file_entity_type == "PublishedFile":
+            data["published_file_type"] = published_file_type
+        else:
+            # using legacy type TankPublishedFile
+            data["tank_type"] = published_file_type
+
+    if version_entity:
+        data["version"] = version_entity
+
+    # if the context does not have an entity, link it up to the project
+    if context.project is None:
+        raise TankError("Your context needs to at least have a project set in order to publish.")
+    elif context.entity is None:
+        data["entity"] = context.project
+    else:
+        data["entity"] = context.entity
 
     # Check if path is a url or a straight file path.  Path
     # is assumed to be a url if it has a scheme:
@@ -1173,47 +1234,46 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         if len(res.scheme) > 1 or not res.scheme.isalpha():
             path_is_url = True
 
+    # naming and path logic is different depending on url
     if path_is_url:
-        code = os.path.basename(res.path)
-    else:
-        code = os.path.basename(path)
 
-    # if the context does not have an entity, link it up to the project
-    if context.entity is None:
-        linked_entity = context.project
-    else:
-        linked_entity = context.entity
-    
-    data = {}
-    
-    # we set the optional additional fields first so we don't allow overwriting the standard parameters
-    if sg_fields is None:
-        sg_fields = {}
-    data.update(sg_fields)
-    
-    # standard parameters
-    data.update({
-        "code": code,
-        "description": comment,
-        "name": name,
-        "project": context.project,
-        "entity": linked_entity,
-        "task": task,
-        "version_number": version_number,
-        })
+        # extract name from url:
+        #
+        # scheme://hostname.com/path/to/file.ext -> file.ext
+        # scheme://hostname.com -> hostname.com
+        if res.path:
+            # scheme://hostname.com/path/to/file.ext -> file.ext
+            data["code"] = res.path.split("/")[-1]
+        else:
+            # scheme://hostname.com -> hostname.com
+            data["code"] = res.netloc
 
-    # handle the path definition
-    if path_is_url:
+        # make sure that the url is escaped property, otherwise
+        # shotgun might not accept it.
+        #
         # for quoting logic, see bugfix here:
         # http://svn.python.org/view/python/trunk/Lib/urllib.py?r1=71780&r2=71779&pathrev=71780
         #
-        # note: by appling a safe pattern like this, we guarantee that already quoted paths
+        # note: by applying a safe pattern like this, we guarantee that already quoted paths
         #       are not touched, e.g. quote('foo bar') == quote('foo%20bar')
         data["path"] = {
             "url": urllib.quote(path, safe="%/:=&?~#+!$,;'@()*[]"),
-            "name": code
+            "name": data["code"]  # same as publish name
         }
+
     else:
+
+        # normalize the path to native slashes
+        norm_path = ShotgunPath.from_current_os_path(path).current_os
+        if norm_path != path:
+            log.debug("Normalized input path '%s' -> '%s'" % (path, norm_path))
+            path = norm_path
+
+        # convert the abstract fields to their defaults
+        path = _translate_abstract_fields(tk, path)
+
+        # name of publish is the filename
+        data["code"] = os.path.basename(path)
 
         # Make path platform agnostic and determine if it belongs
         # to a storage that is associated with this toolkit config.
@@ -1274,7 +1334,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
         else:
 
-            # fall back gracefully:
+            # path does not map to any configured root - fall back gracefully:
             # 1. look for storages in Shotgun and see if we can create a local path
             # 2. failing that, just register the entry as a file:// resource.
             log.debug("Path '%s' does not have an associated config root." % path)
@@ -1292,7 +1352,10 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
             if matching_local_storage:
                 # there is a local storage matching this path
                 # so use that when publishing
-                data["path"] = {"local_path": path}
+                data["path"] = {
+                    "local_path": path,
+                    "name": data["code"]  # same as publish name
+                }
 
             else:
                 # no local storage defined so publish as a file:// url
@@ -1306,28 +1369,9 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
                 log.debug("Converting '%s' -> '%s'" % (path, file_url))
                 data["path"] = {
                     "url": file_url,
-                    "name": code
+                    "name": data["code"]  # same as publish name
                 }
 
-    if created_by_user:
-        data["created_by"] = created_by_user
-    else:
-        # use current user
-        sg_user = login.get_current_user(tk)
-        if sg_user:
-            data["created_by"] = sg_user
-
-    if created_at:
-        data["created_at"] = created_at
-
-    if published_file_type:
-        if published_file_entity_type == "PublishedFile":
-            data["published_file_type"] = published_file_type
-        else: # == TankPublishedFile
-            data["tank_type"] = published_file_type
-
-    if version_entity:
-        data["version"] = version_entity
 
     # now call out to hook just before publishing
     data = tk.execute_core_hook(constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context)
