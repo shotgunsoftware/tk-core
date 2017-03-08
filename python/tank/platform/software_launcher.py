@@ -61,7 +61,7 @@ def create_engine_launcher(tk, context, engine_name, versions=None, products=Non
         versions. See the :class:`SoftwareLauncher` for more info.
     :param list products: A list of product strings for filtering software
         versions. See the :class:`SoftwareLauncher` for more info.
-    :rtype: :class:`SoftwareLauncher` instance or None.
+    :rtype: :class:`SoftwareLauncher` instance or ``None`.
     """
     # Get the engine environment and descriptor using engine.py code
     (env, engine_descriptor) = get_env_and_descriptor_for_engine(
@@ -119,12 +119,12 @@ class SoftwareLauncher(object):
             associate with this launcher.
 
         :param list versions: List of strings representing versions to search
-            for. If set to None or [], search for all versions. A version string
+            for. If set to ``None`` or ``[]``, search for all versions. A version string
             is DCC-specific but could be something like "2017", "6.3v7" or
             "1.2.3.52"
 
         :param list products: List of strings representing product names to
-            search for. If set to None or [], search for all products. A product
+            search for. If set to ``None` or ``[]``, search for all products. A product
             string is DCC-specific but could be something like "Houdini FX",
             "Houdini Core" or "Houdini"
         """
@@ -317,7 +317,7 @@ class SoftwareLauncher(object):
         """
         raise NotImplementedError
 
-    def _scan_software_with_expression(self, match_template, regular_expression):
+    def _glob_and_match(self, match_template, regular_expression):
         """
         This is a helper method that can be invoked in an implementation of :meth:`_scan_software`.
 
@@ -330,31 +330,28 @@ class SoftwareLauncher(object):
 
         In the following example::
 
-            self._scan_software_with_expression(
+            self._glob_and_match(
                 "C:/Program Files/Nuke{full_version}/Nuke{major_minor_version}.exe",
                 {
-                    "full_version": r"(?P<version>[\d.v]+)",
-                    "major_minor_version": r"(?P<major_minor_version>[\d.]+)"
+                    "full_version": r"([\d.v]+)",
+                    "major_minor_version": r"([\d.]+)"
                 }
             )
 
         this would first look for every files matching C:\Program Files\Nuke*\Nuke*.exe and then
         run the regular expression C:\\Program Files\\Nuke(?P<version>[\d.v]+)\\(?P<major_minor_version>[\d.]+).
         and would return any files matching that pattern as well as any extracted tokens.
-
-        For the method to extract an argument from the matched string and return it back to the caller
-        the ``?P<variable>`` notation must be used when invoking this method.
-
         :param str match_template: Template that will be used both for globbing and performing a regular expression.
             Note that you have to use ``/`` for the path separator, even on Windows.
 
         :param dict regular_expressions: Dictionary of regular expressions that can be substituted
             in the template. The key should be the name of the token to substitute.
 
-        :returns: A list of pairs containing the path and matching notes.
-            For example, if Nuke 10.0v1 had been installed on the computer running this, the
-            return value would have been::
-                [("C:\Program Files\Nuke10.0v1\Nuke10.1.exe", {"full_version": "10.0v1", "major_minor_version="10.0"})]
+        :returns: A list of tuples containing the path, the groups and the group dictionary matches
+            from the regular expression. For example, if Nuke 10.0v1 had been installed on the computer
+            running this, the return value would have been::
+                [("C:\Program Files\Nuke10.0v1\Nuke10.1.exe",
+                 ("10.0v1", "10.0"), {"full_version": "10.0v1", "major_minor_version="10.0"})]
         """
 
         # First start by globbing files.
@@ -406,7 +403,7 @@ class SoftwareLauncher(object):
                 self.logger.debug("Path did not match regex.")
                 continue
 
-            matches.append((matching_path, match.groupdict()))
+            matches.append((matching_path, match.groups(), match.groupdicts()))
 
         return matches
 
@@ -481,7 +478,7 @@ class SoftwareLauncher(object):
 
         Typical implementations will use functionality such as :meth:`_scan_software_with_expression`
         or ``glob`` to locate all versions and variations of executables on disk
-        and then create ``SoftwareVersion`` objects for each executable and check against the launcher's
+        and then create :class:`SoftwareVersion` objects for each executable and check against the launcher's
         lists of supported version and product variations via the :meth:`_is_supported` method.
 
         :returns: List of :class:`SoftwareVersion` supported by this launcher.
@@ -502,7 +499,7 @@ class SoftwareLauncher(object):
             launcher's product and version limitations.
 
         :returns: A tuple of the form: ``(bool, str)`` where the first item
-            is a boolean indicating whether the supplied ``SoftwareVersion`` is
+            is a boolean indicating whether the supplied :class:`SoftwareVersion` is
             supported or not. The second argument is ``""`` if supported, but if
             not supported will be a string representing the reason the support
             check failed.
@@ -511,14 +508,14 @@ class SoftwareLauncher(object):
         method.
 
         The method can be overridden by subclasses that require more
-        sophisticated ``SoftwareVersion`` support checks.
+        sophisticated :class:`SoftwareVersion` support checks.
         """
 
         # check version support
         if not self.__is_version_supported(sw_version.version):
             return (
                 False,
-                "Executable '%s' not supported. Failed version check. "
+                "Executable '%s' didn't meet the version requirements"
                 "(%s not in %s or is older than %s)" % (
                     sw_version.path,
                     sw_version.version,
@@ -531,7 +528,7 @@ class SoftwareLauncher(object):
         if not self.__is_product_supported(sw_version.product):
             return (
                 False,
-                "Executable '%s' not supported. Failed product check. "
+                "Executable '%s' didn't meet the product requirements"
                 "(%s not in %s)" % (
                     sw_version.path,
                     sw_version.product,
@@ -555,11 +552,6 @@ class SoftwareLauncher(object):
         :param str version: A string representing the version to check against.
 
         :return: Boolean indicating if the supplied version string is supported.
-
-        This method can be overridden in subclasses that require more
-        sophisticated version support checks. Note: this method is used by
-        ``_is_supported()`` to check version support for the supplied
-        ``SoftwareVersion``.
         """
 
         # first, compare against the minimum version
@@ -589,11 +581,6 @@ class SoftwareLauncher(object):
 
         :return: Boolean indicating if the supplied product name string is
             supported.
-
-        This method can be overridden in subclasses that require more
-        sophisticated product name support checks. Note: this method is used by
-        ``_is_supported()`` to check product name support for the supplied
-        ``SoftwareVersion``.
         """
 
         if not self.products:
@@ -609,7 +596,7 @@ class SoftwareVersion(object):
     Container class that stores properties of a DCC that
     are useful for Toolkit Engine Startup functionality.
     """
-    def __init__(self, version, product, path, icon=None, arguments=None):
+    def __init__(self, version, product, path, icon=None, args=None):
         """
         Constructor.
 
@@ -619,16 +606,16 @@ class SoftwareVersion(object):
                             (e.g. "Houdini Apprentice")
         :param str path: Full path to the DCC executable.
         :param str icon: (optional) Full path to a 256x256 (or smaller)
-                         png file to use for graphical displays of
-                         this SoftwareVersion.
-        :param list arguments: (optional) List of command line arguments
+                         ``png`` file to use for graphical displays of
+                         this :class:`SoftwareVersion`.
+        :param list args: (optional) List of command line arguments
                                that need to be passed down to the DCC.
         """
         self._version = version
         self._product = product
         self._path = path
         self._icon_path = icon
-        self._arguments = arguments or []
+        self._args = args or []
 
     def __repr__(self):
         """
@@ -691,13 +678,13 @@ class SoftwareVersion(object):
         return self._icon_path
 
     @property
-    def arguments(self):
+    def args(self):
         """
         Command line arguments required to launch the DCC.
 
         :returns: List of string arguments.
         """
-        return self._arguments
+        return self._args
 
 
 class LaunchInformation(object):
