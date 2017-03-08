@@ -918,6 +918,8 @@ Software launching
 
 .. autoclass:: SoftwareLauncher
   :members:
+  :exclude-members: descriptor,
+                    settings
 
   The following methods can be used by subclasses to help implement :meth:`scan_software`.
 

@@ -172,9 +172,7 @@ class SoftwareLauncher(object):
     @property
     def context(self):
         """
-        The context associated with this launcher.
-
-        :returns: :class:`~sgtk.Context`
+        The :class:`~sgtk.Context` associated with this launcher.
         """
         return self.__context
 
@@ -201,9 +199,7 @@ class SoftwareLauncher(object):
     @property
     def sgtk(self):
         """
-        Returns the Toolkit API instance associated with this item
-
-        :returns: :class:`~sgtk.Sgtk`
+        The :class:`~sgtk.Sgtk` instance associated with this item
         """
         return self.__tk
 
@@ -226,8 +222,6 @@ class SoftwareLauncher(object):
         appends 'Startup' to the end of the display
         name if that string is missing from the display
         name (e.g. Maya Engine Startup)
-
-        :returns: display name as string
         """
         disp_name = self.descriptor.display_name
         if not disp_name.lower().endswith("startup"):
@@ -241,18 +235,13 @@ class SoftwareLauncher(object):
     def engine_name(self):
         """
         The TK engine name this launcher is based on.
-
-        :returns: String TK engine name
         """
         return self.__engine_name
 
     @property
     def logger(self):
         """
-        Standard python logger for this engine, app or framework.
-        Use this whenever you want to emit or process log messages.
-
-        :returns: :class:`logging.Logger` instance
+        :class:`logging.Logger` for this launcher. Use this whenever you want to emit or process log messages.
         """
         return LogManager.get_logger(
             "env.%s.%s.startup" %
@@ -262,11 +251,9 @@ class SoftwareLauncher(object):
     @property
     def shotgun(self):
         """
-        Returns a Shotgun API handle associated with the currently running
+        :class:`shotgun_api3.Shotgun` handle associated with the currently running
         environment. This method is a convenience method that calls out
         to :meth:`~sgtk.Tank.shotgun`.
-
-        :returns: Shotgun API handle
         """
         return self.sgtk.shotgun
 
@@ -317,41 +304,46 @@ class SoftwareLauncher(object):
         """
         raise NotImplementedError
 
-    def _glob_and_match(self, match_template, regular_expression):
+    def _glob_and_match(self, match_template, tokens_expressions):
         """
-        This is a helper method that can be invoked in an implementation of :meth:`_scan_software`.
+        This is a helper method that can be invoked in an implementation of :meth:`scan_software`.
 
         The ``match_template`` argument provides a template to use both for globbing files and then pattern
-        matching them using regular expressions provided by the ``tokens`` dictionary.
+        matching them using regular expressions provided by the ``tokens_expressions`` dictionary.
 
-        The method will first substitute every token from the template with a ``*`` for globbing files.
-        It will then replace the tokens in the template with the regular expressions that were
-        provided.
+        The method will first substitute every token surrounded by `{}` from the template with a ``*``
+        for globbing files. It will then replace the tokens in the template with the regular expressions
+        that were provided.
 
         In the following example::
 
             self._glob_and_match(
-                "C:/Program Files/Nuke{full_version}/Nuke{major_minor_version}.exe",
+                "//network/softwares/Nuke{full_version}/Nuke{major_minor_version}.exe",
                 {
                     "full_version": r"([\d.v]+)",
                     "major_minor_version": r"([\d.]+)"
                 }
             )
 
-        this would first look for every files matching C:\Program Files\Nuke*\Nuke*.exe and then
-        run the regular expression C:\\Program Files\\Nuke(?P<version>[\d.v]+)\\(?P<major_minor_version>[\d.]+).
+        this would first look for every files matching C:/Program Files/Nuke*/Nuke*.exe and then
+        run the regular expression C:/Program Files/Nuke(?P<version>[\d.v]+)/(?P<major_minor_version>[\d.]+)
         and would return any files matching that pattern as well as any extracted tokens.
-        :param str match_template: Template that will be used both for globbing and performing a regular expression.
-            Note that you have to use ``/`` for the path separator, even on Windows.
 
-        :param dict regular_expressions: Dictionary of regular expressions that can be substituted
+        .. note::
+            The ``match_template`` argument must always use ``/`` for path separators. This allows to disambiguate
+            the meaning of `\\`` on Windows when matching executables with regular expressions.
+
+        :param str match_template: Template that will be used both for globbing and performing a regular expression.
+
+        :param dict tokens_expressions: Dictionary of regular expressions that can be substituted
             in the template. The key should be the name of the token to substitute.
 
         :returns: A list of tuples containing the path, the groups and the group dictionary matches
-            from the regular expression. For example, if Nuke 10.0v1 had been installed on the computer
-            running this, the return value would have been::
-                [("C:\Program Files\Nuke10.0v1\Nuke10.1.exe",
-                 ("10.0v1", "10.0"), {"full_version": "10.0v1", "major_minor_version="10.0"})]
+            from the regular expression. For example, if Nuke 10.0v1 had been installed on the network share
+            provided above, the return value would have been::
+                [("//network/softwares/Nuke10.0v1/Nuke10.1.exe",
+                  ("10.0v1", "10.0"),
+                  {"full_version": "10.0v1", "major_minor_version"="10.0"})]
         """
 
         # First start by globbing files.
