@@ -51,7 +51,7 @@ def _format(template, tokens):
 def create_engine_launcher(tk, context, engine_name, versions=None, products=None):
     """
     Factory method that creates a Toolkit engine specific
-    SoftwareLauncher instance.
+    :class:`SoftwareLauncher` instance.
 
     :param tk: :class:`~sgtk.Sgtk` Toolkit instance.
     :param context: :class:`~sgtk.Context` Context to launch the DCC in.
@@ -631,7 +631,7 @@ class SoftwareVersion(object):
     @property
     def version(self):
         """
-        An explicit version of the DCC represented by this SoftwareVersion.
+        An explicit version of the DCC represented by this :class`SoftwareVersion`.
 
         :returns: String version
         """
@@ -640,8 +640,8 @@ class SoftwareVersion(object):
     @property
     def product(self):
         """
-        An explicit product name for the DCC represented by this Software
-        Version. Example: "Houdini FX"
+        An explicit product name for the DCC represented by this
+        :class`SoftwareVersion`. Example: "Houdini FX"
 
         :return: String product name
         """
@@ -651,7 +651,7 @@ class SoftwareVersion(object):
     @property
     def display_name(self):
         """
-        Name to use for this SoftwareVersion in graphical displays.
+        Name to use for this :class`SoftwareVersion` in graphical displays.
 
         :returns: String display name, a combination of the product and version.
         """
@@ -670,8 +670,8 @@ class SoftwareVersion(object):
     def icon(self):
         """
         Path to the icon to use for graphical displays of this
-        SoftwareVersion. Expected to be a 256x256 (or smaller)
-        png file.
+        :class`SoftwareVersion`. Expected to be a 256x256 (or smaller)
+        `png file.
 
         :returns: String path
         """
