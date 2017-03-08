@@ -476,6 +476,7 @@ class SoftwareLauncher(object):
         :returns: List of :class:`SoftwareVersion` supported by this launcher.
         :rtype: list
         """
+        raise NotImplementedError
 
     ##########################################################################################
     # protected methods
