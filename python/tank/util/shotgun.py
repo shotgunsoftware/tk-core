@@ -1352,7 +1352,8 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
             )
             for storage in storages:
                 local_storage_path = ShotgunPath.from_shotgun_dict(storage).current_os
-                if local_storage_path and path.startswith(local_storage_path):
+                # assume case preserving file systems rather than case sensitive
+                if local_storage_path and path.lower().startswith(local_storage_path.lower()):
                     log.debug("Path matches Shotgun local storage '%s'" % storage["code"])
                     matching_local_storage = True
                     break
@@ -1360,10 +1361,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
             if matching_local_storage:
                 # there is a local storage matching this path
                 # so use that when publishing
-                data["path"] = {
-                    "local_path": path,
-                    "name": data["code"]  # same as publish name
-                }
+                data["path"] = {"local_path": path}
 
             else:
                 # no local storage defined so publish as a file:// url
