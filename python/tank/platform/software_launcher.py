@@ -401,7 +401,7 @@ class SoftwareLauncher(object):
                 self.logger.debug("Path did not match regex.")
                 continue
 
-            matches.append((matching_path.replace("/", os.path.sep), match.groups(), match.groupdict()))
+            matches.append((matching_path, match.groups(), match.groupdict()))
 
         return matches
 
