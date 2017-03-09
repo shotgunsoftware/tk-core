@@ -376,7 +376,7 @@ class TestShotgunRegisterPublish(TankTestBase):
 
         self.storage_3 = {
             "type": "LocalStorage",
-            "id": 2,
+            "id": 3,
             "code": "unc paths",
             "windows_path": r"\\server\share",
         }
@@ -387,7 +387,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         }
 
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.storage, self.storage_2, self.tank_type_1])
+        self.add_to_sg_mock_db([self.storage, self.storage_2, self.storage_3, self.tank_type_1])
 
         self.shot = {"type": "Shot",
                     "name": "shot_name",
@@ -539,11 +539,11 @@ class TestShotgunRegisterPublish(TankTestBase):
         if sys.platform == "win32":
             values = {
                 "C:/path/to/test file.png": {
-                    "url": "file:///c:/path/to/test%20file.png",
+                    "url": "file:///C:/path/to/test%20file.png",
                     "name": "test file.png"
                 },
                 "e:/path/to/test file.png": {
-                    "url": "file:///e:/path/to/test%20file.png",
+                    "url": "file:///E:/path/to/test%20file.png",
                     "name": "test file.png"
                 },
                 "//path/to/test file.png": {
@@ -551,11 +551,11 @@ class TestShotgunRegisterPublish(TankTestBase):
                     "name": "test file.png"
                 },
                 r"C:\path\to\test file.png": {
-                    "url": "file:///c:/path/to/test%20file.png",
+                    "url": "file:///C:/path/to/test%20file.png",
                     "name": "test file.png"
                 },
                 r"e:\path\to\test file.png": {
-                    "url": "file:///e:/path/to/test%20file.png",
+                    "url": "file:///E:/path/to/test%20file.png",
                     "name": "test file.png"
                 },
                 r"\\path\to\test file.png": {
