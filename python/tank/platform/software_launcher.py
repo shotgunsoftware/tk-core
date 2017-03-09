@@ -315,24 +315,24 @@ class SoftwareLauncher(object):
         for globbing files. It will then replace the tokens in the template with the regular expressions
         that were provided.
 
-        In the following example::
+        Example::
 
             self._glob_and_match(
-                "\\\\network\\softwares\\Nuke{full_version}\\Nuke{major_minor_version}.exe",
+                "C:\\Program Files\\Nuke{full_version}\\Nuke{major_minor_version}.exe",
                 {
                     "full_version": r"(?P<full_version>[\d.v]+)",
                     "major_minor_version": r"(?P<major_minor_version>[\d.]+)"
                 }
             )
 
-        this would first look for every files matching the glob ``\\network\softwares\Nuke*\Nuke*.exe``
-        and then run the regular expression ``\\\\network\\softwares\\Nuke([\d.v]+)\\Nuke([\d.]+).exe``
-        on each matches. Each match will be returned with the accompanying regular expression groups and group
+        The example above would look for every file matching the glob ``C:\Program Files\softwares\Nuke*\Nuke*.exe``
+        and then run the regular expression ``C:\\Program Files\\Nuke([\d.v]+)\\Nuke([\d.]+).exe``
+        on each match. Each match will be returned with the accompanying regular expression groups and group
         dictionary, if any were specified.
 
         For example, if Nuke 10.0v1 was installed, the following would have been returned::
 
-            [("\\\\network\\softwares\\Nuke10.0v1\\Nuke10.1.exe",
+            [("C:\\Program Files\\Nuke10.0v1\\Nuke10.1.exe",
               ("10.0v1", "10.0"),
               {"full_version": "10.0v1", "major_minor_version"="10.0"})]
 
@@ -372,7 +372,7 @@ class SoftwareLauncher(object):
         )
 
         # Now prepare the template to be turned into a regular expression. First, double up the
-        # backward slashes to escape them.
+        # backward slashes to escape them properly in the regular expression.
         regex_pattern = match_template.replace("\\", "\\\\")
         # Then swap the tokens into the regular template key expressions.
         regex_pattern = self._format(regex_pattern, template_key_expressions)
