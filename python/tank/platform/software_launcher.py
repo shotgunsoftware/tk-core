@@ -23,6 +23,7 @@ from ..errors import TankError
 from ..log import LogManager
 from ..util.loader import load_plugin
 from ..util.version import is_version_older
+from ..util import ShotgunPath
 
 from . import constants
 from . import validation
@@ -304,35 +305,30 @@ class SoftwareLauncher(object):
         return template
 
     def _glob_and_match(self, match_template, template_key_expressions):
-        """
+        r"""
         This is a helper method that can be invoked in an implementation of :meth:`scan_software`.
 
         The ``match_template`` argument provides a template to use both for globbing files and then pattern
         matching them using regular expressions provided by the ``tokens_expressions`` dictionary.
 
-        The method will first substitute every token surrounded by `{}` from the template with a ``*``
+        The method will first substitute every token surrounded by ``{}` from the template with a ``*``
         for globbing files. It will then replace the tokens in the template with the regular expressions
         that were provided.
 
         In the following example::
 
             self._glob_and_match(
-                "//network/softwares/Nuke{full_version}/Nuke{major_minor_version}.exe",
+                r"\\\\network\\softwares\\Nuke{full_version}\\Nuke{major_minor_version}.exe",
                 {
-                    "full_version": r"([\d.v]+)",
-                    "major_minor_version": r"([\d.]+)"
+                    "full_version": r"(?P<full_version>[\d.v]+)",
+                    "major_minor_version": r"(?P<major_minor_version>[\d.]+)"
                 }
             )
 
-        this would first look for every files matching C:/Program Files/Nuke*/Nuke*.exe and then
-        run the regular expression C:/Program Files/Nuke([\d.v]+)/([\d.]+)
-        and would return any files matching that pattern as well as any extracted tokens.
-
-        .. note::
-            The ``match_template`` argument must always use ``/`` for path separators. This allows to disambiguate
-            the meaning of `\\`` on Windows when matching executables with regular expressions. For example
-            if scannning for Maya installs inside the ``C:\Program Files`` folder for example, specify your template
-            as ``C:/Program Files/Maya{version}``.
+        this would first look for every files matching the glob ``\\network\sofwares\Nuke*\Nuke*.exe``,
+        then run the regular expression ``r"\\\\network\\softwares\\Nuke([\d.v]+)\\Nuke([\d.]+).exe``
+        and finally return any files matching that pattern as well as any matched groups and group
+        dictionairies, if specified.
 
         :param str match_template: String template that will be used both for globbing and performing
             a regular expression.
@@ -343,10 +339,16 @@ class SoftwareLauncher(object):
         :returns: A list of tuples containing the path, the groups and the group dictionary matches
             from the regular expression. For example, if Nuke 10.0v1 had been installed on the network share
             provided above, the return value would have been::
-                [("//network/softwares/Nuke10.0v1/Nuke10.1.exe",
+                [("\\\\network\\softwares\\Nuke10.0v1\\Nuke10.1.exe",
                   ("10.0v1", "10.0"),
                   {"full_version": "10.0v1", "major_minor_version"="10.0"})]
         """
+
+        # Sanitize glob pattern.
+        fixed_match_template = ShotgunPath.from_current_os_path(match_template).current_os
+        if fixed_match_template != match_template:
+            self.logger.debug("Template was sanitized from '%s' to '%s'" % (match_template, fixed_match_template))
+            match_template = fixed_match_template
 
         # First start by globbing files.
         glob_pattern = self._format(match_template, dict((key, "*") for key in template_key_expressions))
@@ -367,7 +369,11 @@ class SoftwareLauncher(object):
             )
         )
 
-        regex_pattern = self._format(match_template, template_key_expressions)
+        # Now prepare the template to be turned into a regular expression. First, double up the
+        # backward slashes to escape them.
+        regex_pattern = match_template.replace("\\", "\\\\")
+        # Then swap the tokens into the regular template key expressions.
+        regex_pattern = self._format(regex_pattern, template_key_expressions)
 
         # accumulate the software version objects to return. this will include
         # include the head/tail anchors in the regex
@@ -387,17 +393,13 @@ class SoftwareLauncher(object):
 
             self.logger.debug("Processing path: %s" % (matching_path,))
 
-            # On Windows, even tough we search using / the results will contain \. We need to flip
-            # those so we can match the regular expression.
-            matching_path = matching_path.replace("\\", "/")
-
             match = executable_regex.match(matching_path)
 
             if not match:
                 self.logger.debug("Path did not match regex.")
                 continue
 
-            matches.append((matching_path, match.groups(), match.groupdict()))
+            matches.append((matching_path.replace("/", os.path.sep), match.groups(), match.groupdict()))
 
         return matches
 

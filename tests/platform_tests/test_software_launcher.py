@@ -281,6 +281,39 @@ class TestEngineLauncher(TankTestBase):
         self.assertTrue("FILE_TO_OPEN" in launch_info.environment)
         self.assertTrue(open_file in launch_info.environment["FILE_TO_OPEN"])
 
+    def test_glob_and_match(self):
+        """
+        Ensures we are globbing and matching files regardless of the orientation of the slashes.
+        """
+        pattern_template = os.path.join(self.fixtures_root, "misc", "glob_and_match", "maya{version}")
+        launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
+
+        # regardless of the platform, the path orientation should not be an issue
+        for template in [pattern_template.replace("/", "\\"), pattern_template.replace("\\", "/")]:
+            matches = launcher._glob_and_match(template, {"version": "(?P<version>\d+)"})
+            # Sort alphabetically so we can more easily validate the result.
+            matches = sorted(matches, key=lambda x: x[0])
+            self.assertEqual(
+                matches,
+                [
+                    (
+                        os.path.join(self.fixtures_root, "misc", "glob_and_match", "maya2014"),
+                        ("2014",),
+                        {"version": "2014"}
+                    ),
+                    (
+                        os.path.join(self.fixtures_root, "misc", "glob_and_match", "maya2015"),
+                        ("2015",),
+                        {"version": "2015"}
+                    ),
+                    (
+                        os.path.join(self.fixtures_root, "misc", "glob_and_match", "maya2016"),
+                        ("2016",),
+                        {"version": "2016"}
+                    ),
+                ]
+            )
+
 
 class TestSoftwareVersion(TankTestBase):
     def setUp(self):
