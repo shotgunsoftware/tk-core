@@ -311,37 +311,39 @@ class SoftwareLauncher(object):
         The ``match_template`` argument provides a template to use both for globbing files and then pattern
         matching them using regular expressions provided by the ``tokens_expressions`` dictionary.
 
-        The method will first substitute every token surrounded by ``{}` from the template with a ``*``
+        The method will first substitute every token surrounded by ``{}`` from the template with a ``*``
         for globbing files. It will then replace the tokens in the template with the regular expressions
         that were provided.
 
         In the following example::
 
             self._glob_and_match(
-                r"\\\\network\\softwares\\Nuke{full_version}\\Nuke{major_minor_version}.exe",
+                "\\\\network\\softwares\\Nuke{full_version}\\Nuke{major_minor_version}.exe",
                 {
                     "full_version": r"(?P<full_version>[\d.v]+)",
                     "major_minor_version": r"(?P<major_minor_version>[\d.]+)"
                 }
             )
 
-        this would first look for every files matching the glob ``\\network\sofwares\Nuke*\Nuke*.exe``,
-        then run the regular expression ``r"\\\\network\\softwares\\Nuke([\d.v]+)\\Nuke([\d.]+).exe``
-        and finally return any files matching that pattern as well as any matched groups and group
-        dictionairies, if specified.
+        this would first look for every files matching the glob ``\\network\softwares\Nuke*\Nuke*.exe``,
+        and then run the regular expression ``\\\\network\\softwares\\Nuke([\d.v]+)\\Nuke([\d.]+).exe``
+        on each matches. Each match will be returned with the accompanying regular expression groups and group
+        dictionary, if any were specified.
+
+        For example, if Nuke 10.0v1 was installed, the following would have been returned::
+
+            [("\\\\network\\softwares\\Nuke10.0v1\\Nuke10.1.exe",
+              ("10.0v1", "10.0"),
+              {"full_version": "10.0v1", "major_minor_version"="10.0"})]
 
         :param str match_template: String template that will be used both for globbing and performing
             a regular expression.
 
-        :param dict tokens_expressions: Dictionary of regular expressions that can be substituted
+        :param dict template_key_expressions: Dictionary of regular expressions that can be substituted
             in the template. The key should be the name of the token to substitute.
 
         :returns: A list of tuples containing the path, the groups and the group dictionary matches
-            from the regular expression. For example, if Nuke 10.0v1 had been installed on the network share
-            provided above, the return value would have been::
-                [("\\\\network\\softwares\\Nuke10.0v1\\Nuke10.1.exe",
-                  ("10.0v1", "10.0"),
-                  {"full_version": "10.0v1", "major_minor_version"="10.0"})]
+            from the regular expression.
         """
 
         # Sanitize glob pattern.
@@ -668,8 +670,8 @@ class SoftwareVersion(object):
     def icon(self):
         """
         Path to the icon to use for graphical displays of this
-        :class`SoftwareVersion`. Expected to be a 256x256 (or smaller)
-        `png file.
+        :class:`SoftwareVersion`. Expected to be a 256x256 (or smaller)
+        `png` file.
 
         :returns: String path
         """
