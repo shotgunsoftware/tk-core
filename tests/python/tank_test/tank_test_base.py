@@ -21,7 +21,6 @@ import threading
 import tempfile
 import uuid
 import contextlib
-import functools
 
 from tank_vendor.shotgun_api3.lib import mockgun
 
@@ -390,70 +389,6 @@ class TankTestBase(unittest.TestCase):
         patch = mock.patch(to_mock, return_value=return_value)
         patch.start()
         self.addCleanup(patch.stop)
-
-    @contextlib.contextmanager
-    def mock_folder_listing(self, hierarchy):
-        """
-        Mocks the folder listing for a given hierarchy. If one of the requested folder is not in the mocked
-        hierarchy, a `TestCase assertion will fail.
-
-        :param hierarchy: Dictionary of file system hierarchy. The root needs to have keys matching values from sys.platform.
-
-        Each level in the hierarchy needs to be mocked. For example, here's how to mock a maya installation directory::
-
-            {
-                "darwin": {
-                    "Applications": {
-                        "Autodesk": {
-                            "maya2014"
-                        }
-                    }
-                },
-                "win32": {
-                    r"C:\" : {
-                        "Program Files": {
-                            "Autodesk": {
-                                "maya2014"
-                            }
-                        }
-                    }
-                },
-                "linux2": {
-                    "opt": {
-                        "Autodesk": {
-                            "maya2014"
-                        }
-                    }
-                }
-            }
-
-
-        """
-        with mock.patch("os.listdir", wraps=functools.partial(self._os_listdir_wrapper, hierarchy)):
-            yield
-
-    def _os_listdir_wrapper(self, hierarchy, directory):
-        """
-        Mocked implementation of list dir. It fakes a folder hierarchy.
-
-        :param hierarchy: Folder hierarchy to mock.
-        :param directory: Folder for which the mock should return files.
-
-        :returns: List of file names.
-        """
-        tokens = self._recursive_split(directory)
-        # Start at the root of the mocked file system
-        current_depth = hierarchy[sys.platform]
-        for t in tokens:
-            # Unit test should not be asking for folders outside of the DCC hierarchy.
-            self.assertIn(t, current_depth)
-            # Remember where we are in the current hierarchy.
-            current_depth = current_depth[t]
-
-        # We've reached the folder we wanted, build a list.
-        # We're using dicts for intemediary folders and lists for leaf folders so iterate
-        # on the items to get all the names.
-        return list(iter(current_depth))
 
     def tearDown(self):
         """

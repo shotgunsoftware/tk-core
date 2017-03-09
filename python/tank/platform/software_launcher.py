@@ -325,7 +325,7 @@ class SoftwareLauncher(object):
                 }
             )
 
-        this would first look for every files matching the glob ``\\network\softwares\Nuke*\Nuke*.exe``,
+        this would first look for every files matching the glob ``\\network\softwares\Nuke*\Nuke*.exe``
         and then run the regular expression ``\\\\network\\softwares\\Nuke([\d.v]+)\\Nuke([\d.]+).exe``
         on each matches. Each match will be returned with the accompanying regular expression groups and group
         dictionary, if any were specified.
