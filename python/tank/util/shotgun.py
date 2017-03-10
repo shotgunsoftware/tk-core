@@ -1020,7 +1020,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         # Raise our own exception with the original message and the created entity,
         # if any
         raise ShotgunPublishError(
-            "%s" % e,
+            error_message="%s" % e,
             entity=entity
         )
 

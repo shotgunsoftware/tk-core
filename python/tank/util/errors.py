@@ -75,6 +75,8 @@ class ShotgunPublishError(TankError):
         self.entity = entity
         extra_message = "."
         if self.entity:
+            # Mention the created entity in the message by appending something like:
+            # , although TankPublishedFile dummy_path.txt (id: 2) was created.
             extra_message = ", although %s %s (id: %d) was created." % (
                 self.entity["type"], self.entity["code"], self.entity["id"]
             )
