@@ -350,7 +350,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
         raise TankError("Cannot write manifest file: %s" % e)
 
 
-def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=None):
+def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=None, symlink_plugin=False):
     """
     Perform a build of a plugin.
 
@@ -386,7 +386,10 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     # copy all plugin data across
     # skip info.yml, this is baked into the manifest python code
     logger.info("Copying plugin data across...")
-    filesystem.copy_folder(source_path, target_path)
+    if symlink_plugin:
+        filesystem.symlink_folder(source_path, target_path)
+    else:
+        filesystem.copy_folder(source_path, target_path)
 
     # create bundle cache
     logger.info("Creating bundle cache folder...")
@@ -539,6 +542,14 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
               "If not specified, defaults to the most recently released core.")
     )
 
+    parser.add_option(
+        "--symlink-plugin",
+        default=False,
+        action="store_true",
+        help=("Source files will be symlinked into the plugin directory instead of being copied. "
+              "This is useful while developing a plugin.")
+    )
+
     add_authentication_options(parser)
 
     # parse cmd line
@@ -583,7 +594,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         sg_connection,
         source_path,
         target_path,
-        bootstrap_core_uri
+        bootstrap_core_uri,
+        options.symlink_plugin
     )
 
     # all good!

@@ -185,7 +185,7 @@ def safe_delete_file(path):
 
 
 @with_cleared_umask
-def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
+def _recreate_folder(copy_method, src, dst, folder_permissions=0775, skip_list=None):
     """
     Alternative implementation to ``shutil.copytree``
 
@@ -240,9 +240,9 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
 
         try:
             if os.path.isdir(srcname):
-                files.extend(copy_folder(srcname, dstname, folder_permissions))
+                files.extend(_recreate_folder(copy_method, srcname, dstname, folder_permissions))
             else:
-                shutil.copy(srcname, dstname)
+                copy_method(srcname, dstname)
                 files.append(srcname)
                 # if the file extension is sh, set executable permissions
                 if dstname.endswith(".sh") or dstname.endswith(".bat") or dstname.endswith(".exe"):
@@ -256,6 +256,50 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
             raise IOError("Can't copy %s to %s: %s" % (srcname, dstname, e))
 
     return files
+
+
+def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
+    """
+    Alternative implementation to ``shutil.copytree``
+
+    Copies recursively and creates folders if they don't already exist.
+    Always skips system files such as ``"__MACOSX"``, ``".DS_Store"``, etc.
+    Files will the extension ``.sh``, ``.bat`` or ``.exe`` will be given
+    executable permissions.
+
+    Returns a list of files that were copied.
+
+    :param src: Source path to copy from
+    :param dst: Destination to copy to
+    :param folder_permissions: permissions to use for new folders
+    :param skip_list: List of file names to skip. If this parameter is
+                      omitted or set to None, common files such as ``.git``,
+                      ``.gitignore`` etc will be ignored.
+    :returns: List of files copied
+    """
+    return _recreate_folder(shutil.copy, src, dst, folder_permissions, skip_list)
+
+
+def symlink_folder(src, dst, folder_permissions=0775, skip_list=None):
+    """
+    Alternative implementation to ``shutil.copytree``
+
+    Symlinks files recursively and creates folders if they don't already exist.
+    Always skips system files such as ``"__MACOSX"``, ``".DS_Store"``, etc.
+    Files will the extension ``.sh``, ``.bat`` or ``.exe`` will be given
+    executable permissions.
+
+    Returns a list of files that were symlinked.
+
+    :param src: Source path to copy from
+    :param dst: Destination to copy to
+    :param folder_permissions: permissions to use for new folders
+    :param skip_list: List of file names to skip. If this parameter is
+                      omitted or set to None, common files such as ``.git``,
+                      ``.gitignore`` etc will be ignored.
+    :returns: List of files symlinked
+    """
+    return _recreate_folder(os.symlink, src, dst, folder_permissions, skip_list)
 
 
 @with_cleared_umask
