@@ -916,20 +916,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
         - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{'tag_list': ['foo', 'bar']}``)
 
-    If an exception is raised during the publish, the raised exception will have the created entity (if any)
-    in its last args entry, allowing callers to catch the exception and report that an entity was created,
-    even if some errors happened.
-    e.g.
-        >>> try:
-        >>>    sgtk.util.register_publish(tk, ctx, file_path, name, version_number)
-        >>> except Exception, e:
-        >>>    if e.args[-1]:
-        >>>        print("Error: %s (%d) was created but had the following error %s" % (
-        >>>            e.args[-1]["type"], e.args[-1]["id"], e.message
-        >>>        ))
-        >>>    else:
-        >>>        print("Error: %s" % e)
-
+    :raises: :class:`ShotgunPublishError` on failure
     :returns: The created entity dictionary
     """
     log.debug("Publish: Begin register publish")
