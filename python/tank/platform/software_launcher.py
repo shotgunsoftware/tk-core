@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Defines the base class for DCC application launchers all Tank engines
+Defines the base class for DCC application launchers all Toolkit engines
 should implement.
 """
 
@@ -36,18 +36,43 @@ core_logger = LogManager.get_logger(__name__)
 
 def create_engine_launcher(tk, context, engine_name, versions=None, products=None):
     """
-    Factory method that creates a Toolkit engine specific
-    :class:`SoftwareLauncher` instance.
+    Factory method that creates a :class:`SoftwareLauncher` subclass 
+    instance implemented by a toolkit engine in the environment config
+    that can be used by a custom script or toolkit app. The engine 
+    subclass manages the business logic for DCC executable path 
+    discovery and the environmental requirements for launching the DCC.
+    Toolkit is automatically started up during the DCC's launch phase.
+    A very simple example of how this works is demonstrated here::
+
+        >>> import subprocess
+        >>> import sgtk
+        >>> tk = sgtk.sgtk_from_path("/studio/project_root")
+        >>> context = tk.context_from_path("/studio/project_root/sequences/AAA/ABC/Light/work")
+        >>> launcher = sgtk.platform.create_engine_launcher(tk, context, "tk-maya")
+        >>> software_versions = launcher.scan_software()
+        >>> launch_info = launcher.prepare_launch(software_versions[0].path, args, "/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma")
+        >>> subprocess.Popen([launch_info.path + " " + launch_info.args], env=launch_info.environment)
+
+    where ``software_versions`` is a list of :class:`SoftwareVersion`
+    instances and ``launch_info`` is a :class:`LaunchInformation`
+    instance. This example will launch the first version of Maya
+    found installed on the local filesystem, automatically start
+    the tk-maya engine for that Maya session, and open
+    /studio/project_root/sequences/AAA/ABC/Light/work/scene.ma.
 
     :param tk: :class:`~sgtk.Sgtk` Toolkit instance.
     :param context: :class:`~sgtk.Context` Context to launch the DCC in.
-    :param str engine_name: Name of the Toolkit engine associated with the
-        DCC(s) to launch.
+    :param str engine_name: Name of the Toolkit engine associated with
+                            the DCC(s) to launch.
     :param list versions: A list of version strings for filtering software
         versions. See the :class:`SoftwareLauncher` for more info.
     :param list products: A list of product strings for filtering software
         versions. See the :class:`SoftwareLauncher` for more info.
-    :rtype: :class:`SoftwareLauncher` instance or ``None`.
+
+    :rtype: :class:`SoftwareLauncher` instance or ``None`` if the 
+            engine can be found on disk, but no ``startup.py`` file exists.
+    :raises: :class:`TankError` if the specified engine cannot be found
+             on disk.
     """
     # Get the engine environment and descriptor using engine.py code
     (env, engine_descriptor) = get_env_and_descriptor_for_engine(
@@ -220,7 +245,7 @@ class SoftwareLauncher(object):
     @property
     def engine_name(self):
         """
-        The TK engine name this launcher is based on.
+        Returns the toolkit engine name this launcher is based on as a ``str``.
         """
         return self.__engine_name
 
@@ -280,7 +305,17 @@ class SoftwareLauncher(object):
 
     def prepare_launch(self, exec_path, args, file_to_open=None):
         """
-        Prepares the given software for launch
+        This is an abstract method that must be implemented by a subclass. The
+        engine implementation should prepare an environment to launch the specified
+        executable path in.
+
+        .. note:: By returning an executable path and args string, we allow for
+                  a workflow where the engine launcher can rewrite the launch
+                  sequence in arbitrary ways. For example, if a DCC has a
+                  pre-check phase that requires input from a human, a different
+                  executable path that launches a standalone UI which in turn
+                  launches the specified path can be returned with the appropriate
+                  args.
 
         :param str exec_path: Path to DCC executable to launch
         :param str args: Command line arguments as strings
@@ -593,8 +628,6 @@ class SoftwareVersion(object):
     """
     def __init__(self, version, product, path, icon=None, args=None):
         """
-        Constructor.
-
         :param str version: Explicit version of the DCC represented
                             (e.g. 2017)
         :param str product: Explicit product name of the DCC represented
@@ -685,12 +718,20 @@ class SoftwareVersion(object):
 
 class LaunchInformation(object):
     """
-    Stores blueprints for how to launch a specific DCC.
+    Stores blueprints for how to launch a specific DCC which includes
+    required environment variables, the executable path, and command
+    line arguments to pass when launching the DCC. For example, given
+    a LaunchInformation instance ``launch_info``, open a DCC using 
+    ``subprocess``::
+
+        >>> launch_cmd = "%s %s" % (launch_info.path, launch_info.args)
+        >>> subprocess.Popen([launch_cmd], env=launch_info.environment)
+
+    A LaunchInformation instance is generally obtained from an engine's
+    subclass implementation of :meth:`SoftwareLauncher.prepare_launch``
     """
     def __init__(self, path=None, args=None, environ=None):
         """
-        Constructor
-
         :param str path: Resolved path to DCC
         :param str args: Args to pass on the command line
                          when launching the DCC
