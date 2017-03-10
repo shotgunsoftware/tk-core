@@ -56,3 +56,31 @@ class EnvironmentVariableFileLookupError(TankError):
             )
         )
 
+
+class ShotgunPublishError(TankError):
+    """
+    Raised when Toolkit is not able to register a published file in Shotgun.
+    
+    The original message for the reported error is available in the 'error_message' property.
+
+    If a published file entity was created before the error happened, it will be
+    available in the 'entity' property.
+    """
+    def __init__(self, error_message, entity=None):
+        """
+        :param str error_message: An error message, typically coming from a caught exception.
+        :param dict entity: The Shotgun entity which was created, if any.
+        """
+        self.error_message = error_message
+        self.entity = entity
+        extra_message = "."
+        if self.entity:
+            extra_message = ", although %s %s (id: %d) was created." % (
+                self.entity["type"], self.entity["code"], self.entity["id"]
+            )
+        TankError.__init__(
+            self,
+            "Unable to complete publishing because of the following error: %s%s" % (
+                self.error_message, extra_message
+            )
+        )

@@ -29,6 +29,7 @@ import tempfile
 from tank_vendor import shotgun_api3
 
 from .errors import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
+from .errors import ShotgunPublishError
 from ..errors import TankError, TankMultipleMatchingTemplatesError
 from ..log import LogManager
 from .. import hook
@@ -1027,11 +1028,14 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         log.debug("Publish: Complete")
         return entity
     except Exception, e:
-        # Append the Entity to the Exception args so it can be used by callers to
-        # report that a PublishedFile was created or not
-        e.args = e.args + (entity,)
-        # re-raise the exception, preserving its traceback
-        raise
+        # Log the exception so the original traceback is available
+        log.exception(e)
+        # Raise our own exception with the original message and the created entity,
+        # if any
+        raise ShotgunPublishError(
+            "%s" % e,
+            entity=entity
+        )
 
 def _translate_abstract_fields(tk, path):
     """
