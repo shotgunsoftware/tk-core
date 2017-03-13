@@ -29,6 +29,7 @@ import tempfile
 from tank_vendor import shotgun_api3
 
 from .errors import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
+from .errors import ShotgunPublishError
 from ..errors import TankError, TankMultipleMatchingTemplatesError
 from ..log import LogManager
 from .. import hook
@@ -915,20 +916,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
         - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{'tag_list': ['foo', 'bar']}``)
 
-    If an exception is raised during the publish, the raised exception will have the created entity (if any)
-    in its last args entry, allowing callers to catch the exception and report that an entity was created,
-    even if some errors happened.
-    e.g.
-        >>> try:
-        >>>    sgtk.util.register_publish(tk, ctx, file_path, name, version_number)
-        >>> except Exception, e:
-        >>>    if e.args[-1]:
-        >>>        print("Error: %s (%d) was created but had the following error %s" % (
-        >>>            e.args[-1]["type"], e.args[-1]["id"], e.message
-        >>>        ))
-        >>>    else:
-        >>>        print("Error: %s" % e)
-
+    :raises: :class:`ShotgunPublishError` on failure
     :returns: The created entity dictionary
     """
     log.debug("Publish: Begin register publish")
@@ -1027,11 +1015,14 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         log.debug("Publish: Complete")
         return entity
     except Exception, e:
-        # Append the Entity to the Exception args so it can be used by callers to
-        # report that a PublishedFile was created or not
-        e.args = e.args + (entity,)
-        # re-raise the exception, preserving its traceback
-        raise
+        # Log the exception so the original traceback is available
+        log.exception(e)
+        # Raise our own exception with the original message and the created entity,
+        # if any
+        raise ShotgunPublishError(
+            error_message="%s" % e,
+            entity=entity
+        )
 
 def _translate_abstract_fields(tk, path):
     """
