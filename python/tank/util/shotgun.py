@@ -839,6 +839,22 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     """
     Creates a Published File in Shotgun.
 
+    The publish will be associated with the current context and point
+    at the given file. The method will attempt to add the publish to
+    Shotgun as a local file link, and failing that it will generate
+    a ``file://`` url to represent the path.
+
+    The path will first be checked against the current template definitions.
+    If it matches any template definition and is determined to be a sequence
+    of some kind (per frame, per eye), any sequence tokens such as ``@@@@``, ``$4F``
+    etc will be normalised to a ``%04d`` form before written to Shotgun.
+
+    If the path matches any local storage roots defined by the toolkit project,
+    it will be uploaded as a local file link to Shotgun. If not matching roots
+    are found, the method will retrieve the list of local storages from Shotgun
+    and try to locate a suitable storage. Failing that, it will fall back on a
+    register the path as a ``file://`` url.
+
     Example::
 
         >>> version_number = 1
@@ -869,9 +885,11 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     The above example shows a basic publish. In addition to the required parameters, it is
     recommended to supply at least a description and a Publish Type.
 
+
+
     :param tk: :class:`~sgtk.Sgtk` instance
     :param context: A :class:`~sgtk.Context` to associate with the publish. This will
-                    populate the task and entity link in Shotgun.
+                    populate the ``task`` and ``entity`` link in Shotgun.
     :param path: The path to the file or sequence we want to publish. If the
                  path is a sequence path it will be abstracted so that
                  any sequence keys are replaced with their default values.
@@ -879,7 +897,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                this publish from other publishes. This is typically
                used for grouping inside of Shotgun so that all the
                versions of the same "file" can be grouped into a cluster.
-               For example, for a maya publish, where we track only
+               For example, for a Maya publish, where we track only
                the scene name, the name would simply be that: the scene
                name. For something like a render, it could be the scene
                name, the name of the AOV and the name of the render layer.
@@ -909,7 +927,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         - ``update_task_thumbnail`` - Push thumbnail up to the attached task
 
         - ``created_by`` - Override for the user that will be marked as creating the publish.  This should
-          be in the form of shotgun entity, e.g. {"type":"HumanUser", "id":7}
+          be in the form of shotgun entity, e.g. {"type":"HumanUser", "id":7}. If not set, the user will
+          be determined using :meth:`sgtk.util.get_current_user`.
 
         - ``created_at`` - Override for the date the publish is created at.  This should be a python
           datetime object
@@ -917,6 +936,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         - ``version_entity`` - The Shotgun version entity this published file should be linked to
 
         - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{'tag_list': ['foo', 'bar']}``)
+
 
     :raises: :class:`ShotgunPublishError` on failure
     :returns: The created entity dictionary
@@ -1141,7 +1161,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
     :param tk: :class:`~sgtk.Sgtk` instance
     :param context: A :class:`~sgtk.Context` to associate with the publish. This will
-                    populate the task and entity link in Shotgun.
+                    populate the ``task`` and ``entity`` link in Shotgun.
     :param path: The path to the file or sequence we want to publish. If the
                  path is a sequence path it will be abstracted so that
                  any sequence keys are replaced with their default values.
@@ -1149,28 +1169,28 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
                this publish from other publishes. This is typically
                used for grouping inside of Shotgun so that all the
                versions of the same "file" can be grouped into a cluster.
-               For example, for a maya publish, where we track only
+               For example, for a Maya publish, where we track only
                the scene name, the name would simply be that: the scene
                name. For something like a render, it could be the scene
                name, the name of the AOV and the name of the render layer.
     :param version_number: The version number of the item we are publishing.
-    :param task: Shotgun Task dictionary to assciate with publish or none
+    :param task: Shotgun Task dictionary to associate with publish or ``None``
     :param comment: Comments string to associate with publish
     :param published_file_type: Shotgun publish type dictionary to
                 associate with publish
-    :param created_by_user: User entity to associate with publish or None
-                if current user should be used.
-    :param created_at: timestamp to associate with publish or None for default.
-    :param version_entity: Version dictionary to associate with publish or None.
-    :param sg_fields: dictionary of additional data to add to publish.
+    :param created_by_user: User entity to associate with publish or ``None``
+                if current user (via :meth:`sgtk.util.get_current_user`)
+                should be used.
+    :param created_at: Timestamp to associate with publish or None for default.
+    :param version_entity: Version dictionary to associate with publish or ``None``.
+    :param sg_fields: Dictionary of additional data to add to publish.
 
-    :returns: the result of the shotgun API create method.
+    :returns: The result of the shotgun API create method.
     """
 
     data = {
         "description": comment,
         "name": name,
-        "project": context.project,
         "task": task,
         "version_number": version_number,
         }
@@ -1203,13 +1223,26 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     if version_entity:
         data["version"] = version_entity
 
-    # if the context does not have an entity, link it up to the project
+
+    # Determine the value of the link field based on the given context
     if context.project is None:
+        # when running toolkit as a standalone plugin, the context may be
+        # empty and not contain a project. Publishes are project entities
+        # in Shotgun, so we cannot proceed without a project.
         raise TankError("Your context needs to at least have a project set in order to publish.")
+
     elif context.entity is None:
+        # If the context does not have an entity, link it up to the project.
+        # This happens for project specific workflows such as editorial
+        # workflows, ingest and when running zero config toolkit plugins in
+        # a generic project mode.
         data["entity"] = context.project
+
     else:
         data["entity"] = context.entity
+
+    # set the associated project
+    data["project"] = context.project
 
     # Check if path is a url or a straight file path.  Path
     # is assumed to be a url if it has a scheme:
@@ -1384,7 +1417,7 @@ def _calc_path_cache(tk, path):
     If the location cannot be computed, because the path does not belong
     to a valid root, (None, None) is returned.
     """
-    # paths may be c:/foo in maya on windows - don't rely on os.sep here!
+    # paths may be c:/foo in Maya on windows - don't rely on os.sep here!
 
     # normalize input path first c:\foo -> c:/foo
     norm_path = path.replace(os.sep, "/")
