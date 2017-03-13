@@ -320,20 +320,18 @@ class SoftwareLauncher(object):
             self._glob_and_match(
                 "C:\\Program Files\\Nuke{full_version}\\Nuke{major_minor_version}.exe",
                 {
-                    "full_version": r"(?P<full_version>[\d.v]+)",
-                    "major_minor_version": r"(?P<major_minor_version>[\d.]+)"
+                    "full_version": r"[\d.v]+",
+                    "major_minor_version": r"[\d.]+"
                 }
             )
 
         The example above would look for every file matching the glob ``C:\Program Files\softwares\Nuke*\Nuke*.exe``
         and then run the regular expression ``C:\\Program Files\\Nuke([\d.v]+)\\Nuke([\d.]+).exe``
-        on each match. Each match will be returned with the accompanying regular expression groups and group
-        dictionary, if any were specified.
+        on each match. Each match will be comprised of a path and a dictionary with they token's value.
 
         For example, if Nuke 10.0v1 was installed, the following would have been returned::
 
             [("C:\\Program Files\\Nuke10.0v1\\Nuke10.1.exe",
-              ("10.0v1", "10.0"),
               {"full_version": "10.0v1", "major_minor_version"="10.0"})]
 
         :param str match_template: String template that will be used both for globbing and performing
@@ -342,8 +340,7 @@ class SoftwareLauncher(object):
         :param dict template_key_expressions: Dictionary of regular expressions that can be substituted
             in the template. The key should be the name of the token to substitute.
 
-        :returns: A list of tuples containing the path, the groups and the group dictionary matches
-            from the regular expression.
+        :returns: A list of tuples containing the path and a dictionary with each token's value.
         """
 
         # Sanitize glob pattern.
@@ -378,7 +375,11 @@ class SoftwareLauncher(object):
         else:
             regex_pattern = match_template
         # Then swap the tokens into the regular template key expressions.
-        regex_pattern = self._format(regex_pattern, template_key_expressions)
+        regex_pattern = self._format(
+            regex_pattern,
+            # Put () around the provided expressions so that they become capture groups.
+            dict((k, "(?P<%s>%s)" % (k, v)) for k, v in template_key_expressions.iteritems())
+        )
 
         # accumulate the software version objects to return. this will include
         # include the head/tail anchors in the regex
@@ -404,7 +405,7 @@ class SoftwareLauncher(object):
                 self.logger.debug("Path did not match regex.")
                 continue
 
-            matches.append((matching_path, match.groups(), match.groupdict()))
+            matches.append((matching_path, match.groupdict()))
 
         return matches
 
