@@ -10,6 +10,7 @@
 
 from __future__ import with_statement
 import os
+import sys
 import datetime
 import threading
 import urlparse
@@ -358,7 +359,27 @@ class TestShotgunRegisterPublish(TankTestBase):
         
         self.setup_fixtures()
 
-        self.storage = {"type": "LocalStorage", "id": 1, "code": "Tank"}
+        self.storage = {
+            "type": "LocalStorage",
+            "id": 1,
+            "code": "Tank"
+        }
+
+        self.storage_2 = {
+            "type": "LocalStorage",
+            "id": 2,
+            "code": "my_other_storage",
+            "mac_path": "/tmp/nix",
+            "windows_path": r"x:\tmp\win",
+            "linux_path": "/tmp/nix"
+        }
+
+        self.storage_3 = {
+            "type": "LocalStorage",
+            "id": 3,
+            "code": "unc paths",
+            "windows_path": r"\\server\share",
+        }
 
         self.tank_type_1 = {"type": "TankType",
             "id": 1,
@@ -366,8 +387,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         }
 
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.storage, self.tank_type_1])
-        
+        self.add_to_sg_mock_db([self.storage, self.storage_2, self.storage_3, self.tank_type_1])
 
         self.shot = {"type": "Shot",
                     "name": "shot_name",
@@ -442,24 +462,55 @@ class TestShotgunRegisterPublish(TankTestBase):
         args, kwargs = create_data
         sg_dict = args[1]
 
-        self.assertEqual(sg_dict["path"], {'url': 'file:///path/to/file%20with%20spaces.png'})
+        self.assertEqual(
+            sg_dict["path"],
+            {
+                'url': 'file:///path/to/file%20with%20spaces.png',
+                'name': 'file with spaces.png'
+            }
+        )
         self.assertEqual("pathcache" not in sg_dict, True)
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
-    def test_local_paths(self, create_mock):
-        """Tests the passing of local paths."""
+    def test_url_paths_host(self, create_mock):
+        """Tests the passing of urls via the path."""
+
+        tank.util.register_publish(
+            self.tk,
+            self.context,
+            "https://site.com",
+            self.name,
+            self.version)
+
+        create_data = create_mock.call_args
+        args, kwargs = create_data
+        sg_dict = args[1]
+
+        self.assertEqual(
+            sg_dict["path"],
+            {
+                'url': 'https://site.com',
+                'name': 'site.com'
+            }
+        )
+        self.assertEqual("pathcache" not in sg_dict, True)
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    def test_file_paths(self, create_mock):
+        """
+        Tests that we generate file:// paths when storage is not found
+        """
+        if sys.platform == "win32":
+            values = [
+                r"x:\tmp\win\path\to\file.txt",
+                r"\\server\share\path\to\file.txt",
+            ]
+
+        else:
+            values = ["/tmp/nix/path/to/file.txt"]
 
         # Various paths we support, Unix and Windows styles
-        for local_path in [
-            "/path/to/file with spaces.png",
-            "C:/path/to/file with spaces.png",
-            "e:/path/to/file with spaces.png",
-            "//path/to/file with spaces.png",
-            r"\path\to\file with spaces.png",
-            r"C:\path\to\file with spaces.png",
-            r"e:\path\to\file with spaces.png",
-            r"\\path\to\file with spaces.png",
-        ]:
+        for local_path in values:
             tank.util.register_publish(
                 self.tk,
                 self.context,
@@ -472,8 +523,73 @@ class TestShotgunRegisterPublish(TankTestBase):
             args, kwargs = create_data
             sg_dict = args[1]
 
-            self.assertEqual(sg_dict["path"], {"local_path": local_path})
+            self.assertEqual(
+                sg_dict["path"],
+                {"local_path": local_path, "name": os.path.basename(local_path)}
+            )
+
             self.assertTrue("pathcache" not in sg_dict)
+
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    def test_freeform_local_storage_paths(self, create_mock):
+        """
+        Tests that we generate local file links for storages
+        """
+        if sys.platform == "win32":
+            values = {
+                "C:/path/to/test file.png": {
+                    "url": "file:///C:/path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+                "e:/path/to/test file.png": {
+                    "url": "file:///E:/path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+                "//path/to/test file.png": {
+                    "url": "file://path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+                r"C:\path\to\test file.png": {
+                    "url": "file:///C:/path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+                r"e:\path\to\test file.png": {
+                    "url": "file:///E:/path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+                r"\\path\to\test file.png": {
+                    "url": "file://path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+            }
+
+        else:
+            values = {
+                "/path/to/test file.png": {
+                    "url": "file:///path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+            }
+
+        # Various paths we support, Unix and Windows styles
+        for (local_path, path_dict) in values.iteritems():
+            tank.util.register_publish(
+                self.tk,
+                self.context,
+                local_path,
+                self.name,
+                self.version
+            )
+
+            create_data = create_mock.call_args
+            args, kwargs = create_data
+            sg_dict = args[1]
+
+            self.assertEqual(sg_dict["path"], path_dict)
+            self.assertTrue("pathcache" not in sg_dict)
+
+
 
     def test_publish_errors(self):
         """Tests exceptions raised on publish errors."""
