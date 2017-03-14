@@ -839,15 +839,27 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     """
     Creates a Published File in Shotgun.
 
+    **Introduction**
+
     The publish will be associated with the current context and point
     at the given file. The method will attempt to add the publish to
     Shotgun as a local file link, and failing that it will generate
     a ``file://`` url to represent the path.
 
+    In addition to the path, a version number and a name needs to be provided.
+    The version number should reflect the iteration or revision of the publish
+    and will be used to populate the number field of the publish that is created
+    in Shotgun. The name should represent the name of the item, without any version
+    number. This is used to group together publishes in Shotgun and various
+    integrations. For example, if the file you are publishing belongs to Shot
+    AAA_003 and is named ``AAA_003_foreground.v012.ma``, you could set
+    the name to be ``foreground`` and the version to be ``12``. The Shot name
+    will be implied by the associated context.
+
     The path will first be checked against the current template definitions.
     If it matches any template definition and is determined to be a sequence
     of some kind (per frame, per eye), any sequence tokens such as ``@@@@``, ``$4F``
-    etc will be normalised to a ``%04d`` form before written to Shotgun.
+    etc. will be normalised to a ``%04d`` form before written to Shotgun.
 
     If the path matches any local storage roots defined by the toolkit project,
     it will be uploaded as a local file link to Shotgun. If not matching roots
@@ -855,15 +867,28 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     and try to locate a suitable storage. Failing that, it will fall back on a
     register the path as a ``file://`` url.
 
-    Example::
+    **Examples**
 
-        >>> version_number = 1
+    The example below shows a basic publish. In addition to the required parameters, it is
+    recommended to supply at least a comment and a Publish Type::
+
         >>> file_path = '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma'
         >>> name = 'layout'
-        >>> sgtk.util.register_publish(tk, ctx, file_path, name, version_number)
+        >>> version_number = 1
+        >>>
+        >>> sgtk.util.register_publish(
+            tk,
+            context,
+            file_path,
+            name,
+            version_number,
+            comment = 'Initial layout composition.',
+            published_file_type = 'Layout Scene'
+        )
+
         {'code': 'layout.v001.ma',
          'created_by': {'id': 40, 'name': 'John Smith', 'type': 'HumanUser'},
-         'description': None,
+         'description': 'Initial layout composition.',
          'entity': {'id': 2, 'name': 'shot_010', 'type': 'Shot'},
          'id': 2,
          'name': 'layout',
@@ -878,14 +903,12 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
           'url': 'file:///studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma'},
          'path_cache': 'demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma',
          'project': {'id': 4, 'name': 'Demo Project', 'type': 'Project'},
+         'published_file_type': {'id': 12, 'name': 'Layout Scene', 'type': 'PublishedFileType'},
          'task': None,
          'type': 'PublishedFile',
          'version_number': 1}
 
-    The above example shows a basic publish. In addition to the required parameters, it is
-    recommended to supply at least a description and a Publish Type.
-
-
+    **Parameters**
 
     :param tk: :class:`~sgtk.Sgtk` instance
     :param context: A :class:`~sgtk.Context` to associate with the publish. This will
