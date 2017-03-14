@@ -638,6 +638,11 @@ class IODescriptorBase(object):
         source_cache_path = self.get_path()
         log.debug("Source cache is located at %s", source_cache_path)
 
+        # Cache the source cache path because we're about to create the destination folder,
+        # which might be a bundle cache root.
+        source_cache_path = self.get_path()
+        log.debug("Source cache is located at %s", source_cache_path)
+
         # and to the actual I/O
         # pass an empty skip list to ensure we copy things like the .git folder
         filesystem.ensure_folder_exists(new_cache_path, permissions=0777)
