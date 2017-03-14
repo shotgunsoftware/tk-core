@@ -60,7 +60,11 @@ class CoreDefaultsManager(DefaultsManager):
                   None if not necessary.
         """
         from . import shotgun
-        return shotgun.get_associated_sg_config_data().get("http_proxy") or super(CoreDefaultsManager, self).get_http_proxy()
+        http_proxy = shotgun.get_associated_sg_config_data().get("http_proxy")
+        if http_proxy is not None:
+            return http_proxy
+        else:
+            return super(CoreDefaultsManager, self).get_http_proxy()
 
     def get_user_credentials(self):
         """
