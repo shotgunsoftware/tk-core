@@ -961,8 +961,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{'tag_list': ['foo', 'bar']}``)
 
 
-    :raises: :class:`ShotgunPublishError` on failure
-    :returns: The created entity dictionary
+    :raises: :class:`ShotgunPublishError` on failure.
+    :returns: The created entity dictionary.
     """
     log.debug(
         "Publish: Begin register publish for context %s and path %s" % (context, path)
