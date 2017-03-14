@@ -525,7 +525,7 @@ class TestShotgunRegisterPublish(TankTestBase):
 
             self.assertEqual(
                 sg_dict["path"],
-                {"local_path": local_path, "name": os.path.basename(local_path)}
+                {"local_path": local_path}
             )
 
             self.assertTrue("pathcache" not in sg_dict)
