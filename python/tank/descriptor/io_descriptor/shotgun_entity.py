@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -69,14 +69,27 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         self._sg_connection = sg_connection
         self._entity_type = descriptor_dict.get("entity_type")
         self._name = descriptor_dict.get("name")
-        self._version = descriptor_dict.get("version")
         self._field = descriptor_dict.get("field")
 
+        # ensure project id is an int if specified
         self._project_link = None
-        if "project_id" in descriptor_dict:
-            self._project_link = {"type": "Project", "id": descriptor_dict["project_id"]}
+        self._project_id = None
 
-        self._project_id = descriptor_dict.get("project_id")
+        if "project_id" in descriptor_dict:
+            # convert to int
+            try:
+                project_id_int = int(descriptor_dict["project_id"])
+            except ValueError:
+                raise TankDescriptorError("Invalid project id in descriptor %s" % descriptor_dict)
+
+            self._project_link = {"type": "Project", "id": project_id_int}
+            self._project_id = project_id_int
+
+        # ensure version is an int if specified
+        try:
+            self._version = int(descriptor_dict["version"]) if "version" in descriptor_dict else None
+        except ValueError:
+            raise TankDescriptorError("Invalid version in descriptor %s" % descriptor_dict)
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
