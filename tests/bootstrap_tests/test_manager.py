@@ -12,6 +12,8 @@ from __future__ import with_statement
 
 import sgtk
 import os
+from mock import patch, Mock
+
 from sgtk.bootstrap import ToolkitManager
 
 from tank_test.tank_test_base import setUpModule # noqa
@@ -38,7 +40,8 @@ class TestErrorHandling(TankTestBase):
 
 class TestFunctionality(TankTestBase):
 
-    def test_pipeline_config_id_env_var(self):
+    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    def test_pipeline_config_id_env_var(self, _):
         """
         Tests the SHOTGUN_PIPELINE_CONFIGURATION_ID being picked up at init
         """
@@ -59,8 +62,8 @@ class TestFunctionality(TankTestBase):
         finally:
             del os.environ["SHOTGUN_PIPELINE_CONFIGURATION_ID"]
 
-
-    def test_get_entity_from_environment(self):
+    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    def test_get_entity_from_environment(self, _):
 
         # no env set
         mgr = ToolkitManager()
