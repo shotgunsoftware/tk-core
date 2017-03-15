@@ -46,7 +46,6 @@ class TestHookGetPublishPath(TankTestBase):
         }
 
         self.assertEqual(hook.get_publish_path(sg_dict), "/foo /bar.baz")
-
         self.assertEqual(
             hook.get_publish_paths([sg_dict, sg_dict]),
             ["/foo /bar.baz", "/foo /bar.baz"]
