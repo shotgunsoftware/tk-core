@@ -19,6 +19,7 @@ import urlparse
 import threading
 import urllib
 from .util.loader import load_plugin
+from .util.errors import PublishPathNotDefinedError, PublishPathNotSupported, PublishPathNotFoundError
 from . import LogManager
 from .errors import (
     TankError,
@@ -239,29 +240,13 @@ class Hook(object):
         """
         return self.__parent
 
-    def get_publish_path(self, sg_publish_data):
+    def resolve_publish_path(self, sg_publish_data):
         """
-        Returns the path on disk for a publish entity in Shotgun.
+        Resolve a filesystem path given a shotgun publish data record.
 
-        Convenience method that calls :meth:`get_publish_paths`.
-        For details, see :meth:`get_publish_paths`.
-        """
-        return self.get_publish_paths([sg_publish_data])[0]
 
-    def get_publish_paths(self, sg_publish_data_list):
-        """
-        Returns several local paths on disk given a
-        list of shotgun data dictionaries representing publishes.
 
-        Use this method if you have several shotgun publish entities and want
-        to get a local path on disk. This method will ensure that however
-        the publish path is encoded, a local path is returned.
-
-        :param sg_publish_data_list: List of shotgun data dictionaries
-                                     containing publish data. Each dictionary
-                                     needs to at least contain a type, id and
-                                     a path key.
-        :returns: List of strings representing local paths on disk.
+        :returns: A path on disk to existing file or file sequence.
 
         :raises: :class:`~sgtk.util.PublishPathNotFoundError` if any of the paths cannot be found on disk.
         :raises: :class:`~sgtk.util.PublishPathNotDefinedError` if any of the paths aren't defined.
@@ -287,8 +272,68 @@ class Hook(object):
         # Once we have a valid local OS path:
         #   - if it cannot be found, raise NotFound exception
 
+        path_field = sg_publish_data.get("path")
 
+        if path_field is None:
+            raise PublishPathNotDefinedError(
+                "Cannot resolve path from publish! The shotgun dictionary %s does "
+                "not contain a valid path definition" % sg_data
+            )
 
+        resolved_path = None
+
+        if "local_path" in path_field:
+            # first, look for a local file link
+            resolved_path = path_field["local_path"]
+
+        elif "url" in path_field:
+            # secondly, look for a file:// style url
+
+            url = path_field["url"]
+            # url = "file:///path/to/some/file.txt"
+            results = urlparse.urlparse(url)
+            # ParseResult(
+            # scheme='file',
+            # netloc='',
+            # path='/path/to/some/file.txt',
+            # params='',
+            # query='',
+            # fragment=''
+            # )
+
+            if results.scheme == "file":
+                resolved_path = urllib.unquote(results.path)
+
+    def get_publish_path(self, sg_publish_data):
+        """
+        Returns the path on disk for a publish entity in Shotgun.
+
+        Convenience method that calls :meth:`get_publish_paths`.
+        For details, see :meth:`get_publish_paths`.
+
+        .. deprecated:: 0.18.63
+            Use :meth:`resolve_publish_path` instead.
+        """
+        return self.get_publish_paths([sg_publish_data])[0]
+
+    def get_publish_paths(self, sg_publish_data_list):
+        """
+        Returns several local paths on disk given a
+        list of shotgun data dictionaries representing publishes.
+
+        Use this method if you have several shotgun publish entities and want
+        to get a local path on disk. This method will ensure that however
+        the publish path is encoded, a local path is returned.
+
+        .. deprecated:: 0.18.63
+            Use :meth:`resolve_publish_path` instead.
+
+        :param sg_publish_data_list: List of shotgun data dictionaries
+                                     containing publish data. Each dictionary
+                                     needs to at least contain a type, id and
+                                     a path key.
+        :returns: List of strings representing local paths on disk.
+        """
         paths = []
         for sg_data in sg_publish_data_list:
             path_field = sg_data.get("path")
