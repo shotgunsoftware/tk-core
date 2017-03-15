@@ -86,3 +86,40 @@ class ShotgunPublishError(TankError):
                 self.error_message, extra_message
             )
         )
+
+
+class PublishResolveError(TankError):
+    """
+    Base class for all errors relating to resolution of paths from publishes.
+    """
+    pass
+
+
+class PublishPathNotFoundError(PublishResolveError):
+    """
+    Exception raised when a local operating system path
+    has been successfully resolved but this path cannot
+    be found.
+    """
+    pass
+
+
+class PublishPathNotDefinedError(PublishResolveError):
+    """
+    Exception raised when a publish does not have a path
+    defined for the current operating system platform. It
+    may or may not have publish paths defined on other
+    platforms.
+    """
+    pass
+
+
+class PublishPathNotSupported(PublishResolveError):
+    """
+    Exception raised when a publish has a path defined but it is using a path
+    definition that cannot be resolved into a local path. This includes for
+    example unsupported url schemes.
+    """
+    pass
+
+
