@@ -10,7 +10,6 @@
 
 """
 Defines the base class for all Tank Hooks.
-
 """
 import os
 import sys
@@ -197,6 +196,35 @@ class Hook(object):
         self.__parent = parent
 
     @property
+    def sgtk(self):
+        """
+        The sgtk core API instance associated with the Hook parent.
+
+        This is a convenience method for easy core API instance access.
+        In the case of app, engine and framework hooks, this is equivalent
+        to ``parent.sgtk`` and in the case of core hooks it simply returns
+        ``parent``.
+
+        .. note:: Some low level hooks do not have a parent defined. In
+                  such cases, None is returned.
+        """
+        # local import to avoid cycles
+        from .api import Sgtk
+
+        if self.parent is None:
+            # system hook
+            return None
+        if isinstance(self.parent, Sgtk):
+            # core hook
+            return self.parent
+        else:
+            # look for sgtk instance on parent
+            try:
+                return self.parent.sgtk
+            except AttributeError:
+                return None
+
+    @property
     def parent(self):
         """
         The parent object to the executing hook. This varies with the type of
@@ -224,7 +252,7 @@ class Hook(object):
                                 contain a type, id and a path key.
         :returns: String representing a local path on disk.
         """
-        return self.get_publish_paths([ sg_publish_data ])[0]
+        return self.get_publish_paths([sg_publish_data])[0]
 
     def get_publish_paths(self, sg_publish_data_list):
         """

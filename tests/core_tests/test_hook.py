@@ -12,6 +12,26 @@ from tank_test.tank_test_base import *
 
 import sgtk
 
+class TestHookProperties(TankTestBase):
+    """
+    Test basic hook parent accessors
+    """
+    def setUp(self):
+        super(TestHookProperties, self).setUp()
+        self.setup_fixtures()
+
+    def test_core_hook_properties(self):
+        tk= sgtk.Sgtk(self.project_root)
+        hook = sgtk.Hook(parent=tk)
+        self.assertEqual(hook.parent, tk)
+        self.assertEqual(hook.sgtk, tk)
+
+    def test_no_parent_hook_properties(self):
+        hook = sgtk.Hook(parent=None)
+        self.assertEqual(hook.parent, None)
+        self.assertEqual(hook.sgtk, None)
+
+
 class TestHookGetPublishPath(TankTestBase):
     
     def test_get_publish_path_url(self):
@@ -82,3 +102,5 @@ class TestHookGetPublishPath(TankTestBase):
             hook.get_publish_paths([sg_dict, sg_dict]),
             ["/local/path/to/file.ext", "/local/path/to/file.ext"]
         )
+
+

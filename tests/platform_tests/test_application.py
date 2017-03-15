@@ -277,6 +277,18 @@ class TestExecuteHook(TestApplication):
         instance_2 = app.create_hook_instance(hook_expression)
         self.assertNotEquals(instance_1, instance_2)
 
+    def test_parent(self):
+        app = self.engine.apps["test_app"]
+        hook_expression = app.get_setting("test_hook_std")
+        hook_instance = app.create_hook_instance(hook_expression)
+        self.assertEquals(hook_instance.parent, app)
+
+    def test_sgtk(self):
+        app = self.engine.apps["test_app"]
+        hook_expression = app.get_setting("test_hook_std")
+        hook_instance = app.create_hook_instance(hook_expression)
+        self.assertEquals(hook_instance.sgtk, app.sgtk)
+
     def test_logger(self):
         """
         tests the logger property
