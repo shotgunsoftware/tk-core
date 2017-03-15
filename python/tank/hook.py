@@ -206,7 +206,7 @@ class Hook(object):
         ``parent``.
 
         .. note:: Some low level hooks do not have a parent defined. In
-                  such cases, None is returned.
+                  such cases, ``None`` is returned.
         """
         # local import to avoid cycles
         from .api import Sgtk
@@ -243,14 +243,8 @@ class Hook(object):
         """
         Returns the path on disk for a publish entity in Shotgun.
 
-        Use this method if you have a shotgun publish entity and want
-        to get a local path on disk. This method will ensure that however
-        the publish path is encoded, a local path is returned.
-
-        :param sg_publish_data: Shotgun dictionary containing
-                                information about a publish. Needs to at least
-                                contain a type, id and a path key.
-        :returns: String representing a local path on disk.
+        Convenience method that calls :meth:`get_publish_paths`.
+        For details, see :meth:`get_publish_paths`.
         """
         return self.get_publish_paths([sg_publish_data])[0]
 
@@ -268,7 +262,33 @@ class Hook(object):
                                      needs to at least contain a type, id and
                                      a path key.
         :returns: List of strings representing local paths on disk.
+
+        :raises: :class:`~sgtk.util.PublishPathNotFoundError` if any of the paths cannot be found on disk.
+        :raises: :class:`~sgtk.util.PublishPathNotDefinedError` if any of the paths aren't defined.
+        :raises: :class:`~sgtk.util.PublishPathNotSupported` if any of the paths cannot be resolved.
         """
+
+        # apply the following path resolution logic:
+
+        # - if path is not defined, raise NotDefined exception
+
+        # - if path is a local file link, resolve it for the current os
+        #   - if it isn't defined, raise NotDefined exception
+
+        # - if path is a file:// url, resolve it to a path,
+        #   and detect the os
+        #   - if it is another OS, attempt to resolve it
+        #     - use local storage mappings in shotgun
+        #     - failing that, look for a SHOTGUN_PATH_{OS} env var
+        #     - if the resolve fails, raise NotSupported
+
+        # - if path is another format, a NotSupported exception is raised
+
+        # Once we have a valid local OS path:
+        #   - if it cannot be found, raise NotFound exception
+
+
+
         paths = []
         for sg_data in sg_publish_data_list:
             path_field = sg_data.get("path")
