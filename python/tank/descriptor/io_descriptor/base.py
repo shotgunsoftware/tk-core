@@ -218,14 +218,18 @@ class IODescriptorBase(object):
                     latest_version = version_number
             return latest_version
 
-        # Validate the pattern: we expect at least v<something> followed as many
-        # as wanted .<something else>
-        if not re.match("^v\w+(\.\w+)*$", pattern):
+        # Validate the pattern: we expect at least <something> followed as many
+        # as wanted .<something else>.
+        # Please note that before a leading "v" was expected for the pattern
+        if not re.match("^\w+(\.\w+)*$", pattern):
             raise TankDescriptorError("Cannot parse version expression '%s'!" % pattern)
         version_split = pattern.split(".")
+        num_tokens = len(version_split)
         # Special case for the first token for which the wildcard is "vx" and not
         # "x"
+        has_v_prefix = False
         if version_split[0] == "vx":
+            has_v_prefix = True
             version_split[0] = "x"
         for i, token in enumerate(version_split):
             if token == "x":
@@ -244,21 +248,38 @@ class IODescriptorBase(object):
         else:
             # No "x" in our pattern
             base_version = ".".join(version_split)
+
         if not base_version: # Match anything
-            version_numbers.sort(key=LooseVersion)
-            return version_numbers[-1]
+            # Sort in reverse order, for the "v" case, hoping a valid "v" version
+            # will be in the latest ones
+            version_numbers.sort(key=LooseVersion, reverse=True)
+            if has_v_prefix:
+                # Only match versions starting with "v"
+                for version_number in version_numbers:
+                    if version_number.startswith("v"):
+                        return version_number
+                # No match
+                log.debug("Didn't find a matching version for pattern %s" % pattern)
+                return None
+            else:
+                return version_numbers[0]
+
         # Find the matching versions
         possible_versions = []
         for version_number in version_numbers:
             # Match the exact same version or the base_version.<more tokens> but
             # do not match base_version<other characters>[.<more tokens]
-                if version_number == base_version or version_number.startswith( "%s." % base_version):
+            if version_number == base_version or version_number.startswith( "%s." % base_version):
+                # if some x.x.x wildcards were specified, we need to make sure we
+                # consider only versions with at least the number of specified tokens
+                if len(version_number.split(".")) >= num_tokens:
                     possible_versions.append(LooseVersion(version_number))
         if not possible_versions:
             log.debug("Didn't find a matching version for pattern %s" % pattern)
             return None
         possible_versions.sort()
-        return possible_versions[-1]
+        # Return a string, not a LooseVersion
+        return str(possible_versions[-1])
 
     def _get_locally_cached_versions(self):
         """
