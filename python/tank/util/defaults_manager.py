@@ -61,10 +61,12 @@ class CoreDefaultsManager(DefaultsManager):
         """
         from . import shotgun
         http_proxy = shotgun.get_associated_sg_config_data().get("http_proxy")
-        if http_proxy is not None:
-            return http_proxy
-        else:
+        # If we don't have anything in shotgun.yml, we fallback on the
+        # toolkit.ini and system settings.
+        if http_proxy is None:
             return super(CoreDefaultsManager, self).get_http_proxy()
+        else:
+            return http_proxy
 
     def get_user_credentials(self):
         """
