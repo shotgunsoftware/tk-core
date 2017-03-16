@@ -107,13 +107,14 @@ class IODescriptorAppStore(IODescriptorBase):
         self._validate_descriptor(
             descriptor_dict,
             required=["type", "name", "version"],
-            optional=[]
+            optional=["branch"]
         )
 
         self._sg_connection = sg_connection
         self._type = bundle_type
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")
+        self._branch = descriptor_dict.get("branch")
         # cached metadata - loaded on demand
         self.__cached_metadata = None
 
@@ -234,6 +235,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 ["description",
                  "sg_detailed_release_notes",
                  "sg_documentation",
+                 "sg_branch",
                  constants.TANK_CODE_PAYLOAD_FIELD]
             )
             if sg_version_data is None:
@@ -269,6 +271,7 @@ class IODescriptorAppStore(IODescriptorBase):
             bundle_cache_root,
             "app_store",
             self.get_system_name(),
+            self.get_branch() or "",
             self.get_version()
         )
 
@@ -301,7 +304,11 @@ class IODescriptorAppStore(IODescriptorBase):
             self.get_version()
         )
         if legacy_folder:
-            paths.append(legacy_folder)
+            if self.get_branch():
+                # For now issue a warning until a better approach is found
+                log.warning("Legacy bundle caches are not supported with branches")
+            else:
+                paths.append(legacy_folder)
 
         return paths
 
@@ -335,6 +342,14 @@ class IODescriptorAppStore(IODescriptorBase):
         Returns the version number string for this item
         """
         return self._version
+
+    def get_branch(self):
+        """
+        Returns the branch name string, if any, for this item
+
+        :returns: A string or None.
+        """
+        return self._branch
 
     def get_changelog(self):
         """
@@ -423,7 +438,6 @@ class IODescriptorAppStore(IODescriptorBase):
         log.debug("Looking for cached versions of %r..." % self)
         all_versions = self._get_locally_cached_versions()
         log.debug("Found %d versions" % len(all_versions))
-
         if len(all_versions) == 0:
             return None
 
@@ -432,7 +446,12 @@ class IODescriptorAppStore(IODescriptorBase):
             return None
 
         # make a descriptor dict
-        descriptor_dict = {"type": "app_store", "name": self._name, "version": version_to_use}
+        descriptor_dict = {
+            "type": "app_store",
+            "name": self._name,
+            "version": version_to_use,
+            "branch": self._branch
+        }
 
         # and return a descriptor instance
         desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
@@ -504,9 +523,12 @@ class IODescriptorAppStore(IODescriptorBase):
             # now get all versions
             link_field = self._APP_STORE_LINK[self._type]
             entity_type = self._APP_STORE_VERSION[self._type]
+            filters = [[link_field, "is", sg_bundle_data]] + latest_filter
+            if self._branch:
+                filters.append(["sg_branch", "is", self._branch])
             sg_data = sg.find(
                 entity_type,
-                [[link_field, "is", sg_bundle_data]] + latest_filter,
+                filters,
                 ["code"]
             )
         else:
@@ -529,7 +551,12 @@ class IODescriptorAppStore(IODescriptorBase):
             )
 
         # make a descriptor dict
-        descriptor_dict = {"type": "app_store", "name": self._name, "version": version_to_use}
+        descriptor_dict = {
+            "type": "app_store",
+            "name": self._name,
+            "version": version_to_use,
+            "branch": self._branch,
+        }
 
         # and return a descriptor instance
         desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
@@ -587,9 +614,12 @@ class IODescriptorAppStore(IODescriptorBase):
             # now get the version
             link_field = self._APP_STORE_LINK[self._type]
             entity_type = self._APP_STORE_VERSION[self._type]
+            filters = [[link_field, "is", sg_bundle_data]] + latest_filter
+            if self._branch:
+                filters.append(["sg_branch", "is", self._branch])
             sg_version_data = sg.find_one(
                 entity_type,
-                filters=[[link_field, "is", sg_bundle_data]] + latest_filter,
+                filters=filters,
                 fields=["code"],
                 order=[{"field_name": "created_at", "direction": "desc"}]
             )
@@ -613,7 +643,8 @@ class IODescriptorAppStore(IODescriptorBase):
         # make a descriptor dict
         descriptor_dict = {"type": "app_store",
                            "name": self._name,
-                           "version": version_str}
+                           "version": version_str,
+                           "branch": self._branch}
 
         # and return a descriptor instance
         desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)

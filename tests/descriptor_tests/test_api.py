@@ -131,8 +131,8 @@ class TestApi(TankTestBase):
         dict = {"type": "path", "path": "/foo/bar"}
         self._test_uri(uri, dict)
 
-        uri = "sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle"
-        dict = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
+        uri = "sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle&branch=topic"
+        dict = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle", "branch" : "topic"}
         self._test_uri(uri, dict)
 
         uri = "sgtk:descriptor:git?path=https%3A//github.com/shotgunsoftware/tk-core.git&version=v0.1.2"

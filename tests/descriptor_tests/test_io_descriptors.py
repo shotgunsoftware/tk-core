@@ -38,6 +38,72 @@ class TestIODescriptors(TankTestBase):
         self.assertTrue(d1._io_descriptor is d2._io_descriptor)
         self.assertTrue(d1._io_descriptor is not d3._io_descriptor)
 
+    def test_branch_descriptor_cache(self):
+        """
+        Tests branch descriptors through caching
+        """
+        sg = self.tk.shotgun
+        root = os.path.join(self.project_root, "cache_root")
+        releases = []
+        # Create a bunch of releases: odd entries are on a "topic" branch
+        # even entries are on "master"
+        for release in ["v1.1.1", "v1.1.2", "v2.1.1", "v2.1.2"]:
+            # Create a "master" release
+            releases.append(
+                sgtk.descriptor.create_descriptor(
+                    sg,
+                    sgtk.descriptor.Descriptor.APP, {
+                        "type": "app_store",
+                        "version": release,
+                        "name": "tk-bundle"
+                    },
+                    bundle_cache_root_override=root,
+                )
+            )
+            # Check there is no branch
+            self.assertIsNone(releases[-1].branch)
+            # check the uri, we shouldn't have any branch param in it
+            # sgtk:descriptor:app_store?version=v2.1.2&name=tk-bundle
+            self.assertFalse("branch" in releases[-1].get_uri())
+            # Create a branch release
+            releases.append(
+                sgtk.descriptor.create_descriptor(
+                    sg,
+                    sgtk.descriptor.Descriptor.APP, {
+                        "type": "app_store",
+                        "version": "%s.topic" % release,
+                        "branch": "topic",
+                        "name": "tk-bundle"
+                    },
+                    bundle_cache_root_override=root,
+                )
+            )
+            # Check the branch is correctly set
+            self.assertTrue(releases[-1].branch=="topic")
+            # check the uri, we should have branch=topic in it
+            # e.g. sgtk:descriptor:app_store?version=v2.1.2.topic&name=tk-bundle&branch=topic
+            self.assertTrue("&branch=topic" in releases[-1].get_uri())
+
+        # Create dummy app payload
+        for release in releases:
+            app_path = release._io_descriptor._get_bundle_cache_path(root)
+            path = os.path.join(app_path, "info.yml")
+
+            os.makedirs(app_path)
+            fh = open(path, "wt")
+            fh.write("test data\n")
+            fh.close()
+
+        # Check we don't mix up branch and non-branch releases
+        self.assertTrue(
+            releases[-1].branch==releases[-1].find_latest_cached_version().branch
+        )
+        self.assertTrue(
+            releases[-2].branch==releases[-2].find_latest_cached_version().branch
+        )
+        # Check various release constraint patterns
+        print releases[-1].find_latest_cached_version("v1.x.x.topic")
+
     def test_latest_cached(self):
         """
         Tests the find_latest_cached_version method

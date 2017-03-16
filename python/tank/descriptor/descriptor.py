@@ -320,6 +320,13 @@ class Descriptor(object):
         """
         return self._io_descriptor.get_version()
     
+    @property
+    def branch(self):
+        """
+        The branch name string for this item.
+        """
+        return self._io_descriptor.get_branch()
+
     def get_path(self):
         """
         Returns the path to the folder where this item either currently resides
