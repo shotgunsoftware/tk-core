@@ -27,7 +27,6 @@ from tank_vendor import yaml
 log = LogManager.get_logger(__name__)
 
 
-
 class IODescriptorBase(object):
     """
     An I/O descriptor describes a particular version of an app, engine or core component.

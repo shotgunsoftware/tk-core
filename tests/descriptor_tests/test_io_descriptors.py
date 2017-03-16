@@ -95,14 +95,23 @@ class TestIODescriptors(TankTestBase):
             fh.close()
 
         # Check we don't mix up branch and non-branch releases
-        self.assertTrue(
-            releases[-1].branch==releases[-1].find_latest_cached_version().branch
+        self.assertEqual(
+            releases[-1].branch,
+            releases[-1].find_latest_cached_version().branch
         )
-        self.assertTrue(
-            releases[-2].branch==releases[-2].find_latest_cached_version().branch
+        self.assertEqual(
+            releases[-2].branch,
+            releases[-2].find_latest_cached_version().branch
         )
         # Check various release constraint patterns
-        print releases[-1].find_latest_cached_version("v1.x.x.topic")
+        self.assertEqual(
+            releases[-1].find_latest_cached_version("vx.x.x").version,
+            releases[-1].version
+        )
+        self.assertEqual(
+            releases[-2].find_latest_cached_version("vx.x.x").version,
+            releases[-2].version
+        )
 
     def test_latest_cached(self):
         """
