@@ -67,7 +67,7 @@ class TestResolverBase(TankTestBase):
         :returns: Dictionary with keys entity_type and entity_id.
         """
 
-        entity = self.mockgun.create(
+        return self.mockgun.create(
             "PipelineConfiguration", dict(
                 code=code,
                 project=project,
@@ -81,10 +81,22 @@ class TestResolverBase(TankTestBase):
                 sg_descriptor=descriptor
             )
         )
-        return dict(
-            entity_type=entity["type"],
-            entity_id=entity["id"]
-        )
+
+
+# class TestUserRestriction(TestResolveBase):
+
+#     def test_match_user_sandbox(self):
+
+#         john_doe = self.mockgun.create("HumanUser", {"login": "john.doe"})
+
+#         pc = self._create_pc(
+#             "Doe Sandbox", users=[john_doe], plugin_ids='foo.*', path='/path/to/john/doe'
+#         )
+
+#         pc = self._create_pc(
+#             "User Sandbox", users=[self._user], plugin_ids='foo.*', path='/path/to/user'
+#         )
+
 
 
 class TestPluginMatching(TestResolverBase):
@@ -330,15 +342,15 @@ class TestResolverPriority(TestResolverBase):
         """
         link = self._create_site_pc()
         self._test_priority(self.SITE_PC_PATH)
-        self.mockgun.delete(**link)
+        self.mockgun.delete(link["type"], link["id"])
 
         link = self._create_site_sandbox_pc()
         self._test_priority(self.SITE_SANDBOX_PC_PATH)
-        self.mockgun.delete(**link)
+        self.mockgun.delete(link["type"], link["id"])
 
         link = self._create_project_pc()
         self._test_priority(self.PROJECT_PC_PATH)
-        self.mockgun.delete(**link)
+        self.mockgun.delete(link["type"], link["id"])
 
         link = self._create_project_sandbox_pc()
         self._test_priority(self.PROJECT_SANDBOX_PC_PATH)
@@ -440,7 +452,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             "Primary",
             path="sg_path",
             plugin_ids="foo.*",
-        )["entity_id"]
+        )["id"]
 
         pcs = self.resolver.find_matching_pipeline_configurations(
             None,
@@ -592,7 +604,7 @@ class TestResolveWithFilter(TestResolverBase):
         """
         pc_id = self._create_pc(
             "Primary", self._project, "sg_path", plugin_ids="foo.*"
-        )["entity_id"]
+        )["id"]
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=pc_id,
@@ -705,7 +717,7 @@ class TestErrorHandling(TestResolverBase):
             self._project,
             "sg_path",
             plugin_ids="foo.*",
-        )["entity_id"]
+        )["id"]
 
         # Remove the current platform's path.
         self.mockgun.update(
