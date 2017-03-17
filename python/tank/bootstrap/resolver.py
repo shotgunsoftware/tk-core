@@ -323,12 +323,20 @@ class ConfigurationResolver(object):
 
         if remainder:
             log.warning(
-                "Too many %s level pipeline configurations found. The following were skipped",
+                "Too many %s level pipeline configurations found.",
                 level_name
             )
+            log.warning(
+                "Non-plugin id based pipeline configuration always take precedence over plugin id based"
+                "pipeline configurations. Lower id pipeline configurations always take precedence over"
+                "higher id pipeline configurations."
+            )
+            log.warning("The following pipeline configurations were skipped:")
             for pc in remainder:
                 log.warning(
-                    "    - Name: %s, Id: %s", pc["code"], pc["id"]
+                    "    - Name: %s, Id: %s, Plugin Ids: %s", 
+                    pc["code"], pc["id"],
+                    pc.get("sg_plugin_ids") or pc.get("plugin_ids") or "None"
                 )
 
         # Return the first item if available, None otherwise.
