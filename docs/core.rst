@@ -107,7 +107,7 @@ Hook
 =========================================
 .. autoclass:: Hook
     :members:
-    :exclude-members: execute
+    :exclude-members: execute, get_publish_paths
 
 get_hook_baseclass
 =========================================

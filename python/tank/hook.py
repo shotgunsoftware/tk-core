@@ -15,12 +15,8 @@ import os
 import sys
 import logging
 import inspect
-import urlparse
-import pprint
 import threading
-import urllib
 from .util.loader import load_plugin
-from .util.errors import PublishPathNotDefinedError, PublishPathNotSupported, PublishPathNotFoundError
 from . import LogManager
 from .errors import (
     TankError,
@@ -29,6 +25,7 @@ from .errors import (
 )
 
 log = LogManager.get_logger(__name__)
+
 
 class Hook(object):
     """
@@ -245,181 +242,45 @@ class Hook(object):
         """
         Returns the path on disk for a publish entity in Shotgun.
 
-        Convenience method that calls :meth:`get_publish_paths`.
-        For details, see :meth:`get_publish_paths`.
+        Convenience method that calls :meth:`sgtk.util.resolve_publish_path`.
+
+        :param sg_publish_data: Dictionaries containing Shotgun publish data.
+            Each dictionary needs to at least contain a code, type, id and a path key.
+
+        :returns: A path on disk to existing file or file sequence.
+
+        :raises: :class:`~sgtk.util.PublishPathNotDefinedError` if the path isn't defined.
+        :raises: :class:`~sgtk.util.PublishPathNotSupported` if the path cannot be resolved.
         """
-        return self.get_publish_paths([sg_publish_data])[0]
+        # avoid cyclic refs
+        from .util import resolve_publish_path
+        return resolve_publish_path(self.sgtk, sg_publish_data)
 
     def get_publish_paths(self, sg_publish_data_list):
         """
         Returns several local paths on disk given a
         list of shotgun data dictionaries representing publishes.
 
-        Use this method if you have several shotgun publish entities and want
-        to get a local path on disk. This method will ensure that however
-        the publish path is encoded, a local path is returned.
+        Convenience method that calls :meth:`sgtk.util.resolve_publish_path`.
+
+        .. deprecated:: 0.18.64
+           Use :meth:`get_publish_path` instead.
 
         :param sg_publish_data_list: List of shotgun data dictionaries
                                      containing publish data. Each dictionary
-                                     needs to at least contain a type, id and
-                                     a path key.
+                                     needs to at least contain a code, type,
+                                     id and a path key.
 
-        :returns: A path on disk to existing file or file sequence.
+        :returns: List of paths on disk to existing files or file sequences.
 
-        :raises: :class:`~sgtk.util.PublishPathNotFoundError` if any of the paths cannot be found on disk.
         :raises: :class:`~sgtk.util.PublishPathNotDefinedError` if any of the paths aren't defined.
         :raises: :class:`~sgtk.util.PublishPathNotSupported` if any of the paths cannot be resolved.
         """
-
-        # apply the following path resolution logic:
-
-        # - if path is not defined, raise PublishPathNotFoundError exception
-
-        # - if path is a local file link, resolve it for the current os
-        #   - if it isn't defined, raise NotDefined exception
-
-        # - if path is a file:// url, resolve it to a path,
-        #   and detect the os
-        #   - if it is another OS, attempt to resolve it
-        #     - use local storage mappings in shotgun
-        #     - failing that, look for a SHOTGUN_PATH_{OS} env var
-        #     - if the resolve fails, raise NotSupported
-
-        # - if path is another format, a NotSupported exception is raised
-
-        # Once we have a valid local OS path:
-        #   - if it cannot be found, raise NotFound exception
-
+        # avoid cyclic refs
+        from .util import resolve_publish_path
         paths = []
-        for sg_data in sg_publish_data_list:
-
-            path_field = sg_data.get("path")
-
-            log.debug(
-                "Publish id %s: Attempting to resolve publish path "
-                "to local file on disk: '%s'" % (sg_data["id"], pprint.pformat(path_field))
-            )
-
-            local_path = None
-
-            # no path defined
-            if path_field is None:
-                raise PublishPathNotDefinedError(
-                    "Publish %s (id %s) does not have a path set" % (sg_data["code"], sg_data["id"])
-                )
-
-            # local file link
-            if path_field["link_type"] == "local":
-                # {'content_type': 'image/png',
-                #  'id': 25826,
-                #  'link_type': 'local',
-                #  'local_path': '/Users/foo.png',
-                #  'local_path_linux': None,
-                #  'local_path_mac': '/Users/foo.png',
-                #  'local_path_windows': None,
-                #  'local_storage': {'id': 39,
-                #                    'name': 'home',
-                #                    'type': 'LocalStorage'},
-                #  'name': 'foo.png',
-                #  'type': 'Attachment',
-                #  'url': 'file:///Users/foo.png'}
-
-                if path_field.get("local_path") is None:
-                    raise PublishPathNotDefinedError(
-                        "Publish %s (id %s): '%s' does not have a path defined "
-                        "for this platform. Windows Path: '%s', Mac Path: '%s', "
-                        "Linux Path: '%s'" % (
-                            sg_data["code"],
-                            sg_data["id"],
-                            path_field["name"],
-                            path_field["local_path_windows"],
-                            path_field["local_path_mac"],
-                            path_field["local_path_linux"],
-                        )
-                    )
-
-                local_path = path_field.get("local_path")
-                log.debug("Resolved local file link: %s" % local_path)
-
-            elif path_field["link_type"] == "web":
-                # {'content_type': None,
-                #  'id': 25828,
-                #  'link_type': 'web',
-                #  'name': 'toolkitty.jpg',
-                #  'type': 'Attachment',
-                #  'url': 'file:///C:/Users/Manne%20Ohrstrom/Downloads/toolkitty.jpg'},
-
-                parsed_url = urlparse.urlparse(path_field["url"])
-
-                # url = "file:///path/to/some/file.txt"
-                # ParseResult(
-                #   scheme='file',
-                #   netloc='',
-                #   path='/path/to/some/file.txt',
-                #   params='',
-                #   query='',
-                #   fragment=''
-                # )
-
-                if parsed_url.scheme != "file":
-                    # we currently only support file:// style urls
-                    raise PublishPathNotSupported(
-                        "Publish %s (id %s): Url '%s' cannot be converted to a "
-                        "path on disk." % (sg_data["code"], sg_data["id"], path_field["url"])
-                    )
-
-                # file urls can be on the following standard form:
-
-                # Std unix path (/path/to/some/file.txt):
-                # file:///path/to/some/file.txt
-                #
-                # on nix platform:
-                # >>> urlparse.urlparse("file:///path/to/some/file.txt")
-                # ParseResult(scheme='file', netloc='', path='/path/to/some/file.txt', params='', query='', fragment='')
-                #
-                # on windows platform:
-
-
-                # windows UNC path (\\laptop\My Documents\FileSchemeURIs.doc):
-                # file://laptop/My%20Documents/FileSchemeURIs.doc
-                #
-                # on nix platform:
-                # >>> urlparse.urlparse("file://laptop/My%20Documents/FileSchemeURIs.doc")
-                # ParseResult(scheme='file', netloc='laptop', path='/My%20Documents/FileSchemeURIs.doc', params='', query='', fragment='')
-                #
-                # on windows platform:
-                #
-
-
-                #
-                # Win path to drive letter (C:\Documents and Settings\davris\FileSchemeURIs.doc):
-                # file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc
-                #
-                # on nix platform:
-                # >>> urlparse.urlparse("file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc")
-                # ParseResult(scheme='file', netloc='', path='/C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc', params='', query='', fragment='')
-                #
-                # on windows platform:
-
-                # for information about windows, see
-                # https://blogs.msdn.microsoft.com/ie/2006/12/06/file-uris-in-windows/
-
-                resolved_path = urllib.unquote(results.path)
-
-
-
-            else:
-                raise PublishPathNotSupported(
-                    "Publish %s (id %s): Local file link type '%s' "
-                    "not supported." % (sg_data["code"], sg_data["id"], path_field["link_type"])
-                )
-
-
-            # now see if the file exists on disk
-            log.debug("Checking if resolved publish path '%s' exists on disk." % local_path)
-
-            paths.append(local_path)
-
+        for sg_publish_data in sg_publish_data_list:
+            paths.append(resolve_publish_path(self.sgtk, sg_publish_data))
         return paths
 
     @property

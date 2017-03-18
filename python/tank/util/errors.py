@@ -95,15 +95,6 @@ class PublishResolveError(TankError):
     pass
 
 
-class PublishPathNotFoundError(PublishResolveError):
-    """
-    Exception raised when a local operating system path
-    has been successfully resolved but this path cannot
-    be found.
-    """
-    pass
-
-
 class PublishPathNotDefinedError(PublishResolveError):
     """
     Exception raised when a publish does not have a path
