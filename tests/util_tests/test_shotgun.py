@@ -166,7 +166,7 @@ class TestShotgunFindPublish(TankTestBase):
         # template for this path.
         self.assertEqual(
             "/jbee/is/awesome.0001.jpg",
-            tank.util.shotgun._translate_abstract_fields(
+            tank.util.shotgun.publish_creation._translate_abstract_fields(
                 self.tk,
                 "/jbee/is/awesome.0001.jpg",
             ),
@@ -203,7 +203,7 @@ class TestShotgunFindPublish(TankTestBase):
 
         self.assertEqual(
             t_path,
-            tank.util.shotgun._translate_abstract_fields(
+            tank.util.shotgun.publish_creation._translate_abstract_fields(
                 self.tk,
                 path,
             ),
@@ -214,7 +214,7 @@ class TestShotgunFindPublish(TankTestBase):
         # We should get back what we gave due to multiple matching templates.
         self.assertEqual(
             path,
-            tank.util.shotgun._translate_abstract_fields(
+            tank.util.shotgun.publish_creation._translate_abstract_fields(
                 self.tk,
                 path,
             ),
@@ -733,7 +733,7 @@ class TestGetSgConfigData(TankTestBase):
 
     def test_all_fields_present(self, get_api_core_config_location_mock):
         self._prepare_common_mocks(get_api_core_config_location_mock)
-        tank.util.shotgun._parse_config_data(
+        tank.util.shotgun.connection._parse_config_data(
             {
                 "host": "host",
                 "api_key": "api_key",
@@ -746,7 +746,7 @@ class TestGetSgConfigData(TankTestBase):
 
     def test_proxy_is_optional(self, get_api_core_config_location_mock):
         self._prepare_common_mocks(get_api_core_config_location_mock)
-        tank.util.shotgun._parse_config_data(
+        tank.util.shotgun.connection._parse_config_data(
             {
                 "host": "host",
                 "api_key": "api_key",
@@ -760,7 +760,7 @@ class TestGetSgConfigData(TankTestBase):
         self._prepare_common_mocks(get_api_core_config_location_mock)
 
         with self.assertRaises(errors.TankError):
-            tank.util.shotgun._parse_config_data(
+            tank.util.shotgun.connection._parse_config_data(
                 {
                     "host": "host",
                     "api_script": "api_script"
@@ -770,7 +770,7 @@ class TestGetSgConfigData(TankTestBase):
             )
 
         with self.assertRaises(errors.TankError):
-            tank.util.shotgun._parse_config_data(
+            tank.util.shotgun.connection._parse_config_data(
                 {
                     "host": "host",
                     "api_key": "api_key"
@@ -780,7 +780,7 @@ class TestGetSgConfigData(TankTestBase):
             )
 
         with self.assertRaises(errors.TankError):
-            tank.util.shotgun._parse_config_data(
+            tank.util.shotgun.connection._parse_config_data(
                 {
                     "api_key": "api_key",
                     "api_script": "api_script"
@@ -790,7 +790,7 @@ class TestGetSgConfigData(TankTestBase):
             )
 
 # Class decorators don't exist on Python2.5
-TestGetSgConfigData = patch("tank.util.shotgun.__get_api_core_config_location", TestGetSgConfigData)
+TestGetSgConfigData = patch("tank.util.shotgun.connection.__get_api_core_config_location", TestGetSgConfigData)
 
 
 class ConnectionSettingsTestCases:
@@ -815,7 +815,7 @@ class ConnectionSettingsTestCases:
             """
             Clear cached appstore connection
             """
-            tank.util.shotgun._g_sg_cached_connections = threading.local()
+            tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
             tank.set_authenticated_user(None)
 
             # Prevents from connecting to Shotgun.
@@ -825,7 +825,7 @@ class ConnectionSettingsTestCases:
 
             # Avoids crash because we're not in a pipeline configuration.
             self._get_api_core_config_location_mock = patch(
-                "tank.util.shotgun.__get_api_core_config_location",
+                "tank.util.shotgun.connection.__get_api_core_config_location",
                 return_value="unused_path_location"
             )
             self._get_api_core_config_location_mock.start()
@@ -843,7 +843,7 @@ class ConnectionSettingsTestCases:
             """
             Clear cached appstore connection
             """
-            tank.util.shotgun._g_sg_cached_connections = threading.local()
+            tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
             tank.set_authenticated_user(None)
 
         def test_connections_no_proxy(self):
@@ -936,7 +936,7 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases.Impl):
         """
         Mock information coming from shotgun.yml for pre-authentication framework authentication.
         """
-        with patch("tank.util.shotgun.__get_sg_config_data") as mock:
+        with patch("tank.util.shotgun.connection.__get_sg_config_data") as mock:
             # Mocks shotgun.yml content, which we use for authentication.
             mock.return_value = {
                 "host": site,
@@ -972,7 +972,7 @@ class AuthConnectionSettings(ConnectionSettingsTestCases.Impl):
         """
         Mock information coming from the Shotgun user and shotgun.yml for authentication.
         """
-        with patch("tank.util.shotgun.__get_sg_config_data") as mock:
+        with patch("tank.util.shotgun.connection.__get_sg_config_data") as mock:
             # Mocks shotgun.yml content
             mock.return_value = {
                 # We're supposed to read only the proxy settings for the appstore
@@ -1018,7 +1018,7 @@ class TestCalcPathCache(TankTestBase):
         expected = os.path.join(os.path.basename(wrong_case_root), relative_path).replace(os.sep, "/")
 
         input_path = os.path.join(wrong_case_root, relative_path)
-        root_name, path_cache = tank.util.shotgun._calc_path_cache(self.tk, input_path)
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(self.tk, input_path)
         self.assertEqual("primary", root_name)
         self.assertEqual(expected, path_cache)
 
