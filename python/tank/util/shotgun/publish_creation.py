@@ -413,8 +413,6 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         # to a storage that is associated with this toolkit config.
         storage_name, path_cache = _calc_path_cache(tk, path)
 
-
-
         if path_cache:
 
             # there is a toolkit storage mapping defined for this storage
