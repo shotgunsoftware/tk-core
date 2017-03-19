@@ -8,7 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 from sgtk import Hook
- 
+
+
 class PublishResolver(Hook):
     """
     Hook used to resolve publish records in Shotgun into

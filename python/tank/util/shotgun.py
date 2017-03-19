@@ -15,6 +15,7 @@ Shotgun utilities
 from __future__ import with_statement
 
 import os
+import re
 import sys
 import uuid
 import urllib
@@ -581,6 +582,32 @@ def get_entity_type_display_name(tk, entity_type_code):
 
     return display_name
 
+
+g_local_storage_cache = None
+
+
+def __get_cached_local_storages(tk):
+    """
+    Return a list of all Shotgun local storages.
+    Use an in-memory cache for performance
+
+    :param tk: :class:`~sgtk.Sgtk` instance
+    :returns: List of shotgun entity dictionaries
+    """
+    global g_local_storage_cache
+
+    if g_local_storage_cache is None:
+        log.debug("Caching shotgun local storages...")
+        g_local_storage_cache = tk.shotgun.find(
+            "LocalStorage",
+            [],
+            ["id", "code"] + ShotgunPath.SHOTGUN_PATH_FIELDS
+        )
+        log.debug("...caching complete. Got %d storages." % len(g_local_storage_cache))
+
+    return g_local_storage_cache
+
+
 @LogManager.log_timing
 def find_publish(tk, list_of_paths, filters=None, fields=None):
     """
@@ -947,10 +974,11 @@ def resolve_publish_path(tk, sg_publish_data):
 
     **Parameters**
 
+    :param tk: :class:`~sgtk.Sgtk` instance
     :param sg_publish_data: Dictionary containing Shotgun publish data.
         Needs to at least contain a code, type, id and a path key.
 
-    :returns: A path on disk to existing file or file sequence.
+    :returns: A local path to file or file sequence.
 
     :raises: :class:`~sgtk.util.PublishPathNotDefinedError` if the path isn't defined.
     :raises: :class:`~sgtk.util.PublishPathNotSupported` if the path cannot be resolved.
@@ -963,181 +991,300 @@ def resolve_publish_path(tk, sg_publish_data):
         "to local file on disk: '%s'" % (sg_publish_data["id"], pprint.pformat(path_field))
     )
 
+    # first offer it to the core hook
     custom_path = tk.execute_core_hook_method(
         "resolve_publish",
-        "resolve",
+        "resolve_path",
         sg_publish_data
     )
     if custom_path:
-        log.debug("Publish resolve hook returned path '%s'" % custom_path)
+        log.debug("Publish resolve core hook returned path '%s'" % custom_path)
+        return custom_path
 
-
-
-    # apply the following path resolution logic:
-
-    # - if path is a local file link, resolve it for the current os
-    #   - if it isn't defined, raise NotDefined exception
-
-    # - if path is a file:// url, resolve it to a path,
-    #   and detect the os
-    #   - if it is another OS, attempt to resolve it
-    #     - use local storage mappings in shotgun
-    #     - failing that, look for a SHOTGUN_PATH_{OS} env var
-    #     - if the resolve fails, raise NotSupported
-
-    # - if path is another format, a NotSupported exception is raised
-
-    # Once we have a valid local OS path:
-    #   - if it cannot be found, raise NotFound exception
-
-
-
-    local_path = None
-
-    # no path defined
+    # core hook did not pick it up - apply default logic
     if path_field is None:
+        # no path defined for publish
         raise PublishPathNotDefinedError(
-            "Publish %s (id %s) does not have a path set" % (sg_data["code"], sg_data["id"])
+            "Publish %s (id %s) does not have a path set" % (sg_publish_data["code"], sg_publish_data["id"])
         )
 
-    # local file link
-    if path_field["link_type"] == "local":
-        # {'content_type': 'image/png',
-        #  'id': 25826,
-        #  'link_type': 'local',
-        #  'local_path': '/Users/foo.png',
-        #  'local_path_linux': None,
-        #  'local_path_mac': '/Users/foo.png',
-        #  'local_path_windows': None,
-        #  'local_storage': {'id': 39,
-        #                    'name': 'home',
-        #                    'type': 'LocalStorage'},
-        #  'name': 'foo.png',
-        #  'type': 'Attachment',
-        #  'url': 'file:///Users/foo.png'}
-
-        if path_field.get("local_path") is None:
-            raise PublishPathNotDefinedError(
-                "Publish %s (id %s): '%s' does not have a path defined "
-                "for this platform. Windows Path: '%s', Mac Path: '%s', "
-                "Linux Path: '%s'" % (
-                    sg_data["code"],
-                    sg_data["id"],
-                    path_field["name"],
-                    path_field["local_path_windows"],
-                    path_field["local_path_mac"],
-                    path_field["local_path_linux"],
-                )
-            )
-
-        local_path = path_field.get("local_path")
-        log.debug("Resolved local file link: %s" % local_path)
+    elif path_field["link_type"] == "local":
+        # local file link
+        return __resolve_local_file_link(tk, path_field)
 
     elif path_field["link_type"] == "web":
-        # {'content_type': None,
-        #  'id': 25828,
-        #  'link_type': 'web',
-        #  'name': 'toolkitty.jpg',
-        #  'type': 'Attachment',
-        #  'url': 'file:///C:/Users/Manne%20Ohrstrom/Downloads/toolkitty.jpg'},
-
-        parsed_url = urlparse.urlparse(path_field["url"])
-
-        # url = "file:///path/to/some/file.txt"
-        # ParseResult(
-        #   scheme='file',
-        #   netloc='',
-        #   path='/path/to/some/file.txt',
-        #   params='',
-        #   query='',
-        #   fragment=''
-        # )
-
-        if parsed_url.scheme != "file":
-            # we currently only support file:// style urls
-            raise PublishPathNotSupported(
-                "Publish %s (id %s): Url '%s' cannot be converted to a "
-                "path on disk." % (sg_data["code"], sg_data["id"], path_field["url"])
-            )
-
-        # file urls can be on the following standard form:
-
-        # Std unix path
-        # /path/to/some/file.txt -> file:///path/to/some/file.txt
-        #
-        # >>> urlparse.urlparse("file:///path/to/some/file.txt")
-        # ParseResult(scheme='file', netloc='', path='/path/to/some/file.txt', params='', query='', fragment='')
-
-        # windows UNC path
-        # \\laptop\My Documents\FileSchemeURIs.doc -> file://laptop/My%20Documents/FileSchemeURIs.doc
-        #
-        # >>> urlparse.urlparse("file://laptop/My%20Documents/FileSchemeURIs.doc")
-        # ParseResult(scheme='file', netloc='laptop', path='/My%20Documents/FileSchemeURIs.doc', params='', query='', fragment='')
-
-        # Windows path with drive letter
-        # C:\Documents and Settings\davris\FileSchemeURIs.doc -> file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc
-        #
-        # >>> urlparse.urlparse("file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc")
-        # ParseResult(scheme='file', netloc='', path='/C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc', params='', query='', fragment='')
-
-        # for information about windows, see
-        # https://blogs.msdn.microsoft.com/ie/2006/12/06/file-uris-in-windows/
-
-        windows_unc_path = False
-        windows_drive_letter_path = False
-
-        if parsed_url.netloc:
-            # unc path
-            windows_unc_path = True
-            resolved_path = urllib.unquote("//%s/%s" % (parsed_url.netloc, parsed_url.path))
-        else:
-            resolved_path = urllib.unquote(parsed_url.path)
-
-        # format windows drive letter path
-        if re.match("^/[A-Z]:/", resolved_path):
-            windows_drive_letter_path = True
-            resolved_path = resolved_path[1:]
-
-        # native platform slashes
-        resolved_path = resolved_path.replace("/", os.path.sep)
-        log.debug("Converted %s -> %s" % (path_field["url"], resolved_path))
-
-        # now apply separate logic for differnt os
-
-        if sys.platform == "win32":
-            # windows
-            if windows_unc_path or windows_drive_letter_path:
-                # we are on windows and have a windows path
-                pass
-
-            else:
-                # asd
-                pass
-
-        else:
-            # nix
-            if not windows_unc_path and not windows_drive_letter_path:
-                # nix path
-                pass
-
-
-
-
-
-
+        # url link
+        return __resolve_url_link(tk, path_field)
 
     else:
+        # unknown attachment type
         raise PublishPathNotSupported(
             "Publish %s (id %s): Local file link type '%s' "
-            "not supported." % (sg_data["code"], sg_data["id"], path_field["link_type"])
+            "not supported." % (sg_publish_data["code"], sg_publish_data["id"], path_field["link_type"])
         )
 
 
-    # now see if the file exists on disk
-    log.debug("Checking if resolved publish path '%s' exists on disk." % local_path)
+def __resolve_local_file_link(tk, attachment_data):
+    """
+    Resolves the a given local path attachment into a local path.
 
+    Will look for an override environment variable named on the
+    form ``SHOTGUN_PATH_OS_STORAGENAME``. For example, if
+    you are running windows and your ``PRIMARY`` storage has been set up in
+    Shotgun to be ``F:\`` and you want paths on your machine to resolve to ``G:\``
+    instead, set an environment variable ``SHOTGUN_PATH_WINDOWS_PRIMARY=G:\``.
+    The corresponding variables on Linux and Mac would be ``SHOTGUN_PATH_LINUX_PRIMARY``
+    and ``SHOTGUN_PATH_MAC_PRIMARY``.
+
+    If no storage has been defined for the current operating system,
+    a :class:`~sgtk.util.PublishPathNotDefinedError` is raised.
+
+    :param tk: :class:`~sgtk.Sgtk` instance
+    :param attachment_data: Shotgun Attachment dictionary.
+
+    :returns: A local path to file or file sequence.
+
+    :raises: :class:`~sgtk.util.PublishPathNotDefinedError` if the path isn't defined.
+    """
+    # local file link data looks like this:
+    #
+    # {'content_type': 'image/png',
+    #  'id': 25826,
+    #  'link_type': 'local',
+    #  'local_path': '/Users/foo.png',
+    #  'local_path_linux': None,
+    #  'local_path_mac': '/Users/foo.png',
+    #  'local_path_windows': None,
+    #  'local_storage': {'id': 39,
+    #                    'name': 'home',
+    #                    'type': 'LocalStorage'},
+    #  'name': 'foo.png',
+    #  'type': 'Attachment',
+    #  'url': 'file:///Users/foo.png'}
+
+    log.debug("Attempting to resolve local file link attachment data "
+              "into a local path: %s" % pprint.pformat(attachment_data))
+
+    # see if we have a path for this storage
+    local_path = attachment_data.get("local_path")
+    if local_path is None:
+        raise PublishPathNotDefinedError(
+            "Publish '%s' does not have a path defined "
+            "for this platform. Windows Path: '%s', Mac Path: '%s', "
+            "Linux Path: '%s'" % (
+                attachment_data["name"],
+                attachment_data["local_path_windows"],
+                attachment_data["local_path_mac"],
+                attachment_data["local_path_linux"],
+            )
+        )
+
+    # normalize
+    local_path = ShotgunPath.from_current_os_path(local_path).current_os
+
+    # check override env var
+    storage_name = attachment_data["local_storage"]["name"].upper()
+    storage_id = attachment_data["local_storage"]["id"]
+    os_name = {"win32": "WINDOWS", "linux2": "LINUX", "darwin": "MAC"}[sys.platform]
+    env_var_name = "SHOTGUN_PATH_%s_%s" % (os_name, storage_name)
+    log.debug("Looking for override env var '%s'" % env_var_name)
+
+    if env_var_name in os.environ:
+        # we have an override
+        override_root = os.environ[env_var_name]
+        # normalize path
+        override_root = ShotgunPath.from_current_os_path(override_root).current_os
+        log.debug("Applying override '%s' to path '%s'" % (override_root, local_path))
+
+        # get local storages to get path prefix to replace
+        storage = [s for s in __get_cached_local_storages(tk) if s['id'] == storage_id][0]
+        # normalize and compare
+        local_storage_root = ShotgunPath.from_shotgun_dict(storage).current_os
+        # apply modification
+        local_path = override_root + local_path[len(local_storage_root):]
+        log.debug("Overridden path: '%s'" % local_path)
+
+    log.debug("Resolved local file link: '%s'" % local_path)
     return local_path
 
+
+def __resolve_url_link(tk, attachment_data):
+    """
+    Resolves the a given url attachment into a local path.
+
+    The supports the resolution of ``file://`` urls into paths. Such urls
+    are not multi platform and Shotgun local storages and environment variables
+    will be used to try to resolve such paths in case of ambiguity.
+
+    - First, local storage settings will be downloaded from Shotgun and added to
+      a path translation table.
+
+    - Next, any environment variables on the form ``SHOTGUN_PATH_WINDOWS|MAC|LINUX``
+      will be added to the translation table.
+
+    - Override environment variables on the form ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME``
+      will override any local storage paths.
+
+    - The ``file://`` path will be resolved compared against all the existing roots
+      for all operating systems. The first match detected will be used to translate
+      the path into the current operating system platform.
+
+    - If there is no match against any storage, the file path be returned.
+
+    For example, you have published the file ``/projects/some/file.txt`` on Linux
+    and generated a publish with the url ``file:///projects/some/file.txt``. You have
+    either a local storage or environment variable set up with the following paths:
+
+    - Linux Path: ``/projects``
+    - Windows Path: ``Q:\projects``
+    - Mac Path: ``/projects``
+
+    When running on windows, the ``file://`` url will therefore be translated to
+    ``Q:\\projects\\some\\file.txt``.
+
+    If no value has been defined for the current operating system,
+    a :class:`~sgtk.util.PublishPathNotDefinedError` is raised.
+
+    :param tk: :class:`~sgtk.Sgtk` instance
+    :param sg_publish_data: Dictionary containing Shotgun publish data.
+        Needs to at least contain a code, type, id and a path key.
+
+    :returns: A local path to file or file sequence.
+
+    :raises: :class:`~sgtk.util.PublishPathNotDefinedError` if the path isn't defined.
+    :raises: :class:`~sgtk.util.PublishPathNotSupported` if the path cannot be resolved.
+    """
+    log.debug("Attempting to resolve url attachment data "
+              "into a local path: %s" % pprint.pformat(attachment_data))
+
+    # url data looks like this:
+    #
+    # {'content_type': None,
+    #  'id': 25828,
+    #  'link_type': 'web',
+    #  'name': 'toolkitty.jpg',
+    #  'type': 'Attachment',
+    #  'url': 'file:///C:/Users/Manne%20Ohrstrom/Downloads/toolkitty.jpg'},
+
+    parsed_url = urlparse.urlparse(attachment_data["url"])
+
+    # url = "file:///path/to/some/file.txt"
+    # ParseResult(
+    #   scheme='file',
+    #   netloc='',
+    #   path='/path/to/some/file.txt',
+    #   params='',
+    #   query='',
+    #   fragment=''
+    # )
+
+    if parsed_url.scheme != "file":
+        # we currently only support file:// style urls
+        raise PublishPathNotSupported(
+            "Cannot resolve unsupported url '%s' into a local path." % attachment_data["url"]
+        )
+
+    # file urls can be on the following standard form:
+    #
+    # Std unix path
+    # /path/to/some/file.txt -> file:///path/to/some/file.txt
+    #
+    # >>> urlparse.urlparse("file:///path/to/some/file.txt")
+    # ParseResult(scheme='file', netloc='', path='/path/to/some/file.txt', params='', query='', fragment='')
+    #
+    # windows UNC path
+    # \\laptop\My Documents\FileSchemeURIs.doc -> file://laptop/My%20Documents/FileSchemeURIs.doc
+    #
+    # >>> urlparse.urlparse("file://laptop/My%20Documents/FileSchemeURIs.doc")
+    # ParseResult(scheme='file', netloc='laptop', path='/My%20Documents/FileSchemeURIs.doc', params='', query='', fragment='')
+    #
+    # Windows path with drive letter
+    # C:\Documents and Settings\davris\FileSchemeURIs.doc -> file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc
+    #
+    # >>> urlparse.urlparse("file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc")
+    # ParseResult(scheme='file', netloc='', path='/C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc', params='', query='', fragment='')
+    #
+    # for information about windows, see
+    # https://blogs.msdn.microsoft.com/ie/2006/12/06/file-uris-in-windows/
+
+    if parsed_url.netloc:
+        # unc path
+        resolved_path = urllib.unquote("//%s/%s" % (parsed_url.netloc, parsed_url.path))
+    else:
+        resolved_path = urllib.unquote(parsed_url.path)
+
+    # python returns drive letter paths incorrectly and need adjusting.
+    if re.match("^/[A-Z]:/", resolved_path):
+        resolved_path = resolved_path[1:]
+
+    # we now have one of the following three forms (with slashes):
+    # /path/to/file.ext
+    # d:/path/to/file.ext
+    # //share/path/to/file.ext
+    log.debug("Path extracted from url: '%s'" % resolved_path)
+
+    # create a lookup table of shotgun paths,
+    # keyed by upper case storage name
+    log.debug("Building cross-platform path resolution lookup table:")
+    storage_lookup = {}
+    for storage in __get_cached_local_storages(tk):
+        storage_key = storage["code"].upper()
+        storage_lookup[storage_key] = ShotgunPath.from_shotgun_dict(storage)
+        log.debug("Added Shotgun Storage %s: %s" % (storage_key, storage_lookup[storage_key]))
+
+    # get default environment variable set
+    # note that this may generate a None/None/None entry
+    storage_lookup["_DEFAULT_ENV_VAR_OVERRIDE"] = ShotgunPath(
+            os.environ.get("SHOTGUN_PATH_WINDOWS"),
+            os.environ.get("SHOTGUN_PATH_LINUX"),
+            os.environ.get("SHOTGUN_PATH_MAC")
+        )
+    log.debug("Added default env override: %s" % storage_lookup["_DEFAULT_ENV_VAR_OVERRIDE"])
+
+    # look for storage overrides
+    for env_var in os.environ.keys():
+        expr = re.match("^SHOTGUN_PATH_(WINDOWS|MAC|LINUX)_(.*)$", env_var)
+        if expr:
+            platform = expr.group(1)
+            storage_name = expr.group(2).upper()
+            log.debug(
+                "Added %s environment override for %s: %s" % (platform, storage_name, os.environ[env_var])
+            )
+
+            if storage_name not in storage_lookup:
+                # not in the lookup yet. Add it
+                storage_lookup[storage_name] = ShotgunPath()
+
+            if platform == "WINDOWS":
+                storage_lookup[storage_name].windows = os.environ[env_var]
+            elif platform == "MAC":
+                storage_lookup[storage_name].macosx = os.environ[env_var]
+            else:
+                storage_lookup[storage_name].linux = os.environ[env_var]
+
+    # now see if the given url starts with any storage def in our setup
+
+    for storage, sg_path in storage_lookup.iteritems():
+
+        adjusted_path = None
+        if resolved_path.startswith(sg_path.windows.replace("\\", "/")):
+            adjusted_path = sg_path.current_os + resolved_path[len(sg_path.windows):]
+        if resolved_path.startswith(sg_path.linux):
+            adjusted_path = sg_path.current_os + resolved_path[len(sg_path.linux):]
+        if resolved_path.startswith(sg_path.macosx):
+            adjusted_path = sg_path.current_os + resolved_path[len(sg_path.macosx):]
+
+        if adjusted_path:
+            log.debug(
+                "Adjusted path '%s' -> '%s' based on override '%s' (%s)" % (resolved_path, adjusted_path, storage, sg_path)
+            )
+            resolved_path = adjusted_path
+            break
+
+    # adjust native platform slashes
+    resolved_path = resolved_path.replace("/", os.path.sep)
+    log.debug("Converted %s -> %s" % (attachment_data["url"], resolved_path))
+    return resolved_path
 
 
 @LogManager.log_timing
@@ -1697,13 +1844,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
             log.debug("Will check shotgun local storages to see if there is a match.")
 
             matching_local_storage = False
-            log.debug("Retrieving local storages from Shotgun...")
-            storages = tk.shotgun.find(
-                "LocalStorage",
-                [],
-                ["code"] + ShotgunPath.SHOTGUN_PATH_FIELDS
-            )
-            for storage in storages:
+            for storage in __get_cached_local_storages(tk):
                 local_storage_path = ShotgunPath.from_shotgun_dict(storage).current_os
                 # assume case preserving file systems rather than case sensitive
                 if local_storage_path and path.lower().startswith(local_storage_path.lower()):
@@ -1737,6 +1878,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
     log.debug("Registering publish in Shotgun: %s" % pprint.pformat(data))
     return tk.shotgun.create(published_file_entity_type, data)
+
 
 def _calc_path_cache(tk, path):
     """
