@@ -36,13 +36,21 @@ class TestHookGetPublishPath(TankTestBase):
     
     def test_get_publish_path_url(self):
         """
-        Tests the hook.get_publish_path method
+        Tests the hook.get_publish_path method for file urls
         """
-        hook = sgtk.Hook(parent=None)
+        hook = sgtk.Hook(parent=self.tk)
 
         sg_dict = {
+            "id": 123,
+            "type": "PublishedFile",
             "code": "foo",
-            "path": {"url": "file:///foo%20/bar.baz"}
+            "path": {
+                "url": "file:///foo%20/bar.baz",
+                "type": "Attachment",
+                "name": "bar.baz",
+                "link_type": "web",
+                "content_type": None
+            }
         }
 
         self.assertEqual(hook.get_publish_path(sg_dict), "/foo /bar.baz")
@@ -54,42 +62,80 @@ class TestHookGetPublishPath(TankTestBase):
 
     def test_get_publish_path_raises(self):
         """
-        Tests the hook.get_publish_path method
+        Tests the hook.get_publish_path method for unsupported data
         """
-        hook = sgtk.Hook(parent=None)
+        hook = sgtk.Hook(parent=self.tk)
 
         sg_dict = {
+            "id": 123,
+            "type": "PublishedFile",
             "code": "foo",
+            "path": None,
         }
 
-        self.assertRaises(sgtk.TankError, hook.get_publish_path, sg_dict)
-        self.assertRaises(sgtk.TankError, hook.get_publish_paths, [sg_dict, sg_dict])
+        self.assertRaises(
+            sgtk.util.PublishPathNotDefinedError,
+            hook.get_publish_path,
+            sg_dict
+        )
+        self.assertRaises(
+            sgtk.util.PublishPathNotDefinedError,
+            hook.get_publish_paths,
+            [sg_dict, sg_dict]
+        )
 
         sg_dict = {
+            "id": 123,
+            "type": "PublishedFile",
             "code": "foo",
-            "path": {"url": "https://www.foo.bar"}
+            "path": {
+                "url": "https://www.foo.bar",
+                "link_type": "web",
+                "name": "bar.baz",
+            }
         }
 
-        self.assertRaises(sgtk.TankError, hook.get_publish_path, sg_dict)
-        self.assertRaises(sgtk.TankError, hook.get_publish_paths, [sg_dict, sg_dict])
+        self.assertRaises(sgtk.util.PublishPathNotSupported, hook.get_publish_path, sg_dict)
+        self.assertRaises(sgtk.util.PublishPathNotSupported, hook.get_publish_paths, [sg_dict, sg_dict])
 
         sg_dict = {
+            "id": 123,
+            "type": "PublishedFile",
             "code": "foo",
-            "path": {"other_field": "stuff"}
+            "path": {
+                "other_field": "stuff",
+                "link_type": "upload",
+            }
         }
 
-        self.assertRaises(sgtk.TankError, hook.get_publish_path, sg_dict)
-        self.assertRaises(sgtk.TankError, hook.get_publish_paths, [sg_dict, sg_dict])
+        self.assertRaises(sgtk.util.PublishPathNotSupported, hook.get_publish_path, sg_dict)
+        self.assertRaises(sgtk.util.PublishPathNotSupported, hook.get_publish_paths, [sg_dict, sg_dict])
 
     def test_get_publish_path_local_file_link(self):
         """
         Tests the hook.get_publish_path method
         """
-        hook = sgtk.Hook(parent=None)
+        hook = sgtk.Hook(parent=self.tk)
 
         sg_dict = {
+            "id": 123,
+            "type": "PublishedFile",
             "code": "foo",
-            "path": {"local_path": "/local/path/to/file.ext"}
+            "path": {
+                'content_type': 'image/png',
+                'id': 25826,
+                'link_type': 'local',
+                'local_path': '/local/path/to/file.ext',
+                'local_path_linux': '/local/path/to/file.ext',
+                'local_path_mac': '/local/path/to/file.ext',
+                'local_path_windows': None,
+                'local_storage': {'id': 39,
+                               'name': 'home',
+                               'type': 'LocalStorage'},
+                'name': 'foo.png',
+                'type': 'Attachment',
+                'url': 'file:///local/path/to/file.ext'
+            }
         }
 
         self.assertEqual(

@@ -163,7 +163,7 @@ def resolve_publish_path(tk, sg_publish_data):
     custom_path = tk.execute_core_hook_method(
         "resolve_publish",
         "resolve_path",
-        sg_publish_data
+        sg_publish_data=sg_publish_data
     )
     if custom_path:
         log.debug("Publish resolve core hook returned path '%s'" % custom_path)
@@ -435,11 +435,11 @@ def __resolve_url_link(tk, attachment_data):
     for storage, sg_path in storage_lookup.iteritems():
 
         adjusted_path = None
-        if resolved_path.startswith(sg_path.windows.replace("\\", "/")):
+        if sg_path.windows and resolved_path.startswith(sg_path.windows.replace("\\", "/")):
             adjusted_path = sg_path.current_os + resolved_path[len(sg_path.windows):]
-        if resolved_path.startswith(sg_path.linux):
+        if sg_path.linux and resolved_path.startswith(sg_path.linux):
             adjusted_path = sg_path.current_os + resolved_path[len(sg_path.linux):]
-        if resolved_path.startswith(sg_path.macosx):
+        if sg_path.macosx and resolved_path.startswith(sg_path.macosx):
             adjusted_path = sg_path.current_os + resolved_path[len(sg_path.macosx):]
 
         if adjusted_path:
