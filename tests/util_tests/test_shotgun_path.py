@@ -91,6 +91,18 @@ class TestShotgunPath(TankTestBase):
         self.assertEqual(std_constructor.macosx, "/tmp2")
         self.assertEqual(std_constructor.linux, "/tmp")
 
+    def test_property_access(self):
+        """
+        Test getters and setters
+        """
+        # check that setters sanitize the input
+        std_constructor = ShotgunPath()
+        std_constructor.windows = "C:\\temp\\"
+        std_constructor.macosx = "/tmp/"
+        std_constructor.linux = "/tmp2/"
+        self.assertEqual(std_constructor.windows, "C:\\temp")
+        self.assertEqual(std_constructor.macosx, "/tmp")
+        self.assertEqual(std_constructor.linux, "/tmp2")
 
     def test_sanitize(self):
         """
