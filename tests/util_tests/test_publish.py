@@ -177,9 +177,9 @@ class TestShotgunRegisterPublish(TankTestBase):
         self.assertEqual("pathcache" not in sg_dict, True)
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
-    def test_file_paths(self, create_mock):
+    def test_local_storage_publish(self, create_mock):
         """
-        Tests that we generate file:// paths when storage is not found
+        Tests that we generate local file links when publishing to a known storage
         """
         if sys.platform == "win32":
             values = [
@@ -211,11 +211,10 @@ class TestShotgunRegisterPublish(TankTestBase):
 
             self.assertTrue("pathcache" not in sg_dict)
 
-
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
-    def test_freeform_local_storage_paths(self, create_mock):
+    def test_freeform_publish(self, create_mock):
         """
-        Tests that we generate local file links for storages
+        Tests that we generate url file:// links for freeform paths
         """
         if sys.platform == "win32":
             values = {
