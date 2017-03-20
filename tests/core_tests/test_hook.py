@@ -10,6 +10,7 @@
 
 from tank_test.tank_test_base import *
 
+import sys
 import sgtk
 
 class TestHookProperties(TankTestBase):
@@ -53,11 +54,18 @@ class TestHookGetPublishPath(TankTestBase):
             }
         }
 
-        self.assertEqual(hook.get_publish_path(sg_dict), "/foo /bar.baz")
+        if sys.platform == "win32":
+            expected_path = r"\foo \bar.baz"
+        else:
+            expected_path = "/foo /bar.baz"
+
+        self.assertEqual(hook.get_publish_path(sg_dict), expected_path)
+
         self.assertEqual(
             hook.get_publish_paths([sg_dict, sg_dict]),
-            ["/foo /bar.baz", "/foo /bar.baz"]
+            [expected_path, expected_path]
         )
+
 
 
     def test_get_publish_path_raises(self):
@@ -125,10 +133,10 @@ class TestHookGetPublishPath(TankTestBase):
                 'content_type': 'image/png',
                 'id': 25826,
                 'link_type': 'local',
-                'local_path': '/local/path/to/file.ext',
+                'local_path': None,
                 'local_path_linux': '/local/path/to/file.ext',
                 'local_path_mac': '/local/path/to/file.ext',
-                'local_path_windows': None,
+                'local_path_windows': r'c:\local\path\to\file.ext',
                 'local_storage': {'id': 39,
                                'name': 'home',
                                'type': 'LocalStorage'},
@@ -138,14 +146,24 @@ class TestHookGetPublishPath(TankTestBase):
             }
         }
 
-        self.assertEqual(
-            hook.get_publish_path(sg_dict),
-            "/local/path/to/file.ext"
-        )
+        # get the current os platform
+        local_path = {
+            "win32": sg_dict["path"]["local_path_windows"],
+            "linux2": sg_dict["path"]["local_path_linux"],
+            "darwin": sg_dict["path"]["local_path_mac"],
+        }[sys.platform]
+        sg_dict["path"]["local_path"] = local_path
+
+        if sys.platform == "win32":
+            expected_path = r'c:\local\path\to\file.ext'
+        else:
+            expected_path = "/local/path/to/file.ext"
+
+        self.assertEqual(hook.get_publish_path(sg_dict), expected_path)
 
         self.assertEqual(
             hook.get_publish_paths([sg_dict, sg_dict]),
-            ["/local/path/to/file.ext", "/local/path/to/file.ext"]
+            [expected_path, expected_path]
         )
 
 
