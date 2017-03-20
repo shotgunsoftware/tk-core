@@ -462,7 +462,7 @@ class TestUrlWithEnvVars(TankTestBase):
 
         # final paths
         expected_path = {
-            "win32": r"x:\path\to\file",
+            "win32": r"X:\path\to\file",
             "linux2": "/linux2/path/to/file",
             "darwin": "/mac2/path/to/file",
         }[sys.platform]
@@ -489,7 +489,7 @@ class TestUrlWithEnvVars(TankTestBase):
 
         # final paths
         expected_path = {
-            "win32": r"x:\path\to\file",
+            "win32": r"X:\path\to\file",
             "linux2": "/linux2/path/to/file",
             "darwin": "/mac2/path/to/file",
         }[sys.platform]
