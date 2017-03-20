@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2017 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -21,7 +21,6 @@ next to it in the file system. This is what it will attempt to install.
 
 import os
 import sys
-import stat
 import datetime
 import shutil
 from distutils.version import LooseVersion
@@ -253,25 +252,14 @@ def upgrade_tank(sgtk_install_root, log):
             backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_path = os.path.join(core_backup_location, backup_folder_name)
             log.info("Backing up Core API: %s -> %s" % (core_install_location, backup_path))
-            
-            # first copy the content in the core folder
-            src_files = _copy_folder(log, core_install_location, backup_path)
-            
-            # now clear out the install location
-            log.info("Clearing out target location...")
-            for f in src_files:
-                try:
-                    # on windows, ensure all files are writable
-                    if sys.platform == "win32":
-                        attr = os.stat(f)[0]
-                        if (not attr & stat.S_IWRITE):
-                            # file is readonly! - turn off this attribute
-                            os.chmod(f, stat.S_IWRITE)
-                    os.remove(f)
-                    log.debug("Deleted %s" % f)
-                except Exception, e:
-                    log.error("Could not delete file %s: %s" % (f, e))
-            
+
+            # move the folder to the backup location
+            try:
+                shutil.move(core_install_location, backup_path)
+            except Exception, e:
+                log.error(
+                    "Could not create a backup copy of the Core API: %s" % (e,))
+
         # create new core folder
         log.info("Installing %s -> %s" % (this_folder, core_install_location))
         _copy_folder(log, this_folder, core_install_location)
