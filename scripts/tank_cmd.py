@@ -73,9 +73,9 @@ SHOTGUN_ENTITY_TYPES = ['ActionMenuItem', 'ApiUser', 'AppWelcomeUserConnection',
                         'TaskTemplate', 'TemerityNode', 'Ticket', 'TicketTicketConnection',
                         'Ticket_sg_related_assets_Connection', 'TimeLog', 'Tool', 'Version', 'WatermarkingPreset']
 
-SHOTGUN_ENTITY_TYPES.extend(["CustomEntity%02d"%x for x in range(1, 31)])
-SHOTGUN_ENTITY_TYPES.extend(["CustomNonProjectEntity%02d"%x for x in range(1, 16)])
-SHOTGUN_ENTITY_TYPES.extend(["CustomThreadedEntity%02d"%x for x in range(1, 6)])
+SHOTGUN_ENTITY_TYPES.extend(["CustomEntity%02d"%x for x in range(1, 51)])
+SHOTGUN_ENTITY_TYPES.extend(["CustomNonProjectEntity%02d"%x for x in range(1, 31)])
+SHOTGUN_ENTITY_TYPES.extend(["CustomThreadedEntity%02d"%x for x in range(1, 16)])
 
 ###############################################################################################
 # Helpers and General Stuff
