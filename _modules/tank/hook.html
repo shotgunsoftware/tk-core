@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.hook &mdash; tk-core v0.18.58 documentation</title>
+  <title>tank.hook &mdash; tk-core v0.18.64 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.58 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.64 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.58.<br>
+    <b>tk-core</b> v0.18.64.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -185,6 +185,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">urlparse</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">urllib</span>
@@ -461,12 +462,53 @@
 
 <span class="sd">            hook_icon = os.path.join(self.disk_location, &quot;icon.png&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># note: the reason we don&#39;t call __file__ directly is because</span>
-        <span class="c1">#       we don&#39;t want to return the location of the &#39;hook.py&#39;</span>
-        <span class="c1">#       base class but rather the location of hook object that</span>
-        <span class="c1">#       has been derived from this class.</span>
-        <span class="n">path_to_this_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span><span class="p">]</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path_to_this_file</span><span class="p">)</span>
+        <span class="c1"># NOTE: this method contains complex logic to correctly handle</span>
+        <span class="c1"># the following inheritance case:</span>
+        <span class="c1">#</span>
+        <span class="c1"># A. Hook base class &gt;</span>
+        <span class="c1"># B. general implementation (hook_b.py) &gt;</span>
+        <span class="c1"># C. custom implementation  (hook_c.py)</span>
+        <span class="c1">#</span>
+        <span class="c1"># in (B), there is a method which returns an icon:</span>
+        <span class="c1"># return os.path.join(self.disk_location, &quot;icon.png&quot;)</span>
+        <span class="c1">#</span>
+        <span class="c1"># in this case, we want the code in B to return a path</span>
+        <span class="c1"># relative to hook_b.py.</span>
+        <span class="c1">#</span>
+        <span class="c1"># However, although intended to be primarily used</span>
+        <span class="c1"># from within a hook, the disk_location is a public method.</span>
+        <span class="c1"># Whenever called from an external location, the</span>
+        <span class="c1"># disk location is computed to be relative to</span>
+        <span class="c1"># the leaf inheritance, e.g. hook_c.py in this case.</span>
+
+        <span class="c1"># in order to handle the case above, we look for the</span>
+        <span class="c1"># caller. If the caller is part of the inheritance</span>
+        <span class="c1"># chain, we simply compute the path relative to</span>
+        <span class="c1"># the caller method.</span>
+        <span class="c1">#</span>
+        <span class="c1"># however if the caller is external, we compute the path</span>
+        <span class="c1"># relative to self. Self represents the leaf in the</span>
+        <span class="c1"># inheritance tree.</span>
+        <span class="c1">#</span>
+        <span class="n">path_to_file</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="n">current_frame</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
+        <span class="n">all_frames</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getouterframes</span><span class="p">(</span><span class="n">current_frame</span><span class="p">)</span>
+        <span class="n">parent_frame</span> <span class="o">=</span> <span class="n">all_frames</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;self&quot;</span> <span class="ow">in</span> <span class="n">parent_frame</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f_locals</span><span class="p">:</span>
+            <span class="c1"># the calling method is a class instance method</span>
+            <span class="n">path_to_calling_file</span> <span class="o">=</span> <span class="n">parent_frame</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">parent_frame</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f_locals</span><span class="p">[</span><span class="s2">&quot;self&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="c1"># this call is coming from within the</span>
+                <span class="c1"># class hierarchy</span>
+                <span class="n">path_to_file</span> <span class="o">=</span> <span class="n">path_to_calling_file</span>
+
+        <span class="c1"># first check failed. fall back on computing</span>
+        <span class="c1"># the location relative to self</span>
+        <span class="k">if</span> <span class="n">path_to_file</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">path_to_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span><span class="p">]</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -837,7 +879,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.58',
+            VERSION:'v0.18.64',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

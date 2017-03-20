@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.58 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.64 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.58 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.64 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -123,7 +123,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#values-that-are-procedurally-populated-by-hooks">Values that are procedurally populated by hooks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#simple-data-types">Simple Data Types</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#the-config-path-data-type">The config_path data type</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#the-tank-type-data-type">The tank_type data type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-publish-type-data-type">The publish_type data type</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#the-shotgun-entity-type-data-type">The shotgun_entity_type data type</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#the-shotgun-permission-group-data-type">The shotgun_permission_group data type</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#the-shotgun-filter-data-type">The shotgun_filter data type</a></li>
@@ -168,7 +168,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.58.<br>
+    <b>tk-core</b> v0.18.64.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1073,6 +1073,8 @@ the following properties are supported:</p>
 <li><p class="first"><code class="docutils literal"><span class="pre">description</span></code> - a one line description of the command, suitable for a tooltip.
 If no description is passed, the one provided in the app manifest will be used.</p>
 </li>
+<li><p class="first"><code class="docutils literal"><span class="pre">title</span></code> - Title to appear on shotgun action menu (e.g. &#8220;Create Folders&#8221;)</p>
+</li>
 <li><p class="first"><code class="docutils literal"><span class="pre">type</span></code> - The type of command - hinting where it should appear. Options vary between
 engines and the following three are supported:</p>
 <blockquote>
@@ -1088,9 +1090,27 @@ place the command there.</li>
 </div></blockquote>
 </li>
 </ul>
-<p>Specifically for the Shotgun engine, the following parameters are supported:</p>
+<p><strong>Grouping commands into collections</strong></p>
+<p>It is possible to group several commands into a collection. Such a collection is called
+a <em>group</em>.  For example, you may have three separate commands to launch Maya 2017,
+Maya 2016 and Maya 2015, all under a &#8216;Launch Maya&#8217; group. It is up to each engine to
+implement this specification in a suitable way but typically, it would be displayed as a
+&#8220;Launch Maya&#8221; menu with three sub menu items to represent each version of Maya.</p>
+<p>Each group has a concept of a group default - this is what would get executed if you click
+on the &#8216;Launch Maya&#8217; group.</p>
+<p>To register commands with groups, pass the following two parameters in the properties
+dictionary:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">title</span></code> - Title to appear on shotgun action menu (e.g. &#8220;Create Folders&#8221;)</li>
+<li><code class="docutils literal"><span class="pre">group</span></code> - The name for a group this command should be considered a member of.</li>
+<li><code class="docutils literal"><span class="pre">group_default</span></code> - Boolean value indicating whether this command should represent the
+group as a whole.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is up to each engine to implement grouping and group defaults in an appropriate way. Some engines may not support grouping.</p>
+</div>
+<p>The following properties are supported for the Shotgun engine specifically:</p>
+<ul class="simple">
 <li><code class="docutils literal"><span class="pre">deny_permissions</span></code> - List of permission groups to exclude this
 menu item for (e.g. <code class="docutils literal"><span class="pre">[&quot;Artist&quot;]</span></code>)</li>
 <li><code class="docutils literal"><span class="pre">deny_platforms</span></code> - List of platforms for which not to show the menu
@@ -4122,14 +4142,18 @@ slash and using slashes as its path separator. Sgtk will translate it into a val
 </pre></div>
 </div>
 </div>
-<div class="section" id="the-tank-type-data-type">
-<h4>The tank_type data type<a class="headerlink" href="#the-tank-type-data-type" title="Permalink to this headline">¶</a></h4>
-<p>Use this when you want a setting which expects a <strong>Tank Type</strong> - these are typically used
-when publishing data to Shotgun. Value is a string matching TankType.code:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">published_script_tank_type</span><span class="p">:</span>
-    <span class="nb">type</span><span class="p">:</span> <span class="n">tank_type</span>
-    <span class="n">description</span><span class="p">:</span> <span class="n">The</span> <span class="n">string</span> <span class="n">value</span> <span class="n">of</span> <span class="n">the</span> <span class="n">TankType</span> <span class="n">used</span> <span class="k">for</span> <span class="n">published</span> <span class="n">Nuke</span> <span class="n">scripts</span><span class="o">.</span>
+<div class="section" id="the-publish-type-data-type">
+<h4>The publish_type data type<a class="headerlink" href="#the-publish-type-data-type" title="Permalink to this headline">¶</a></h4>
+<p>Use this when you want a setting which expects a <strong>Publish Type</strong> - these are typically used
+when publishing data to Shotgun. Value is a string matching <code class="docutils literal"><span class="pre">PublishedFileType.code</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">published_script_type</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">publish_type</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">The</span> <span class="n">Published</span> <span class="n">file</span> <span class="nb">type</span> <span class="k">for</span> <span class="n">published</span> <span class="n">Nuke</span> <span class="n">scripts</span><span class="o">.</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The equivalent <code class="docutils literal"><span class="pre">tank_type</span></code> data type is also supported for backwards compatibility.</p>
 </div>
 </div>
 <div class="section" id="the-shotgun-entity-type-data-type">
@@ -4313,10 +4337,10 @@ You must supply values dict that describes the data type of the list items:</p>
 </pre></div>
 </div>
 <p>Optionally you can also specify an <strong>allows_empty</strong> option if an empty list is a valid value:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tank_types</span><span class="p">:</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">publish_types</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="nb">list</span>
     <span class="n">allows_empty</span><span class="p">:</span> <span class="kc">True</span>
-    <span class="n">values</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">tank_type</span><span class="p">}</span>
+    <span class="n">values</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">pubish_type</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>You would then be able to specify an empty list in your environment configuration:</p>
@@ -4492,7 +4516,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.58',
+            VERSION:'v0.18.64',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

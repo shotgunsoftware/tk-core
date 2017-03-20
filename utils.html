@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.58 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.64 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.58 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.64 documentation" href="index.html"/>
         <link rel="next" title="Descriptor API" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -146,7 +146,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.58.<br>
+    <b>tk-core</b> v0.18.64.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1407,14 +1407,49 @@ and convenience methods:</p>
 <dt id="sgtk.util.register_publish">
 <code class="descclassname">sgtk.util.</code><code class="descname">register_publish</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>path</em>, <em>name</em>, <em>version_number</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#register_publish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.register_publish" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a Published File in Shotgun.</p>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">version_number</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">file_path</span> <span class="o">=</span> <span class="s1">&#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
+<p><strong>Introduction</strong></p>
+<p>The publish will be associated with the current context and point
+at the given file. The method will attempt to add the publish to
+Shotgun as a local file link, and failing that it will generate
+a <code class="docutils literal"><span class="pre">file://</span></code> url to represent the path.</p>
+<p>In addition to the path, a version number and a name needs to be provided.
+The version number should reflect the iteration or revision of the publish
+and will be used to populate the number field of the publish that is created
+in Shotgun. The name should represent the name of the item, without any version
+number. This is used to group together publishes in Shotgun and various
+integrations. For example, if the file you are publishing belongs to Shot
+AAA_003 and is named <code class="docutils literal"><span class="pre">AAA_003_foreground.v012.ma</span></code>, you could set
+the name to be <code class="docutils literal"><span class="pre">foreground</span></code> and the version to be <code class="docutils literal"><span class="pre">12</span></code>. The Shot name
+will be implied by the associated context.</p>
+<p>The path will first be checked against the current template definitions.
+If it matches any template definition and is determined to be a sequence
+of some kind (per frame, per eye), any sequence tokens such as <code class="docutils literal"><span class="pre">&#64;&#64;&#64;&#64;</span></code>, <code class="docutils literal"><span class="pre">$4F</span></code>
+etc. will be normalised to a <code class="docutils literal"><span class="pre">%04d</span></code> form before written to Shotgun.</p>
+<p>If the path matches any local storage roots defined by the toolkit project,
+it will be uploaded as a local file link to Shotgun. If not matching roots
+are found, the method will retrieve the list of local storages from Shotgun
+and try to locate a suitable storage. Failing that, it will fall back on a
+register the path as a <code class="docutils literal"><span class="pre">file://</span></code> url.</p>
+<p><strong>Examples</strong></p>
+<p>The example below shows a basic publish. In addition to the required parameters, it is
+recommended to supply at least a comment and a Publish Type:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_path</span> <span class="o">=</span> <span class="s1">&#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;layout&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">register_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version_number</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">version_number</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">register_publish</span><span class="p">(</span>
+<span class="go">    tk,</span>
+<span class="go">    context,</span>
+<span class="go">    file_path,</span>
+<span class="go">    name,</span>
+<span class="go">    version_number,</span>
+<span class="go">    comment = &#39;Initial layout composition.&#39;,</span>
+<span class="go">    published_file_type = &#39;Layout Scene&#39;</span>
+<span class="go">)</span>
+
 <span class="go">{&#39;code&#39;: &#39;layout.v001.ma&#39;,</span>
 <span class="go"> &#39;created_by&#39;: {&#39;id&#39;: 40, &#39;name&#39;: &#39;John Smith&#39;, &#39;type&#39;: &#39;HumanUser&#39;},</span>
-<span class="go"> &#39;description&#39;: None,</span>
+<span class="go"> &#39;description&#39;: &#39;Initial layout composition.&#39;,</span>
 <span class="go"> &#39;entity&#39;: {&#39;id&#39;: 2, &#39;name&#39;: &#39;shot_010&#39;, &#39;type&#39;: &#39;Shot&#39;},</span>
 <span class="go"> &#39;id&#39;: 2,</span>
 <span class="go"> &#39;name&#39;: &#39;layout&#39;,</span>
@@ -1429,13 +1464,13 @@ and convenience methods:</p>
 <span class="go">  &#39;url&#39;: &#39;file:///studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;},</span>
 <span class="go"> &#39;path_cache&#39;: &#39;demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
 <span class="go"> &#39;project&#39;: {&#39;id&#39;: 4, &#39;name&#39;: &#39;Demo Project&#39;, &#39;type&#39;: &#39;Project&#39;},</span>
+<span class="go"> &#39;published_file_type&#39;: {&#39;id&#39;: 12, &#39;name&#39;: &#39;Layout Scene&#39;, &#39;type&#39;: &#39;PublishedFileType&#39;},</span>
 <span class="go"> &#39;task&#39;: None,</span>
 <span class="go"> &#39;type&#39;: &#39;PublishedFile&#39;,</span>
 <span class="go"> &#39;version_number&#39;: 1}</span>
 </pre></div>
 </div>
-<p>The above example shows a basic publish. In addition to the required parameters, it is
-recommended to supply at least a description and a Publish Type.</p>
+<p><strong>Parameters</strong></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1443,7 +1478,7 @@ recommended to supply at least a description and a Publish Type.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</li>
 <li><strong>context</strong> &#8211; A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> to associate with the publish. This will
-populate the task and entity link in Shotgun.</li>
+populate the <code class="docutils literal"><span class="pre">task</span></code> and <code class="docutils literal"><span class="pre">entity</span></code> link in Shotgun.</li>
 <li><strong>path</strong> &#8211; The path to the file or sequence we want to publish. If the
 path is a sequence path it will be abstracted so that
 any sequence keys are replaced with their default values.</li>
@@ -1451,7 +1486,7 @@ any sequence keys are replaced with their default values.</li>
 this publish from other publishes. This is typically
 used for grouping inside of Shotgun so that all the
 versions of the same &#8220;file&#8221; can be grouped into a cluster.
-For example, for a maya publish, where we track only
+For example, for a Maya publish, where we track only
 the scene name, the name would simply be that: the scene
 name. For something like a render, it could be the scene
 name, the name of the AOV and the name of the render layer.</li>
@@ -1477,7 +1512,8 @@ that is registered in Shotgun.</li>
 <li><code class="docutils literal"><span class="pre">update_entity_thumbnail</span></code> - Push thumbnail up to the attached entity</li>
 <li><code class="docutils literal"><span class="pre">update_task_thumbnail</span></code> - Push thumbnail up to the attached task</li>
 <li><code class="docutils literal"><span class="pre">created_by</span></code> - Override for the user that will be marked as creating the publish.  This should
-be in the form of shotgun entity, e.g. {&#8220;type&#8221;:&#8221;HumanUser&#8221;, &#8220;id&#8221;:7}</li>
+be in the form of shotgun entity, e.g. {&#8220;type&#8221;:&#8221;HumanUser&#8221;, &#8220;id&#8221;:7}. If not set, the user will
+be determined using <a class="reference internal" href="#sgtk.util.get_current_user" title="sgtk.util.get_current_user"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.util.get_current_user()</span></code></a>.</li>
 <li><code class="docutils literal"><span class="pre">created_at</span></code> - Override for the date the publish is created at.  This should be a python
 datetime object</li>
 <li><code class="docutils literal"><span class="pre">version_entity</span></code> - The Shotgun version entity this published file should be linked to</li>
@@ -1488,7 +1524,31 @@ datetime object</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The created entity dictionary</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#sgtk.util.ShotgunPublishError" title="sgtk.util.ShotgunPublishError"><code class="xref py py-class docutils literal"><span class="pre">ShotgunPublishError</span></code></a> on failure.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The created entity dictionary.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Incorrectly configuring this file may raise an exception:</p>
+<dl class="class">
+<dt id="sgtk.util.ShotgunPublishError">
+<em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">ShotgunPublishError</code><span class="sig-paren">(</span><em>error_message</em>, <em>entity=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/errors.html#ShotgunPublishError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPublishError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised when Toolkit is not able to register a published file in Shotgun.</p>
+<p>The original message for the reported error is available in the &#8216;error_message&#8217; property.</p>
+<p>If a published file entity was created before the error happened, it will be
+available in the &#8216;entity&#8217; property.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>error_message</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; An error message, typically coming from a caught exception.</li>
+<li><strong>entity</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; The Shotgun entity which was created, if any.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1750,7 +1810,7 @@ with the following fields: id, type, email, login, name, image, firstname, lastn
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.58',
+            VERSION:'v0.18.64',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

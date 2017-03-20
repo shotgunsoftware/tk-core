@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.58 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.64 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.58 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.64 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.58.<br>
+    <b>tk-core</b> v0.18.64.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1065,6 +1065,8 @@
 <span class="sd">        - ``description`` - a one line description of the command, suitable for a tooltip.</span>
 <span class="sd">          If no description is passed, the one provided in the app manifest will be used.</span>
 
+<span class="sd">        - ``title`` - Title to appear on shotgun action menu (e.g. &quot;Create Folders&quot;)</span>
+
 <span class="sd">        - ``type`` - The type of command - hinting where it should appear. Options vary between</span>
 <span class="sd">          engines and the following three are supported:</span>
 
@@ -1076,9 +1078,29 @@
 <span class="sd">            - ``node`` - For applications that have a specific node menu (like Nuke),</span>
 <span class="sd">              place the command there.</span>
 
-<span class="sd">        Specifically for the Shotgun engine, the following parameters are supported:</span>
+<span class="sd">        **Grouping commands into collections**</span>
 
-<span class="sd">        - ``title`` - Title to appear on shotgun action menu (e.g. &quot;Create Folders&quot;)</span>
+<span class="sd">        It is possible to group several commands into a collection. Such a collection is called</span>
+<span class="sd">        a *group*.  For example, you may have three separate commands to launch Maya 2017,</span>
+<span class="sd">        Maya 2016 and Maya 2015, all under a &#39;Launch Maya&#39; group. It is up to each engine to</span>
+<span class="sd">        implement this specification in a suitable way but typically, it would be displayed as a</span>
+<span class="sd">        &quot;Launch Maya&quot; menu with three sub menu items to represent each version of Maya.</span>
+
+<span class="sd">        Each group has a concept of a group default - this is what would get executed if you click</span>
+<span class="sd">        on the &#39;Launch Maya&#39; group.</span>
+
+<span class="sd">        To register commands with groups, pass the following two parameters in the properties</span>
+<span class="sd">        dictionary:</span>
+
+<span class="sd">        - ``group`` - The name for a group this command should be considered a member of.</span>
+
+<span class="sd">        - ``group_default`` - Boolean value indicating whether this command should represent the</span>
+<span class="sd">          group as a whole.</span>
+
+<span class="sd">        .. note:: It is up to each engine to implement grouping and group defaults in an appropriate way. Some engines may not support grouping.</span>
+
+
+<span class="sd">        The following properties are supported for the Shotgun engine specifically:</span>
 
 <span class="sd">        - ``deny_permissions`` - List of permission groups to exclude this</span>
 <span class="sd">          menu item for (e.g. ``[&quot;Artist&quot;]``)</span>
@@ -1126,28 +1148,29 @@
         <span class="k">if</span> <span class="s2">&quot;icon&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">properties</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__currently_initializing_app</span><span class="p">:</span>
             <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;icon&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__currently_initializing_app</span><span class="o">.</span><span class="n">descriptor</span><span class="o">.</span><span class="n">icon_256</span>
 
-        <span class="c1"># check for duplicates!</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="p">:</span>
-            <span class="c1"># already something in the dict with this name</span>
+            <span class="c1"># Duplicate command name detected! Attempt to make commands unique by prepending the</span>
+            <span class="c1"># a prefix derived from information in the properties.</span>
             <span class="n">existing_item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">existing_item</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;app&quot;</span><span class="p">):</span>
-                <span class="c1"># we know the app for the existing item.</span>
-                <span class="c1"># so prefix with app name</span>
-                <span class="n">prefix</span> <span class="o">=</span> <span class="n">existing_item</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;app&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">instance_name</span>
-                <span class="n">new_name_for_existing</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">command_prefix</span> <span class="o">=</span> <span class="n">_get_command_prefix</span><span class="p">(</span><span class="n">existing_item</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">command_prefix</span><span class="p">:</span>
+                <span class="n">new_name_for_existing</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">command_prefix</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="p">[</span><span class="n">new_name_for_existing</span><span class="p">]</span> <span class="o">=</span> <span class="n">existing_item</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="p">[</span><span class="n">new_name_for_existing</span><span class="p">][</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prefix</span> 
+                <span class="c1"># Record the command prefix in the properties dictionary for future reference.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="p">[</span><span class="n">new_name_for_existing</span><span class="p">][</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">command_prefix</span>
                 <span class="k">del</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
-                <span class="c1"># add it to our list</span>
+                <span class="c1"># Record the original command name to make sure any additional commands</span>
+                <span class="c1"># registered with this name are treated as duplicates and fully prefixed.</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__commands_that_need_prefixing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                       
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__commands_that_need_prefixing</span><span class="p">:</span>
-            <span class="c1"># try to append a prefix if possible</span>
-            <span class="k">if</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;app&quot;</span><span class="p">):</span>
-                <span class="n">prefix</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;app&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">instance_name</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-                <span class="c1"># also add a prefix key in the properties dict</span>
-                <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prefix</span>
+            <span class="c1"># At least one instance of this command name has already been detected.</span>
+            <span class="c1"># Resolve the duplicate command by application name and/or group name.</span>
+            <span class="n">command_prefix</span> <span class="o">=</span> <span class="n">_get_command_prefix</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">command_prefix</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">command_prefix</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                <span class="c1"># Record the command prefix in the properties dictionary for future reference.</span>
+                <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">command_prefix</span>
 
         <span class="c1"># now define command wrappers to capture metrics logging</span>
         <span class="c1"># on command execution. The toolkit callback system supports</span>
@@ -3062,6 +3085,24 @@
 
     <span class="k">return</span> <span class="n">env_name</span>
 
+<span class="k">def</span> <span class="nf">_get_command_prefix</span><span class="p">(</span><span class="n">properties</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If multiple commands are registered with the same name, attempt to construct a unique</span>
+<span class="sd">    prefix from other information in the command&#39;s properties dictionary to distinguish one</span>
+<span class="sd">    command from another. Uses the properties&#39; ``app`` and/or ``group`` keys to create the</span>
+<span class="sd">    prefix.</span>
+
+<span class="sd">    :param dict properties: Arbitrary key/value information related to a registered command.</span>
+<span class="sd">    :returns: A unique identifier for the command as a str.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">prefix_parts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;app&quot;</span><span class="p">):</span>
+        <span class="c1"># First, distinguish commands by app name.</span>
+        <span class="n">prefix_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">properties</span><span class="p">[</span><span class="s2">&quot;app&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">instance_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;group&quot;</span><span class="p">):</span>
+        <span class="c1"># Second, distinguish commands by group name.</span>
+        <span class="n">prefix_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">properties</span><span class="p">[</span><span class="s2">&quot;group&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="s2">&quot;:&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix_parts</span><span class="p">)</span>
 </pre></div>
 
            </div>
@@ -3094,7 +3135,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.58',
+            VERSION:'v0.18.64',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
