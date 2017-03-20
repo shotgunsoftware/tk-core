@@ -377,12 +377,12 @@ def __resolve_url_link(tk, attachment_data):
 
     if parsed_url.netloc:
         # unc path
-        resolved_path = urllib.unquote("//%s/%s" % (parsed_url.netloc, parsed_url.path))
+        resolved_path = urllib.unquote("//%s%s" % (parsed_url.netloc, parsed_url.path))
     else:
         resolved_path = urllib.unquote(parsed_url.path)
 
     # python returns drive letter paths incorrectly and need adjusting.
-    if re.match("^/[A-Z]:/", resolved_path):
+    if re.match("^/[A-Za-z]:/", resolved_path):
         resolved_path = resolved_path[1:]
 
     # we now have one of the following three forms (with slashes):
@@ -431,20 +431,33 @@ def __resolve_url_link(tk, attachment_data):
                 storage_lookup[storage_name].linux = os.environ[env_var]
 
     # now see if the given url starts with any storage def in our setup
-
     for storage, sg_path in storage_lookup.iteritems():
 
         adjusted_path = None
-        if sg_path.windows and resolved_path.startswith(sg_path.windows.replace("\\", "/")):
-            adjusted_path = sg_path.current_os + resolved_path[len(sg_path.windows):]
-        if sg_path.linux and resolved_path.startswith(sg_path.linux):
+        if sg_path.windows and resolved_path.lower().startswith(sg_path.windows.replace("\\", "/").lower()):
+            # note: there is a special case with windows storages
+            # where drive letters are retuned as X:\ whereas no other
+            # paths are returned with a trailing separator
+            if sg_path.windows.endswith("\\"):
+                preamble_to_cut = len(sg_path.windows) - 1
+            else:
+                preamble_to_cut = len(sg_path.windows)
+            adjusted_path = sg_path.current_os + resolved_path[preamble_to_cut:]
+
+        elif sg_path.linux and resolved_path.lower().startswith(sg_path.linux.lower()):
             adjusted_path = sg_path.current_os + resolved_path[len(sg_path.linux):]
-        if sg_path.macosx and resolved_path.startswith(sg_path.macosx):
+
+        elif sg_path.macosx and resolved_path.lower().startswith(sg_path.macosx.lower()):
             adjusted_path = sg_path.current_os + resolved_path[len(sg_path.macosx):]
 
         if adjusted_path:
             log.debug(
-                "Adjusted path '%s' -> '%s' based on override '%s' (%s)" % (resolved_path, adjusted_path, storage, sg_path)
+                "Adjusted path '%s' -> '%s' based on override '%s' (%s)" % (
+                    resolved_path,
+                    adjusted_path,
+                    storage,
+                    sg_path
+                )
             )
             resolved_path = adjusted_path
             break
