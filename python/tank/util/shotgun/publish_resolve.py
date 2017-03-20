@@ -433,22 +433,18 @@ def __resolve_url_link(tk, attachment_data):
     # now see if the given url starts with any storage def in our setup
     for storage, sg_path in storage_lookup.iteritems():
 
+        # go through each storage, see if any of the os
+        # path defs for the storage matches the beginning of the
+        # url path. Compare lower case (most file systems are case preserving).
         adjusted_path = None
         if sg_path.windows and resolved_path.lower().startswith(sg_path.windows.replace("\\", "/").lower()):
-            # note: there is a special case with windows storages
-            # where drive letters are retuned as X:\ whereas no other
-            # paths are returned with a trailing separator
-            if sg_path.windows.endswith("\\"):
-                preamble_to_cut = len(sg_path.windows) - 1
-            else:
-                preamble_to_cut = len(sg_path.windows)
-            adjusted_path = sg_path.current_os + resolved_path[preamble_to_cut:]
+            adjusted_path = sg_path.join(resolved_path[len(sg_path.windows):]).current_os
 
         elif sg_path.linux and resolved_path.lower().startswith(sg_path.linux.lower()):
-            adjusted_path = sg_path.current_os + resolved_path[len(sg_path.linux):]
+            adjusted_path = sg_path.join(resolved_path[len(sg_path.linux):]).current_os
 
         elif sg_path.macosx and resolved_path.lower().startswith(sg_path.macosx.lower()):
-            adjusted_path = sg_path.current_os + resolved_path[len(sg_path.macosx):]
+            adjusted_path = sg_path.join(resolved_path[len(sg_path.macosx):]).current_os
 
         if adjusted_path:
             log.debug(
