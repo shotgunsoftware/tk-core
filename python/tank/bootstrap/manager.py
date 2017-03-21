@@ -527,8 +527,13 @@ class ToolkitManager(object):
            - If there is one site level and one project level primary, the site level
              primary is not available.
            - If there are multiple site level or multiple project level primaries,
-             only the one with the lowest id is available.
-           - All sandboxes are available
+             only the one with the lowest id is available, unless one or more of them is a Toolkit
+             Classic Primary, in which case the Toolkit Classic Primary with the lowest id will
+             be returned.
+           - All sandboxes are available.
+
+        In practice, this means that if there are 3 primaries, two of them using plugin ids and
+        one of them not using them, the one not using a plugin id will always be used.
 
         This filtering also takes into account the current user and optional pipeline
         configuration name or id. If the :meth:`pipeline_configuration` property has been
@@ -543,7 +548,10 @@ class ToolkitManager(object):
         :type project: Dictionary with keys ``type`` and ``id``.
 
         :returns: List of pipeline configurations.
-        :rtype: List of dictionaries with keys ``type``, ``id``, ``name`` and ``project``.
+        :rtype: List of dictionaries with keys ``type``, ``id``, ``name`` and ``project``. The pipeline
+            configurations will always be sorted such as the primary pipeline configuration, if available,
+            will be first. Then the remaining pipeline configurations will be sorted by ``name`` field
+            (case insensitive), then the ``project`` field and finally then ``id`` field.
         """
 
         if isinstance(self.pipeline_configuration, int):
