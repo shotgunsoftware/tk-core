@@ -99,7 +99,11 @@ class TestUserRestriction(TestResolverBase):
         )
 
     def test_find_user_sandbox(self):
+        """
+        Ensures we can find the sandbox for the requested user.
+        """
 
+        # Make sure we can find he pipeline configuration for a specific user.
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="john.smith",
@@ -118,27 +122,30 @@ class TestUserRestriction(TestResolverBase):
         self.assertEqual(len(configs), 1)
         self.assertEqual(configs[0]["id"], self._john_doe_pc["id"])
 
+        # Make sure requesting a user that isn't assigned will not return any pipeline.
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
-            current_login="batman",
+            current_login="Batman",
             sg_connection=self.tk.shotgun
         )
 
         self.assertListEqual(configs, [])
 
     def test_find_shared_sandbox(self):
-
+        """
+        Ensures that sandboxes without user restrictions can be found.
+        """
         shared_pc = self._create_pc(
             "Shared Sandbox", users=[], plugin_ids='foo.*', path='/path/to/user'
         )
 
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
-            current_login="batman",
+            current_login="Batman",
             sg_connection=self.tk.shotgun
         )
 
-        # Ensure what we only found the shared config for batman.
+        # Ensure what we only found the shared configuration because Batman doesn't own any sandboxes.
         self.assertEqual(len(configs), 1)
         self.assertEqual(shared_pc["id"], configs[0]["id"])
 
@@ -148,7 +155,8 @@ class TestUserRestriction(TestResolverBase):
             sg_connection=self.tk.shotgun
         )
 
-        # Ensure we got back the right pipeline configurations.
+        # Ensure we got back the right pipeline configurations for John Smith, who has access
+        # to his sandbox and a shared pipeline configuration.
         self.assertEqual(sorted(c["id"] for c in configs), [self._smith_pc["id"], shared_pc["id"]])
 
 

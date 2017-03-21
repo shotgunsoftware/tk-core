@@ -437,6 +437,14 @@ class ConfigurationResolver(object):
         )
 
     def _sort_pipeline_configurations(self, pcs):
+        """
+        Sorts pipeline configuration is primary-ness, name, project and finally id.
+
+        :param list pcs: List of pipeline configuration dictionaries with keys ``code``, ``project`` and ``id``.
+
+        :returns: List of sorted pipeline configuration dictionaries.
+        :rtype: list
+        """
         def pc_key_func(pc):
             """
             Generates a key for a pipeline configuration. The key will ensure that a Primary
