@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Shotgun Software Inc.
+# Copyright (c) 2013 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -20,8 +20,8 @@ next to it in the file system. This is what it will attempt to install.
 """
 
 import os
-import stat
 import sys
+import stat
 import datetime
 import shutil
 from distutils.version import LooseVersion
@@ -206,7 +206,7 @@ def upgrade_tank(sgtk_install_root, log):
     Upgrades the sgtk core API located in sgtk_install_root
     based on files located locally to this script
     """
-
+    
     # get our location
     this_folder = os.path.abspath(os.path.join( os.path.dirname(__file__)))
     
@@ -253,21 +253,25 @@ def upgrade_tank(sgtk_install_root, log):
             backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_path = os.path.join(core_backup_location, backup_folder_name)
             log.info("Backing up Core API: %s -> %s" % (core_install_location, backup_path))
-
-            # move the folder to the backup location
-            try:
-                if get_device(core_install_location) == get_device(backup_path):
-                    # paths are on the same device. do a straight move
-                    log.debug("Backup path on same device. Using 'move'.")
-                    shutil.move(core_install_location, backup_path)
-                else:
-                    # files are on different devices. fallback to copy/remove
-                    log.debug("Backup path on different device. Using 'copy/remove'.")
-                    copy_and_remove(log, core_install_location, backup_path)
-            except Exception, e:
-                log.error(
-                    "An error occured during Core API backup: %s" % (e,))
-
+            
+            # first copy the content in the core folder
+            src_files = _copy_folder(log, core_install_location, backup_path)
+            
+            # now clear out the install location
+            log.info("Clearing out target location...")
+            for f in src_files:
+                try:
+                    # on windows, ensure all files are writable
+                    if sys.platform == "win32":
+                        attr = os.stat(f)[0]
+                        if (not attr & stat.S_IWRITE):
+                            # file is readonly! - turn off this attribute
+                            os.chmod(f, stat.S_IWRITE)
+                    os.remove(f)
+                    log.debug("Deleted %s" % f)
+                except Exception, e:
+                    log.error("Could not delete file %s: %s" % (f, e))
+            
         # create new core folder
         log.info("Installing %s -> %s" % (this_folder, core_install_location))
         _copy_folder(log, this_folder, core_install_location)
@@ -275,42 +279,6 @@ def upgrade_tank(sgtk_install_root, log):
         log.info("Core upgrade complete.")
     finally:
         os.umask(old_umask)
-
-
-def get_device(folder):
-    # quick wrapper to return the device of the path.
-
-    # traverse up the path until we get a parent dir that exists
-    while not os.path.exists(folder):
-        folder = os.path.dirname(folder)
-
-    # return the device number
-    return os.stat(folder).st_dev
-
-
-def copy_and_remove(log, source_folder, dest_folder):
-
-    # first copy the content in the source folder
-    src_files = _copy_folder(log, source_folder, dest_folder)
-
-    # now clear out the source location
-    log.info("Clearing out target location...")
-
-    for file_path in src_files:
-        try:
-            # on windows, ensure all files are writable
-            if sys.platform == "win32":
-                attr = os.stat(file_path)[0]
-
-                if not attr & stat.S_IWRITE:
-                    # file is readonly! - turn off this attribute
-                    os.chmod(file_path, stat.S_IWRITE)
-                    os.remove(file_path)
-                    log.debug("Deleted %s" % file_path)
-
-        except Exception, e:
-            log.error("Could not delete file %s: %s" % (file_path, e))
-
 
 #######################################################################
 if __name__ == "__main__":
