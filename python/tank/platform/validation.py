@@ -620,19 +620,19 @@ class _SettingsValidator:
                             (self._context, list(missing_fields), cur_template)
                         )
 
-    def __validate_settings_hook(self, settings_key, schema, hook_name):
+    def __validate_settings_hook(self, settings_key, schema, hook_value):
         """
         Validate that the value for a setting of type hook corresponds to a file in the hooks
         directory.
         """
 
-        if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in hook_name:
+        if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in hook_value:
             # the hook name is engine-specific. see if there is an engine
             # currently. If so, validate it. If not, then there's not much
             # we can do.
             from .engine import current_engine
             if current_engine():
-                hook_name = hook_name.replace(
+                hook_value = hook_value.replace(
                     constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN,
                     current_engine().name
                 )
@@ -641,57 +641,64 @@ class _SettingsValidator:
 
         hooks_folder = self._tank_api.pipeline_configuration.get_hooks_location()
 
-        # if setting is default, assume everything is fine
-        if hook_name == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
-            # assume that each app contains its correct hooks
-            return
+        hook_paths_to_validate = []
 
-        elif hook_name.startswith("{self}"):
-            # assume that each app contains its correct hooks
-            return
-        
-        elif hook_name.startswith("{config}"):
-            # config hook 
-            path = hook_name.replace("{config}", hooks_folder)
-            hook_path = path.replace("/", os.path.sep)
+        for hook_path in hook_value.split(":"):
 
-        elif hook_name.startswith("{engine}"):
-            # engine hook. see if there is a current engine we can use to
-            # validate against. there should be an engine, but in the case
-            # where validation is being run outside of or before engine
-            # startup, continue and assume the hook exists similar to app
-            # hooks.
-            from .engine import current_engine
-            if current_engine():
-                path = os.path.join(current_engine().disk_location, "hooks")
-                hook_path = path.replace("/", os.path.sep)
-            else:
+            # if setting is default, assume everything is fine
+            if hook_path == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
+                # assume that each app contains its correct hooks
                 return
-        
-        elif hook_name.startswith("{$") and "}" in hook_name:
-            # environment variable: {$HOOK_PATH}/path/to/foo.py
-            # lazy (runtime) validation for this - it may be beneficial
-            # not to actually set the environment variable until later
-            # in the life cycle of the engine 
-            return
-        
-        elif hook_name.startswith("{") and "}" in hook_name:
-            # referencing other instances of items
-            # this cannot be easily validated at this point since
-            # no well defined runtime state exists at the time of validation
-            return
 
-        else:
-            # our standard case
-            hook_path = os.path.join(hooks_folder, "%s.py" % hook_name)
+            elif hook_path.startswith("{self}"):
+                # assume that each app contains its correct hooks
+                continue
 
-        if not os.path.exists(hook_path):
-            msg = ("Invalid configuration setting '%s' for %s: "
-                   "The specified hook file '%s' does not exist." % (settings_key, 
-                                                                     self._display_name,
-                                                                     hook_path) ) 
-            raise TankError(msg)
-            
+            elif hook_path.startswith("{config}"):
+                # config hook
+                path = hook_path.replace("{config}", hooks_folder)
+                hook_paths_to_validate.append(path.replace("/", os.path.sep))
+
+            elif hook_path.startswith("{engine}"):
+                # engine hook. see if there is a current engine we can use to
+                # validate against. there should be an engine, but in the case
+                # where validation is being run outside of or before engine
+                # startup, continue and assume the hook exists similar to app
+                # hooks.
+                from .engine import current_engine
+                if current_engine():
+                    path = os.path.join(current_engine().disk_location, "hooks")
+                    hook_paths_to_validate.append(
+                        path.replace("/", os.path.sep))
+                else:
+                    continue
+
+            elif hook_path.startswith("{$") and "}" in hook_path:
+                # environment variable: {$HOOK_PATH}/path/to/foo.py
+                # lazy (runtime) validation for this - it may be beneficial
+                # not to actually set the environment variable until later
+                # in the life cycle of the engine
+                continue
+
+            elif hook_path.startswith("{") and "}" in hook_path:
+                # referencing other instances of items
+                # this cannot be easily validated at this point since
+                # no well defined runtime state exists at the time of validation
+                continue
+
+            else:
+                # our standard case
+                hook_paths_to_validate.append(
+                    os.path.join(hooks_folder, "%s.py" % hook_path))
+
+        for hook_path in hook_paths_to_validate:
+            if not os.path.exists(hook_path):
+                msg = (
+                    "Invalid configuration setting '%s' for %s: "
+                    "The specified hook file '%s' does not exist." %
+                    (settings_key, self._display_name, hook_path)
+                )
+                raise TankError(msg)
 
     def __validate_settings_config_path(self, settings_key, schema, config_value):
         """
