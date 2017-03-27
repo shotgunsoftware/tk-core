@@ -545,6 +545,7 @@ class PathCache(object):
         show_global_busy("Hang on, Toolkit is preparing folders...", 
                          ("Toolkit is retrieving folder listings from Shotgun and ensuring that your "
                           "setup is up to date. Hang tight while data is being downloaded..."))
+        
         try:
             log.debug("Performing a complete Shotgun folder sync...")
             
@@ -570,66 +571,6 @@ class PathCache(object):
             clear_global_busy()
         
         return data
-
-    @classmethod
-    def remove_filesystem_location_entries(cls, tk, path_ids):
-        """
-        Removes FilesystemLocation entries from the path cache.
-
-        :param list path_ids: List of FilesystemLocation entries to remove.
-        """
-
-        sg_batch_data = []
-        for pid in path_ids:
-            req = {"request_type": "delete",
-                   "entity_type": SHOTGUN_ENTITY,
-                   "entity_id": pid}
-            sg_batch_data.append(req)
-
-        try:
-            tk.shotgun.batch(sg_batch_data)
-        except Exception, e:
-            raise TankError("Shotgun reported an error while attempting to delete FilesystemLocation entities. "
-                            "Please contact support. Details: %s Data: %s" % (e, sg_batch_data))
-
-        # now register the deleted ids in the event log
-        # this will later on be read by the synchronization
-        # now, based on the entities we just deleted, assemble a metadata chunk that
-        # the sync calls can use later on.
-
-        if tk.pipeline_configuration.is_unmanaged():
-            pc_link = None
-        else:
-            pc_link = {
-                "type": "PipelineConfiguration",
-                "id": tk.pipeline_configuration.get_shotgun_id()
-            }
-
-        if tk.pipeline_configuration.is_site_configuration():
-            project_link = None
-        else:
-            project_link = {"type": "Project", "id": tk.pipeline_configuration.get_project_id()}
-
-        meta = {}
-        # the api version used is always useful to know
-        meta["core_api_version"] = tk.version
-        # shotgun ids created
-        meta["sg_folder_ids"] = path_ids
-
-        sg_event_data = {}
-        sg_event_data["event_type"] = "Toolkit_Folders_Delete"
-        sg_event_data["description"] = "Toolkit %s: Unregistered %s folders." % (tk.version, len(path_ids))
-        sg_event_data["project"] = project_link
-        sg_event_data["entity"] = pc_link
-        sg_event_data["meta"] = meta
-        sg_event_data["user"] = get_current_user(tk)
-
-        try:
-            tk.shotgun.create("EventLogEntry", sg_event_data)
-        except Exception, e:
-            raise TankError("Shotgun Reported an error while trying to write a Toolkit_Folders_Delete event "
-                            "log entry after having successfully removed folders. Please contact support for "
-                            "assistance. Error details: %s Data: %s" % (e, sg_event_data))
 
     def _do_incremental_sync(self, cursor, sg_data):
         """
