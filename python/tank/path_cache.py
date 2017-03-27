@@ -570,11 +570,11 @@ class PathCache(object):
         """
         Removes FilesystemLocation entries from the path cache.
 
-        :param list path_ids: List of FilesystemLocation entries to remove.
+        :param list path_ids: List of FilesystemLocation ids to remove.
         """
 
         sg_batch_data = []
-        for pid in path_ids:
+        for pid in pa_th_ids:
             req = {"request_type": "delete",
                    "entity_type": SHOTGUN_ENTITY,
                    "entity_id": pid}
@@ -681,7 +681,7 @@ class PathCache(object):
             "the following ids: %s" % created_folder_ids
         )
         # Retrieve all the newly created folders and rewire the result so it can be indexed by id.
-        created_folder_entities = self._get_filesystem_location_entites(created_folder_ids)
+        created_folder_entities = self._get_filesystem_location_entities(created_folder_ids)
         created_folder_entities = dict(
             (entity["id"], entity) for entity in created_folder_entities
         )
@@ -712,7 +712,7 @@ class PathCache(object):
         # into the database to show where to start syncing from next time.
         return new_items
 
-    def _get_filesystem_location_entites(self, folder_ids):
+    def _get_filesystem_location_entities(self, folder_ids):
         """
         Retrieves filesystem location entities from Shotgun.
 
@@ -777,7 +777,7 @@ class PathCache(object):
 
         sg_data = []
 
-        sg_data = self._get_filesystem_location_entites(None)
+        sg_data = self._get_filesystem_location_entities(folder_ids=None)
 
         # complete sync - clear our tables first
         log.debug("Full sync - clearing local sqlite path cache tables...")
