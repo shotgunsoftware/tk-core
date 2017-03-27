@@ -302,7 +302,7 @@ class ConfigurationResolver(object):
                 else:
                     log.warning("Pipeline configuration's 'path' field are not set: %s" % pc)
 
-    def _pick_primary(self, configs, level_name):
+    def _pick_primary_pipeline_config(self, configs, level_name):
         """
         Picks a primary pipeline configuration and logs warnings if where are any extra ones.
 
@@ -396,8 +396,8 @@ class ConfigurationResolver(object):
                     log.debug("Found per-user fallback match: %s" % pc)
 
         # Step 2: Ensure each primary category only has one item.
-        project_primary = self._pick_primary(primary_project_configs, "project")
-        site_primary = self._pick_primary(primary_site_configs, "site")
+        project_primary = self._pick_primary_pipeline_config(primary_project_configs, "project")
+        site_primary = self._pick_primary_pipeline_config(primary_site_configs, "site")
 
         # Step 3: Ensure project primary override the site primary.
         if project_primary and site_primary:
@@ -624,7 +624,8 @@ class ConfigurationResolver(object):
         Checks if a pipeline configuration is a classic pipeline configuration, for the requested
         project.
 
-        :param dict pc: Pipeline Configuration entity.
+        :param dict pc: Pipeline Configuration entity with fields ``plugin_ids``, ``sg_plugin_ids``,
+            ``project`` and ``project.id``.
 
         :returns: True if the pipeline is a classic pipeline configuration, False otherwise.
         """

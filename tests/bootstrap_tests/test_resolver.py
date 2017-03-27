@@ -457,7 +457,7 @@ class TestResolverPriority(TestResolverBase):
                 pc["project"] is not None or pc["code"] != "Primary"
             )
 
-    def test_classic_primary_overrides_all_other_primairies(self):
+    def test_classic_primary_overrides_all_other_primaries(self):
         """
         Makes sure a Toolkit classic pipeline configuration overrides other primaries.
         """
@@ -515,7 +515,7 @@ class TestResolverPriority(TestResolverBase):
             {"code": "Primary", "sg_plugin_ids": None, "id": 6}
         ]
         for mixed_primaries in itertools.permutations(primaries):
-            self.assertEqual(self.resolver._pick_primary(mixed_primaries, "something")["id"], 3)
+            self.assertEqual(self.resolver._pick_primary_pipeline_config(mixed_primaries, "something")["id"], 3)
 
     def test_pipeline_configuration_ordering(self):
         """
