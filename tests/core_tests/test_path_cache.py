@@ -885,7 +885,6 @@ class TestPathCacheDelete(TankTestBase):
         self._asset_full_path = os.path.join(self.project_root, "asset")
 
         self._pc = path_cache.PathCache(self.tk)
-        self.addCleanup(self._pc.close)
 
         # Register the asset. This will be our sentinel to make sure we are not deleting too much stuff during
         # the tests.
@@ -896,12 +895,9 @@ class TestPathCacheDelete(TankTestBase):
         Ensures our sentinel is still present.
         """
         # Ensure nothing has messed with our asset.
-        try:
-            paths = self._pc.get_paths(self._asset_entity["type"], self._asset_entity["id"], primary_only=True)
-            self.assertEqual(len(paths), 1)
-        finally:
-            self._pc.close()
-            super(TestPathCacheDelete, self).tearDown()
+        paths = self._pc.get_paths(self._asset_entity["type"], self._asset_entity["id"], primary_only=True)
+        self.assertEqual(len(paths), 1)
+        super(TestPathCacheDelete, self).tearDown()
 
     @contextlib.contextmanager
     def mock_remote_path_cache(self):
@@ -912,10 +908,7 @@ class TestPathCacheDelete(TankTestBase):
         with temp_env_var(SHOTGUN_HOME=os.path.join(self.tank_temp, "other_path_cache_root")):
             pc = path_cache.PathCache(self.tk)
             pc.synchronize()
-            try:
-                yield pc
-            finally:
-                pc.close()
+            yield pc
 
     def test_simple_delete_by_paths(self):
         """
