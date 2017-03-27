@@ -574,7 +574,7 @@ class PathCache(object):
         """
 
         sg_batch_data = []
-        for pid in pa_th_ids:
+        for pid in path_ids:
             req = {"request_type": "delete",
                    "entity_type": SHOTGUN_ENTITY,
                    "entity_id": pid}
@@ -674,12 +674,8 @@ class PathCache(object):
                 created_folder_ids.extend(d["meta"]["sg_folder_ids"])
         log.debug("Event log analysis complete.")
 
-        # get the ids that are missing from shotgun
-        # need to use this weird special filter syntax
-        log.debug(
-            "Doing an incremental sync, so getting FilesystemLocation entries for "
-            "the following ids: %s" % created_folder_ids
-        )
+        log.debug("Doing an incremental sync.")
+
         # Retrieve all the newly created folders and rewire the result so it can be indexed by id.
         created_folder_entities = self._get_filesystem_location_entities(created_folder_ids)
         created_folder_entities = dict(
@@ -729,11 +725,18 @@ class PathCache(object):
             - code
         """
 
+        # get the ids that are missing from shotgun
+        # need to use this weird special filter syntax
         if folder_ids:
             entity_filter = [["id", "in"]]
             entity_filter[0].extend(folder_ids)
+            log.debug(
+                "Getting FilesystemLocation entries for "
+                "the following ids: %s" % folder_ids
+            )
         else:
             entity_filter = []
+            log.debug("Getting all FilesystemLocation entries.")
 
         sg_data = self._tk.shotgun.find(
             SHOTGUN_ENTITY,
