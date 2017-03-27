@@ -624,6 +624,22 @@ class _SettingsValidator:
         """
         Validate that the value for a setting of type hook corresponds to a file in the hooks
         directory.
+
+        :param settings_key: The name of the hook setting
+        :param schema: The schema for the setting
+        :param hook_value: The value of the hook itself. One or more paths
+            separated by a ":" indicating inheritance
+
+        :raises: ``TankError`` If any of the paths in the ``hook_value`` can
+            not be validated.
+
+        There are some scenarios where the hook cannot be guaranteed to be valid
+        at this point. For example, if there is an {engine_name} token and we
+        don't currently have an engine. Other cases where full state hasn't been
+        established also require short circuiting.
+
+        If, however, full paths can be determined for the hook value, they will
+        be checked to ensure they exist.
         """
 
         if constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in hook_value:
@@ -637,20 +653,32 @@ class _SettingsValidator:
                     current_engine().name
                 )
             else:
+                core_logger.debug(
+                    "The '%s' token found in '%s' hook value: %s.  "
+                    "No engine currently running. Skipping validation." %
+                    (
+                        constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN,
+                        settings_key,
+                        hook_value
+                    )
+                )
                 return
 
-        hooks_folder = self._tank_api.pipeline_configuration.get_hooks_location()
+        # if setting is default, assume everything is fine
+        if hook_value == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
+            # assume that each app contains its correct hooks
+            core_logger.debug(
+                "The '%s' value set for hook '%s'. Skipping validation." %
+                (constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING, settings_key)
+            )
+            return
 
+        hooks_folder = self._tank_api.pipeline_configuration.get_hooks_location()
         hook_paths_to_validate = []
 
         for hook_path in hook_value.split(":"):
 
-            # if setting is default, assume everything is fine
-            if hook_path == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
-                # assume that each app contains its correct hooks
-                return
-
-            elif hook_path.startswith("{self}"):
+            if hook_path.startswith("{self}"):
                 # assume that each app contains its correct hooks
                 continue
 
@@ -671,6 +699,11 @@ class _SettingsValidator:
                     hook_paths_to_validate.append(
                         path.replace("/", os.path.sep))
                 else:
+                    core_logger.debug(
+                        "The '{engine}' token found in '%s' hook path: %s.  "
+                        "No engine currently running. Skipping validation." %
+                        (settings_key, hook_path)
+                    )
                     continue
 
             elif hook_path.startswith("{$") and "}" in hook_path:
@@ -678,12 +711,20 @@ class _SettingsValidator:
                 # lazy (runtime) validation for this - it may be beneficial
                 # not to actually set the environment variable until later
                 # in the life cycle of the engine
+                core_logger.debug(
+                    "Environment variable token found in '%s' hook path: %s.  "
+                    "Skipping validation." % (settings_key, hook_path)
+                )
                 continue
 
             elif hook_path.startswith("{") and "}" in hook_path:
                 # referencing other instances of items
                 # this cannot be easily validated at this point since
                 # no well defined runtime state exists at the time of validation
+                core_logger.debug(
+                    "Reference token found in '%s' hook path: %s.  "
+                    "Skipping validation." % (settings_key, hook_path)
+                )
                 continue
 
             else:
@@ -692,7 +733,12 @@ class _SettingsValidator:
                     os.path.join(hooks_folder, "%s.py" % hook_path))
 
         for hook_path in hook_paths_to_validate:
-            if not os.path.exists(hook_path):
+            if os.path.exists(hook_path):
+                core_logger.debug(
+                    "Validated setting '%s' hook path exists: %s" %
+                    (settings_key, hook_path)
+                )
+            else:
                 msg = (
                     "Invalid configuration setting '%s' for %s: "
                     "The specified hook file '%s' does not exist." %
