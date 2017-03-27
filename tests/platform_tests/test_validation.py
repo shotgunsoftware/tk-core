@@ -1,3 +1,5 @@
+import os
+
 from tank.templatekey import StringKey
 from tank_test.tank_test_base import *
 from tank.platform.validation import *
@@ -197,6 +199,25 @@ class TestValidateSettings(TankTestBase):
 
         self.assertRaises(TankError, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
+    def test_invalid_hook_syntax(self):
+
+        hook_name = "hook_bad_synax"
+        hook_value = "{config}/tmp_hook.py:default"
+
+        # make sure the fake hook exists on disk so that it passes the exists check
+        hooks_dir = os.path.join(
+            self.pipeline_config_root,
+            "config",
+            "hooks",
+        )
+        os.makedirs(hooks_dir)
+        hooks_file = os.path.join(hooks_dir, "tmp_hook.py")
+        open(hooks_file, 'a').close()
+
+        settings = {hook_name:hook_value}
+        schema = {hook_name:{"type":"hook"}}
+
+        self.assertRaises(TankError, validate_settings, self.app_name, self.tk, self.context, schema, settings)
 
     def test_template_missing_in_mastertemplates(self):
         """Test that template refered to in config exists in Tank instances templates attrubute."""
