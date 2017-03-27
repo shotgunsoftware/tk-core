@@ -33,6 +33,7 @@ from . import filesystem
 
 from .local_file_storage import LocalFileStorageManager
 
-from .errors import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError, EnvironmentVariableFileLookupError
+from .errors import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
+from .errors import EnvironmentVariableFileLookupError, ShotgunPublishError
 
 from .user_settings import UserSettings

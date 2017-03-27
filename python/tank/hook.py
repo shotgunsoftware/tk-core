@@ -13,6 +13,7 @@ Defines the base class for all Tank Hooks.
 
 """
 import os
+import re
 import sys
 import logging
 import inspect
@@ -272,6 +273,18 @@ class Hook(object):
 
                 if results.scheme == "file":
                     resolved_path = urllib.unquote(results.path)
+
+                    # Win path to drive letter (C:\Documents and Settings\davris\FileSchemeURIs.doc):
+                    # file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc
+                    #
+                    # on nix platform:
+                    # >>> urlparse.urlparse("file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc")
+                    # ParseResult(scheme='file', netloc='', path='/C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc', params='', query='', fragment='')
+                    if resolved_path and re.match("^/[A-Z]:/", resolved_path):
+                        new_resolved_path = resolved_path[1:]
+                        new_resolved_path = new_resolved_path.replace("/", os.path.sep)
+                        log.debug("Converted %s -> %s" % (resolved_path, new_resolved_path))
+                        resolved_path = new_resolved_path
 
             if resolved_path is None:
                 raise TankError(

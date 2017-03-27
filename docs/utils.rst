@@ -173,6 +173,11 @@ and convenience methods:
 .. currentmodule:: sgtk.util
 
 .. autofunction:: register_publish(tk, context, path, name, version_number, **kwargs)
+
+Incorrectly configuring this file may raise an exception:
+
+.. autoclass:: sgtk.util.ShotgunPublishError
+
 .. autofunction:: find_publish(tk, list_of_paths, f ilters=None, fields=None)
 .. autofunction:: download_url(sg, url, location)
 .. autofunction:: create_event_log_entry(tk, context, event_type, description, metadata=None)
