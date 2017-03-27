@@ -899,14 +899,16 @@ class TestPathCacheDelete(TankTestBase):
         """
         Ensures our sentinel is still present.
         """
-        # Ensure nothing has messed with our asset.
-        paths = self._pc.get_paths(self._asset_entity["type"], self._asset_entity["id"], primary_only=True)
-        self.assertEqual(len(paths), 1)
+        try:
+            # Ensure nothing has messed with our asset.
+            paths = self._pc.get_paths(self._asset_entity["type"], self._asset_entity["id"], primary_only=True)
+            self.assertEqual(len(paths), 1)
 
-        # Ensure no full sync has happened. We're testing incremental syncs here!
-        self.assertEqual(self._pc._do_full_sync.called, False)
-
-        super(TestPathCacheDelete, self).tearDown()
+            # Ensure no full sync has happened. We're testing incremental syncs here!
+            self.assertEqual(self._pc._do_full_sync.called, False)
+        finally:
+            self._pc.close()
+            super(TestPathCacheDelete, self).tearDown()
 
     @contextlib.contextmanager
     def mock_remote_path_cache(self):
@@ -917,7 +919,10 @@ class TestPathCacheDelete(TankTestBase):
         with temp_env_var(SHOTGUN_HOME=os.path.join(self.tank_temp, "other_path_cache_root")):
             pc = path_cache.PathCache(self.tk)
             pc.synchronize()
-            yield pc
+            try:
+                yield pc
+            finally:
+                pc.close()
 
     def test_simple_delete_by_paths(self):
         """
