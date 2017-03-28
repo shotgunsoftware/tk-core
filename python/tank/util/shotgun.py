@@ -580,7 +580,7 @@ def get_entity_type_display_name(tk, entity_type_code):
     return display_name
 
 @LogManager.log_timing
-def find_publish(tk, list_of_paths, filters=None, fields=None):
+def find_publish(tk, list_of_paths, filters=None, fields=None, latest_only=True):
     """
     Finds publishes in Shotgun given paths on disk.
     This method is similar to the find method in the Shotgun API,
@@ -611,7 +611,10 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     :param filters: Optional list of shotgun filters to apply.
     :param fields: Optional list of fields from the matched entities to
                    return. Defaults to id and type.
-    :returns: dictionary keyed by path
+    :param latest_only: Optional boolean. If True, only return the last created
+        publish for each path. If False, the values of the returned dictiornay
+        will be a list of publish dictionaries. Defaults to True.
+    :returns: dictionary keyed by path.
     """
     # Map path caches to full paths, grouped by storage
     # in case of sequences, there will be more than one file
@@ -699,15 +702,24 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
                 if full_path not in matches:
                     # this path not yet in the list of matching publish entity data
-                    matches[full_path] = publish
+                    if latest_only:
+                        # assume this is the latest until we find another match
+                        matches[full_path] = publish
+                    else:
+                        # start building the list to return all
+                        matches[full_path] = [publish]
 
                 else:
-                    # found a match! This is most likely because the same file
-                    # has been published more than once. In this case, we return
-                    # the entity data for the file that is more recent.
-                    existing_publish = matches[full_path]
-                    if existing_publish["created_at"] < publish["created_at"]:
-                        matches[full_path] = publish
+                    if latest_only:
+                        # found a match! This is most likely because the same file
+                        # has been published more than once. In this case, we return
+                        # the entity data for the file that is more recent.
+                        existing_publish = matches[full_path]
+                        if existing_publish["created_at"] < publish["created_at"]:
+                            matches[full_path] = publish
+                    else:
+                        # returning everything. add to the list of matched publishes
+                        matches[full_path].append(publish)
 
     # PASS 3 -
     # clean up resultset
@@ -717,14 +729,26 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     #
     for path in matches:
         delete_fields = []
-        # find fields
-        for field in matches[path]:
-            if field not in fields and field not in ("id", "type"):
-                # field is not the id field and was not asked for.
-                delete_fields.append(field)
-        # remove fields
-        for f in delete_fields:
-            del matches[path][f]
+
+        # ensure we have a list of publishes to iterate over
+        if latest_only:
+            # only returning one, make it a list
+            publishes = [matches[path]]
+        else:
+            # already a list of publishes
+            publishes = matches[path]
+
+        # clean up the publish dictionaries
+        for publish in publishes:
+            # find fields
+            for field in publish:
+                if field not in fields and field not in ("id", "type"):
+                    # field is not the id field and was not asked for.
+                    delete_fields.append(field)
+            # remove fields
+            for f in delete_fields:
+                if f in publish:
+                    del publish[f]
 
     return matches
 
