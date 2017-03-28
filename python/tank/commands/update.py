@@ -622,7 +622,6 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
         # look at constraints
         try:
             latest_desc.check_version_constraints(
-                shotgun.get_sg_connection(),
                 pipelineconfig_utils.get_currently_running_api_version(),
                 parent_engine_desc
             )

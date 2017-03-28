@@ -344,7 +344,6 @@ def check_constraints_for_item(descriptor, environment_obj, engine_instance_name
     # check constraints (minimum versions etc)
     try:
         descriptor.check_version_constraints(
-            shotgun.get_sg_connection(),
             pipelineconfig_utils.get_currently_running_api_version(),
             parent_engine_descriptor
         )
