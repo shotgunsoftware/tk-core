@@ -19,6 +19,7 @@ import sqlite3
 import sys
 import os
 import pprint
+import itertools
 
 # use api json to cover py 2.5
 # todo - replace with proper external library  
@@ -932,6 +933,18 @@ class PathCache(object):
             log.debug("Found existing record for '%s', %s. Skipping." % (local_os_path, entity))
             return None
 
+    def _gen_param_string(self, items):
+        """
+        Creates a parametring string for SQL list based on the number of items in a list.
+
+        If there are three items in the list, ?,?,? will be generated, If there is 5 items in
+        the list, ?,?,?,?,? will be generated, and so on.
+
+        :param list: Items for which we require a parameter string.
+        """
+        # Adapted from http://stackoverflow.com/a/1310001/1074536
+        return ",".join(itertools.repeat("?", len(items)))
+
     def _remove_filesystem_location_entities(self, cursor, folder_ids):
         """
         Removes all the requested filesystem locations from the path cache.
@@ -945,7 +958,7 @@ class PathCache(object):
 
         # For every folder id, find the associated path cache id.
         path_cache_ids = cursor.execute(
-            "SELECT path_cache_id FROM shotgun_status WHERE shotgun_id IN (?)",
+            "SELECT path_cache_id FROM shotgun_status WHERE shotgun_id IN (%s)" % self._gen_param_string(folder_ids),
             folder_ids
         )
 
@@ -970,12 +983,12 @@ class PathCache(object):
 
         # Delete all the path cache entries associated with the file system locations.
         cursor.execute(
-            "DELETE FROM path_cache where rowid in (?)", path_cache_ids
+            "DELETE FROM path_cache where rowid IN (%s)" % self._gen_param_string(path_cache_ids), path_cache_ids
         )
 
         # Now delete all the mappings between filesystem location entities and path cache entries.
         cursor.execute(
-            "DELETE FROM shotgun_status WHERE shotgun_id IN (?)",
+            "DELETE FROM shotgun_status WHERE shotgun_id IN (%s)" % self._gen_param_string(folder_ids),
             folder_ids
         )
 

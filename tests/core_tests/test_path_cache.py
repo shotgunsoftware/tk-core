@@ -1032,6 +1032,34 @@ class TestPathCacheDelete(TankTestBase):
         paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
         self.assertListEqual(paths, [updated_path])
 
+    def test_unregister_multiple_folders(self):
+        """
+        Ensures it is possible to unregister multiple folders from the path cache at the same time.
+        """
+        shot_path = os.path.join(self.project_root, "shot_path")
+
+        shot2_path = os.path.join(self.project_root, "shot2_path")
+        shot2_entity = self.tk.shotgun.create("Shot", {"code": "shot2"})
+        shot2_entity["name"] = "shot2"
+
+        add_item_to_cache(self._pc, self._shot_entity, shot_path)
+        add_item_to_cache(self._pc, shot2_entity, shot2_path)
+
+        with self.mock_remote_path_cache() as pc:
+            self._remove_filesystem_locations_by_paths([shot_path, shot2_path], pc)
+
+        self._pc.synchronize()
+
+        self.assertListEqual(
+            self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True),
+            []
+        )
+
+        self.assertListEqual(
+            self._pc.get_paths(shot2_entity["type"], shot2_entity["id"], primary_only=True),
+            []
+        )
+
     def _remove_filesystem_locations_by_paths(self, paths, pc=None):
         """
         Removes the FilesystemLocations entities from Shotgun associated with a given set of paths.
