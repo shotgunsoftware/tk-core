@@ -613,7 +613,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None, latest_only=True)
                    return. Defaults to id and type.
     :param latest_only: Optional boolean. If True, only return the last created
         publish for each path. If False, the values of the returned dictiornay
-        will be a list of publish dictionaries.
+        will be a list of publish dictionaries. Defaults to True.
     :returns: dictionary keyed by path.
     """
     # Map path caches to full paths, grouped by storage
