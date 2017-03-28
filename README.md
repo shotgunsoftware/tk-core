@@ -1,3 +1,5 @@
+[![Build Status](https://secure.travis-ci.org/shotgunsoftware/tk-core.png?branch=develop/zero_config)](http://travis-ci.org/shotgunsoftware/tk-core)
+
 # Shotgun Pipeline Toolkit Core API
 
 This repository represents the Shotgun Pipeline Toolkit Core API.
