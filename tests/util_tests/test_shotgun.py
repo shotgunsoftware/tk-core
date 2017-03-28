@@ -10,10 +10,12 @@
 
 from __future__ import with_statement
 import os
+import sys
 import datetime
 import threading
 import urlparse
 import unittest2 as unittest
+import logging
 
 from mock import patch, call
 
@@ -357,7 +359,27 @@ class TestShotgunRegisterPublish(TankTestBase):
         
         self.setup_fixtures()
 
-        self.storage = {"type": "LocalStorage", "id": 1, "code": "Tank"}
+        self.storage = {
+            "type": "LocalStorage",
+            "id": 1,
+            "code": "Tank"
+        }
+
+        self.storage_2 = {
+            "type": "LocalStorage",
+            "id": 2,
+            "code": "my_other_storage",
+            "mac_path": "/tmp/nix",
+            "windows_path": r"x:\tmp\win",
+            "linux_path": "/tmp/nix"
+        }
+
+        self.storage_3 = {
+            "type": "LocalStorage",
+            "id": 3,
+            "code": "unc paths",
+            "windows_path": r"\\server\share",
+        }
 
         self.tank_type_1 = {"type": "TankType",
             "id": 1,
@@ -365,8 +387,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         }
 
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.storage, self.tank_type_1])
-        
+        self.add_to_sg_mock_db([self.storage, self.storage_2, self.storage_3, self.tank_type_1])
 
         self.shot = {"type": "Shot",
                     "name": "shot_name",
@@ -441,9 +462,191 @@ class TestShotgunRegisterPublish(TankTestBase):
         args, kwargs = create_data
         sg_dict = args[1]
 
-        self.assertEqual(sg_dict["path"], {'url': 'file:///path/to/file%20with%20spaces.png'})
+        self.assertEqual(
+            sg_dict["path"],
+            {
+                'url': 'file:///path/to/file%20with%20spaces.png',
+                'name': 'file with spaces.png'
+            }
+        )
         self.assertEqual("pathcache" not in sg_dict, True)
 
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    def test_url_paths_host(self, create_mock):
+        """Tests the passing of urls via the path."""
+
+        tank.util.register_publish(
+            self.tk,
+            self.context,
+            "https://site.com",
+            self.name,
+            self.version)
+
+        create_data = create_mock.call_args
+        args, kwargs = create_data
+        sg_dict = args[1]
+
+        self.assertEqual(
+            sg_dict["path"],
+            {
+                'url': 'https://site.com',
+                'name': 'site.com'
+            }
+        )
+        self.assertEqual("pathcache" not in sg_dict, True)
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    def test_file_paths(self, create_mock):
+        """
+        Tests that we generate file:// paths when storage is not found
+        """
+        if sys.platform == "win32":
+            values = [
+                r"x:\tmp\win\path\to\file.txt",
+                r"\\server\share\path\to\file.txt",
+            ]
+
+        else:
+            values = ["/tmp/nix/path/to/file.txt"]
+
+        # Various paths we support, Unix and Windows styles
+        for local_path in values:
+            tank.util.register_publish(
+                self.tk,
+                self.context,
+                local_path,
+                self.name,
+                self.version
+            )
+
+            create_data = create_mock.call_args
+            args, kwargs = create_data
+            sg_dict = args[1]
+
+            self.assertEqual(
+                sg_dict["path"],
+                {"local_path": local_path}
+            )
+
+            self.assertTrue("pathcache" not in sg_dict)
+
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    def test_freeform_local_storage_paths(self, create_mock):
+        """
+        Tests that we generate local file links for storages
+        """
+        if sys.platform == "win32":
+            values = {
+                "C:/path/to/test file.png": {
+                    "url": "file:///C:/path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+                "e:/path/to/test file.png": {
+                    "url": "file:///E:/path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+                "//path/to/test file.png": {
+                    "url": "file://path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+                r"C:\path\to\test file.png": {
+                    "url": "file:///C:/path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+                r"e:\path\to\test file.png": {
+                    "url": "file:///E:/path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+                r"\\path\to\test file.png": {
+                    "url": "file://path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+            }
+
+        else:
+            values = {
+                "/path/to/test file.png": {
+                    "url": "file:///path/to/test%20file.png",
+                    "name": "test file.png"
+                },
+            }
+
+        # Various paths we support, Unix and Windows styles
+        for (local_path, path_dict) in values.iteritems():
+            tank.util.register_publish(
+                self.tk,
+                self.context,
+                local_path,
+                self.name,
+                self.version
+            )
+
+            create_data = create_mock.call_args
+            args, kwargs = create_data
+            sg_dict = args[1]
+
+            self.assertEqual(sg_dict["path"], path_dict)
+            self.assertTrue("pathcache" not in sg_dict)
+
+
+
+    def test_publish_errors(self):
+        """Tests exceptions raised on publish errors."""
+
+        # Try publishing with various wrong arguments and test the exceptions
+        # being raised contain the PublishedEntity when it was created
+
+        # Publish with an invalid Version, no PublishEntity should have been
+        # created
+        with self.assertRaises(tank.util.ShotgunPublishError) as cm:
+            tank.util.register_publish(
+                self.tk,
+                self.context,
+                "bad_version",
+                self.name,
+                { "id" : -1, "type" : "Version" }
+            )
+        self.assertIsNone(cm.exception.entity)
+
+        # Force failure after the PublishedFile was created and check we get it
+        # in the Exception last args.
+
+        # Replace upload_thumbnail with a constant failure
+        def raise_value_error(*arg, **kwargs):
+            raise ValueError("Failed")
+        with patch(
+            "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
+            new=raise_value_error) as mock:
+            with self.assertRaises(tank.util.ShotgunPublishError) as cm:
+                tank.util.register_publish(
+                    self.tk,
+                    self.context,
+                    "Constant failure",
+                    self.name,
+                    self.version,
+                    dependencies= [-1]
+                )
+        self.assertIsInstance(cm.exception.entity, dict)
+        self.assertTrue(cm.exception.entity["type"]==tank.util.get_published_file_entity_type(self.tk))
+
+        # Replace upload_thumbnail with a constant IO error
+        def raise_io_error(*arg, **kwargs):
+            open("/this/file/does/not/exist/or/we/are/very/unlucky.txt", "r")
+        with patch(
+            "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
+            new=raise_io_error) as mock:
+            with self.assertRaises(tank.util.ShotgunPublishError) as cm:
+                tank.util.register_publish(
+                    self.tk,
+                    self.context,
+                    "dummy_path.txt",
+                    self.name,
+                    self.version,
+                    dependencies= [-1]
+                )
+        self.assertIsInstance(cm.exception.entity, dict)
+        self.assertTrue(cm.exception.entity["type"]==tank.util.get_published_file_entity_type(self.tk))
 
 class TestShotgunDownloadUrl(TankTestBase):
 

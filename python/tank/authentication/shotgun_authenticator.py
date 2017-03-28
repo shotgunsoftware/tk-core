@@ -152,8 +152,8 @@ class ShotgunAuthenticator(object):
         """
         Create an AuthenticatedUser given a set of script credentials.
 
-        :param script_user: Shotgun script user
-        :param script_key: Shotgun script key
+        :param api_script: Shotgun script user
+        :param api_key: Shotgun script key
         :param host: Shotgun host to log in to. If None, the default host will
                      be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy

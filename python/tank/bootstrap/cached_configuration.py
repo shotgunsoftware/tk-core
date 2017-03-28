@@ -150,8 +150,9 @@ class CachedConfiguration(Configuration):
             # point (e.g like a dev or path descriptor). Assume a worst case
             # in this case - that the config that is cached locally is
             # not the same as the source descriptor it is based on.
-            log.debug("The installed config is not immutable, so it is per "
-                      "definition always out of date.")
+            log.info("Your configuration contains dev or path descriptors. "
+                     "Triggering full config rebuild.")
+
             return self.LOCAL_CFG_DIFFERENT
 
         else:
