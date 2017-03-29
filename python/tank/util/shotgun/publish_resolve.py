@@ -111,7 +111,7 @@ def resolve_publish_path(tk, sg_publish_data):
       for all operating systems. The first match detected will be used to translate
       the path into the current operating system platform.
 
-    - If there is no against any storage, the file path be returned.
+    - If the path does not match any storage, the raw file path is returned.
 
     For example, you have published the file ``/projects/some/file.txt`` on Linux
     and generated a publish with the url ``file:///projects/some/file.txt``. You have
