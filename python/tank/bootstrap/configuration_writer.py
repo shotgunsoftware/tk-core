@@ -44,6 +44,16 @@ class ConfigurationWriter(object):
         self._path = path
         self._sg_connection = sg
 
+    @property
+    def path(self):
+        """
+        Path at which the configuration will be written.
+
+        :returns: Path to the configuration on disk.
+        :rtype: :class:`ShotgunPath`
+        """
+        return self._path
+
     def ensure_project_scaffold(self):
         """
         Creates all the necessary files on disk for a basic config scaffold.
@@ -303,30 +313,50 @@ class ConfigurationWriter(object):
             fh.write("\n")
             fh.write("# End of file.\n")
 
-    def write_shotgun_file(self):
+    def write_shotgun_file(self, descriptor):
         """
         Writes config/core/shotgun.yml
         """
-        sg_file = os.path.join(
+
+        source_config_sg_file = os.path.join(
+            descriptor.get_path(),
+            "config",
+            "core",
+            constants.CONFIG_SHOTGUN_FILE
+        )
+
+        dest_config_sg_file = os.path.join(
             self._path.current_os,
             "config",
             "core",
             constants.CONFIG_SHOTGUN_FILE
         )
 
-        with self._open_auto_created_yml(sg_file) as fh:
-
+        # If there is a shotgun.yml file at the source location, read it
+        # in as the default metadata.
+        #
+        # This allows to centralize proxy settings in a shotgun.yml that
+        # gets distributed every time a configuration is written.
+        if os.path.exists(source_config_sg_file):
+            log.debug("shotgun.yml found in the config at %s", source_config_sg_file)
+            with open(source_config_sg_file, "rb") as fh:
+                metadata = yaml.load(fh)
+        else:
+            log.debug("No shotgun.yml found in the config.")
             metadata = {}
-            # bake in which version of the deploy logic was used to push this config
+
+        with self._open_auto_created_yml(dest_config_sg_file) as fh:
+            # ensure the metadata has the host set. We shouldn't assume the shotgun.yml
+            # file that can be distributed with the config has the host set, as it
+            # could be used on two different Shotgun servers, for example a production
+            # server and a staging server that are both hosted locally.
             metadata["host"] = self._sg_connection.base_url
-            # and include details about where the config came from
-            metadata["http_proxy"] = None
             # write yaml
             yaml.safe_dump(metadata, fh)
             fh.write("\n")
             fh.write("# End of file.\n")
 
-        log.debug("Wrote %s" % sg_file)
+        log.debug("Wrote %s" % dest_config_sg_file)
 
     def write_pipeline_config_file(self, pipeline_config_id, project_id, plugin_id, bundle_cache_fallback_paths):
         """
