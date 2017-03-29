@@ -77,7 +77,9 @@ Exception Classes
 ========================================
 
 .. autoclass:: TankBootstrapError
-
+    :show-inheritance:
+    :inherited-members:
+    :members:
 
 Installing the sgtk module using pip
 ----------------------------------------

@@ -1372,7 +1372,10 @@ class Engine(TankBundle):
 
     def get_debug_tracked_qt_widgets(self):
         """
-        Print debug info about created Qt dialogs and widgets
+        Returns a dictionary of debug info about created Qt dialogs and widgets.
+        
+        The keys of the dictionary are the string representation of a widget and the 
+        corresponding value is a reference to that widget.
         """
         return self.__qt_debug_info                
 

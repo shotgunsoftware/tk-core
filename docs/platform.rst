@@ -274,8 +274,14 @@ Exceptions
 The following exception types are raised from within ``sgtk.platform``:
 
 .. autoclass:: TankEngineInitError
+    :show-inheritance:
+    :inherited-members:
+    :members:
 
 .. autoclass:: TankContextChangeNotSupportedError
+    :show-inheritance:
+    :inherited-members:
+    :members:
 
 
 Import and access methods

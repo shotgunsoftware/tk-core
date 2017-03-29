@@ -109,12 +109,6 @@ following order:
 
         https://docs.python.org/2/library/urllib.html#urllib.getproxies
 
-
-Incorrectly configuring this file may raise an exception:
-
-.. autoclass:: sgtk.util.EnvironmentVariableFileLookupError
-
-
 You can access those values programmatically.
 
 .. autoclass:: sgtk.util.UserSettings
@@ -174,9 +168,7 @@ and convenience methods:
 
 .. autofunction:: register_publish(tk, context, path, name, version_number, **kwargs)
 
-Incorrectly configuring this file may raise an exception:
-
-.. autoclass:: sgtk.util.ShotgunPublishError
+.. autofunction:: resolve_publish_path(tk, sg_publish_data)
 
 .. autofunction:: find_publish(tk, list_of_paths, f ilters=None, fields=None)
 .. autofunction:: download_url(sg, url, location)
@@ -193,4 +185,31 @@ Miscellaneous
 .. autofunction:: get_current_user
 
 
+Exceptions
+================================================
+
+.. autoclass:: sgtk.util.EnvironmentVariableFileLookupError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: sgtk.util.ShotgunPublishError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: sgtk.util.PublishResolveError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: sgtk.util.PublishPathNotDefinedError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: sgtk.util.PublishPathNotSupported
+    :show-inheritance:
+    :inherited-members:
+    :members:
 

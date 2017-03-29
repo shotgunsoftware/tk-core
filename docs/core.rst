@@ -107,7 +107,7 @@ Hook
 =========================================
 .. autoclass:: Hook
     :members:
-    :exclude-members: execute
+    :exclude-members: execute, get_publish_paths
 
 get_hook_baseclass
 =========================================
@@ -232,17 +232,53 @@ Exceptions
 The following exceptions are raised by the Toolkit Core API classes:
 
 .. autoclass:: TankError
+    :show-inheritance:
+    :inherited-members:
+    :members:
 
 .. autoclass:: TankErrorProjectIsSetup
+    :show-inheritance:
+    :inherited-members:
+    :members:
 
 .. autoclass:: TankFileDoesNotExistError
+    :show-inheritance:
+    :inherited-members:
+    :members:
 
 .. autoclass:: TankHookMethodDoesNotExistError
-
-.. autoclass:: TankInvalidInterpreterLocationError
-
-.. autoclass:: TankInvalidCoreLocationError
-
-.. autoclass:: TankNotPipelineConfigurationError
+    :show-inheritance:
+    :inherited-members:
+    :members:
 
 .. autoclass:: TankUnreadableFileError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: TankFileDoesNotExistError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: TankInvalidInterpreterLocationError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: TankInvalidCoreLocationError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: TankNotPipelineConfigurationError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: TankUnreadableFileError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+
