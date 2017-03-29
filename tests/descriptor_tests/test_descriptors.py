@@ -35,6 +35,60 @@ class TestDescriptorSupport(TankTestBase):
         fh.write("foo")
         fh.close()
 
+    def test_shotgun_descriptor_location(self):
+        """
+        Tests input validation for shotgun descriptor
+        """
+        location = {
+            "type": "shotgun",
+            "entity_type": "PipelineConfiguration",
+            "name": "primary",
+            "project_id": 123,
+            "field": "sg_config",
+            "version": 456
+        }
+
+        location_str = "sgtk:descriptor:shotgun?name=primary&entity_type=PipelineConfiguration&field=sg_config&version=456&project_id=123"
+
+        faulty_location_1 = {
+            "type": "shotgun",
+            "entity_type": "PipelineConfiguration",
+            "name": "primary",
+            "project_id": "foo",
+            "field": "sg_config",
+            "version": 456
+        }
+
+        faulty_location_2 = {
+            "type": "shotgun",
+            "entity_type": "PipelineConfiguration",
+            "name": "primary",
+            "project_id": 123,
+            "field": "sg_config",
+            "version": "bar"
+        }
+
+        path = os.path.join(self.install_root, "sg", "unit_test_mock_sg", "PipelineConfiguration.sg_config", "p123_primary", "v456")
+        self._create_info_yaml(path)
+
+        d = self.tk.pipeline_configuration.get_app_descriptor(location)
+        self.assertEqual(d.get_path(), path)
+
+        d = self.tk.pipeline_configuration.get_app_descriptor(location_str)
+        self.assertEqual(d.get_path(), path)
+
+        self.assertRaises(
+            sgtk.descriptor.TankDescriptorError,
+            self.tk.pipeline_configuration.get_app_descriptor,
+            faulty_location_1
+        )
+
+        self.assertRaises(
+            sgtk.descriptor.TankDescriptorError,
+            self.tk.pipeline_configuration.get_app_descriptor,
+            faulty_location_2
+        )
+
     def test_app_store_descriptor_location(self):
         """
         Tests an appstore descriptor bundle path for the given bundle type and location.
