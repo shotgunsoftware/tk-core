@@ -224,6 +224,16 @@ class Hook(object):
                 return None
 
     @property
+    def tank(self):
+        """
+        The sgtk core API instance associated with the Hook parent.
+
+        .. deprecated::
+           Use :meth:`sgtk` instead.
+        """
+        return self.sgtk
+
+    @property
     def parent(self):
         """
         The parent object to the executing hook. This varies with the type of
