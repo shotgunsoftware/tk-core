@@ -298,6 +298,9 @@ class TestUrlNoStorages(TankTestBase):
         self.setup_fixtures()
 
     def test_nix_path(self):
+        """
+        Tests resolving a unix/macosx file://path url
+        """
         sg_dict = {
             "id": 123,
             "type": "PublishedFile",
@@ -318,7 +321,9 @@ class TestUrlNoStorages(TankTestBase):
             self.assertEqual("/foo /bar.baz", local_path)
 
     def test_windows_drive_path(self):
-
+        """
+        Tests resolving a windows file://path url with a drive letter
+        """
         sg_dict = {
             "id": 123,
             "type": "PublishedFile",
@@ -339,7 +344,9 @@ class TestUrlNoStorages(TankTestBase):
             self.assertEqual("C:/foo/bar/baz", local_path)
 
     def test_windows_unc_path(self):
-
+        """
+        Tests resolving a windows unc path style file://path url
+        """
         sg_dict = {
             "id": 123,
             "type": "PublishedFile",

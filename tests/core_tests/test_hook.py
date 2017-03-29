@@ -22,18 +22,29 @@ class TestHookProperties(TankTestBase):
         self.setup_fixtures()
 
     def test_core_hook_properties(self):
+        """
+        Tests the parent, sgtk and tank properties
+        """
         tk= sgtk.Sgtk(self.project_root)
         hook = sgtk.Hook(parent=tk)
         self.assertEqual(hook.parent, tk)
         self.assertEqual(hook.sgtk, tk)
+        self.assertEqual(hook.tank, tk)
 
     def test_no_parent_hook_properties(self):
+        """
+        Tests when no parent is defined
+        """
         hook = sgtk.Hook(parent=None)
         self.assertEqual(hook.parent, None)
         self.assertEqual(hook.sgtk, None)
+        self.assertEqual(hook.tank, None)
 
 
 class TestHookGetPublishPath(TankTestBase):
+    """
+    Tests the hook.get_publish_path() method
+    """
     
     def test_get_publish_path_url(self):
         """
@@ -65,8 +76,6 @@ class TestHookGetPublishPath(TankTestBase):
             hook.get_publish_paths([sg_dict, sg_dict]),
             [expected_path, expected_path]
         )
-
-
 
     def test_get_publish_path_raises(self):
         """
@@ -165,5 +174,3 @@ class TestHookGetPublishPath(TankTestBase):
             hook.get_publish_paths([sg_dict, sg_dict]),
             [expected_path, expected_path]
         )
-
-
