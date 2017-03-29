@@ -79,9 +79,9 @@ def resolve_include(file_name, include):
         # It wasn't meant for this platform, return nothing.
         return None
 
-    # ShotgunPath cleans up paths so that slashes are all in the same direction
-    # and no doubles exists.
-    path = ShotgunPath.from_current_os_path(path).current_os
+    # ShotgunPath cleans up paths so that slashes are all
+    # in the same direction and no doubles exist.
+    path = ShotgunPath.normalize(path)
 
     # make sure that the paths all exist
     if not os.path.exists(path):

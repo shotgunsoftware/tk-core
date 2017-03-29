@@ -128,3 +128,4 @@ class DefaultsManagerTest(TankTestBase):
 
         dm = CoreDefaultsManager()
         self.assertIs(dm.get_http_proxy(), self._CONFIG_HTTP_PROXY)
+

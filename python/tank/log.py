@@ -677,7 +677,7 @@ class LogManager(object):
         location and will capture all log messages passed through
         the log hierarchy.
 
-        .. note:: Files will be written into the a location on disk
+        .. note:: Files will be written into the location on disk
                   defined by :meth:`log_folder`.
 
         When you start an engine via the :meth:`sgtk.platform.start_engine` method,

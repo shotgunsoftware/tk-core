@@ -62,6 +62,9 @@ class Sgtk(object):
         # execute a tank_init hook for developers to use.
         self.execute_core_hook(constants.TANK_INIT_HOOK_NAME)
 
+        # cache of local storages
+        self.__cache = {}
+
     def __repr__(self):
         return "<Sgtk Core %s@0x%08x Config %s>" % (self.version, id(self), self.__pipeline_config.get_path())
 
@@ -111,10 +114,12 @@ class Sgtk(object):
         :param **kwargs:    Additional named parameters will be passed to the hook.
         :returns:           Return value of the hook.
         """
-        return self.pipeline_configuration.execute_core_hook_method_internal(hook_name, 
-                                                                             method_name, 
-                                                                             parent=self, 
-                                                                             **kwargs)
+        return self.pipeline_configuration.execute_core_hook_method_internal(
+            hook_name,
+            method_name,
+            parent=self,
+            **kwargs
+        )
 
     def log_metric(self, action, log_once=False):
         """Log a core metric.
@@ -129,11 +134,34 @@ class Sgtk(object):
 
         Internal Use Only - We provide no guarantees that this method
         will be backwards compatible.
-
         """
-        full_action = "%s %s" % ('tk-core', action)
-        log_user_activity_metric('tk-core', full_action, log_once=log_once)
+        full_action = "%s %s" % ("tk-core", action)
+        log_user_activity_metric("tk-core", full_action, log_once=log_once)
 
+    def get_cache_item(self, cache_key):
+        """
+        Returns an item from the cache held within this tk instance.
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
+
+        :param str cache_key: name of cache key to access
+        :return: cached object or None if no object found
+        """
+        return self.__cache.get(cache_key)
+
+    def set_cache_item(self, cache_key, value):
+        """
+        Adds a value to the tk instance cache. To clear a value,
+        set it to None.
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
+
+        :param str cache_key: name of cache key to set
+        :param value: Value to set or None to clear it.
+        """
+        self.__cache[cache_key] = value
 
     ################################################################################################
     # properties

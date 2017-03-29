@@ -275,7 +275,7 @@ class LocalFileStorageManager(object):
             if project_id is None:
                 project_id = 0
 
-            # older paths are on the form root/mysite.shotgunstudio.com/project_123/config_123
+            # older paths are of the form root/mysite.shotgunstudio.com/project_123/config_123
             return os.path.join(
                 cls.get_site_root(hostname, path_type, generation),
                 "project_%s" % project_id,

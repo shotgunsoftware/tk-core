@@ -150,6 +150,25 @@ class ShotgunPath(object):
 
         return cls(windows_path, linux_path, macosx_path)
 
+    @classmethod
+    def normalize(cls, path):
+        """
+        Convenience method that normalizes the given path
+        by running it through the :class:`ShotgunPath` normalization
+        logic. ``ShotgunPath.normalize(path)`` is equivalent
+        to executing ``ShotgunPath.from_current_os_path(path).current_os``.
+
+        Normalization include checking that separators are matching the
+        current operating system, removal of trailing separators
+        and removal of double separators. This is done automatically
+        for all :class:`ShotgunPath`s but sometimes it is useful
+        to just perform the normalization quickly on a local path.
+
+        :param str path: Local operating system path to normalize
+        :return: Normalized path string.
+        """
+        return cls.from_current_os_path(path).current_os
+
     def __init__(self, windows_path=None, linux_path=None, macosx_path=None):
         """
         :param windows_path: Path on windows to associate with this path object
@@ -255,29 +274,50 @@ class ShotgunPath(object):
 
         return local_path
 
-    @property
-    def macosx(self):
+
+    def _get_macosx(self):
         """
         The macosx representation of the path
         """
         return self._macosx_path
 
-    @property
-    def windows(self):
+    def _set_macosx(self, value):
+        """
+        The macosx representation of the path
+        """
+        self._macosx_path = self._sanitize_path(value, "/")
+
+    macosx = property(_get_macosx, _set_macosx)
+
+    def _get_windows(self):
         """
         The windows representation of the path
         """
         return self._windows_path
 
-    @property
-    def linux(self):
+    def _set_windows(self, value):
+        """
+        The windows representation of the path
+        """
+        self._windows_path = self._sanitize_path(value, "\\")
+
+    windows = property(_get_windows, _set_windows)
+
+    def _get_linux(self):
         """
         The linux representation of the path
         """
         return self._linux_path
 
-    @property
-    def current_os(self):
+    def _set_linux(self, value):
+        """
+        The windows representation of the path
+        """
+        self._linux_path = self._sanitize_path(value, "/")
+
+    linux = property(_get_linux, _set_linux)
+
+    def _get_current_os(self):
         """
         The path on the current os
         """
@@ -289,6 +329,21 @@ class ShotgunPath(object):
             return self.macosx
         else:
             return ValueError("Unsupported platform '%s'." % sys.platform)
+
+    def _set_current_os(self, value):
+        """
+        The path on the current os
+        """
+        if sys.platform == "win32":
+            self.windows = value
+        elif sys.platform == "linux2":
+            self.linux = value
+        elif sys.platform == "darwin":
+            self.macosx = value
+        else:
+            return ValueError("Unsupported platform '%s'." % sys.platform)
+
+    current_os = property(_get_current_os, _set_current_os)
 
     def as_shotgun_dict(self, include_empty=True):
         """

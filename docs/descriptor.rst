@@ -327,5 +327,16 @@ Exceptions
 ================================================
 
 .. autoclass:: TankAppStoreConnectionError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
 .. autoclass:: TankAppStoreError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
 .. autoclass:: TankDescriptorError
+    :show-inheritance:
+    :inherited-members:
+    :members:
