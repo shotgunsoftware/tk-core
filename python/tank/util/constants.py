@@ -42,3 +42,10 @@ VALID_SG_PROJECT_NAME_REGEX = "^[\w\-\./]+$"
 
 # regex pattern that all folder names must validate against
 VALID_SG_ENTITY_NAME_REGEX = "^[\w\-\.]+$"
+
+# tk instance cache of the shotgun schema
+SHOTGUN_SCHEMA_CACHE_KEY = "shotgun_schema"
+
+# tk instance cache of sg local storages
+SHOTGUN_LOCAL_STORAGES_CACHE_KEY = "shotgun_local_storages"
+

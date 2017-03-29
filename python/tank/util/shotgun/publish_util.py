@@ -21,10 +21,6 @@ from .. import login
 
 log = LogManager.get_logger(__name__)
 
-# global variables
-g_entity_display_name_lookup = None
-g_local_storage_cache = None
-
 
 def get_entity_type_display_name(tk, entity_type_code):
     """
@@ -36,22 +32,26 @@ def get_entity_type_display_name(tk, entity_type_code):
         >>> get_entity_type_display_name(tk, "CustomEntity03")
         'Workspace'
 
+    .. note:: The recommended way to access this data is now via the
+              globals module in the shotgunutils framework. For more information,
+              see http://developer.shotgunsoftware.com/tk-framework-shotgunutils/shotgun_globals.html
+
     :param tk: :class:`~sgtk.Sgtk` instance
     :param entity_type_code: API entity type name
     :returns: display name
     """
-    global g_entity_display_name_lookup
-
-    if g_entity_display_name_lookup is None:
+    schema_data = tk.get_cache_item(constants.SHOTGUN_SCHEMA_CACHE_KEY)
+    if schema_data is None:
         # now resolve the entity types into display names using the schema_entity_read method.
-        g_entity_display_name_lookup = tk.shotgun.schema_entity_read()
+        schema_data = tk.shotgun.schema_entity_read()
         # returns a dictionary on the following form:
         # { 'Booking': {'name': {'editable': False, 'value': 'Booking'}}, ... }
+        tk.set_cache_item(constants.SHOTGUN_SCHEMA_CACHE_KEY, schema_data)
 
     display_name = entity_type_code
     try:
-        if entity_type_code in g_entity_display_name_lookup:
-            display_name = g_entity_display_name_lookup[entity_type_code]["name"]["value"]
+        if entity_type_code in schema_data:
+            display_name = schema_data[entity_type_code]["name"]["value"]
     except:
         pass
 
@@ -66,18 +66,19 @@ def get_cached_local_storages(tk):
     :param tk: :class:`~sgtk.Sgtk` instance
     :returns: List of shotgun entity dictionaries
     """
-    global g_local_storage_cache
+    storage_data = tk.get_cache_item(constants.SHOTGUN_LOCAL_STORAGES_CACHE_KEY)
 
-    if g_local_storage_cache is None:
+    if storage_data is None:
         log.debug("Caching shotgun local storages...")
-        g_local_storage_cache = tk.shotgun.find(
+        storage_data = tk.shotgun.find(
             "LocalStorage",
             [],
             ["id", "code"] + ShotgunPath.SHOTGUN_PATH_FIELDS
         )
-        log.debug("...caching complete. Got %d storages." % len(g_local_storage_cache))
+        log.debug("...caching complete. Got %d storages." % len(storage_data))
+        tk.set_cache_item(constants.SHOTGUN_LOCAL_STORAGES_CACHE_KEY, storage_data)
 
-    return g_local_storage_cache
+    return storage_data
 
 
 @LogManager.log_timing
@@ -230,7 +231,6 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
             del matches[path][f]
 
     return matches
-
 
 @LogManager.log_timing
 def create_event_log_entry(tk, context, event_type, description, metadata=None):

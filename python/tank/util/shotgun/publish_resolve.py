@@ -28,10 +28,6 @@ from ..errors import PublishPathNotDefinedError, PublishPathNotSupported
 
 log = LogManager.get_logger(__name__)
 
-# global variables
-g_entity_display_name_lookup = None
-g_local_storage_cache = None
-
 
 def resolve_publish_path(tk, sg_publish_data):
     """

@@ -408,8 +408,7 @@ class TankTestBase(unittest.TestCase):
 
             # clear global shotgun accessor
             tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
-            tank.util.shotgun.publish_util.g_local_storage_cache = None
-            tank.util.shotgun.publish_util.g_entity_display_name_lookup = None
+
 
             # get rid of init cache
             if os.path.exists(pipelineconfig_factory._get_cache_location()):
