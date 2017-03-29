@@ -84,7 +84,7 @@ def resolve_publish_path(tk, sg_publish_data):
     all machines, all users and all projects. Sometimes there are cases
     when you want to override these globals to behave differently on a
     specific machine or for a user. This can be done by defining an environment
-    variable named on the form ``SHOTGUN_PATH_OS_STORAGENAME``. For example, if
+    variable named of the form ``SHOTGUN_PATH_OS_STORAGENAME``. For example, if
     you are running Windows, your ``PRIMARY`` storage has been set up in
     Shotgun to be ``F:\`` and you want paths on your machine to resolve to ``G:\``
     instead, set an environment variable ``SHOTGUN_PATH_WINDOWS_PRIMARY=G:\``.
@@ -104,7 +104,7 @@ def resolve_publish_path(tk, sg_publish_data):
       a path translation table.
 
     - Next, similar to the local file linking above, any environment variables
-      on the form ``SHOTGUN_PATH_WINDOWS|MAC|LINUX`` or ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME``
+      of the form ``SHOTGUN_PATH_WINDOWS|MAC|LINUX`` or ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME``
       will be added to the translation table.
 
     - The ``file://`` path will be compared against all the existing roots
@@ -286,17 +286,17 @@ def __resolve_url_link(tk, attachment_data):
     """
     Resolves the given url attachment into a local path.
 
-    The supports the resolution of ``file://`` urls into paths. Such urls
+    This supports the resolution of ``file://`` urls into paths. Such urls
     are not multi platform and Shotgun local storages and environment variables
     will be used to try to resolve such paths in case of ambiguity.
 
     - First, local storage settings will be downloaded from Shotgun and added to
       a path translation table.
 
-    - Next, any environment variables on the form ``SHOTGUN_PATH_WINDOWS|MAC|LINUX``
+    - Next, any environment variables of the form ``SHOTGUN_PATH_WINDOWS|MAC|LINUX``
       will be added to the translation table.
 
-    - Override environment variables on the form ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME``
+    - Override environment variables of the form ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME``
       will override any local storage paths.
 
     - The ``file://`` path will be compared against all the existing roots
@@ -468,8 +468,4 @@ def __resolve_url_link(tk, attachment_data):
     resolved_path = resolved_path.replace("/", os.path.sep)
     log.debug("Converted %s -> %s" % (attachment_data["url"], resolved_path))
     return resolved_path
-
-
-
-
 

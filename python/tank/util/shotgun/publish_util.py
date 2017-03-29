@@ -138,7 +138,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     # - the path_cache which is a storage relative, platform agnostic path
     # - a link to a storage entity
     # ...we need to group the paths per storage and then for each storage do a
-    # shotgun query on the form find all records where path_cache, in, /foo, /bar, /baz etc.
+    # shotgun query of the form find all records where path_cache, in, /foo, /bar, /baz etc.
     published_files = {}
 
     # get a list of all storages that we should look up.
@@ -242,7 +242,7 @@ def create_event_log_entry(tk, context, event_type, description, metadata=None):
     :param context: A :class:`~sgtk.Context` to associate with the event log entry.
 
     :param event_type: String which defines the event type. The Shotgun standard suggests
-                       that this should be on the form Company_Item_Action. Examples include::
+                       that this should be of the form Company_Item_Action. Examples include::
 
                            Shotgun_Asset_New
                            Shotgun_Asset_Change
