@@ -190,7 +190,7 @@ class CachedConfiguration(Configuration):
             # write out config files
             self._config_writer.write_install_location_file()
             self._config_writer.write_config_info_file(self._descriptor)
-            self._config_writer.write_shotgun_file()
+            self._config_writer.write_shotgun_file(self._descriptor)
             self._config_writer.write_pipeline_config_file(
                 self._pipeline_config_id,
                 self._project_id,
