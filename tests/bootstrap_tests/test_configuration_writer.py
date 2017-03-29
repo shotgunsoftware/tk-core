@@ -106,6 +106,7 @@ class TestShotgunYmlWriting(TankTestBase):
         # Ensures host has been added.
         self.assertEqual(len(shotgun_yml_template) + 1, len(shotgun_yml_actual))
         self.assertIn("host", shotgun_yml_actual)
+        self.assertEqual(shotgun_yml_actual["host"], self.mockgun.base_url)
 
         # Remove the host which was added and compare the rest with the template.
         # Everything else should be in there intact.
