@@ -606,6 +606,11 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     Fields that are not found, or filtered out by the filters parameter,
     are not returned in the dictionary.
 
+    .. warning:: This method does not currently detect all publishes. If you
+                 are publishing a file which does not strictly belong to one of
+                 the roots associated with the current Toolkit project, the publish
+                 will not be discoverable by :meth:`find_publish`.
+
     :param tk: :class:`~sgtk.Sgtk` instance
     :param list_of_paths: List of full paths for which information should be retrieved
     :param filters: Optional list of shotgun filters to apply.
