@@ -424,9 +424,70 @@ class TestApiProperties(TankTestBase):
 
 
 
+class TestApiCache(TankTestBase):
+    """
+    Test the built in instance cache
+    """
+    def setUp(self):
+        super(TestApiCache, self).setUp()
+
+    def test_get_set(self):
+        """
+        test api.get_cache_item
+        """
+        self.assertEquals(self.tk.get_cache_item("foo"), None)
+        self.assertEquals(self.tk.get_cache_item("bar"), None)
+
+        self.tk.set_cache_item("foo", 123)
+
+        self.assertEquals(self.tk.get_cache_item("foo"), 123)
+        self.assertEquals(self.tk.get_cache_item("bar"), None)
+
+        self.tk.set_cache_item("bar", 456)
+
+        self.assertEquals(self.tk.get_cache_item("foo"), 123)
+        self.assertEquals(self.tk.get_cache_item("bar"), 456)
+
+        self.tk.set_cache_item("foo", None)
+
+        self.assertEquals(self.tk.get_cache_item("foo"), None)
+        self.assertEquals(self.tk.get_cache_item("bar"), 456)
+
+        self.tk.set_cache_item("bar", None)
+
+        self.assertEquals(self.tk.get_cache_item("foo"), None)
+        self.assertEquals(self.tk.get_cache_item("bar"), None)
 
 
+    def test_isolation(self):
+        """
+        Test that two tk instances use separate caches
+        """
+        tk2 = tank.sgtk_from_path(self.tk.pipeline_configuration.get_path())
+        tk = self.tk
 
+        self.assertEquals(tk.get_cache_item("foo"), None)
+        self.assertEquals(tk2.get_cache_item("foo"), None)
+
+        tk.set_cache_item("foo", 123)
+
+        self.assertEquals(tk.get_cache_item("foo"), 123)
+        self.assertEquals(tk2.get_cache_item("foo"), None)
+
+        tk2.set_cache_item("foo", 456)
+
+        self.assertEquals(tk.get_cache_item("foo"), 123)
+        self.assertEquals(tk2.get_cache_item("foo"), 456)
+
+        tk.set_cache_item("foo", None)
+
+        self.assertEquals(tk.get_cache_item("foo"), None)
+        self.assertEquals(tk2.get_cache_item("foo"), 456)
+
+        tk2.set_cache_item("foo", None)
+
+        self.assertEquals(tk.get_cache_item("foo"), None)
+        self.assertEquals(tk2.get_cache_item("foo"), None)
 
 
 class TestTankFromPath(TankTestBase):
