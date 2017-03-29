@@ -320,7 +320,7 @@ class ConfigurationWriter(object):
             # bake in which version of the deploy logic was used to push this config
             metadata["host"] = self._sg_connection.base_url
             # and include details about where the config came from
-            metadata["http_proxy"] = self._sg_connection.config.raw_http_proxy
+            metadata["http_proxy"] = None
             # write yaml
             yaml.safe_dump(metadata, fh)
             fh.write("\n")
