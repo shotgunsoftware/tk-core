@@ -887,8 +887,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
             file_path,
             name,
             version_number,
-            comment = 'Initial layout composition.',
-            published_file_type = 'Layout Scene'
+            comment= Initial layout composition.',
+            published_file_type='Layout Scene'
         )
 
         {'code': 'layout.v001.ma',
@@ -912,6 +912,35 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
          'task': None,
          'type': 'PublishedFile',
          'version_number': 1}
+
+    When using the ``dry_run`` option, the returned data will look something like this::
+
+        >>> file_path = '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma'
+        >>> name = 'layout'
+        >>> version_number = 1
+        >>>
+        >>> sgtk.util.register_publish(
+            tk,
+            context,
+            file_path,
+            name,
+            version_number,
+            comment='Initial layout composition.',
+            published_file_type='Layout Scene'
+            dry_run=True
+        )
+
+        {'code': 'layout.v001.ma',
+         'description': 'Initial layout composition.',
+         'entity': {'id': 2, 'name': 'shot_010', 'type': 'Shot'},
+         'path': {'local_path': '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma'},
+         'project': {'id': 4, 'name': 'Demo Project', 'type': 'Project'},
+         'task': None,
+         'type': 'PublishedFile',
+         'version_number': 1}
+
+    Be aware that the data may be different if the ``before_register_publish``
+    hook has been overridden.
 
     **Parameters**
 
@@ -1442,6 +1471,8 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     data = tk.execute_core_hook(constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context)
 
     if dry_run:
+        # add the publish type to be as consistent as possible
+        data["type"] = published_file_entity_type
         log.debug("Dry run. Simply returning the data that would be sent to SG: %s" % pprint.pformat(data))
         return data
     else:
