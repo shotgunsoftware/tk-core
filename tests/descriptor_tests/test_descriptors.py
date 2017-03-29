@@ -13,6 +13,7 @@ import sgtk
 
 from tank_test.tank_test_base import *
 from tank.errors import TankError
+from tank.descriptor.errors import TankDescriptorError
 
 class TestDescriptorSupport(TankTestBase):
 
@@ -175,24 +176,37 @@ class TestDescriptorSupport(TankTestBase):
                                 ["v1.2.3", "v1.2.233", "v1.3.1"],
                                 "v1.x.2")
 
-    def test_loose_version_logic(self):
+    def test_pattern_version_logic(self):
         """
-        Test loose descriptor version logic
+        Test pattern and descriptor version logic
         """
         desc = self.tk.pipeline_configuration.get_app_descriptor({
             "type": "git",
             "path": "git@github.com:dummy/tk-multi-dummy.git",
             "version": "v0.0.0"
         })
-        # Test releases with a leading "v" but no "v" in the pattern
+        # Test regular releases
         releases = [
             "v1.0.1",
             "v1.0.2",
             "v1.0.10",
         ]
-        self.assertEqual(
-            desc._io_descriptor._find_latest_tag_by_pattern(releases, "x.x.x"),
-            "v1.0.10"
+        # Ensure un-supported patterns raise errors
+        self.assertRaises(
+            TankDescriptorError,
+            desc._io_descriptor._find_latest_tag_by_pattern, releases, "x.x.x",
+        )
+        self.assertRaises(
+            TankDescriptorError,
+            desc._io_descriptor._find_latest_tag_by_pattern, releases, "v1.x",
+        )
+        self.assertRaises(
+            TankDescriptorError,
+            desc._io_descriptor._find_latest_tag_by_pattern, releases, "vx.x-x",
+        )
+        self.assertRaises(
+            TankDescriptorError,
+            desc._io_descriptor._find_latest_tag_by_pattern, releases, "vx.x.x-rc",
         )
         # Test releases with various number of tokens
         releases = [
@@ -200,70 +214,70 @@ class TestDescriptorSupport(TankTestBase):
             "v1.0.2",
             "v1.0.10",
             "v2.0.3",
-            "v2.0.3.rc.1",
-            "v2.0.3.rc.2",
+            "v2.0.3-rc.1",
+            "v2.0.3-rc.2",
             "v2.1.0",
         ]
         self.assertEqual(
-            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v1"),
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v1.x.x"),
             "v1.0.10"
         )
         self.assertEqual(
-            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2"),
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.x.x"),
+            "v2.1.0"
+        )
+        self.assertEqual(
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "vx.x.x"),
             "v2.1.0"
         )
         self.assertEqual(
             desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.x.x.x"),
-            "v2.0.3.rc.2"
+            "v2.0.3-rc.2"
         )
         self.assertEqual(
-            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.0.3.rc.x"),
-            "v2.0.3.rc.2"
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.0.3-rc.x"),
+            "v2.0.3-rc.2"
         )
         self.assertIsNone(
             desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.x.x.x.x.x.x.x"),
         )
-        # Test topic releases where a ticket number is used as prefix
+        # Test topic releases where a ticket number is used as a topic.
         topic_releases = [
-            "123546_my_topic",
-            "123546_my_topic.1",
-            "123546_my_topic.1.1",
-            "123546_my_topic.1.2",
-            "123546_my_topic.2",
+            "v1.0.2-123546_my_topic",
+            "v1.0.2-123546_my_topic.1",
+            "v1.0.2-123546_my_topic.1.1",
+            "v1.0.2-123546_my_topic.1.2",
+            "v1.0.2-123546_my_topic.2",
         ]
         self.assertEqual(
-            desc._io_descriptor._find_latest_tag_by_pattern(topic_releases, "123546_my_topic"),
-            "123546_my_topic.2"
+            desc._io_descriptor._find_latest_tag_by_pattern(topic_releases, "vx.x.x-x"),
+            "v1.0.2-123546_my_topic.2"
         )
         self.assertEqual(
-            desc._io_descriptor._find_latest_tag_by_pattern(topic_releases, "123546_my_topic.x.x"),
-            "123546_my_topic.1.2"
+            desc._io_descriptor._find_latest_tag_by_pattern(topic_releases, "v1.0.2-123546_my_topic.x.x"),
+            "v1.0.2-123546_my_topic.1.2"
         )
-        # check that we don't interfere with "official" releases
-        self.assertIsNone(
-            desc._io_descriptor._find_latest_tag_by_pattern(topic_releases, "vx.x.x"),
-        )
-        # Tests releases where the major is an external software release
+        # Tests releases where an external software release is used as topic
         releases = [
-            "maya2015.1.0.1",
-            "maya2015.1.0.1.rc.2",
-            "maya2015.1.0.1.rc.10",
-            "maya2015.2.0.0",
-            "maya2017.1.0.1",
-            "maya2017.1.0.1.rc.2",
-            "maya2017.1.0.1.rc.10",
-            "maya2017.2.0.0",
+            "v1.0.1-maya2015",
+            "v1.0.1-maya2015.rc.2",
+            "v1.0.1-maya2015.rc.10",
+            "v2.0.0-maya2015",
+            "v1.0.1-maya2017",
+            "v1.0.1-maya2017.rc.2",
+            "v1.0.1-maya2017.rc.10",
+            "v2.0.0-maya2017",
         ]
         self.assertEqual(
-            desc._io_descriptor._find_latest_tag_by_pattern(releases, "maya2015"),
-            "maya2015.2.0.0"
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v1.0.1-maya2015"),
+            "v1.0.1-maya2015.rc.10"
         )
         self.assertEqual(
-            desc._io_descriptor._find_latest_tag_by_pattern(releases, "maya2015.1.0.1.rc"),
-            "maya2015.1.0.1.rc.10"
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v1.0.1-maya2015.rc"),
+            "v1.0.1-maya2015.rc.10"
         )
         self.assertEqual(
-            desc._io_descriptor._find_latest_tag_by_pattern(releases, "maya2017.x.x"),
-            "maya2017.2.0.0"
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.0.0-maya2017"),
+            "v2.0.0-maya2017"
         )
 

@@ -35,7 +35,7 @@ class TestResolver(TankTestBase):
         self._create_info_yaml(path)
 
         self.config_1 = {"type": "app_store", "version": "v0.1.2", "name": "tk-config-test"}
-        self.config_2 = {"type": "app_store", "version": "v0.1.4", "name": "tk-config-test"}
+        self.config_2 = {"type": "app_store", "version": "v0.1.4", "branch" : None, "name": "tk-config-test"}
 
         # set up a resolver
         self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(

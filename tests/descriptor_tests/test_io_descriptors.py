@@ -71,7 +71,7 @@ class TestIODescriptors(TankTestBase):
                     sg,
                     sgtk.descriptor.Descriptor.APP, {
                         "type": "app_store",
-                        "version": "%s.topic" % release,
+                        "version": "%s-topic" % release,
                         "branch": "topic",
                         "name": "tk-bundle"
                     },
