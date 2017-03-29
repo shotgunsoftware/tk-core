@@ -150,6 +150,25 @@ class ShotgunPath(object):
 
         return cls(windows_path, linux_path, macosx_path)
 
+    @classmethod
+    def normalize(cls, path):
+        """
+        Convenience method that normalizes the given path
+        by running it through the :class:`ShotgunPath` normalization
+        logic. ``ShotgunPath.normalize(path)`` is equivalent
+        to executing ``ShotgunPath.from_current_os_path(path).current_os``.
+
+        Normalization include checking that separators are matching the
+        current operating system, removal of trailing separators
+        and removal of double separators. This is done automatically
+        for all :class:`ShotgunPath`s but sometimes it is useful
+        to just perform the normalization quickly on a local path.
+
+        :param str path: Local operating system path to normalize
+        :return: Normalized path string.
+        """
+        return cls.from_current_os_path(path).current_os
+
     def __init__(self, windows_path=None, linux_path=None, macosx_path=None):
         """
         :param windows_path: Path on windows to associate with this path object

@@ -207,3 +207,12 @@ class TestShotgunPath(TankTestBase):
             self.assertEqual(gssk(), "mac_path")
         if sys.platform == "linux2":
             self.assertEqual(gssk(), "linux_path")
+
+    def test_normalize(self):
+        """
+        Tests get_shotgun_storage_key
+        """
+        if sys.platform == "win32":
+            self.assertEqual(ShotgunPath.normalize("C:/foo\\bar\\"), r"C:\foo\bar")
+        else:
+            self.assertEqual(ShotgunPath.normalize("/foo\\bar/"), "/foo/bar")

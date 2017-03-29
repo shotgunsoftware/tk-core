@@ -362,7 +362,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     path_is_url = False
     res = urlparse.urlparse(path)
     if res.scheme:
-        # handle windows drive letters - note this adds a limitation
+        # handle Windows drive letters - note this adds a limitation
         # but one that is not likely to be a problem as single-character
         # schemes are unlikely!
         if len(res.scheme) > 1 or not res.scheme.isalpha():
@@ -398,7 +398,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     else:
 
         # normalize the path to native slashes
-        norm_path = ShotgunPath.from_current_os_path(path).current_os
+        norm_path = ShotgunPath.normalize(path)
         if norm_path != path:
             log.debug("Normalized input path '%s' -> '%s'" % (path, norm_path))
             path = norm_path
@@ -631,7 +631,7 @@ def _calc_path_cache(tk, path):
     If the location cannot be computed, because the path does not belong
     to a valid root, (None, None) is returned.
     """
-    # paths may be c:/foo in Maya on windows - don't rely on os.sep here!
+    # paths may be c:/foo in Maya on Windows - don't rely on os.sep here!
 
     # normalize input path first c:\foo -> c:/foo
     norm_path = path.replace(os.sep, "/")

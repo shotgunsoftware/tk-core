@@ -85,7 +85,7 @@ def resolve_publish_path(tk, sg_publish_data):
     when you want to override these globals to behave differently on a
     specific machine or for a user. This can be done by defining an environment
     variable named on the form ``SHOTGUN_PATH_OS_STORAGENAME``. For example, if
-    you are running windows and your ``PRIMARY`` storage has been set up in
+    you are running Windows, your ``PRIMARY`` storage has been set up in
     Shotgun to be ``F:\`` and you want paths on your machine to resolve to ``G:\``
     instead, set an environment variable ``SHOTGUN_PATH_WINDOWS_PRIMARY=G:\``.
     The corresponding variables on Linux and Mac would be ``SHOTGUN_PATH_LINUX_PRIMARY``
@@ -107,11 +107,11 @@ def resolve_publish_path(tk, sg_publish_data):
       on the form ``SHOTGUN_PATH_WINDOWS|MAC|LINUX`` or ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME``
       will be added to the translation table.
 
-    - The ``file://`` path will be resolved compared against all the existing roots
+    - The ``file://`` path will be compared against all the existing roots
       for all operating systems. The first match detected will be used to translate
       the path into the current operating system platform.
 
-    - If the path does not match any storage, the raw file path is returned.
+    - If no root matches, the file path will be returned as is.
 
     For example, you have published the file ``/projects/some/file.txt`` on Linux
     and generated a publish with the url ``file:///projects/some/file.txt``. You have
@@ -121,7 +121,7 @@ def resolve_publish_path(tk, sg_publish_data):
     - Windows Path: ``Q:\projects``
     - Mac Path: ``/projects``
 
-    When running on windows, the ``file://`` url will therefore be translated to
+    When running on Windows, the ``file://`` url will therefore be translated to
     ``Q:\\projects\\some\\file.txt``.
 
     .. note:: If no value has been defined for the current operating system,
@@ -159,7 +159,13 @@ def resolve_publish_path(tk, sg_publish_data):
         "to local file on disk: '%s'" % (sg_publish_data["id"], pprint.pformat(path_field))
     )
 
-    # first offer it to the core hook
+    # first offer the resolve to the core hook
+    #
+    # note that we run this before the built-in logic beacuse we want to be able to add support
+    # for handling uploaded files (or something else) in the future, yet at the same time,
+    # by doing that we don't want to break any client integration. By putting the hook first,
+    # this is possible. If we put the hook last, we could affect the conditions under which
+    # the hook is being executed by introducing new features.
     custom_path = tk.execute_core_hook_method(
         "resolve_publish",
         "resolve_path",
@@ -194,11 +200,11 @@ def resolve_publish_path(tk, sg_publish_data):
 
 def __resolve_local_file_link(tk, attachment_data):
     """
-    Resolves the a given local path attachment into a local path.
+    Resolves the given local path attachment into a local path.
 
     Will look for an override environment variable named on the
     form ``SHOTGUN_PATH_OS_STORAGENAME``. For example, if
-    you are running windows and your ``PRIMARY`` storage has been set up in
+    you are running Windows, your ``PRIMARY`` storage has been set up in
     Shotgun to be ``F:\`` and you want paths on your machine to resolve to ``G:\``
     instead, set an environment variable ``SHOTGUN_PATH_WINDOWS_PRIMARY=G:\``.
     The corresponding variables on Linux and Mac would be ``SHOTGUN_PATH_LINUX_PRIMARY``
@@ -248,7 +254,7 @@ def __resolve_local_file_link(tk, attachment_data):
         )
 
     # normalize
-    local_path = ShotgunPath.from_current_os_path(local_path).current_os
+    local_path = ShotgunPath.normalize(local_path)
 
     # check override env var
     storage_name = attachment_data["local_storage"]["name"].upper()
@@ -261,7 +267,7 @@ def __resolve_local_file_link(tk, attachment_data):
         # we have an override
         override_root = os.environ[env_var_name]
         # normalize path
-        override_root = ShotgunPath.from_current_os_path(override_root).current_os
+        override_root = ShotgunPath.normalize(override_root)
         log.debug("Applying override '%s' to path '%s'" % (override_root, local_path))
 
         # get local storages to get path prefix to replace
@@ -278,7 +284,7 @@ def __resolve_local_file_link(tk, attachment_data):
 
 def __resolve_url_link(tk, attachment_data):
     """
-    Resolves the a given url attachment into a local path.
+    Resolves the given url attachment into a local path.
 
     The supports the resolution of ``file://`` urls into paths. Such urls
     are not multi platform and Shotgun local storages and environment variables
@@ -293,11 +299,11 @@ def __resolve_url_link(tk, attachment_data):
     - Override environment variables on the form ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME``
       will override any local storage paths.
 
-    - The ``file://`` path will be resolved compared against all the existing roots
+    - The ``file://`` path will be compared against all the existing roots
       for all operating systems. The first match detected will be used to translate
-      the path into the current operating system platform.
+      the path into a file path for the current platform.
 
-    - If there is no match against any storage, the file path be returned.
+    - If no root matches, the file path will be returned as is.
 
     For example, you have published the file ``/projects/some/file.txt`` on Linux
     and generated a publish with the url ``file:///projects/some/file.txt``. You have
@@ -360,7 +366,7 @@ def __resolve_url_link(tk, attachment_data):
     # >>> urlparse.urlparse("file:///path/to/some/file.txt")
     # ParseResult(scheme='file', netloc='', path='/path/to/some/file.txt', params='', query='', fragment='')
     #
-    # windows UNC path
+    # Windows UNC path
     # \\laptop\My Documents\FileSchemeURIs.doc -> file://laptop/My%20Documents/FileSchemeURIs.doc
     #
     # >>> urlparse.urlparse("file://laptop/My%20Documents/FileSchemeURIs.doc")
@@ -372,7 +378,7 @@ def __resolve_url_link(tk, attachment_data):
     # >>> urlparse.urlparse("file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc")
     # ParseResult(scheme='file', netloc='', path='/C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc', params='', query='', fragment='')
     #
-    # for information about windows, see
+    # for information about Windows, see
     # https://blogs.msdn.microsoft.com/ie/2006/12/06/file-uris-in-windows/
 
     if parsed_url.netloc:

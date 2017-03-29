@@ -179,12 +179,12 @@ Miscellaneous
 Exceptions
 ================================================
 
-.. autoclass:: sgtk.util.ShotgunPublishError
+.. autoclass:: sgtk.util.EnvironmentVariableFileLookupError
     :show-inheritance:
     :inherited-members:
     :members:
 
-.. autoclass:: sgtk.util.EnvironmentVariableFileLookupError
+.. autoclass:: sgtk.util.ShotgunPublishError
     :show-inheritance:
     :inherited-members:
     :members:
