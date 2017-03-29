@@ -34,15 +34,20 @@ def subprocess_check_output(*popenargs, **kwargs):
     """
     Run command with arguments and return its output as a byte string.
 
-    A python 2.6 compatible subprocess.check_output call.
+    A somewhat-python 2.6 compatible subprocess.check_output call.
     Subprocess.check_output was added to Python 2.7. For docs, see
     https://docs.python.org/2/library/subprocess.html#subprocess.check_output
 
     Adopted from from http://stackoverflow.com/questions/2924310
 
+    This version however doesn't allow to override stderr, stdout and stdin. stdin
+    is always closed right after launch and stderr is always redirected to stdout. This
+    is done in order to avoid DUPLICATE_SAME_ACCESS errors on Windows. Learn more about
+    it here: https://bugs.python.org/issue3905.
+
     :returns: The output from the command
     :raises: If the return code was non-zero it raises a SubprocessCalledProcessError.
-             The CalledProcessError object will have the return code in the returncode
+             The SubprocessCalledProcessError object will have the return code in the returncode
              attribute and any output in the output attribute.
     """
     if "stdout" in kwargs or "stderr" in kwargs or "stdin" in kwargs:
@@ -52,8 +57,7 @@ def subprocess_check_output(*popenargs, **kwargs):
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
         *popenargs, **kwargs
     )
-    # Very important to close stdin on Windows
-    # https://bugs.python.org/issue3905
+    # Very important to close stdin on Windows. See issue mentioned above.
     process.stdin.close()
     output, unused_err = process.communicate()
     retcode = process.poll()
