@@ -8,27 +8,37 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
+
 import os
 import sys
 import time
+import pprint
 import Queue
 import StringIO
-import cPickle as pickle
-import sqlite3
 import shutil
+import contextlib
 import logging
 
-from tank_test.tank_test_base import *
+from mock import Mock
+
+from tank_test.tank_test_base import TankTestBase, temp_env_var
+from tank_test.tank_test_base import setUpModule # noqa
 
 from tank import path_cache
 from tank import folder
 from tank import constants
+from tank import LogManager
+import tank
 
-def add_item_to_cache(path_cache, entity, path, primary = True):
-    
-    data = [{"entity": entity, "path": path, "primary": primary, "metadata": {} }]    
-    path_cache.add_mappings(data, None, [])    
-    
+log = LogManager.get_logger(__name__)
+
+
+def add_item_to_cache(path_cache, entity, path, primary=True):
+    data = [{"entity": entity, "path": path, "primary": primary, "metadata": {}}]
+    # Last two parameters are only used for debug logging, they can be empty.
+    path_cache.add_mappings(data, None, [])
+
 
 def sync_path_cache(tk, force_full_sync=False):
     """
@@ -50,8 +60,11 @@ def sync_path_cache(tk, force_full_sync=False):
     pc.synchronize(force_full_sync)
     pc.close()
 
+    # Do not close StringIO here, as on Python 2.5 this will cause some garbage to be printed
+    # when the unit tests are complete. The SteamIO object will be gc'ed anyway, so it shouldn't
+    # be too bad.
+
     log_contents = stream.getvalue()
-    stream.close()
     log.removeHandler(handler)
     return log_contents
 
@@ -733,7 +746,7 @@ class TestConcurrentShotgunSync(TankTestBase):
         while not all_processes_finished:
             time.sleep(0.1)
             sys.stderr.write(".")
-            all_processes_finished = all([not(p.is_alive()) for p in processes])
+            all_processes_finished = all(not(p.is_alive()) for p in processes)
 
         self.assertFalse(self._multiprocess_fail)
 
@@ -835,7 +848,7 @@ class TestConcurrentShotgunSync(TankTestBase):
 
             self.add_to_sg_mock_db([sg_shot, sg_folder, sg_event_log_entry])
 
-            if all([not(p.is_alive()) for p in processes]):
+            if all(not(p.is_alive()) for p in processes):
                 # all procs finished
                 break
 
@@ -847,3 +860,213 @@ class TestConcurrentShotgunSync(TankTestBase):
                     pass
 
         self.assertFalse(self._multiprocess_fail)
+
+
+class TestPathCacheDelete(TankTestBase):
+    """
+    Tests various scenarios where path cache entries are deleted and we incrementally sync these changes.
+    """
+
+    def setUp(self):
+        """
+        Creates a bunch of entities in Mockgun and adds an entry to the FilesystemLocation.
+        """
+        super(TestPathCacheDelete, self).setUp()
+
+        # Create a bunch of entities for unit testing.
+        self._project_link = self.mockgun.create("Project", {"name": "MyProject"})
+
+        self._shot_entity = self.mockgun.create("Shot", {"code": "MyShot", "project": self._project_link})
+        self._shot_entity["name"] = "MyShot"
+        self._shot_full_path = os.path.join(self.project_root, "shot")
+
+        self._asset_entity = self.mockgun.create("Asset", {"code": "MyAsset", "project": self._project_link})
+        self._asset_entity["name"] = "MyAsset"
+        self._asset_full_path = os.path.join(self.project_root, "asset")
+
+        self._pc = path_cache.PathCache(self.tk)
+
+        # Register the asset. This will be our sentinel to make sure we are not deleting too much stuff during
+        # the tests.
+        add_item_to_cache(self._pc, self._asset_entity, self._asset_full_path)
+
+        # Wrap some methods in a mock so we can track their usage.
+        self._pc._do_full_sync = Mock(wraps=self._pc._do_full_sync)
+        self._pc._import_filesystem_location_entry = Mock(wraps=self._pc._import_filesystem_location_entry)
+        self._pc._remove_filesystem_location_entities = Mock(wraps=self._pc._remove_filesystem_location_entities)
+
+    def tearDown(self):
+        """
+        Ensures our sentinel is still present.
+        """
+        try:
+            # Ensure nothing has messed with our asset.
+            paths = self._pc.get_paths(self._asset_entity["type"], self._asset_entity["id"], primary_only=True)
+            self.assertEqual(len(paths), 1)
+
+            # Ensure no full sync has happened. We're testing incremental syncs here!
+            self.assertEqual(self._pc._do_full_sync.called, False)
+        finally:
+            self._pc.close()
+            super(TestPathCacheDelete, self).tearDown()
+
+    @contextlib.contextmanager
+    def mock_remote_path_cache(self):
+        """
+        Mocks a remote path cache that can be updated.
+        """
+        # Override the SHOTGUN_HOME so that path cache is read from another location.
+        with temp_env_var(SHOTGUN_HOME=os.path.join(self.tank_temp, "other_path_cache_root")):
+            pc = path_cache.PathCache(self.tk)
+            pc.synchronize()
+            try:
+                yield pc
+            finally:
+                pc.close()
+
+    def test_simple_delete_by_paths(self):
+        """
+        Register and then unregister a folder for a shot.
+        """
+
+        # Add an entry.
+        add_item_to_cache(self._pc, self._shot_entity, self._shot_full_path)
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.assertEqual(len(paths), 1)
+
+        # Remove it from Shotgun.
+        self._remove_filesystem_locations_by_paths(paths)
+
+        # Synchronize everything back locally and make sure the path is now gone.
+        self._pc.synchronize()
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.assertListEqual(paths, [])
+
+    def test_reregister_under_new_name(self):
+        """
+        Ensures that unregistering something and then recreating it with another name on "another computer" will yield
+        the new name when consulting the local path cache.
+        """
+
+        # Register under the original name.
+        add_item_to_cache(self._pc, self._shot_entity, self._shot_full_path)
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.assertEqual(len(paths), 1)
+
+        # Remove that path from Shotgun.
+        self._remove_filesystem_locations_by_paths(paths)
+
+        # Let's pretend another computer created entries in Shotgun.
+        new_shot_path = os.path.join(self.project_root, "new_shot")
+        with self.mock_remote_path_cache() as pc:
+            add_item_to_cache(pc, self._shot_entity, new_shot_path)
+
+        # Now lets sync back all those changes locally.
+        self._pc.synchronize()
+
+        # We should only be seing the new one.
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.assertListEqual(paths, [new_shot_path])
+
+    def test_sync_entity_that_no_longer_has_an_entry(self):
+        """
+        Ensure that a synchronizing something that doesn't exist anymore works.
+        """
+        original_path = os.path.join(self.project_root, "orignal_path")
+
+        # Register something remotely and unregister it immediately.
+        with self.mock_remote_path_cache() as pc:
+            add_item_to_cache(pc, self._shot_entity, original_path)
+            self._remove_filesystem_locations_by_paths([original_path], pc)
+            paths = pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+            # "Remote" path cache should not be aware something was deleted.
+            self.assertListEqual(paths, [original_path])
+
+        # Local path cache should not be aware something was added.
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.assertListEqual(paths, [])
+
+        # Now synchronize the path cache.
+        self._pc.synchronize()
+        # We can't know when syncing if entries are currently in the cache, so this should always be called
+        self.assertEqual(self._pc._remove_filesystem_location_entities.call_count, 1)
+        # However, since there is no filsystem location anymore in Shotgun, we shouldn't have even tried
+        # to import it.
+        self.assertEqual(self._pc._import_filesystem_location_entry.call_count, 0)
+
+        # The entry should have been created and deleted, so there should be no paths.
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.assertListEqual(paths, [])
+
+    def test_sync_remote_path_cache_with_multiple_invalid_paths(self):
+        """
+        Ensures that a path cache entry that was registered, unregistered and registered again syncs correctly.
+        """
+
+        # Register an entry twice under different names.
+        updated_path = os.path.join(self.project_root, "updated_path")
+        original_path = os.path.join(self.project_root, "orignal_path")
+        with self.mock_remote_path_cache() as pc:
+            add_item_to_cache(pc, self._shot_entity, original_path)
+            self._remove_filesystem_locations_by_paths([original_path], pc)
+
+            # Sync the changes from Shotgun locally.
+            pc.synchronize()
+
+            add_item_to_cache(pc, self._shot_entity, original_path)
+            self._remove_filesystem_locations_by_paths([original_path], pc)
+
+            # Sync the changes from Shotgun locally.
+            pc.synchronize()
+
+            add_item_to_cache(pc, self._shot_entity, updated_path)
+            paths = pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+            self.assertListEqual(paths, [updated_path])
+
+        # At the moment the path cache should be empty.
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.assertEqual(len(paths), 0)
+
+        # Make sure we are only getting back the updated path.
+        self._pc.synchronize()
+        paths = self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True)
+        self.assertListEqual(paths, [updated_path])
+
+    def test_unregister_multiple_folders(self):
+        """
+        Ensures it is possible to unregister multiple folders from the path cache at the same time.
+        """
+        shot_path = os.path.join(self.project_root, "shot_path")
+
+        shot2_path = os.path.join(self.project_root, "shot2_path")
+        shot2_entity = self.tk.shotgun.create("Shot", {"code": "shot2"})
+        shot2_entity["name"] = "shot2"
+
+        add_item_to_cache(self._pc, self._shot_entity, shot_path)
+        add_item_to_cache(self._pc, shot2_entity, shot2_path)
+
+        with self.mock_remote_path_cache() as pc:
+            self._remove_filesystem_locations_by_paths([shot_path, shot2_path], pc)
+
+        self._pc.synchronize()
+
+        self.assertListEqual(
+            self._pc.get_paths(self._shot_entity["type"], self._shot_entity["id"], primary_only=True),
+            []
+        )
+
+        self.assertListEqual(
+            self._pc.get_paths(shot2_entity["type"], shot2_entity["id"], primary_only=True),
+            []
+        )
+
+    def _remove_filesystem_locations_by_paths(self, paths, pc=None):
+        """
+        Removes the FilesystemLocations entities from Shotgun associated with a given set of paths.
+
+        :param list paths: Paths that need to be unregistered.
+        :param pc: Path cache to sync with. If None, the one initialized during setUp will be used.
+        """
+        pc = pc or self._pc
+        path_ids = [pc.get_shotgun_id_from_path(p) for p in paths]
+        pc.remove_filesystem_location_entries(self.tk, path_ids)
