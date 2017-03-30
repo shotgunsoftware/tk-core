@@ -882,8 +882,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
             file_path,
             name,
             version_number,
-            comment = 'Initial layout composition.',
-            published_file_type = 'Layout Scene'
+            comment='Initial layout composition.',
+            published_file_type='Layout Scene'
         )
 
         {'code': 'layout.v001.ma',
@@ -907,6 +907,35 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
          'task': None,
          'type': 'PublishedFile',
          'version_number': 1}
+
+    When using the ``dry_run`` option, the returned data will look something like this::
+
+        >>> file_path = '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma'
+        >>> name = 'layout'
+        >>> version_number = 1
+        >>>
+        >>> sgtk.util.register_publish(
+            tk,
+            context,
+            file_path,
+            name,
+            version_number,
+            comment='Initial layout composition.',
+            published_file_type='Layout Scene'
+            dry_run=True
+        )
+
+        {'code': 'layout.v001.ma',
+         'description': 'Initial layout composition.',
+         'entity': {'id': 2, 'name': 'shot_010', 'type': 'Shot'},
+         'path': {'local_path': '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma'},
+         'project': {'id': 4, 'name': 'Demo Project', 'type': 'Project'},
+         'task': None,
+         'type': 'PublishedFile',
+         'version_number': 1}
+
+    Be aware that the data may be different if the ``before_register_publish``
+    hook has been overridden.
 
     **Parameters**
 
@@ -960,6 +989,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
         - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{'tag_list': ['foo', 'bar']}``)
 
+        - ``dry_run`` - Boolean. If set, do not actually create a database entry. Return the
+          dictionary of data that would be supplied to Shotgun to create the PublishedFile entity.
 
     :raises: :class:`ShotgunPublishError` on failure.
     :returns: The created entity dictionary.
@@ -988,6 +1019,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         created_at = kwargs.get("created_at")
         version_entity = kwargs.get("version_entity")
         sg_fields = kwargs.get("sg_fields", {})
+        dry_run = kwargs.get("dry_run", False)
 
         published_file_entity_type = get_published_file_entity_type(tk)
 
@@ -1026,37 +1058,40 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                                         created_by_user, 
                                         created_at, 
                                         version_entity,
-                                        sg_fields)
-
-        # upload thumbnails
-        log.debug("Publish: Uploading thumbnails")
-        if thumbnail_path and os.path.exists(thumbnail_path):
-
-            # publish
-            tk.shotgun.upload_thumbnail(published_file_entity_type, entity["id"], thumbnail_path)
-
-            # entity
-            if update_entity_thumbnail == True and context.entity is not None:
-                tk.shotgun.upload_thumbnail(context.entity["type"],
-                                            context.entity["id"],
-                                            thumbnail_path)
-
-            # task
-            if update_task_thumbnail == True and task is not None:
-                tk.shotgun.upload_thumbnail("Task", task["id"], thumbnail_path)
-
-        else:
-            # no thumbnail found - instead use the default one
-            this_folder = os.path.abspath(os.path.dirname(__file__))
-            no_thumb = os.path.join(this_folder, "resources", "no_preview.jpg")
-            tk.shotgun.upload_thumbnail(published_file_entity_type, entity.get("id"), no_thumb)
+                                        sg_fields,
+                                        dry_run=dry_run)
 
 
-        # register dependencies
-        log.debug("Publish: Register dependencies")
-        _create_dependencies(tk, entity, dependency_paths, dependency_ids)
+        if not dry_run:
+            # upload thumbnails
+            log.debug("Publish: Uploading thumbnails")
+            if thumbnail_path and os.path.exists(thumbnail_path):
 
-        log.debug("Publish: Complete")
+                # publish
+                tk.shotgun.upload_thumbnail(published_file_entity_type, entity["id"], thumbnail_path)
+
+                # entity
+                if update_entity_thumbnail == True and context.entity is not None:
+                    tk.shotgun.upload_thumbnail(context.entity["type"],
+                                                context.entity["id"],
+                                                thumbnail_path)
+
+                # task
+                if update_task_thumbnail == True and task is not None:
+                    tk.shotgun.upload_thumbnail("Task", task["id"], thumbnail_path)
+
+            else:
+                # no thumbnail found - instead use the default one
+                this_folder = os.path.abspath(os.path.dirname(__file__))
+                no_thumb = os.path.join(this_folder, "resources", "no_preview.jpg")
+                tk.shotgun.upload_thumbnail(published_file_entity_type, entity.get("id"), no_thumb)
+
+
+            # register dependencies
+            log.debug("Publish: Register dependencies")
+            _create_dependencies(tk, entity, dependency_paths, dependency_ids)
+            log.debug("Publish: Complete")
+
         return entity
     except Exception, e:
         # Log the exception so the original traceback is available
@@ -1178,7 +1213,7 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
                 
 
 def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type, 
-                           created_by_user, created_at, version_entity, sg_fields=None):
+                           created_by_user, created_at, version_entity, sg_fields=None, dry_run=False):
     """
     Creates a publish entity in shotgun given some standard fields.
 
@@ -1207,6 +1242,8 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     :param created_at: Timestamp to associate with publish or None for default.
     :param version_entity: Version dictionary to associate with publish or ``None``.
     :param sg_fields: Dictionary of additional data to add to publish.
+    :param dry_run: Don't actually create the published file entry. Simply
+                    return the data dictionary that would be supplied.
 
     :returns: The result of the shotgun API create method.
     """
@@ -1425,12 +1462,17 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
                     "name": data["code"]  # same as publish name
                 }
 
-
     # now call out to hook just before publishing
     data = tk.execute_core_hook(constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context)
 
-    log.debug("Registering publish in Shotgun: %s" % pprint.pformat(data))
-    return tk.shotgun.create(published_file_entity_type, data)
+    if dry_run:
+        # add the publish type to be as consistent as possible
+        data["type"] = published_file_entity_type
+        log.debug("Dry run. Simply returning the data that would be sent to SG: %s" % pprint.pformat(data))
+        return data
+    else:
+        log.debug("Registering publish in Shotgun: %s" % pprint.pformat(data))
+        return tk.shotgun.create(published_file_entity_type, data)
 
 def _calc_path_cache(tk, path):
     """
