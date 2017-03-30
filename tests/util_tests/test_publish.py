@@ -109,6 +109,16 @@ class TestShotgunRegisterPublish(TankTestBase):
         real_create = self.tk.shotgun.create
         self.tk.shotgun.create = create_mock
 
+        publish_data = tank.util.register_publish(
+            self.tk,
+            self.context,
+            seq_path,
+            self.name,
+            self.version,
+            dry_run=True
+        )
+        self.assertIsInstance(publish_data, dict)
+
         # mock sg.create, check it for path value
         try:
             tank.util.register_publish(self.tk, self.context, seq_path, self.name, self.version)
@@ -131,6 +141,16 @@ class TestShotgunRegisterPublish(TankTestBase):
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_url_paths(self, create_mock):
         """Tests the passing of urls via the path."""
+
+        publish_data = tank.util.register_publish(
+            self.tk,
+            self.context,
+            "file:///path/to/file with spaces.png",
+            self.name,
+            self.version,
+            dry_run=True
+        )
+        self.assertIsInstance(publish_data, dict)
 
         tank.util.register_publish(
             self.tk,
@@ -155,6 +175,16 @@ class TestShotgunRegisterPublish(TankTestBase):
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_url_paths_host(self, create_mock):
         """Tests the passing of urls via the path."""
+
+        publish_data = tank.util.register_publish(
+            self.tk,
+            self.context,
+            "https://site.com",
+            self.name,
+            self.version,
+            dry_run=True
+        )
+        self.assertIsInstance(publish_data, dict)
 
         tank.util.register_publish(
             self.tk,
@@ -192,6 +222,17 @@ class TestShotgunRegisterPublish(TankTestBase):
 
         # Various paths we support, Unix and Windows styles
         for local_path in values:
+
+            publish_data = tank.util.register_publish(
+                self.tk,
+                self.context,
+                local_path,
+                self.name,
+                self.version,
+                dry_run=True
+            )
+            self.assertIsInstance(publish_data, dict)
+
             tank.util.register_publish(
                 self.tk,
                 self.context,
@@ -254,6 +295,17 @@ class TestShotgunRegisterPublish(TankTestBase):
 
         # Various paths we support, Unix and Windows styles
         for (local_path, path_dict) in values.iteritems():
+
+            publish_data = tank.util.register_publish(
+                self.tk,
+                self.context,
+                local_path,
+                self.name,
+                self.version,
+                dry_run=True
+            )
+            self.assertIsInstance(publish_data, dict)
+
             tank.util.register_publish(
                 self.tk,
                 self.context,
@@ -280,6 +332,17 @@ class TestShotgunRegisterPublish(TankTestBase):
         # Publish with an invalid Version, no PublishEntity should have been
         # created
         with self.assertRaises(tank.util.ShotgunPublishError) as cm:
+
+            publish_data = tank.util.register_publish(
+                self.tk,
+                self.context,
+                "bad_version",
+                self.name,
+                { "id" : -1, "type" : "Version" },
+                dry_run=True
+            )
+            self.assertIsInstance(publish_data, dict)
+
             tank.util.register_publish(
                 self.tk,
                 self.context,
@@ -299,6 +362,18 @@ class TestShotgunRegisterPublish(TankTestBase):
             "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
             new=raise_value_error) as mock:
             with self.assertRaises(tank.util.ShotgunPublishError) as cm:
+
+                publish_data = tank.util.register_publish(
+                    self.tk,
+                    self.context,
+                    "Constant failure",
+                    self.name,
+                    self.version,
+                    dependencies= [-1],
+                    dry_run=True
+                )
+                self.assertIsInstance(publish_data, dict)
+
                 tank.util.register_publish(
                     self.tk,
                     self.context,
@@ -317,6 +392,18 @@ class TestShotgunRegisterPublish(TankTestBase):
             "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
             new=raise_io_error) as mock:
             with self.assertRaises(tank.util.ShotgunPublishError) as cm:
+
+                publish_data = tank.util.register_publish(
+                    self.tk,
+                    self.context,
+                    "dummy_path.txt",
+                    self.name,
+                    self.version,
+                    dependencies=[-1],
+                    dry_run=True
+                )
+                self.assertIsInstance(publish_data, dict)
+
                 tank.util.register_publish(
                     self.tk,
                     self.context,
