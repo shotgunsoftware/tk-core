@@ -1250,7 +1250,7 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
-        if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
+        if not self.__has_018_logging_support() and self.__log_handler and self.__log_handler.inside_dispatch:
             # special case: We are in legacy mode and all log messages are
             # dispatched to the log_xxx methods because this engine does not have an
             # _emit_log_message implementation. This is fine because typically old
