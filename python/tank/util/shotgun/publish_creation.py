@@ -278,7 +278,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
             else:
                 # no thumbnail found - instead use the default one
                 this_folder = os.path.abspath(os.path.dirname(__file__))
-                no_thumb = os.path.join(this_folder, "resources", "no_preview.jpg")
+                no_thumb = os.path.join(this_folder, os.path.pardir, "resources", "no_preview.jpg")
                 tk.shotgun.upload_thumbnail(published_file_entity_type, entity.get("id"), no_thumb)
 
             # register dependencies
