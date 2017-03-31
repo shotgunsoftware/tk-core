@@ -578,12 +578,21 @@ class ToolkitManager(object):
             project["id"] if project else None
         )
 
-        return resolver.find_matching_pipeline_configurations(
+        # Only return id, type and code fields.
+        pcs = []
+        for pc in resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login=self._sg_user.login,
-            sg_connection=self._sg_connection,
-            pc_entities=pc_entities,
-        )
+            sg_connection=self._sg_connection
+        ):
+            pcs.append({
+                "id": pc["id"],
+                "type": pc["type"],
+                "name": pc["code"],
+                "project": pc["project"],
+            })
+
+        return pcs
 
     def get_entity_from_environment(self):
         """
