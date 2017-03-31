@@ -338,11 +338,14 @@ class ConfigurationWriter(object):
         # This allows to centralize proxy settings in a shotgun.yml that
         # gets distributed every time a configuration is written.
         if os.path.exists(source_config_sg_file):
-            log.debug("shotgun.yml found in the config at %s", source_config_sg_file)
+            log.debug("shotgun.yml found in the config at '%s'.", source_config_sg_file)
             with open(source_config_sg_file, "rb") as fh:
                 metadata = yaml.load(fh)
         else:
-            log.debug("No shotgun.yml found in the config.")
+            log.debug(
+                "File '%s' does not exist in the config. shotgun.yml will only contain the host.",
+                source_config_sg_file
+            )
             metadata = {}
 
         with self._open_auto_created_yml(dest_config_sg_file) as fh:
@@ -356,7 +359,7 @@ class ConfigurationWriter(object):
             fh.write("\n")
             fh.write("# End of file.\n")
 
-        log.debug("Wrote %s" % dest_config_sg_file)
+        log.debug("Wrote %s", dest_config_sg_file)
 
     def write_pipeline_config_file(self, pipeline_config_id, project_id, plugin_id, bundle_cache_fallback_paths):
         """
