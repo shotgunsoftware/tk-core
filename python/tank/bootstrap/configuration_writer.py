@@ -320,7 +320,6 @@ class ConfigurationWriter(object):
 
         source_config_sg_file = os.path.join(
             descriptor.get_path(),
-            "config",
             "core",
             constants.CONFIG_SHOTGUN_FILE
         )
