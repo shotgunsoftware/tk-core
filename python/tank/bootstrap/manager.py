@@ -516,21 +516,7 @@ class ToolkitManager(object):
 
         return path
 
-    def get_resolved_pipeline_configuration_descriptor(self, project_id=None):
-        """
-        Resolves a pipeline configuration and returns its associated descriptor object.
-
-        :param int project_id: The id of the project to resolve a configuration for, or None.
-        """
-        if project_id is None:
-            return self._get_configuration(None, self.progress_callback).descriptor
-        else:
-            return self._get_configuration(
-                dict(type="Project", id=project_id),
-                self.progress_callback,
-            ).descriptor
-
-    def get_pipeline_configurations(self, project, pc_entities=None):
+    def get_pipeline_configurations(self, project, external_data=None):
         """
         Retrieves the pipeline configurations available for a given project.
 
@@ -560,7 +546,7 @@ class ToolkitManager(object):
             If ``None``, this will enumerate the pipeline configurations
             for the site configuration.
         :type project: Dictionary with keys ``type`` and ``id``.
-        :param list pc_entities: A list of PipelineConfiguration entity dictionaries. This
+        :param list external_data: A list of PipelineConfiguration entity dictionaries. This
             can be used to pass in pre-queried entities to take advantage of the filtering
             and ordering functionality without the need to re-query the data from Shotgun.
 
@@ -570,7 +556,7 @@ class ToolkitManager(object):
             will be first. Then the remaining pipeline configurations will be sorted by ``name`` field
             (case insensitive), then the ``project`` field and finally then ``id`` field.
         """
-        if pc_entities is None and isinstance(self.pipeline_configuration, int):
+        if external_data is None and isinstance(self.pipeline_configuration, int):
             raise TankBootstrapError("Can't enumerate pipeline configurations matching a specific id.")
 
         resolver = ConfigurationResolver(
@@ -583,7 +569,8 @@ class ToolkitManager(object):
         for pc in resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login=self._sg_user.login,
-            sg_connection=self._sg_connection
+            sg_connection=self._sg_connection,
+            external_data=external_data,
         ):
             pcs.append({
                 "id": pc["id"],
@@ -653,6 +640,20 @@ class ToolkitManager(object):
             entity = None
 
         return entity
+
+    def resolve_descriptor(self, project):
+        """
+        Resolves a pipeline configuration and returns its associated descriptor object.
+
+        :param dict project: The project entity, or None.
+        """
+        if project is None:
+            return self._get_configuration(None, self.progress_callback).descriptor
+        else:
+            return self._get_configuration(
+                project,
+                self.progress_callback,
+            ).descriptor
 
     def _log_startup_message(self, engine_name, entity):
         """
