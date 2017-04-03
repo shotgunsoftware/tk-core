@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.64 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.69 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.64 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.69 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -168,7 +168,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.64.<br>
+    <b>tk-core</b> v0.18.69.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1382,7 +1382,9 @@ instead sublcass <a class="reference internal" href="#sgtk.platform.Engine._emit
 <dl class="method">
 <dt id="sgtk.platform.Engine.get_debug_tracked_qt_widgets">
 <code class="descname">get_debug_tracked_qt_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.get_debug_tracked_qt_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.get_debug_tracked_qt_widgets" title="Permalink to this definition">¶</a></dt>
-<dd><p>Print debug info about created Qt dialogs and widgets</p>
+<dd><p>Returns a dictionary of debug info about created Qt dialogs and widgets.</p>
+<p>The keys of the dictionary are the string representation of a widget and the 
+corresponding value is a reference to that widget.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4516,7 +4518,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.64',
+            VERSION:'v0.18.69',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
