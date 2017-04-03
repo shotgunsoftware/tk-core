@@ -412,7 +412,7 @@ class ConfigurationResolver(object):
 
         return primary, user_project_configs, user_site_configs
 
-    def find_matching_pipeline_configurations(self, pipeline_config_name, current_login, sg_connection, pc_entities=None):
+    def find_matching_pipeline_configurations(self, pipeline_config_name, current_login, sg_connection, external_data=None):
         """
         Retrieves the pipeline configurations that can be used with this project.
 
@@ -422,7 +422,7 @@ class ConfigurationResolver(object):
             all pipeline configurations from the project will be matched.
         :param str current_login: Only retains non-primary configs from the specified user.
         :param ``shotgun_api3.Shotgun`` sg_connection: Connection to the Shotgun site.
-        :param list pc_entities: A list of PipelineConfiguration entity dictionaries. This
+        :param list external_data: A list of PipelineConfiguration entity dictionaries. This
             can be used to pass in pre-queried entities to take advantage of the filtering
             and ordering functionality without the need to re-query the data from Shotgun.
 
@@ -431,7 +431,7 @@ class ConfigurationResolver(object):
             will be first. Then the remaining pipeline configurations will be sorted by ``name`` field
             (case insensitive), then the ``project`` field and finally then ``id`` field.
         """
-        pcs = pc_entities or self._get_pipeline_configurations_for_project(
+        pcs = external_data or self._get_pipeline_configurations_for_project(
             pipeline_config_name,
             current_login,
             sg_connection,
