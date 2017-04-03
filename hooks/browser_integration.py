@@ -18,8 +18,33 @@ import sgtk
 
 class BrowserIntegration(sgtk.Hook):
     def get_cache_lookup_hash(self, entity_type, pc_descriptor):
-        pc_uri = pc_descriptor.get_uri()
-        return "%s@%s" % (pc_uri, entity_type)
+        """
+        Computes a unique key for a row in a cache database for the given
+        pipeline configuration descriptor and entity type.
+
+        :param str entity_type: The entity type.
+        :param pc_descriptor: A descriptor object for the pipeline configuration.
+
+        :returns: The computed lookup hash.
+        :rtype: str
+        """
+        return "%s@%s" % (pc_descriptor.get_uri(), entity_type)
 
     def get_cache_contents_hash(self, entity_type, pc_descriptor):
         return ""
+
+    def supported_entity_types(self):
+        """
+        Returns a whitelist of entity types that are supported.
+
+        :rtype: list
+        """
+        return [
+            "Asset",
+            "Project",
+            "PublishedFile",
+            "Sequence",
+            "Shot",
+            "Task",
+            "Version",
+        ]
