@@ -14,6 +14,12 @@ This file is almost always overridden by a standard config.
 
 """
 
+import os
+import hashlib
+import json
+import fnmatch
+import datetime
+
 import sgtk
 
 class BrowserIntegration(sgtk.Hook):
@@ -30,8 +36,35 @@ class BrowserIntegration(sgtk.Hook):
         """
         return "%s@%s" % (pc_descriptor.get_uri(), entity_type)
 
-    def get_cache_contents_hash(self, entity_type, pc_descriptor):
-        return ""
+    def get_cache_contents_hash(self, pc_descriptor):
+        hashsum = hashlib.md5()
+
+        sg = sgtk.platform.current_engine().shotgun
+        sw_entities = sg.find(
+            "Software",
+            [],
+            fields=sg.schema_field_read("Software").keys(),
+        )
+
+        hashsum.update(
+            json.dumps(
+                sw_entities,
+                sort_keys=True,
+                default=self.__json_default,
+            ),
+        )
+
+        if pc_descriptor.is_immutable() == False:
+            yml_files = dict()
+
+            for root, dir_names, file_names in os.walk(pc_descriptor.get_path()):
+                for file_name in fnmatch.filter(file_names, "*.yml"):
+                    full_path = os.path.join(root, file_name)
+                    yml_files[full_path] = os.path.getmtime(full_path)
+
+            hashsum.update(json.dumps(yml_files, sort_keys=True))
+
+        return hashsum.hexdigest()
 
     def supported_entity_types(self):
         """
@@ -48,3 +81,18 @@ class BrowserIntegration(sgtk.Hook):
             "Task",
             "Version",
         ]
+
+    def __json_default(self, item):
+        """
+        Fallback logic for serealization of items that are not natively supported by the
+        json library.
+
+        :param item: The item to be serialized.
+
+        :returns: A serialized equivalent of the given item.
+        """
+        if isinstance(item, datetime.datetime):
+            return item.isoformat()
+        raise TypeError("Item cannot be serialized: %s" % item)
+
+
