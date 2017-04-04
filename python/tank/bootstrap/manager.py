@@ -516,7 +516,7 @@ class ToolkitManager(object):
 
         return path
 
-    def get_pipeline_configurations(self, project, external_data=None):
+    def get_pipeline_configurations(self, project):
         """
         Retrieves the pipeline configurations available for a given project.
 
@@ -546,9 +546,6 @@ class ToolkitManager(object):
             If ``None``, this will enumerate the pipeline configurations
             for the site configuration.
         :type project: Dictionary with keys ``type`` and ``id``.
-        :param list external_data: A list of PipelineConfiguration entity dictionaries. This
-            can be used to pass in pre-queried entities to take advantage of the filtering
-            and ordering functionality without the need to re-query the data from Shotgun.
 
         :returns: List of pipeline configurations.
         :rtype: List of dictionaries with keys ``type``, ``id``, ``name`` and ``project``. The pipeline
@@ -556,7 +553,7 @@ class ToolkitManager(object):
             will be first. Then the remaining pipeline configurations will be sorted by ``name`` field
             (case insensitive), then the ``project`` field and finally then ``id`` field.
         """
-        if external_data is None and isinstance(self.pipeline_configuration, int):
+        if isinstance(self.pipeline_configuration, int):
             raise TankBootstrapError("Can't enumerate pipeline configurations matching a specific id.")
 
         resolver = ConfigurationResolver(
@@ -570,7 +567,6 @@ class ToolkitManager(object):
             pipeline_config_name=None,
             current_login=self._sg_user.login,
             sg_connection=self._sg_connection,
-            external_data=external_data,
         ):
             pcs.append({
                 "id": pc["id"],
@@ -640,6 +636,41 @@ class ToolkitManager(object):
             entity = None
 
         return entity
+
+    def sort_and_filter_configuration_entities(self, project, entities):
+        """
+        Takes the given list of PipelineConfiguration entities and sorts and
+        filters them according to project and the order in which they are to
+        be displayed in a user interface.
+
+        :param dict project: The project entity.
+        :param list entities: The list of PipelineConfiguration entity
+            dictionaries to sort and filter.
+
+        :returns: A list of PipelineConfiguration entities in display order.
+        :rtype: list
+        """
+        resolver = ConfigurationResolver(
+            self.plugin_id,
+            project["id"] if project else None
+        )
+
+        # Only return id, type and code fields.
+        pcs = []
+        for pc in resolver.find_matching_pipeline_configurations(
+            pipeline_config_name=None,
+            current_login=self._sg_user.login,
+            sg_connection=self._sg_connection,
+            external_data=entities,
+        ):
+            pcs.append({
+                "id": pc["id"],
+                "type": pc["type"],
+                "name": pc["code"],
+                "project": pc["project"],
+            })
+
+        return pcs
 
     def resolve_descriptor(self, project):
         """
