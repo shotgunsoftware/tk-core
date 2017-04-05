@@ -101,7 +101,7 @@ class BrowserIntegration(sgtk.Hook):
 
     def __json_default(self, item):
         """
-        Fallback logic for serealization of items that are not natively supported by the
+        Fallback logic for serialization of items that are not natively supported by the
         json library.
 
         :param item: The item to be serialized.
