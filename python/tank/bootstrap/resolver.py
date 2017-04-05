@@ -431,11 +431,21 @@ class ConfigurationResolver(object):
             will be first. Then the remaining pipeline configurations will be sorted by ``name`` field
             (case insensitive), then the ``project`` field and finally then ``id`` field.
         """
-        pcs = external_data or self._get_pipeline_configurations_for_project(
-            pipeline_config_name,
-            current_login,
-            sg_connection,
-        )
+        # Filter out anything not from the current project.
+        if external_data:
+            external_data = [
+                e for e in external_data if self._is_project_pc(e) and e["project"]["id"] == self._project_id
+            ]
+
+        if external_data is None:
+            pcs = self._get_pipeline_configurations_for_project(
+                pipeline_config_name,
+                current_login,
+                sg_connection,
+            )
+        else:
+            pcs = external_data
+
         # Filter out pipeline configurations that are not usable.
         primary, user_sanboxes_project, user_sandboxes_site = self._filter_pipeline_configurations(pcs)
 
