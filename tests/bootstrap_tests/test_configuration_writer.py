@@ -33,12 +33,14 @@ class TestShotgunYmlWriting(TankTestBase):
         Creates a fake config with the provided shotgun.yml data.
         """
         mock_config_root = os.path.join(self.tank_temp, "template", self.id())
-        shotgun_yml_root = os.path.join(mock_config_root, "config", "core")
-        os.makedirs(shotgun_yml_root)
+        # Make sure the bundle "exists" on disk.
+        os.makedirs(mock_config_root)
 
         if shotgun_yml_data:
-            with open(os.path.join(shotgun_yml_root, "shotgun.yml"), "wb") as fh:
-                yaml.dump(shotgun_yml_data, fh)
+            self.create_file(
+                os.path.join(mock_config_root, "core", "shotgun.yml"),
+                yaml.dump(shotgun_yml_data)
+            )
 
         return sgtk.descriptor.create_descriptor(
             self.mockgun,
