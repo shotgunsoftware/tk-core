@@ -41,6 +41,75 @@ class TestErrorHandling(TankTestBase):
 class TestFunctionality(TankTestBase):
 
     @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    def test_sort_filter_configuration(self, _):
+        mgr = ToolkitManager()
+        project = dict(type="Project", id=1)
+
+        # Empty entities in, empty entities out.
+        self.assertEqual(
+            mgr.sort_and_filter_configuration_entities(project, []),
+            [],
+        )
+
+        # Filters out non-project configs.
+        self.assertEqual(
+            mgr.sort_and_filter_configuration_entities(
+                project,
+                [
+                    dict(
+                        type="PipelineConfiguration",
+                        id=1,
+                        code="Tester",
+                        project=None,
+                    ),
+                ],
+            ),
+            [],
+        )
+
+        # Filters out configs from other projects.
+        self.assertEqual(
+            mgr.sort_and_filter_configuration_entities(
+                project,
+                [
+                    dict(
+                        type="PipelineConfiguration",
+                        id=1,
+                        code="Tester",
+                        project=dict(type="Project", id=11),
+                    ),
+                ],
+            ),
+            [],
+        )
+
+        # Sorts the primary config first.
+        primary_config = dict(
+            code="Primary",
+            project=project,
+            id=2,
+            type="PipelineConfiguration",
+        )
+        secondary_config = dict(
+            code="Secondary",
+            project=project,
+            id=1,
+            type="PipelineConfiguration",
+        )
+        # "code" becomes "name" in the output.
+        output = [
+            dict(name="Primary", project=project, id=2, type="PipelineConfiguration"),
+            dict(name="Secondary", project=project, id=1, type="PipelineConfiguration"),
+        ]
+        self.assertEqual(
+            mgr.sort_and_filter_configuration_entities(
+                project,
+                [secondary_config, primary_config],
+            ),
+            output,
+        )
+
+    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
     def test_pipeline_config_id_env_var(self, _):
         """
         Tests the SHOTGUN_PIPELINE_CONFIGURATION_ID being picked up at init

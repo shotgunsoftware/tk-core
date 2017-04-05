@@ -553,7 +553,6 @@ class ToolkitManager(object):
             will be first. Then the remaining pipeline configurations will be sorted by ``name`` field
             (case insensitive), then the ``project`` field and finally then ``id`` field.
         """
-
         if isinstance(self.pipeline_configuration, int):
             raise TankBootstrapError("Can't enumerate pipeline configurations matching a specific id.")
 
@@ -567,13 +566,13 @@ class ToolkitManager(object):
         for pc in resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login=self._sg_user.login,
-            sg_connection=self._sg_connection
+            sg_connection=self._sg_connection,
         ):
             pcs.append({
                 "id": pc["id"],
                 "type": pc["type"],
                 "name": pc["code"],
-                "project": pc["project"]
+                "project": pc["project"],
             })
 
         return pcs
@@ -637,6 +636,55 @@ class ToolkitManager(object):
             entity = None
 
         return entity
+
+    def sort_and_filter_configuration_entities(self, project, entities):
+        """
+        Takes the given list of PipelineConfiguration entities and sorts and
+        filters them according to project and the order in which they are to
+        be displayed in a user interface.
+
+        :param dict project: The project entity.
+        :param list entities: The list of PipelineConfiguration entity
+            dictionaries to sort and filter.
+
+        :returns: A list of PipelineConfiguration entities in display order.
+        :rtype: list
+        """
+        resolver = ConfigurationResolver(
+            self.plugin_id,
+            project["id"] if project else None
+        )
+
+        # Only return id, type and code fields.
+        pcs = []
+        for pc in resolver.find_matching_pipeline_configurations(
+            pipeline_config_name=None,
+            current_login=self._sg_user.login,
+            sg_connection=self._sg_connection,
+            external_data=entities,
+        ):
+            pcs.append({
+                "id": pc["id"],
+                "type": pc["type"],
+                "name": pc["code"],
+                "project": pc["project"],
+            })
+
+        return pcs
+
+    def resolve_descriptor(self, project):
+        """
+        Resolves a pipeline configuration and returns its associated descriptor object.
+
+        :param dict project: The project entity, or None.
+        """
+        if project is None:
+            return self._get_configuration(None, self.progress_callback).descriptor
+        else:
+            return self._get_configuration(
+                project,
+                self.progress_callback,
+            ).descriptor
 
     def _log_startup_message(self, engine_name, entity):
         """
