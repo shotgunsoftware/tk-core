@@ -21,6 +21,28 @@ import datetime
 import sgtk
 
 class BrowserIntegration(sgtk.Hook):
+    def filter_engine_commands(self, commands):
+        """
+        Filters out engine commands that are not desired in the web app menus.
+
+        :param list commands: The list of engine commands to filter.
+
+        :returns: A filtered list of engine commands.
+        :rtype: list
+        """
+        # Filter out any commands that didn't come from an app. This will
+        # filter out things like the "Reload and Restart" command.
+        filtered = dict()
+
+        for name, command in commands.iteritems():
+            if command.get("app") is not None:
+                filtered[name] = command
+            else:
+                sgtk.platform.current_engine().logger.debug(
+                    "Command filtered out for browser integration: %s" % command
+                )
+        return filtered
+
     def get_cache_lookup_hash(self, entity_type, pc_descriptor):
         """
         Computes a unique key for a row in a cache database for the given
