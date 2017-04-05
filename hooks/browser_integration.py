@@ -9,9 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Hook which chooses an environment file to use based on the current context.
-This file is almost always overridden by a standard config.
-
+Hook that provides utilities used by Toolkit's browser integration.
 """
 
 import os
@@ -37,15 +35,30 @@ class BrowserIntegration(sgtk.Hook):
         return "%s@%s" % (pc_descriptor.get_uri(), entity_type)
 
     def get_cache_contents_hash(self, pc_descriptor):
-        hashsum = hashlib.md5()
+        """
+        Computes an md5 hashsum for the given pipeline configuration. This
+        hash includes the state of all fields for all Software entities in
+        the current Shotgun site, and if the given pipeline configuration
+        is mutable, the modtimes of all yml files in the config.
 
+        :param pc_descriptor: The descriptor object for the pipeline config.
+
+        :returns: md5 hexdigest
+        :rtype: str
+        """
+        hashsum = hashlib.md5()
         sg = sgtk.platform.current_engine().shotgun
+
+        # We're going to get all data associated with all Software entities
+        # that exist.
         sw_entities = sg.find(
             "Software",
             [],
             fields=sg.schema_field_read("Software").keys(),
         )
 
+        # We dump the entities out as json, sorting on keys to ensure 
+        # consistent ordering of data.
         hashsum.update(
             json.dumps(
                 sw_entities,
@@ -54,6 +67,10 @@ class BrowserIntegration(sgtk.Hook):
             ),
         )
 
+        # If the config is mutable, we'll crawl its structure on disk, adding
+        # the modtimes of all yml files found. When they're added to the digest,
+        # we'll dump as json sorting alphanumeric on yml file name to ensure
+        # consistent ordering of data.
         if pc_descriptor.is_immutable() == False:
             yml_files = dict()
 
