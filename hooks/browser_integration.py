@@ -35,7 +35,7 @@ class BrowserIntegration(sgtk.Hook):
         filtered = dict()
 
         for name, command in commands.iteritems():
-            if command.get("app") is not None:
+            if command["properties"].get("app") is not None:
                 filtered[name] = command
             else:
                 sgtk.platform.current_engine().logger.debug(
