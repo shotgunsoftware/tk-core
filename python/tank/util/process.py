@@ -10,6 +10,7 @@
 
 import subprocess
 import pprint
+import sys
 
 from ..log import LogManager
 
@@ -58,7 +59,8 @@ def subprocess_check_output(*popenargs, **kwargs):
         *popenargs, **kwargs
     )
     # Very important to close stdin on Windows. See issue mentioned above.
-    process.stdin.close()
+    if sys.platform == "win32":
+        process.stdin.close()
     output, unused_err = process.communicate()
     retcode = process.poll()
 
