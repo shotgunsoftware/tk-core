@@ -88,13 +88,6 @@ class CachedConfiguration(Configuration):
             self._descriptor
         )
 
-    @property
-    def descriptor(self):
-        """
-        The pipeline configuration's descriptor.
-        """
-        return self._descriptor
-
     def status(self):
         """
         Compares the actual configuration installed on disk against the

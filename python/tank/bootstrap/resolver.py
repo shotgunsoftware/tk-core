@@ -496,7 +496,7 @@ class ConfigurationResolver(object):
 
         :returns: True if the pipeline configuration is attached to a project, False otherwise.
         """
-        return pc["project"] is not None
+        return "project" in pc and pc["project"] is not None
 
     def resolve_shotgun_configuration(
         self,

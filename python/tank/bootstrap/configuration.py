@@ -30,6 +30,7 @@ class Configuration(object):
         :param path: :class:`~sgtk.util.ShotgunPath` object describing the path to this configuration
         """
         self._path = path
+        self._descriptor = None
 
     def status(self):
         """
@@ -48,6 +49,14 @@ class Configuration(object):
         given by the associated descriptor.
         """
         raise NotImplementedError
+
+    @property
+    def descriptor(self):
+        """
+        Gets the descriptor object associated with the configuration.
+        :rtype: :class:`~sgtk.descriptor.Descriptor`
+        """
+        return self._descriptor
 
     @property
     def path(self):
