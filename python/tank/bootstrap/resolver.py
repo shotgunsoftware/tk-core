@@ -106,9 +106,17 @@ class ConfigurationResolver(object):
             # Convert into a ShotgunPath.
             config_path = ShotgunPath.from_current_os_path(config_path)
 
+            cfg_descriptor = create_descriptor(
+                sg_connection,
+                Descriptor.CONFIG,
+                dict(path=config_descriptor["path"], type="path"),
+                fallback_roots=self._bundle_cache_fallback_paths,
+                resolve_latest=False
+            )
+
             # The configuration path here points to the actual pipeline configuration that contains
             # config, cache and install folders.
-            return InstalledConfiguration(config_path)
+            return InstalledConfiguration(config_path, cfg_descriptor)
 
         elif config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
 
@@ -134,6 +142,14 @@ class ConfigurationResolver(object):
             if baked_config_root is None:
                 raise TankBootstrapError("Cannot locate %s!" % config_descriptor)
 
+            cfg_descriptor = create_descriptor(
+                sg_connection,
+                Descriptor.CONFIG,
+                dict(path=config_descriptor["path"], type="path"),
+                fallback_roots=self._bundle_cache_fallback_paths,
+                resolve_latest=False
+            )
+
             # create an object to represent our configuration install
             return BakedConfiguration(
                 baked_config_root,
@@ -141,7 +157,8 @@ class ConfigurationResolver(object):
                 self._project_id,
                 self._plugin_id,
                 None,  # pipeline config id
-                self._bundle_cache_fallback_paths
+                self._bundle_cache_fallback_paths,
+                cfg_descriptor
             )
 
         else:

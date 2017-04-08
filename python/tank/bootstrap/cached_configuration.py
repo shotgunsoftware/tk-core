@@ -60,7 +60,7 @@ class CachedConfiguration(Configuration):
                                    should be set to None.
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
-        super(CachedConfiguration, self).__init__(path)
+        super(CachedConfiguration, self).__init__(path, descriptor)
         self._path = path
         self._sg_connection = sg
         self._descriptor = descriptor

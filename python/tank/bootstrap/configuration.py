@@ -25,12 +25,12 @@ class Configuration(object):
 
     (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_DIFFERENT, LOCAL_CFG_INVALID) = range(4)
 
-    def __init__(self, path):
+    def __init__(self, path, descriptor=None):
         """
         :param path: :class:`~sgtk.util.ShotgunPath` object describing the path to this configuration
         """
         self._path = path
-        self._descriptor = None
+        self._descriptor = descriptor
 
     def status(self):
         """
