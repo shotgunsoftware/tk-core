@@ -103,9 +103,6 @@ class ConfigurationResolver(object):
                     "Installed pipeline configuration '%s' does not exist on disk!" % (config_path,)
                 )
 
-            # Convert into a ShotgunPath.
-            config_path = ShotgunPath.from_current_os_path(config_path)
-
             cfg_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.CONFIG,
@@ -113,6 +110,9 @@ class ConfigurationResolver(object):
                 fallback_roots=self._bundle_cache_fallback_paths,
                 resolve_latest=False
             )
+
+            # Convert into a ShotgunPath.
+            config_path = ShotgunPath.from_current_os_path(config_path)
 
             # The configuration path here points to the actual pipeline configuration that contains
             # config, cache and install folders.
@@ -145,7 +145,7 @@ class ConfigurationResolver(object):
             cfg_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.CONFIG,
-                dict(path=baked_config_root, type="path"),
+                dict(path=baked_config_path, type="path"),
                 fallback_roots=self._bundle_cache_fallback_paths,
                 resolve_latest=False
             )
