@@ -78,8 +78,10 @@ class UserSettingsTests(unittest.TestCase):
         settings = UserSettings()
         self.assertIsNone(settings.default_site)
         self.assertIsNone(settings.default_login)
+        self.assertFalse(settings.is_shotgun_proxy_set())
         self.assertIsNone(settings.shotgun_proxy)
         self.assertFalse(settings.is_app_store_proxy_set())
+        self.assertIsNone(settings.app_store_proxy)
 
     @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({
         "default_site": "site",
@@ -94,6 +96,7 @@ class UserSettingsTests(unittest.TestCase):
         settings = UserSettings()
         self.assertEqual(settings.default_site, "site")
         self.assertEqual(settings.default_login, "login")
+        self.assertTrue(settings.is_shotgun_proxy_set())
         self.assertEqual(settings.shotgun_proxy, "http_proxy")
         self.assertTrue(settings.is_app_store_proxy_set())
         self.assertEqual(settings.app_store_proxy, "app_store_http_proxy")
@@ -107,17 +110,23 @@ class UserSettingsTests(unittest.TestCase):
 
         with patch.dict(os.environ, {"http_proxy": "http://" + http_proxy}):
             settings = UserSettings()
+            self.assertFalse(settings.is_shotgun_proxy_set())
             self.assertEqual(settings.shotgun_proxy, http_proxy)
+            self.assertFalse(settings.is_app_store_proxy_set())
+            self.assertEqual(settings.app_store_proxy, http_proxy)
 
     @patch("tank.util.user_settings.UserSettings._load_config", return_value=MockConfigParser({
         # Config parser represent empty settings as empty strings
+        "http_proxy": "",
         "app_store_http_proxy": ""
     }))
-    def test_app_store_to_none(self, mock):
+    def test_proxy_to_none(self, mock):
         """
-        Tests a file with a present but empty app store proxy setting.
+        Tests a file with present but empty Shotgun proxy and app store proxy settings.
         """
         settings = UserSettings()
+        self.assertTrue(settings.is_shotgun_proxy_set())
+        self.assertEqual(settings.shotgun_proxy, None)
         self.assertTrue(settings.is_app_store_proxy_set())
         self.assertEqual(settings.app_store_proxy, None)
 

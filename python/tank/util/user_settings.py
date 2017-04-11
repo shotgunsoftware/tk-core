@@ -45,48 +45,83 @@ class UserSettings(Singleton):
         logger.debug("Default site: %s" % (self.default_site or "<missing>",))
         logger.debug("Default login: %s" % (self.default_login or "<missing>",))
 
-        self._settings_proxy = self._get_settings_proxy()
-        self._system_proxy = None
-        if self._settings_proxy:
-            logger.debug("Shotgun proxy (from settings): %s" % self._get_filtered_proxy(self._settings_proxy))
-        else:
-            self._system_proxy = self._get_system_proxy()
+        # Retrieve the operating system http proxy string,
+        # or None when it is not defined.
+        self._system_proxy = self._get_system_proxy()
+
+        # Retrieve the settings http proxy string (possibly an empty string),
+        # or None when it is not present in the file.
+        self._settings_proxy = self._get_value("http_proxy")
+
+        if self._settings_proxy is None:
+            # Since the http proxy is not present in the settings file,
+            # fall back on the operating system http proxy.
             if self._system_proxy:
                 logger.debug("Shotgun proxy (from system): %s" % self._get_filtered_proxy(self._system_proxy))
             else:
                 logger.debug("Shotgun proxy: <missing>")
-
-        proxy = self._get_filtered_proxy(self.app_store_proxy)
-        if self.is_app_store_proxy_set():
-            logger.debug("App Store proxy: %s" % (proxy or "<empty>",))
         else:
-            logger.debug("App Store proxy: <missing>")
+            if self._settings_proxy:
+                logger.debug("Shotgun proxy (from settings): %s" % self._get_filtered_proxy(self._settings_proxy))
+            else:
+                logger.debug("Shotgun proxy (from settings): <empty>")
+
+        # Retrieve the settings app store proxy string (possibly an empty string),
+        # or None when it is not present in the settings file.
+        self._app_store_proxy = self._get_value("app_store_http_proxy")
+
+        if self._app_store_proxy is None:
+            # Since the app store proxy is not present in the settings file,
+            # fall back on the operating system http proxy.
+            if self._system_proxy:
+                logger.debug("App Store proxy (from system): %s" % self._get_filtered_proxy(self._system_proxy))
+            else:
+                logger.debug("App Store proxy: <missing>")
+        else:
+            if self._app_store_proxy:
+                logger.debug("App Store proxy (from settings): %s" % self._get_filtered_proxy(self._app_store_proxy))
+            else:
+                logger.debug("App Store proxy (from settings): <empty>")
+
+    def is_shotgun_proxy_set(self):
+        """
+        :returns: ``True`` if ``http_proxy`` is present in the settings file,
+                  ``False`` otherwise.
+        """
+        return self._settings_proxy is not None
 
     @property
     def shotgun_proxy(self):
         """
-        :returns: The default proxy.
+        :returns: The settings http proxy when it is present and non-empty,
+                  or ``None`` when it is present and empty; otherwise,
+                  the operating system http proxy, or ``None`` when it is not defined.
+                  ``is_shotgun_proxy_set()`` can be used to disambiguate a ``None``.
         """
-
-        # Return the configuration settings http proxy string when it is specified;
-        # otherwise, return the operating system http proxy string.
-        return self._settings_proxy or self._system_proxy
+        if self._settings_proxy is None:
+            return self._system_proxy
+        else:
+            return self._settings_proxy or None
 
     def is_app_store_proxy_set(self):
         """
-        :returns: ``True`` if ``app_store_http_proxy`` is set, ``False`` otherwise.
+        :returns: ``True`` if ``app_store_http_proxy`` is present in the settings file,
+                  ``False`` otherwise.
         """
-        return self._is_setting_found("app_store_http_proxy")
+        return self._app_store_proxy is not None
 
     @property
     def app_store_proxy(self):
         """
-        :returns: The app store specific proxy. If ``None``, it means the setting is absent from the
-            file or set to an empty value. Use `is_app_store_proxy_set` to disambiguate.
+        :returns: The settings app store proxy when it is present and non-empty,
+                  or ``None`` when it is present and empty; otherwise,
+                  the operating system http proxy, or ``None`` when it is not defined.
+                  ``is_app_store_proxy_set()`` can be used to disambiguate a ``None``.
         """
-        # If the config parser returned a falsy value, it meant that the app_store_http_proxy
-        # setting was present but empty. We'll advertise that fact as None instead.
-        return self._get_value("app_store_http_proxy") or None
+        if self._app_store_proxy is None:
+            return self._system_proxy
+        else:
+            return self._app_store_proxy or None
 
     @property
     def default_site(self):
@@ -226,15 +261,6 @@ class UserSettings(Singleton):
             return "<your credentials have been removed for security reasons>@%s" % proxy.rsplit("@", 1)[-1]
         else:
             return proxy
-
-    def _get_settings_proxy(self):
-        """
-        Retrieves the configuration settings http proxy.
-
-        :returns: The configuration settings http proxy string or ``None`` when it is not specified.
-        """
-
-        return self._get_value("http_proxy")
 
     def _get_system_proxy(self):
         """
