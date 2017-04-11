@@ -21,7 +21,26 @@ import datetime
 import sgtk
 
 class BrowserIntegration(sgtk.Hook):
-    def process_commands(self, commands):
+    def get_cache_key(self, config_uri, project, entity_type):
+        """
+        Computes the key used to uniquely identify a row in the cache database for
+        the given pipeline configuration uri and entity type. This method can be used
+        to change how a specific entity type is cached, should that be desired.
+
+        .. Note:
+            Changing the logic in this method will invalidate related cache entries
+            that already exist in the cache.
+
+        :param str config_uri: A descriptor uri for the pipeline configuration.
+        :param dict project: The project entity.
+        :param str entity_type: The entity type.
+
+        :returns: A uniquely-identifiable key.
+        :rtype: str
+        """
+        return "%s@%s" % (config_uri, entity_type)
+
+    def process_commands(self, commands, project, entities):
         """
         Allows for pre-processing of the commands that will be returned to the client.
         The default implementation here makes use of this to filter out any commands
@@ -33,22 +52,26 @@ class BrowserIntegration(sgtk.Hook):
             about a command to be passed up to the client. Each dict will include
             the following keys: name, title, app_name, deny_permissions, and
             supports_multiple_selection.
+        :param dict project: The project entity.
+        :param list entities: A list of entity dictionaries representing all entities
+            that were selected in the web client.
+
+        .. Example:
+            dict(
+                name="launch_maya",
+                title="Maya 2017",
+                deny_permissions=[],
+                supports_multiple_selection=False,
+                app_name="tk-multi-launchapp",
+                group="Maya",
+                group_default=True,
+                engine_name="tk-maya",
+            )
 
         :returns: Processed commands.
         :rtype: list
         """
-        # Filter out any commands that didn't come from an app. This will
-        # filter out things like the "Reload and Restart" command.
-        filtered = list()
-
-        for command in commands:
-            if command["app_name"] is not None:
-                filtered.append(command)
-            else:
-                sgtk.platform.current_engine().logger.debug(
-                    "Command filtered out for browser integration: %s" % command
-                )
-        return filtered
+        return commands
 
 
 
