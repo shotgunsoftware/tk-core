@@ -307,9 +307,9 @@ class IODescriptorBase(object):
         one ones which are listing all its versions as subfolders under
         a root location.
 
-        :return: list of version strings
+        :return: dictionary of bundle paths, keyed by version string
         """
-        all_versions = set()
+        all_versions = {}
         for possible_cache_path in self._get_cache_paths():
             # get the parent folder for the current version path
             parent_folder = os.path.dirname(possible_cache_path)
@@ -323,9 +323,9 @@ class IODescriptorBase(object):
                     if os.path.isdir(version_full_path) and \
                             not version_folder.startswith("_") and \
                             not version_folder.startswith("."):
-                        all_versions.add(version_folder)
+                        all_versions[version_folder] = version_full_path
 
-        return list(all_versions)
+        return all_versions
 
 
     def copy(self, target_path):
