@@ -263,7 +263,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             log.warning("%s does not support version constraint patterns." % self)
 
         log.debug("Looking for cached versions of %r..." % self)
-        all_versions = self._get_locally_cached_versions()
+        all_versions = self._get_locally_cached_versions().keys()
         log.debug("Found %d versions" % len(all_versions))
 
         if len(all_versions) == 0:
