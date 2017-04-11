@@ -100,7 +100,22 @@ are on the following form::
     sgtk:descriptor:app_store?name=tk-core&version=v12.3.4
 
 App store may also have an optional ``label`` parameter. This indicates that the descriptor is tracking
-against a particular label in the app store and will not download updates which do not have the label assigned.
+against a particular label in the app store and will not download updates which do not have the label assigned:
+
+    {
+        type: app_store,
+        name: tk-core,
+        version: v12.3.4,
+        label: v2018.3
+    }
+
+    sgtk:descriptor:app_store?name=tk-core&version=v12.3.4&label=v2018.3
+
+A label can for example be used by plugins that are bundled with DCCs to only receive app store updates
+targeting that particular DCC version. If you for example are running a plugin bundled together with
+v2017 of a DCC, the plugin can be set up to track against the latest released version of
+``sgtk:descriptor:app_store?name=tk-config-dcc&label=v2017``. In this case, when the descriptor is checking
+for the latest available version in the app store, only versions labelled with v2017 will be taken into account.
 
 
 Shotgun

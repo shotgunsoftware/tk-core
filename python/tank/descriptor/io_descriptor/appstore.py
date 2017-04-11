@@ -151,15 +151,15 @@ class IODescriptorAppStore(IODescriptorBase):
         # Toolkit App Store Framework tk-framework-shotgunutils v1.2.3
         # Toolkit App Store Core v1.2.3
         if self._type == Descriptor.CORE:
-            str = "Toolkit App Store Core %s" % self._version
+            display_name = "Toolkit App Store Core %s" % self._version
         else:
             display_name = display_name_lookup[self._type]
-            str = "Toolkit App Store %s %s %s" % (display_name, self._name, self._version)
+            display_name = "Toolkit App Store %s %s %s" % (display_name, self._name, self._version)
 
         if self._label:
-            str += " [label %s]" % self._label
+            display_name += " [label %s]" % self._label
 
-        return str
+        return display_name
 
     def __load_cached_app_store_metadata(self, path):
         """
