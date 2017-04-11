@@ -99,6 +99,10 @@ are on the following form::
 
     sgtk:descriptor:app_store?name=tk-core&version=v12.3.4
 
+App store may also have an optional ``label`` parameter. This indicates that the descriptor is tracking
+against a particular label in the app store and will not download updates which do not have the label assigned.
+
+
 Shotgun
 ============
 
