@@ -109,7 +109,7 @@ class ConfigurationResolver(object):
             cfg_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.CONFIG,
-                dict(path=config_descriptor["path"], type="path"),
+                dict(path=config_path, type="path"),
                 fallback_roots=self._bundle_cache_fallback_paths,
                 resolve_latest=False
             )
@@ -145,7 +145,7 @@ class ConfigurationResolver(object):
             cfg_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.CONFIG,
-                dict(path=config_descriptor["path"], type="path"),
+                dict(path=baked_config_root, type="path"),
                 fallback_roots=self._bundle_cache_fallback_paths,
                 resolve_latest=False
             )
