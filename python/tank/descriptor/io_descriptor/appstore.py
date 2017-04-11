@@ -14,6 +14,7 @@ Toolkit App Store Descriptor.
 
 import os
 import urllib
+import fnmatch
 import urllib2
 import httplib
 from tank_vendor.shotgun_api3.lib import httplib2
@@ -484,7 +485,7 @@ class IODescriptorAppStore(IODescriptorBase):
             for (version_str, path) in all_versions.iteritems():
                 metadata = self.__load_cached_app_store_metadata(path)
                 try:
-                    if self._label in metadata["sg_version_data"]["tag_list"]:
+                    if self.__match_label(metadata["sg_version_data"]["tag_list"]):
                         version_numbers.append(version_str)
                 except Exception, e:
                     log.debug("Could not determine label metadata for %s. Ignoring." % path)
@@ -534,39 +535,21 @@ class IODescriptorAppStore(IODescriptorBase):
 
         :returns: IODescriptorAppStore object
         """
-        if constraint_pattern:
-            return self._find_latest_for_pattern(constraint_pattern)
-        else:
-            return self._find_latest()
+        log.debug(
+            "Determining latest version for %r given constraint pattern %s" % (self, constraint_pattern)
+        )
 
-    def _find_latest_for_pattern(self, version_pattern):
-        """
-        Returns an object representing the latest version
-        of the sought after object. If no matching item is found, an
-        exception is raised.
-
-        :param version_pattern: If this is specified, the query will be constrained
-               by the given pattern. Version patterns are on the following forms:
-
-                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
-                - v0.12.x - get the highest v0.12 version
-                - v1.x.x - get the highest v1 version
-
-        :returns: IODescriptorAppStore instance
-        """
         # connect to the app store
         (sg, _) = self.__create_sg_app_store_connection()
 
         # get latest get the filter logic for what to exclude
         if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
-            latest_filter = [["sg_status_list", "is_not", "bad"]]
+            sg_filter = [["sg_status_list", "is_not", "bad"]]
         else:
-            latest_filter = [["sg_status_list", "is_not", "rev"],
-                             ["sg_status_list", "is_not", "bad"]]
-
-        if self._label:
-            # only looks for items with the given tag
-            latest_filter.append(["tag_list", "is", self._label])
+            sg_filter = [
+                ["sg_status_list", "is_not", "rev"],
+                ["sg_status_list", "is_not", "bad"]
+            ]
 
         if self._type != self.CORE:
             # find the main entry
@@ -582,34 +565,60 @@ class IODescriptorAppStore(IODescriptorBase):
             # now get all versions
             link_field = self._APP_STORE_LINK[self._type]
             entity_type = self._APP_STORE_VERSION[self._type]
-            sg_data = sg.find(
-                entity_type,
-                [[link_field, "is", sg_bundle_data]] + latest_filter,
-                self._VERSION_FIELDS_TO_CACHE
-            )
+            sg_filter += [[link_field, "is", sg_bundle_data]]
+
         else:
-
+            # core doesn't have a parent entity for its versions
             sg_bundle_data = None
+            entity_type = constants.TANK_CORE_VERSION_ENTITY_TYPE
 
-            # now get all versions
-            sg_data = sg.find(
-                constants.TANK_CORE_VERSION_ENTITY_TYPE,
-                filters=latest_filter,
-                fields=self._VERSION_FIELDS_TO_CACHE
-            )
+        # optimization: if there is no constraint pattern and no label
+        # set, just download the latest record
+        if self._label is None and constraint_pattern is None:
+            # only download one record
+            limit = 1
+        else:
+            limit = 0  # all records
 
-        if len(sg_data) == 0:
+        # now get all versions
+        sg_versions = sg.find(
+            entity_type,
+            filters=sg_filter,
+            fields=self._VERSION_FIELDS_TO_CACHE,
+            order=[{"field_name": "created_at", "direction": "desc"}],
+            limit=limit
+        )
+
+        log.debug("Downloaded data for %d versions from Shotgun." % len(sg_versions))
+
+        # now filter out all labels that aren't matching
+        matching_records = []
+        for sg_version_entry in sg_versions:
+            if self.__match_label(sg_version_entry["tag_list"]):
+                matching_records.append(sg_version_entry)
+
+        log.debug("After applying label filters, %d records remain." % len(matching_records))
+
+        if len(matching_records) == 0:
             raise TankDescriptorError("Cannot find any versions for %s in the App store!" % self)
 
-        version_numbers = [x.get("code") for x in sg_data]
-        version_to_use = self._find_latest_tag_by_pattern(version_numbers, version_pattern)
-        if version_to_use is None:
-            raise TankDescriptorError(
-                "'%s' does not have a version matching the pattern '%s'. "
-                "Available versions are: %s" % (self.get_system_name(), version_pattern, ", ".join(version_numbers))
-            )
-        # get the sg data for the given version
-        sg_data_for_version = [d for d in sg_data if d["code"] == version_to_use][0]
+        # and filter out based on version constraint
+        if constraint_pattern:
+
+            version_numbers = [x.get("code") for x in matching_records]
+            version_to_use = self._find_latest_tag_by_pattern(version_numbers, constraint_pattern)
+            if version_to_use is None:
+                raise TankDescriptorError(
+                    "'%s' does not have a version matching the pattern '%s'. "
+                    "Available versions are: %s" % (self.get_system_name(), constraint_pattern, ", ".join(version_numbers))
+                )
+            # get the sg data for the given version
+            sg_data_for_version = [d for d in matching_records if d["code"] == version_to_use][0]
+
+        else:
+            # no constraints applied. Pick first (latest) match
+            sg_data_for_version = matching_records[0]
+            version_to_use = sg_data_for_version["code"]
 
         # make a descriptor dict
         descriptor_dict = {
@@ -632,89 +641,29 @@ class IODescriptorAppStore(IODescriptorBase):
 
         return desc
 
-    def _find_latest(self):
+    def __match_label(self, tag_list):
         """
-        Returns an IODescriptorAppStore object representing the latest version
-        of the sought after object. If no matching item is found, an
-        exception is raised.
+        Given a list of tags, see if it matches the given label
 
-        :returns: IODescriptorAppStore instance
+        Shotgun tags are glob style: *, 2017.*, 2018.2
+
+        :param tag_list: list of tags (strings) from shotgun
+        :return: True if matching false if not
         """
-        # connect to the app store
-        (sg, _) = self.__create_sg_app_store_connection()
+        if self._label is None:
+            # no label set - all matching!
+            return True
 
-        # get latest
-        # get the filter logic for what to exclude
-        if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
-            latest_filter = [["sg_status_list", "is_not", "bad"]]
-        else:
-            latest_filter = [["sg_status_list", "is_not", "rev"],
-                             ["sg_status_list", "is_not", "bad"]]
+        if tag_list is None:
+            # no tags defined, so no match
+            return False
 
-        if self._label:
-            # only looks for items with the given tag
-            latest_filter.append(["tag_list", "is", self._label])
+        # glob match each item
+        for tag in tag_list:
+            if fnmatch.fnmatch(self._label, tag):
+                return True
 
-        if self._type != self.CORE:
-            # items other than core have a main entity that represents
-            # app/engine/etc.
-
-            # find the main entry
-            sg_bundle_data = sg.find_one(
-                self._APP_STORE_OBJECT[self._type],
-                [["sg_system_name", "is", self._name]],
-                self._BUNDLE_FIELDS_TO_CACHE
-            )
-
-            if sg_bundle_data is None:
-                raise TankDescriptorError("App store does not contain an item named '%s'!" % self._name)
-
-            # now get the version
-            link_field = self._APP_STORE_LINK[self._type]
-            entity_type = self._APP_STORE_VERSION[self._type]
-            sg_version_data = sg.find_one(
-                entity_type,
-                filters=[[link_field, "is", sg_bundle_data]] + latest_filter,
-                fields=self._VERSION_FIELDS_TO_CACHE,
-                order=[{"field_name": "created_at", "direction": "desc"}]
-            )
-
-        else:
-
-            sg_bundle_data = None
-
-            # core API
-            sg_version_data = sg.find_one(
-                constants.TANK_CORE_VERSION_ENTITY_TYPE,
-                filters=latest_filter,
-                fields=self._VERSION_FIELDS_TO_CACHE,
-                order=[{"field_name": "created_at", "direction": "desc"}]
-            )
-
-        if sg_version_data is None:
-            raise TankDescriptorError("Cannot find any versions for %s in the App store!" % self)
-
-        version_str = sg_version_data.get("code")
-        if version_str is None:
-            raise TankDescriptorError("Invalid version number for %s" % sg_version_data)
-
-        # make a descriptor dict
-        descriptor_dict = {"type": "app_store",
-                           "name": self._name,
-                           "version": version_str}
-        if self._label:
-            descriptor_dict["label"] = self._label
-
-        # and return a descriptor instance
-        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
-        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
-
-        # if this item exists locally, attempt to update the metadata cache
-        # this ensures that if labels are added in the app store, these
-        # are correctly cached locally.
-        desc.__refresh_metadata(sg_bundle_data, sg_version_data)
-
-        return desc
+        return False
 
     @LogManager.log_timing
     def __create_sg_app_store_connection(self):
