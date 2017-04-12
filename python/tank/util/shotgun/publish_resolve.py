@@ -77,15 +77,7 @@ def resolve_publish_path(tk, sg_publish_data):
     Read more about local file links `here <https://support.shotgunsoftware.com/hc/en-us/articles/219030938-Linking-to-local-files>`_.
 
     Local file storage mappings in Shotgun are global and affect
-    all machines, all users and all projects. Sometimes there are cases
-    when you want to override these globals to behave differently on a
-    specific machine or for a user. This can be done by defining an environment
-    variable named of the form ``SHOTGUN_PATH_OS_STORAGENAME``. For example, if
-    you are running Windows, your ``PRIMARY`` storage has been set up in
-    Shotgun to be ``F:\`` and you want paths on your machine to resolve to ``G:\``
-    instead, set an environment variable ``SHOTGUN_PATH_WINDOWS_PRIMARY=G:\``.
-    The corresponding variables on Linux and Mac would be ``SHOTGUN_PATH_LINUX_PRIMARY``
-    and ``SHOTGUN_PATH_MAC_PRIMARY``.
+    all machines, all users and all projects.
 
     .. note:: If no storage has been defined for the current operating system,
               a :class:`~sgtk.util.PublishPathNotDefinedError` is raised.
@@ -99,9 +91,9 @@ def resolve_publish_path(tk, sg_publish_data):
     - First, local storage settings will be downloaded from Shotgun and added to
       a path translation table.
 
-    - Next, similar to the local file linking above, any environment variables
-      of the form ``SHOTGUN_PATH_WINDOWS|MAC|LINUX`` or ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME``
-      will be added to the translation table.
+    - Next, any environment variables of the form ``SHOTGUN_PATH_WINDOWS|MAC|LINUX``
+      or ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME`` will be added
+      to the translation table.
 
     - The ``file://`` path will be compared against all the existing roots
       for all operating systems. The first match detected will be used to translate
@@ -198,14 +190,6 @@ def __resolve_local_file_link(tk, attachment_data):
     """
     Resolves the given local path attachment into a local path.
 
-    Will look for an override environment variable named on the
-    form ``SHOTGUN_PATH_OS_STORAGENAME``. For example, if
-    you are running Windows, your ``PRIMARY`` storage has been set up in
-    Shotgun to be ``F:\`` and you want paths on your machine to resolve to ``G:\``
-    instead, set an environment variable ``SHOTGUN_PATH_WINDOWS_PRIMARY=G:\``.
-    The corresponding variables on Linux and Mac would be ``SHOTGUN_PATH_LINUX_PRIMARY``
-    and ``SHOTGUN_PATH_MAC_PRIMARY``.
-
     If no storage has been defined for the current operating system,
     a :class:`~sgtk.util.PublishPathNotDefinedError` is raised.
 
@@ -251,29 +235,6 @@ def __resolve_local_file_link(tk, attachment_data):
 
     # normalize
     local_path = ShotgunPath.normalize(local_path)
-
-    # check override env var
-    storage_name = attachment_data["local_storage"]["name"].upper()
-    storage_id = attachment_data["local_storage"]["id"]
-    os_name = {"win32": "WINDOWS", "linux2": "LINUX", "darwin": "MAC"}[sys.platform]
-    env_var_name = "SHOTGUN_PATH_%s_%s" % (os_name, storage_name)
-    log.debug("Looking for override env var '%s'" % env_var_name)
-
-    if env_var_name in os.environ:
-        # we have an override
-        override_root = os.environ[env_var_name]
-        # normalize path
-        override_root = ShotgunPath.normalize(override_root)
-        log.debug("Applying override '%s' to path '%s'" % (override_root, local_path))
-
-        # get local storages to get path prefix to replace
-        storage = [s for s in get_cached_local_storages(tk) if s['id'] == storage_id][0]
-        # normalize and compare
-        local_storage_root = ShotgunPath.from_shotgun_dict(storage).current_os
-        # apply modification
-        local_path = override_root + local_path[len(local_storage_root):]
-        log.debug("Overridden path: '%s'" % local_path)
-
     log.debug("Resolved local file link: '%s'" % local_path)
     return local_path
 
