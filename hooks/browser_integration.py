@@ -12,12 +12,6 @@
 Hook that provides utilities used by Toolkit's browser integration.
 """
 
-import os
-import hashlib
-import json
-import fnmatch
-import datetime
-
 import sgtk
 
 class BrowserIntegration(sgtk.Hook):
@@ -39,6 +33,37 @@ class BrowserIntegration(sgtk.Hook):
         :rtype: str
         """
         return "%s@%s" % (config_uri, entity_type)
+
+    def get_site_state_data(self):
+        """
+        Builds a list of dictionaries matching the kwargs expected by the
+        Shotgun Python API's find method. These will be queried at the time
+        when a contents state hash is generated during cache population or
+        lookup. This hash is then used to verify that the data found in the
+        cache is still valid. Customization of this method's logic can be
+        used to control what determines whether cached data is valid or not.
+        By default, we track the state of the Shotgun site's Software entities
+        to determine whether any fields there have changed since the data was
+        cached.
+
+        .. Note:
+            Changing the logic in this method will invalidate related cache
+            entries that already exist in the cache.
+
+        :returns: A list of dictionaries containing kwargs that will be passed
+            to the Shotgun Python API's find method.
+        :rtype: list
+        """
+        data_requests = []
+        data_requests.append(
+            dict(
+                entity_type="Software",
+                filters=[],
+                fields=self.parent.shotgun.schema_field_read("Software").keys(),
+            )
+        )
+
+        return data_requests
 
     def process_commands(self, commands, project, entities):
         """
