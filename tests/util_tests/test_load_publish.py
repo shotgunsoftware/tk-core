@@ -239,53 +239,6 @@ class TestLocalFileLink(TankTestBase):
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, local_path)
 
-    def test_override(self):
-        """
-        test override of local file links via env vars
-        """
-        sg_dict = {
-            "id": 123,
-            "type": "PublishedFile",
-            "code": "foo",
-            "path": {
-                'content_type': 'image/png',
-                'id': 25826,
-                'link_type': 'local',
-                'local_path': None,
-                'local_path_linux': '/local/path/to/file.ext',
-                'local_path_mac': '/local/path/to/file.ext',
-                'local_path_windows': r'X:\path\to\file.ext',
-                'local_storage': {'id': 2,
-                               'name': 'home',
-                               'type': 'LocalStorage'},
-                'name': 'foo.png',
-                'type': 'Attachment',
-                'url': 'file:///local/path/to/file.ext'
-            }
-        }
-
-        # get the current os platform
-        local_path = {
-            "win32": sg_dict["path"]["local_path_windows"],
-            "linux2": sg_dict["path"]["local_path_linux"],
-            "darwin": sg_dict["path"]["local_path_mac"],
-        }[sys.platform]
-        sg_dict["path"]["local_path"] = local_path
-
-        # set override
-        os.environ["SHOTGUN_PATH_WINDOWS_HOME"] = "Y:\\"
-        os.environ["SHOTGUN_PATH_MAC_HOME"] = "/local2"
-        os.environ["SHOTGUN_PATH_LINUX_HOME"] = "/local3"
-
-        # final paths
-        expected_path = {
-            "win32": r"Y:\path\to\file.ext",
-            "linux2": "/local3/path/to/file.ext",
-            "darwin": "/local2/path/to/file.ext",
-        }[sys.platform]
-
-        evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
-        self.assertEqual(evaluated_path, expected_path)
 
 
 class TestUrlNoStorages(TankTestBase):
