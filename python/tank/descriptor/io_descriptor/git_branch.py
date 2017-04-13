@@ -13,6 +13,7 @@ import copy
 from .git import IODescriptorGit
 from ..errors import TankDescriptorError
 from ... import LogManager
+from ...util import filesystem
 
 log = LogManager.get_logger(__name__)
 
@@ -126,6 +127,10 @@ class IODescriptorGitBranch(IODescriptorGit):
         # cache into the primary location
         target = self._get_primary_cache_path()
 
+        # create settings folder
+        settings_folder = self._get_settings_folder(target)
+        filesystem.ensure_folder_exists(settings_folder)
+
         try:
             # clone the repo, switch to the given branch
             # then reset to the given commit
@@ -140,6 +145,11 @@ class IODescriptorGitBranch(IODescriptorGit):
                 "Could not download %s, branch %s, "
                 "commit %s: %s" % (self._path, self._branch, self._version, e)
             )
+
+        # write end receipt
+        filesystem.touch_file(
+            os.path.join(settings_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+        )
 
 
     def get_latest_version(self, constraint_pattern=None):

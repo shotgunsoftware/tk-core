@@ -420,6 +420,10 @@ class IODescriptorAppStore(IODescriptorBase):
         # create folder
         filesystem.ensure_folder_exists(target)
 
+        # create settings folder
+        settings_folder = self._get_settings_folder(target)
+        filesystem.ensure_folder_exists(settings_folder)
+
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
 
@@ -455,6 +459,11 @@ class IODescriptorAppStore(IODescriptorBase):
         data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
         data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
         sg.create("EventLogEntry", data)
+
+        # write end receipt
+        filesystem.touch_file(
+            os.path.join(settings_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+        )
 
     #############################################################################
     # searching for other versions

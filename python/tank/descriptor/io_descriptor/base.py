@@ -40,6 +40,9 @@ class IODescriptorBase(object):
     systems: There may be an app descriptor which knows how to communicate with the
     Tank App store and one which knows how to handle the local file system.
     """
+
+    _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "download_complete"
+
     def __init__(self, descriptor_dict):
         """
         Constructor
@@ -542,6 +545,12 @@ class IODescriptorBase(object):
         """
         return True
 
+    def is_downloading_content(self):
+        """
+        Returns true if this descriptor downloads its content.
+        """
+        return True
+
     def ensure_local(self):
         """
         Convenience method. Ensures that the descriptor exists locally.
@@ -554,7 +563,35 @@ class IODescriptorBase(object):
         """
         Returns true if this item exists in a locally accessible form
         """
-        return self.get_path() is not None
+        # first get the path
+        path = self.get_path()
+
+        if not path:
+            # not on disk!
+            return False
+
+        if self.is_downloading_content():
+
+            # check for
+            settings_folder = self._get_settings_folder(path)
+            completed_file_flag = os.path.join(settings_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+
+            if os.path.exists(completed_file_flag):
+                return True
+            elif not os.path.exists(settings_folder):
+                # legacy case - the download does not have a begin file so it was not
+                # downloaded as part of a 'transaction'
+                return True
+            else:
+                # we have a partial download
+                log.debug(
+                    "Note: Missing download complete ticket file '%s' - suggests partial download" % completed_file_flag
+                )
+                return False
+
+        else:
+            # skip check
+            return True
 
     def _get_primary_cache_path(self):
         """
@@ -569,6 +606,12 @@ class IODescriptorBase(object):
         :return: Path to the bundle cache location for this item.
         """
         return self._get_bundle_cache_path(self._bundle_cache_root)
+
+    def _get_settings_folder(self, path):
+        """
+        Returns the corresponding settings folder given a path
+        """
+        return "%s.cfg" % path
 
     def _get_cache_paths(self):
         """
