@@ -62,8 +62,6 @@ class TestIODescriptors(TankTestBase):
         self.assertEqual(d.get_path(), app_path)
         self.assertEqual(d.find_latest_cached_version(), d)
 
-
-
         self.assertEqual(d2.get_path(), None)
 
         app_path = os.path.join(root, "app_store", "tk-bundle", "v1.2.1")
@@ -88,7 +86,6 @@ class TestIODescriptors(TankTestBase):
         self.assertEqual(d.find_latest_cached_version("v1.2.x"), d2)
         self.assertEqual(d.find_latest_cached_version("v1.x.x"), d3)
         self.assertEqual(d.find_latest_cached_version("v2.x.x"), None)
-
 
     def test_cache_locations(self):
         """
@@ -129,3 +126,48 @@ class TestIODescriptors(TankTestBase):
             ]
         )
 
+    def test_download_receipt(self):
+        """
+        Tests the download receipt logic
+        """
+
+        sg = self.tk.shotgun
+        root = os.path.join(self.project_root, "cache_root")
+
+        d = sgtk.descriptor.create_descriptor(
+            sg,
+            sgtk.descriptor.Descriptor.APP,
+            {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"},
+            bundle_cache_root_override=root
+        )
+
+        self.assertEqual(d.get_path(), None)
+        self.assertEqual(d.find_latest_cached_version(), None)
+
+        app_path = os.path.join(root, "app_store", "tk-bundle", "v1.1.1")
+        path = os.path.join(app_path, "info.yml")
+
+        os.makedirs(app_path)
+        fh = open(path, "wt")
+        fh.write("test data\n")
+        fh.close()
+
+        self.assertEqual(d.get_path(), app_path)
+        self.assertEqual(d.find_latest_cached_version(), d)
+
+        # create settings folder
+        settings_dir = "%s.settings" % app_path
+        os.makedirs(settings_dir)
+
+        # because download receipt is missing, nothing is detected
+        self.assertEqual(d.get_path(), None)
+        self.assertEqual(d.find_latest_cached_version(), None)
+
+        # add download receipt and re-check
+        path = os.path.join(settings_dir, "download_complete")
+        fh = open(path, "wt")
+        fh.write("test data\n")
+        fh.close()
+
+        self.assertEqual(d.get_path(), app_path)
+        self.assertEqual(d.find_latest_cached_version(), d)
