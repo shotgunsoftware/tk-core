@@ -68,10 +68,8 @@ class BrowserIntegration(sgtk.Hook):
     def process_commands(self, commands, project, entities):
         """
         Allows for pre-processing of the commands that will be returned to the client.
-        The default implementation here makes use of this to filter out any commands
-        that were not registered by an app. This will remove standard commands that
-        are not desirable for display in the SG web app, such as the
-        "Reload and Restart" command.
+        Overriding the logic in this method could be used, for example, to filter out
+        certain commands from being passed up to the client.
 
         :param list commands: A list of dictionaries, each containing information
             about a command to be passed up to the client. Each dict will include
