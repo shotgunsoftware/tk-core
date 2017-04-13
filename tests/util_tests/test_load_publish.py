@@ -460,7 +460,7 @@ class TestUrlWithEnvVars(TankTestBase):
 
 class TestUrlWithStorages(TankTestBase):
     """
-    Tests url resolution with local storages and environment variables
+    Tests url resolution with local storages
     """
 
     def setUp(self):
@@ -595,6 +595,120 @@ class TestUrlWithStorages(TankTestBase):
             "win32": r"x:\storage1_win\path\to\file",
             "linux2": "/storage1_linux/path/to/file",
             "darwin": "/storage1_mac/path/to/file",
+        }[sys.platform]
+
+        evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
+        self.assertEqual(evaluated_path, expected_path)
+
+
+class TestUrlWithStoragesAndOverrides(TankTestBase):
+    """
+    Tests url resolution with local storages and environment overrides
+    """
+
+    def setUp(self):
+        super(TestUrlWithStoragesAndOverrides, self).setUp()
+
+        self.setup_fixtures()
+
+        self.storage = {
+            "type": "LocalStorage",
+            "id": 1,
+            "code": "storage_1",
+            "windows_path": r"\\storage_win",
+        }
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db([self.storage])
+
+
+    def test_augument_local_storage(self):
+        """
+        Test that we can add add an os platform via an env var
+        """
+        sg_dict = {
+            "id": 123,
+            "type": "PublishedFile",
+            "code": "foo",
+            "path": {
+                "url": "file://storage_win/path/to/file",
+                "type": "Attachment",
+                "name": "bar.baz",
+                "link_type": "web",
+                "content_type": None
+            }
+        }
+
+        os.environ["SHOTGUN_PATH_MAC_STORAGE_1"] = "/storage_mac"
+        os.environ["SHOTGUN_PATH_LINUX_STORAGE_1"] = "/storage_linux"
+
+        # final paths
+        expected_path = {
+            "win32": r"\\storage_win\path\to\file",
+            "linux2": "/storage_linux/path/to/file",
+            "darwin": "/storage_mac/path/to/file",
+        }[sys.platform]
+
+        evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
+        self.assertEqual(evaluated_path, expected_path)
+
+
+class TestUrlWithStoragesAndOverrides2(TankTestBase):
+    """
+    Tests url resolution with local storages and environment overrides
+    """
+
+    def setUp(self):
+        super(TestUrlWithStoragesAndOverrides2, self).setUp()
+
+        self.setup_fixtures()
+
+        self.storage = {
+            "type": "LocalStorage",
+            "id": 1,
+            "code": "storage_1",
+            "mac_path": "/storage_mac",
+            "windows_path": "x:\\storage_win\\",
+            "linux_path": "/storage_linux/"
+
+        }
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db([self.storage])
+
+        os.environ["SHOTGUN_PATH_MAC_STORAGE_1"] = "/storage_mac_alt"
+        os.environ["SHOTGUN_PATH_LINUX_STORAGE_1"] = "/storage_linux_alt"
+        os.environ["SHOTGUN_PATH_WINDOWS_STORAGE_1"] = "x:\\storage_win_alt"
+
+    def tearDown(self):
+        del os.environ["SHOTGUN_PATH_MAC_STORAGE_1"]
+        del os.environ["SHOTGUN_PATH_LINUX_STORAGE_1"]
+        del os.environ["SHOTGUN_PATH_WINDOWS_STORAGE_1"]
+
+        super(TestUrlWithStoragesAndOverrides2, self).tearDown()
+
+    def test_augument_local_storage(self):
+        """
+        Tests that local storages take precedence over env vars.
+        """
+        sg_dict = {
+            "id": 123,
+            "type": "PublishedFile",
+            "code": "foo",
+            "path": {
+                "url": "file:///x:/storage_win/path/to/file",
+                "type": "Attachment",
+                "name": "bar.baz",
+                "link_type": "web",
+                "content_type": None
+            }
+        }
+
+        # final paths
+        expected_path = {
+            "win32": r"x:\storage_win\path\to\file",
+            "linux2": "/storage_linux/path/to/file",
+            "darwin": "/storage_mac/path/to/file",
         }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
