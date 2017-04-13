@@ -387,11 +387,31 @@ def __resolve_url_link(tk, attachment_data):
                 storage_lookup[storage_name] = ShotgunPath()
 
             if platform == "WINDOWS":
-                storage_lookup[storage_name].windows = os.environ[env_var]
+                if storage_lookup[storage_name].windows:
+                    # this path was already defined by a sg local storage
+                    log.warning("Discovered env var %s, however a Shotgun local storage already "
+                                "defines '%s' to be '%s'. Your environment override "
+                                "will be ignored." % (env_var, storage_name, storage_lookup[storage_name].windows))
+                else:
+                    storage_lookup[storage_name].windows = os.environ[env_var]
+
             elif platform == "MAC":
-                storage_lookup[storage_name].macosx = os.environ[env_var]
+                if storage_lookup[storage_name].macosx:
+                    # this path was already defined by a sg local storage
+                    log.warning("Discovered env var %s, however a Shotgun local storage already "
+                                "defines '%s' to be '%s'. Your environment override "
+                                "will be ignored." % (env_var, storage_name, storage_lookup[storage_name].macosx))
+                else:
+                    storage_lookup[storage_name].macosx = os.environ[env_var]
+
             else:
-                storage_lookup[storage_name].linux = os.environ[env_var]
+                if storage_lookup[storage_name].linux:
+                    # this path was already defined by a sg local storage
+                    log.warning("Discovered env var %s, however a Shotgun local storage already "
+                                "defines '%s' to be '%s'. Your environment override "
+                                "will be ignored." % (env_var, storage_name, storage_lookup[storage_name].linux))
+                else:
+                    storage_lookup[storage_name].linux = os.environ[env_var]
 
     # now see if the given url starts with any storage def in our setup
     for storage, sg_path in storage_lookup.iteritems():
