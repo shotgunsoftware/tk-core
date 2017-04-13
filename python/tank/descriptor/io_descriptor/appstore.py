@@ -185,7 +185,7 @@ class IODescriptorAppStore(IODescriptorBase):
         return metadata
 
     @LogManager.log_timing
-    def __refresh_metadata(self, sg_bundle_data=None, sg_version_data=None):
+    def __refresh_metadata(self, path, sg_bundle_data=None, sg_version_data=None):
         """
         Refreshes the metadata cache on disk. The metadata cache contains
         app store information such as deprecation status, label information
@@ -197,21 +197,14 @@ class IODescriptorAppStore(IODescriptorBase):
         If the descriptor resides in a read-only bundle cache, for example
         baked into a DCC distribution, the cache will not be updated.
 
+        :param path: The path to the bundle where cache info should be written
         :param sg_bundle_data, sg_version_data: Shotgun data to cache
         :returns: A dictionary with keys 'sg_bundle_data' and 'sg_version_data',
                   containing Shotgun metadata.
         """
         log.debug("Attempting to refresh app store metadata for %r" % self)
 
-        # see if a cached version exists
-        local_bundle_path = self.get_path()
-
-        if local_bundle_path is None:
-            # if we don't have bundle cached locally yet, skip
-            log.debug("Bundle does not exist on disk yet. Skipping metadata caching")
-            return
-
-        cache_file = os.path.join(self.get_path(), METADATA_FILE)
+        cache_file = os.path.join(path, METADATA_FILE)
         log.debug("Will attempt to refresh cache in %s" % cache_file)
 
         if sg_version_data:  # no none-check for sg_bundle_data param since this is none for tk-core
@@ -428,7 +421,7 @@ class IODescriptorAppStore(IODescriptorBase):
         (sg, script_user) = self.__create_sg_app_store_connection()
 
         # fetch metadata from sg...
-        metadata = self.__refresh_metadata()
+        metadata = self.__refresh_metadata(target)
 
         # now get the attachment info
         version = metadata.get("sg_version_data")
@@ -646,7 +639,9 @@ class IODescriptorAppStore(IODescriptorBase):
         # if this item exists locally, attempt to update the metadata cache
         # this ensures that if labels are added in the app store, these
         # are correctly cached locally.
-        desc.__refresh_metadata(sg_bundle_data, sg_data_for_version)
+        cached_path = desc.get_path()
+        if cached_path:
+            desc.__refresh_metadata(cached_path, sg_bundle_data, sg_data_for_version)
 
         return desc
 
