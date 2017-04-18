@@ -36,7 +36,8 @@ class BakedConfiguration(Configuration):
             project_id,
             plugin_id,
             pipeline_config_id,
-            bundle_cache_fallback_paths
+            bundle_cache_fallback_paths,
+            descriptor
     ):
         """
         Constructor.
@@ -55,8 +56,9 @@ class BakedConfiguration(Configuration):
                                    not have an associated entity in Shotgun, this
                                    should be set to None.
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
+        :param descriptor: ConfigDescriptor for the associated config
         """
-        super(BakedConfiguration, self).__init__(path)
+        super(BakedConfiguration, self).__init__(path, descriptor)
         self._path = path
         self._sg_connection = sg
         self._project_id = project_id

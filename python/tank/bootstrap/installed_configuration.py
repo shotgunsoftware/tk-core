@@ -22,14 +22,12 @@ class InstalledConfiguration(Configuration):
     command of the pre-zero config project creation wizard in Shotgun Desktop.
     """
 
-    def __init__(self, path):
+    def __init__(self, path, descriptor):
         """
         :param str path: ShotgunPath object describing the path to this configuration
-        :param bool has_local_bundle_cache: If True, is means this configuration
-            has a local cache and therefore doesn't need the global bundle cache be populated
-            with its bundles.
+        :param descriptor: ConfigDescriptor for the associated config
         """
-        super(InstalledConfiguration, self).__init__(path)
+        super(InstalledConfiguration, self).__init__(path, descriptor)
 
     def __str__(self):
         """
