@@ -239,53 +239,6 @@ class TestLocalFileLink(TankTestBase):
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, local_path)
 
-    def test_override(self):
-        """
-        test override of local file links via env vars
-        """
-        sg_dict = {
-            "id": 123,
-            "type": "PublishedFile",
-            "code": "foo",
-            "path": {
-                'content_type': 'image/png',
-                'id': 25826,
-                'link_type': 'local',
-                'local_path': None,
-                'local_path_linux': '/local/path/to/file.ext',
-                'local_path_mac': '/local/path/to/file.ext',
-                'local_path_windows': r'X:\path\to\file.ext',
-                'local_storage': {'id': 2,
-                               'name': 'home',
-                               'type': 'LocalStorage'},
-                'name': 'foo.png',
-                'type': 'Attachment',
-                'url': 'file:///local/path/to/file.ext'
-            }
-        }
-
-        # get the current os platform
-        local_path = {
-            "win32": sg_dict["path"]["local_path_windows"],
-            "linux2": sg_dict["path"]["local_path_linux"],
-            "darwin": sg_dict["path"]["local_path_mac"],
-        }[sys.platform]
-        sg_dict["path"]["local_path"] = local_path
-
-        # set override
-        os.environ["SHOTGUN_PATH_WINDOWS_HOME"] = "Y:\\"
-        os.environ["SHOTGUN_PATH_MAC_HOME"] = "/local2"
-        os.environ["SHOTGUN_PATH_LINUX_HOME"] = "/local3"
-
-        # final paths
-        expected_path = {
-            "win32": r"Y:\path\to\file.ext",
-            "linux2": "/local3/path/to/file.ext",
-            "darwin": "/local2/path/to/file.ext",
-        }[sys.platform]
-
-        evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
-        self.assertEqual(evaluated_path, expected_path)
 
 
 class TestUrlNoStorages(TankTestBase):
@@ -507,7 +460,7 @@ class TestUrlWithEnvVars(TankTestBase):
 
 class TestUrlWithStorages(TankTestBase):
     """
-    Tests url resolution with local storages and environment variables
+    Tests url resolution with local storages
     """
 
     def setUp(self):
@@ -642,6 +595,120 @@ class TestUrlWithStorages(TankTestBase):
             "win32": r"x:\storage1_win\path\to\file",
             "linux2": "/storage1_linux/path/to/file",
             "darwin": "/storage1_mac/path/to/file",
+        }[sys.platform]
+
+        evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
+        self.assertEqual(evaluated_path, expected_path)
+
+
+class TestUrlWithStoragesAndOverrides(TankTestBase):
+    """
+    Tests url resolution with local storages and environment overrides
+    """
+
+    def setUp(self):
+        super(TestUrlWithStoragesAndOverrides, self).setUp()
+
+        self.setup_fixtures()
+
+        self.storage = {
+            "type": "LocalStorage",
+            "id": 1,
+            "code": "storage_1",
+            "windows_path": r"\\storage_win",
+        }
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db([self.storage])
+
+
+    def test_augument_local_storage(self):
+        """
+        Test that we can add add an os platform via an env var
+        """
+        sg_dict = {
+            "id": 123,
+            "type": "PublishedFile",
+            "code": "foo",
+            "path": {
+                "url": "file://storage_win/path/to/file",
+                "type": "Attachment",
+                "name": "bar.baz",
+                "link_type": "web",
+                "content_type": None
+            }
+        }
+
+        os.environ["SHOTGUN_PATH_MAC_STORAGE_1"] = "/storage_mac"
+        os.environ["SHOTGUN_PATH_LINUX_STORAGE_1"] = "/storage_linux"
+
+        # final paths
+        expected_path = {
+            "win32": r"\\storage_win\path\to\file",
+            "linux2": "/storage_linux/path/to/file",
+            "darwin": "/storage_mac/path/to/file",
+        }[sys.platform]
+
+        evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
+        self.assertEqual(evaluated_path, expected_path)
+
+
+class TestUrlWithStoragesAndOverrides2(TankTestBase):
+    """
+    Tests url resolution with local storages and environment overrides
+    """
+
+    def setUp(self):
+        super(TestUrlWithStoragesAndOverrides2, self).setUp()
+
+        self.setup_fixtures()
+
+        self.storage = {
+            "type": "LocalStorage",
+            "id": 1,
+            "code": "storage_1",
+            "mac_path": "/storage_mac",
+            "windows_path": "x:\\storage_win\\",
+            "linux_path": "/storage_linux/"
+
+        }
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db([self.storage])
+
+        os.environ["SHOTGUN_PATH_MAC_STORAGE_1"] = "/storage_mac_alt"
+        os.environ["SHOTGUN_PATH_LINUX_STORAGE_1"] = "/storage_linux_alt"
+        os.environ["SHOTGUN_PATH_WINDOWS_STORAGE_1"] = "x:\\storage_win_alt"
+
+    def tearDown(self):
+        del os.environ["SHOTGUN_PATH_MAC_STORAGE_1"]
+        del os.environ["SHOTGUN_PATH_LINUX_STORAGE_1"]
+        del os.environ["SHOTGUN_PATH_WINDOWS_STORAGE_1"]
+
+        super(TestUrlWithStoragesAndOverrides2, self).tearDown()
+
+    def test_augument_local_storage(self):
+        """
+        Tests that local storages take precedence over env vars.
+        """
+        sg_dict = {
+            "id": 123,
+            "type": "PublishedFile",
+            "code": "foo",
+            "path": {
+                "url": "file:///x:/storage_win/path/to/file",
+                "type": "Attachment",
+                "name": "bar.baz",
+                "link_type": "web",
+                "content_type": None
+            }
+        }
+
+        # final paths
+        expected_path = {
+            "win32": r"x:\storage_win\path\to\file",
+            "linux2": "/storage_linux/path/to/file",
+            "darwin": "/storage_mac/path/to/file",
         }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)

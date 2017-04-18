@@ -38,15 +38,24 @@ class  TestContext(TankTestBase):
                      "static_key": StringKey("static_key")}
 
         # set up test data with single sequence, shot, step and human user
-        self.seq = {"type":"Sequence", "code":"seq_name", "id":3}
+        self.seq = {"type": "Sequence", "code": "seq_name", "id": 3}
         
-        self.shot = {"type":"Shot",
+        self.shot = {"type": "Shot",
                     "code": "shot_name",
-                    "id":2,
+                    "id": 2,
                     "extra_field": "extravalue", # used to test query from template
                     "sg_sequence": self.seq,
                     "project": self.project}
+
         self.step = {"type":"Step", "name": "step_name", "id": 4}
+
+        self.shot_alt = {
+            "type": "Shot",
+            "code": "shot_name_alt",
+            "id": 123,
+            "sg_sequence": self.seq,
+            "project": self.project
+        }
 
         # One human user not matching the current login
         self.other_user = {"type":"HumanUser", "name":"user_name", "id":1, "login": "user_login"}
@@ -58,6 +67,8 @@ class  TestContext(TankTestBase):
         self.add_production_path(self.seq_path, self.seq)
         self.shot_path = os.path.join(self.seq_path, "shot_code")
         self.add_production_path(self.shot_path, self.shot)
+        self.shot_path_alt = os.path.join(self.seq_path, "shot_code_alt")
+        self.add_production_path(self.shot_path_alt, self.shot_alt)
         self.step_path = os.path.join(self.shot_path, "step_short_name")
         self.add_production_path(self.step_path, self.step)
         self.other_user_path = os.path.join(self.step_path, "user_login")
@@ -331,7 +342,7 @@ class TestUrl(TestContext):
         self.add_to_sg_mock_db(self.task)
 
     def test_project(self):
-        result =  context.from_entity(self.tk, self.project["type"], self.project["id"])
+        result = context.from_entity(self.tk, self.project["type"], self.project["id"])
         self.assertEquals(result.shotgun_url, "http://unit_test_mock_sg/detail/Project/1" )
 
     def test_empty(self):
@@ -354,6 +365,61 @@ class TestUrl(TestContext):
         
         result = context.from_entity(self.tk, self.task["type"], self.task["id"])
         self.assertEquals(result.shotgun_url, "http://unit_test_mock_sg/detail/Task/1" )
+
+
+class TestStringRepresentation(TestContext):
+    """
+    Tests string representation of context
+    """
+
+    def setUp(self):
+        super(TestStringRepresentation, self).setUp()
+
+        # Add task data to mocked shotgun
+        self.task = {"id": 1,
+                     "type": "Task",
+                     "content": "task_content",
+                     "project": self.project,
+                     "entity": self.shot,
+                     "step": self.step}
+
+        self.add_to_sg_mock_db(self.task)
+
+
+    def test_site(self):
+        """
+        Tests string representation of site context
+        """
+        result = context.create_empty(self.tk)
+        self.assertEquals(str(result), "unit_test_mock_sg")
+
+    def test_project(self):
+        """
+        Tests string representation of project context
+        """
+        result = context.from_entity(self.tk, self.project["type"], self.project["id"])
+        self.assertEquals(str(result), "Project project_name")
+
+    def test_entity_with_step(self):
+        """
+        Tests string representation of shot context with a single step set
+        """
+        result = context.from_entity(self.tk, self.shot["type"], self.shot["id"])
+        self.assertEquals(str(result), "step_name, Shot shot_name")
+
+    def test_entity(self):
+        """
+        Tests string representation of shot context
+        """
+        result = context.from_entity(self.tk, self.shot_alt["type"], self.shot_alt["id"])
+        self.assertEquals(str(result), "Shot shot_name_alt")
+
+    def test_task(self):
+        """
+        Tests string representation of task context
+        """
+        result = context.from_entity(self.tk, self.task["type"], self.task["id"])
+        self.assertEquals(str(result), "task_content, Shot shot_name")
 
 
 class TestFromEntity(TestContext):
@@ -827,11 +893,6 @@ class TestAsTemplateFields(TestContext):
         self.assertEquals(step_short_name, result["Step"])
         self.assertEquals(asset_code, result["Asset"])
 
-
-
-
-
-
     def test_non_context(self):
         """
         Test that fields that have no value in the context are assigned a value.
@@ -863,7 +924,6 @@ class TestAsTemplateFields(TestContext):
         # Check for non-entity value
         self.assertEquals("static", result["static_key"])
 
-
     def test_static_ambiguous(self):
         """
         Tests that in case that static values are amiguous, no value is returned for that key.
@@ -889,7 +949,6 @@ class TestAsTemplateFields(TestContext):
 
         # Check for non-entity value
         self.assertIsNone(result["static_key"])
-
 
     def test_multifield_leaf(self):
         """
@@ -955,7 +1014,6 @@ class TestAsTemplateFields(TestContext):
         result = self.ctx.as_template_fields(template)
         self.assertEquals(expected_step_name, result['Step'])
         self.assertEquals(expected_shot_name, result['Shot'])
-
 
     def test_user_ctx(self):
         """Check other_user is set when contained in the path."""

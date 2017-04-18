@@ -130,7 +130,6 @@ class IODescriptorGit(IODescriptorBase):
                 try:
                     output = subprocess_check_output(
                         full_command,
-                        stderr=subprocess.STDOUT,
                         shell=True
                     )
 
