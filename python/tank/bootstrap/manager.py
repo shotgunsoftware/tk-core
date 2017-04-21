@@ -50,7 +50,7 @@ class ToolkitManager(object):
     _LAUNCHING_ENGINE_RATE = 0.97
     _BOOTSTRAP_COMPLETED = 1
 
-    def __init__(self, sg_user=None):
+    def __init__(self, sg_user=None, allow_config_overrides=True):
         """
         :param sg_user: Authenticated Shotgun User object. If you pass in None,
                         the manager will provide a standard authentication for you
@@ -59,6 +59,8 @@ class ToolkitManager(object):
                         authentication, simply construct an explicit user object
                         and pass it in.
         :type sg_user: :class:`~sgtk.authentication.ShotgunUser`
+        :param bool allow_config_overrides: Whether to allow the config override
+            environment variable to affect the results of configuration resolutions.
         """
         if sg_user is None:
             # request a user from the auth module
@@ -66,6 +68,8 @@ class ToolkitManager(object):
             self._sg_user = sg_auth.get_user()
         else:
             self._sg_user = sg_user
+
+        self._allow_config_overrides = allow_config_overrides
 
         self._sg_connection = self._sg_user.create_sg_connection()
 
@@ -349,43 +353,13 @@ class ToolkitManager(object):
         :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
         :param entity: Shotgun entity to launch engine for.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+
         :returns: :class:`~sgtk.platform.Engine` instance.
         """
         self._log_startup_message(engine_name, entity)
 
         tk = self._bootstrap_sgtk(engine_name, entity)
         engine = self._start_engine(tk, engine_name, entity)
-
-        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
-
-        return engine
-
-    def bootstrap_legacy_shotgun_engine(self, entity=None):
-        """
-        Create an :class:`~sgtk.Sgtk` instance for the tk-shotgun engine and entity,
-        then launch into the tk-shotgun engine making use of a legacy shotgun_*.yml environment.
-
-        The whole engine bootstrap logic will be executed synchronously in the main application thread.
-
-        If entity is None, the method will bootstrap into the site
-        config. This method will attempt to resolve the config according
-        to business logic set in the associated resolver class and based
-        on this launch a configuration. This may involve downloading new
-        apps from the toolkit app store and installing files on disk.
-
-        Please note that the API version of the tk instance that hosts
-        the engine may not be the same as the API version that was
-        executed during the bootstrap.
-
-        :param entity: Shotgun entity to launch engine for.
-        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
-        :returns: :class:`~sgtk.platform.Engine` instance.
-        """
-        engine_name = "tk-shotgun"
-        self._log_startup_message(engine_name, entity)
-
-        tk = self._bootstrap_sgtk(engine_name, entity)
-        engine = self._start_shotgun_engine(tk, entity)
 
         self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
 
@@ -667,41 +641,6 @@ class ToolkitManager(object):
 
         return entity
 
-    def sort_and_filter_configuration_entities(self, project, entities):
-        """
-        Takes the given list of PipelineConfiguration entities and sorts and
-        filters them according to project and the order in which they are to
-        be displayed in a user interface.
-
-        :param dict project: The project entity.
-        :param list entities: The list of PipelineConfiguration entity
-            dictionaries to sort and filter.
-
-        :returns: A list of PipelineConfiguration entities in display order.
-        :rtype: list
-        """
-        resolver = ConfigurationResolver(
-            self.plugin_id,
-            project["id"] if project else None
-        )
-
-        # Only return id, type and code fields.
-        pcs = []
-        for pc in resolver.find_matching_pipeline_configurations(
-            pipeline_config_name=None,
-            current_login=self._sg_user.login,
-            sg_connection=self._sg_connection,
-            external_data=entities,
-        ):
-            pcs.append({
-                "id": pc["id"],
-                "type": pc["type"],
-                "name": pc["code"],
-                "project": pc["project"],
-            })
-
-        return pcs
-
     def resolve_descriptor(self, project):
         """
         Resolves a pipeline configuration and returns its associated descriptor object.
@@ -709,7 +648,10 @@ class ToolkitManager(object):
         :param dict project: The project entity, or None.
         """
         if project is None:
-            return self._get_configuration(None, self.progress_callback).descriptor
+            return self._get_configuration(
+                None,
+                self.progress_callback,
+            ).descriptor
         else:
             return self._get_configuration(
                 project,
@@ -795,7 +737,7 @@ class ToolkitManager(object):
         # this object represents a configuration that may or may not
         # exist on disk. We can use the config object to check if the
         # object needs installation, updating etc.
-        if constants.CONFIG_OVERRIDE_ENV_VAR in os.environ:
+        if constants.CONFIG_OVERRIDE_ENV_VAR in os.environ and self._allow_config_overrides:
             # an override environment variable has been set. This takes precedence over
             # all other methods and is useful when you do development. For example,
             # if you are developing an app and want to test it with an existing plugin
@@ -888,6 +830,7 @@ class ToolkitManager(object):
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
                                   Set to ``None`` to use the default callback function.
+
         :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
         """
 
@@ -960,57 +903,6 @@ class ToolkitManager(object):
         # perform absolute import to ensure we get the new swapped core.
         import tank
         engine = tank.platform.start_engine(engine_name, tk, ctx)
-
-        log.debug("Launched engine %r" % engine)
-
-        self._report_progress(progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
-
-        return engine
-
-    def _start_shotgun_engine(self, tk, entity, progress_callback=None):
-        """
-        Launch into the tk-shotgun engine using a legacy shotgun_*.yml environment.
-
-        If entity is None, the method will bootstrap into the site config.
-
-        Please note that the API version of the tk instance that hosts
-        the engine may not be the same as the API version that was
-        executed during the bootstrap.
-
-        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance.
-        :param entity: Shotgun entity used to resolve a project context.
-        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
-        :param progress_callback: Callback function that reports back on the engine startup progress.
-                                  Set to ``None`` to use the default callback function.
-        :returns: Started :class:`~sgtk.platform.Engine` instance.
-        """
-
-        # Log a user activity metric saying which engine and entity are bootstrapping
-        # since we can now log into the logging queue of the new swapped core.
-        engine_name = "tk-shotgun"
-        self._log_bootstrap_metric(engine_name, entity)
-
-        log.debug("Begin starting up engine %s." % engine_name)
-
-        if progress_callback is None:
-            progress_callback = self.progress_callback
-
-        self._report_progress(progress_callback, self._RESOLVING_CONTEXT_RATE, "Resolving context...")
-        if entity is None:
-            ctx = tk.context_empty()
-        else:
-            ctx = tk.context_from_entity_dictionary(entity)
-
-        self._report_progress(progress_callback, self._LAUNCHING_ENGINE_RATE, "Launching Engine...")
-        log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
-
-        if self.pre_engine_start_callback:
-            log.debug("Invoking pre engine start callback '%s'" % self.pre_engine_start_callback)
-            self.pre_engine_start_callback(ctx)
-            log.debug("Pre engine start callback was invoked.")
-
-        import tank
-        engine = tank.platform.engine.start_shotgun_engine(tk, entity["type"], ctx)
 
         log.debug("Launched engine %r" % engine)
 
