@@ -686,7 +686,7 @@ class ConfigurationResolver(object):
         :param value: pattern string to check or None
         :return: True if matching false if not
         """
-        if value is None:
+        if value is None or self._plugin_id is None:
             return False
 
         # first split by comma and strip whitespace
