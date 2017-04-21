@@ -354,8 +354,38 @@ class ToolkitManager(object):
         self._log_startup_message(engine_name, entity)
 
         tk = self._bootstrap_sgtk(engine_name, entity)
-
         engine = self._start_engine(tk, engine_name, entity)
+
+        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
+
+        return engine
+
+    def bootstrap_legacy_shotgun_engine(self, entity=None):
+        """
+        Create an :class:`~sgtk.Sgtk` instance for the tk-shotgun engine and entity,
+        then launch into the tk-shotgun engine making use of a legacy shotgun_*.yml environment.
+
+        The whole engine bootstrap logic will be executed synchronously in the main application thread.
+
+        If entity is None, the method will bootstrap into the site
+        config. This method will attempt to resolve the config according
+        to business logic set in the associated resolver class and based
+        on this launch a configuration. This may involve downloading new
+        apps from the toolkit app store and installing files on disk.
+
+        Please note that the API version of the tk instance that hosts
+        the engine may not be the same as the API version that was
+        executed during the bootstrap.
+
+        :param entity: Shotgun entity to launch engine for.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :returns: :class:`~sgtk.platform.Engine` instance.
+        """
+        engine_name = "tk-shotgun"
+        self._log_startup_message(engine_name, entity)
+
+        tk = self._bootstrap_sgtk(engine_name, entity)
+        engine = self._start_shotgun_engine(tk, entity)
 
         self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
 
@@ -930,6 +960,57 @@ class ToolkitManager(object):
         # perform absolute import to ensure we get the new swapped core.
         import tank
         engine = tank.platform.start_engine(engine_name, tk, ctx)
+
+        log.debug("Launched engine %r" % engine)
+
+        self._report_progress(progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
+
+        return engine
+
+    def _start_shotgun_engine(self, tk, entity, progress_callback=None):
+        """
+        Launch into the tk-shotgun engine using a legacy shotgun_*.yml environment.
+
+        If entity is None, the method will bootstrap into the site config.
+
+        Please note that the API version of the tk instance that hosts
+        the engine may not be the same as the API version that was
+        executed during the bootstrap.
+
+        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance.
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :param progress_callback: Callback function that reports back on the engine startup progress.
+                                  Set to ``None`` to use the default callback function.
+        :returns: Started :class:`~sgtk.platform.Engine` instance.
+        """
+
+        # Log a user activity metric saying which engine and entity are bootstrapping
+        # since we can now log into the logging queue of the new swapped core.
+        engine_name = "tk-shotgun"
+        self._log_bootstrap_metric(engine_name, entity)
+
+        log.debug("Begin starting up engine %s." % engine_name)
+
+        if progress_callback is None:
+            progress_callback = self.progress_callback
+
+        self._report_progress(progress_callback, self._RESOLVING_CONTEXT_RATE, "Resolving context...")
+        if entity is None:
+            ctx = tk.context_empty()
+        else:
+            ctx = tk.context_from_entity_dictionary(entity)
+
+        self._report_progress(progress_callback, self._LAUNCHING_ENGINE_RATE, "Launching Engine...")
+        log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
+
+        if self.pre_engine_start_callback:
+            log.debug("Invoking pre engine start callback '%s'" % self.pre_engine_start_callback)
+            self.pre_engine_start_callback(ctx)
+            log.debug("Pre engine start callback was invoked.")
+
+        import tank
+        engine = tank.platform.engine.start_shotgun_engine(tk, entity["type"], ctx)
 
         log.debug("Launched engine %r" % engine)
 
