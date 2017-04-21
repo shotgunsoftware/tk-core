@@ -205,6 +205,14 @@ class TestPluginMatching(TestResolverBase):
         self.assertTrue(resolver._match_plugin_id("foo.maya"))
         self.assertFalse(resolver._match_plugin_id("foo.nuke"))
 
+        # If the value is None then we always get back False.
+        self.assertFalse(resolver._match_plugin_id(None))
+
+        # Always False return, even when _plugin_id is None and the value is None.
+        resolver._plugin_id = None
+        self.assertFalse(resolver._match_plugin_id(None))
+        self.assertFalse(resolver._match_plugin_id("foo.maya"))
+
     @patch("os.path.exists", return_value=True)
     def test_single_matching_id(self, _):
         """
