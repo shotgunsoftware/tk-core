@@ -188,7 +188,6 @@ class TestLocalFileLink(TankTestBase):
 
         self.add_to_sg_mock_db([self.storage])
 
-
     def tearDown(self):
 
         if "SHOTGUN_PATH_WINDOWS_HOME" in os.environ:
@@ -238,6 +237,219 @@ class TestLocalFileLink(TankTestBase):
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, local_path)
+
+    def test_env_var_warning(self):
+        """
+        Tests that if the current os is defined
+        in the shotgun local storage defs, and an env var
+        is also defined, the local storage takes precedence.
+        """
+        sg_dict = {
+            "id": 123,
+            "type": "PublishedFile",
+            "code": "foo",
+            "path": {
+                'content_type': 'image/png',
+                'id': 25826,
+                'link_type': 'local',
+                'local_path': None,
+                'local_path_linux': '/local/path/to/file.ext',
+                'local_path_mac': '/local/path/to/file.ext',
+                'local_path_windows': r'X:\path\to\file.ext',
+                'local_storage': {'id': 2,
+                               'name': 'home',
+                               'type': 'LocalStorage'},
+                'name': 'foo.png',
+                'type': 'Attachment',
+                'url': 'file:///local/path/to/file.ext'
+            }
+        }
+
+        # set up env var overrides
+        os.environ["SHOTGUN_PATH_WINDOWS_HOME"] = "Y:\\"
+        os.environ["SHOTGUN_PATH_MAC_HOME"] = "/some_other_root"
+        os.environ["SHOTGUN_PATH_LINUX_HOME"] = "/some_other_root"
+
+        # get the current os platform
+        local_path = {
+            "win32": sg_dict["path"]["local_path_windows"],
+            "linux2": sg_dict["path"]["local_path_linux"],
+            "darwin": sg_dict["path"]["local_path_mac"],
+        }[sys.platform]
+        sg_dict["path"]["local_path"] = local_path
+
+        evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
+        self.assertEqual(evaluated_path, local_path)
+
+
+class TestLocalFileLinkRaises(TankTestBase):
+    """
+    Tests path resolution of publishes to local file links
+
+    Tests that if the current os is not recognized,
+    PublishPathNotDefinedError is defined.
+    """
+
+    def setUp(self):
+        super(TestLocalFileLinkRaises, self).setUp()
+        self.setup_fixtures()
+
+    def test_raises(self):
+        """
+        Tests that if the current os is not recognized,
+        PublishPathNotDefinedError is defined.
+        """
+
+        # add a storage and omit current os
+        self.storage = {
+            "type": "LocalStorage",
+            "id": 2,
+            "code": "home",
+            "mac_path": "/local",
+            "windows_path": "x:\\",
+            "linux_path": "/local"
+        }
+
+        current_path_field = {
+            "win32": "windows_path",
+            "linux2": "linux_path",
+            "darwin": "mac_path",
+        }[sys.platform]
+
+        self.storage[current_path_field] = None
+        self.add_to_sg_mock_db([self.storage])
+
+
+        # add a publish and omit current os
+        sg_dict = {
+            "id": 123,
+            "type": "PublishedFile",
+            "code": "foo",
+            "path": {
+                'content_type': 'image/png',
+                'id': 25826,
+                'link_type': 'local',
+                'local_path': None,
+                'local_path_linux': '/local/path/to/file.ext',
+                'local_path_mac': '/local/path/to/file.ext',
+                'local_path_windows': r'X:\path\to\file.ext',
+                'local_storage': {'id': 2,
+                               'name': 'home',
+                               'type': 'LocalStorage'},
+                'name': 'foo.png',
+                'type': 'Attachment',
+                'url': 'file:///local/path/to/file.ext'
+            }
+        }
+
+        current_path_field = {
+            "win32": "local_path_windows",
+            "linux2": "local_path_linux",
+            "darwin": "local_path_mac",
+        }[sys.platform]
+
+        sg_dict["path"][current_path_field] = None
+
+        self.assertRaises(
+            sgtk.util.PublishPathNotDefinedError,
+            sgtk.util.resolve_publish_path,
+            self.tk,
+            sg_dict
+        )
+
+
+class TestLocalFileLinkEnvVarOverride(TankTestBase):
+    """
+    Tests path resolution of publishes to local file links
+
+    Tests that if the current os is not defined
+    in the shotgun local storage defs, we can override
+    it by setting an env var.
+    """
+
+    def setUp(self):
+        super(TestLocalFileLinkEnvVarOverride, self).setUp()
+        self.setup_fixtures()
+
+    def tearDown(self):
+
+        if "SHOTGUN_PATH_WINDOWS_HOME" in os.environ:
+            del os.environ["SHOTGUN_PATH_WINDOWS_HOME"]
+
+        if "SHOTGUN_PATH_MAC_HOME" in os.environ:
+            del os.environ["SHOTGUN_PATH_MAC_HOME"]
+
+        if "SHOTGUN_PATH_LINUX_HOME" in os.environ:
+            del os.environ["SHOTGUN_PATH_LINUX_HOME"]
+
+        super(TestLocalFileLinkEnvVarOverride, self).tearDown()
+
+
+    def test_env_var(self):
+        """
+        Tests that if the current os is not defined
+        in the shotgun local storage defs, we can override
+        it by setting an env var.
+        """
+        # add a storage and omit current os
+        self.storage = {
+            "type": "LocalStorage",
+            "id": 2,
+            "code": "home",
+            "mac_path": "/local",
+            "windows_path": "x:\\",
+            "linux_path": "/local"
+        }
+
+        current_path_field = {
+            "win32": "windows_path",
+            "linux2": "linux_path",
+            "darwin": "mac_path",
+        }[sys.platform]
+
+        self.storage[current_path_field] = None
+        self.add_to_sg_mock_db([self.storage])
+
+        # add a publish record
+        sg_dict = {
+            "id": 123,
+            "type": "PublishedFile",
+            "code": "foo",
+            "path": {
+                'content_type': 'image/png',
+                'id': 25826,
+                'link_type': 'local',
+                'local_path': None,
+                'local_path_linux': '/local/path/to/file.ext',
+                'local_path_mac': '/local/path/to/file.ext',
+                'local_path_windows': r'X:\path\to\file.ext',
+                'local_storage': {'id': 2,
+                               'name': 'home',
+                               'type': 'LocalStorage'},
+                'name': 'foo.png',
+                'type': 'Attachment',
+                'url': 'file:///local/path/to/file.ext'
+            }
+        }
+
+        if sys.platform == "win32":
+            os.environ["SHOTGUN_PATH_WINDOWS_HOME"] = "Y:\\"
+            local_path = r"Y:\path\to\file.ext"
+            sg_dict["path"]["local_path_windows"] = None
+        elif sys.platform == "darwin":
+            os.environ["SHOTGUN_PATH_MAC_HOME"] = "/local_override"
+            local_path = "/local_override/path/to/file.ext"
+            sg_dict["path"]["local_path_mac"] = None
+        elif sys.platform.startswith("linux"):
+            os.environ["SHOTGUN_PATH_LINUX_HOME"] = "/local_override"
+            local_path = "/local_override/path/to/file.ext"
+            sg_dict["path"]["local_path_linux"] = None
+
+        evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
+        self.assertEqual(evaluated_path, local_path)
+
+
+
 
 
 
@@ -603,7 +815,7 @@ class TestUrlWithStorages(TankTestBase):
 
 class TestUrlWithStoragesAndOverrides(TankTestBase):
     """
-    Tests url resolution with local storages and environment overrides
+    Tests file:// url resolution with local storages and environment overrides
     """
 
     def setUp(self):
@@ -655,7 +867,8 @@ class TestUrlWithStoragesAndOverrides(TankTestBase):
 
 class TestUrlWithStoragesAndOverrides2(TankTestBase):
     """
-    Tests url resolution with local storages and environment overrides
+    Tests file:// url resolution with local storages and
+    additive environment overrides.
     """
 
     def setUp(self):
