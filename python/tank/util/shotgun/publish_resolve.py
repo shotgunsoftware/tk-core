@@ -114,11 +114,27 @@ def resolve_publish_path(tk, sg_publish_data):
       ``SHOTGUN_PATH_LINUX=/prod`` in order to hint the way the path should be
       resolved.
 
-    - If you wanted to use more than one environment variable, this is possible
-      by extending the above syntax with a name, for example ``SHOTGUN_PATH_LINUX_SECONDARY``.
+    - If you wanted to use more than one set of environment variables, this is possible
+      by extending the above syntax with a suffix:
 
-    - In addition, all existing local storage definitions will be downloaded
-      and used in the same way.
+        - If you have a storage for renders, you could for example define
+          ``SHOTGUN_PATH_LINUX_RENDERS``, ``SHOTGUN_PATH_MAC_RENDERS`` and
+          ``SHOTGUN_PATH_WINDOWS_RENDERS`` in order to provide a translation
+          mechanism for all ``file://`` urls published that refer to data
+          inside your render storage.
+
+        - If you have a storage for editorial data, you could for example define
+          ``SHOTGUN_PATH_LINUX_EDITORIAL``, ``SHOTGUN_PATH_MAC_EDITORIAL`` and
+          ``SHOTGUN_PATH_WINDOWS_EDITORIAL`` in order to provide another translation
+          mechanism for those roots.
+
+      Once you have standardized on these environment variables, you could consider
+      converting them into a Shotgun local storages. Once they are defined in the
+      Shotgun preferences, they will be automatically picked up and no
+      environment variables would be needed.
+
+    - In addition to the above, all local storages defined in the Shotgun
+      preferences will be handled the same way.
 
     - If a local storage has been defined, but an operating system is missing,
       this can be supplied via an environment variable. For example, if there
