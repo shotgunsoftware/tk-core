@@ -2690,12 +2690,7 @@ def _start_engine(engine_name, tk, old_context, new_context):
                 # context. If neither is the case, meaning we have an empty context,
                 # then we re-raise.
                 if new_context.entity is not None:
-                    entity_type = new_context.entity.get("type")
-
-                    # This should be exceedingly unlikely, and if it occurs is
-                    # definitely a reason to bail and re-raise.
-                    if entity_type is None:
-                        raise
+                    entity_type = new_context.entity["type"]
                 elif new_context.project is not None:
                     entity_type = "Project"
                 else:
