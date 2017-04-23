@@ -50,7 +50,7 @@ class ToolkitManager(object):
     _LAUNCHING_ENGINE_RATE = 0.97
     _BOOTSTRAP_COMPLETED = 1
 
-    def __init__(self, sg_user=None, allow_config_overrides=True):
+    def __init__(self, sg_user=None):
         """
         :param sg_user: Authenticated Shotgun User object. If you pass in None,
                         the manager will provide a standard authentication for you
@@ -59,8 +59,6 @@ class ToolkitManager(object):
                         authentication, simply construct an explicit user object
                         and pass it in.
         :type sg_user: :class:`~sgtk.authentication.ShotgunUser`
-        :param bool allow_config_overrides: Whether to allow the config override
-            environment variable to affect the results of configuration resolutions.
         """
         if sg_user is None:
             # request a user from the auth module
@@ -69,7 +67,7 @@ class ToolkitManager(object):
         else:
             self._sg_user = sg_user
 
-        self._allow_config_overrides = allow_config_overrides
+        self._allow_config_overrides = True
 
         self._sg_connection = self._sg_user.create_sg_connection()
 
@@ -146,6 +144,18 @@ class ToolkitManager(object):
         Shotgun, it falls back on the :meth:`base_configuration`.
         """
         return self._pipeline_configuration_identifier
+
+    def _set_allow_config_overrides(self, state):
+        self._allow_config_overrides = bool(state)
+
+    def _get_allow_config_overrides(self):
+        """
+        Whether pipeline configuration resolution can be overridden via the
+        environment. Defaults to True on manager instantiation.
+        """
+        return self._allow_config_overrides
+
+    allow_config_overrides = property(_get_allow_config_overrides, _set_allow_config_overrides)
 
     def _set_pipeline_configuration(self, identifier):
         self._pipeline_configuration_identifier = identifier
