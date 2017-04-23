@@ -221,6 +221,7 @@ def resolve_publish_path(tk, sg_publish_data):
         # local file link
         path = __resolve_local_file_link(tk, path_field)
         if path is None:
+
             raise PublishPathNotDefinedError(
                 "Publish %s (id %s) has a local file link that could not be resolved "
                 "on this os platform." % (sg_publish_data["code"], sg_publish_data["id"])
@@ -270,17 +271,6 @@ def __resolve_local_file_link(tk, attachment_data):
 
     # see if we have a path for this storage
     local_path = attachment_data.get("local_path")
-    if local_path is None:
-        raise PublishPathNotDefinedError(
-            "Publish '%s' does not have a path defined "
-            "for this platform. Windows Path: '%s', Mac Path: '%s', "
-            "Linux Path: '%s'" % (
-                attachment_data["name"],
-                attachment_data["local_path_windows"],
-                attachment_data["local_path_mac"],
-                attachment_data["local_path_linux"],
-            )
-        )
 
     # Check override env vars:
     #
@@ -342,7 +332,7 @@ def __resolve_local_file_link(tk, attachment_data):
                 this_os_storage_root = storage[storage_field]
                 this_os_full_path = attachment_data[path_field]
 
-                if this_os_full_path:
+                if this_os_storage_root:
                     # the path is defined on this os. Normalize it by
                     # chopping off the root
 
