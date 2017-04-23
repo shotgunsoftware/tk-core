@@ -67,6 +67,8 @@ class ToolkitManager(object):
         else:
             self._sg_user = sg_user
 
+        self._allow_config_overrides = True
+
         self._sg_connection = self._sg_user.create_sg_connection()
 
         # defaults
@@ -120,6 +122,7 @@ class ToolkitManager(object):
         repr += " Caching policy %s\n" % self._caching_policy
         repr += " Plugin id %s\n" % self._plugin_id
         repr += " Config %s %s\n" % (identifier_type, self._pipeline_configuration_identifier)
+        repr += " Allows config overrides %s\n" % self._allow_config_overrides
         repr += " Base %s >" % self._base_config_descriptor
         return repr
 
@@ -142,6 +145,18 @@ class ToolkitManager(object):
         Shotgun, it falls back on the :meth:`base_configuration`.
         """
         return self._pipeline_configuration_identifier
+
+    def _set_allow_config_overrides(self, state):
+        self._allow_config_overrides = bool(state)
+
+    def _get_allow_config_overrides(self):
+        """
+        Whether pipeline configuration resolution can be overridden via the
+        environment. Defaults to True on manager instantiation.
+        """
+        return self._allow_config_overrides
+
+    allow_config_overrides = property(_get_allow_config_overrides, _set_allow_config_overrides)
 
     def _set_pipeline_configuration(self, identifier):
         self._pipeline_configuration_identifier = identifier
@@ -349,12 +364,12 @@ class ToolkitManager(object):
         :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
         :param entity: Shotgun entity to launch engine for.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+
         :returns: :class:`~sgtk.platform.Engine` instance.
         """
         self._log_startup_message(engine_name, entity)
 
         tk = self._bootstrap_sgtk(engine_name, entity)
-
         engine = self._start_engine(tk, engine_name, entity)
 
         self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
@@ -637,41 +652,6 @@ class ToolkitManager(object):
 
         return entity
 
-    def sort_and_filter_configuration_entities(self, project, entities):
-        """
-        Takes the given list of PipelineConfiguration entities and sorts and
-        filters them according to project and the order in which they are to
-        be displayed in a user interface.
-
-        :param dict project: The project entity.
-        :param list entities: The list of PipelineConfiguration entity
-            dictionaries to sort and filter.
-
-        :returns: A list of PipelineConfiguration entities in display order.
-        :rtype: list
-        """
-        resolver = ConfigurationResolver(
-            self.plugin_id,
-            project["id"] if project else None
-        )
-
-        # Only return id, type and code fields.
-        pcs = []
-        for pc in resolver.find_matching_pipeline_configurations(
-            pipeline_config_name=None,
-            current_login=self._sg_user.login,
-            sg_connection=self._sg_connection,
-            external_data=entities,
-        ):
-            pcs.append({
-                "id": pc["id"],
-                "type": pc["type"],
-                "name": pc["code"],
-                "project": pc["project"],
-            })
-
-        return pcs
-
     def resolve_descriptor(self, project):
         """
         Resolves a pipeline configuration and returns its associated descriptor object.
@@ -679,7 +659,10 @@ class ToolkitManager(object):
         :param dict project: The project entity, or None.
         """
         if project is None:
-            return self._get_configuration(None, self.progress_callback).descriptor
+            return self._get_configuration(
+                None,
+                self.progress_callback,
+            ).descriptor
         else:
             return self._get_configuration(
                 project,
@@ -765,7 +748,7 @@ class ToolkitManager(object):
         # this object represents a configuration that may or may not
         # exist on disk. We can use the config object to check if the
         # object needs installation, updating etc.
-        if constants.CONFIG_OVERRIDE_ENV_VAR in os.environ:
+        if constants.CONFIG_OVERRIDE_ENV_VAR in os.environ and self._allow_config_overrides:
             # an override environment variable has been set. This takes precedence over
             # all other methods and is useful when you do development. For example,
             # if you are developing an app and want to test it with an existing plugin
@@ -858,6 +841,7 @@ class ToolkitManager(object):
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
                                   Set to ``None`` to use the default callback function.
+
         :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.
         """
 
