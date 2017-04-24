@@ -340,8 +340,8 @@ def __resolve_local_file_link(tk, attachment_data):
             # we know that it must be defined for at least one os :)
             storage_field_map = {
                 "windows_path": "local_path_windows",
-                "linux_path": "local_path_mac",
-                "mac_path": "local_path_linux"
+                "linux_path": "local_path_linux",
+                "mac_path": "local_path_mac"
             }
 
             for (storage_field, path_field) in storage_field_map.iteritems():
