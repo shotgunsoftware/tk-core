@@ -359,3 +359,8 @@ Exceptions
     :show-inheritance:
     :inherited-members:
     :members:
+
+.. autoclass:: CheckVersionConstraintsError
+    :show-inheritance:
+    :inherited-members:
+    :members:

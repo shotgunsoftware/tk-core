@@ -54,6 +54,8 @@ Below is a simple log hierarchy to illustrate what this might look like in pract
      |       |
      |       |- tk-maya                               Toolkit Engine
      |             |
+     |             |- startup                         Toolkit Engine Software Launcher
+     |             |
      |             |- tk-multi-workfiles2             Toolkit App (or framework)
      |                  |
      |                  |- tkimp63c3b2d57f85          Toolkit Command Session
@@ -690,7 +692,7 @@ class LogManager(object):
         exist per session.
 
         :param log_name: Name of logger to create. This will form the
-                         filename of the log file.
+                         filename of the log file. The ``.log`` will be suffixed.
 
         :returns: The path to the previous log file that is being switched away from,
                   None if no base logger was previously active.

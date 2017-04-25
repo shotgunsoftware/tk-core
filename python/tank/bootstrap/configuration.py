@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -25,11 +25,14 @@ class Configuration(object):
 
     (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_DIFFERENT, LOCAL_CFG_INVALID) = range(4)
 
-    def __init__(self, path):
+    def __init__(self, path, descriptor):
         """
         :param path: :class:`~sgtk.util.ShotgunPath` object describing the path to this configuration
+        :param descriptor: :class:`~sgtk.descriptor.Descriptor` object associated with this
+            configuration.
         """
         self._path = path
+        self._descriptor = descriptor
 
     def status(self):
         """
@@ -48,6 +51,22 @@ class Configuration(object):
         given by the associated descriptor.
         """
         raise NotImplementedError
+
+    @property
+    def descriptor(self):
+        """
+        Gets the descriptor object associated with the configuration.
+        :rtype: :class:`~sgtk.descriptor.Descriptor`
+        """
+        return self._descriptor
+
+    @property
+    def path(self):
+        """
+        Gets the path to the pipeline configuration on disk.
+        :rtype: :class:`~sgtk.util.ShotgunPath`
+        """
+        return self._path
 
     def get_tk_instance(self, sg_user):
         """
@@ -79,7 +98,3 @@ class Configuration(object):
         log.debug("Core API code located here: %s" % inspect.getfile(tk.__class__))
 
         return tk
-
-
-
-

@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -24,6 +24,7 @@ from .configuration_writer import ConfigurationWriter
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
+
 
 class CachedConfiguration(Configuration):
     """
@@ -59,7 +60,7 @@ class CachedConfiguration(Configuration):
                                    should be set to None.
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
-        super(CachedConfiguration, self).__init__(path)
+        super(CachedConfiguration, self).__init__(path, descriptor)
         self._path = path
         self._sg_connection = sg
         self._descriptor = descriptor
@@ -171,7 +172,16 @@ class CachedConfiguration(Configuration):
         self._config_writer.ensure_project_scaffold()
 
         # stow away any previous versions of core and config folders
-        (config_backup_path, core_backup_path) = self._config_writer.move_to_backup()
+        try:
+            # Move to backup needs to undo changes when failing because we need to put the configuration
+            # in a usable state.
+            (config_backup_path, core_backup_path) = self._config_writer.move_to_backup(undo_on_error=True)
+        except Exception, e:
+            log.exception(
+                "Unexpected error while making a backup of the configuration. Toolkit will use the "
+                "original configuration."
+            )
+            return
 
         # copy the configuration into place
         try:
@@ -180,7 +190,7 @@ class CachedConfiguration(Configuration):
             # write out config files
             self._config_writer.write_install_location_file()
             self._config_writer.write_config_info_file(self._descriptor)
-            self._config_writer.write_shotgun_file()
+            self._config_writer.write_shotgun_file(self._descriptor)
             self._config_writer.write_pipeline_config_file(
                 self._pipeline_config_id,
                 self._project_id,
@@ -201,14 +211,17 @@ class CachedConfiguration(Configuration):
             log.exception("Failed to update configuration. Attempting Rollback. Error Traceback:")
             # step 1 - clear core and config locations
             log.debug("Cleaning out faulty config location...")
-            self._config_writer.move_to_backup()
+            # we're purposefully moving the bad pipeline configuration out of the way so we can restore
+            # the original one, so move the failed one to backup so it can hopefully be debugged in the future
+            # and restore the original one.
+            self._config_writer.move_to_backup(undo_on_error=False)
             # step 2 - recover previous core and backup
             if config_backup_path is None or core_backup_path is None:
                 # there is nothing to restore!
                 log.error(
                     "Irrecoverable error - failed to update config but no previous config to "
                     "fall back on. Raising TankBootstrapError to abort bootstrap."
-                    )
+                )
                 raise TankBootstrapError("Configuration could not be installed: %s." % e)
 
             else:
@@ -263,4 +276,11 @@ class CachedConfiguration(Configuration):
                     self.path.as_shotgun_dict()
                 )
 
-
+    @property
+    def has_local_bundle_cache(self):
+        """
+        If True, indicates that pipeline configuration has a local bundle cache. If False, it
+        depends on the global bundle cache.
+        """
+        # CachedConfiguration always depend on the global bundle cache.
+        return False

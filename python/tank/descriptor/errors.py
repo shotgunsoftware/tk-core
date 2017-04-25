@@ -40,3 +40,28 @@ class InvalidAppStoreCredentialsError(TankAppStoreConnectionError):
     """
     Error indicating no credentials for the Toolkit App Store were found in Shotgun.
     """
+
+
+class CheckVersionConstraintsError(TankDescriptorError):
+    """
+    Error throw when one or more version constraints checks failed.
+    """
+
+    def __init__(self, reasons):
+        """
+        :param list(str) reasons: List of reasons why the check failed.
+        """
+        self._reasons = reasons
+
+    def __str__(self):
+        """
+        Concatenates all the reasons with a space between each.
+        """
+        return " ".join(self._reasons)
+
+    @property
+    def reasons(self):
+        """
+        List of strings explaining why the constraints check failed.
+        """
+        return self._reasons
