@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.69 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.72 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.69 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.72 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -137,7 +137,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.69.<br>
+    <b>tk-core</b> v0.18.72.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -281,6 +281,23 @@ are on the following form:</p>
 sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4
 </pre></div>
 </div>
+<p>App store may also have an optional <code class="docutils literal"><span class="pre">label</span></code> parameter. This indicates that the descriptor is tracking
+against a particular label in the app store and will not download updates which do not have the label assigned:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
+    type: app_store,
+    name: tk-core,
+    version: v12.3.4,
+    label: v2018.3
+}
+
+sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4&amp;label=v2018.3
+</pre></div>
+</div>
+<p>A label can for example be used by plugins that are bundled with DCCs to only receive app store updates
+targeting that particular DCC version. If you for example are running a plugin bundled together with
+v2017 of a DCC, the plugin can be set up to track against the latest released version of
+<code class="docutils literal"><span class="pre">sgtk:descriptor:app_store?name=tk-config-dcc&amp;label=v2017</span></code>. In this case, when the descriptor is checking
+for the latest available version in the app store, only versions labelled with v2017 will be taken into account.</p>
 </div>
 <div class="section" id="shotgun">
 <h3>Shotgun<a class="headerlink" href="#shotgun" title="Permalink to this headline">¶</a></h3>
@@ -2688,19 +2705,22 @@ If not url has been defined, None is returned.</p>
 <dl class="class">
 <dt id="sgtk.descriptor.TankAppStoreConnectionError">
 <em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankAppStoreConnectionError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankAppStoreConnectionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankAppStoreConnectionError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Errors indicating an error connecting to the Toolkit App Store.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankAppStoreError</span></code></p>
+<p>Errors indicating an error connecting to the Toolkit App Store.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.descriptor.TankAppStoreError">
 <em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankAppStoreError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankAppStoreError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankAppStoreError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Errors relating to the Toolkit App Store app store.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankDescriptorError</span></code></p>
+<p>Errors relating to the Toolkit App Store app store.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.descriptor.TankDescriptorError">
 <em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankDescriptorError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankDescriptorError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankDescriptorError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base class for all descriptor related errors.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Base class for all descriptor related errors.</p>
 </dd></dl>
 
 </div>
@@ -2747,7 +2767,7 @@ If not url has been defined, None is returned.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.69',
+            VERSION:'v0.18.72',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.context &mdash; tk-core v0.18.69 documentation</title>
+  <title>tank.context &mdash; tk-core v0.18.72 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.69 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.72 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.69.<br>
+    <b>tk-core</b> v0.18.72.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -259,26 +259,32 @@
         <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk Context: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># smart looking string representation</span>
-        
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        String representation for context</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c1"># We&#39;re in a &quot;site&quot; context, so we&#39;ll give the site&#39;s url</span>
             <span class="c1"># minus the &quot;https://&quot; if that&#39;s attached.</span>
             <span class="n">ctx_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun_url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;//&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="c1"># project-only!</span>
-            <span class="n">ctx_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+            <span class="c1"># project-only, e.g &#39;Project foobar&#39;</span>
+            <span class="n">ctx_name</span> <span class="o">=</span> <span class="s2">&quot;Project </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
         
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c1"># entity only</span>
             <span class="c1"># e.g. Shot ABC_123</span>
             
             <span class="c1"># resolve custom entities to their real display</span>
-            <span class="n">entity_display_name</span> <span class="o">=</span> <span class="n">shotgun</span><span class="o">.</span><span class="n">get_entity_type_display_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="p">,</span> 
-                                                                       <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">))</span>
+            <span class="n">entity_display_name</span> <span class="o">=</span> <span class="n">shotgun</span><span class="o">.</span><span class="n">get_entity_type_display_name</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
             
-            <span class="n">ctx_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">entity_display_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+            <span class="n">ctx_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">entity_display_name</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># we have either step or task</span>
@@ -291,12 +297,16 @@
             <span class="c1"># e.g. Lighting, Shot ABC_123</span>
             
             <span class="c1"># resolve custom entities to their real display</span>
-            <span class="n">entity_display_name</span> <span class="o">=</span> <span class="n">shotgun</span><span class="o">.</span><span class="n">get_entity_type_display_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="p">,</span> 
-                                                                       <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">))</span>
+            <span class="n">entity_display_name</span> <span class="o">=</span> <span class="n">shotgun</span><span class="o">.</span><span class="n">get_entity_type_display_name</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
             
-            <span class="n">ctx_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task_step</span><span class="p">,</span> 
-                                      <span class="n">entity_display_name</span><span class="p">,</span> 
-                                      <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+            <span class="n">ctx_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">task_step</span><span class="p">,</span>
+                <span class="n">entity_display_name</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
         
         <span class="k">return</span> <span class="n">ctx_name</span>
 
@@ -1908,7 +1918,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.69',
+            VERSION:'v0.18.72',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

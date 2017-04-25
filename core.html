@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Foundation &mdash; tk-core v0.18.69 documentation</title>
+  <title>Foundation &mdash; tk-core v0.18.72 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.69 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.72 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Deploy and management" href="bootstrap.html"/> 
 
@@ -148,7 +148,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.69.<br>
+    <b>tk-core</b> v0.18.72.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -325,6 +325,45 @@ Toolkit services such as filesystem creation, hooks, context
 manipulation and the Toolkit template system.</p>
 <p>Instances of this class should be created via the factory methods
 <a class="reference internal" href="#sgtk.sgtk_from_path" title="sgtk.sgtk_from_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_path()</span></code></a> and <a class="reference internal" href="#sgtk.sgtk_from_entity" title="sgtk.sgtk_from_entity"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_entity()</span></code></a>.</p>
+<dl class="method">
+<dt id="sgtk.Sgtk.get_cache_item">
+<code class="descname">get_cache_item</code><span class="sig-paren">(</span><em>cache_key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.get_cache_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.get_cache_item" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an item from the cache held within this tk instance.</p>
+<p>Internal Use Only - We provide no guarantees that this method
+will be backwards compatible.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; name of cache key to access</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">cached object or None if no object found</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.set_cache_item">
+<code class="descname">set_cache_item</code><span class="sig-paren">(</span><em>cache_key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.set_cache_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.set_cache_item" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a value to the tk instance cache. To clear a value,
+set it to None.</p>
+<p>Internal Use Only - We provide no guarantees that this method
+will be backwards compatible.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cache_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; name of cache key to set</li>
+<li><strong>value</strong> &#8211; Value to set or None to clear it.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="sgtk.Sgtk.project_path">
 <code class="descname">project_path</code><a class="headerlink" href="#sgtk.Sgtk.project_path" title="Permalink to this definition">¶</a></dt>
@@ -1646,13 +1685,37 @@ it in your configuration&#8217;s <code class="docutils literal"><span class="pre
 engine specific hook, making sure that you get both your custom actions, the engine default actions
 and the app&#8217;s built-in actions.</p>
 <dl class="attribute">
+<dt id="sgtk.Hook.sgtk">
+<code class="descname">sgtk</code><a class="headerlink" href="#sgtk.Hook.sgtk" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sgtk core API instance associated with the Hook parent.</p>
+<p>This is a convenience method for easy core API instance access.
+In the case of app, engine and framework hooks, this is equivalent
+to <code class="docutils literal"><span class="pre">parent.sgtk</span></code> and in the case of core hooks it simply returns
+<code class="docutils literal"><span class="pre">parent</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Some low level hooks do not have a parent defined. In
+such cases, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Hook.tank">
+<code class="descname">tank</code><a class="headerlink" href="#sgtk.Hook.tank" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sgtk core API instance associated with the Hook parent.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version Use: </span><a class="reference internal" href="#sgtk.Hook.sgtk" title="sgtk.Hook.sgtk"><code class="xref py py-meth docutils literal"><span class="pre">sgtk()</span></code></a> instead.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sgtk.Hook.parent">
 <code class="descname">parent</code><a class="headerlink" href="#sgtk.Hook.parent" title="Permalink to this definition">¶</a></dt>
 <dd><p>The parent object to the executing hook. This varies with the type of
 hook that is being executed. For a hook that runs inside an app or an engine,
 the parent object will be the <a class="reference internal" href="platform.html#sgtk.platform.Application" title="sgtk.platform.Application"><code class="xref py py-class docutils literal"><span class="pre">Application</span></code></a> or
 <a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a> instance. For core hooks, the
-parent object will be <code class="xref py py-class docutils literal"><span class="pre">sgtk</span></code>.</p>
+parent object will be <a class="reference internal" href="#sgtk.Hook.sgtk" title="sgtk.Hook.sgtk"><code class="xref py py-class docutils literal"><span class="pre">sgtk</span></code></a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If you need to access Shotgun inside your hook, you can do this by
@@ -1665,41 +1728,19 @@ has a <code class="docutils literal"><span class="pre">shotgun</span></code> pro
 <dt id="sgtk.Hook.get_publish_path">
 <code class="descname">get_publish_path</code><span class="sig-paren">(</span><em>sg_publish_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/hook.html#Hook.get_publish_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Hook.get_publish_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the path on disk for a publish entity in Shotgun.</p>
-<p>Use this method if you have a shotgun publish entity and want
-to get a local path on disk. This method will ensure that however
-the publish path is encoded, a local path is returned.</p>
+<p>Convenience method that calls <a class="reference internal" href="utils.html#sgtk.util.resolve_publish_path" title="sgtk.util.resolve_publish_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.util.resolve_publish_path()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_publish_data</strong> &#8211; Shotgun dictionary containing
-information about a publish. Needs to at least
-contain a type, id and a path key.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_publish_data</strong> &#8211; Dictionaries containing Shotgun publish data.
+Each dictionary needs to at least contain a code, type, id and a path key.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">String representing a local path on disk.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A path on disk to existing file or file sequence.</td>
 </tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.Hook.get_publish_paths">
-<code class="descname">get_publish_paths</code><span class="sig-paren">(</span><em>sg_publish_data_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/hook.html#Hook.get_publish_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Hook.get_publish_paths" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns several local paths on disk given a
-list of shotgun data dictionaries representing publishes.</p>
-<p>Use this method if you have several shotgun publish entities and want
-to get a local path on disk. This method will ensure that however
-the publish path is encoded, a local path is returned.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_publish_data_list</strong> &#8211; List of shotgun data dictionaries
-containing publish data. Each dictionary
-needs to at least contain a type, id and
-a path key.</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="utils.html#sgtk.util.PublishPathNotDefinedError" title="sgtk.util.PublishPathNotDefinedError"><code class="xref py py-class docutils literal"><span class="pre">PublishPathNotDefinedError</span></code></a> if the path isn&#8217;t defined.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of strings representing local paths on disk.</td>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="utils.html#sgtk.util.PublishPathNotSupported" title="sgtk.util.PublishPathNotSupported"><code class="xref py py-class docutils literal"><span class="pre">PublishPathNotSupported</span></code></a> if the path cannot be resolved.</td>
 </tr>
 </tbody>
 </table>
@@ -2710,32 +2751,37 @@ The format follows the convention of <code class="xref py py-meth docutils liter
 <dl class="class">
 <dt id="sgtk.TankError">
 <em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankError</code><a class="reference internal" href="_modules/tank/errors.html#TankError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Top level exception for all toolkit-core level runtime errors</p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<p>Top level exception for all toolkit-core level runtime errors</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.TankUnreadableFileError">
 <em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankUnreadableFileError</code><a class="reference internal" href="_modules/tank/errors.html#TankUnreadableFileError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankUnreadableFileError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exception that indicates that a required file can&#8217;t be read from disk.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Exception that indicates that a required file can&#8217;t be read from disk.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.TankFileDoesNotExistError">
 <em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankFileDoesNotExistError</code><a class="reference internal" href="_modules/tank/errors.html#TankFileDoesNotExistError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankFileDoesNotExistError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exceptions that indicates that a required file does not exist.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankUnreadableFileError</span></code></p>
+<p>Exceptions that indicates that a required file does not exist.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.TankErrorProjectIsSetup">
 <em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankErrorProjectIsSetup</code><a class="reference internal" href="_modules/tank/errors.html#TankErrorProjectIsSetup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankErrorProjectIsSetup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exception that indicates that a project already has a toolkit name but no pipeline configuration.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Exception that indicates that a project already has a toolkit name but no pipeline configuration.</p>
 <p>Include error message</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.TankHookMethodDoesNotExistError">
 <em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankHookMethodDoesNotExistError</code><a class="reference internal" href="_modules/tank/errors.html#TankHookMethodDoesNotExistError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankHookMethodDoesNotExistError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exception that indicates that a called method does not exist in the hook.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Exception that indicates that a called method does not exist in the hook.</p>
 </dd></dl>
 
 </div>
@@ -2781,7 +2827,7 @@ The format follows the convention of <code class="xref py py-meth docutils liter
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.69',
+            VERSION:'v0.18.72',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

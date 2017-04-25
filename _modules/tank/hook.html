@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.hook &mdash; tk-core v0.18.69 documentation</title>
+  <title>tank.hook &mdash; tk-core v0.18.72 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.69 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.72 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.69.<br>
+    <b>tk-core</b> v0.18.72.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -180,15 +180,12 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Defines the base class for all Tank Hooks.</span>
-
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
-<span class="kn">import</span> <span class="nn">urlparse</span>
 <span class="kn">import</span> <span class="nn">threading</span>
-<span class="kn">import</span> <span class="nn">urllib</span>
 <span class="kn">from</span> <span class="nn">.util.loader</span> <span class="kn">import</span> <span class="n">load_plugin</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="p">(</span>
@@ -198,6 +195,7 @@
 <span class="p">)</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="Hook"><a class="viewcode-back" href="../../core.html#sgtk.Hook">[docs]</a><span class="k">class</span> <span class="nc">Hook</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -367,6 +365,45 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span> <span class="o">=</span> <span class="n">parent</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The sgtk core API instance associated with the Hook parent.</span>
+
+<span class="sd">        This is a convenience method for easy core API instance access.</span>
+<span class="sd">        In the case of app, engine and framework hooks, this is equivalent</span>
+<span class="sd">        to ``parent.sgtk`` and in the case of core hooks it simply returns</span>
+<span class="sd">        ``parent``.</span>
+
+<span class="sd">        .. note:: Some low level hooks do not have a parent defined. In</span>
+<span class="sd">                  such cases, ``None`` is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># local import to avoid cycles</span>
+        <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">Sgtk</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c1"># system hook</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">Sgtk</span><span class="p">):</span>
+            <span class="c1"># core hook</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># look for sgtk instance on parent</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">sgtk</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The sgtk core API instance associated with the Hook parent.</span>
+
+<span class="sd">        .. deprecated::</span>
+<span class="sd">           Use :meth:`sgtk` instead.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The parent object to the executing hook. This varies with the type of</span>
@@ -385,73 +422,46 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the path on disk for a publish entity in Shotgun.</span>
 
-<span class="sd">        Use this method if you have a shotgun publish entity and want</span>
-<span class="sd">        to get a local path on disk. This method will ensure that however</span>
-<span class="sd">        the publish path is encoded, a local path is returned.</span>
+<span class="sd">        Convenience method that calls :meth:`sgtk.util.resolve_publish_path`.</span>
 
-<span class="sd">        :param sg_publish_data: Shotgun dictionary containing</span>
-<span class="sd">                                information about a publish. Needs to at least</span>
-<span class="sd">                                contain a type, id and a path key.</span>
-<span class="sd">        :returns: String representing a local path on disk.</span>
+<span class="sd">        :param sg_publish_data: Dictionaries containing Shotgun publish data.</span>
+<span class="sd">            Each dictionary needs to at least contain a code, type, id and a path key.</span>
+
+<span class="sd">        :returns: A path on disk to existing file or file sequence.</span>
+
+<span class="sd">        :raises: :class:`~sgtk.util.PublishPathNotDefinedError` if the path isn&#39;t defined.</span>
+<span class="sd">        :raises: :class:`~sgtk.util.PublishPathNotSupported` if the path cannot be resolved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_publish_paths</span><span class="p">([</span> <span class="n">sg_publish_data</span> <span class="p">])[</span><span class="mi">0</span><span class="p">]</span></div>
+        <span class="c1"># avoid cyclic refs</span>
+        <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">resolve_publish_path</span>
+        <span class="k">return</span> <span class="n">resolve_publish_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Hook.get_publish_paths"><a class="viewcode-back" href="../../core.html#sgtk.Hook.get_publish_paths">[docs]</a>    <span class="k">def</span> <span class="nf">get_publish_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data_list</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_publish_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data_list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns several local paths on disk given a</span>
 <span class="sd">        list of shotgun data dictionaries representing publishes.</span>
 
-<span class="sd">        Use this method if you have several shotgun publish entities and want</span>
-<span class="sd">        to get a local path on disk. This method will ensure that however</span>
-<span class="sd">        the publish path is encoded, a local path is returned.</span>
+<span class="sd">        Convenience method that calls :meth:`sgtk.util.resolve_publish_path`.</span>
+
+<span class="sd">        .. deprecated:: 0.18.64</span>
+<span class="sd">           Use :meth:`get_publish_path` instead.</span>
 
 <span class="sd">        :param sg_publish_data_list: List of shotgun data dictionaries</span>
 <span class="sd">                                     containing publish data. Each dictionary</span>
-<span class="sd">                                     needs to at least contain a type, id and</span>
-<span class="sd">                                     a path key.</span>
-<span class="sd">        :returns: List of strings representing local paths on disk.</span>
+<span class="sd">                                     needs to at least contain a code, type,</span>
+<span class="sd">                                     id and a path key.</span>
+
+<span class="sd">        :returns: List of paths on disk to existing files or file sequences.</span>
+
+<span class="sd">        :raises: :class:`~sgtk.util.PublishPathNotDefinedError` if any of the paths aren&#39;t defined.</span>
+<span class="sd">        :raises: :class:`~sgtk.util.PublishPathNotSupported` if any of the paths cannot be resolved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># avoid cyclic refs</span>
+        <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">resolve_publish_path</span>
         <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">sg_data</span> <span class="ow">in</span> <span class="n">sg_publish_data_list</span><span class="p">:</span>
-            <span class="n">path_field</span> <span class="o">=</span> <span class="n">sg_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">path_field</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot resolve path from publish! The shotgun dictionary </span><span class="si">%s</span><span class="s2"> does &quot;</span>
-                                <span class="s2">&quot;not contain a valid path definition&quot;</span> <span class="o">%</span> <span class="n">sg_data</span><span class="p">)</span>
-
-            <span class="n">resolved_path</span> <span class="o">=</span> <span class="bp">None</span>
-
-            <span class="k">if</span> <span class="s2">&quot;local_path&quot;</span> <span class="ow">in</span> <span class="n">path_field</span><span class="p">:</span>
-                <span class="c1"># first, look for a local file link</span>
-                <span class="n">resolved_path</span> <span class="o">=</span> <span class="n">path_field</span><span class="p">[</span><span class="s2">&quot;local_path&quot;</span><span class="p">]</span>
-
-            <span class="k">elif</span> <span class="s2">&quot;url&quot;</span> <span class="ow">in</span> <span class="n">path_field</span><span class="p">:</span>
-                <span class="c1"># secondly, look for a file:// style url</span>
-
-                <span class="n">url</span> <span class="o">=</span> <span class="n">path_field</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]</span>
-                <span class="c1"># url = &quot;file:///path/to/some/file.txt&quot;</span>
-                <span class="n">results</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-                <span class="c1"># ParseResult(</span>
-                <span class="c1"># scheme=&#39;file&#39;,</span>
-                <span class="c1"># netloc=&#39;&#39;,</span>
-                <span class="c1"># path=&#39;/path/to/some/file.txt&#39;,</span>
-                <span class="c1"># params=&#39;&#39;,</span>
-                <span class="c1"># query=&#39;&#39;,</span>
-                <span class="c1"># fragment=&#39;&#39;</span>
-                <span class="c1"># )</span>
-
-                <span class="k">if</span> <span class="n">results</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span><span class="p">:</span>
-                    <span class="n">resolved_path</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">unquote</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">resolved_path</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                    <span class="s2">&quot;Cannot resolve path from publish! The shotgun dictionary </span><span class="si">%s</span><span class="s2"> does &quot;</span>
-                    <span class="s2">&quot;not contain a valid path definition&quot;</span> <span class="o">%</span> <span class="n">sg_data</span>
-                <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resolved_path</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">paths</span></div>
+        <span class="k">for</span> <span class="n">sg_publish_data</span> <span class="ow">in</span> <span class="n">sg_publish_data_list</span><span class="p">:</span>
+            <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resolve_publish_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">paths</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">disk_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -801,7 +811,9 @@
     <span class="k">for</span> <span class="n">hook_path</span> <span class="ow">in</span> <span class="n">hook_paths</span><span class="p">:</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">hook_path</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">TankFileDoesNotExistError</span><span class="p">(</span><span class="s2">&quot;Cannot execute hook &#39;</span><span class="si">%s</span><span class="s2">&#39; - this file does not exist on disk!&quot;</span> <span class="o">%</span> <span class="n">hook_path</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankFileDoesNotExistError</span><span class="p">(</span>
+                <span class="s2">&quot;Cannot execute hook &#39;</span><span class="si">%s</span><span class="s2">&#39; - this file does not exist on disk!&quot;</span> <span class="o">%</span> <span class="n">hook_path</span>
+            <span class="p">)</span>
 
         <span class="c1"># look to see if we&#39;ve already loaded this hook into the cache</span>
         <span class="n">found_hook_class</span> <span class="o">=</span> <span class="n">_hooks_cache</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
@@ -879,7 +891,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.69',
+            VERSION:'v0.18.72',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

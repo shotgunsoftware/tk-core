@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.69 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.72 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.69 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.72 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -168,7 +168,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.69.<br>
+    <b>tk-core</b> v0.18.72.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -3773,13 +3773,15 @@ at the root level of the app, engine or framework. Use a
 <dl class="class">
 <dt id="sgtk.platform.TankEngineInitError">
 <em class="property">class </em><code class="descclassname">sgtk.platform.</code><code class="descname">TankEngineInitError</code><a class="reference internal" href="_modules/tank/platform/errors.html#TankEngineInitError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.TankEngineInitError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exception that indicates that an engine could not start up.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Exception that indicates that an engine could not start up.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.platform.TankContextChangeNotSupportedError">
 <em class="property">class </em><code class="descclassname">sgtk.platform.</code><code class="descname">TankContextChangeNotSupportedError</code><a class="reference internal" href="_modules/tank/platform/errors.html#TankContextChangeNotSupportedError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.TankContextChangeNotSupportedError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exception that indicates that a requested context change is not allowed
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Exception that indicates that a requested context change is not allowed
 based on a check of the current engine and all of its active apps.</p>
 </dd></dl>
 
@@ -4518,7 +4520,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.69',
+            VERSION:'v0.18.72',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -1,0 +1,530 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.util.shotgun.publish_util &mdash; tk-core v0.18.72 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.72 documentation" href="../../../../index.html"/>
+        <link rel="up" title="Module code" href="../../../index.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.72.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.util.shotgun.publish_util</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.util.shotgun.publish_util</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2017 Shotgun Software Inc.</span>
+<span class="c1"># </span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1"># </span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utility methods related to Published Files in Shotgun</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
+
+<span class="kn">from</span> <span class="nn">...log</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..shotgun_path</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">login</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_entity_type_display_name"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.get_entity_type_display_name">[docs]</a><span class="k">def</span> <span class="nf">get_entity_type_display_name</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type_code</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the display name for an entity type given its type name.</span>
+<span class="sd">    For example, if a custom entity is named &quot;Workspace&quot; in the</span>
+<span class="sd">    Shotgun preferences, but is addressed as &quot;CustomEntity03&quot; in the</span>
+<span class="sd">    Shotgun API, this method will resolve the display name::</span>
+
+<span class="sd">        &gt;&gt;&gt; get_entity_type_display_name(tk, &quot;CustomEntity03&quot;)</span>
+<span class="sd">        &#39;Workspace&#39;</span>
+
+<span class="sd">    .. note:: The recommended way to access this data is now via the</span>
+<span class="sd">              globals module in the shotgunutils framework. For more information,</span>
+<span class="sd">              see http://developer.shotgunsoftware.com/tk-framework-shotgunutils/shotgun_globals.html</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :param entity_type_code: API entity type name</span>
+<span class="sd">    :returns: display name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">schema_data</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">get_cache_item</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_SCHEMA_CACHE_KEY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">schema_data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1"># now resolve the entity types into display names using the schema_entity_read method.</span>
+        <span class="n">schema_data</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">schema_entity_read</span><span class="p">()</span>
+        <span class="c1"># returns a dictionary on the following form:</span>
+        <span class="c1"># { &#39;Booking&#39;: {&#39;name&#39;: {&#39;editable&#39;: False, &#39;value&#39;: &#39;Booking&#39;}}, ... }</span>
+        <span class="n">tk</span><span class="o">.</span><span class="n">set_cache_item</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_SCHEMA_CACHE_KEY</span><span class="p">,</span> <span class="n">schema_data</span><span class="p">)</span>
+
+    <span class="n">display_name</span> <span class="o">=</span> <span class="n">entity_type_code</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">entity_type_code</span> <span class="ow">in</span> <span class="n">schema_data</span><span class="p">:</span>
+            <span class="n">display_name</span> <span class="o">=</span> <span class="n">schema_data</span><span class="p">[</span><span class="n">entity_type_code</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">display_name</span></div>
+
+
+<span class="k">def</span> <span class="nf">get_cached_local_storages</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a list of all Shotgun local storages.</span>
+<span class="sd">    Use an in-memory cache for performance</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :returns: List of shotgun entity dictionaries</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">storage_data</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">get_cache_item</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_LOCAL_STORAGES_CACHE_KEY</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">storage_data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Caching shotgun local storages...&quot;</span><span class="p">)</span>
+        <span class="n">storage_data</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+            <span class="s2">&quot;LocalStorage&quot;</span><span class="p">,</span>
+            <span class="p">[],</span>
+            <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">SHOTGUN_PATH_FIELDS</span>
+        <span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;...caching complete. Got </span><span class="si">%d</span><span class="s2"> storages.&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">storage_data</span><span class="p">))</span>
+        <span class="n">tk</span><span class="o">.</span><span class="n">set_cache_item</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_LOCAL_STORAGES_CACHE_KEY</span><span class="p">,</span> <span class="n">storage_data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">storage_data</span>
+
+
+<span class="nd">@LogManager.log_timing</span>
+<div class="viewcode-block" id="find_publish"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.find_publish">[docs]</a><span class="k">def</span> <span class="nf">find_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds publishes in Shotgun given paths on disk.</span>
+<span class="sd">    This method is similar to the find method in the Shotgun API,</span>
+<span class="sd">    except that instead of an Entity type, a list of files is</span>
+<span class="sd">    passed into the function.</span>
+
+<span class="sd">    In addition to a list of files, shotgun filters can also be specified.</span>
+<span class="sd">    This may be useful if for example all publishes with a certain status</span>
+<span class="sd">    should be retrieved.</span>
+
+<span class="sd">    By default, the shotgun id is returned for each successfully identified path.</span>
+<span class="sd">    If you want to retrieve additional fields, you can specify these using</span>
+<span class="sd">    the fields parameter.</span>
+
+<span class="sd">    The method will return a dictionary, keyed by path. The value will be</span>
+<span class="sd">    a standard shotgun query result dictionary, for example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;/foo/bar&quot; : { &quot;id&quot;: 234, &quot;type&quot;: &quot;TankPublishedFile&quot;, &quot;code&quot;: &quot;some data&quot; },</span>
+<span class="sd">            &quot;/foo/baz&quot; : { &quot;id&quot;: 23,  &quot;type&quot;: &quot;TankPublishedFile&quot;, &quot;code&quot;: &quot;some more data&quot; }</span>
+<span class="sd">        }</span>
+
+<span class="sd">    Fields that are not found, or filtered out by the filters parameter,</span>
+<span class="sd">    are not returned in the dictionary.</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :param list_of_paths: List of full paths for which information should be retrieved</span>
+<span class="sd">    :param filters: Optional list of shotgun filters to apply.</span>
+<span class="sd">    :param fields: Optional list of fields from the matched entities to</span>
+<span class="sd">                   return. Defaults to id and type.</span>
+<span class="sd">    :returns: dictionary keyed by path</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># avoid cyclic references</span>
+    <span class="kn">from</span> <span class="nn">.publish_creation</span> <span class="kn">import</span> <span class="n">group_by_storage</span>
+
+    <span class="c1"># Map path caches to full paths, grouped by storage</span>
+    <span class="c1"># in case of sequences, there will be more than one file</span>
+    <span class="c1"># per path cache</span>
+    <span class="c1"># {&lt;storage name&gt;: { path_cache: [full_path, full_path]}}</span>
+    <span class="n">storages_paths</span> <span class="o">=</span> <span class="n">group_by_storage</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">)</span>
+
+    <span class="n">filters</span> <span class="o">=</span> <span class="n">filters</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">fields</span> <span class="ow">or</span> <span class="p">[]</span>
+
+    <span class="c1"># make copy</span>
+    <span class="n">sg_fields</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[:]</span>
+    <span class="c1"># add these parameters to the fields list - they are needed for the internal processing</span>
+    <span class="c1"># of the result set.</span>
+    <span class="n">sg_fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;created_at&quot;</span><span class="p">)</span>
+    <span class="n">sg_fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;path_cache&quot;</span><span class="p">)</span>
+
+    <span class="c1"># PASS 1</span>
+    <span class="c1"># because the file locations are split for each publish in shotgun into two fields</span>
+    <span class="c1"># - the path_cache which is a storage relative, platform agnostic path</span>
+    <span class="c1"># - a link to a storage entity</span>
+    <span class="c1"># ...we need to group the paths per storage and then for each storage do a</span>
+    <span class="c1"># shotgun query of the form find all records where path_cache, in, /foo, /bar, /baz etc.</span>
+    <span class="n">published_files</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># get a list of all storages that we should look up.</span>
+    <span class="c1"># for 0.12 backwards compatibility, add the Tank Storage.</span>
+    <span class="n">local_storage_names</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span> <span class="ow">in</span> <span class="n">local_storage_names</span><span class="p">:</span>
+        <span class="n">local_storage_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Tank&quot;</span><span class="p">)</span>
+
+    <span class="n">published_file_entity_type</span> <span class="o">=</span> <span class="n">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">local_storage_name</span> <span class="ow">in</span> <span class="n">local_storage_names</span><span class="p">:</span>
+
+        <span class="n">local_storage</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s2">&quot;LocalStorage&quot;</span><span class="p">,</span> <span class="p">[[</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">local_storage_name</span><span class="p">]])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">local_storage</span><span class="p">:</span>
+            <span class="c1"># fail gracefully here - it may be a storage which has been deleted</span>
+            <span class="n">published_files</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># make copy</span>
+        <span class="n">sg_filters</span> <span class="o">=</span> <span class="n">filters</span><span class="p">[:]</span>
+        <span class="n">path_cache_filter</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;path_cache&quot;</span><span class="p">,</span> <span class="s2">&quot;in&quot;</span><span class="p">]</span>
+
+        <span class="c1"># now get the list of normalized files for this storage</span>
+        <span class="c1"># 0.12 backwards compatibility: if the storage name is Tank,</span>
+        <span class="c1"># this is the same as the primary storage.</span>
+        <span class="k">if</span> <span class="n">local_storage_name</span> <span class="o">==</span> <span class="s2">&quot;Tank&quot;</span><span class="p">:</span>
+            <span class="n">normalized_paths</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">normalized_paths</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="c1"># add all of those to the query filter</span>
+        <span class="k">for</span> <span class="n">path_cache_path</span> <span class="ow">in</span> <span class="n">normalized_paths</span><span class="p">:</span>
+            <span class="n">path_cache_filter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path_cache_path</span><span class="p">)</span>
+
+        <span class="n">sg_filters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path_cache_filter</span><span class="p">)</span>
+        <span class="n">sg_filters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="p">[</span><span class="s2">&quot;path_cache_storage&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">local_storage</span><span class="p">]</span> <span class="p">)</span>
+
+        <span class="c1"># organize the returned data by storage</span>
+        <span class="n">published_files</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">sg_filters</span><span class="p">,</span> <span class="n">sg_fields</span><span class="p">)</span>
+
+    <span class="c1"># PASS 2</span>
+    <span class="c1"># take the published_files structure, containing the shotgun data</span>
+    <span class="c1"># grouped by storage, and turn that into the final data structure</span>
+    <span class="c1">#</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">local_storage_name</span><span class="p">,</span> <span class="n">publishes</span> <span class="ow">in</span> <span class="n">published_files</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+        <span class="c1"># get a dictionary which maps shotgun paths to file system paths</span>
+        <span class="k">if</span> <span class="n">local_storage_name</span> <span class="o">==</span> <span class="s2">&quot;Tank&quot;</span><span class="p">:</span>
+            <span class="n">normalized_path_lookup_dict</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">normalized_path_lookup_dict</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span>
+
+        <span class="c1"># now go through all publish entities found for current storage</span>
+        <span class="k">for</span> <span class="n">publish</span> <span class="ow">in</span> <span class="n">publishes</span><span class="p">:</span>
+
+            <span class="n">path_cache</span> <span class="o">=</span> <span class="n">publish</span><span class="p">[</span><span class="s2">&quot;path_cache&quot;</span><span class="p">]</span>
+
+            <span class="c1"># get the list of real paths matching this entry</span>
+            <span class="k">for</span> <span class="n">full_path</span> <span class="ow">in</span> <span class="n">normalized_path_lookup_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path_cache</span><span class="p">,</span> <span class="p">[]):</span>
+
+                <span class="k">if</span> <span class="n">full_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+                    <span class="c1"># this path not yet in the list of matching publish entity data</span>
+                    <span class="n">matches</span><span class="p">[</span><span class="n">full_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">publish</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># found a match! This is most likely because the same file</span>
+                    <span class="c1"># has been published more than once. In this case, we return</span>
+                    <span class="c1"># the entity data for the file that is more recent.</span>
+                    <span class="n">existing_publish</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="n">full_path</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">existing_publish</span><span class="p">[</span><span class="s2">&quot;created_at&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">publish</span><span class="p">[</span><span class="s2">&quot;created_at&quot;</span><span class="p">]:</span>
+                        <span class="n">matches</span><span class="p">[</span><span class="n">full_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">publish</span>
+
+    <span class="c1"># PASS 3 -</span>
+    <span class="c1"># clean up resultset</span>
+    <span class="c1"># note that in order to do this we have pulled in additional fields from</span>
+    <span class="c1"># shotgun (path_cache, created_at etc) - unless these are specifically asked for</span>
+    <span class="c1"># by the caller, get rid of them.</span>
+    <span class="c1">#</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+        <span class="n">delete_fields</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># find fields</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">[</span><span class="n">path</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fields</span> <span class="ow">and</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">):</span>
+                <span class="c1"># field is not the id field and was not asked for.</span>
+                <span class="n">delete_fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="c1"># remove fields</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">delete_fields</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">matches</span><span class="p">[</span><span class="n">path</span><span class="p">][</span><span class="n">f</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">matches</span></div>
+
+<span class="nd">@LogManager.log_timing</span>
+<div class="viewcode-block" id="create_event_log_entry"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.create_event_log_entry">[docs]</a><span class="k">def</span> <span class="nf">create_event_log_entry</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">event_type</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates an event log entry inside of Shotgun.</span>
+<span class="sd">    Event log entries can be handy if you want to track a process or a sequence of events.</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :param context: A :class:`~sgtk.Context` to associate with the event log entry.</span>
+
+<span class="sd">    :param event_type: String which defines the event type. The Shotgun standard suggests</span>
+<span class="sd">                       that this should be of the form Company_Item_Action. Examples include::</span>
+
+<span class="sd">                           Shotgun_Asset_New</span>
+<span class="sd">                           Shotgun_Asset_Change</span>
+<span class="sd">                           Shotgun_User_Login</span>
+
+<span class="sd">    :param description: A verbose description explaining the meaning of this event.</span>
+
+<span class="sd">    :param metadata: A dictionary of metadata information which will be attached to the event</span>
+<span class="sd">                     log record in Shotgun. This dictionary may only contain simple data types</span>
+<span class="sd">                     such as ints, strings etc.</span>
+
+<span class="sd">    :returns: The newly created shotgun record</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">description</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">event_type</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span>
+
+    <span class="n">sg_user</span> <span class="o">=</span> <span class="n">login</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sg_user</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sg_user</span>
+
+    <span class="k">return</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;EventLogEntry&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_published_file_entity_type"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.get_published_file_entity_type">[docs]</a><span class="k">def</span> <span class="nf">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the entity type that this toolkit uses for its Publishes.</span>
+
+<span class="sd">    .. note:: This is for backwards compatibility situations only.</span>
+<span class="sd">              Code targeting new installations can assume that</span>
+<span class="sd">              the published file type in Shotgun is always ``PublishedFile``.</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :returns: &quot;PublishedFile&quot; or &quot;TankPublishedFile&quot;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_published_file_entity_type</span><span class="p">()</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'v0.18.72',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+</body>
+</html>

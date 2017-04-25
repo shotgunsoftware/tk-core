@@ -1,0 +1,997 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.18.72 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.72 documentation" href="../../../../index.html"/>
+        <link rel="up" title="Module code" href="../../../index.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+       
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.72.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.util.shotgun.publish_creation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.util.shotgun.publish_creation</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2017 Shotgun Software Inc.</span>
+<span class="c1"># </span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1"># </span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Logic for publishing files to Shotgun.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">urlparse</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+
+<span class="kn">from</span> <span class="nn">.publish_util</span> <span class="kn">import</span> <span class="n">get_published_file_entity_type</span><span class="p">,</span> <span class="n">get_cached_local_storages</span><span class="p">,</span> <span class="n">find_publish</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">ShotgunPublishError</span>
+<span class="kn">from</span> <span class="nn">...errors</span> <span class="kn">import</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">TankMultipleMatchingTemplatesError</span>
+<span class="kn">from</span> <span class="nn">...log</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..shotgun_path</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">login</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="nd">@LogManager.log_timing</span>
+<div class="viewcode-block" id="register_publish"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.register_publish">[docs]</a><span class="k">def</span> <span class="nf">register_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version_number</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a Published File in Shotgun.</span>
+
+<span class="sd">    **Introduction**</span>
+
+<span class="sd">    The publish will be associated with the current context and point</span>
+<span class="sd">    at the given file. The method will attempt to add the publish to</span>
+<span class="sd">    Shotgun as a local file link, and failing that it will generate</span>
+<span class="sd">    a ``file://`` url to represent the path.</span>
+
+<span class="sd">    In addition to the path, a version number and a name needs to be provided.</span>
+<span class="sd">    The version number should reflect the iteration or revision of the publish</span>
+<span class="sd">    and will be used to populate the number field of the publish that is created</span>
+<span class="sd">    in Shotgun. The name should represent the name of the item, without any version</span>
+<span class="sd">    number. This is used to group together publishes in Shotgun and various</span>
+<span class="sd">    integrations. For example, if the file you are publishing belongs to Shot</span>
+<span class="sd">    AAA_003 and is named ``AAA_003_foreground.v012.ma``, you could set</span>
+<span class="sd">    the name to be ``foreground`` and the version to be ``12``. The Shot name</span>
+<span class="sd">    will be implied by the associated context.</span>
+
+<span class="sd">    The path will first be checked against the current template definitions.</span>
+<span class="sd">    If it matches any template definition and is determined to be a sequence</span>
+<span class="sd">    of some kind (per frame, per eye), any sequence tokens such as ``@@@@``, ``$4F``</span>
+<span class="sd">    etc. will be normalised to a ``%04d`` form before written to Shotgun.</span>
+
+<span class="sd">    If the path matches any local storage roots defined by the toolkit project,</span>
+<span class="sd">    it will be uploaded as a local file link to Shotgun. If not matching roots</span>
+<span class="sd">    are found, the method will retrieve the list of local storages from Shotgun</span>
+<span class="sd">    and try to locate a suitable storage. Failing that, it will fall back on a</span>
+<span class="sd">    register the path as a ``file://`` url.</span>
+
+<span class="sd">    **Examples**</span>
+
+<span class="sd">    The example below shows a basic publish. In addition to the required parameters, it is</span>
+<span class="sd">    recommended to supply at least a comment and a Publish Type::</span>
+
+<span class="sd">        &gt;&gt;&gt; file_path = &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
+<span class="sd">        &gt;&gt;&gt; name = &#39;layout&#39;</span>
+<span class="sd">        &gt;&gt;&gt; version_number = 1</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; sgtk.util.register_publish(</span>
+<span class="sd">            tk,</span>
+<span class="sd">            context,</span>
+<span class="sd">            file_path,</span>
+<span class="sd">            name,</span>
+<span class="sd">            version_number,</span>
+<span class="sd">            comment = &#39;Initial layout composition.&#39;,</span>
+<span class="sd">            published_file_type = &#39;Layout Scene&#39;</span>
+<span class="sd">        )</span>
+
+<span class="sd">        {&#39;code&#39;: &#39;layout.v001.ma&#39;,</span>
+<span class="sd">         &#39;created_by&#39;: {&#39;id&#39;: 40, &#39;name&#39;: &#39;John Smith&#39;, &#39;type&#39;: &#39;HumanUser&#39;},</span>
+<span class="sd">         &#39;description&#39;: &#39;Initial layout composition.&#39;,</span>
+<span class="sd">         &#39;entity&#39;: {&#39;id&#39;: 2, &#39;name&#39;: &#39;shot_010&#39;, &#39;type&#39;: &#39;Shot&#39;},</span>
+<span class="sd">         &#39;id&#39;: 2,</span>
+<span class="sd">         &#39;name&#39;: &#39;layout&#39;,</span>
+<span class="sd">         &#39;path&#39;: {&#39;content_type&#39;: None,</span>
+<span class="sd">          &#39;link_type&#39;: &#39;local&#39;,</span>
+<span class="sd">          &#39;local_path&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
+<span class="sd">          &#39;local_path_linux&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
+<span class="sd">          &#39;local_path_mac&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
+<span class="sd">          &#39;local_path_windows&#39;: &#39;c:\\studio\\demo_project\\sequences\\Sequence-1\\shot_010\\Anm\\publish\\layout.v001.ma&#39;,</span>
+<span class="sd">          &#39;local_storage&#39;: {&#39;id&#39;: 1, &#39;name&#39;: &#39;primary&#39;, &#39;type&#39;: &#39;LocalStorage&#39;},</span>
+<span class="sd">          &#39;name&#39;: &#39;layout.v001.ma&#39;,</span>
+<span class="sd">          &#39;url&#39;: &#39;file:///studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;},</span>
+<span class="sd">         &#39;path_cache&#39;: &#39;demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
+<span class="sd">         &#39;project&#39;: {&#39;id&#39;: 4, &#39;name&#39;: &#39;Demo Project&#39;, &#39;type&#39;: &#39;Project&#39;},</span>
+<span class="sd">         &#39;published_file_type&#39;: {&#39;id&#39;: 12, &#39;name&#39;: &#39;Layout Scene&#39;, &#39;type&#39;: &#39;PublishedFileType&#39;},</span>
+<span class="sd">         &#39;task&#39;: None,</span>
+<span class="sd">         &#39;type&#39;: &#39;PublishedFile&#39;,</span>
+<span class="sd">         &#39;version_number&#39;: 1}</span>
+
+<span class="sd">    When using the ``dry_run`` option, the returned data will look something like this::</span>
+
+<span class="sd">        &gt;&gt;&gt; file_path = &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
+<span class="sd">        &gt;&gt;&gt; name = &#39;layout&#39;</span>
+<span class="sd">        &gt;&gt;&gt; version_number = 1</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; sgtk.util.register_publish(</span>
+<span class="sd">            tk,</span>
+<span class="sd">            context,</span>
+<span class="sd">            file_path,</span>
+<span class="sd">            name,</span>
+<span class="sd">            version_number,</span>
+<span class="sd">            comment=&#39;Initial layout composition.&#39;,</span>
+<span class="sd">            published_file_type=&#39;Layout Scene&#39;</span>
+<span class="sd">            dry_run=True</span>
+<span class="sd">        )</span>
+
+<span class="sd">        {&#39;code&#39;: &#39;layout.v001.ma&#39;,</span>
+<span class="sd">         &#39;description&#39;: &#39;Initial layout composition.&#39;,</span>
+<span class="sd">         &#39;entity&#39;: {&#39;id&#39;: 2, &#39;name&#39;: &#39;shot_010&#39;, &#39;type&#39;: &#39;Shot&#39;},</span>
+<span class="sd">         &#39;path&#39;: {&#39;local_path&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;},</span>
+<span class="sd">         &#39;project&#39;: {&#39;id&#39;: 4, &#39;name&#39;: &#39;Demo Project&#39;, &#39;type&#39;: &#39;Project&#39;},</span>
+<span class="sd">         &#39;task&#39;: None,</span>
+<span class="sd">         &#39;type&#39;: &#39;PublishedFile&#39;,</span>
+<span class="sd">         &#39;version_number&#39;: 1}</span>
+
+<span class="sd">    Be aware that the data may be different if the ``before_register_publish``</span>
+<span class="sd">    hook has been overridden.</span>
+
+<span class="sd">    **Parameters**</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :param context: A :class:`~sgtk.Context` to associate with the publish. This will</span>
+<span class="sd">                    populate the ``task`` and ``entity`` link in Shotgun.</span>
+<span class="sd">    :param path: The path to the file or sequence we want to publish. If the</span>
+<span class="sd">                 path is a sequence path it will be abstracted so that</span>
+<span class="sd">                 any sequence keys are replaced with their default values.</span>
+<span class="sd">    :param name: A name, without version number, which helps distinguish</span>
+<span class="sd">               this publish from other publishes. This is typically</span>
+<span class="sd">               used for grouping inside of Shotgun so that all the</span>
+<span class="sd">               versions of the same &quot;file&quot; can be grouped into a cluster.</span>
+<span class="sd">               For example, for a Maya publish, where we track only</span>
+<span class="sd">               the scene name, the name would simply be that: the scene</span>
+<span class="sd">               name. For something like a render, it could be the scene</span>
+<span class="sd">               name, the name of the AOV and the name of the render layer.</span>
+<span class="sd">    :param version_number: The version number of the item we are publishing.</span>
+
+
+<span class="sd">    In addition to the above, the following optional arguments exist:</span>
+
+<span class="sd">        - ``task`` - A shotgun entity dictionary with id and type (which should always be Task).</span>
+<span class="sd">          if no value is specified, the task will be grabbed from the context object.</span>
+
+<span class="sd">        - ``comment`` - A string containing a description of the comment</span>
+
+<span class="sd">        - ``thumbnail_path`` - A path to a thumbnail (png or jpeg) which will be uploaded to shotgun</span>
+<span class="sd">          and associated with the publish.</span>
+
+<span class="sd">        - ``dependency_paths`` - A list of file system paths that should be attempted to be registered</span>
+<span class="sd">          as dependencies. Files in this listing that do not appear as publishes in shotgun will be ignored.</span>
+
+<span class="sd">        - ``dependency_ids`` - A list of publish ids which should be registered as dependencies.</span>
+
+<span class="sd">        - ``published_file_type`` - A tank type in the form of a string which should match a tank type</span>
+<span class="sd">          that is registered in Shotgun.</span>
+
+<span class="sd">        - ``update_entity_thumbnail`` - Push thumbnail up to the attached entity</span>
+
+<span class="sd">        - ``update_task_thumbnail`` - Push thumbnail up to the attached task</span>
+
+<span class="sd">        - ``created_by`` - Override for the user that will be marked as creating the publish.  This should</span>
+<span class="sd">          be in the form of shotgun entity, e.g. {&quot;type&quot;:&quot;HumanUser&quot;, &quot;id&quot;:7}. If not set, the user will</span>
+<span class="sd">          be determined using :meth:`sgtk.util.get_current_user`.</span>
+
+<span class="sd">        - ``created_at`` - Override for the date the publish is created at.  This should be a python</span>
+<span class="sd">          datetime object</span>
+
+<span class="sd">        - ``version_entity`` - The Shotgun version entity this published file should be linked to</span>
+
+<span class="sd">        - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{&#39;tag_list&#39;: [&#39;foo&#39;, &#39;bar&#39;]}``)</span>
+
+<span class="sd">        - ``dry_run`` - Boolean. If set, do not actually create a database entry. Return the</span>
+<span class="sd">          dictionary of data that would be supplied to Shotgun to create the PublishedFile entity.</span>
+
+<span class="sd">    :raises: :class:`ShotgunPublishError` on failure.</span>
+<span class="sd">    :returns: The created entity dictionary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+        <span class="s2">&quot;Publish: Begin register publish for context </span><span class="si">%s</span><span class="s2"> and path </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">entity</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># get the task from the optional args, fall back on context task if not set</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">task</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">task</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">task</span>
+
+        <span class="n">thumbnail_path</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;thumbnail_path&quot;</span><span class="p">)</span>
+        <span class="n">comment</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;comment&quot;</span><span class="p">)</span>
+        <span class="n">dependency_paths</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dependency_paths&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">dependency_ids</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dependency_ids&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">published_file_type</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;published_file_type&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">published_file_type</span><span class="p">:</span>
+            <span class="c1"># check for legacy name:</span>
+            <span class="n">published_file_type</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tank_type&quot;</span><span class="p">)</span>
+        <span class="n">update_entity_thumbnail</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;update_entity_thumbnail&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">update_task_thumbnail</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;update_task_thumbnail&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">created_by_user</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;created_by&quot;</span><span class="p">)</span>
+        <span class="n">created_at</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;created_at&quot;</span><span class="p">)</span>
+        <span class="n">version_entity</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;version_entity&quot;</span><span class="p">)</span>
+        <span class="n">sg_fields</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sg_fields&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">dry_run</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dry_run&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+        <span class="n">published_file_entity_type</span> <span class="o">=</span> <span class="n">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Publish: Resolving the published file type&quot;</span><span class="p">)</span>
+        <span class="n">sg_published_file_type</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c1"># query shotgun for the published_file_type</span>
+        <span class="k">if</span> <span class="n">published_file_type</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">published_file_type</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;published_file_type must be a string&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">published_file_entity_type</span> <span class="o">==</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">:</span>
+                <span class="n">filters</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">published_file_type</span><span class="p">]]</span>
+                <span class="n">sg_published_file_type</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s1">&#39;PublishedFileType&#39;</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">sg_published_file_type</span><span class="p">:</span>
+                    <span class="c1"># create a published file type on the fly</span>
+                    <span class="n">sg_published_file_type</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;PublishedFileType&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="n">published_file_type</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># == TankPublishedFile</span>
+                <span class="n">filters</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">published_file_type</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span><span class="p">]]</span>
+                <span class="n">sg_published_file_type</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s1">&#39;TankType&#39;</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">sg_published_file_type</span><span class="p">:</span>
+                    <span class="c1"># create a tank type on the fly</span>
+                    <span class="n">sg_published_file_type</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;TankType&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="n">published_file_type</span><span class="p">,</span>
+                                                                            <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span><span class="p">})</span>
+
+        <span class="c1"># create the publish</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Publish: Creating publish in Shotgun&quot;</span><span class="p">)</span>
+        <span class="n">entity</span> <span class="o">=</span> <span class="n">_create_published_file</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span>
+                                        <span class="n">context</span><span class="p">,</span>
+                                        <span class="n">path</span><span class="p">,</span>
+                                        <span class="n">name</span><span class="p">,</span>
+                                        <span class="n">version_number</span><span class="p">,</span>
+                                        <span class="n">task</span><span class="p">,</span>
+                                        <span class="n">comment</span><span class="p">,</span>
+                                        <span class="n">sg_published_file_type</span><span class="p">,</span>
+                                        <span class="n">created_by_user</span><span class="p">,</span>
+                                        <span class="n">created_at</span><span class="p">,</span>
+                                        <span class="n">version_entity</span><span class="p">,</span>
+                                        <span class="n">sg_fields</span><span class="p">,</span>
+                                        <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dry_run</span><span class="p">:</span>
+            <span class="c1"># upload thumbnails</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Publish: Uploading thumbnails&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">thumbnail_path</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">thumbnail_path</span><span class="p">):</span>
+
+                <span class="c1"># publish</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span><span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">thumbnail_path</span><span class="p">)</span>
+
+                <span class="c1"># entity</span>
+                <span class="k">if</span> <span class="n">update_entity_thumbnail</span> <span class="o">==</span> <span class="bp">True</span> <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
+                                                <span class="n">context</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+                                                <span class="n">thumbnail_path</span><span class="p">)</span>
+
+                <span class="c1"># task</span>
+                <span class="k">if</span> <span class="n">update_task_thumbnail</span> <span class="o">==</span> <span class="bp">True</span> <span class="ow">and</span> <span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">thumbnail_path</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># no thumbnail found - instead use the default one</span>
+                <span class="n">this_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+                <span class="n">no_thumb</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">this_folder</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">,</span> <span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;no_preview.jpg&quot;</span><span class="p">)</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span><span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">),</span> <span class="n">no_thumb</span><span class="p">)</span>
+
+            <span class="c1"># register dependencies</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Publish: Register dependencies&quot;</span><span class="p">)</span>
+            <span class="n">_create_dependencies</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">dependency_paths</span><span class="p">,</span> <span class="n">dependency_ids</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Publish: Complete&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">entity</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># Log the exception so the original traceback is available</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="c1"># Raise our own exception with the original message and the created entity,</span>
+        <span class="c1"># if any</span>
+        <span class="k">raise</span> <span class="n">ShotgunPublishError</span><span class="p">(</span>
+            <span class="n">error_message</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">,</span>
+            <span class="n">entity</span><span class="o">=</span><span class="n">entity</span>
+        <span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_create_published_file</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version_number</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">comment</span><span class="p">,</span> <span class="n">published_file_type</span><span class="p">,</span>
+                           <span class="n">created_by_user</span><span class="p">,</span> <span class="n">created_at</span><span class="p">,</span> <span class="n">version_entity</span><span class="p">,</span> <span class="n">sg_fields</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a publish entity in shotgun given some standard fields.</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :param context: A :class:`~sgtk.Context` to associate with the publish. This will</span>
+<span class="sd">                    populate the ``task`` and ``entity`` link in Shotgun.</span>
+<span class="sd">    :param path: The path to the file or sequence we want to publish. If the</span>
+<span class="sd">                 path is a sequence path it will be abstracted so that</span>
+<span class="sd">                 any sequence keys are replaced with their default values.</span>
+<span class="sd">    :param name: A name, without version number, which helps distinguish</span>
+<span class="sd">               this publish from other publishes. This is typically</span>
+<span class="sd">               used for grouping inside of Shotgun so that all the</span>
+<span class="sd">               versions of the same &quot;file&quot; can be grouped into a cluster.</span>
+<span class="sd">               For example, for a Maya publish, where we track only</span>
+<span class="sd">               the scene name, the name would simply be that: the scene</span>
+<span class="sd">               name. For something like a render, it could be the scene</span>
+<span class="sd">               name, the name of the AOV and the name of the render layer.</span>
+<span class="sd">    :param version_number: The version number of the item we are publishing.</span>
+<span class="sd">    :param task: Shotgun Task dictionary to associate with publish or ``None``</span>
+<span class="sd">    :param comment: Comments string to associate with publish</span>
+<span class="sd">    :param published_file_type: Shotgun publish type dictionary to</span>
+<span class="sd">                associate with publish</span>
+<span class="sd">    :param created_by_user: User entity to associate with publish or ``None``</span>
+<span class="sd">                if current user (via :meth:`sgtk.util.get_current_user`)</span>
+<span class="sd">                should be used.</span>
+<span class="sd">    :param created_at: Timestamp to associate with publish or None for default.</span>
+<span class="sd">    :param version_entity: Version dictionary to associate with publish or ``None``.</span>
+<span class="sd">    :param sg_fields: Dictionary of additional data to add to publish.</span>
+<span class="sd">    :param dry_run: Don&#39;t actually create the published file entry. Simply</span>
+<span class="sd">                    return the data dictionary that would be supplied.</span>
+
+<span class="sd">    :returns: The result of the shotgun API create method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">comment</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="n">task</span><span class="p">,</span>
+        <span class="s2">&quot;version_number&quot;</span><span class="p">:</span> <span class="n">version_number</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="c1"># we set the optional additional fields first so we don&#39;t allow overwriting the standard parameters</span>
+    <span class="k">if</span> <span class="n">sg_fields</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">sg_fields</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sg_fields</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">created_by_user</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;created_by&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">created_by_user</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># use current user</span>
+        <span class="n">sg_user</span> <span class="o">=</span> <span class="n">login</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sg_user</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;created_by&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sg_user</span>
+
+    <span class="k">if</span> <span class="n">created_at</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;created_at&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">created_at</span>
+
+    <span class="n">published_file_entity_type</span> <span class="o">=</span> <span class="n">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">published_file_type</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">published_file_entity_type</span> <span class="o">==</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;published_file_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">published_file_type</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># using legacy type TankPublishedFile</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;tank_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">published_file_type</span>
+
+    <span class="k">if</span> <span class="n">version_entity</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">version_entity</span>
+
+
+    <span class="c1"># Determine the value of the link field based on the given context</span>
+    <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1"># when running toolkit as a standalone plugin, the context may be</span>
+        <span class="c1"># empty and not contain a project. Publishes are project entities</span>
+        <span class="c1"># in Shotgun, so we cannot proceed without a project.</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Your context needs to at least have a project set in order to publish.&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1"># If the context does not have an entity, link it up to the project.</span>
+        <span class="c1"># This happens for project specific workflows such as editorial</span>
+        <span class="c1"># workflows, ingest and when running zero config toolkit plugins in</span>
+        <span class="c1"># a generic project mode.</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span>
+
+    <span class="c1"># set the associated project</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span>
+
+    <span class="c1"># Check if path is a url or a straight file path.  Path</span>
+    <span class="c1"># is assumed to be a url if it has a scheme:</span>
+    <span class="c1">#</span>
+    <span class="c1">#     scheme://netloc/path</span>
+    <span class="c1">#</span>
+    <span class="n">path_is_url</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">scheme</span><span class="p">:</span>
+        <span class="c1"># handle Windows drive letters - note this adds a limitation</span>
+        <span class="c1"># but one that is not likely to be a problem as single-character</span>
+        <span class="c1"># schemes are unlikely!</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">scheme</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">res</span><span class="o">.</span><span class="n">scheme</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+            <span class="n">path_is_url</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c1"># naming and path logic is different depending on url</span>
+    <span class="k">if</span> <span class="n">path_is_url</span><span class="p">:</span>
+
+        <span class="c1"># extract name from url:</span>
+        <span class="c1">#</span>
+        <span class="c1"># scheme://hostname.com/path/to/file.ext -&gt; file.ext</span>
+        <span class="c1"># scheme://hostname.com -&gt; hostname.com</span>
+        <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+            <span class="c1"># scheme://hostname.com/path/to/file.ext -&gt; file.ext</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># scheme://hostname.com -&gt; hostname.com</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">netloc</span>
+
+        <span class="c1"># make sure that the url is escaped property, otherwise</span>
+        <span class="c1"># shotgun might not accept it.</span>
+        <span class="c1">#</span>
+        <span class="c1"># for quoting logic, see bugfix here:</span>
+        <span class="c1"># http://svn.python.org/view/python/trunk/Lib/urllib.py?r1=71780&amp;r2=71779&amp;pathrev=71780</span>
+        <span class="c1">#</span>
+        <span class="c1"># note: by applying a safe pattern like this, we guarantee that already quoted paths</span>
+        <span class="c1">#       are not touched, e.g. quote(&#39;foo bar&#39;) == quote(&#39;foo%20bar&#39;)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s2">&quot;%/:=&amp;?~#+!$,;&#39;@()*[]&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">]</span>  <span class="c1"># same as publish name</span>
+        <span class="p">}</span>
+
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="c1"># normalize the path to native slashes</span>
+        <span class="n">norm_path</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">norm_path</span> <span class="o">!=</span> <span class="n">path</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Normalized input path &#39;</span><span class="si">%s</span><span class="s2">&#39; -&gt; &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">norm_path</span><span class="p">))</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">norm_path</span>
+
+        <span class="c1"># convert the abstract fields to their defaults</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">_translate_abstract_fields</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+        <span class="c1"># name of publish is the filename</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="c1"># Make path platform agnostic and determine if it belongs</span>
+        <span class="c1"># to a storage that is associated with this toolkit config.</span>
+        <span class="n">storage_name</span><span class="p">,</span> <span class="n">path_cache</span> <span class="o">=</span> <span class="n">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">path_cache</span><span class="p">:</span>
+
+            <span class="c1"># there is a toolkit storage mapping defined for this storage</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;The path &#39;</span><span class="si">%s</span><span class="s2">&#39; is associated with config root &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="c1"># specify the full path in shotgun</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="n">path</span><span class="p">}</span>
+
+            <span class="c1"># note - #30005 - there appears to be an issue on the serverside</span>
+            <span class="c1"># related to the explicit storage format and paths containing</span>
+            <span class="c1"># sequence tokens such as %04d. Commenting out the logic to handle</span>
+            <span class="c1"># the new explicit storage format for the time being while this is</span>
+            <span class="c1"># being investigated.</span>
+
+            <span class="c1"># # check if the shotgun server supports the storage and relative_path parameters</span>
+            <span class="c1"># # which allows us to specify exactly which storage to bind a publish to rather</span>
+            <span class="c1"># # than relying on Shotgun to compute this</span>
+            <span class="c1"># supports_specific_storage_syntax = (</span>
+            <span class="c1">#     hasattr(tk.shotgun, &quot;server_caps&quot;) and</span>
+            <span class="c1">#     tk.shotgun.server_caps.version and</span>
+            <span class="c1">#     tk.shotgun.server_caps.version &gt;= (6, 3, 17)</span>
+            <span class="c1"># )</span>
+            <span class="c1">#</span>
+            <span class="c1"># if supports_specific_storage_syntax:</span>
+            <span class="c1">#     # explicitly pass relative path and storage to shotgun</span>
+            <span class="c1">#     storage = tk.shotgun.find_one(&quot;LocalStorage&quot;, [[&quot;code&quot;, &quot;is&quot;, storage_name]])</span>
+            <span class="c1">#</span>
+            <span class="c1">#     if storage is None:</span>
+            <span class="c1">#         # there is no storage in Shotgun that matches the one toolkit expects.</span>
+            <span class="c1">#         # this *may* be ok because there may be another storage in Shotgun that</span>
+            <span class="c1">#         # magically picks up the publishes and associates with them. In this case,</span>
+            <span class="c1">#         # issue a warning and fall back on the server-side functionality</span>
+            <span class="c1">#         log.warning(</span>
+            <span class="c1">#             &quot;Could not find the expected storage &#39;%s&#39; in Shotgun to associate &quot;</span>
+            <span class="c1">#             &quot;publish &#39;%s&#39; with - falling back to Shotgun&#39;s built-in storage &quot;</span>
+            <span class="c1">#             &quot;resolution logic. It is recommended that you add the &#39;%s&#39; storage &quot;</span>
+            <span class="c1">#             &quot;to Shotgun&quot; % (storage_name, path, storage_name))</span>
+            <span class="c1">#         data[&quot;path&quot;] = {&quot;local_path&quot;: path}</span>
+            <span class="c1">#</span>
+            <span class="c1">#     else:</span>
+            <span class="c1">#         data[&quot;path&quot;] = {&quot;relative_path&quot;: path_cache, &quot;local_storage&quot;: storage}</span>
+            <span class="c1">#</span>
+            <span class="c1"># else:</span>
+            <span class="c1">#     # use previous syntax where we pass the whole path to Shotgun</span>
+            <span class="c1">#     # and shotgun will do the storage/relative path split server side.</span>
+            <span class="c1">#     # This operation may do unexpected things if you have multiple</span>
+            <span class="c1">#     # storages that are identical or overlapping</span>
+            <span class="c1">#     data[&quot;path&quot;] = {&quot;local_path&quot;: path}</span>
+
+            <span class="c1"># fill in the path cache field which is used for filtering in Shotgun</span>
+            <span class="c1"># (because SG does not support</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path_cache&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">path_cache</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="c1"># path does not map to any configured root - fall back gracefully:</span>
+            <span class="c1"># 1. look for storages in Shotgun and see if we can create a local path</span>
+            <span class="c1"># 2. failing that, just register the entry as a file:// resource.</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path &#39;</span><span class="si">%s</span><span class="s2">&#39; does not have an associated config root.&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will check shotgun local storages to see if there is a match.&quot;</span><span class="p">)</span>
+
+            <span class="n">matching_local_storage</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">for</span> <span class="n">storage</span> <span class="ow">in</span> <span class="n">get_cached_local_storages</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
+                <span class="n">local_storage_path</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_shotgun_dict</span><span class="p">(</span><span class="n">storage</span><span class="p">)</span><span class="o">.</span><span class="n">current_os</span>
+                <span class="c1"># assume case preserving file systems rather than case sensitive</span>
+                <span class="k">if</span> <span class="n">local_storage_path</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">local_storage_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path matches Shotgun local storage &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">storage</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">])</span>
+                    <span class="n">matching_local_storage</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">matching_local_storage</span><span class="p">:</span>
+                <span class="c1"># there is a local storage matching this path</span>
+                <span class="c1"># so use that when publishing</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="n">path</span><span class="p">}</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># no local storage defined so publish as a file:// url</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;No local storage matching path &#39;</span><span class="si">%s</span><span class="s2">&#39; - path will be &quot;</span>
+                    <span class="s2">&quot;registered as a file:// url.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="p">)</span>
+                <span class="p">)</span>
+
+                <span class="c1"># (see http://stackoverflow.com/questions/11687478/convert-a-filename-to-a-file-url)</span>
+                <span class="n">file_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="s2">&quot;file:&quot;</span><span class="p">,</span> <span class="n">urllib</span><span class="o">.</span><span class="n">pathname2url</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Converting &#39;</span><span class="si">%s</span><span class="s2">&#39; -&gt; &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">file_url</span><span class="p">))</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">file_url</span><span class="p">,</span>
+                    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">]</span>  <span class="c1"># same as publish name</span>
+                <span class="p">}</span>
+
+
+    <span class="c1"># now call out to hook just before publishing</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">TANK_PUBLISH_HOOK_NAME</span><span class="p">,</span> <span class="n">shotgun_data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
+        <span class="c1"># add the publish type to be as consistent as possible</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">published_file_entity_type</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Dry run. Simply returning the data that would be sent to SG: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">data</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Registering publish in Shotgun: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_translate_abstract_fields</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Translates abstract fields for a path into the default abstract value.</span>
+<span class="sd">    For example, the path /foo/bar/xyz.0003.exr will be transformed into</span>
+<span class="sd">    /foo/bar/xyz.%04d.exr</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
+<span class="sd">    :param path: a normalized path with slashes matching os.path.sep</span>
+
+<span class="sd">    :returns: the path with any abstract fields normalized.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">template_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">TankMultipleMatchingTemplatesError</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Path matches multiple templates. Not translating abstract fields: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">template</span><span class="p">:</span>
+            <span class="n">abstract_key_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">template</span><span class="o">.</span><span class="n">keys</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">is_abstract</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">abstract_key_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># we want to use the default values for abstract keys</span>
+                <span class="n">cur_fields</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">abstract_key_name</span> <span class="ow">in</span> <span class="n">abstract_key_names</span><span class="p">:</span>
+                    <span class="k">del</span><span class="p">(</span><span class="n">cur_fields</span><span class="p">[</span><span class="n">abstract_key_name</span><span class="p">])</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">cur_fields</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Path does not match a template. Not translating abstract fields: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">path</span>
+
+
+<span class="k">def</span> <span class="nf">_create_dependencies</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">publish_entity</span><span class="p">,</span> <span class="n">dependency_paths</span><span class="p">,</span> <span class="n">dependency_ids</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates dependencies in shotgun from a given entity to</span>
+<span class="sd">    a list of paths and ids. Paths not recognized are skipped.</span>
+<span class="sd">    </span>
+<span class="sd">    :param tk: API handle</span>
+<span class="sd">    :param publish_entity: The publish entity to set the dependencies for. This is a dictionary</span>
+<span class="sd">                           with keys type and id.</span>
+<span class="sd">    :param dependency_paths: List of paths on disk. List of strings.</span>
+<span class="sd">    :param dependency_ids: List of publish entity ids to associate. List of ints</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">published_file_entity_type</span> <span class="o">=</span> <span class="n">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+
+    <span class="n">publishes</span> <span class="o">=</span> <span class="n">find_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">dependency_paths</span><span class="p">)</span>
+
+    <span class="c1"># create a single batch request for maximum speed</span>
+    <span class="n">sg_batch_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">dependency_path</span> <span class="ow">in</span> <span class="n">dependency_paths</span><span class="p">:</span>
+        
+        <span class="c1"># did we manage to resolve this file path against</span>
+        <span class="c1"># a publish in shotgun?</span>
+        <span class="n">published_file</span> <span class="o">=</span> <span class="n">publishes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dependency_path</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">published_file</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">published_file_entity_type</span> <span class="o">==</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">:</span>
+
+                <span class="n">req</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;request_type&quot;</span><span class="p">:</span> <span class="s2">&quot;create&quot;</span><span class="p">,</span> 
+                       <span class="s2">&quot;entity_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PublishedFileDependency&quot;</span><span class="p">,</span> 
+                       <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;published_file&quot;</span><span class="p">:</span> <span class="n">publish_entity</span><span class="p">,</span>
+                                <span class="s2">&quot;dependent_published_file&quot;</span><span class="p">:</span> <span class="n">published_file</span>
+                                <span class="p">}</span>
+                        <span class="p">}</span> 
+                <span class="n">sg_batch_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>    
+            
+            <span class="k">else</span><span class="p">:</span><span class="c1"># == &quot;TankPublishedFile&quot;</span>
+
+                <span class="n">req</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;request_type&quot;</span><span class="p">:</span> <span class="s2">&quot;create&quot;</span><span class="p">,</span> 
+                       <span class="s2">&quot;entity_type&quot;</span><span class="p">:</span> <span class="s2">&quot;TankDependency&quot;</span><span class="p">,</span> 
+                       <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;tank_published_file&quot;</span><span class="p">:</span> <span class="n">publish_entity</span><span class="p">,</span>
+                                <span class="s2">&quot;dependent_tank_published_file&quot;</span><span class="p">:</span> <span class="n">published_file</span>
+                                <span class="p">}</span>
+                        <span class="p">}</span> 
+                <span class="n">sg_batch_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+
+
+    <span class="k">for</span> <span class="n">dependency_id</span> <span class="ow">in</span> <span class="n">dependency_ids</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">published_file_entity_type</span> <span class="o">==</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">:</span>
+
+            <span class="n">req</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;request_type&quot;</span><span class="p">:</span> <span class="s2">&quot;create&quot;</span><span class="p">,</span> 
+                   <span class="s2">&quot;entity_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PublishedFileDependency&quot;</span><span class="p">,</span> 
+                   <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;published_file&quot;</span><span class="p">:</span> <span class="n">publish_entity</span><span class="p">,</span>
+                            <span class="s2">&quot;dependent_published_file&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">,</span> 
+                                                         <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">dependency_id</span> <span class="p">}</span>
+                            <span class="p">}</span>
+                    <span class="p">}</span> 
+            <span class="n">sg_batch_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+            
+        <span class="k">else</span><span class="p">:</span><span class="c1"># == &quot;TankPublishedFile&quot;</span>
+            
+            <span class="n">req</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;request_type&quot;</span><span class="p">:</span> <span class="s2">&quot;create&quot;</span><span class="p">,</span> 
+                   <span class="s2">&quot;entity_type&quot;</span><span class="p">:</span> <span class="s2">&quot;TankDependency&quot;</span><span class="p">,</span> 
+                   <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;tank_published_file&quot;</span><span class="p">:</span> <span class="n">publish_entity</span><span class="p">,</span>
+                            <span class="s2">&quot;dependent_tank_published_file&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;TankPublishedFile&quot;</span><span class="p">,</span> 
+                                                              <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">dependency_id</span> <span class="p">}</span>
+                            <span class="p">}</span>
+                    <span class="p">}</span> 
+            <span class="n">sg_batch_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+
+
+    <span class="c1"># push to shotgun in a single xact</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sg_batch_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="n">sg_batch_data</span><span class="p">)</span>
+                
+
+<span class="k">def</span> <span class="nf">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates root path name and relative path (including project directory).</span>
+<span class="sd">    returns (root_name, path_cache)</span>
+
+<span class="sd">    If the location cannot be computed, because the path does not belong</span>
+<span class="sd">    to a valid root, (None, None) is returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># paths may be c:/foo in Maya on Windows - don&#39;t rely on os.sep here!</span>
+
+    <span class="c1"># normalize input path first c:\foo -&gt; c:/foo</span>
+    <span class="n">norm_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+    <span class="c1"># get roots - don&#39;t assume data is returned on any particular form</span>
+    <span class="c1"># may return c:\foo, c:/foo or /foo - assume that we need to normalize this path</span>
+    <span class="n">roots</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_data_roots</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">root_name</span><span class="p">,</span> <span class="n">root_path</span> <span class="ow">in</span> <span class="n">roots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">norm_root_path</span> <span class="o">=</span> <span class="n">root_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">norm_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">norm_root_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+            <span class="n">norm_parent_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">norm_root_path</span><span class="p">)</span>
+            <span class="c1"># Remove parent dir plus &quot;/&quot; - be careful to handle the case where</span>
+            <span class="c1"># the parent dir ends with a &#39;/&#39;, e.g. &#39;T:/&#39; for a Windows drive</span>
+            <span class="n">path_cache</span> <span class="o">=</span> <span class="n">norm_path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">norm_parent_dir</span><span class="p">):]</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Split up path &#39;</span><span class="si">%s</span><span class="s2">&#39; into storage </span><span class="si">%s</span><span class="s2"> and relative path &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">root_name</span><span class="p">,</span> <span class="n">path_cache</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">root_name</span><span class="p">,</span> <span class="n">path_cache</span>
+
+    <span class="c1"># not found, return None values</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Unable to split path &#39;</span><span class="si">%s</span><span class="s2">&#39; into a storage and a relative path.&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+
+
+
+<span class="k">def</span> <span class="nf">group_by_storage</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a list of paths on disk, groups them into a data structure suitable for</span>
+<span class="sd">    shotgun. In shotgun, the path_cache field contains an abstracted representation</span>
+<span class="sd">    of the publish field, with a normalized path and the storage chopped off.</span>
+
+<span class="sd">    This method aims to process the paths to make them useful for later shotgun processing.</span>
+
+<span class="sd">    Returns a dictionary, keyed by storage name. Each storage in the dict contains another dict,</span>
+<span class="sd">    with an item for each path_cache entry.</span>
+
+<span class="sd">    Examples::</span>
+
+<span class="sd">        [&#39;/studio/project_code/foo/bar.0003.exr&#39;, &#39;/secondary_storage/foo/bar&#39;]</span>
+
+<span class="sd">        {&#39;Tank&#39;:</span>
+<span class="sd">            {&#39;project_code/foo/bar.%04d.exr&#39;: [&#39;/studio/project_code/foo/bar.0003.exr&#39;] }</span>
+
+<span class="sd">         &#39;Secondary_Storage&#39;:</span>
+<span class="sd">            {&#39;foo/bar&#39;: [&#39;/secondary_storage/foo/bar&#39;] }</span>
+<span class="sd">        }</span>
+
+
+<span class="sd">        [&#39;c:\studio\project_code\foo\bar&#39;, &#39;/secondary_storage/foo/bar&#39;]</span>
+
+<span class="sd">        {&#39;Tank&#39;:</span>
+<span class="sd">            {&#39;project_code/foo/bar&#39;: [&#39;c:\studio\project_code\foo\bar&#39;] }</span>
+
+<span class="sd">         &#39;Secondary_Storage&#39;:</span>
+<span class="sd">            {&#39;foo/bar&#39;: [&#39;/secondary_storage/foo/bar&#39;] }</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">storages_paths</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">list_of_paths</span><span class="p">:</span>
+
+        <span class="c1"># use abstracted path if path is part of a sequence</span>
+        <span class="n">abstract_path</span> <span class="o">=</span> <span class="n">_translate_abstract_fields</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="n">root_name</span><span class="p">,</span> <span class="n">dep_path_cache</span> <span class="o">=</span> <span class="n">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">abstract_path</span><span class="p">)</span>
+
+        <span class="c1"># make sure that the path is even remotely valid, otherwise skip</span>
+        <span class="k">if</span> <span class="n">dep_path_cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Update data for this storage</span>
+        <span class="n">storage_info</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">root_name</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">paths</span> <span class="o">=</span> <span class="n">storage_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dep_path_cache</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">storage_info</span><span class="p">[</span><span class="n">dep_path_cache</span><span class="p">]</span> <span class="o">=</span> <span class="n">paths</span>
+        <span class="n">storages_paths</span><span class="p">[</span><span class="n">root_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">storage_info</span>
+
+    <span class="k">return</span> <span class="n">storages_paths</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'v0.18.72',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+</body>
+</html>

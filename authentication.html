@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Authentication &mdash; tk-core v0.18.69 documentation</title>
+  <title>Authentication &mdash; tk-core v0.18.72 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.69 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.72 documentation" href="index.html"/>
         <link rel="prev" title="Descriptor API" href="descriptor.html"/> 
 
   
@@ -127,7 +127,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.69.<br>
+    <b>tk-core</b> v0.18.72.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -765,19 +765,22 @@ derived instance.</p>
 <dl class="class">
 <dt id="sgtk.authentication.ShotgunAuthenticationError">
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">ShotgunAuthenticationError</code><a class="reference internal" href="_modules/tank/authentication/errors.html#ShotgunAuthenticationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticationError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base class for all exceptions coming out from this module.</p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<p>Base class for all exceptions coming out from this module.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.authentication.AuthenticationError">
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">AuthenticationError</code><a class="reference internal" href="_modules/tank/authentication/errors.html#AuthenticationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.AuthenticationError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Thrown when credentials are rejected by the server.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
+<p>Thrown when credentials are rejected by the server.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.authentication.IncompleteCredentials">
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">IncompleteCredentials</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/errors.html#IncompleteCredentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.IncompleteCredentials" title="Permalink to this definition">¶</a></dt>
-<dd><p>Thrown when credentials are provided but are incomplete.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
+<p>Thrown when credentials are provided but are incomplete.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -791,7 +794,8 @@ derived instance.</p>
 <dl class="class">
 <dt id="sgtk.authentication.AuthenticationCancelled">
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">AuthenticationCancelled</code><a class="reference internal" href="_modules/tank/authentication/errors.html#AuthenticationCancelled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.AuthenticationCancelled" title="Permalink to this definition">¶</a></dt>
-<dd><p>Thrown when the user cancels authentication or session renewal.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
+<p>Thrown when the user cancels authentication or session renewal.</p>
 </dd></dl>
 
 </div>
@@ -836,7 +840,7 @@ derived instance.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.69',
+            VERSION:'v0.18.72',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

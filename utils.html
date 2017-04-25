@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.69 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.72 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.69 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.72 documentation" href="index.html"/>
         <link rel="next" title="Descriptor API" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -121,6 +121,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#shotgun-related">Shotgun Related</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#miscellaneous">Miscellaneous</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptor API</a></li>
@@ -146,7 +147,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.69.<br>
+    <b>tk-core</b> v0.18.72.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -592,7 +593,7 @@ location and will capture all log messages passed through
 the log hierarchy.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Files will be written into the a location on disk
+<p class="last">Files will be written into the location on disk
 defined by <a class="reference internal" href="#sgtk.log.LogManager.log_folder" title="sgtk.log.LogManager.log_folder"><code class="xref py py-meth docutils literal"><span class="pre">log_folder()</span></code></a>.</p>
 </div>
 <p>When you start an engine via the <a class="reference internal" href="platform.html#sgtk.platform.start_engine" title="sgtk.platform.start_engine"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.platform.start_engine()</span></code></a> method,
@@ -724,26 +725,6 @@ the operating system http proxy. More information about this function can be fou
 <blockquote class="last">
 <div><a class="reference external" href="https://docs.python.org/2/library/urllib.html#urllib.getproxies">https://docs.python.org/2/library/urllib.html#urllib.getproxies</a></div></blockquote>
 </div>
-<p>Incorrectly configuring this file may raise an exception:</p>
-<dl class="class">
-<dt id="sgtk.util.EnvironmentVariableFileLookupError">
-<em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">EnvironmentVariableFileLookupError</code><span class="sig-paren">(</span><em>var_name</em>, <em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/errors.html#EnvironmentVariableFileLookupError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.EnvironmentVariableFileLookupError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Raised when an environment variable specifying a location points to configuration
-file that doesn&#8217;t exist.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>var_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the environment variable used.</li>
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Path to the configuration file that doesn&#8217;t exist.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </div>
 <div class="section" id="file-system-utilities">
 <h2>File System Utilities<a class="headerlink" href="#file-system-utilities" title="Permalink to this headline">¶</a></h2>
@@ -1133,6 +1114,30 @@ win32, darwin and linux2.</td>
 </table>
 </dd></dl>
 
+<dl class="classmethod">
+<dt id="sgtk.util.ShotgunPath.normalize">
+<em class="property">classmethod </em><code class="descname">normalize</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method that normalizes the given path
+by running it through the <code class="xref py py-class docutils literal"><span class="pre">ShotgunPath</span></code> normalization
+logic. <code class="docutils literal"><span class="pre">ShotgunPath.normalize(path)</span></code> is equivalent
+to executing <code class="docutils literal"><span class="pre">ShotgunPath.from_current_os_path(path).current_os</span></code>.</p>
+<p>Normalization include checking that separators are matching the
+current operating system, removal of trailing separators
+and removal of double separators. This is done automatically
+for all :class:<a href="#id2"><span class="problematic" id="id3">`</span></a>ShotgunPath`s but sometimes it is useful
+to just perform the normalization quickly on a local path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Local operating system path to normalize</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Normalized path string.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="sgtk.util.ShotgunPath.macosx">
 <code class="descname">macosx</code><a class="headerlink" href="#sgtk.util.ShotgunPath.macosx" title="Permalink to this definition">¶</a></dt>
@@ -1405,7 +1410,7 @@ which is the current generation of paths.</li>
 and convenience methods:</p>
 <dl class="function">
 <dt id="sgtk.util.register_publish">
-<code class="descclassname">sgtk.util.</code><code class="descname">register_publish</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>path</em>, <em>name</em>, <em>version_number</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#register_publish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.register_publish" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">sgtk.util.</code><code class="descname">register_publish</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>path</em>, <em>name</em>, <em>version_number</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/publish_creation.html#register_publish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.register_publish" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a Published File in Shotgun.</p>
 <p><strong>Introduction</strong></p>
 <p>The publish will be associated with the current context and point
@@ -1470,6 +1475,34 @@ recommended to supply at least a comment and a Publish Type:</p>
 <span class="go"> &#39;version_number&#39;: 1}</span>
 </pre></div>
 </div>
+<p>When using the <code class="docutils literal"><span class="pre">dry_run</span></code> option, the returned data will look something like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_path</span> <span class="o">=</span> <span class="s1">&#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;layout&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">version_number</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">register_publish</span><span class="p">(</span>
+<span class="go">    tk,</span>
+<span class="go">    context,</span>
+<span class="go">    file_path,</span>
+<span class="go">    name,</span>
+<span class="go">    version_number,</span>
+<span class="go">    comment=&#39;Initial layout composition.&#39;,</span>
+<span class="go">    published_file_type=&#39;Layout Scene&#39;</span>
+<span class="go">    dry_run=True</span>
+<span class="go">)</span>
+
+<span class="go">{&#39;code&#39;: &#39;layout.v001.ma&#39;,</span>
+<span class="go"> &#39;description&#39;: &#39;Initial layout composition.&#39;,</span>
+<span class="go"> &#39;entity&#39;: {&#39;id&#39;: 2, &#39;name&#39;: &#39;shot_010&#39;, &#39;type&#39;: &#39;Shot&#39;},</span>
+<span class="go"> &#39;path&#39;: {&#39;local_path&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;},</span>
+<span class="go"> &#39;project&#39;: {&#39;id&#39;: 4, &#39;name&#39;: &#39;Demo Project&#39;, &#39;type&#39;: &#39;Project&#39;},</span>
+<span class="go"> &#39;task&#39;: None,</span>
+<span class="go"> &#39;type&#39;: &#39;PublishedFile&#39;,</span>
+<span class="go"> &#39;version_number&#39;: 1}</span>
+</pre></div>
+</div>
+<p>Be aware that the data may be different if the <code class="docutils literal"><span class="pre">before_register_publish</span></code>
+hook has been overridden.</p>
 <p><strong>Parameters</strong></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1518,6 +1551,8 @@ be determined using <a class="reference internal" href="#sgtk.util.get_current_u
 datetime object</li>
 <li><code class="docutils literal"><span class="pre">version_entity</span></code> - The Shotgun version entity this published file should be linked to</li>
 <li><code class="docutils literal"><span class="pre">sg_fields</span></code> - Some additional Shotgun fields as a dict (e.g. <code class="docutils literal"><span class="pre">{'tag_list':</span> <span class="pre">['foo',</span> <span class="pre">'bar']}</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">dry_run</span></code> - Boolean. If set, do not actually create a database entry. Return the
+dictionary of data that would be supplied to Shotgun to create the PublishedFile entity.</li>
 </ul>
 </div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1532,22 +1567,192 @@ datetime object</li>
 </table>
 </dd></dl>
 
-<p>Incorrectly configuring this file may raise an exception:</p>
-<dl class="class">
-<dt id="sgtk.util.ShotgunPublishError">
-<em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">ShotgunPublishError</code><span class="sig-paren">(</span><em>error_message</em>, <em>entity=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/errors.html#ShotgunPublishError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPublishError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Raised when Toolkit is not able to register a published file in Shotgun.</p>
-<p>The original message for the reported error is available in the &#8216;error_message&#8217; property.</p>
-<p>If a published file entity was created before the error happened, it will be
-available in the &#8216;entity&#8217; property.</p>
+<dl class="function">
+<dt id="sgtk.util.resolve_publish_path">
+<code class="descclassname">sgtk.util.</code><code class="descname">resolve_publish_path</code><span class="sig-paren">(</span><em>tk</em>, <em>sg_publish_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/publish_resolve.html#resolve_publish_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.resolve_publish_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a local path on disk given a dictionary of Shotgun publish data.</p>
+<p>This acts as the inverse of <a class="reference internal" href="#sgtk.util.register_publish" title="sgtk.util.register_publish"><code class="xref py py-meth docutils literal"><span class="pre">register_publish()</span></code></a> and
+resolves a local path on disk given some Shotgun publish data,
+typically obtained by a Shotgun API <code class="docutils literal"><span class="pre">find()</span></code> call.</p>
+<p>Complex logic is applied in order to turn a publish into a
+valid local path. Several exception types are raised to indicate
+the reason why a path could not be resolved, allowing for workflows
+where the logic can be overridden.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method is also called by <a class="reference internal" href="core.html#sgtk.Hook.get_publish_path" title="sgtk.Hook.get_publish_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.Hook.get_publish_path()</span></code></a>
+which is a common method Toolkit apps use to resolve publishes
+into paths.</p>
+</div>
+<p><strong>Resolution Logic</strong></p>
+<p>The method will attempt to resolve the publish data into a path
+by applying several recipes:</p>
+<ul class="simple">
+<li>First, the <code class="docutils literal"><span class="pre">resolve_publish</span></code> core hook will be called. This hook
+can be used either in order to override any built-in behavior or
+to implement support for url schemes, uploaded files or other modes
+which the default implementation currently doesn&#8217;t support. The hook
+returns <code class="docutils literal"><span class="pre">None</span></code> by default, indicating that no resolve overrides
+are present.</li>
+<li>If no path was resolved by the hook, the method will check if the
+publish is associated with a local file link and if so attempt to
+resolve this to a path (for more details see below).</li>
+<li>Next, it will check if the publish is linked to a <code class="docutils literal"><span class="pre">file://</span></code> url
+and attempt to resolve this.</li>
+<li>Lastly, if the publish still cannot be resolved, a
+<a class="reference internal" href="#sgtk.util.PublishPathNotSupported" title="sgtk.util.PublishPathNotSupported"><code class="xref py py-class docutils literal"><span class="pre">PublishPathNotSupported</span></code></a> is raised.</li>
+</ul>
+<p><strong>Resolving local file links</strong></p>
+<p>If the publish is a local file link, its local OS representation
+will be used. Local file links are generated automatically by
+<a class="reference internal" href="#sgtk.util.register_publish" title="sgtk.util.register_publish"><code class="xref py py-meth docutils literal"><span class="pre">register_publish()</span></code></a> if the path you are publishing matches
+any local file storage defined in the Shotgun Site Preferences.
+Read more about local file links <a class="reference external" href="https://support.shotgunsoftware.com/hc/en-us/articles/219030938-Linking-to-local-files">here</a>.</p>
+<p>Local file storage mappings in Shotgun are global and affect
+all machines, all users and all projects.</p>
+<p>If a local storage doesn&#8217;t define the operating system platform
+you are currently using, you can augment it by adding an
+environment variable. For example, if there
+is a local storage named <code class="docutils literal"><span class="pre">Renders</span></code> that is defined on Linux and Windows,
+you can extend to support mac by creating an environment variable named
+<code class="docutils literal"><span class="pre">SHOTGUN_PATH_MAC_RENDERS</span></code>. The general syntax for this is
+<code class="docutils literal"><span class="pre">SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you define a <code class="docutils literal"><span class="pre">SHOTGUN_PATH_MAC_RENDERS</span></code> environment variable
+and there is a local storage <code class="docutils literal"><span class="pre">Renders</span></code> with a mac path set,
+the local storage value will be used and a warning will be logged.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If no storage can be resolved for the current operating system,
+a <a class="reference internal" href="#sgtk.util.PublishPathNotDefinedError" title="sgtk.util.PublishPathNotDefinedError"><code class="xref py py-class docutils literal"><span class="pre">PublishPathNotDefinedError</span></code></a> is raised.</p>
+</div>
+<p><strong>Resolving file urls</strong></p>
+<p>The method also supports the resolution of <code class="docutils literal"><span class="pre">file://</span></code> urls. Contrary to
+local file storage objects in Shotgun (see above), these paths are not
+stored in a multi-os representation but are just defined on the operating
+system where they were created.</p>
+<p>If you are trying to resolve a <code class="docutils literal"><span class="pre">file://</span></code> url on an os platform different
+from the one where where the url was created, the method will attempt to
+resolve it into a valid path using several different approaches:</p>
+<ul>
+<li><p class="first">First, it will look for the three environment variables <code class="docutils literal"><span class="pre">SHOTGUN_PATH_WINDOWS</span></code>,
+<code class="docutils literal"><span class="pre">SHOTGUN_PATH_MAC</span></code>, and <code class="docutils literal"><span class="pre">SHOTGUN_PATH_LINUX</span></code>. If these are defined,
+the method will attempt to translate the path this way. For example, if
+you are trying to resolve <code class="docutils literal"><span class="pre">file:///prod/proj_x/assets/bush/file.txt</span></code> on
+windows, you could set up <code class="docutils literal"><span class="pre">SHOTGUN_PATH_WINDOWS=P:\prod</span></code> and
+<code class="docutils literal"><span class="pre">SHOTGUN_PATH_LINUX=/prod</span></code> in order to hint the way the path should be
+resolved.</p>
+</li>
+<li><p class="first">If you wanted to use more than one set of environment variables, this is possible
+by extending the above syntax with a suffix:</p>
+<blockquote>
+<div><ul class="simple">
+<li>If you have a storage for renders, you could for example define
+<code class="docutils literal"><span class="pre">SHOTGUN_PATH_LINUX_RENDERS</span></code>, <code class="docutils literal"><span class="pre">SHOTGUN_PATH_MAC_RENDERS</span></code> and
+<code class="docutils literal"><span class="pre">SHOTGUN_PATH_WINDOWS_RENDERS</span></code> in order to provide a translation
+mechanism for all <code class="docutils literal"><span class="pre">file://</span></code> urls published that refer to data
+inside your render storage.</li>
+<li>If you have a storage for editorial data, you could for example define
+<code class="docutils literal"><span class="pre">SHOTGUN_PATH_LINUX_EDITORIAL</span></code>, <code class="docutils literal"><span class="pre">SHOTGUN_PATH_MAC_EDITORIAL</span></code> and
+<code class="docutils literal"><span class="pre">SHOTGUN_PATH_WINDOWS_EDITORIAL</span></code> in order to provide another translation
+mechanism for those roots.</li>
+</ul>
+</div></blockquote>
+<p>Once you have standardized on these environment variables, you could consider
+converting them into a Shotgun local storages. Once they are defined in the
+Shotgun preferences, they will be automatically picked up and no
+environment variables would be needed.</p>
+</li>
+<li><p class="first">In addition to the above, all local storages defined in the Shotgun
+preferences will be handled the same way.</p>
+</li>
+<li><p class="first">If a local storage has been defined, but an operating system is missing,
+this can be supplied via an environment variable. For example, if there
+is a local storage named <code class="docutils literal"><span class="pre">Renders</span></code> that is defined on Linux and Windows,
+you can extend to support mac by creating an environment variable named
+<code class="docutils literal"><span class="pre">SHOTGUN_PATH_MAC_RENDERS</span></code>. The general syntax for this is
+<code class="docutils literal"><span class="pre">SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME</span></code>.</p>
+</li>
+<li><p class="first">If no root matches, the file path will be returned as is.</p>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>For example, you have published the file <code class="docutils literal"><span class="pre">/projects/some/file.txt</span></code> on Linux
+and a Shotgun publish with the url <code class="docutils literal"><span class="pre">file:///projects/some/file.txt</span></code> was generated.
+The Linux path <code class="docutils literal"><span class="pre">/projects</span></code> equates to <code class="docutils literal"><span class="pre">Q:\projects</span></code> on Windows
+and hence you want the full path to be translated to
+<code class="docutils literal"><span class="pre">Q:\projects\some\file.txt</span></code>. All of the setups below would handle this:</p>
+<ul class="last">
+<li><p class="first">A general environment based override:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">SHOTGUN_PATH_LINUX=/projects</span></code></li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_PATH_WINDOWS=Q:\projects</span></code></li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_PATH_MAC=/projects</span></code></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">A Shotgun local storage &#8220;Projects&#8221; set up with:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Linux Path: <code class="docutils literal"><span class="pre">/projects</span></code></li>
+<li>Windows Path: <code class="docutils literal"><span class="pre">Q:\projects</span></code></li>
+<li>Mac Path: <code class="docutils literal"><span class="pre">/projects</span></code></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">A Shotgun local storage &#8220;Projects&#8221; augmented with an environment variable:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Linux Path: <code class="docutils literal"><span class="pre">/projects</span></code></li>
+<li>Windows Path: <code class="docutils literal"><span class="pre">&lt;blank&gt;</span></code></li>
+<li>Mac Path: <code class="docutils literal"><span class="pre">/projects</span></code></li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_PATH_WINDOWS_PROJECTS=Q:\projects</span></code></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you have a local storage <code class="docutils literal"><span class="pre">Renders</span></code> defined in Shotgun with
+a Linux path set and also a <code class="docutils literal"><span class="pre">SHOTGUN_PATH_LINUX_RENDERS</span></code> environment
+variable defined, the storage will take precedence, the environment
+variable will be ignored and a warning will be logged. Generally speaking,
+local storage definitions always take precedence over environment variables.</p>
+</div>
+<p><strong>Customization examples</strong></p>
+<p>If you want to add support beyond local file links and <code class="docutils literal"><span class="pre">file://</span></code> urls, you can
+customize the <code class="docutils literal"><span class="pre">resolve_publish.py</span></code> core hook. This can for example be used to
+add support for the following customizations:</p>
+<ul class="simple">
+<li>Publishes with associated uploaded files could be automatically downloaded
+into an appropriate cache location by the core hook and the path would be
+be returned.</li>
+<li>Custom url schemes (such as <code class="docutils literal"><span class="pre">perforce://</span></code>) could be resolved into local paths.</li>
+</ul>
+<p><strong>Parameters</strong></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>error_message</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; An error message, typically coming from a caught exception.</li>
-<li><strong>entity</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; The Shotgun entity which was created, if any.</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</li>
+<li><strong>sg_publish_data</strong> &#8211; Dictionary containing Shotgun publish data.
+Needs to at least contain a code, type, id and a path key.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A local path to file or file sequence.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference internal" href="#sgtk.util.PublishPathNotDefinedError" title="sgtk.util.PublishPathNotDefinedError"><code class="xref py py-class docutils literal"><span class="pre">PublishPathNotDefinedError</span></code></a> if the path isn&#8217;t defined.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.util.PublishPathNotSupported" title="sgtk.util.PublishPathNotSupported"><code class="xref py py-class docutils literal"><span class="pre">PublishPathNotSupported</span></code></a> if the path cannot be resolved.</p>
 </td>
 </tr>
 </tbody>
@@ -1556,7 +1761,7 @@ available in the &#8216;entity&#8217; property.</p>
 
 <dl class="function">
 <dt id="sgtk.util.find_publish">
-<code class="descclassname">sgtk.util.</code><code class="descname">find_publish</code><span class="sig-paren">(</span><em>tk</em>, <em>list_of_paths</em>, <em>f ilters=None</em>, <em>fields=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#find_publish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.find_publish" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">sgtk.util.</code><code class="descname">find_publish</code><span class="sig-paren">(</span><em>tk</em>, <em>list_of_paths</em>, <em>f ilters=None</em>, <em>fields=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/publish_util.html#find_publish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.find_publish" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds publishes in Shotgun given paths on disk.
 This method is similar to the find method in the Shotgun API,
 except that instead of an Entity type, a list of files is
@@ -1599,7 +1804,7 @@ return. Defaults to id and type.</li>
 
 <dl class="function">
 <dt id="sgtk.util.download_url">
-<code class="descclassname">sgtk.util.</code><code class="descname">download_url</code><span class="sig-paren">(</span><em>sg</em>, <em>url</em>, <em>location</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#download_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.download_url" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">sgtk.util.</code><code class="descname">download_url</code><span class="sig-paren">(</span><em>sg</em>, <em>url</em>, <em>location</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/download.html#download_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.download_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convenience method that downloads a file from a given url.
 This method will take into account any proxy settings which have
 been defined in the Shotgun connection parameters.</p>
@@ -1646,7 +1851,7 @@ could be determined from the resolved url.</p>
 
 <dl class="function">
 <dt id="sgtk.util.create_event_log_entry">
-<code class="descclassname">sgtk.util.</code><code class="descname">create_event_log_entry</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>event_type</em>, <em>description</em>, <em>metadata=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#create_event_log_entry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.create_event_log_entry" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">sgtk.util.</code><code class="descname">create_event_log_entry</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>event_type</em>, <em>description</em>, <em>metadata=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/publish_util.html#create_event_log_entry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.create_event_log_entry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates an event log entry inside of Shotgun.
 Event log entries can be handy if you want to track a process or a sequence of events.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1657,7 +1862,7 @@ Event log entries can be handy if you want to track a process or a sequence of e
 <li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</li>
 <li><strong>context</strong> &#8211; A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> to associate with the event log entry.</li>
 <li><strong>event_type</strong> &#8211; <p>String which defines the event type. The Shotgun standard suggests
-that this should be on the form Company_Item_Action. Examples include:</p>
+that this should be of the form Company_Item_Action. Examples include:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Shotgun_Asset_New</span>
 <span class="n">Shotgun_Asset_Change</span>
 <span class="n">Shotgun_User_Login</span>
@@ -1680,7 +1885,7 @@ such as ints, strings etc.</li>
 
 <dl class="function">
 <dt id="sgtk.util.get_entity_type_display_name">
-<code class="descclassname">sgtk.util.</code><code class="descname">get_entity_type_display_name</code><span class="sig-paren">(</span><em>tk</em>, <em>entity_type_code</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#get_entity_type_display_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.get_entity_type_display_name" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">sgtk.util.</code><code class="descname">get_entity_type_display_name</code><span class="sig-paren">(</span><em>tk</em>, <em>entity_type_code</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/publish_util.html#get_entity_type_display_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.get_entity_type_display_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the display name for an entity type given its type name.
 For example, if a custom entity is named &#8220;Workspace&#8221; in the
 Shotgun preferences, but is addressed as &#8220;CustomEntity03&#8221; in the
@@ -1688,6 +1893,12 @@ Shotgun API, this method will resolve the display name:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_entity_type_display_name</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="s2">&quot;CustomEntity03&quot;</span><span class="p">)</span>
 <span class="go">&#39;Workspace&#39;</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The recommended way to access this data is now via the
+globals module in the shotgunutils framework. For more information,
+see <a class="reference external" href="http://developer.shotgunsoftware.com/tk-framework-shotgunutils/shotgun_globals.html">http://developer.shotgunsoftware.com/tk-framework-shotgunutils/shotgun_globals.html</a></p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1708,7 +1919,7 @@ Shotgun API, this method will resolve the display name:</p>
 
 <dl class="function">
 <dt id="sgtk.util.get_published_file_entity_type">
-<code class="descclassname">sgtk.util.</code><code class="descname">get_published_file_entity_type</code><span class="sig-paren">(</span><em>tk</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun.html#get_published_file_entity_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.get_published_file_entity_type" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">sgtk.util.</code><code class="descname">get_published_file_entity_type</code><span class="sig-paren">(</span><em>tk</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/publish_util.html#get_published_file_entity_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.get_published_file_entity_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the entity type that this toolkit uses for its Publishes.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1768,6 +1979,77 @@ with the following fields: id, type, email, login, name, image, firstname, lastn
 </dd></dl>
 
 </div>
+<div class="section" id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sgtk.util.EnvironmentVariableFileLookupError">
+<em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">EnvironmentVariableFileLookupError</code><span class="sig-paren">(</span><em>var_name</em>, <em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/errors.html#EnvironmentVariableFileLookupError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.EnvironmentVariableFileLookupError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Raised when an environment variable specifying a location points to configuration
+file that doesn&#8217;t exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>var_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the environment variable used.</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Path to the configuration file that doesn&#8217;t exist.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.util.ShotgunPublishError">
+<em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">ShotgunPublishError</code><span class="sig-paren">(</span><em>error_message</em>, <em>entity=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/errors.html#ShotgunPublishError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPublishError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Raised when Toolkit is not able to register a published file in Shotgun.</p>
+<p>The original message for the reported error is available in the &#8216;error_message&#8217; property.</p>
+<p>If a published file entity was created before the error happened, it will be
+available in the &#8216;entity&#8217; property.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>error_message</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; An error message, typically coming from a caught exception.</li>
+<li><strong>entity</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; The Shotgun entity which was created, if any.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.util.PublishResolveError">
+<em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">PublishResolveError</code><a class="reference internal" href="_modules/tank/util/errors.html#PublishResolveError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.PublishResolveError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Base class for all errors relating to resolution of paths from publishes.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.util.PublishPathNotDefinedError">
+<em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">PublishPathNotDefinedError</code><a class="reference internal" href="_modules/tank/util/errors.html#PublishPathNotDefinedError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.PublishPathNotDefinedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.util.errors.PublishResolveError</span></code></p>
+<p>Exception raised when a publish does not have a path
+defined for the current operating system platform. It
+may or may not have publish paths defined on other
+platforms.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.util.PublishPathNotSupported">
+<em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">PublishPathNotSupported</code><a class="reference internal" href="_modules/tank/util/errors.html#PublishPathNotSupported"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.PublishPathNotSupported" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.util.errors.PublishResolveError</span></code></p>
+<p>Exception raised when a publish has a path defined but it is using a path
+definition that cannot be resolved into a local path. This includes for
+example unsupported url schemes.</p>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -1810,7 +2092,7 @@ with the following fields: id, type, email, login, name, image, firstname, lastn
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.69',
+            VERSION:'v0.18.72',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

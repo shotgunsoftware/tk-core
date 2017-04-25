@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.errors &mdash; tk-core v0.18.69 documentation</title>
+  <title>tank.util.errors &mdash; tk-core v0.18.72 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.69 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.72 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.69.<br>
+    <b>tk-core</b> v0.18.72.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -256,6 +256,34 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">error_message</span><span class="p">,</span> <span class="n">extra_message</span>
             <span class="p">)</span>
         <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PublishResolveError"><a class="viewcode-back" href="../../../utils.html#sgtk.util.PublishResolveError">[docs]</a><span class="k">class</span> <span class="nc">PublishResolveError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for all errors relating to resolution of paths from publishes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="PublishPathNotDefinedError"><a class="viewcode-back" href="../../../utils.html#sgtk.util.PublishPathNotDefinedError">[docs]</a><span class="k">class</span> <span class="nc">PublishPathNotDefinedError</span><span class="p">(</span><span class="n">PublishResolveError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exception raised when a publish does not have a path</span>
+<span class="sd">    defined for the current operating system platform. It</span>
+<span class="sd">    may or may not have publish paths defined on other</span>
+<span class="sd">    platforms.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="PublishPathNotSupported"><a class="viewcode-back" href="../../../utils.html#sgtk.util.PublishPathNotSupported">[docs]</a><span class="k">class</span> <span class="nc">PublishPathNotSupported</span><span class="p">(</span><span class="n">PublishResolveError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exception raised when a publish has a path defined but it is using a path</span>
+<span class="sd">    definition that cannot be resolved into a local path. This includes for</span>
+<span class="sd">    example unsupported url schemes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
 </pre></div>
 
            </div>
@@ -288,7 +316,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.69',
+            VERSION:'v0.18.72',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
