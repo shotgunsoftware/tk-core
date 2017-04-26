@@ -104,7 +104,10 @@ class DefaultsManager(object):
 
         :returns: String containing the default http proxy, None by default.
         """
-        return self._user_settings.shotgun_proxy or self._system_settings.http_proxy
+        if self._user_settings.shotgun_proxy is None:
+            return self._system_settings.http_proxy
+        else:
+            return self._user_settings.shotgun_proxy
 
     def get_login(self):
         """

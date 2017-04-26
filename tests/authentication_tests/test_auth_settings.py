@@ -121,7 +121,7 @@ class DefaultsManagerTest(TankTestBase):
     )
     def test_shotgun_yml_over_global(self, *unused_mocks):
         """
-        Make sure that shotgun.yml always overrides config.ini
+        Make sure that shotgun.yml always overrides toolkit.ini
         """
         instance = UserSettings._instance = Mock()
         instance.shotgun_proxy = self._CONFIG_HTTP_PROXY
@@ -149,3 +149,43 @@ class DefaultsManagerTest(TankTestBase):
         dm = CoreDefaultsManager()
         self.assertIs(dm.get_http_proxy(), self._CONFIG_HTTP_PROXY)
 
+    @patch(
+        "tank.util.system_settings.SystemSettings.http_proxy",
+        new_callable=PropertyMock,
+        return_value="192.168.10.1"
+    )
+    @patch(
+        "tank.util.shotgun.get_associated_sg_config_data",
+        return_value={}
+    )
+    def test_toolkit_ini_disabling_global_proxy(self, *_):
+        """
+        Make sure that toolkit.ini can disable the system level proxy.
+        """
+        instance = UserSettings._instance = Mock()
+        instance.shotgun_proxy = ""
+
+        dm = CoreDefaultsManager()
+
+        self.assertEqual(dm.get_http_proxy(), "")
+
+    @patch(
+        "tank.util.shotgun.get_associated_sg_config_data",
+        return_value={
+            "http_proxy": ""
+        }
+    )
+    @patch(
+        "tank.util.system_settings.SystemSettings.http_proxy",
+        new_callable=PropertyMock,
+        return_value="192.168.10.1"
+    )
+    def test_shotgun_yml_empty_string_can_override_global_proxy(self, *_):
+        """
+        Make sure that shotgun.yml can disable the system level proxy.
+        """
+        instance = UserSettings._instance = Mock()
+        instance.shotgun_proxy = None
+
+        dm = CoreDefaultsManager()
+        self.assertIs(dm.get_http_proxy(), "")
