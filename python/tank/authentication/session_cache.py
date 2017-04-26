@@ -33,7 +33,6 @@ logger = LogManager.get_logger(__name__)
 
 _CURRENT_HOST = "current_host"
 _CURRENT_USER = "current_user"
-_CURRENT_COOKIES = "current_cookies"
 _USERS = "users"
 _LOGIN = "login"
 _COOKIES = "cookies"
@@ -208,7 +207,6 @@ def _try_load_site_authentication_file(file_path):
     # Make sure any mandatory entry is present.
     content.setdefault(_USERS, [])
     content.setdefault(_CURRENT_USER, None)
-    content.setdefault(_CURRENT_COOKIES, None)
     return content
 
 
@@ -387,41 +385,6 @@ def set_current_user(host, login):
 
     current_user_file = _try_load_site_authentication_file(file_path)
     current_user_file[_CURRENT_USER] = login
-    _write_yaml_file(file_path, current_user_file)
-
-
-def get_current_cookies(host):
-    """
-    Returns the current set of cookies for the given user.
-
-    :param host: Host to fetch the current for.
-
-    :returns: The list of cookies. An empty list if no cookies are present.
-    """
-    # Retrieve the cached info file location from the host
-    info_path = _get_site_authentication_file_location(host)
-    document = _try_load_site_authentication_file(info_path)
-    cookies = document[_CURRENT_COOKIES]
-    logger.debug("Current cookies are '%s'" % cookies)
-    return cookies
-
-
-def set_current_cookies(host, login, cookies):
-    """
-    Saves the current cookies for a given user.
-
-    :param host: Host to save the current user for.
-    :param login: The current user login for specified host.
-    :param cookies: The list of raw cookies.
-    """
-    host = host.strip()
-    login = login.strip()
-
-    file_path = _get_site_authentication_file_location(host)
-    _ensure_folder_for_file(file_path)
-
-    current_user_file = _try_load_site_authentication_file(file_path)
-    current_user_file[_CURRENT_COOKIES] = cookies
     _write_yaml_file(file_path, current_user_file)
 
 

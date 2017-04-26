@@ -63,7 +63,6 @@ class UiAuthenticationHandler(object):
         else:
             logger.debug("Requesting username and password in a dialog.")
 
-        # @FIXME: This may be a good place to create a standalone QWebView.
         def _process_ui():
             dlg = login_dialog.LoginDialog(
                 is_session_renewal=self._is_session_renewal,

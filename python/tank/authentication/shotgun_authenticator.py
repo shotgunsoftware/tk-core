@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""Shotgun Authenticator."""
+
 from . import interactive_authentication
 from . import user
 from . import user_impl
@@ -95,8 +97,7 @@ class ShotgunAuthenticator(object):
             user = self.create_session_user(
                 host=self._defaults_manager.get_host(),
                 login=self._defaults_manager.get_login(),
-                http_proxy=self._defaults_manager.get_http_proxy(),
-                cookies=self._defaults_manager.get_cookies()
+                http_proxy=self._defaults_manager.get_http_proxy()
             )
             session_cache.delete_session_data(user.host, user.login)
             return user
@@ -119,8 +120,7 @@ class ShotgunAuthenticator(object):
             self._defaults_manager.get_host(),
             self._defaults_manager.get_login(),
             self._defaults_manager.get_http_proxy(),
-            self._defaults_manager.is_host_fixed(),
-            self._defaults_manager.get_cookies()
+            self._defaults_manager.is_host_fixed()
         )
         return self.create_session_user(
             login=login, session_token=session_token,
@@ -223,8 +223,7 @@ class ShotgunAuthenticator(object):
                 password=credentials.get("password"),
                 session_token=credentials.get("session_token"),
                 host=credentials.get("host"),
-                http_proxy=credentials.get("http_proxy"),
-                cookies=credentials.get("cookies")
+                http_proxy=credentials.get("http_proxy")
             )
         # We don't know what this is, abort!
         else:
@@ -259,6 +258,5 @@ class ShotgunAuthenticator(object):
         # authentication in order to provide single sign-on.
         self._defaults_manager.set_host(user.host)
         self._defaults_manager.set_login(user.login)
-        self._defaults_manager.set_cookies(user.cookies)
 
         return user

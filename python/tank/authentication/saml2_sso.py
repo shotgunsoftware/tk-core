@@ -28,36 +28,6 @@ from .. import LogManager
 log = LogManager.get_logger(__name__)
 
 
-# class MyLogger:
-#     """TBD."""
-
-#     def __init__(self):
-#         """TBD."""
-#         self.level = logging.DEBUG
-
-#     def debug(self, msg):
-#         """TBD."""
-#         print "DEBUG: %s" % msg
-
-#     def error(self, msg):
-#         """TBD."""
-#         print "ERROR: %s" % msg
-
-#     def warn(self, msg):
-#         """TBD."""
-#         print "WARN: %s" % msg
-
-
-# log = MyLogger()
-
-
-# Constants for the Application Events. Also defined in slmodule/slutils.mu
-# @FIXME: Should import these from slmodule
-EVENT_SSO_LOGIN_ATTEMPT = 'sso-login-attempt'
-EVENT_SSO_LOGIN_CANCEL = 'sso-login-cancel'
-EVENT_SSO_ENABLE_RENEWAL = 'sso-enable-renewal'
-EVENT_SSO_DISABLE_RENEWAL = 'sso-disable-renewal'
-
 # Error messages for events. . Also defined in slmodule/slutils.mu
 # @FIXME: Should import these from slmodule
 HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To Shotgun"
@@ -81,14 +51,6 @@ class Saml2Sso:
         print "TATATTATA"
 
         log.debug('==- __init__')
-
-        # rvt.MinorMode.__init__(self)
-        # self.init('saml2_sso', [
-        #     (EVENT_SSO_LOGIN_ATTEMPT, self.on_sso_login_attempt, EVENT_SSO_LOGIN_ATTEMPT + ' event handler'),
-        #     (EVENT_SSO_LOGIN_CANCEL, self.on_sso_login_cancel, EVENT_SSO_LOGIN_CANCEL + ' event handler'),
-        #     (EVENT_SSO_ENABLE_RENEWAL, self.on_sso_enable_renewal, EVENT_SSO_ENABLE_RENEWAL + 'event handler'),
-        #     (EVENT_SSO_DISABLE_RENEWAL, self.on_sso_disable_renewal, EVENT_SSO_DISABLE_RENEWAL + 'event handler'),
-        # ], None)
 
         self._event_data = None
         self._sessions_stack = []

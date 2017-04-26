@@ -16,6 +16,7 @@ from tank.authentication import interactive_authentication
 
 # sgtk.LogManager().initialize_base_file_handler('my_script')
 sgtk.LogManager().initialize_custom_handler()
+sgtk.LogManager().global_debug = True
 
 # Instantiate the CoreDefaultsManager. This allows the ShotgunAuthenticator to
 # retrieve the site, proxy and optional script_user credentials from shotgun.yml # noqa
@@ -26,13 +27,13 @@ sgtk.LogManager().initialize_custom_handler()
 authenticator = ShotgunAuthenticator()
 
 # Optionally clear the current user if you've already logged in before.
-authenticator.clear_default_user()
+# authenticator.clear_default_user()
 
 
 def shutdown():
     """TBD."""
     print "Exiting"
-    authenticator.clear_default_user()
+    # authenticator.clear_default_user()
 
 # Get an authenticated user. In this scenario, since we've passed in the
 # CoreDefaultsManager, the code will first look to see if there is a script_user inside # noqa
@@ -75,4 +76,4 @@ print "Total: %d" % (last_stamp - start_stamp)
 # however, means that the next time the script is run, the user will be prompted # noqa
 # for his or her credentials again. You should probably avoid doing this in
 # order to provide a user experience that is as frictionless as possible.
-authenticator.clear_default_user()
+# authenticator.clear_default_user()

@@ -212,7 +212,7 @@ def renew_session(user, no_gui=False):
     SessionRenewal.renew_session(user, authenticator)
 
 
-def authenticate(default_host, default_login, http_proxy, fixed_host, cookies):
+def authenticate(default_host, default_login, http_proxy, fixed_host):
     """
     Prompts the user for his user name and password. If the host is not fixed,
     it is also possible to edit the host. If Qt is available and an QApplication
@@ -238,7 +238,7 @@ def authenticate(default_host, default_login, http_proxy, fixed_host, cookies):
     # If we have a gui, we need gui based authentication
     if has_ui:
         # If we are renewing for a background thread, use the invoker
-        authenticator = UiAuthenticationHandler(is_session_renewal=False, fixed_host=fixed_host, cookies=cookies)
+        authenticator = UiAuthenticationHandler(is_session_renewal=False, fixed_host=fixed_host)
     else:
         authenticator = ConsoleLoginHandler(fixed_host=fixed_host)
     return authenticator.authenticate(default_host, default_login, http_proxy)

@@ -8,9 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Defaults Manager
-"""
 from . import session_cache
 
 
@@ -34,7 +31,6 @@ class DefaultsManager(object):
     """
 
     def __init__(self):
-        """Constructor."""
         # Breaks circular dependency between util and authentication framework
         from ..util.user_settings import UserSettings
         from ..util.system_settings import SystemSettings
@@ -129,21 +125,6 @@ class DefaultsManager(object):
         else:
             return self._user_settings.default_login
 
-    def get_cookies(self):
-        """
-        Called by the authentication system when it needs to get the
-        cookies for the current SSO session. The list consists of raw cookies.
-        These are then used to setup the environment of the web browser for authentication.
-
-        :returns: The raw cookies asssociated to the current use session.
-        """
-        # Make sure there is a current host. There could be none if no-one has
-        # logged in with Toolkit yet.
-        if self.get_host():
-            return session_cache.get_current_cookies(self.get_host())
-        else:
-            return None
-
     def get_user_credentials(self):
         """
         Called by the authentication system when it requests a default or current user.
@@ -184,15 +165,3 @@ class DefaultsManager(object):
         """
         self._login = login
         session_cache.set_current_user(self.get_host(), login)
-
-    def set_cookies(self, cookies):
-        """
-        Called by the authentication system after a user a successfully logged in.
-
-        The default implementation maintains a concept of a default user
-        (returned via the get_user_credentials) and whenever the cookies are set
-        via this method, the default user cookies will be updated.
-
-        :param login: cookies as list of raw cookies
-        """
-        session_cache.set_current_cookies(self.get_host(), self._login, cookies)
