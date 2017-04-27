@@ -63,7 +63,7 @@ class AuthenticationSessionData(object):
             if value is not None:
                 params[key] = value
 
-        return '<Session %s>' % params
+        return "<Session %s>" % params
 
     def merge_settings(self, settings):
         """
@@ -75,14 +75,14 @@ class AuthenticationSessionData(object):
                                 silently.
         """
         for key, value in settings.iteritems():
-            _key = '_%s' % key
+            _key = "_%s" % key
             if _key in vars(self):
                 setattr(self, _key, value)
 
     @property
     def cookies(self):
         """String R/W property."""
-        return str(self._cookies or '')
+        return str(self._cookies or "")
 
     @cookies.setter
     def cookies(self, value):
@@ -91,7 +91,7 @@ class AuthenticationSessionData(object):
     @property
     def csrf_key(self):
         """String R/W property."""
-        return str(self._csrf_key or '')
+        return str(self._csrf_key or "")
 
     @csrf_key.setter
     def csrf_key(self, value):
@@ -100,7 +100,7 @@ class AuthenticationSessionData(object):
     @property
     def csrf_value(self):
         """String R/W property."""
-        return str(self._csrf_value or '')
+        return str(self._csrf_value or "")
 
     @csrf_value.setter
     def csrf_value(self, value):
@@ -109,7 +109,7 @@ class AuthenticationSessionData(object):
     @property
     def error(self):
         """String R/W property."""
-        return str(self._error or '')
+        return str(self._error or "")
 
     @error.setter
     def error(self, value):
@@ -118,7 +118,7 @@ class AuthenticationSessionData(object):
     @property
     def host(self):
         """String R/W property."""
-        return str(self._host or '')
+        return str(self._host or "")
 
     @host.setter
     def host(self, value):
@@ -127,7 +127,7 @@ class AuthenticationSessionData(object):
     @property
     def product(self):
         """String R/W property."""
-        return str(self._product or 'undefined')
+        return str(self._product or "undefined")
 
     @product.setter
     def product(self, value):
@@ -145,7 +145,7 @@ class AuthenticationSessionData(object):
     @property
     def session_id(self):
         """String R/W property."""
-        return str(self._session_id or '')
+        return str(self._session_id or "")
 
     @session_id.setter
     def session_id(self, value):
@@ -154,7 +154,7 @@ class AuthenticationSessionData(object):
     @property
     def user_id(self):
         """String R/W property."""
-        return str(self._user_id or '')
+        return str(self._user_id or "")
 
     @user_id.setter
     def user_id(self, value):

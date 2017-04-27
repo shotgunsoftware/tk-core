@@ -17,7 +17,6 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-import logging
 
 from .errors import AuthenticationCancelled
 from . import invoker
@@ -32,7 +31,7 @@ class UiAuthenticationHandler(object):
     directly and be used through the authenticate and renew_session methods.
     """
 
-    def __init__(self, is_session_renewal, fixed_host=False, cookies=None, no_gui=False):
+    def __init__(self, is_session_renewal, fixed_host=False, cookies=None):
         """
         Creates the UiAuthenticationHandler object.
         :param is_session_renewal: Boolean indicating if we are renewing a session. True if we are, False otherwise.
@@ -43,7 +42,6 @@ class UiAuthenticationHandler(object):
         self._gui_launcher = invoker.create()
         self._fixed_host = fixed_host
         self._cookies = cookies
-        self._no_gui = no_gui
 
     def authenticate(self, hostname, login, http_proxy):
         """
@@ -70,8 +68,7 @@ class UiAuthenticationHandler(object):
                 login=login,
                 http_proxy=http_proxy,
                 fixed_host=self._fixed_host,
-                cookies=self._cookies,
-                no_gui=self._no_gui
+                cookies=self._cookies
             )
             return dlg.result()
 

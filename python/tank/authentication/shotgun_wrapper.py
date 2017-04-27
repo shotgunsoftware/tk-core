@@ -66,7 +66,9 @@ class ShotgunWrapper(Shotgun):
             # Check if we were given a 302 and a location. This is likely
             # due to SSO authentication.
             # @FIXME: need to ensure that we are indeed being redirected for SSO.
-            if e.errcode == 302 and 'location' in e.headers:
+            # @FIXME: also need to check if this is still needed...
+            #         might be an artefact of my initial SSO work.
+            if e.errcode == 302 and "location" in e.headers:
                 # Silently ignore the redirect.
                 pass
             else:

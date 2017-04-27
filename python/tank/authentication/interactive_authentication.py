@@ -192,7 +192,7 @@ class SessionRenewal(object):
 ###############################################################################################
 # public methods
 
-def renew_session(user, no_gui=False):
+def renew_session(user):
     """
     Prompts the user to enter this password on the console or in a ui to
     retrieve a new session token.
@@ -206,7 +206,7 @@ def renew_session(user, no_gui=False):
     QtCore, QtGui, has_ui = _get_qt_state()
     # If we have a gui, we need gui based authentication
     if has_ui:
-        authenticator = UiAuthenticationHandler(is_session_renewal=True, cookies=user.get_cookies(), no_gui=no_gui)
+        authenticator = UiAuthenticationHandler(is_session_renewal=True, cookies=user.get_cookies())
     else:
         authenticator = ConsoleRenewSessionHandler()
     SessionRenewal.renew_session(user, authenticator)

@@ -34,7 +34,7 @@ logger = LogManager.get_logger(__name__)
 # This variable needs to be global so that it is not constantly being
 # created/destructed at every renewal of the SSO claims.
 # This is to avoid incurring perfomance issues caused by the claims renewal.
-global_saml2_sso = saml2_sso.Saml2Sso('SSO Login')
+global_saml2_sso = saml2_sso.Saml2Sso("SSO Login")
 
 
 class LoginDialog(QtGui.QDialog):
@@ -150,8 +150,8 @@ class LoginDialog(QtGui.QDialog):
         # the site infos.
         try:
             info = Shotgun(url, session_token="xxx", connect=False).info()
-            if 'user_authentication_method' in info:
-                return info['user_authentication_method'] == 'saml2'
+            if "user_authentication_method" in info:
+                return info["user_authentication_method"] == "saml2"
         except ServerNotFoundError:
             # Silently ignore exception
             logger.debug("Silently ignoring ServerNotFoundError exception")
@@ -200,11 +200,11 @@ class LoginDialog(QtGui.QDialog):
         """
         self._use_sso = not self._use_sso
         if self._use_sso:
-            self.ui.message.setText('Sign in using your Single Sign-On (SSO) Account.')
-            self.ui.use_sso_link.setText('<a href="about:blank"><span style=" text-decoration: underline; color:#c0c1c3;">Use Shotgun Account</span></a>')
+            self.ui.message.setText("Sign in using your Single Sign-On (SSO) Account.")
+            self.ui.use_sso_link.setText("<a href=\"about:blank\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Use Shotgun Account</span></a>")
         else:
-            self.ui.message.setText('Please enter your credentials.')
-            self.ui.use_sso_link.setText('<a href="about:blank"><span style=" text-decoration: underline; color:#c0c1c3;">Use Single Sign-On (SSO)</span></a>')
+            self.ui.message.setText("Please enter your credentials.")
+            self.ui.use_sso_link.setText("<a href=\"about:blank\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Use Single Sign-On (SSO)</span></a>")
         self.ui.login.setVisible(not self._use_sso)
         self.ui.password.setVisible(not self._use_sso)
 
@@ -312,9 +312,9 @@ class LoginDialog(QtGui.QDialog):
             login = ""
             password = ""
             res = self._saml2_sso.on_sso_login_attempt({
-                'host': site,
-                'cookies': self._cookies,
-                'product': 'toolkit'
+                "host": site,
+                "cookies": self._cookies,
+                "product": "toolkit"
             })
             if res == 1:
                 session_token = self._saml2_sso._session.session_id

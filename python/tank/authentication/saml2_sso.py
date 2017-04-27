@@ -36,21 +36,21 @@ HTTP_CANT_AUTHENTICATE_SSO_TIMEOUT = "Time out attempting to authenticate to SSO
 HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS = "You have not been granted access to the Shotgun site"
 
 # Paths for bootstrap the login/renewal process.
-URL_SAML_RENEW_PATH = '/saml/saml_renew'
-URL_SAML_RENEW_LANDING_PATH = '/saml/saml_renew_landing'
+URL_SAML_RENEW_PATH = "/saml/saml_renew"
+URL_SAML_RENEW_LANDING_PATH = "/saml/saml_renew_landing"
 
 # Old login path, which is not used for SSO.
-URL_LOGIN_PATH = '/user/login'
+URL_LOGIN_PATH = "/user/login"
 
 
-class Saml2Sso:
-    """An RV mode that performs Shotgun SSO login and pre-emptive renewal."""
+class Saml2Sso(object):
+    """Performs Shotgun SSO login and pre-emptive renewal."""
 
-    def __init__(self, window_title='SSO'):
+    def __init__(self, window_title="SSO"):
         """Initialize the RV mode."""
         print "TATATTATA"
 
-        log.debug('==- __init__')
+        log.debug("==- __init__")
 
         self._event_data = None
         self._sessions_stack = []
@@ -68,7 +68,7 @@ class Saml2Sso:
         self._view.page().action(QtWebKit.QWebPage.Reload).setVisible(False)
 
         # Ensure that the background color is not controlled by the login page.
-        self._view.setStyleSheet('background-color:white;')
+        self._view.setStyleSheet("background-color:white;")
         self._view.loadFinished.connect(self.on_load_finished)
 
         # Threshold percentage of the SSO session duration, at which
@@ -107,7 +107,7 @@ class Saml2Sso:
 
         # For debugging purposes
         # @TODO: Find a better way than to use the log level
-        if log.level == logging.DEBUG or 'SGTK_SHOTGUN_USING_VM' in os.environ:
+        if log.level == logging.DEBUG or "SGTK_SHOTGUN_USING_VM" in os.environ:
             # Disable SSL validation, useful when using a VM or a test site.
             config = QtNetwork.QSslConfiguration.defaultConfiguration()
             config.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
@@ -130,10 +130,10 @@ class Saml2Sso:
 
     # def __del__(self):
     #     """TBD."""
-    #     # log.debug('==- __del__')
-    #     print '==- __del__'
+    #     # log.debug("==- __del__")
+    #     print "==- __del__"
     #     self.stop_session_renewal()
-    #     # if log.level == logging.DEBUG or 'SGTK_SHOTGUN_USING_VM' in os.environ:
+    #     # if log.level == logging.DEBUG or "SGTK_SHOTGUN_USING_VM" in os.environ:
     #     #     self._inspector.close()
 
     @property
@@ -145,7 +145,7 @@ class Saml2Sso:
         """
         Create a new session, based on the data provided.
         """
-        log.debug('==- start_new_session')
+        log.debug("==- start_new_session")
         self._sessions_stack.append(AuthenticationSessionData(session_data))
         self.update_browser_from_session()
 
@@ -153,7 +153,7 @@ class Saml2Sso:
         """
         Destroy the current session, and resume the previous one, if any.
         """
-        log.debug('==- end_current_session')
+        log.debug("==- end_current_session")
         if len(self._sessions_stack) > 0:
             self._sessions_stack.pop()
         self.update_browser_from_session()
@@ -166,7 +166,7 @@ class Saml2Sso:
         in the browser may differ from how the value is named on our session
         representation, which is loosely based on that of RV itself.
         """
-        log.debug('==- update_session_from_browser')
+        log.debug("==- update_session_from_browser")
 
         cookie_jar = self._view.page().networkAccessManager().cookieJar()
 
@@ -174,19 +174,19 @@ class Saml2Sso:
         cookies = {}
 
         for cookie in cookie_jar.allCookies():
-            cookies[str(cookie.name()).decode('utf-8')] = str(cookie.value())
+            cookies[str(cookie.name()).decode("utf-8")] = str(cookie.value())
 
         content = {}
         for key, value in cookies.iteritems():
-            if key.startswith('shotgun_sso_session_expiration_u'):
-                content['session_expiration'] = int(value)
-            if key == '_session_id':
-                content['session_id'] = value
-            if key.startswith('shotgun_sso_session_userid_u'):
-                content['user_id'] = value
-            if key.startswith('csrf_token_u'):
-                content['csrf_key'] = key
-                content['csrf_value'] = value
+            if key.startswith("shotgun_sso_session_expiration_u"):
+                content["session_expiration"] = int(value)
+            if key == "_session_id":
+                content["session_id"] = value
+            if key.startswith("shotgun_sso_session_userid_u"):
+                content["user_id"] = value
+            if key.startswith("csrf_token_u"):
+                content["csrf_key"] = key
+                content["csrf_value"] = value
 
         # To minimize handling, we also keep a snapshot of the browser cookies.
         # We do so for all of them, as some are used by the IdP and we do not
@@ -198,7 +198,7 @@ class Saml2Sso:
         for cookie in cookie_jar.allCookies():
             raw_cookies.append(str(cookie.toRawForm()))
 
-        content['cookies'] = _encode_cookies(raw_cookies)
+        content["cookies"] = _encode_cookies(raw_cookies)
 
         self._session.merge_settings(content)
 
@@ -211,7 +211,7 @@ class Saml2Sso:
         be used when originally setting the browser for login using a saved
         session or when opening a connection to a new server.
         """
-        log.debug('==- update_browser_from_session')
+        log.debug("==- update_browser_from_session")
 
         qt_cookies = []
         if self._session is not None:
@@ -229,7 +229,7 @@ class Saml2Sso:
         We want to avoid confusion as to where the session is created and
         renewed.
         """
-        log.debug('==- stop_session_renewal')
+        log.debug("==- stop_session_renewal")
 
         self._session_renewal_active = False
         self._sso_renew_watchdog_timer.stop()
@@ -243,7 +243,7 @@ class Saml2Sso:
         This will be done in the background, hopefully not impacting any
         ongoing process such as playback.
         """
-        log.debug('==- start_sso_renewal')
+        log.debug("==- start_sso_renewal")
 
         self._sso_renew_watchdog_timer.stop()
 
@@ -256,9 +256,9 @@ class Saml2Sso:
 
             # For debugging purposes
             # @TODO: Find a better way than to use this EV
-            if 'RV_SHOTGUN_USING_VM' in os.environ:
+            if "RV_SHOTGUN_USING_VM" in os.environ:
                 interval = 5000
-        log.debug('==- start_sso_renewal: interval: %s' % interval)
+        log.debug("==- start_sso_renewal: interval: %s" % interval)
 
         self._sso_countdown_timer.setInterval(interval)
         self._sso_countdown_timer.start()
@@ -266,11 +266,11 @@ class Saml2Sso:
 
     def on_http_response_finished(self, reply):
         """on_http_response_finished."""
-        log.debug('==- on_http_response_finished')
+        log.debug("==- on_http_response_finished")
 
         error = reply.error()
         url = reply.url().toString()
-        log.debug('==- on_http_response_finished: %s' % url)
+        log.debug("==- on_http_response_finished: %s" % url)
         session = AuthenticationSessionData() if self._session is None else self._session
 
         if (
@@ -298,7 +298,7 @@ class Saml2Sso:
                 session.error = HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS
             else:
                 session.error = reply.attribute(QtNetwork.QNetworkRequest.HttpReasonPhraseAttribute)
-                log.error('==- on_http_response_finished: %s - %s' % (reply.url(), reply.error()))
+                log.error("==- on_http_response_finished: %s - %s" % (reply.url(), reply.error()))
         elif url.startswith(session.host + URL_LOGIN_PATH):
             # If we are being redirected to the login page, then SSO is not
             # enabled on that site.
@@ -312,14 +312,14 @@ class Saml2Sso:
         """
         Called to know if an event is currently being handled.
         """
-        # log.debug('==- is_handling_event')
+        # log.debug("==- is_handling_event")
         return self._event_data is not None
 
     def handle_event(self, event_data):
         """
         Called to start the handling of an event.
         """
-        log.debug('==- handle_event')
+        log.debug("==- handle_event")
 
         if not self.is_handling_event():
             self._event_data = event_data
@@ -330,21 +330,21 @@ class Saml2Sso:
 
             self.start_new_session(event_data)
         else:
-            log.error('Calling handle_event while event %s is currently being handled' % self._event_data['event'])
+            log.error("Calling handle_event while event %s is currently being handled" % self._event_data["event"])
 
     def resolve_event(self, end_session=False):
         """
         Called to return the results of the event.
         """
-        log.debug('==- resolve_event')
+        log.debug("==- resolve_event")
 
         if self.is_handling_event():
-            # rvc.sendInternalEvent(self._event_data['event'], self._session.assembleSession())
+            # rvc.sendInternalEvent(self._event_data["event"], self._session.assembleSession())
             if end_session:
                 self.end_current_session()
             self._event_data = None
         else:
-            log.error('Called resolve_event when no event is being handled.')
+            log.error("Called resolve_event when no event is being handled.")
 
     ############################################################################
     #
@@ -359,7 +359,7 @@ class Saml2Sso:
         The session renewal, via the off-screen QWebView, will be done at the
         next time the application event loop does not have any pending events.
         """
-        log.debug('==- on_schedule_sso_session_renewal')
+        log.debug("==- on_schedule_sso_session_renewal")
 
         self._sso_renew_timer.start()
 
@@ -371,7 +371,7 @@ class Saml2Sso:
         benefit from the saved session cookies to automatically trigger the
         renewal without having the user having to enter any inputs.
         """
-        log.debug('==- on_renew_sso_session')
+        log.debug("==- on_renew_sso_session")
 
         self._sso_renew_watchdog_timer.start()
 
@@ -386,7 +386,7 @@ class Saml2Sso:
 
         The purpose of this callback is to stop the page loading.
         """
-        log.debug('==- on_renew_sso_session_timeout')
+        log.debug("==- on_renew_sso_session_timeout")
 
         # @FIXME: Not sure this is the proper thing to do
         # self._view.page().triggerAction(QtWebKit.QWebPage.Stop)
@@ -411,7 +411,7 @@ class Saml2Sso:
         (_sso_renew_watchdog_timer) which will trigger and attempt to cleanup
         the process.
         """
-        # log.debug('==- on_load_finished')
+        # log.debug("==- on_load_finished")
 
         url = self._view.page().mainFrame().url().toString()
         if (
@@ -424,8 +424,8 @@ class Saml2Sso:
 
             self._dialog.accept()
 
-        if not succeeded and url != '':
-            log.error('Loading of page "%s" generated an error.' % url)
+        if not succeeded and url != "":
+            log.error("Loading of page \"%s\" generated an error." % url)
             # @FIXME: Figure out proper way of handling error.
 
     ############################################################################
@@ -441,7 +441,7 @@ class Saml2Sso:
         The user will be presented with the appropriate web pages from their
         IdP in order to log on to Shotgun.
         """
-        log.debug('==- on_sso_login_attempt')
+        log.debug("==- on_sso_login_attempt")
 
         if event_data is not None:
             self.handle_event(event_data)
@@ -464,7 +464,7 @@ class Saml2Sso:
 
             # We append the product code to the GET request.
             self._view.page().mainFrame().load(
-                self._session.host + URL_SAML_RENEW_PATH + '?product=%s' % self._session.product
+                self._session.host + URL_SAML_RENEW_PATH + "?product=%s" % self._session.product
             )
 
             self._dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
@@ -474,7 +474,7 @@ class Saml2Sso:
         """
         Called to cancel an ongoing login attempt.
         """
-        log.debug('==- on_sso_login_cancel')
+        log.debug("==- on_sso_login_cancel")
 
         # We only need to cancel if there is login attempt currently being made.
         if self.is_handling_event():
@@ -488,13 +488,13 @@ class Saml2Sso:
 
         This can be the result of a callback, a timeout or user interaction.
         """
-        log.debug('==- on_dialog_closed')
+        log.debug("==- on_dialog_closed")
 
         if self.is_handling_event():
-            if result == QtGui.QDialog.Rejected and self._session.cookies != '':
+            if result == QtGui.QDialog.Rejected and self._session.cookies != "":
                 # We got here because of a timeout attempting a GUI-less login.
                 # Let's clear the cookies, and force the use of the GUI.
-                self._session.cookies = ''
+                self._session.cookies = ""
                 # Let's have another go, without any cookies this time !
                 self.on_sso_login_attempt()
             else:
@@ -504,10 +504,10 @@ class Saml2Sso:
             # Should we get a rejected dialog, then we have had a timeout.
             if result == QtGui.QDialog.Rejected:
                 # @FIXME: Figure out exactly what to do when we have a timeout.
-                log.warn('Our QDialog got canceled outside of an event handling...')
+                log.warn("Our QDialog got canceled outside of an event handling...")
 
         # Clear the web page
-        self._view.page().mainFrame().load('about:blank')
+        self._view.page().mainFrame().load("about:blank")
 
     def on_sso_enable_renewal(self, event):
         """
@@ -518,14 +518,14 @@ class Saml2Sso:
         authentication at the startup of the application.
 
         """
-        log.debug('==- on_sso_enable_renewal')
+        log.debug("==- on_sso_enable_renewal")
 
         contents = json.loads(event.contents())
 
         if self._session is None:
             self.start_new_session({
-                'host': contents['params']['site_url'],
-                'cookies': contents['params']['cookies']
+                "host": contents["params"]["site_url"],
+                "cookies": contents["params"]["cookies"]
             })
         self.start_sso_renewal()
 
@@ -536,7 +536,7 @@ class Saml2Sso:
         This will be required when switching to a new connection (where the new
         site may not using SSO) or at the close of the application.
         """
-        log.debug('==- on_sso_disable_renewal')
+        log.debug("==- on_sso_disable_renewal")
 
         self.stop_session_renewal()
 
