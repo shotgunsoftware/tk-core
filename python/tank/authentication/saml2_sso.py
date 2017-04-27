@@ -21,7 +21,7 @@ import logging
 import os
 import time
 
-from .session import Session
+from .authentication_session_data import AuthenticationSessionData
 from .ui.qt_abstraction import QtCore, QtNetwork, QtGui, QtWebKit
 from .. import LogManager
 
@@ -146,7 +146,7 @@ class Saml2Sso:
         Create a new session, based on the data provided.
         """
         log.debug('==- start_new_session')
-        self._sessions_stack.append(Session(session_data))
+        self._sessions_stack.append(AuthenticationSessionData(session_data))
         self.update_browser_from_session()
 
     def end_current_session(self):
@@ -271,7 +271,7 @@ class Saml2Sso:
         error = reply.error()
         url = reply.url().toString()
         log.debug('==- on_http_response_finished: %s' % url)
-        session = Session() if self._session is None else self._session
+        session = AuthenticationSessionData() if self._session is None else self._session
 
         if (
             error is not QtNetwork.QNetworkReply.NetworkError.NoError and

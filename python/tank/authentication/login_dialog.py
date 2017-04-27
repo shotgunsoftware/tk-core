@@ -27,7 +27,13 @@ from .ui.qt_abstraction import QtGui, QtCore
 from tank_vendor.shotgun_api3 import Shotgun, MissingTwoFactorAuthenticationFault
 from tank_vendor.shotgun_api3.lib.httplib2 import ServerNotFoundError
 from tank_vendor.shotgun_api3.lib.xmlrpclib import ProtocolError
+from .. import LogManager
 
+logger = LogManager.get_logger(__name__)
+
+# This variable needs to be global so that it is not constantly being
+# created/destructed at every renewal of the SSO claims.
+# This is to avoid incurring perfomance issues caused by the claims renewal.
 global_saml2_sso = saml2_sso.Saml2Sso('SSO Login')
 
 
@@ -148,15 +154,15 @@ class LoginDialog(QtGui.QDialog):
                 return info['user_authentication_method'] == 'saml2'
         except ServerNotFoundError:
             # Silently ignore exception
-            pass
+            logger.debug("Silently ignoring ServerNotFoundError exception")
         except ProtocolError:
             # Silently ignore exception
             pass
         except ValueError:
-            # Silently ignore bad arguments to Shotgun constructor
+            # Silently ignore exception
             pass
         except socket.error:
-            # Silently ignore bad arguments to Shotgun constructor
+            # Silently ignore exception
             pass
         return False
 
@@ -189,6 +195,9 @@ class LoginDialog(QtGui.QDialog):
             )
 
     def _toggle_sso(self):
+        """
+        Sets up the dialog GUI according to the use of SSO or not.
+        """
         self._use_sso = not self._use_sso
         if self._use_sso:
             self.ui.message.setText('Sign in using your Single Sign-On (SSO) Account.')

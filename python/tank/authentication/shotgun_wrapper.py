@@ -23,6 +23,7 @@ from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
 
+
 class ShotgunWrapper(Shotgun):
     """
     This class wraps the Shotgun instance that communicates with the Shotgun
@@ -65,7 +66,8 @@ class ShotgunWrapper(Shotgun):
             # Check if we were given a 302 and a location. This is likely
             # due to SSO authentication.
             # @FIXME: need to ensure that we are indeed being redirected for SSO.
-            if e.errcode == 302 and e.headers.has_key('location'):
+            if e.errcode == 302 and 'location' in e.headers:
+                # Silently ignore the redirect.
                 pass
             else:
                 raise e

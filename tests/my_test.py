@@ -52,22 +52,22 @@ user = authenticator.get_user()
 sgtk.set_authenticated_user(user)
 
 sg = user.create_sg_connection()
+print sg.find('Project', [], ['id', 'name'])
+# start_stamp = last_stamp = int(time.time())
+# for i in range(1, 501):
+#     new_stamp = int(time.time())
+#     delta = new_stamp - last_stamp
+#     last_stamp = new_stamp
+#     print "-----> %d - %s - %d" % (i, user.impl.get_sso_session_expiration(), delta)
 
-start_stamp = last_stamp = int(time.time())
-for i in range(1, 501):
-    new_stamp = int(time.time())
-    delta = new_stamp - last_stamp
-    last_stamp = new_stamp
-    print "-----> %d - %s - %d" % (i, user.impl.get_sso_session_expiration(), delta)
+#     # if time.time() > user.impl.get_session_expiration() + 15:
+#     #     interactive_authentication.renew_session(user.impl, no_gui=True)
+#     interactive_authentication.renew_session(user.impl, no_gui=True)
 
-    # if time.time() > user.impl.get_session_expiration() + 15:
-    #     interactive_authentication.renew_session(user.impl, no_gui=True)
-    interactive_authentication.renew_session(user.impl, no_gui=True)
+#     sg.find('Project', [], ['id', 'name'])
+#     time.sleep(6)
 
-    sg.find('Project', [], ['id', 'name'])
-    time.sleep(6)
-
-print "Total: %d" % (last_stamp - start_stamp)
+# print "Total: %d" % (last_stamp - start_stamp)
 
 #
 # Add your app code goes here...

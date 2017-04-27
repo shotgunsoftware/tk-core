@@ -8,17 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 """
-RV Session abstraction.
-
-The main purpose of this module is to avoid having to constantly fecth either
-the RV session or read cookies from the QWebView used for the login process.
-
-Other than from hardcoding the RV Session format in one method, we have
-attempted to keep this module relatively independant.
+Authentication Session abstraction.
 """
 
 
-class Session(object):
+class AuthenticationSessionData(object):
     """
     Holds session information.
 
@@ -58,6 +52,19 @@ class Session(object):
         self._user_id = None
         self.merge_settings(settings)
 
+    def __repr__(self):
+        """
+        Returns a string reprensentation of the session.
+
+        :returns: A string containing all of the session data.
+        """
+        params = {}
+        for key, value in vars(self).iteritems():
+            if value is not None:
+                params[key] = value
+
+        return '<Session %s>' % params
+
     def merge_settings(self, settings):
         """
         Merge new settings with existing ones.
@@ -71,82 +78,6 @@ class Session(object):
             _key = '_%s' % key
             if _key in vars(self):
                 setattr(self, _key, value)
-
-    def dump(self):
-        """
-        Dump dictionary of Session settings.
-
-        This function is mainly usefull for debugging purposes.
-
-        Returns:
-            A dictionary of Session settings, leaving out the undefined ones.
-        """
-        params = {}
-        for key, value in vars(self).iteritems():
-            if value is not None:
-                params[key] = value
-        return params
-
-    def assembleSession(self):
-        """
-        Generate a RV Session string.
-
-        This method generates a Session string as would be done with the Mu
-        function of the same name.
-
-        @FIXME: This method introduces a coupling with slmodule. We should
-                return a json array instead.
-
-        Returns:
-            A string in the form of:
-            'host|user_id|session_id||csrf_key|csrf_value|cookies'
-            The raw cookies have been converted to json string and uuencoded.
-        """
-        if self.error:
-            return self.assembleErrorSessionWithInfo()
-        else:
-            return '%s|%s|%s||%s|%s|%s' % (
-                self.host,
-                self.user_id,
-                self.session_id,
-                self.csrf_key,
-                self.csrf_value,
-                self.cookies
-            )
-
-    def assembleEmptySession(self):
-        """
-        Generate an empty RV Session string.
-
-        This method generates an empty Session string as would be done with the
-        Mu function of the same name.
-
-        @FIXME: This method introduces a coupling with slmodule. We should
-                return a json array instead.
-
-        Returns:
-            A string in the form of:
-            '||||||'
-            The raw cookies have been converted to json string and uuencoded.
-        """
-        return '||||||'
-
-    def assembleErrorSessionWithInfo(self):
-        """
-        Generate a RV Error Session string.
-
-        This method generates an Error Session string as wouls be done with the
-        Mu function of the same name.
-
-        @FIXME: This method introduces a coupling with slmodule. We should
-                return a json array instead.
-
-        Returns:
-            A string in the form of:
-            '|||||error_message|'
-            The raw cookies have been converted to json string and uuencoded.
-        """
-        return '|||||%s;;;%s;;;%s|' % (self.host, self.user_id, self.error)
 
     @property
     def cookies(self):
