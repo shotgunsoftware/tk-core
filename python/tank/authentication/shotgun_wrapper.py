@@ -70,6 +70,7 @@ class ShotgunWrapper(Shotgun):
             #         might be an artefact of my initial SSO work.
             if e.errcode == 302 and "location" in e.headers:
                 # Silently ignore the redirect.
+                print "GRRRRRR THIS SHOULD NOT HAPPEN"
                 pass
             else:
                 raise e

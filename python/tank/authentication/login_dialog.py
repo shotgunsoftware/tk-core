@@ -45,7 +45,7 @@ class LoginDialog(QtGui.QDialog):
     # Formatting required to display error messages.
     ERROR_MSG_FORMAT = "<font style='color: rgb(252, 98, 70);'>%s</font>"
 
-    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, cookies=None, no_gui=False):
+    def __init__(self, is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None, parent=None, cookies=None):
         """
         Constructs a dialog.
 
@@ -57,7 +57,6 @@ class LoginDialog(QtGui.QDialog):
         :param http_proxy: The proxy server to use when testing authentication. Defaults to None.
         :param parent: The Qt parent for the dialog (defaults to None)
         :param cookies: List of raw cookies. Defaults to empty list.
-        :param no_gui: Attempts to renew the SSO session withou using a GUI. Defaults to False.
         """
         QtGui.QDialog.__init__(self, parent)
 
@@ -68,12 +67,10 @@ class LoginDialog(QtGui.QDialog):
 
         self._is_session_renewal = is_session_renewal
         self._cookies = cookies
-        self._no_gui = no_gui
         self._use_sso = False
 
         # If we have cookies, let's first try without GUI
         if self._cookies is not None:
-            self._no_gui = True
             print "__init__ cookies : %s" % self._cookies
 
         # setup the gui
