@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.72 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.73 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.72 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.73 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -168,7 +168,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.72.<br>
+    <b>tk-core</b> v0.18.73.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -3879,30 +3879,8 @@ info.yml manifest.</li>
 
 <dl class="function">
 <dt id="sgtk.platform.get_logger">
-<code class="descclassname">sgtk.platform.</code><code class="descname">get_logger</code><span class="sig-paren">(</span><em>module_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/util.html#get_logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.get_logger" title="Permalink to this definition">¶</a></dt>
-<dd><p>Standard sgtk logging access for python code that runs inside apps.</p>
-<p>We recommend that you use this method for all logging that takes place
-inside of the <code class="docutils literal"><span class="pre">python</span></code> folder inside your app, engine or framework.</p>
-<p>We recommend that the following pattern is used - at the top of your
-python files, include the following code:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>All subsequent code in the file then simply calls this object for logging.</p>
-<p>Following this pattern will generate a standard logger that is parented
-under the correct bundle.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>module_name</strong> &#8211; Pass <code class="docutils literal"><span class="pre">__name__</span></code> to this parameter</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Standard python logger</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<code class="descclassname">sgtk.platform.</code><code class="descname">get_logger</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.get_logger" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="configuration-and-info-yml-manifest">
@@ -4520,7 +4498,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.72',
+            VERSION:'v0.18.73',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

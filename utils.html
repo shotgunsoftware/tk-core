@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.72 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.73 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.72 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.73 documentation" href="index.html"/>
         <link rel="next" title="Descriptor API" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -147,7 +147,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.72.<br>
+    <b>tk-core</b> v0.18.73.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1235,14 +1235,24 @@ to just perform the normalization quickly on a local path.</p>
 <em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">LocalFileStorageManager</code><a class="reference internal" href="_modules/tank/util/local_file_storage.html#LocalFileStorageManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.LocalFileStorageManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class that encapsulates logic for resolving local storage paths.</p>
 <p>Toolkit needs to store cache data, logs and other items at runtime.
-Some of this data is global, other is per site or per configuraiton.</p>
+Some of this data is global, other is per site or per configuration.</p>
 <p>This class provides a consistent and centralized interface for resolving
 such paths and also handles compatibility across generations of path
 standards if and when these change between releases.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">All paths returned by this class are local to the currently running
+<p>All paths returned by this class are local to the currently running
 user and typically private or with limited access settings for other users.</p>
+<p>If the current user&#8217;s home directory is not an appropriate location to store
+your user files, you can use the <code class="docutils literal"><span class="pre">SHOTGUN_HOME</span></code> environment variable to
+override the root location of the files. In that case, the location for the
+user files on each platform will be:</p>
+<ul class="last simple">
+<li>Logging:     <code class="docutils literal"><span class="pre">$SHOTGUN_HOME/logs</span></code></li>
+<li>Cache:       <code class="docutils literal"><span class="pre">$SHOTGUN_HOME</span></code></li>
+<li>Persistent:  <code class="docutils literal"><span class="pre">$SHOTGUN_HOME/data</span></code></li>
+<li>Preferences: <code class="docutils literal"><span class="pre">$SHOTGUN_HOME/preferences</span></code></li>
+</ul>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2092,7 +2102,7 @@ example unsupported url schemes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.72',
+            VERSION:'v0.18.73',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

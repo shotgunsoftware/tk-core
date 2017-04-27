@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.authentication.defaults_manager &mdash; tk-core v0.18.72 documentation</title>
+  <title>tank.authentication.defaults_manager &mdash; tk-core v0.18.73 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.72 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.73 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.72.<br>
+    <b>tk-core</b> v0.18.73.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -180,6 +180,7 @@
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">session_cache</span>
 
+
 <div class="viewcode-block" id="DefaultsManager"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager">[docs]</a><span class="k">class</span> <span class="nc">DefaultsManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The defaults manager allows a client of the Shotgun Authenticator class</span>
@@ -192,7 +193,7 @@
 <span class="sd">    host.</span>
 
 <span class="sd">    If a setting isn&#39;t found, the DefaultsManager will fall back to the value stored inside</span>
-<span class="sd">    ``config.ini`` See :ref:`centralizing_settings` for more information.</span>
+<span class="sd">    ``toolkit.ini`` See :ref:`centralizing_settings` for more information.</span>
 
 <span class="sd">    If, however, you want to implement a custom behavior around how defaults</span>
 <span class="sd">    are managed, simply derive from this class and pass your custom instance</span>
@@ -202,7 +203,9 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Breaks circular dependency between util and authentication framework</span>
         <span class="kn">from</span> <span class="nn">..util.user_settings</span> <span class="kn">import</span> <span class="n">UserSettings</span>
+        <span class="kn">from</span> <span class="nn">..util.system_settings</span> <span class="kn">import</span> <span class="n">SystemSettings</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span> <span class="o">=</span> <span class="n">UserSettings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_system_settings</span> <span class="o">=</span> <span class="n">SystemSettings</span><span class="p">()</span>
 
 <div class="viewcode-block" id="DefaultsManager.is_host_fixed"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.is_host_fixed">[docs]</a>    <span class="k">def</span> <span class="nf">is_host_fixed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -257,13 +260,24 @@
 <span class="sd">        Called by the authentication system when it needs to retrieve the</span>
 <span class="sd">        proxy settings to use for a Shotgun connection.</span>
 
-<span class="sd">        The format should be the same as is being used in the Shotgun API.</span>
-<span class="sd">        For more information, see the Shotgun API documentation:</span>
-<span class="sd">        https://github.com/shotgunsoftware/python-api/wiki/Reference%3A-Methods#shotgun</span>
+<span class="sd">        .. note:: If the centralized settings do not specify an HTTP proxy, Toolkit will rely on</span>
+<span class="sd">            Python&#39;s `urllib.getproxies &lt;https://docs.python.org/2/library/urllib.html#urllib.getproxies&gt;`_</span>
+<span class="sd">            to find an HTTP proxy.</span>
+
+<span class="sd">            There is a restriction when looking for proxy information from Mac OS X System Configuration or</span>
+<span class="sd">            Windows Systems Registry: in these cases, Toolkit does not support the use of proxies</span>
+<span class="sd">            which require authentication (username and password).</span>
+
+<span class="sd">        The returned format will be the same as is being used in the Shotgun API.</span>
+<span class="sd">        For more information, see the `Shotgun API documentation</span>
+<span class="sd">        &lt;http://developer.shotgunsoftware.com/python-api/reference.html#shotgun&gt;`_.</span>
 
 <span class="sd">        :returns: String containing the default http proxy, None by default.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">shotgun_proxy</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">shotgun_proxy</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system_settings</span><span class="o">.</span><span class="n">http_proxy</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">shotgun_proxy</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.get_login"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.get_login">[docs]</a>    <span class="k">def</span> <span class="nf">get_login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -353,7 +367,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.72',
+            VERSION:'v0.18.73',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.local_file_storage &mdash; tk-core v0.18.72 documentation</title>
+  <title>tank.util.local_file_storage &mdash; tk-core v0.18.73 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.72 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.73 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.72.<br>
+    <b>tk-core</b> v0.18.73.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -193,7 +193,7 @@
 <span class="sd">    Class that encapsulates logic for resolving local storage paths.</span>
 
 <span class="sd">    Toolkit needs to store cache data, logs and other items at runtime.</span>
-<span class="sd">    Some of this data is global, other is per site or per configuraiton.</span>
+<span class="sd">    Some of this data is global, other is per site or per configuration.</span>
 
 <span class="sd">    This class provides a consistent and centralized interface for resolving</span>
 <span class="sd">    such paths and also handles compatibility across generations of path</span>
@@ -201,6 +201,17 @@
 
 <span class="sd">    .. note:: All paths returned by this class are local to the currently running</span>
 <span class="sd">              user and typically private or with limited access settings for other users.</span>
+
+<span class="sd">              If the current user&#39;s home directory is not an appropriate location to store</span>
+<span class="sd">              your user files, you can use the ``SHOTGUN_HOME`` environment variable to</span>
+<span class="sd">              override the root location of the files. In that case, the location for the</span>
+<span class="sd">              user files on each platform will be:</span>
+
+<span class="sd">              - Logging:     ``$SHOTGUN_HOME/logs``</span>
+<span class="sd">              - Cache:       ``$SHOTGUN_HOME``</span>
+<span class="sd">              - Persistent:  ``$SHOTGUN_HOME/data``</span>
+<span class="sd">              - Preferences: ``$SHOTGUN_HOME/preferences``</span>
+
 
 <span class="sd">    :constant CORE_V17: Indicates compatibility with Core 0.17 or earlier</span>
 <span class="sd">    :constant CORE_V18: Indicates compatibility with Core 0.18 or later</span>
@@ -510,7 +521,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.72',
+            VERSION:'v0.18.73',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
