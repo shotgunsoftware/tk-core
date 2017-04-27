@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>364</width>
-    <height>316</height>
+    <height>321</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -224,7 +224,7 @@ QLineEdit:Disabled {
            <item>
             <widget class="QLabel" name="use_sso_link">
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://mystudio.shotgunstudio.com/user/forgot_password&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;Use Single Sign-On (SSO)&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;a href=&quot;about:blank&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;Use Single Sign-On (SSO)&lt;/span&gt;&lt;/a&gt;</string>
              </property>
              <property name="textFormat">
               <enum>Qt::RichText</enum>

@@ -28,7 +28,7 @@ from tank_vendor.shotgun_api3 import Shotgun, MissingTwoFactorAuthenticationFaul
 from tank_vendor.shotgun_api3.lib.httplib2 import ServerNotFoundError
 from tank_vendor.shotgun_api3.lib.xmlrpclib import ProtocolError
 
-global_saml2_sso = saml2_sso.Saml2Sso('PATATE')
+global_saml2_sso = saml2_sso.Saml2Sso('SSO Login')
 
 
 class LoginDialog(QtGui.QDialog):
@@ -190,9 +190,14 @@ class LoginDialog(QtGui.QDialog):
 
     def _toggle_sso(self):
         self._use_sso = not self._use_sso
-        self.ui.login.setEnabled(not self._use_sso)
-        self.ui.password.setEnabled(not self._use_sso)
-        # self.ui.message.setVisible(not self._use_sso)
+        if self._use_sso:
+            self.ui.message.setText('Sign in using your Single Sign-On (SSO) Account.')
+            self.ui.use_sso_link.setText('<a href="about:blank"><span style=" text-decoration: underline; color:#c0c1c3;">Use Shotgun Account</span></a>')
+        else:
+            self.ui.message.setText('Please enter your credentials.')
+            self.ui.use_sso_link.setText('<a href="about:blank"><span style=" text-decoration: underline; color:#c0c1c3;">Use Single Sign-On (SSO)</span></a>')
+        self.ui.login.setVisible(not self._use_sso)
+        self.ui.password.setVisible(not self._use_sso)
 
     def _current_page_changed(self, index):
         """
