@@ -48,8 +48,6 @@ class Saml2Sso(object):
 
     def __init__(self, window_title="SSO"):
         """Initialize the RV mode."""
-        print "TATATTATA"
-
         log.debug("==- __init__")
 
         self._event_data = None
@@ -216,7 +214,6 @@ class Saml2Sso(object):
         qt_cookies = []
         if self._session is not None:
             cookies = _decode_cookies(self._session.cookies)
-            print "   --> %s" % cookies
             qt_cookies = [QtNetwork.QNetworkCookie.parseCookies(cookie)[0] for cookie in cookies]
 
         self._view.page().networkAccessManager().cookieJar().setAllCookies(qt_cookies)
@@ -244,6 +241,7 @@ class Saml2Sso(object):
         ongoing process such as playback.
         """
         log.debug("==- start_sso_renewal")
+        print "==- start_sso_renewal"
 
         self._sso_renew_watchdog_timer.stop()
 
@@ -259,6 +257,7 @@ class Saml2Sso(object):
             if "RV_SHOTGUN_USING_VM" in os.environ:
                 interval = 5000
         log.debug("==- start_sso_renewal: interval: %s" % interval)
+        print "==- start_sso_renewal: interval: %s" % interval
 
         self._sso_countdown_timer.setInterval(interval)
         self._sso_countdown_timer.start()
@@ -306,6 +305,7 @@ class Saml2Sso(object):
 
         if session.error:
             # If there are any errors, we exit by force-closing the dialog.
+            print "OHHH WELL: %s" % session.error
             self._dialog.accept()
 
     def is_handling_event(self):
@@ -345,6 +345,16 @@ class Saml2Sso(object):
             self._event_data = None
         else:
             log.error("Called resolve_event when no event is being handled.")
+
+    def get_session_data(self):
+        """Returns the relevant session data for the toolkit."""
+        return (
+            self._session.host,
+            self._session.user_id,
+            self._session.session_id,
+            self._session.cookies,
+            self._session.session_expiration
+        )
 
     ############################################################################
     #
@@ -387,7 +397,7 @@ class Saml2Sso(object):
         The purpose of this callback is to stop the page loading.
         """
         log.debug("==- on_renew_sso_session_timeout")
-
+        print "==- on_renew_sso_session_timeout"
         # @FIXME: Not sure this is the proper thing to do
         # self._view.page().triggerAction(QtWebKit.QWebPage.Stop)
         self._dialog.reject()
@@ -449,13 +459,10 @@ class Saml2Sso(object):
         # If we do have session cookies, let's attempt a session renewal
         # without presenting any GUI.
         if self._session.cookies:
-            print "PATH A"
             loop = QtCore.QEventLoop()
-            # self._dialog.finished.connect(loop.quit)
             self._dialog.finished.connect(loop.exit)
             self.on_renew_sso_session()
             res = loop.exec_()
-            print "RESULT: %s" % res
             return res
 
         else:

@@ -15,8 +15,8 @@ from tank_vendor.shotgun_authentication import ShotgunAuthenticator
 from tank.authentication import interactive_authentication
 
 # sgtk.LogManager().initialize_base_file_handler('my_script')
-sgtk.LogManager().initialize_custom_handler()
-sgtk.LogManager().global_debug = True
+# sgtk.LogManager().initialize_custom_handler()
+# sgtk.LogManager().global_debug = True
 
 # Instantiate the CoreDefaultsManager. This allows the ShotgunAuthenticator to
 # retrieve the site, proxy and optional script_user credentials from shotgun.yml # noqa
@@ -26,14 +26,14 @@ sgtk.LogManager().global_debug = True
 # authenticator = ShotgunAuthenticator(cdm)
 authenticator = ShotgunAuthenticator()
 
+
 # Optionally clear the current user if you've already logged in before.
 # authenticator.clear_default_user()
-
-
 def shutdown():
     """TBD."""
     print "Exiting"
     # authenticator.clear_default_user()
+
 
 # Get an authenticated user. In this scenario, since we've passed in the
 # CoreDefaultsManager, the code will first look to see if there is a script_user inside # noqa
@@ -53,19 +53,23 @@ sgtk.set_authenticated_user(user)
 
 sg = user.create_sg_connection()
 # print sg.find('Project', [], ['id', 'name'])
-start_stamp = last_stamp = int(time.time())
+start_stamp = last_stamp = float(time.time())
 for i in range(1, 501):
-    new_stamp = int(time.time())
+    new_stamp = float(time.time())
     delta = new_stamp - last_stamp
     last_stamp = new_stamp
-    print "-----> %d - %s - %d" % (i, user.impl.get_sso_session_expiration(), delta)
+    saml_expiration = user.impl.get_saml_expiration()
+    print "-----> %d - %d - %d - %.3f" % (i, saml_expiration, saml_expiration - time.time(), delta)
 
-    # if time.time() > user.impl.get_session_expiration() + 15:
-    #     interactive_authentication.renew_session(user.impl, no_gui=True)
-    interactive_authentication.renew_session(user.impl)
+    # if time.time() + 18 > user.impl.get_saml_claims_expiration():
+    #     print "------- renewing session"
+    #     interactive_authentication.renew_session(user.impl)
+    # interactive_authentication.renew_session(user.impl)
 
+    print "------- Before sg call"
     sg.find('Project', [], ['id', 'name'])
-    time.sleep(6)
+    # print "------- Before sleep"
+    time.sleep(4)
 
 print "Total: %d" % (last_stamp - start_stamp)
 

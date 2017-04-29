@@ -31,11 +31,6 @@ from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
 
-# This variable needs to be global so that it is not constantly being
-# created/destructed at every renewal of the SSO claims.
-# This is to avoid incurring perfomance issues caused by the claims renewal.
-global_saml2_sso = saml2_sso.Saml2Sso("SSO Login")
-
 
 class LoginDialog(QtGui.QDialog):
     """
@@ -60,7 +55,7 @@ class LoginDialog(QtGui.QDialog):
         """
         QtGui.QDialog.__init__(self, parent)
 
-        self._saml2_sso = global_saml2_sso
+        self._saml2_sso = saml2_sso.Saml2Sso("SSO Login")
 
         hostname = hostname or ""
         login = login or ""
@@ -68,10 +63,6 @@ class LoginDialog(QtGui.QDialog):
         self._is_session_renewal = is_session_renewal
         self._cookies = cookies
         self._use_sso = False
-
-        # If we have cookies, let's first try without GUI
-        if self._cookies is not None:
-            print "__init__ cookies : %s" % self._cookies
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
@@ -85,6 +76,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.setText(hostname)
         self.ui.login.setText(login)
 
+        # If the host is fixed, disable the site textbox.
         if fixed_host:
             self._disable_text_widget(
                 self.ui.site,
@@ -92,7 +84,6 @@ class LoginDialog(QtGui.QDialog):
             )
 
         # Disable keyboard input in the site and login boxes if we are simply renewing the session.
-        # If the host is fixed, disable the site textbox.
         if is_session_renewal:
             self._disable_text_widget(
                 self.ui.site,
@@ -101,6 +92,11 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.login,
                 "You are renewing your session: you can't change your login."
             )
+            self._set_login_message("Your session has expired. Please enter your password.")
+            self.ui.use_sso_link.setVisible(False)
+        else:
+            self._set_login_message("Please enter your credentials.")
+            self.ui.use_sso_link.linkActivated.connect(self._toggle_sso)
 
         # Set the focus appropriately on the topmost line edit that is empty.
         if self.ui.site.text():
@@ -108,11 +104,6 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
             else:
                 self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
-
-        if self._is_session_renewal:
-            self._set_login_message("Your session has expired. Please enter your password.")
-        else:
-            self._set_login_message("Please enter your credentials.")
 
         # Select the right first page.
         self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
@@ -128,7 +119,6 @@ class LoginDialog(QtGui.QDialog):
         self.ui.use_app.clicked.connect(self._use_app_pressed)
 
         self.ui.forgot_password_link.linkActivated.connect(self._link_activated)
-        self.ui.use_sso_link.linkActivated.connect(self._toggle_sso)
 
         self.ui.site.editingFinished.connect(self._strip_whitespaces)
         self.ui.login.editingFinished.connect(self._strip_whitespaces)
@@ -254,19 +244,24 @@ class LoginDialog(QtGui.QDialog):
         :returns: A tuple of (hostname, username and session token) string if the user authenticated
                   None if the user cancelled.
         """
-        # if self._no_gui:
-        #     res = OffscreenEventLoop(self).exec_()
-        #     # If the offscreen session renewal failed, show the GUI as a failsafe
-        #     if res == QtGui.QDialog.Rejected:
-        #         res = self.exec_()
-        # else:
-        #     res = self.exec_()
+        if self._cookies:
+            res = self._saml2_sso.on_sso_login_attempt({
+                "host": self.ui.site.text().encode("utf-8"),
+                "cookies": self._cookies,
+                "product": "toolkit"
+            })
+            # If the offscreen session renewal failed, show the GUI as a failsafe
+            if res == QtGui.QDialog.Accepted:
+                return self._saml2_sso.get_session_data()
 
         res = self.exec_()
+
         if res == QtGui.QDialog.Accepted:
+            if self._cookies:
+                return self._saml2_sso.get_session_data()
             return (self.ui.site.text().encode("utf-8"),
                     self.ui.login.text().encode("utf-8"),
-                    self._new_session_token, self._cookies)
+                    self._new_session_token, self._cookies, 0)
         else:
             return None
 
@@ -313,11 +308,12 @@ class LoginDialog(QtGui.QDialog):
                 "cookies": self._cookies,
                 "product": "toolkit"
             })
-            if res == 1:
+            if res == QtGui.QDialog.Accepted:
                 session_token = self._saml2_sso._session.session_id
                 login = self._saml2_sso._session.user_id
                 self._cookies = self._saml2_sso._session.cookies
-            elif res == 0:
+            else:
+                self._set_error_message(self.ui.message, self._saml2_sso._session.error)
                 return
             print "WHAT DO WE HAVE HERE --> %s" % res
 

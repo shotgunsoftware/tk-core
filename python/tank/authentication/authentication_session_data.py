@@ -16,7 +16,7 @@ class AuthenticationSessionData(object):
     """
     Holds session information.
 
-    A session object holds information coming from both the RV current session
+    A session object holds information coming from both the toolkit current session
     and from the QWebView used to login/renew session from our SSO enabled site.
 
     Attributes:
@@ -26,7 +26,7 @@ class AuthenticationSessionData(object):
         csrf_key:           A string for the crsf key.
         error:              A string which describe the error encountered.
         host:               A string for the hostname.
-        product:            A string for the product (rv).
+        product:            A string for the product (used at login).
         session_expitation: An int in seconds for the UTC time of expiration.
         session_id:         A string for the session id.
         user_id:            A string for the user id.

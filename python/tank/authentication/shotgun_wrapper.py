@@ -33,6 +33,7 @@ class ShotgunWrapper(Shotgun):
     password to renew the session. Once the session is renewed, the call will be
     executed again.
     """
+
     def __init__(self, *args, **kwargs):
         """
         Constructor. This has the same parameters as the Shotgun class, but it
@@ -63,15 +64,17 @@ class ShotgunWrapper(Shotgun):
             logger.debug("Authentication failure.")
             pass
         except ProtocolError as e:
-            # Check if we were given a 302 and a location. This is likely
-            # due to SSO authentication.
-            # @FIXME: need to ensure that we are indeed being redirected for SSO.
-            # @FIXME: also need to check if this is still needed...
-            #         might be an artefact of my initial SSO work.
-            if e.errcode == 302 and "location" in e.headers:
-                # Silently ignore the redirect.
-                print "GRRRRRR THIS SHOULD NOT HAPPEN"
-                pass
+            # One potential source of the error is that our SAML claims have
+            # expired. We check if we were given a 302 and the
+            # saml_login_request URL. In that case we will proceed to renew
+            # the session.
+            if (
+                e.errcode == 302 and
+                "location" in e.headers and
+                e.headers["location"].endswith("/saml/saml_login_request")
+            ):
+                # Silently ignoring the exception, as it will
+                logger.debug("The SAML claims have expired. We need to renew the session")
             else:
                 raise e
 

@@ -162,7 +162,7 @@ class SessionUser(ShotgunUserImpl):
     A user that authenticates to the Shotgun server using a session token.
     """
 
-    def __init__(self, host, login, session_token, http_proxy, password=None, cookies=None):
+    def __init__(self, host, login, session_token, http_proxy, password=None, cookies=None, saml_expiration=0):
         """
         Constructor.
 
@@ -204,9 +204,7 @@ class SessionUser(ShotgunUserImpl):
         self._login = login
         self._session_token = session_token
         self._cookies = cookies
-        # @FIXME: Set session expiration properly
-        print "user_impl.py: FIXME - MUST SET EXPIRATION PROPERLY"
-        self._session_expiration = 0
+        self._saml_expiration = saml_expiration
 
         self._try_save()
 
@@ -279,7 +277,7 @@ class SessionUser(ShotgunUserImpl):
             connect=False
         )
 
-    def get_sso_session_expiration(self):
+    def get_saml_expiration(self):
         """
         Obtain the time at which the sessions will need to be renewed.
 
@@ -287,16 +285,16 @@ class SessionUser(ShotgunUserImpl):
         in a Web Page. We rely on the user's cookies to track any session
         related information for the Identity Provider.
         """
-        return self._session_expiration
+        return self._saml_expiration
 
-    def set_sso_session_expiration(self, session_expiration):
+    def set_saml_expiration(self, saml_expiration):
         """
         Sets the time boundary for the current SSO session.
 
         Passed this boundary, web-based renewal will need to be done, which may
         or may not require the user to enter their credentials.
         """
-        self._session_expiration = session_expiration
+        self._saml_expiration = saml_expiration
 
     @LogManager.log_timing
     def are_credentials_expired(self):
