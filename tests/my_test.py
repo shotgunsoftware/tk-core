@@ -15,8 +15,8 @@ from tank_vendor.shotgun_authentication import ShotgunAuthenticator
 from tank.authentication import interactive_authentication
 
 # sgtk.LogManager().initialize_base_file_handler('my_script')
-# sgtk.LogManager().initialize_custom_handler()
-# sgtk.LogManager().global_debug = True
+sgtk.LogManager().initialize_custom_handler()
+sgtk.LogManager().global_debug = True
 
 # Instantiate the CoreDefaultsManager. This allows the ShotgunAuthenticator to
 # retrieve the site, proxy and optional script_user credentials from shotgun.yml # noqa
@@ -64,10 +64,10 @@ for i in range(1, 501):
     # if time.time() + 18 > user.impl.get_saml_claims_expiration():
     #     print "------- renewing session"
     #     interactive_authentication.renew_session(user.impl)
-    # interactive_authentication.renew_session(user.impl)
+    interactive_authentication.renew_session(user.impl)
 
     print "------- Before sg call"
-    sg.find('Project', [], ['id', 'name'])
+    # sg.find('Project', [], ['id', 'name'])
     # print "------- Before sleep"
     time.sleep(4)
 

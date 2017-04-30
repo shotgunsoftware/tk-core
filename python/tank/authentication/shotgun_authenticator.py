@@ -140,6 +140,7 @@ class ShotgunAuthenticator(object):
         :param host: Shotgun host to log in to. If None, the default host will be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
         :param cookies: String of raw cookies.
+        :param saml_expiration: Int describing the UTC time in second of the expiration of the SAML claims.
 
         :returns: A :class:`ShotgunUser` instance.
         """

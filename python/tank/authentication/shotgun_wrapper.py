@@ -73,7 +73,8 @@ class ShotgunWrapper(Shotgun):
                 "location" in e.headers and
                 e.headers["location"].endswith("/saml/saml_login_request")
             ):
-                # Silently ignoring the exception, as it will
+                # Silently ignoring the exception, as we will trigger the
+                # renew_session() call later on.
                 logger.debug("The SAML claims have expired. We need to renew the session")
             else:
                 raise e

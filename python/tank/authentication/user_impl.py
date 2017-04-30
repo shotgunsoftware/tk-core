@@ -173,6 +173,7 @@ class SessionUser(ShotgunUserImpl):
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
         :param password: Password for the user. Defaults to None.
         :param cookies: String of raw cookies for the user. Defaults to None.
+        :param saml_expiration: Int time in UTC in second when the SAML claims will expire (in SSO mode)
 
         :raises IncompleteCredentials: If there is not enough values
             provided to initialize the user, this exception will be thrown.
@@ -284,6 +285,8 @@ class SessionUser(ShotgunUserImpl):
         Renewal of a SSO session may require the user to enter his credentials
         in a Web Page. We rely on the user's cookies to track any session
         related information for the Identity Provider.
+
+        :returns: The time in UTC seconds until expiration, 0 if SSO is not in use.
         """
         return self._saml_expiration
 

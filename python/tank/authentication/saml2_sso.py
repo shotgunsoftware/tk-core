@@ -446,7 +446,7 @@ class Saml2Sso(object):
     #
     ############################################################################
 
-    def on_sso_login_attempt(self, event_data=None):
+    def on_sso_login_attempt(self, event_data=None, use_watchdog=False):
         """
         Called to attempt a login process with user interaction.
 
@@ -457,6 +457,10 @@ class Saml2Sso(object):
 
         if event_data is not None:
             self.handle_event(event_data)
+
+        if use_watchdog:
+            log.debug("==- on_sso_login_attempt: Starting watchdog")
+            self._sso_renew_watchdog_timer.start()
 
         # If we do have session cookies, let's attempt a session renewal
         # without presenting any GUI.

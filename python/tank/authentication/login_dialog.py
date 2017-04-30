@@ -132,23 +132,19 @@ class LoginDialog(QtGui.QDialog):
     def _check_sso_enabled(self, url):
         """
         Check to see if the web site uses sso.
+
+        We want this method to fail as quickly as possible if there are any
+        issues. Failure is not considere critical, thus known exceptions are
+        silently ignored. At the moment this method is only use to make the
+        GUI show/hide some of the input fields.
         """
-        # Temporary shotgun instance, used only for the purpose of checking
-        # the site infos.
         try:
-            info = Shotgun(url, session_token="xxx", connect=False).info()
+            # Temporary shotgun instance, used only for the purpose of checking
+            # the site infos.
+            info = Shotgun(url, session_token="dummy", connect=False).info()
             if "user_authentication_method" in info:
                 return info["user_authentication_method"] == "saml2"
-        except ServerNotFoundError:
-            # Silently ignore exception
-            logger.debug("Silently ignoring ServerNotFoundError exception")
-        except ProtocolError:
-            # Silently ignore exception
-            pass
-        except ValueError:
-            # Silently ignore exception
-            pass
-        except socket.error:
+        except (ServerNotFoundError, ProtocolError, ValueError, socket.error):
             # Silently ignore exception
             pass
         return False
@@ -249,7 +245,7 @@ class LoginDialog(QtGui.QDialog):
                 "host": self.ui.site.text().encode("utf-8"),
                 "cookies": self._cookies,
                 "product": "toolkit"
-            })
+            }, use_watchdog=True)
             # If the offscreen session renewal failed, show the GUI as a failsafe
             if res == QtGui.QDialog.Accepted:
                 return self._saml2_sso.get_session_data()
@@ -339,7 +335,6 @@ class LoginDialog(QtGui.QDialog):
         :raises MissingTwoFactorAuthenticationFault: Raised if auth_code was None but was required
             by the server.
         """
-        print "HERE"
         success = False
         try:
             # set the wait cursor
