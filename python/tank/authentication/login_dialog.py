@@ -313,9 +313,10 @@ class LoginDialog(QtGui.QDialog):
                 login = self._saml2_sso._session.user_id
                 self._cookies = self._saml2_sso._session.cookies
             else:
-                self._set_error_message(self.ui.message, self._saml2_sso._session.error)
+                error = self._saml2_sso.get_session_error()
+                if error:
+                    self._set_error_message(self.ui.message, error)
                 return
-            print "WHAT DO WE HAVE HERE --> %s" % res
 
         try:
             self._authenticate(self.ui.message, site, login, password, session_token=session_token)

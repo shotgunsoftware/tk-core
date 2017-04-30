@@ -30,10 +30,10 @@ log = LogManager.get_logger(__name__)
 
 # Error messages for events. . Also defined in slmodule/slutils.mu
 # @FIXME: Should import these from slmodule
-HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To Shotgun"
-HTTP_AUTHENTICATE_SSO_NOT_UPPORTED = "SSO not supported or enabled"
-HTTP_CANT_AUTHENTICATE_SSO_TIMEOUT = "Time out attempting to authenticate to SSO service"
-HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS = "You have not been granted access to the Shotgun site"
+HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To Shotgun site."
+HTTP_AUTHENTICATE_SSO_NOT_UPPORTED = "SSO not supported or enabled on that site."
+HTTP_CANT_AUTHENTICATE_SSO_TIMEOUT = "Time out attempting to authenticate to SSO service."
+HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS = "You have not been granted access to the Shotgun site."
 
 # Paths for bootstrap the login/renewal process.
 URL_SAML_RENEW_PATH = "/saml/saml_renew"
@@ -120,11 +120,6 @@ class Saml2Sso(object):
                 QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled,
                 True
             )
-
-            # # Automatically popup the inspector.
-            # self._inspector = QtWebKit.QWebInspector()
-            # self._inspector.setPage(self._view.page())
-            # self._inspector.show()
 
     # def __del__(self):
     #     """TBD."""
@@ -306,7 +301,7 @@ class Saml2Sso(object):
         if session.error:
             # If there are any errors, we exit by force-closing the dialog.
             print "OHHH WELL: %s" % session.error
-            self._dialog.accept()
+            self._dialog.reject()
 
     def is_handling_event(self):
         """
@@ -355,6 +350,13 @@ class Saml2Sso(object):
             self._session.cookies,
             self._session.session_expiration
         )
+
+    def get_session_error(self):
+        """Returns the the error string of the last failed operation."""
+        res = None
+        if self._session and len(self._session.error) > 0:
+            res = self._session.error
+        return res
 
     ############################################################################
     #
@@ -505,8 +507,9 @@ class Saml2Sso(object):
                 # Let's have another go, without any cookies this time !
                 self.on_sso_login_attempt()
             else:
-                end_session = result == QtGui.QDialog.Rejected
-                self.resolve_event(end_session=end_session)
+                # end_session = result == QtGui.QDialog.Rejected
+                # self.resolve_event(end_session=end_session)
+                self.resolve_event()
         else:
             # Should we get a rejected dialog, then we have had a timeout.
             if result == QtGui.QDialog.Rejected:
