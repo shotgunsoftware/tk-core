@@ -509,7 +509,7 @@ class ToolkitManager(object):
         :returns: Path to the fully realized pipeline configuration on disk and to the descriptor that
             spawned it.
 
-        :rtype: (str, :class:`sgtk.descriptor.Descriptor`)
+        :rtype: (str, :class:`sgtk.descriptor.ConfigDescriptor`)
         """
         config = self._get_configuration(entity, self.progress_callback)
 
