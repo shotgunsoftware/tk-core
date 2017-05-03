@@ -91,7 +91,8 @@ class Configuration(object):
         # now bypass some of the very extensive validation going on
         # by creating a pipeline configuration object directly
         # and pass that into the factory method.
-        pc = pipelineconfig.PipelineConfiguration(path)
+
+        pc = pipelineconfig.PipelineConfiguration(path, self.descriptor)
         tk = api.tank_from_path(pc)
 
         log.debug("Bootstrapped into tk instance %r (%r)" % (tk, tk.pipeline_configuration))

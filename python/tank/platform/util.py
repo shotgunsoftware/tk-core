@@ -1,19 +1,20 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import logging
 
 from .import_stack import ImportStack
 from ..errors import TankError
-from .errors import TankContextChangeNotSupportedError
+from .errors import TankContextChangeNotSupportedError, TankCurrentModuleNotFoundError
 from .engine import current_engine, _restart_engine
+from ..log import LogManager
 
 
 def _get_current_bundle():
@@ -51,18 +52,22 @@ def _get_current_bundle():
             calling_package_str = "%s.%s" % (chunks[0], chunks[1])
             # get the caller's module from sys.modules
             parent_module = sys.modules[calling_package_str]
-        except:
-            raise Exception("import_framework could not determine the calling module layout! "
-                            "You can only use this method on items imported using the import_module() "
-                            "method!")
+        except Exception:
+            raise TankCurrentModuleNotFoundError(
+                "import_framework could not determine the calling module layout! "
+                "You can only use this method on items imported using the import_module() "
+                "method!"
+            )
 
         # ok we got our module
         try:
             current_bundle = parent_module._tank_bundle
-        except:
-            raise Exception("import_framework could not access current app/engine on calling module %s. "
-                            "You can only use this method on items imported using the import_module() "
-                            "method!" % parent_module)
+        except Exception:
+            raise TankCurrentModuleNotFoundError(
+                "import_framework could not access current app/engine on calling module %s. "
+                "You can only use this method on items imported using the import_module() "
+                "method!" % parent_module
+            )
 
     return current_bundle
 
@@ -256,7 +261,9 @@ def get_logger(module_name):
     :param module_name: Pass ``__name__`` to this parameter
     :return: Standard python logger
     """
-    curr_bundle = _get_current_bundle()
-    full_log_path = "%s.%s" % (curr_bundle.logger.name, module_name)
-    return logging.getLogger(full_log_path)
-
+    try:
+        curr_bundle = _get_current_bundle()
+        full_log_path = "%s.%s" % (curr_bundle.logger.name, module_name)
+        return logging.getLogger(full_log_path)
+    except TankCurrentModuleNotFoundError:
+        return LogManager.get_logger("no_current_bundle.%s" % (module_name,))

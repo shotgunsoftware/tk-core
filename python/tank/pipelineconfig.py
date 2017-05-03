@@ -41,7 +41,7 @@ class PipelineConfiguration(object):
     to construct this object, do not create directly via the constructor.
     """
 
-    def __init__(self, pipeline_configuration_path):
+    def __init__(self, pipeline_configuration_path, descriptor=None):
         """
         Constructor. Do not call this directly, use the factory methods
         in pipelineconfig_factory.
@@ -53,6 +53,8 @@ class PipelineConfiguration(object):
         is handled on the OS level.
         """
         self._pc_root = pipeline_configuration_path
+
+        self._descriptor = descriptor
 
         # validate that the current code version matches or is compatible with
         # the code that is locally stored in this config!!!!
@@ -770,6 +772,14 @@ class PipelineConfiguration(object):
             constraint_pattern=constraint_pattern
         )
 
+    def get_configuration_descriptor(self):
+        """
+        Returns the descriptor that was used to create this pipeline configuration.
+
+        .. note:: In Toolkit Classic, this value will always be ``None`` since pipeline configurations
+            are not based off a descriptor.
+        """
+        return self._descriptor
 
     ########################################################################################
     # configuration disk locations

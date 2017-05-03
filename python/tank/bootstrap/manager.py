@@ -506,8 +506,8 @@ class ToolkitManager(object):
         :param entity: An entity link. If the entity is not a project, the project for that entity will be resolved.
         :type project: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
 
-        :returns: Path to the pipeline configuration.
-        :rtype: str
+        :returns: Path and descriptor of the pipeline configuration.
+        :rtype: tuple
         """
         config = self._get_configuration(entity, self.progress_callback)
 
@@ -529,7 +529,7 @@ class ToolkitManager(object):
 
         self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine ready.")
 
-        return path
+        return path, config.descriptor
 
     def get_pipeline_configurations(self, project):
         """
