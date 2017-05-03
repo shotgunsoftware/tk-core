@@ -506,8 +506,10 @@ class ToolkitManager(object):
         :param entity: An entity link. If the entity is not a project, the project for that entity will be resolved.
         :type project: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
 
-        :returns: Path and descriptor of the pipeline configuration.
-        :rtype: tuple
+        :returns: Path to the fully realized pipeline configuration on disk and to the descriptor that
+            spawned it.
+
+        :rtype: (str, :class:`sgtk.descriptor.Descriptor`)
         """
         config = self._get_configuration(entity, self.progress_callback)
 
