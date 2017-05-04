@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
@@ -20,6 +20,7 @@ from ..descriptor import Descriptor, create_descriptor
 
 from ..util import filesystem
 from ..util import ShotgunPath
+from ..util.move_guard import MoveGuard
 
 from tank_vendor import yaml
 
@@ -43,12 +44,22 @@ class ConfigurationWriter(object):
         self._path = path
         self._sg_connection = sg
 
+    @property
+    def path(self):
+        """
+        Path at which the configuration will be written.
+
+        :returns: Path to the configuration on disk.
+        :rtype: :class:`ShotgunPath`
+        """
+        return self._path
+
     def ensure_project_scaffold(self):
         """
         Creates all the necessary files on disk for a basic config scaffold.
         """
         config_path = self._path.current_os
-        log.info("Ensuring project scaffold in '%s'..." % config_path)
+        log.debug("Ensuring project scaffold in '%s'..." % config_path)
 
         filesystem.ensure_folder_exists(config_path)
         filesystem.ensure_folder_exists(os.path.join(config_path, "cache"))
@@ -76,7 +87,7 @@ class ConfigurationWriter(object):
 
         if core_uri_or_dict is None:
             # we don't have a core descriptor specified. Get latest from app store.
-            log.info(
+            log.debug(
                 "Config does not have a core/core_api.yml file to define which core to use. "
                 "Will use the latest approved core in the app store."
             )
@@ -119,7 +130,7 @@ class ConfigurationWriter(object):
         filesystem.ensure_folder_exists(os.path.dirname(path))
         return path
 
-    def move_to_backup(self):
+    def move_to_backup(self, undo_on_error):
         """
         Move any existing config and core to a backup location.
 
@@ -127,68 +138,79 @@ class ConfigurationWriter(object):
         no install/core folder present in the configuration scaffold.
         Both have been moved into their respective backup locations.
 
+        :param bool undo_on_error: If True, the move to backup will be undone if there is an error during
+            the backup process.
+
         :returns: (config_backup_path, core_backup_path) where the paths
                   can be None in case nothing was carried over.
 
         """
-        config_backup_path = None
-        core_backup_path = None
 
-        # get backup root location
-        config_path = self._path.current_os
-        configuration_payload = os.path.join(config_path, "config")
+        # The move guard's role is to keep track of every move operation that has happened
+        # in a given scope and undo all the moves if something went wrong. This feels a lot simpler
+        # than having a try/except block as we'd have to have different try/except blocks for different
+        # code sections. Its also a great way to avoid having to deal with variables that haven't been
+        # defined yet when dealing with the exceptions.
+        with MoveGuard(undo_on_error) as guard:
+            config_backup_path = None
+            core_backup_path = None
 
-        # timestamp for rollback backup folders
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            # get backup root location
+            config_path = self._path.current_os
+            configuration_payload = os.path.join(config_path, "config")
 
-        if os.path.exists(configuration_payload):
+            # timestamp for rollback backup folders
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
-            config_backup_root = os.path.join(config_path, "install", "config.backup")
+            if os.path.exists(configuration_payload):
 
-            # make sure we have a backup folder present
-            # sometimes, execution and rollback is so quick that several backup folders
-            # are created in a single second. In that case, append a suffix
-            config_backup_path = os.path.join(config_backup_root, timestamp)
-            counter = 0
-            while os.path.exists(config_backup_path):
-                # that backup path already exists. Try another one
-                counter += 1
-                config_backup_path = os.path.join(config_backup_root, "%s.%d" % (timestamp, counter))
+                config_backup_root = os.path.join(config_path, "install", "config.backup")
 
-            # now that we have found a spot for our backup, make sure folder exists
-            # and then move the existing config *into* this folder.
-            filesystem.ensure_folder_exists(config_backup_path)
+                # make sure we have a backup folder present
+                # sometimes, execution and rollback is so quick that several backup folders
+                # are created in a single second. In that case, append a suffix
+                config_backup_path = os.path.join(config_backup_root, timestamp)
+                counter = 0
+                while os.path.exists(config_backup_path):
+                    # that backup path already exists. Try another one
+                    counter += 1
+                    config_backup_path = os.path.join(config_backup_root, "%s.%d" % (timestamp, counter))
 
-            log.debug("Moving config %s -> %s" % (configuration_payload, config_backup_path))
-            backup_target_path = os.path.join(config_backup_path, os.path.basename(configuration_payload))
-            os.rename(configuration_payload, backup_target_path)
-            log.debug("Backup complete.")
-            config_backup_path = backup_target_path
+                # now that we have found a spot for our backup, make sure folder exists
+                # and then move the existing config *into* this folder.
+                filesystem.ensure_folder_exists(config_backup_path)
 
-        # now back up the core API
-        core_payload = os.path.join(config_path, "install", "core")
+                log.debug("Moving config %s -> %s" % (configuration_payload, config_backup_path))
+                backup_target_path = os.path.join(config_backup_path, os.path.basename(configuration_payload))
+                guard.move(configuration_payload, backup_target_path)
+                log.debug("Backup complete.")
+                config_backup_path = backup_target_path
 
-        if os.path.exists(core_payload):
-            core_backup_root = os.path.join(config_path, "install", "core.backup")
-            # should not be necessary but just in case.
-            filesystem.ensure_folder_exists(core_backup_root)
+            # now back up the core API
+            core_payload = os.path.join(config_path, "install", "core")
 
-            # make sure we have a backup folder present
-            # sometimes, execution and rollback is so quick that several backup folders
-            # are created in a single second. In that case, append a suffix
-            core_backup_path = os.path.join(core_backup_root, timestamp)
-            counter = 0
-            while os.path.exists(core_backup_path):
-                # that backup path already exists. Try another one
-                counter += 1
-                core_backup_path = os.path.join(core_backup_root, "%s.%d" % (timestamp, counter))
+            if os.path.exists(core_payload):
+                core_backup_root = os.path.join(config_path, "install", "core.backup")
+                # should not be necessary but just in case.
+                filesystem.ensure_folder_exists(core_backup_root)
 
-            log.debug("Moving core %s -> %s" % (core_payload, core_backup_path))
-            os.rename(core_payload, core_backup_path)
-            log.debug("Backup complete.")
-            core_backup_path = core_backup_path
+                # make sure we have a backup folder present
+                # sometimes, execution and rollback is so quick that several backup folders
+                # are created in a single second. In that case, append a suffix
+                core_backup_path = os.path.join(core_backup_root, timestamp)
+                counter = 0
+                while os.path.exists(core_backup_path):
+                    # that backup path already exists. Try another one
+                    counter += 1
+                    core_backup_path = os.path.join(core_backup_root, "%s.%d" % (timestamp, counter))
 
-        return (config_backup_path, core_backup_path)
+                log.debug("Moving core %s -> %s" % (core_payload, core_backup_path))
+                guard.move(core_payload, core_backup_path)
+                guard.done()
+                log.debug("Backup complete.")
+                core_backup_path = core_backup_path
+
+            return (config_backup_path, core_backup_path)
 
     @filesystem.with_cleared_umask
     def create_tank_command(self, win_python=None, mac_python=None, linux_python=None):
@@ -291,30 +313,52 @@ class ConfigurationWriter(object):
             fh.write("\n")
             fh.write("# End of file.\n")
 
-    def write_shotgun_file(self):
+    def write_shotgun_file(self, descriptor):
         """
         Writes config/core/shotgun.yml
         """
-        sg_file = os.path.join(
+
+        source_config_sg_file = os.path.join(
+            descriptor.get_path(),
+            "core",
+            constants.CONFIG_SHOTGUN_FILE
+        )
+
+        dest_config_sg_file = os.path.join(
             self._path.current_os,
             "config",
             "core",
             constants.CONFIG_SHOTGUN_FILE
         )
 
-        with self._open_auto_created_yml(sg_file) as fh:
-
+        # If there is a shotgun.yml file at the source location, read it
+        # in as the default metadata.
+        #
+        # This allows to centralize proxy settings in a shotgun.yml that
+        # gets distributed every time a configuration is written.
+        if os.path.exists(source_config_sg_file):
+            log.debug("shotgun.yml found in the config at '%s'.", source_config_sg_file)
+            with open(source_config_sg_file, "rb") as fh:
+                metadata = yaml.load(fh)
+        else:
+            log.debug(
+                "File '%s' does not exist in the config. shotgun.yml will only contain the host.",
+                source_config_sg_file
+            )
             metadata = {}
-            # bake in which version of the deploy logic was used to push this config
+
+        with self._open_auto_created_yml(dest_config_sg_file) as fh:
+            # ensure the metadata has the host set. We shouldn't assume the shotgun.yml
+            # file that can be distributed with the config has the host set, as it
+            # could be used on two different Shotgun servers, for example a production
+            # server and a staging server that are both hosted locally.
             metadata["host"] = self._sg_connection.base_url
-            # and include details about where the config came from
-            metadata["http_proxy"] = self._sg_connection.config.raw_http_proxy
             # write yaml
             yaml.safe_dump(metadata, fh)
             fh.write("\n")
             fh.write("# End of file.\n")
 
-        log.debug("Wrote %s" % sg_file)
+        log.debug("Wrote %s", dest_config_sg_file)
 
     def write_pipeline_config_file(self, pipeline_config_id, project_id, plugin_id, bundle_cache_fallback_paths):
         """

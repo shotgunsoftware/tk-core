@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import copy
 import os
 import unittest
 import shutil
@@ -46,6 +47,8 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
                      'valid_types': {'editable': True, 'value': []}},
                      'unique': {'editable': False, 'value': False}}
         
+        # FIXME: The schema is cached in memory for unit tests to reuse, modifying this is BAD.
+        self.tk.shotgun._schema = copy.deepcopy(self.tk.shotgun._schema)
         self.tk.shotgun._schema["Shot"]["sg_other_field"] = field_def
         
         

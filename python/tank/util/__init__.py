@@ -39,3 +39,5 @@ from .errors import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloa
 from .errors import EnvironmentVariableFileLookupError, ShotgunPublishError
 from .errors import PublishResolveError
 from .errors import PublishPathNotDefinedError, PublishPathNotSupported
+
+from .user_settings import UserSettings

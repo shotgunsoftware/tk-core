@@ -631,7 +631,12 @@ class IODescriptorBase(object):
         # check that we aren't trying to copy onto ourself
         if new_cache_path == self.get_path():
             log.debug("Clone cache for %r: No need to copy, source and target are same." % self)
-            return
+            return False
+
+        # Cache the source cache path because we're about to create the destination folder,
+        # which might be a bundle cache root.
+        source_cache_path = self.get_path()
+        log.debug("Source cache is located at %s", source_cache_path)
 
         # Cache the source cache path because we're about to create the destination folder,
         # which might be a bundle cache root.

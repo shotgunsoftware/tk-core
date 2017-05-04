@@ -86,6 +86,9 @@ following order:
     - macOS: ``~/Library/Caches/Shotgun/desktop/config/config.ini``
     - Linux: ``~/shotgun/desktop/config/config.ini``
 
+    Note that the ``SHOTGUN_HOME`` environment variable can impact the location
+    of the Shotgun Toolkit preferences file.
+
 .. note::
     When the http proxy is not specified in this file, the Shotgun Toolkit will try to retrieve
     the operating system http proxy.
@@ -105,6 +108,12 @@ following order:
     the operating system http proxy. More information about this function can be found here:
 
         https://docs.python.org/2/library/urllib.html#urllib.getproxies
+
+You can access those values programmatically.
+
+.. autoclass:: sgtk.util.UserSettings
+    :members:
+    :exclude-members: __new__
 
 
 File System Utilities

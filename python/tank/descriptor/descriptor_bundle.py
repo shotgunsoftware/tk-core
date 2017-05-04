@@ -1,33 +1,39 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .descriptor import Descriptor
-from .errors import TankDescriptorError
+from .errors import TankDescriptorError, CheckVersionConstraintsError
 from . import constants
 from .. import LogManager
+from ..util.version import is_version_older
+from ..util import shotgun
+from .. import pipelineconfig_utils
 
 log = LogManager.get_logger(__name__)
+
 
 class BundleDescriptor(Descriptor):
     """
     Descriptor that describes a Toolkit Bundle (App/Engine/Framework)
     """
 
-    def __init__(self, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor):
         """
         Use the factory method :meth:`create_descriptor` when
         creating new descriptor objects.
 
+        :param sg_descriptor: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
         """
         super(BundleDescriptor, self).__init__(io_descriptor)
+        self._sg_connection = sg_connection
 
     @property
     def version_constraints(self):
@@ -55,6 +61,109 @@ class BundleDescriptor(Descriptor):
             constraints["min_desktop"] = manifest.get("requires_desktop_version")
 
         return constraints
+
+    @classmethod
+    def _get_sg_version(cls, connection):
+        """
+        Returns the version of the studio shotgun server. It caches the result per site.
+
+        :param connection: Connection to the Shotgun site.
+        :type: :class:`shotgun_api3.Shotgun`
+
+        :returns: a string on the form "X.Y.Z"
+        :rtype: str
+        """
+        try:
+            version_tuple = connection.server_info["version"]
+        except Exception, e:
+            raise TankDescriptorError("Could not extract version number for site: %s" % e)
+
+        return ".".join([str(x) for x in version_tuple])
+
+    def _test_version_constraint(self, key, current_version, item_name, reasons):
+        """
+        Tests a version constraint by ensuring the user provided a version that is not older than the expected
+        one.
+
+        :param key: Name of the version constraint
+        :param current_version: Version the user passed in.
+        :param item_name: Pretty name for the version constraint.
+        :param reasons: List of reasons errors will be added to.
+
+        :returns: ``True`` if the constraint test passed, ``False`` if not.
+        """
+
+        constraints = self.version_constraints
+        if key in constraints:
+            minimum_version = constraints[key]
+            if not current_version:
+                reasons.append("Requires at least %s %s but no version was specified." % (item_name, minimum_version))
+            elif is_version_older(current_version, minimum_version):
+                reasons.append("Requires at least %s %s but currently installed version is %s." % (
+                    item_name, minimum_version, current_version
+                ))
+
+    def check_version_constraints(
+        self,
+        core_version=None,
+        engine_descriptor=None,
+        desktop_version=None
+    ):
+        """
+        Checks if there are constraints blocking an upgrade or install.
+
+        :param core_version: Core version. If None, current core version will be used.
+        :type core_version: str
+        :param engine_descriptor: Descriptor of the engine this bundle will run under. None by default.
+        :type engine_descriptor: :class:`~sgtk.bootstrap.DescriptorBundle`
+        :param desktop_version: Version of the Shotgun Desktop. None by default.
+        :type desktop_version: str
+
+        :raises: Raised if one or multiple constraint checks has failed.
+        :rtype: :class:`sgtk.descriptor.CheckVersionConstraintsError`
+        """
+        reasons = []
+
+        self._test_version_constraint(
+            "min_sg", self._get_sg_version(self._sg_connection), "Shotgun", reasons
+        )
+        self._test_version_constraint(
+            "min_core", core_version or pipelineconfig_utils.get_currently_running_api_version(), "Core API", reasons
+        )
+
+        constraints = self.version_constraints
+
+        if "min_engine" in constraints:
+            if engine_descriptor is None:
+                reasons.append("Requires a minimal engine version but no engine was specified.")
+            else:
+                curr_engine_version = engine_descriptor.version
+
+                minimum_engine_version = constraints["min_engine"]
+                if is_version_older(curr_engine_version, minimum_engine_version):
+                    reasons.append("Requires at least Engine %s %s but currently "
+                                   "installed version is %s." % (engine_descriptor.display_name,
+                                                                 minimum_engine_version,
+                                                                 curr_engine_version))
+
+        # for multi engine apps, validate the supported_engines list
+        supported_engines  = self.supported_engines
+        if supported_engines is not None:
+            if engine_descriptor is None:
+                reasons.append("Bundle is compatible with a subset of engines but no engine was specified.")
+            else:
+                # this is a multi engine app!
+                engine_name = engine_descriptor.system_name
+                if engine_name not in supported_engines:
+                    reasons.append("Not compatible with engine %s. "
+                                   "Supported engines are %s." % (engine_name, ", ".join(supported_engines)))
+
+        self._test_version_constraint(
+            "min_desktop", desktop_version, "Shotgun Desktop", reasons
+        )
+
+        if len(reasons) > 0:
+            raise CheckVersionConstraintsError(reasons)
 
     @property
     def required_context(self):
@@ -118,8 +227,6 @@ class BundleDescriptor(Descriptor):
         manifest = self._io_descriptor.get_manifest()
         return manifest.get("supported_engines")
 
-
-
     @property
     def required_frameworks(self):
         """
@@ -140,15 +247,27 @@ class BundleDescriptor(Descriptor):
             frameworks = []
         return frameworks
 
+    ###############################################################################################
     # compatibility accessors to ensure that all systems
     # calling this (previously internal!) parts of toolkit
     # will still work.
-    def get_version_constraints(self): return self.version_constraints
-    def get_required_context(self): return self.required_context
-    def get_supported_platforms(self): return self.supported_platforms
-    def get_configuration_schema(self): return self.configuration_schema
-    def get_supported_engines(self): return self.supported_engines
-    def get_required_frameworks(self): return self.required_frameworks
+    def get_version_constraints(self):
+        return self.version_constraints
+
+    def get_required_context(self):
+        return self.required_context
+
+    def get_supported_platforms(self):
+        return self.supported_platforms
+
+    def get_configuration_schema(self):
+        return self.configuration_schema
+
+    def get_supported_engines(self):
+        return self.supported_engines
+
+    def get_required_frameworks(self):
+        return self.required_frameworks # noqa
 
     ###############################################################################################
     # helper methods
@@ -273,14 +392,15 @@ class EngineDescriptor(BundleDescriptor):
     Descriptor that describes a Toolkit Engine
     """
 
-    def __init__(self, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor):
         """
         Use the factory method :meth:`create_descriptor` when
         creating new descriptor objects.
 
+        :param sg_descriptor: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
         """
-        super(EngineDescriptor, self).__init__(io_descriptor)
+        super(EngineDescriptor, self).__init__(sg_connection, io_descriptor)
 
 
 class AppDescriptor(BundleDescriptor):
@@ -288,14 +408,15 @@ class AppDescriptor(BundleDescriptor):
     Descriptor that describes a Toolkit App
     """
 
-    def __init__(self, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor):
         """
         Use the factory method :meth:`create_descriptor` when
         creating new descriptor objects.
 
+        :param sg_descriptor: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
         """
-        super(AppDescriptor, self).__init__(io_descriptor)
+        super(AppDescriptor, self).__init__(sg_connection, io_descriptor)
 
 
 class FrameworkDescriptor(BundleDescriptor):
@@ -303,14 +424,15 @@ class FrameworkDescriptor(BundleDescriptor):
     Descriptor that describes a Toolkit Framework
     """
 
-    def __init__(self, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor):
         """
         Use the factory method :meth:`create_descriptor` when
         creating new descriptor objects.
 
+        :param sg_descriptor: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
         """
-        super(FrameworkDescriptor, self).__init__(io_descriptor)
+        super(FrameworkDescriptor, self).__init__(sg_connection, io_descriptor)
 
     def is_shared_framework(self):
         """

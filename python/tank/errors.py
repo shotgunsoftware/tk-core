@@ -43,6 +43,24 @@ class TankHookMethodDoesNotExistError(TankError):
     """
 
 
+class TankInvalidInterpreterLocationError(TankError):
+    """
+    Exception that indicates that the interpreter specified in a file was not found.
+    """
+
+
+class TankInvalidCoreLocationError(TankError):
+    """
+    Exception that indicates the core location file contained an invalid path.
+    """
+
+
+class TankNotPipelineConfigurationError(TankError):
+    """
+    Exception that indicates that a folder doesn't contain a pipeline configuration.
+    """
+
+
 class TankErrorProjectIsSetup(TankError):
     """
     Exception that indicates that a project already has a toolkit name but no pipeline configuration.
@@ -68,4 +86,3 @@ class TankMultipleMatchingTemplatesError(TankError):
     """
     Exception that indicates that a path matches multiple templates.
     """
-

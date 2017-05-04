@@ -18,6 +18,7 @@ import os
 import re
 import sys
 import logging
+import pprint
 import traceback
 import inspect
 import weakref
@@ -749,7 +750,7 @@ class Engine(TankBundle):
         # context change, it's that the target context isn't configured properly.
         # As such, we'll let any exceptions (mostly TankEngineInitError) bubble
         # up since it's a critical error case.
-        (new_env, engine_descriptor) = _get_env_and_descriptor_for_engine(
+        (new_env, engine_descriptor) = get_env_and_descriptor_for_engine(
             engine_name=self.instance_name,
             tk=self.tank,
             context=new_context,
@@ -1035,6 +1036,10 @@ class Engine(TankBundle):
 
             # run the actual payload callback
             return callback(*args, **kwargs)
+
+        self.log_debug(
+            "Registering command '%s' with options:\n%s" % (name, pprint.pformat(properties))
+        )
 
         self.__commands[name] = {
             "callback": callback_wrapper,
@@ -2510,7 +2515,7 @@ def get_engine_path(engine_name, tk, context):
     """
     # get environment and engine location
     try:
-        (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, context)
+        (env, engine_descriptor) = get_env_and_descriptor_for_engine(engine_name, tk, context)
     except TankEngineInitError:
         return None
 
@@ -2672,7 +2677,32 @@ def _start_engine(engine_name, tk, old_context, new_context):
             LogManager().initialize_base_file_handler(engine_name)
 
         # get environment and engine location
-        (env, engine_descriptor) = _get_env_and_descriptor_for_engine(engine_name, tk, new_context)
+        try:
+            (env, engine_descriptor) = get_env_and_descriptor_for_engine(engine_name, tk, new_context)
+        except TankEngineInitError:
+            # If we failed using the typical pick_environment approach, then we
+            # need to check and see if this is the Shotgun engine. If it is, then
+            # we can also try the legacy engine start method, which will make use
+            # of shotgun_xxx.yml environment files if they exist in the config.
+            if engine_name == constants.SHOTGUN_ENGINE_NAME:
+                # If the new context has an associated entity, we get the type from
+                # that. If it doesn't, then we can check to see if it's a project
+                # context. If neither is the case, meaning we have an empty context,
+                # then we re-raise.
+                if new_context.entity is not None:
+                    entity_type = new_context.entity["type"]
+                elif new_context.project is not None:
+                    entity_type = "Project"
+                else:
+                    # Empty context, in which case we know the start_shotgun_engine
+                    # won't do what we need.
+                    raise
+
+                core_logger.debug("Starting Shotgun engine in legacy mode...")
+                return start_shotgun_engine(tk, entity_type, new_context)
+            # If this isn't the Shotgun engine or we haven't yet returned, then
+            # we just re-raise.
+            raise
 
         # make sure it exists locally
         if not engine_descriptor.exists_local():
@@ -2863,7 +2893,7 @@ def clear_global_busy():
 ##########################################################################################
 # utilities
 
-def _get_env_and_descriptor_for_engine(engine_name, tk, context):
+def get_env_and_descriptor_for_engine(engine_name, tk, context):
     """
     Utility method to return commonly needed objects when instantiating engines.
 
