@@ -1,4 +1,4 @@
-[![Build Status](https://secure.travis-ci.org/shotgunsoftware/tk-core.png?branch=develop/zero_config)](http://travis-ci.org/shotgunsoftware/tk-core)
+[![Build Status](https://secure.travis-ci.org/shotgunsoftware/tk-core.png?branch=master)](http://travis-ci.org/shotgunsoftware/tk-core)
 
 # Shotgun Pipeline Toolkit Core API
 
