@@ -622,14 +622,26 @@ class ConfigurationResolver(object):
             path = ShotgunPath.from_shotgun_dict(pipeline_config)
 
             if path and not path.current_os:
-                log.debug(
-                    "No path set for %s on the Pipeline Configuration \"%s\" (id %d).",
-                    sys.platform,
-                    pipeline_config["code"],
-                    pipeline_config["id"]
-                )
-                raise TankBootstrapError("The Toolkit configuration path has not\n"
-                                         "been set for your operating system.")
+                if pipeline_config.get("descriptor"):
+                    # Emit a warning when the sg_descriptor is set as well.
+                    if pipeline_config.get("sg_descriptor"):
+                        log.warning("Both sg_descriptor and descriptor fields are set. Using descriptor field.")
+
+                    log.debug("Descriptor will be based off the descriptor field in the pipeline configuration")
+                    descriptor = pipeline_config.get("descriptor")
+                elif pipeline_config.get("sg_descriptor"):
+                    log.debug("Descriptor will be based off the sg_descriptor field in the pipeline configuration")
+                    descriptor = pipeline_config.get("sg_descriptor")
+                else:
+                    log.debug(
+                        "No path set for %s on the Pipeline Configuration \"%s\" (id %d).",
+                        sys.platform,
+                        pipeline_config["code"],
+                        pipeline_config["id"]
+                    )
+                    raise TankBootstrapError(
+                        "The Toolkit configuration path has not been set for your operating system."
+                    )
             elif path:
                 # Emit a warning when both the OS field and descriptor field is set.
                 if pipeline_config.get("descriptor") or pipeline_config.get("sg_descriptor"):
@@ -638,16 +650,6 @@ class ConfigurationResolver(object):
 
                 log.debug("Descriptor will be based off the path in the pipeline configuration")
                 descriptor = {"type": constants.INSTALLED_DESCRIPTOR_TYPE, "path": path.current_os}
-            elif pipeline_config.get("descriptor"):
-                # Emit a warning when the sg_descriptor is set as well.
-                if pipeline_config.get("sg_descriptor"):
-                    log.warning("Both sg_descriptor and descriptor fields are set. Using descriptor field.")
-
-                log.debug("Descriptor will be based off the descriptor field in the pipeline configuration")
-                descriptor = pipeline_config.get("descriptor")
-            elif pipeline_config.get("sg_descriptor"):
-                log.debug("Descriptor will be based off the sg_descriptor field in the pipeline configuration")
-                descriptor = pipeline_config.get("sg_descriptor")
 
         log.debug("The descriptor representing the config is %s" % descriptor)
 
