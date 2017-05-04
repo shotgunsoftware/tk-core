@@ -12,6 +12,7 @@ from __future__ import with_statement
 
 import itertools
 import os
+import sys
 from mock import patch
 import sgtk
 from sgtk.util import ShotgunPath
@@ -513,6 +514,10 @@ class TestResolverPriority(TestResolverBase):
         Ensure that the sorting algorithm for primaries is valid for any
         permutation of primaries.
         """
+        # itertools.permutations only in 2.6+
+        if sys.version_info < (2, 6):
+            return
+
         primaries = [
             {"code": "Primary", "sg_plugin_ids": "foo.bar", "id": 1},
             {"code": "Primary", "plugin_ids": "foo.bar", "id": 2},
@@ -530,6 +535,10 @@ class TestResolverPriority(TestResolverBase):
         Ensure that the sorting algorithm for pipeline configurations is valid for any
         permutation of pipeline configurations.
         """
+        # itertools.permutations only in 2.6+
+        if sys.version_info < (2, 6):
+            return
+
         pcs = [
             {"code": "Primary", "project": self._project, "id": 1}, # This one goes in front.
             {"code": "lowercase sandbox", "project": None, "id": 2},
