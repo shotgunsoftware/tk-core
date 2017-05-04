@@ -18,6 +18,8 @@ from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
+from ..descriptor import Descriptor, create_descriptor, TankDescriptorError
+from ..util import ShotgunPath
 
 log = LogManager.get_logger(__name__)
 
@@ -583,11 +585,41 @@ class ToolkitManager(object):
             current_login=self._sg_user.login,
             sg_connection=self._sg_connection,
         ):
+            try:
+                path = ShotgunPath.from_shotgun_dict(pc)
+                config_path = path.current_os
+            except TankError:
+                log.warning(
+                    "Unable to determine config path for %s: %s",
+                    sys.platform,
+                    pc,
+                )
+                cfg_descriptor = None
+            except ValueError:
+                log.warning(
+                    "The PipelineConfiguration %s is not configured for the "
+                    "current platform %s.",
+                    pc,
+                    sys.platform,
+                )
+                cfg_descriptor = None
+            else:
+                try:
+                    cfg_descriptor = create_descriptor(
+                        self._sg_connection,
+                        Descriptor.CONFIG,
+                        dict(path=config_path, type="path"),
+                    )
+                except TankDescriptorError:
+                    log.warning("Unable to create a Descriptor for config %s", pc)
+                    cfg_descriptor = None
+
             pcs.append({
                 "id": pc["id"],
                 "type": pc["type"],
                 "name": pc["code"],
                 "project": pc["project"],
+                "descriptor": cfg_descriptor,
             })
 
         return pcs
