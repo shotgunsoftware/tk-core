@@ -101,6 +101,7 @@ class SessionCacheTests(TankTestBase):
         uppercase_bob = "BOB"
         session_token = "123"
         session_data = {
+            "cookies": None,
             "login": lowercase_bob,
             "session_token": session_token
         }
@@ -145,6 +146,7 @@ class SessionCacheTests(TankTestBase):
         user = "bob"
         session_token = "123"
         session_data = {
+            "cookies": None,
             "login": user,
             "session_token": session_token
         }

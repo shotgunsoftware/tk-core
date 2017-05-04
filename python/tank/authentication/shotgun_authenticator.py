@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""Shotgun Authenticator."""
+
 from . import interactive_authentication
 from . import user
 from . import user_impl
@@ -114,7 +116,7 @@ class ShotgunAuthenticator(object):
 
         :returns: The SessionUser based on the login information provided.
         """
-        host, login, session_token = interactive_authentication.authenticate(
+        host, login, session_token, cookies, saml_expiration = interactive_authentication.authenticate(
             self._defaults_manager.get_host(),
             self._defaults_manager.get_login(),
             self._defaults_manager.get_http_proxy(),
@@ -122,10 +124,11 @@ class ShotgunAuthenticator(object):
         )
         return self.create_session_user(
             login=login, session_token=session_token,
-            host=host, http_proxy=self._defaults_manager.get_http_proxy()
+            host=host, http_proxy=self._defaults_manager.get_http_proxy(),
+            cookies=cookies, saml_expiration=saml_expiration
         )
 
-    def create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None):
+    def create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None, cookies=None, saml_expiration=0):
         """
         Create an AuthenticatedUser given a set of human user credentials.
         Either a password or session token must be supplied. If a password is supplied,
@@ -136,6 +139,8 @@ class ShotgunAuthenticator(object):
         :param password: Shotgun password
         :param host: Shotgun host to log in to. If None, the default host will be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
+        :param cookies: String of raw cookies.
+        :param saml_expiration: Int describing the UTC time in second of the expiration of the SAML claims.
 
         :returns: A :class:`ShotgunUser` instance.
         """
@@ -145,7 +150,7 @@ class ShotgunAuthenticator(object):
 
         # Create a session user
         return user.ShotgunUser(
-            user_impl.SessionUser(host, login, session_token, http_proxy, password=password)
+            user_impl.SessionUser(host, login, session_token, http_proxy, password=password, cookies=cookies, saml_expiration=saml_expiration)
         )
 
     def create_script_user(self, api_script, api_key, host=None, http_proxy=None):
@@ -219,7 +224,8 @@ class ShotgunAuthenticator(object):
                 password=credentials.get("password"),
                 session_token=credentials.get("session_token"),
                 host=credentials.get("host"),
-                http_proxy=credentials.get("http_proxy")
+                http_proxy=credentials.get("http_proxy"),
+                cookies=credentials.get("cookies")
             )
         # We don't know what this is, abort!
         else:
