@@ -232,7 +232,8 @@ class ConfigurationResolver(object):
         :param str current_login: Only retains non-primary configs from the specified user.
         :param ``shotgun_api3.Shotgun`` sg_connection: Connection to the Shotgun site.
 
-        :returns: Iterator over the matching pipeline configurations.
+        :returns: A list of pipeline configuration entity dictionaries.
+        :rtype: list
         """
         # get the pipeline configs for the current project which are
         # either the primary or is associated with the currently logged in user.
@@ -294,8 +295,59 @@ class ConfigurationResolver(object):
             "The following pipeline configurations were found: %s" % pprint.pformat(pipeline_configs)
         )
 
+        pcs = []
+
         for pc in pipeline_configs:
             path = ShotgunPath.from_shotgun_dict(pc)
+
+            # We'll need to provide a descriptor object for the config if
+            # possible. Note that it's possible that we'll be returning a
+            # None for the config descriptor. It's up to other filtering
+            # operations to remove those if desired.
+            try:
+                current_os_path = path.current_os
+            except ValueError:
+                current_os_path = None
+
+            uri = pc["descriptor"] or pc["sg_descriptor"]
+
+            if self._is_classic_pc(pc) or uri is None:
+                # If this is a classic-style config, we only concern ourselves with
+                # "*_path" fields and, specifically, the one that matches the current
+                # operating system. Likewise, if it's a zero-config setup, but without
+                # a descriptor uri set, we'll fall back on the path fields.
+                if current_os_path is None:
+                    log.debug("Config isn't setup for %s: %s", sys.path, pc)
+                    cfg_descriptor = None
+                else:
+                    try:
+                        cfg_descriptor = create_descriptor(
+                            sg_connection,
+                            Descriptor.CONFIG,
+                            dict(path=current_os_path, type="path"),
+                        )
+                    except TankDescriptorError:
+                        cfg_descriptor = None
+            else:
+                log.debug("Using descriptor uri: %s", uri)
+                try:
+                    cfg_descriptor = create_descriptor(
+                        sg_connection,
+                        Descriptor.CONFIG,
+                        uri,
+                    )
+                except TankDescriptorError:
+                    cfg_descriptor = None
+
+            # We add to the pc dict even if the descriptor is a None. It'll be
+            # the responsibility of the filter call below to remove any pcs
+            # that are deemed to be not useful.
+            if cfg_descriptor is None:
+                log.debug("Unable to create descriptor for config: %s", pc)
+            else:
+                log.debug("Config descriptor created: %r", cfg_descriptor)
+
+            pc["config_descriptor"] = cfg_descriptor
 
             # If we have a plugin based pipeline.
             if (
@@ -306,7 +358,7 @@ class ConfigurationResolver(object):
                 # potentially returning pipeline configurations that have been configured for one platform but
                 # not all.
                 if pc.get("descriptor") or pc.get("sg_descriptor") or path:
-                    yield pc
+                    pcs.append(pc)
                 else:
                     log.warning("Pipeline configuration's 'path' and 'descriptor' fields are not set: %s" % pc)
             elif self._is_classic_pc(pc):
@@ -315,9 +367,11 @@ class ConfigurationResolver(object):
                 # potentially returning pipeline configurations that have been configured for one platform but
                 # not all.
                 if path:
-                    yield pc
+                    pcs.append(pc)
                 else:
                     log.warning("Pipeline configuration's 'path' field are not set: %s" % pc)
+
+        return pcs
 
     def _pick_primary_pipeline_config(self, configs, level_name):
         """
@@ -396,6 +450,11 @@ class ConfigurationResolver(object):
 
         # Step 1: Sort each pipeline in its respective bucket.
         for pc in pcs:
+            # If we don't have a descriptor for the config, then it's not
+            # useful. We'll filter it out.
+            if pc.get("config_descriptor") is None:
+                continue
+
             if self._is_project_pc(pc):
                 if self._is_primary_pc(pc):
                     log.debug("Primary match: %s" % pc)
@@ -429,7 +488,7 @@ class ConfigurationResolver(object):
 
         return primary, user_project_configs, user_site_configs
 
-    def find_matching_pipeline_configurations(self, pipeline_config_name, current_login, sg_connection, external_data=None):
+    def find_matching_pipeline_configurations(self, pipeline_config_name, current_login, sg_connection):
         """
         Retrieves the pipeline configurations that can be used with this project.
 
@@ -439,35 +498,23 @@ class ConfigurationResolver(object):
             all pipeline configurations from the project will be matched.
         :param str current_login: Only retains non-primary configs from the specified user.
         :param ``shotgun_api3.Shotgun`` sg_connection: Connection to the Shotgun site.
-        :param list external_data: A list of PipelineConfiguration entity dictionaries. This
-            can be used to pass in pre-queried entities to take advantage of the filtering
-            and ordering functionality without the need to re-query the data from Shotgun.
 
         :returns: The pipeline configurations that can be used with this project. The pipeline
             configurations will always be sorted such as the primary pipeline configuration, if available,
             will be first. Then the remaining pipeline configurations will be sorted by ``name`` field
             (case insensitive), then the ``project`` field and finally then ``id`` field.
         """
-        # Filter out anything not from the current project.
-        if external_data:
-            external_data = [
-                e for e in external_data if self._is_project_pc(e) and e["project"]["id"] == self._project_id
-            ]
-
-        if external_data is None:
-            pcs = self._get_pipeline_configurations_for_project(
-                pipeline_config_name,
-                current_login,
-                sg_connection,
-            )
-        else:
-            pcs = external_data
+        pcs = self._get_pipeline_configurations_for_project(
+            pipeline_config_name,
+            current_login,
+            sg_connection,
+        )
 
         # Filter out pipeline configurations that are not usable.
-        primary, user_sanboxes_project, user_sandboxes_site = self._filter_pipeline_configurations(pcs)
+        primary, user_sandboxes_project, user_sandboxes_site = self._filter_pipeline_configurations(pcs)
 
         return self._sort_pipeline_configurations(
-            ([primary] if primary else []) + user_sanboxes_project + user_sandboxes_site
+            ([primary] if primary else []) + user_sandboxes_project + user_sandboxes_site
         )
 
     def _sort_pipeline_configurations(self, pcs):

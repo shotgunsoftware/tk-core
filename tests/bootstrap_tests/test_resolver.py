@@ -103,7 +103,7 @@ class TestUserRestriction(TestResolverBase):
         Ensures we can find the sandbox for the requested user.
         """
 
-        # Make sure we can find he pipeline configuration for a specific user.
+        # Make sure we can find the pipeline configuration for a specific user.
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="john.smith",
@@ -850,6 +850,9 @@ class TestResolveWithFilter(TestResolverBase):
         self.assertEqual(len(pcs), 3)
         for pc in pcs:
             self.assertTrue(pc["code"] == "Primary" or pc["users"][0]["id"] == self._john_smith["id"])
+            # Make sure everything has a descriptor. The filter step in the find
+            # method should always give us back pcs with descriptors included.
+            self.assertIsNotNone(pc["config_descriptor"])
 
         # Ensure we are resolving only the primary sandbox.
         pcs = self.resolver.find_matching_pipeline_configurations(
