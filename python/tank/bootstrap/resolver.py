@@ -308,18 +308,13 @@ class ConfigurationResolver(object):
             # 2. descriptor
             # 3. sg_descriptor
             path = ShotgunPath.from_shotgun_dict(pc)
-
-            try:
-                current_os_path = path.current_os
-            except ValueError:
-                current_os_path = None
-
+            current_os_path = path.current_os
             uri = pc.get("descriptor") or pc.get("sg_descriptor")
 
             if path:
                 # Make sure that the config has a path for the current OS.
                 if current_os_path is None:
-                    log.debug("Config isn't setup for %s: %s", sys.path, pc)
+                    log.debug("Config isn't setup for %s: %s", sys.platform, pc)
                     cfg_descriptor = None
                 else:
                     cfg_descriptor = create_descriptor(
@@ -340,9 +335,10 @@ class ConfigurationResolver(object):
                 log.debug("No uri or path found for config: %s", pc)
                 cfg_descriptor = None
 
-            # We add to the pc dict even if the descriptor is a None. It'll be
-            # the responsibility of the filter call below to remove any pcs
-            # that are deemed to be not useful.
+            # We add to the pc dict even if the descriptor is a None. We have an obligation
+            # to return configs even when they're not viable on the current platform. This
+            # is because Shotgun Desktop is aware of, and properly handles, situations
+            # where a config needs to be setup on the current platform.
             if cfg_descriptor is None:
                 log.debug("Unable to create descriptor for config: %s", pc)
             else:
@@ -449,11 +445,6 @@ class ConfigurationResolver(object):
 
         # Step 1: Sort each pipeline in its respective bucket.
         for pc in pcs:
-            # If we don't have a descriptor for the config, then it's not
-            # useful. We'll filter it out.
-            if pc.get("config_descriptor") is None:
-                continue
-
             if self._is_project_pc(pc):
                 if self._is_primary_pc(pc):
                     log.debug("Primary match: %s" % pc)

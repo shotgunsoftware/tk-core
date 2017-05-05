@@ -633,6 +633,63 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         )
         self.assertEqual(len(pcs), 0)
 
+    def test_pipeline_without_current_os_path(self):
+        """
+        Ensures that we get back a configuration that's missing a current_os path
+        and that it doesn't contain a descriptor object.
+        """
+        # First make sure we return something when there the path is set.
+        pc_id = self._create_pc(
+            "Primary",
+            path="sg_path",
+            plugin_ids="foo.*",
+        )["id"]
+
+        pcs = self.resolver.find_matching_pipeline_configurations(
+            None,
+            "john.smith",
+            self.mockgun
+        )
+        self.assertEqual(len(pcs), 1)
+        self.assertEqual(pcs[0]["id"], pc_id)
+        self.assertIsNotNone(pcs[0]["config_descriptor"])
+
+        field_lookup = dict(
+            linux2="linux_path",
+            darwin="mac_path",
+            win32="windows_path",
+        )
+
+        base_path = "sg_path"
+        base_paths = dict(
+            windows_path=base_path,
+            linux_path=base_path,
+            mac_path=base_path,
+            sg_descriptor=None,
+        )
+
+        import sys
+        base_paths[field_lookup[sys.platform]] = None
+
+        # Now remove every locators.
+        self.mockgun.update(
+            "PipelineConfiguration",
+            pc_id,
+            base_paths,
+        )
+
+        # We should get back one config, though it should contain a None
+        # for its "config_descriptor" key, as the lack of a path for the
+        # current OS will mean we couldn't create the descriptor object.
+        pcs = self.resolver.find_matching_pipeline_configurations(
+            None,
+            "john.smith",
+            self.mockgun
+        )
+        self.assertEqual(len(pcs), 1)
+        self.assertEqual(pcs[0]["id"], pc_id)
+        self.assertEqual(pcs[0]["config_descriptor"], None)
+
     def test_descriptor_without_plugin(self):
         """
         Ensures only plugin based pipeline configurations are reported as valid when the descriptor
@@ -850,9 +907,6 @@ class TestResolveWithFilter(TestResolverBase):
         self.assertEqual(len(pcs), 3)
         for pc in pcs:
             self.assertTrue(pc["code"] == "Primary" or pc["users"][0]["id"] == self._john_smith["id"])
-            # Make sure everything has a descriptor. The filter step in the find
-            # method should always give us back pcs with descriptors included.
-            self.assertIsNotNone(pc["config_descriptor"])
 
         # Ensure we are resolving only the primary sandbox.
         pcs = self.resolver.find_matching_pipeline_configurations(
