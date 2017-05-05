@@ -295,49 +295,50 @@ class ConfigurationResolver(object):
             "The following pipeline configurations were found: %s" % pprint.pformat(pipeline_configs)
         )
 
-        pcs = []
-
         for pc in pipeline_configs:
-            path = ShotgunPath.from_shotgun_dict(pc)
-
             # We'll need to provide a descriptor object for the config if
             # possible. Note that it's possible that we'll be returning a
             # None for the config descriptor. It's up to other filtering
             # operations to remove those if desired.
+            #
+            # As in resolve_shotgun_configuration, the order of precedence
+            # is as follows:
+            #
+            # 1. windows/linux/mac path
+            # 2. descriptor
+            # 3. sg_descriptor
+            path = ShotgunPath.from_shotgun_dict(pc)
+
             try:
                 current_os_path = path.current_os
             except ValueError:
                 current_os_path = None
 
-            uri = pc["descriptor"] or pc["sg_descriptor"]
+            uri = pc.get("descriptor") or pc.get("sg_descriptor")
 
-            if self._is_classic_pc(pc) or uri is None:
-                # If this is a classic-style config, we only concern ourselves with
-                # "*_path" fields and, specifically, the one that matches the current
-                # operating system. Likewise, if it's a zero-config setup, but without
-                # a descriptor uri set, we'll fall back on the path fields.
+            if path:
+                # Make sure that the config has a path for the current OS.
                 if current_os_path is None:
                     log.debug("Config isn't setup for %s: %s", sys.path, pc)
                     cfg_descriptor = None
                 else:
-                    try:
-                        cfg_descriptor = create_descriptor(
-                            sg_connection,
-                            Descriptor.CONFIG,
-                            dict(path=current_os_path, type="path"),
-                        )
-                    except TankDescriptorError:
-                        cfg_descriptor = None
-            else:
-                log.debug("Using descriptor uri: %s", uri)
-                try:
                     cfg_descriptor = create_descriptor(
                         sg_connection,
                         Descriptor.CONFIG,
-                        uri,
+                        dict(path=current_os_path, type="path"),
                     )
-                except TankDescriptorError:
-                    cfg_descriptor = None
+            elif uri:
+                log.debug("Using descriptor uri: %s", uri)
+                cfg_descriptor = create_descriptor(
+                    sg_connection,
+                    Descriptor.CONFIG,
+                    uri,
+                )
+            else:
+                # If we have neither a uri, nor a path, then we can't get
+                # a descriptor for this config.
+                log.debug("No uri or path found for config: %s", pc)
+                cfg_descriptor = None
 
             # We add to the pc dict even if the descriptor is a None. It'll be
             # the responsibility of the filter call below to remove any pcs
@@ -358,7 +359,7 @@ class ConfigurationResolver(object):
                 # potentially returning pipeline configurations that have been configured for one platform but
                 # not all.
                 if pc.get("descriptor") or pc.get("sg_descriptor") or path:
-                    pcs.append(pc)
+                    yield pc
                 else:
                     log.warning("Pipeline configuration's 'path' and 'descriptor' fields are not set: %s" % pc)
             elif self._is_classic_pc(pc):
@@ -367,11 +368,9 @@ class ConfigurationResolver(object):
                 # potentially returning pipeline configurations that have been configured for one platform but
                 # not all.
                 if path:
-                    pcs.append(pc)
+                    yield pc
                 else:
                     log.warning("Pipeline configuration's 'path' field are not set: %s" % pc)
-
-        return pcs
 
     def _pick_primary_pipeline_config(self, configs, level_name):
         """
