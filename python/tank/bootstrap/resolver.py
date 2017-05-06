@@ -232,7 +232,8 @@ class ConfigurationResolver(object):
         :param str current_login: Only retains non-primary configs from the specified user.
         :param ``shotgun_api3.Shotgun`` sg_connection: Connection to the Shotgun site.
 
-        :returns: Iterator over the matching pipeline configurations.
+        :returns: A list of pipeline configuration entity dictionaries.
+        :rtype: list
         """
         # get the pipeline configs for the current project which are
         # either the primary or is associated with the currently logged in user.
@@ -295,7 +296,55 @@ class ConfigurationResolver(object):
         )
 
         for pc in pipeline_configs:
+            # We'll need to provide a descriptor object for the config if
+            # possible. Note that it's possible that we'll be returning a
+            # None for the config descriptor. It's up to other filtering
+            # operations to remove those if desired.
+            #
+            # As in resolve_shotgun_configuration, the order of precedence
+            # is as follows:
+            #
+            # 1. windows/linux/mac path
+            # 2. descriptor
+            # 3. sg_descriptor
             path = ShotgunPath.from_shotgun_dict(pc)
+            current_os_path = path.current_os
+            uri = pc.get("descriptor") or pc.get("sg_descriptor")
+
+            if path:
+                # Make sure that the config has a path for the current OS.
+                if current_os_path is None:
+                    log.debug("Config isn't setup for %s: %s", sys.platform, pc)
+                    cfg_descriptor = None
+                else:
+                    cfg_descriptor = create_descriptor(
+                        sg_connection,
+                        Descriptor.CONFIG,
+                        dict(path=current_os_path, type="path"),
+                    )
+            elif uri:
+                log.debug("Using descriptor uri: %s", uri)
+                cfg_descriptor = create_descriptor(
+                    sg_connection,
+                    Descriptor.CONFIG,
+                    uri,
+                )
+            else:
+                # If we have neither a uri, nor a path, then we can't get
+                # a descriptor for this config.
+                log.debug("No uri or path found for config: %s", pc)
+                cfg_descriptor = None
+
+            # We add to the pc dict even if the descriptor is a None. We have an obligation
+            # to return configs even when they're not viable on the current platform. This
+            # is because Shotgun Desktop is aware of, and properly handles, situations
+            # where a config needs to be setup on the current platform.
+            if cfg_descriptor is None:
+                log.debug("Unable to create descriptor for config: %s", pc)
+            else:
+                log.debug("Config descriptor created: %r", cfg_descriptor)
+
+            pc["config_descriptor"] = cfg_descriptor
 
             # If we have a plugin based pipeline.
             if (
@@ -429,7 +478,7 @@ class ConfigurationResolver(object):
 
         return primary, user_project_configs, user_site_configs
 
-    def find_matching_pipeline_configurations(self, pipeline_config_name, current_login, sg_connection, external_data=None):
+    def find_matching_pipeline_configurations(self, pipeline_config_name, current_login, sg_connection):
         """
         Retrieves the pipeline configurations that can be used with this project.
 
@@ -439,35 +488,23 @@ class ConfigurationResolver(object):
             all pipeline configurations from the project will be matched.
         :param str current_login: Only retains non-primary configs from the specified user.
         :param ``shotgun_api3.Shotgun`` sg_connection: Connection to the Shotgun site.
-        :param list external_data: A list of PipelineConfiguration entity dictionaries. This
-            can be used to pass in pre-queried entities to take advantage of the filtering
-            and ordering functionality without the need to re-query the data from Shotgun.
 
         :returns: The pipeline configurations that can be used with this project. The pipeline
             configurations will always be sorted such as the primary pipeline configuration, if available,
             will be first. Then the remaining pipeline configurations will be sorted by ``name`` field
             (case insensitive), then the ``project`` field and finally then ``id`` field.
         """
-        # Filter out anything not from the current project.
-        if external_data:
-            external_data = [
-                e for e in external_data if self._is_project_pc(e) and e["project"]["id"] == self._project_id
-            ]
-
-        if external_data is None:
-            pcs = self._get_pipeline_configurations_for_project(
-                pipeline_config_name,
-                current_login,
-                sg_connection,
-            )
-        else:
-            pcs = external_data
+        pcs = self._get_pipeline_configurations_for_project(
+            pipeline_config_name,
+            current_login,
+            sg_connection,
+        )
 
         # Filter out pipeline configurations that are not usable.
-        primary, user_sanboxes_project, user_sandboxes_site = self._filter_pipeline_configurations(pcs)
+        primary, user_sandboxes_project, user_sandboxes_site = self._filter_pipeline_configurations(pcs)
 
         return self._sort_pipeline_configurations(
-            ([primary] if primary else []) + user_sanboxes_project + user_sandboxes_site
+            ([primary] if primary else []) + user_sandboxes_project + user_sandboxes_site
         )
 
     def _sort_pipeline_configurations(self, pcs):

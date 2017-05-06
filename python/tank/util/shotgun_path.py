@@ -146,7 +146,7 @@ class ShotgunPath(object):
         elif sys.platform == "darwin":
             macosx_path = path
         else:
-            return ValueError("Unsupported platform '%s'." % sys.platform)
+            raise ValueError("Unsupported platform '%s'." % sys.platform)
 
         return cls(windows_path, linux_path, macosx_path)
 
@@ -337,7 +337,7 @@ class ShotgunPath(object):
         elif sys.platform == "darwin":
             return self.macosx
         else:
-            return ValueError("Unsupported platform '%s'." % sys.platform)
+            raise ValueError("Unsupported platform '%s'." % sys.platform)
 
     def _set_current_os(self, value):
         """
@@ -350,7 +350,7 @@ class ShotgunPath(object):
         elif sys.platform == "darwin":
             self.macosx = value
         else:
-            return ValueError("Unsupported platform '%s'." % sys.platform)
+            raise ValueError("Unsupported platform '%s'." % sys.platform)
 
     current_os = property(_get_current_os, _set_current_os)
 

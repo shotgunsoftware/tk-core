@@ -103,7 +103,7 @@ class TestUserRestriction(TestResolverBase):
         Ensures we can find the sandbox for the requested user.
         """
 
-        # Make sure we can find he pipeline configuration for a specific user.
+        # Make sure we can find the pipeline configuration for a specific user.
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="john.smith",
@@ -632,6 +632,63 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             self.mockgun
         )
         self.assertEqual(len(pcs), 0)
+
+    def test_pipeline_without_current_os_path(self):
+        """
+        Ensures that we get back a configuration that's missing a current_os path
+        and that it doesn't contain a descriptor object.
+        """
+        # First make sure we return something when there the path is set.
+        pc_id = self._create_pc(
+            "Primary",
+            path="sg_path",
+            plugin_ids="foo.*",
+        )["id"]
+
+        pcs = self.resolver.find_matching_pipeline_configurations(
+            None,
+            "john.smith",
+            self.mockgun
+        )
+        self.assertEqual(len(pcs), 1)
+        self.assertEqual(pcs[0]["id"], pc_id)
+        self.assertIsNotNone(pcs[0]["config_descriptor"])
+
+        field_lookup = dict(
+            linux2="linux_path",
+            darwin="mac_path",
+            win32="windows_path",
+        )
+
+        base_path = "sg_path"
+        base_paths = dict(
+            windows_path=base_path,
+            linux_path=base_path,
+            mac_path=base_path,
+            sg_descriptor=None,
+        )
+
+        import sys
+        base_paths[field_lookup[sys.platform]] = None
+
+        # Now remove every locators.
+        self.mockgun.update(
+            "PipelineConfiguration",
+            pc_id,
+            base_paths,
+        )
+
+        # We should get back one config, though it should contain a None
+        # for its "config_descriptor" key, as the lack of a path for the
+        # current OS will mean we couldn't create the descriptor object.
+        pcs = self.resolver.find_matching_pipeline_configurations(
+            None,
+            "john.smith",
+            self.mockgun
+        )
+        self.assertEqual(len(pcs), 1)
+        self.assertEqual(pcs[0]["id"], pc_id)
+        self.assertEqual(pcs[0]["config_descriptor"], None)
 
     def test_descriptor_without_plugin(self):
         """

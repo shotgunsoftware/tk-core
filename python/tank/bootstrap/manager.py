@@ -18,6 +18,7 @@ from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
+from ..util import ShotgunPath
 
 log = LogManager.get_logger(__name__)
 
@@ -545,6 +546,8 @@ class ToolkitManager(object):
              only the one with the lowest id is available, unless one or more of them is a Toolkit
              Classic Primary, in which case the Toolkit Classic Primary with the lowest id will
              be returned.
+           - A :class:`~sgtk.descriptor.Descriptor` object must be able to be created from the
+             pipeline configuration.
            - All sandboxes are available.
 
         In practice, this means that if there are 3 primaries, two of them using plugin ids and
@@ -563,10 +566,10 @@ class ToolkitManager(object):
         :type project: Dictionary with keys ``type`` and ``id``.
 
         :returns: List of pipeline configurations.
-        :rtype: List of dictionaries with keys ``type``, ``id``, ``name`` and ``project``. The pipeline
-            configurations will always be sorted such as the primary pipeline configuration, if available,
-            will be first. Then the remaining pipeline configurations will be sorted by ``name`` field
-            (case insensitive), then the ``project`` field and finally then ``id`` field.
+        :rtype: List of dictionaries with keys ``type``, ``id``, ``name``, ``project``, and ``descriptor``. 
+            The pipeline configurations will always be sorted such as the primary pipeline configuration,
+            if available, will be first. Then the remaining pipeline configurations will be sorted by
+            ``name`` field (case insensitive), then the ``project`` field and finally then ``id`` field.
         """
         if isinstance(self.pipeline_configuration, int):
             raise TankBootstrapError("Can't enumerate pipeline configurations matching a specific id.")
@@ -588,6 +591,7 @@ class ToolkitManager(object):
                 "type": pc["type"],
                 "name": pc["code"],
                 "project": pc["project"],
+                "descriptor": pc["config_descriptor"],
             })
 
         return pcs
