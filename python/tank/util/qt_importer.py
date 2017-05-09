@@ -125,7 +125,7 @@ class QtImporter(object):
 
         :returns: The (binding name, binding version, modules) tuple.
         """
-        from PySide import QtCore, QtGui, QtWebKit, QtNetwork
+        from PySide import QtCore, QtGui, QtNetwork, QtWebKit
 
         import PySide
         # Some old versions of PySide don't include version information
@@ -143,8 +143,8 @@ class QtImporter(object):
         return PySide.__name__.strip(), PySide.__version__, PySide, {
             "QtCore": QtCore,
             "QtGui": QtGui,
-            "QtWebKit": QtWebKit,
             "QtNetwork": QtNetwork,
+            "QtWebKit": QtWebKit,
         }, self._to_version_tuple(QtCore.qVersion())
 
     def _import_pyside2(self):
@@ -201,13 +201,15 @@ class QtImporter(object):
         :returns: The (binding name, binding version, modules) tuple.
         """
         import PySide2
-        from PySide2 import QtCore, QtGui, QtWidgets
+        from PySide2 import QtCore, QtGui, QtWidgets, QtNetwork, QtWebKit
         from .pyside2_patcher import PySide2Patcher
 
         QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
         return "PySide2", PySide2.__version__, PySide2, {
             "QtCore": QtCore,
-            "QtGui": QtGui
+            "QtGui": QtGui,
+            "QtNetwork": QtNetwork,
+            "QtWebKit": QtWebKit,
         }, self._to_version_tuple(QtCore.qVersion())
 
     def _import_pyqt4(self):
@@ -216,7 +218,7 @@ class QtImporter(object):
 
         :returns: The (binding name, binding version, modules) tuple.
         """
-        from PyQt4 import QtCore, QtGui, Qt
+        from PyQt4 import QtCore, QtGui, Qt, QtNetwork, QtWebKit
 
         # hot patch the library to make it compatible with PySide-based apps.
         QtCore.Signal = QtCore.pyqtSignal
@@ -232,7 +234,9 @@ class QtImporter(object):
 
         return "PyQt4", PyQt4.__version__, PyQt4, {
             "QtCore": QtCore,
-            "QtGui": QtGui
+            "QtGui": QtGui,
+            "QtNetwork": QtNetwork,
+            "QtWebKit": QtWebKit,
         }, self._to_version_tuple(QtCore.QT_VERSION_STR)
 
     def _to_version_tuple(self, version_str):
@@ -266,11 +270,11 @@ class QtImporter(object):
                 pyside2 = self._import_pyside2_as_pyside()
                 logger.debug("Imported PySide2 as PySide.")
                 return pyside2
-            except ImportError, e:
+            except ImportError:
                 pass
         elif interface_version_requested == self.QT5:
             try:
-                pyside2 =  self._import_pyside2()
+                pyside2 = self._import_pyside2()
                 logger.debug("Imported PySide2.")
                 return pyside2
             except ImportError:
