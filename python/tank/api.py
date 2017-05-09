@@ -168,6 +168,18 @@ class Sgtk(object):
     # properties
 
     @property
+    def configuration_descriptor(self):
+        """
+        The configuration descriptor represents the source of the environments associated
+        with this pipeline configuration.
+
+        .. note::
+            If this is a Toolkit Classic pipeline configuration, no descriptor will be associated
+            with the pipeline configuration.
+        """
+        return self.__pipeline_config.get_configuration_descriptor()
+
+    @property
     def bundle_cache_fallback_paths(self):
         """
         List of paths to the fallback bundle caches for the pipeline configuration.

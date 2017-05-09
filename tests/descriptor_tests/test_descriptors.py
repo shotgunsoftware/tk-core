@@ -12,7 +12,7 @@ from __future__ import with_statement
 import os
 import sgtk
 
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import TankTestBase, SealedMock
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.errors import TankError
 from tank.descriptor import CheckVersionConstraintsError
@@ -55,7 +55,10 @@ class TestDescriptorSupport(TankTestBase):
             "version": 456
         }
 
-        location_str = "sgtk:descriptor:shotgun?name=primary&entity_type=PipelineConfiguration&field=sg_config&version=456&project_id=123"
+        location_str = (
+            "sgtk:descriptor:shotgun?name=primary&entity_type="
+            "PipelineConfiguration&field=sg_config&version=456&project_id=123"
+        )
 
         faulty_location_1 = {
             "type": "shotgun",
@@ -75,7 +78,10 @@ class TestDescriptorSupport(TankTestBase):
             "version": "bar"
         }
 
-        path = os.path.join(self.install_root, "sg", "unit_test_mock_sg", "PipelineConfiguration.sg_config", "p123_primary", "v456")
+        path = os.path.join(
+            self.install_root, "sg", "unit_test_mock_sg",
+            "PipelineConfiguration.sg_config", "p123_primary", "v456"
+        )
         self._create_info_yaml(path)
 
         d = self.tk.pipeline_configuration.get_app_descriptor(location)
@@ -255,18 +261,6 @@ class TestDescriptorSupport(TankTestBase):
                                 desc._io_descriptor._find_latest_tag_by_pattern,
                                 ["v1.2.3", "v1.2.233", "v1.3.1"],
                                 "v1.x.2")
-
-
-class SealedMock(Mock):
-    """
-    Sealed mock ensures that no one is accessing something we have not planned for.
-    """
-    def __init__(self, **kwargs):
-        """
-        :param kwargs: Passed down directly to the base class as kwargs. Each keys are passed to the ``spec_set``
-            argument from the base class to seal the gettable and settable properties.
-        """
-        super(SealedMock, self).__init__(spec_set=kwargs.keys(), **kwargs)
 
 
 class TestConstraintValidation(TankTestBase):

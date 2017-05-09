@@ -742,6 +742,18 @@ class TankTestBase(unittest.TestCase):
         self.tk._Sgtk__pipeline_config = self.pipeline_configuration
 
 
+class SealedMock(mock.Mock):
+    """
+    Sealed mock ensures that no one is accessing something we have not planned for.
+    """
+    def __init__(self, **kwargs):
+        """
+        :param kwargs: Passed down directly to the base class as kwargs. Each keys are passed to the ``spec_set``
+            argument from the base class to seal the gettable and settable properties.
+        """
+        super(SealedMock, self).__init__(spec_set=kwargs.keys(), **kwargs)
+
+
 def _move_data(path):
     """
     Rename directory to backup name, if backup currently exists replace it.
