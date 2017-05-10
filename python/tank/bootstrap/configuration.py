@@ -92,10 +92,20 @@ class Configuration(object):
         # by creating a pipeline configuration object directly
         # and pass that into the factory method.
 
-        pc = pipelineconfig.PipelineConfiguration(path, self.descriptor)
+        if self._does_pipelineconfigution_supports_descriptor(pipelineconfig.PipelineConfiguration):
+            pc = pipelineconfig.PipelineConfiguration(path, self.descriptor)
+        else:
+            pc = pipelineconfig.PipelineConfiguration(path)
         tk = api.tank_from_path(pc)
 
         log.debug("Bootstrapped into tk instance %r (%r)" % (tk, tk.pipeline_configuration))
         log.debug("Core API code located here: %s" % inspect.getfile(tk.__class__))
 
         return tk
+
+    def _does_pipelineconfigution_supports_descriptor(self, pipeline_configuration):
+        """
+        :returns: True if the __init__ method accepts a descriptor object, False otherwise.
+        """
+        # The name of the arguments are at index 0. Do not use .args since this is a 2.6+ feature.
+        return "descriptor" in inspect.getargspec(pipeline_configuration.__init__)[0]
