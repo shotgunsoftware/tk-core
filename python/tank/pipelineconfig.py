@@ -42,12 +42,6 @@ class PipelineConfiguration(object):
     to construct this object, do not create directly via the constructor.
     """
 
-    # Do NOT rename or reorder these arguments. It is vital that any assumptions made about the
-    # parameters here in the past remain true in the future. There is code in the ToolkitManager
-    # that strives to be backwards compatible with older version of this class that didn't have
-    # the descriptor parameter. The only way we have to know if the class supports the descriptor
-    # argument is by inspecting it with the inspect module. Renaming the descriptor argument in this
-    # method would completely break that test.
     def __init__(self, pipeline_configuration_path, descriptor=None):
         """
         Constructor. Do not call this directly, use the factory methods

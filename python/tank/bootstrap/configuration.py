@@ -92,7 +92,11 @@ class Configuration(object):
         # by creating a pipeline configuration object directly
         # and pass that into the factory method.
 
-        if self._does_pipelineconfigution_supports_descriptor(pipelineconfig.PipelineConfiguration):
+        # Previous versions of the PipelineConfiguration API didn't support having a descriptor
+        # passed in, so we'll have to be backwards compatible with these. If the pipeline
+        # configuration does support the get_configuration_descriptor method however, we can
+        # pass the descriptor in.
+        if hasattr(pipelineconfig.PipelineConfiguration, "get_configuration_descriptor"):
             pc = pipelineconfig.PipelineConfiguration(path, self.descriptor)
         else:
             pc = pipelineconfig.PipelineConfiguration(path)
@@ -102,10 +106,3 @@ class Configuration(object):
         log.debug("Core API code located here: %s" % inspect.getfile(tk.__class__))
 
         return tk
-
-    def _does_pipelineconfigution_supports_descriptor(self, pipeline_configuration):
-        """
-        :returns: True if the __init__ method accepts a descriptor object, False otherwise.
-        """
-        # The name of the arguments are at index 0. Do not use .args since this is a 2.6+ feature.
-        return "descriptor" in inspect.getargspec(pipeline_configuration.__init__)[0]
