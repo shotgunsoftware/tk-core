@@ -119,13 +119,31 @@ class QtImporter(object):
     def qt_version_tuple(self):
         return self._qt_version_tuple
 
+    def _import_module_by_name(self, parent_module_name, module_name):
+        """
+        Import a module by its string name.
+
+        :returns: The module loaded, or None if it could not be loaded.
+        """
+        module = None
+        try:
+            module = __import__(parent_module_name, globals(), locals(), [module_name])
+            module = getattr(module, module_name)
+        except Exception, e:
+            logger.debug("Unable to import module '%s': %s", module_name, e)
+            pass
+        return module
+
     def _import_pyside(self):
         """
         Imports PySide.
 
         :returns: The (binding name, binding version, modules) tuple.
         """
-        from PySide import QtCore, QtGui, QtNetwork, QtWebKit
+        from PySide import QtCore, QtGui
+
+        QtNetwork = self._import_module_by_name("PySide", "QtNetwork")
+        QtWebKit = self._import_module_by_name("PySide", "QtWebKit")
 
         import PySide
         # Some old versions of PySide don't include version information
@@ -201,10 +219,13 @@ class QtImporter(object):
         :returns: The (binding name, binding version, modules) tuple.
         """
         import PySide2
-        from PySide2 import QtCore, QtGui, QtWidgets, QtNetwork, QtWebKit
+        from PySide2 import QtCore, QtGui, QtWidgets
         from .pyside2_patcher import PySide2Patcher
 
         QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
+        QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
+        QtWebKit = self._import_module_by_name("PySide2", "QtWebKit")
+
         return "PySide2", PySide2.__version__, PySide2, {
             "QtCore": QtCore,
             "QtGui": QtGui,
@@ -218,12 +239,15 @@ class QtImporter(object):
 
         :returns: The (binding name, binding version, modules) tuple.
         """
-        from PyQt4 import QtCore, QtGui, Qt, QtNetwork, QtWebKit
+        from PyQt4 import QtCore, QtGui, Qt
 
         # hot patch the library to make it compatible with PySide-based apps.
         QtCore.Signal = QtCore.pyqtSignal
         QtCore.Slot = QtCore.pyqtSlot
         QtCore.Property = QtCore.pyqtProperty
+
+        QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
+        QtWebKit = self._import_module_by_name("PySide2", "QtWebKit")
 
         # Note: Do not remove this. It was briefly introduced so that engines
         # could introspec the wrapper for all sorts of things, but we've moving

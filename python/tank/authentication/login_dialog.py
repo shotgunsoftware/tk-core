@@ -331,6 +331,7 @@ class LoginDialog(QtGui.QDialog):
         :param login: Login to use for that site.
         :param password: Password to use with the login.
         :param auth_code: Optional two factor authentication code.
+        :param session_token: Optionnal If present, then we do not need to generate a new one.
 
         :raises MissingTwoFactorAuthenticationFault: Raised if auth_code was None but was required
             by the server.
