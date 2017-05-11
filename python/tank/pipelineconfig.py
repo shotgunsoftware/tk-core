@@ -65,7 +65,7 @@ class PipelineConfiguration(object):
         # validate that the current code version matches or is compatible with
         # the code that is locally stored in this config!!!!
         our_associated_api_version = self.get_associated_core_version()
-        print our_associated_api_version
+
         # and get the version of the API currently in memory
         current_api_version = pipelineconfig_utils.get_currently_running_api_version()
         
