@@ -246,8 +246,8 @@ class QtImporter(object):
         QtCore.Slot = QtCore.pyqtSlot
         QtCore.Property = QtCore.pyqtProperty
 
-        QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
-        QtWebKit = self._import_module_by_name("PySide2", "QtWebKit")
+        QtNetwork = self._import_module_by_name("PyQt4", "QtNetwork")
+        QtWebKit = self._import_module_by_name("PyQt4", "QtWebKit")
 
         # Note: Do not remove this. It was briefly introduced so that engines
         # could introspec the wrapper for all sorts of things, but we've moving
