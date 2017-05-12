@@ -55,9 +55,9 @@
          </property>
          <property name="styleSheet">
           <string notr="true">#top_group {
-background-color:  #373737;
+background-color:  #2D2D2D;
 border: none;
-border-bottom:1px solid #606161;
+border-bottom:1px solid #202020;
 }
 </string>
          </property>

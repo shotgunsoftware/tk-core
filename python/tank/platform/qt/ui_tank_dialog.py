@@ -30,9 +30,9 @@ class Ui_TankDialog(object):
         self.top_group.setMinimumSize(QtCore.QSize(0, 45))
         self.top_group.setMaximumSize(QtCore.QSize(16777215, 45))
         self.top_group.setStyleSheet("#top_group {\n"
-"background-color:  #373737;\n"
+"background-color:  #2D2D2D;\n"
 "border: none;\n"
-"border-bottom:1px solid #606161;\n"
+"border-bottom:1px solid #202020;\n"
 "}\n"
 "")
         self.top_group.setTitle("")
