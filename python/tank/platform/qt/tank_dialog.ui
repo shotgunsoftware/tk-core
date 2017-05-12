@@ -55,9 +55,9 @@
          </property>
          <property name="styleSheet">
           <string notr="true">#top_group {
-background-image: url(:/Tank.Platform.Qt/bg.png); 
+background-color:  #2D2D2D;
 border: none;
-border-bottom:1px solid #606161
+border-bottom:1px solid #202020;
 }
 </string>
          </property>
@@ -323,7 +323,7 @@ QLabel{
                <x>0</x>
                <y>0</y>
                <width>383</width>
-               <height>566</height>
+               <height>577</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_4">
