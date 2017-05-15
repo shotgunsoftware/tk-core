@@ -909,19 +909,19 @@ class Engine(TankBundle):
         - ``type`` - The type of command - hinting at which menu the command should appear.
           Options vary between engines and the following are supported:
 
-            - ``context_menu`` - Supported on all engines. Place item on
+            - ``context_menu`` - Supported on all engines. Places an item on
               the context menu (first item on the shotgun menu). The context menu is a
               suitable location for utility items, helpers and tools.
 
             - ``panel`` - Some DCCs have a special menu which is accessible only when
-              right clicking in on a panel. Passing ``panel`` as the command type hints
+              right clicking on a panel. Passing ``panel`` as the command type hints
               to the system that the command should be added to this menu. If no panel
               menu is available, it will be added to the main menu. Nuke is an example
               of a DCC which supports this behavior.
 
             - ``node`` - Node based applications such as Nuke typically have a separate
               menu system for accessing nodes. If you want your registered command to appear
-              on this menu, use the ``node`` type.
+              on this menu, use this type.
 
 
         **Grouping commands into collections**
