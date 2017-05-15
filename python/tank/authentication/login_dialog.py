@@ -137,6 +137,8 @@ class LoginDialog(QtGui.QDialog):
         issues. Failure is not considere critical, thus known exceptions are
         silently ignored. At the moment this method is only use to make the
         GUI show/hide some of the input fields.
+
+        :returns: a boolean indicating if SSO has been enabled or not.
         """
         try:
             # Temporary shotgun instance, used only for the purpose of checking
@@ -146,7 +148,8 @@ class LoginDialog(QtGui.QDialog):
                 return info["user_authentication_method"] == "saml2"
         except (ServerNotFoundError, ProtocolError, ValueError, socket.error):
             # Silently ignore exception
-            pass
+            logger.info('Unable to connect with %sm, assuming SSO is not enabled' % url)
+
         return False
 
     def _strip_whitespaces(self):
@@ -331,7 +334,8 @@ class LoginDialog(QtGui.QDialog):
         :param login: Login to use for that site.
         :param password: Password to use with the login.
         :param auth_code: Optional two factor authentication code.
-        :param session_token: Optionnal If present, then we do not need to generate a new one.
+        :param session_token: Optionnal If present, then we do not need to generate a
+               new one. We also do not use the site, login, password and auth_code arguments.
 
         :raises MissingTwoFactorAuthenticationFault: Raised if auth_code was None but was required
             by the server.
