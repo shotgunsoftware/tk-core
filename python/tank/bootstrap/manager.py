@@ -875,6 +875,7 @@ class ToolkitManager(object):
         else:
             log.debug("Configuration has local bundle cache, skipping bundle caching.")
 
+        log.debug("Initialized core %s" % tk)
         return tk
 
     def _start_engine(self, tk, engine_name, entity, progress_callback=None):
