@@ -19,6 +19,7 @@ from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
 from ..util import ShotgunPath
+from ..util.version import is_version_older
 
 log = LogManager.get_logger(__name__)
 
@@ -371,6 +372,7 @@ class ToolkitManager(object):
         self._log_startup_message(engine_name, entity)
 
         tk = self._bootstrap_sgtk(engine_name, entity)
+
         engine = self._start_engine(tk, engine_name, entity)
 
         self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
@@ -873,6 +875,7 @@ class ToolkitManager(object):
         else:
             log.debug("Configuration has local bundle cache, skipping bundle caching.")
 
+        log.debug("Initialized core %s" % tk)
         return tk
 
     def _start_engine(self, tk, engine_name, entity, progress_callback=None):
@@ -919,7 +922,32 @@ class ToolkitManager(object):
 
         # perform absolute import to ensure we get the new swapped core.
         import tank
-        engine = tank.platform.start_engine(engine_name, tk, ctx)
+
+        # handle legacy cases
+        if engine_name == constants.SHOTGUN_ENGINE_NAME and is_version_older(tk.version, "v0.18.77"):
+
+            # bootstrapping into a shotgun engine with an older core
+            # we perform this special check to make sure that we correctly pick up
+            # the shotgun_xxx.yml environment files, even for older cores.
+            # new cores handles all this inside the tank.platform.start_shotgun_engine
+            # business logic.
+            log.debug(
+                "Target core version is %s. Starting shotgun engine via legacy pathway." % tk.version
+            )
+
+            if entity is None:
+                raise TankBootstrapError(
+                    "Legacy shotgun environments do not support bootstrapping into a site context."
+                )
+
+            # start engine via legacy pathway
+            # note the local import due to core swapping.
+            from tank.platform import engine
+            engine = engine.start_shotgun_engine(tk, entity["type"], ctx)
+
+        else:
+            # no legacy cases
+            engine = tank.platform.start_engine(engine_name, tk, ctx)
 
         log.debug("Launched engine %r" % engine)
 
