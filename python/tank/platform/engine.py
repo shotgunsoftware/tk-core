@@ -2694,9 +2694,11 @@ def _start_engine(engine_name, tk, old_context, new_context):
                 elif new_context.project is not None:
                     entity_type = "Project"
                 else:
-                    # Empty context, in which case we know the start_shotgun_engine
-                    # won't do what we need.
-                    raise
+                    # Empty context, in which case we know the start_shotgun_engine won't do what we need.
+                    raise TankError(
+                        "Legacy shotgun environment configuration "
+                        "does not support context '%s'" % new_context
+                    )
 
                 core_logger.debug("Starting Shotgun engine in legacy mode...")
                 return start_shotgun_engine(tk, entity_type, new_context)
