@@ -940,7 +940,9 @@ class ToolkitManager(object):
                 )
 
             # start engine via legacy pathway
-            engine = tank.platform.start_shotgun_engine(tk, entity["type"], ctx)
+            # note the local import due to core swapping.
+            from tank.platform import engine
+            engine = engine.start_shotgun_engine(tk, entity["type"], ctx)
 
         else:
             # no legacy cases
