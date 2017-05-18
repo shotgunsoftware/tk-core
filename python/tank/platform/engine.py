@@ -28,11 +28,12 @@ from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
 from .. import hook
 
-from ..errors import TankError, TankMissingEnvironmentFile
+from ..errors import TankError
 from .errors import (
     TankEngineInitError,
     TankContextChangeNotSupportedError,
-    TankEngineEventError
+    TankEngineEventError,
+    TankMissingEnvironmentFile
 )
 
 from ..util import log_user_activity_metric as util_log_user_activity_metric

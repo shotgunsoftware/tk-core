@@ -21,7 +21,8 @@ from tank_vendor import yaml
 from .bundle import resolve_default_value
 from . import constants
 from . import environment_includes
-from ..errors import TankError, TankUnreadableFileError, TankMissingEnvironmentFile
+from ..errors import TankError, TankUnreadableFileError
+from .errors import TankMissingEnvironmentFile
 
 from ..util.yaml_cache import g_yaml_cache
 from .. import LogManager

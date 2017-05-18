@@ -25,12 +25,6 @@ class TankUnreadableFileError(TankError):
     """
 
 
-class TankMissingEnvironmentFile(TankError):
-    """
-    Exception that indicates that an environment file can't be found on disk.
-    """
-
-
 class TankFileDoesNotExistError(TankUnreadableFileError):
     """
     Exception that indicates that a required file does not exist.

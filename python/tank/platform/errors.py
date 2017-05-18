@@ -40,6 +40,10 @@ class TankCurrentModuleNotFoundError(errors.TankError):
     resolve a bundle.
     """
 
+class TankMissingEnvironmentFile(errors.TankError):
+    """
+    Exception that indicates that an environment file can't be found on disk.
+    """
 
 # backwards compatibility to ensure code that was calling internal
 # parts of the API will still work.

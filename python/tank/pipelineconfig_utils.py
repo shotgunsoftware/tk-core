@@ -169,8 +169,6 @@ def get_core_python_path_for_config(pipeline_config_path):
     """
     Returns the location of the Toolkit library associated with the given pipeline configuration.
 
-    This can used to update the PYTHONPATH and import the right version of Toolkit.
-
     :param pipeline_config_path: path to a pipeline configuration
 
     :returns: Path to location where the Toolkit Python library associated with the config resides.
