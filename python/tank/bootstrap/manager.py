@@ -127,6 +127,33 @@ class ToolkitManager(object):
         repr += " Base %s >" % self._base_config_descriptor
         return repr
 
+    @classmethod
+    def get_core_python_path(cls):
+        """
+        Computes the path to the current Toolkit core.
+
+        The current Toolkit core is defined as the core that gets imported when you type
+
+            import sgtk
+
+        and the python path is derived from the ``__file__`` attribute on the module.
+
+        For example, if the ``sgtk`` module was found at ``/path/to/config/install/core/python/sgtk``,
+        the return path would be ``/path/to/config/install/core/python``
+
+        This can be useful if you want to hand down to a subprocess the location of the current
+        process's core, since ``sys.path`` and the ``PYTHONPATH`` are not updated after
+        bootstrapping.
+
+        :returns: Path to the current core.
+        :rtype str:
+        """
+        import sgtk
+        tank_folder = os.path.dirname(sgtk.__file__)
+        python_folder = os.path.dirname(tank_folder)
+        return python_folder
+
+
     def _get_pipeline_configuration(self):
         """
         The pipeline configuration that is should be operated on.
