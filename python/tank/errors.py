@@ -25,7 +25,7 @@ class TankUnreadableFileError(TankError):
     """
 
 
-class TankMissingEnvironentFile(TankError):
+class TankMissingEnvironmentFile(TankError):
     """
     Exception that indicates that an environment file can't be found on disk.
     """

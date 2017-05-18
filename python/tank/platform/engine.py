@@ -28,12 +28,11 @@ from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
 from .. import hook
 
-from ..errors import TankError
+from ..errors import TankError, TankMissingEnvironmentFile
 from .errors import (
     TankEngineInitError,
     TankContextChangeNotSupportedError,
-    TankEngineEventError,
-    TankMissingEnvironentFile
+    TankEngineEventError
 )
 
 from ..util import log_user_activity_metric as util_log_user_activity_metric
@@ -2680,7 +2679,7 @@ def _start_engine(engine_name, tk, old_context, new_context):
         # get environment and engine location
         try:
             (env, engine_descriptor) = get_env_and_descriptor_for_engine(engine_name, tk, new_context)
-        except (TankEngineInitError, TankMissingEnvironentFile):
+        except (TankEngineInitError, TankMissingEnvironmentFile):
             # If we failed using the typical pick_environment approach, then we
             # need to check and see if this is the Shotgun engine. If it is, then
             # we can also try the legacy engine start method, which will make use

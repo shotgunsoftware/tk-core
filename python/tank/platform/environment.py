@@ -21,7 +21,7 @@ from tank_vendor import yaml
 from .bundle import resolve_default_value
 from . import constants
 from . import environment_includes
-from ..errors import TankError, TankUnreadableFileError, TankMissingEnvironentFile
+from ..errors import TankError, TankUnreadableFileError, TankMissingEnvironmentFile
 
 from ..util.yaml_cache import g_yaml_cache
 from .. import LogManager
@@ -200,11 +200,18 @@ class Environment(object):
         return g_yaml_cache.get(path)
 
     def __load_environment_data(self):
+        """
+        Loads the main environment data file.
+
+        :returns: Dictionary of the data.
+
+        :raises TankMissingEnvironmentFile: Raised if the environment file does not exist on disk.
+        """
         try:
             return self.__load_data(self._env_path)
         except TankUnreadableFileError:
             logger.exception("Missing environment file:")
-            raise TankMissingEnvironentFile("Missing environment file: %s" % self._env_path)
+            raise TankMissingEnvironmentFile("Missing environment file: %s" % self._env_path)
 
     ##########################################################################################
     # Properties
@@ -346,7 +353,7 @@ class Environment(object):
         :returns:           (list of tokens, file path)
         """
         # get the raw data:
-        root_yml_data = self.__load_data(self._env_path)
+        root_yml_data = self.__load_environment_data()
         
         # find the location for the engine:
         tokens, path = self.__find_location_for_bundle(self._env_path, root_yml_data, "engines", engine_name)
