@@ -18,7 +18,6 @@ from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
-from ..util import ShotgunPath
 from ..util.version import is_version_older
 
 log = LogManager.get_logger(__name__)
@@ -570,7 +569,7 @@ class ToolkitManager(object):
         :type project: Dictionary with keys ``type`` and ``id``.
 
         :returns: List of pipeline configurations.
-        :rtype: List of dictionaries with keys ``type``, ``id``, ``name``, ``project``, and ``descriptor``. 
+        :rtype: List of dictionaries with keys ``type``, ``id``, ``name``, ``project``, and ``descriptor``.
             The pipeline configurations will always be sorted such as the primary pipeline configuration,
             if available, will be first. Then the remaining pipeline configurations will be sorted by
             ``name`` field (case insensitive), then the ``project`` field and finally then ``id`` field.

@@ -21,9 +21,12 @@ from tank_vendor import yaml
 from .bundle import resolve_default_value
 from . import constants
 from . import environment_includes
-from ..errors import TankError, TankUnreadableFileError
+from ..errors import TankError, TankUnreadableFileError, TankMissingEnvironentFile
 
 from ..util.yaml_cache import g_yaml_cache
+from .. import LogManager
+
+logger = LogManager.get_logger(__name__)
 
 
 class Environment(object):
@@ -66,10 +69,7 @@ class Environment(object):
     def _refresh(self):
         """Refreshes the environment data from disk
         """
-        try:
-            data = self.__load_data(self._env_path)
-        except TankUnreadableFileError:
-            raise TankError("Unable to load environment file: %s" % self._env_path)
+        data = self.__load_environment_data()
 
         self._env_data = environment_includes.process_includes(self._env_path, data, self.__context)
         
@@ -198,6 +198,13 @@ class Environment(object):
         loads the main data from disk, raw form
         """
         return g_yaml_cache.get(path)
+
+    def __load_environment_data(self):
+        try:
+            return self.__load_data(self._env_path)
+        except TankUnreadableFileError:
+            logger.exception("Missing environment file:")
+            raise TankMissingEnvironentFile("Missing environment file: %s" % self._env_path)
 
     ##########################################################################################
     # Properties
