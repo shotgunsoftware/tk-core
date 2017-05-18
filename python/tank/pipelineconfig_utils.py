@@ -162,22 +162,39 @@ def get_path_to_current_core():
                         "This can happen if you try to move or symlink the Toolkit API. The "
                         "Toolkit API is currently picked up from %s which is an "
                         "invalid location." % full_path_to_file)
-    return curr_os_core_root    
+    return curr_os_core_root
+
+
+def get_core_python_path_for_config(pipeline_config_path):
+    """
+    Returns the location of the Toolkit library associated with the given pipeline configuration.
+
+    This can used to update the PYTHONPATH and import the right version of Toolkit.
+
+    :param pipeline_config_path: path to a pipeline configuration
+
+    :returns: Path to location where the Toolkit Python library associated with the config resides.
+    :rtype: str
+    """
+    return os.path.join(_get_core_path_for_config(pipeline_config_path), "install", "core", "python")
 
 
 def get_core_path_for_config(pipeline_config_path):
     """
     Returns the core api install location associated with the given pipeline configuration.
+
     In the case of a localized PC, it just returns the given path.
     Otherwise, it resolves the location via the core_xxxx.cfg files.
     
     :param pipeline_config_path: path to a pipeline configuration
+
     :returns: Path to the studio location root or pipeline configuration root or None if not resolved
     """
     try:
         return _get_core_path_for_config(pipeline_config_path)
     except:
         return None
+
 
 def _get_core_path_for_config(pipeline_config_path):
     """

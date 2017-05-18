@@ -54,6 +54,8 @@ if "TANK_CURRENT_PC" not in os.environ:
 # first import the log manager since a lot of modules require this.
 from .log import LogManager
 
+from .pipelineconfig_utils import get_python_interpreter_for_config, get_core_python_path_for_config
+
 # make sure that all sub-modules are imported at the same as the main module
 from . import authentication
 from . import bootstrap
@@ -67,7 +69,6 @@ from . import util
 # core functionality
 from .api import Tank, tank_from_path, tank_from_entity, set_authenticated_user, get_authenticated_user
 from .api import Sgtk, sgtk_from_path, sgtk_from_entity
-from .pipelineconfig_utils import get_python_interpreter_for_config
 
 from .context import Context
 
