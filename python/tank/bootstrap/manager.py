@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import inspect
 
 from . import constants
 from .errors import TankBootstrapError
@@ -18,7 +19,6 @@ from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
-from ..util import ShotgunPath
 from ..util.version import is_version_older
 
 log = LogManager.get_logger(__name__)
@@ -570,7 +570,7 @@ class ToolkitManager(object):
         :type project: Dictionary with keys ``type`` and ``id``.
 
         :returns: List of pipeline configurations.
-        :rtype: List of dictionaries with keys ``type``, ``id``, ``name``, ``project``, and ``descriptor``. 
+        :rtype: List of dictionaries with keys ``type``, ``id``, ``name``, ``project``, and ``descriptor``.
             The pipeline configurations will always be sorted such as the primary pipeline configuration,
             if available, will be first. Then the remaining pipeline configurations will be sorted by
             ``name`` field (case insensitive), then the ``project`` field and finally then ``id`` field.
@@ -1088,3 +1088,27 @@ class ToolkitManager(object):
         log.debug("Logging user activity metric: module '%s', action '%s'" % (module, action))
 
         log_user_activity_metric(module, action)
+
+    @staticmethod
+    def get_core_python_path():
+        """
+        Computes the path to the current Toolkit core.
+
+        The current Toolkit core is defined as the core that gets imported when you type
+        ``import sgtk`` and the python path is derived from that module.
+
+        For example, if the ``sgtk`` module was found at ``/path/to/config/install/core/python/sgtk``,
+        the return path would be ``/path/to/config/install/core/python``
+
+        This can be useful if you want to hand down to a subprocess the location of the current
+        process's core, since ``sys.path`` and the ``PYTHONPATH`` are not updated after
+        bootstrapping.
+
+        :returns: Path to the current core.
+        :rtype: str
+        """
+        import sgtk
+        sgtk_file = inspect.getfile(sgtk)
+        tank_folder = os.path.dirname(sgtk_file)
+        python_folder = os.path.dirname(tank_folder)
+        return python_folder
