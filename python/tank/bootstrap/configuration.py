@@ -8,12 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import inspect
 
 from .import_handler import CoreImportHandler
 
-from .. import LogManager, get_core_python_path_for_config
+from ..log import LogManager
+from ..pipelineconfig_utils import get_core_python_path_for_config
 
 log = LogManager.get_logger(__name__)
 

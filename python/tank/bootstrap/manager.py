@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import inspect
 
 from . import constants
 from .errors import TankBootstrapError
@@ -149,7 +150,8 @@ class ToolkitManager(object):
         :rtype str:
         """
         import sgtk
-        tank_folder = os.path.dirname(sgtk.__file__)
+        sgtk_file = inspect.getfile(sgtk)
+        tank_folder = os.path.dirname(sgtk_file)
         python_folder = os.path.dirname(tank_folder)
         return python_folder
 
