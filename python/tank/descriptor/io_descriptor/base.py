@@ -41,8 +41,6 @@ class IODescriptorBase(object):
     Tank App store and one which knows how to handle the local file system.
     """
 
-    _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "download_complete"
-
     def __init__(self, descriptor_dict):
         """
         Constructor
@@ -323,7 +321,7 @@ class IODescriptorBase(object):
                 for version_folder in os.listdir(parent_folder):
                     version_full_path = os.path.join(parent_folder, version_folder)
                     # check that it's a folder and not a system folder
-                    if not self._is_settings_folder(version_full_path) and \
+                    if os.path.isdir(version_full_path) and \
                             not version_folder.startswith("_") and \
                             not version_folder.startswith(".") and \
                             self._exists_local(version_full_path):
@@ -547,12 +545,6 @@ class IODescriptorBase(object):
         """
         return True
 
-    def is_downloading_content(self):
-        """
-        Returns true if this descriptor downloads its content.
-        """
-        return True
-
     def ensure_local(self):
         """
         Convenience method. Ensures that the descriptor exists locally.
@@ -565,47 +557,23 @@ class IODescriptorBase(object):
         """
         Returns true if this item exists in a locally accessible form
         """
-        # first get the path
-        path = self.get_path()
-        return self._exists_local(path)
+        return self.get_path() is not None
 
     def _exists_local(self, path):
         """
         Returns true if the given bundle path exists in valid local cached form
+
+        This can be reimplemented in derived classes to have more complex validation, like ensuring
+        that the bundle is fully downloaded.
         """
-        if not path:
-            # not on disk!
+        if path is None:
             return False
 
         # check that the main path exists locally and is a folder
         if not os.path.isdir(path):
             return False
 
-        # now attempt to validate that the existing payload is complete
-        if self.is_downloading_content():
-            # check for
-            settings_folder = self._get_settings_folder(path)
-            completed_file_flag = os.path.join(settings_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
-
-            if os.path.exists(completed_file_flag):
-                return True
-
-            elif not os.path.exists(settings_folder):
-                # legacy case - the download does not have a begin file so it was not
-                # downloaded as part of a 'transaction'
-                return True
-
-            else:
-                # we have a partial download
-                log.debug(
-                    "Note: Missing download complete ticket file '%s'. "
-                    "This suggests a partial download" % completed_file_flag
-                )
-                return False
-
-        else:
-            # skip check for non-downloading descriptors
-            return True
+        return True
 
     def _get_primary_cache_path(self):
         """
@@ -620,18 +588,6 @@ class IODescriptorBase(object):
         :return: Path to the bundle cache location for this item.
         """
         return self._get_bundle_cache_path(self._bundle_cache_root)
-
-    def _is_settings_folder(self, path):
-        """
-        Returns if a path is matching the pattern for a settings folder
-        """
-        return path.endswith(".settings")
-
-    def _get_settings_folder(self, path):
-        """
-        Returns the corresponding settings folder given a path
-        """
-        return "%s.settings" % path
 
     def _get_cache_paths(self):
         """
