@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import shutil
 
 from . import constants
 
@@ -168,6 +169,7 @@ class CachedConfiguration(Configuration):
         This method fails gracefully and attempts to roll back to a
         stable state on failure.
         """
+
         # make sure a scaffold is in place
         self._config_writer.ensure_project_scaffold()
 
@@ -239,6 +241,9 @@ class CachedConfiguration(Configuration):
                     os.path.join(self._path.current_os, "install", "core")
                 )
                 log.debug("Previous core restore complete...")
+        else:
+            self._delete_old_backups(config_backup_path)
+            self._delete_old_backups(core_backup_path)
 
         # @todo - prime caches (yaml, path cache)
 
@@ -275,6 +280,24 @@ class CachedConfiguration(Configuration):
                     self._pipeline_config_id,
                     self.path.as_shotgun_dict()
                 )
+
+    def _delete_old_backups(self, latest_backup_folder_path):
+        """
+        Deletes all of the folders in the backups_folder except
+        for the last backup created.
+        """
+    
+        if os.path.exists(latest_backup_folder_path):
+            (backups_folder_path, latest_backup_folder_name) = os.path.split(latest_backup_folder_path)
+            names = os.listdir(backups_folder_path)
+            for name in names:
+                item_path = os.path.join(backups_folder_path, name) 
+                try: 
+                    if os.path.isdir(item_path) and not name == latest_backup_folder_name: 
+                        shutil.rmtree(item_path)
+                except Exception, e: 
+                    log.error("Could not delete %s: %s" % (item_path, e)) 
+        
 
     @property
     def has_local_bundle_cache(self):
