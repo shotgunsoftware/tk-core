@@ -426,7 +426,7 @@ class IODescriptorAppStore(IODescriptorBase):
             )
             return True
 
-        # Great, we're in the presence of a bundle that was download with integrity check logic.
+        # Great, we're in the presence of a bundle that was downloaded with integrity check logic.
 
         # The completed file flag is a file that gets written out after the bundle has been
         # completely unzipped.
@@ -445,7 +445,7 @@ class IODescriptorAppStore(IODescriptorBase):
 
     def _get_metadata_folder(self, path):
         """
-        Returns the corresponding settings folder given a path
+        Returns the corresponding metadata folder given a path
         """
         # Do not set this as a hidden folder (with a . in front) in case somebody does a
         # rm -rf * or a manual deletion of the files. This will ensure this is treated just like

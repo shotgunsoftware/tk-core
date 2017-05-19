@@ -153,7 +153,7 @@ class TestIODescriptors(TankTestBase):
         self.assertEqual(d.get_path(), bundle_path)
         self.assertEqual(d.find_latest_cached_version(), d)
 
-        # create settings folder
+        # create metadata folder
         metadata_dir = os.path.join(bundle_path, "appstore-metadata")
         os.makedirs(metadata_dir)
 
