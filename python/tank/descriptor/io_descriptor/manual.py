@@ -103,12 +103,6 @@ class IODescriptorManual(IODescriptorBase):
         """
         return self._version
 
-    def is_downloading_content(self):
-        """
-        Returns true if this descriptor downloads its content.
-        """
-        return False
-
     def download_local(self):
         """
         Retrieves this version to local repo

@@ -140,12 +140,6 @@ class IODescriptorPath(IODescriptorBase):
         """
         return False
 
-    def is_downloading_content(self):
-        """
-        Returns true if this descriptor downloads its content.
-        """
-        return False
-
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
