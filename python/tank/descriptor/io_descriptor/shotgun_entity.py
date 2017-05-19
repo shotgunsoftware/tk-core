@@ -159,21 +159,12 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         # cache into the primary location
         target = self._get_primary_cache_path()
 
-        # create settings folder
-        settings_folder = self._get_settings_folder(target)
-        filesystem.ensure_folder_exists(settings_folder)
-
         try:
             shotgun.download_and_unpack_attachment(self._sg_connection, self._version, target)
         except ShotgunAttachmentDownloadError, e:
             raise TankDescriptorError(
                 "Failed to download %s from %s. Error: %s" % (self, self._sg_connection.base_url, e)
             )
-
-        # write end receipt
-        filesystem.touch_file(
-            os.path.join(settings_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
-        )
 
     def get_latest_version(self, constraint_pattern=None):
         """
