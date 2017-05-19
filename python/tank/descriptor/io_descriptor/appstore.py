@@ -450,7 +450,7 @@ class IODescriptorAppStore(IODescriptorBase):
         # Do not set this as a hidden folder (with a . in front) in case somebody does a
         # rm -rf * or a manual deletion of the files. This will ensure this is treated just like
         # any other file.
-        return os.path.join(path, "tk-appstore-metadata")
+        return os.path.join(path, "appstore-metadata")
 
     def download_local(self):
         """
