@@ -1,11 +1,11 @@
 # Copyright (c) 2017 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -45,151 +45,6 @@ def resolve_publish_path(tk, sg_publish_data):
     .. note:: This method is also called by :meth:`sgtk.Hook.get_publish_path`
               which is a common method Toolkit apps use to resolve publishes
               into paths.
-
-    **Resolution Logic**
-
-    The method will attempt to resolve the publish data into a path
-    by applying several recipes:
-
-    - First, the ``resolve_publish`` core hook will be called. This hook
-      can be used either in order to override any built-in behavior or
-      to implement support for url schemes, uploaded files or other modes
-      which the default implementation currently doesn't support. The hook
-      returns ``None`` by default, indicating that no resolve overrides
-      are present.
-
-    - If no path was resolved by the hook, the method will check if the
-      publish is associated with a local file link and if so attempt to
-      resolve this to a path (for more details see below).
-
-    - Next, it will check if the publish is linked to a ``file://`` url
-      and attempt to resolve this.
-
-    - Lastly, if the publish still cannot be resolved, a
-      :class:`~sgtk.util.PublishPathNotSupported` is raised.
-
-    **Resolving local file links**
-
-    If the publish is a local file link, its local OS representation
-    will be used. Local file links are generated automatically by
-    :meth:`register_publish` if the path you are publishing matches
-    any local file storage defined in the Shotgun Site Preferences.
-    Read more about local file links `here <https://support.shotgunsoftware.com/hc/en-us/articles/219030938-Linking-to-local-files>`_.
-
-    Local file storage mappings in Shotgun are global and affect
-    all machines, all users and all projects.
-
-    If a local storage doesn't define the operating system platform
-    you are currently using, you can augment it by adding an
-    environment variable. For example, if there
-    is a local storage named ``Renders`` that is defined on Linux and Windows,
-    you can extend to support mac by creating an environment variable named
-    ``SHOTGUN_PATH_MAC_RENDERS``. The general syntax for this is
-    ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME``.
-
-    .. note:: If you define a ``SHOTGUN_PATH_MAC_RENDERS`` environment variable
-              and there is a local storage ``Renders`` with a mac path set,
-              the local storage value will be used and a warning will be logged.
-
-    .. note:: If no storage can be resolved for the current operating system,
-              a :class:`~sgtk.util.PublishPathNotDefinedError` is raised.
-
-
-    **Resolving file urls**
-
-    The method also supports the resolution of ``file://`` urls. Contrary to
-    local file storage objects in Shotgun (see above), these paths are not
-    stored in a multi-os representation but are just defined on the operating
-    system where they were created.
-
-    If you are trying to resolve a ``file://`` url on an os platform different
-    from the one where where the url was created, the method will attempt to
-    resolve it into a valid path using several different approaches:
-
-    - First, it will look for the three environment variables ``SHOTGUN_PATH_WINDOWS``,
-      ``SHOTGUN_PATH_MAC``, and ``SHOTGUN_PATH_LINUX``. If these are defined,
-      the method will attempt to translate the path this way. For example, if
-      you are trying to resolve ``file:///prod/proj_x/assets/bush/file.txt`` on
-      windows, you could set up ``SHOTGUN_PATH_WINDOWS=P:\prod`` and
-      ``SHOTGUN_PATH_LINUX=/prod`` in order to hint the way the path should be
-      resolved.
-
-    - If you wanted to use more than one set of environment variables, this is possible
-      by extending the above syntax with a suffix:
-
-        - If you have a storage for renders, you could for example define
-          ``SHOTGUN_PATH_LINUX_RENDERS``, ``SHOTGUN_PATH_MAC_RENDERS`` and
-          ``SHOTGUN_PATH_WINDOWS_RENDERS`` in order to provide a translation
-          mechanism for all ``file://`` urls published that refer to data
-          inside your render storage.
-
-        - If you have a storage for editorial data, you could for example define
-          ``SHOTGUN_PATH_LINUX_EDITORIAL``, ``SHOTGUN_PATH_MAC_EDITORIAL`` and
-          ``SHOTGUN_PATH_WINDOWS_EDITORIAL`` in order to provide another translation
-          mechanism for those roots.
-
-      Once you have standardized on these environment variables, you could consider
-      converting them into a Shotgun local storages. Once they are defined in the
-      Shotgun preferences, they will be automatically picked up and no
-      environment variables would be needed.
-
-    - In addition to the above, all local storages defined in the Shotgun
-      preferences will be handled the same way.
-
-    - If a local storage has been defined, but an operating system is missing,
-      this can be supplied via an environment variable. For example, if there
-      is a local storage named ``Renders`` that is defined on Linux and Windows,
-      you can extend to support mac by creating an environment variable named
-      ``SHOTGUN_PATH_MAC_RENDERS``. The general syntax for this is
-      ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME``.
-
-    - If no root matches, the file path will be returned as is.
-
-    .. note::   For example, you have published the file ``/projects/some/file.txt`` on Linux
-                and a Shotgun publish with the url ``file:///projects/some/file.txt`` was generated.
-                The Linux path ``/projects`` equates to ``Q:\projects`` on Windows
-                and hence you want the full path to be translated to
-                ``Q:\\projects\\some\\file.txt``. All of the setups below would handle this:
-
-                - A general environment based override:
-
-                    - ``SHOTGUN_PATH_LINUX=/projects``
-                    - ``SHOTGUN_PATH_WINDOWS=Q:\projects``
-                    - ``SHOTGUN_PATH_MAC=/projects``
-
-                - A Shotgun local storage "Projects" set up with:
-
-                    - Linux Path: ``/projects``
-                    - Windows Path: ``Q:\projects``
-                    - Mac Path: ``/projects``
-
-                - A Shotgun local storage "Projects" augmented with an environment variable:
-
-                    - Linux Path: ``/projects``
-                    - Windows Path: ``<blank>``
-                    - Mac Path: ``/projects``
-                    - ``SHOTGUN_PATH_WINDOWS_PROJECTS=Q:\projects``
-
-
-    .. note:: If you have a local storage ``Renders`` defined in Shotgun with
-       a Linux path set and also a ``SHOTGUN_PATH_LINUX_RENDERS`` environment
-       variable defined, the storage will take precedence, the environment
-       variable will be ignored and a warning will be logged. Generally speaking,
-       local storage definitions always take precedence over environment variables.
-
-
-    **Customization examples**
-
-    If you want to add support beyond local file links and ``file://`` urls, you can
-    customize the ``resolve_publish.py`` core hook. This can for example be used to
-    add support for the following customizations:
-
-    - Publishes with associated uploaded files could be automatically downloaded
-      into an appropriate cache location by the core hook and the path would be
-      be returned.
-
-    - Custom url schemes (such as ``perforce://``) could be resolved into local paths.
-
 
     **Parameters**
 
@@ -549,4 +404,3 @@ def __resolve_url_link(tk, attachment_data):
     resolved_path = resolved_path.replace("/", os.path.sep)
     log.debug("Converted %s -> %s" % (attachment_data["url"], resolved_path))
     return resolved_path
-
