@@ -242,8 +242,8 @@ class CachedConfiguration(Configuration):
                 )
                 log.debug("Previous core restore complete...")
         else:
-            self._delete_old_backups(config_backup_path)
-            self._delete_old_backups(core_backup_path)
+            self._delete_old_backups(os.path.dirname(os.path.dirname(config_backup_path)))
+            self._delete_old_backups(os.path.dirname(core_backup_path))
 
         # @todo - prime caches (yaml, path cache)
 
@@ -281,20 +281,23 @@ class CachedConfiguration(Configuration):
                     self.path.as_shotgun_dict()
                 )
 
-    def _delete_old_backups(self, latest_backup_folder_path):
+    def _delete_old_backups(self, backups_folder_path):
         """
-        Deletes all of the folders in the backups_folder except
-        for the last backup created.
+        Deletes all of the folders in the backups_folder_path
+
+        :param backups_folder_path: File system path to location where core backups
+                                    are temporarily saved
         """
     
-        if os.path.exists(latest_backup_folder_path):
-            (backups_folder_path, latest_backup_folder_name) = os.path.split(latest_backup_folder_path)
+        if os.path.exists(backups_folder_path):
+            log.info("Deleting all core backups in folder: %s" % backups_folder_path)
             names = os.listdir(backups_folder_path)
             for name in names:
                 item_path = os.path.join(backups_folder_path, name) 
                 try: 
-                    if os.path.isdir(item_path) and not name == latest_backup_folder_name: 
+                    if os.path.isdir(item_path): 
                         shutil.rmtree(item_path)
+                        log.info("Deleted backups folder: %s" % item_path)
                 except Exception, e: 
                     log.error("Could not delete %s: %s" % (item_path, e)) 
         
