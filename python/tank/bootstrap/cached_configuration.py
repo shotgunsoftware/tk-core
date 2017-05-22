@@ -290,14 +290,14 @@ class CachedConfiguration(Configuration):
         """
     
         if os.path.exists(backups_folder_path):
-            log.info("Deleting all core backups in folder: %s" % backups_folder_path)
+            log.debug("Deleting all core backups in folder: %s" % backups_folder_path)
             names = os.listdir(backups_folder_path)
             for name in names:
                 item_path = os.path.join(backups_folder_path, name) 
                 try: 
                     if os.path.isdir(item_path): 
                         shutil.rmtree(item_path)
-                        log.info("Deleted backups folder: %s" % item_path)
+                        log.debug("Deleted backups folder: %s" % item_path)
                 except Exception, e: 
                     log.error("Could not delete %s: %s" % (item_path, e)) 
         
