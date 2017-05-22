@@ -366,7 +366,7 @@ class ConfigurationResolver(object):
                 if path:
                     yield pc
                 else:
-                    log.warning("Pipeline configuration's 'path' field are not set: %s" % pc)
+                    log.debug("Pipeline configuration's 'path' fields are not set: %s" % pc)
 
     def _pick_primary_pipeline_config(self, configs, level_name):
         """
