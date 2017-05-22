@@ -803,7 +803,6 @@ class ToolkitManager(object):
                 self._sg_connection,
             )
 
-        log.info("Using %s" % config)
         log.debug("Bootstrapping into configuration %r" % config)
 
         # see what we have locally
