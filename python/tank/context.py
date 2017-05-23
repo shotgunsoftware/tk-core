@@ -58,6 +58,8 @@ class Context(object):
     The data forms a hierarchy, so implicitly, the task belongs to the entity which in turn
     belongs to the project. The exception to this is the user, which simply reflects the
     currently operating user.
+
+    This is Jeff making some doc changes.
     """
 
     def __init__(self, tk, project=None, entity=None, step=None, task=None, user=None, additional_entities=None):
