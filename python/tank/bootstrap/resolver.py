@@ -75,7 +75,7 @@ class ConfigurationResolver(object):
             self._plugin_id,
         )
 
-    def resolve_configuration(self, config_descriptor, sg_connection):
+    def resolve_configuration(self, config_descriptor, sg_connection, pc_id=None):
         """
         Return a configuration object given a config descriptor
 
@@ -156,7 +156,7 @@ class ConfigurationResolver(object):
                 sg_connection,
                 self._project_id,
                 self._plugin_id,
-                None,  # pipeline config id
+                pc_id,
                 self._bundle_cache_fallback_paths,
                 cfg_descriptor
             )
@@ -194,7 +194,7 @@ class ConfigurationResolver(object):
                 sg_connection.base_url,
                 self._project_id,
                 self._plugin_id,
-                None,  # pipeline config id
+                pc_id,
                 LocalFileStorageManager.CACHE
             )
 
@@ -219,7 +219,7 @@ class ConfigurationResolver(object):
                 cfg_descriptor,
                 self._project_id,
                 self._plugin_id,
-                None,  # pipeline config id
+                pc_id,
                 self._bundle_cache_fallback_paths
             )
 
@@ -640,6 +640,7 @@ class ConfigurationResolver(object):
 
         # default to the fallback descriptor
         descriptor = fallback_config_descriptor
+        pc_id = None
 
         if pipeline_config is None:
             log.debug("No pipeline configuration found. Using fallback descriptor")
@@ -648,6 +649,8 @@ class ConfigurationResolver(object):
             log.debug(
                 "The following pipeline configuration will be used: %s" % pprint.pformat(pipeline_config)
             )
+
+            pc_id = pipeline_config["id"]
 
             # now create a descriptor based on the data in the fields.
             # the following priority order exists:
@@ -688,7 +691,7 @@ class ConfigurationResolver(object):
 
         log.debug("The descriptor representing the config is %s" % descriptor)
 
-        return self.resolve_configuration(descriptor, sg_connection)
+        return self.resolve_configuration(descriptor, sg_connection, pc_id)
 
     def _is_classic_pc(self, pc):
         """
