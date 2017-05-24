@@ -1075,7 +1075,9 @@ class ToolkitManager(object):
 
         # Perform an absolute import to ensure we get the new swapped core.
         # This is required to make sure we log into the logging queue of this swapped core.
-        from tank.util import log_user_activity_metric
+        from tank import util
+        if not hasattr(util, "log_user_activity_metric"):
+            return
 
         module = "tk-core"
 
@@ -1086,7 +1088,7 @@ class ToolkitManager(object):
 
         log.debug("Logging user activity metric: module '%s', action '%s'" % (module, action))
 
-        log_user_activity_metric(module, action)
+        util.log_user_activity_metric(module, action)
 
     @staticmethod
     def get_core_python_path():
