@@ -75,7 +75,7 @@ class ConfigurationResolver(object):
             self._plugin_id,
         )
 
-    def resolve_configuration(self, config_descriptor, sg_connection, pc_id=None):
+    def resolve_configuration(self, config_descriptor, sg_connection):
         """
         Return a configuration object given a config descriptor
 
@@ -83,6 +83,18 @@ class ConfigurationResolver(object):
         :param sg_connection: Shotgun API instance
         :return: :class:`Configuration` instance
         """
+        self._resolve_configuration(config_descriptor, sg_connection, pc_id=None)
+
+    def _resolve_configuration(self, config_descriptor, sg_connection, pc_id):
+        """
+        Return a configuration object given a config descriptor
+
+        :param config_descriptor: descriptor dict or string
+        :param sg_connection: Shotgun API instance
+        :param pc_id: Id of the pipeline configuration in Shotgun. Can be ``None``.
+        :return: :class:`Configuration` instance
+        """
+
         log.debug("%s resolving configuration for descriptor %s" % (self, config_descriptor))
 
         if config_descriptor is None:

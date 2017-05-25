@@ -34,7 +34,7 @@ class ConfigurationWriter(object):
     Class used to write and update Toolkit configurations on disk.
     """
 
-    def __init__(self, path, sg):
+    def __init__(self, path, sg, is_unmanaged=True):
         """
         Constructor.
 
@@ -43,6 +43,7 @@ class ConfigurationWriter(object):
         """
         self._path = path
         self._sg_connection = sg
+        self._is_unmanaged = is_unmanaged
 
     @property
     def path(self):
@@ -425,7 +426,8 @@ class ConfigurationWriter(object):
             "published_file_entity_type": "PublishedFile",
             "use_bundle_cache": True,
             "bundle_cache_fallback_roots": bundle_cache_fallback_paths,
-            "use_shotgun_path_cache": True
+            "use_shotgun_path_cache": True,
+            "unmanaged": self._is_unmanaged
         }
 
         # write pipeline_configuration.yml
