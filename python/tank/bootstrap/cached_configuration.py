@@ -130,11 +130,15 @@ class CachedConfiguration(Configuration):
             return self.LOCAL_CFG_INVALID
         finally:
             fh.close()
-        print deploy_generation, constants.BOOTSTRAP_LOGIC_GENERATION
+
         if deploy_generation != constants.BOOTSTRAP_LOGIC_GENERATION:
             # different format or logic of the deploy itself.
             # trigger a redeploy
-            log.debug("Config was installed with an old generation of the logic.")
+            log.debug(
+                "Config was installed with a different generation of the logic. "
+                "Was expecting %s but got %s.",
+                constants.BOOTSTRAP_LOGIC_GENERATION, deploy_generation
+            )
             return self.LOCAL_CFG_DIFFERENT
 
         if descriptor_dict != self._descriptor.get_dict():
