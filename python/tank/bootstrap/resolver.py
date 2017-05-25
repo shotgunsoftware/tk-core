@@ -83,7 +83,7 @@ class ConfigurationResolver(object):
         :param sg_connection: Shotgun API instance
         :return: :class:`Configuration` instance
         """
-        self._resolve_configuration(config_descriptor, sg_connection, pc_id=None)
+        return self._resolve_configuration(config_descriptor, sg_connection, pc_id=None)
 
     def _resolve_configuration(self, config_descriptor, sg_connection, pc_id):
         """
