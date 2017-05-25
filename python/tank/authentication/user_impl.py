@@ -21,7 +21,7 @@ at any point.
 
 import cPickle
 from .shotgun_wrapper import ShotgunWrapper
-from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
+from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
 
 from . import session_cache
 from .errors import IncompleteCredentials
@@ -304,6 +304,9 @@ class SessionUser(ShotgunUserImpl):
         """
         Checks if the credentials for the user are expired.
 
+        This check is done solely on the Shotgun side. If SSO is being used,
+        we do not attempt to contact the IdP to validate the session.
+
         :returns: True if the credentials are expired, False otherwise.
         """
         logger.debug("Connecting to shotgun to determine if credentials have expired...")
@@ -315,6 +318,23 @@ class SessionUser(ShotgunUserImpl):
         try:
             sg.find_one("HumanUser", [])
             return False
+        except ProtocolError as e:
+            # One potential source of the error is that our SAML claims have
+            # expired. We check if we were given a 302 and the
+            # saml_login_request URL.
+            # But if we get there, it means our session_token is still valid
+            # as far as Shotgun is concerned.
+            if (
+                e.errcode == 302 and
+                "location" in e.headers and
+                e.headers["location"].endswith("/saml/saml_login_request")
+            ):
+                # If we get here, the session_token is still valid.
+                logger.debug("The SAML claims have expired. But the session_token is still valid")
+                return False
+            else:
+                logger.error("Unexpected exception while validating credentials: %s" % e)
+            return True
         except AuthenticationFault:
             return True
 
@@ -354,6 +374,7 @@ class SessionUser(ShotgunUserImpl):
         data = super(SessionUser, self).to_dict()
         data["login"] = self.get_login()
         data["session_token"] = self.get_session_token()
+        data["cookies"] = self.get_cookies()
         return data
 
     def _try_save(self):

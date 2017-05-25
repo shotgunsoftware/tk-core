@@ -20,6 +20,7 @@ import json
 import logging
 import os
 import time
+import urllib
 
 from .authentication_session_data import AuthenticationSessionData
 from ..ui.qt_abstraction import QtCore, QtNetwork, QtGui, QtWebKit
@@ -60,6 +61,7 @@ class Saml2Sso(object):
 
         self._view = QtWebKit.QWebView(self._dialog)
         self._view.page().networkAccessManager().finished.connect(self.on_http_response_finished)
+        self._view.loadFinished.connect(self.on_load_finished)
 
         # Purposely disable the 'Reload' contextual menu, as it should not be
         # used for SSO. Reloading the page confuses the server.
@@ -67,7 +69,9 @@ class Saml2Sso(object):
 
         # Ensure that the background color is not controlled by the login page.
         self._view.setStyleSheet("background-color:white;")
-        self._view.loadFinished.connect(self.on_load_finished)
+        # Ensure that we do not show any warnings about unsupported browser.
+        css_style = base64.b64encode('div.browser_not_approved { display: none !important; }')
+        self._view.settings().setUserStyleSheetUrl("data:text/css;charset=utf-8;base64," + css_style)
 
         # Threshold percentage of the SSO session duration, at which
         # time the pre-emptive renewal operation should be started.
@@ -105,7 +109,7 @@ class Saml2Sso(object):
 
         # For debugging purposes
         # @TODO: Find a better way than to use the log level
-        if log.level == logging.DEBUG or "SGTK_SHOTGUN_USING_VM" in os.environ:
+        if log.level == logging.DEBUG or "SAML2_SHOTGUN_USING_VM" in os.environ:
             # Disable SSL validation, useful when using a VM or a test site.
             config = QtNetwork.QSslConfiguration.defaultConfiguration()
             config.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
@@ -120,14 +124,6 @@ class Saml2Sso(object):
                 QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled,
                 True
             )
-
-    # def __del__(self):
-    #     """TBD."""
-    #     # log.debug("==- __del__")
-    #     print "==- __del__"
-    #     self.stop_session_renewal()
-    #     # if log.level == logging.DEBUG or "SGTK_SHOTGUN_USING_VM" in os.environ:
-    #     #     self._inspector.close()
 
     @property
     def _session(self):
@@ -176,7 +172,7 @@ class Saml2Sso(object):
             if key == "_session_id":
                 content["session_id"] = value
             if key.startswith("shotgun_sso_session_userid_u"):
-                content["user_id"] = value
+                content["user_id"] = urllib.unquote(value)
             if key.startswith("csrf_token_u"):
                 content["csrf_key"] = key
                 content["csrf_value"] = value
@@ -248,7 +244,7 @@ class Saml2Sso(object):
 
             # For debugging purposes
             # @TODO: Find a better way than to use this EV
-            if "RV_SHOTGUN_USING_VM" in os.environ:
+            if "SAML2_SHOTGUN_USING_VM" in os.environ:
                 interval = 5000
         log.debug("==- start_sso_renewal: interval: %s" % interval)
 
@@ -258,11 +254,10 @@ class Saml2Sso(object):
 
     def on_http_response_finished(self, reply):
         """on_http_response_finished."""
-        log.debug("==- on_http_response_finished")
+        # log.debug("==- on_http_response_finished")
 
         error = reply.error()
         url = reply.url().toString()
-        log.debug("==- on_http_response_finished: %s" % url)
         session = AuthenticationSessionData() if self._session is None else self._session
 
         if (
@@ -279,6 +274,7 @@ class Saml2Sso(object):
                     # foobar.
                     session.error = HTTP_CANT_CONNECT_TO_SHOTGUN
                 else:
+                    # We silently ignore content not found otherwise.
                     pass
             elif error is QtNetwork.QNetworkReply.NetworkError.UnknownContentError:
                 # This means that the site does not support SSO or that
@@ -290,7 +286,6 @@ class Saml2Sso(object):
                 session.error = HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS
             else:
                 session.error = reply.attribute(QtNetwork.QNetworkRequest.HttpReasonPhraseAttribute)
-                log.error("==- on_http_response_finished: %s - %s" % (reply.url(), reply.error()))
         elif url.startswith(session.host + URL_LOGIN_PATH):
             # If we are being redirected to the login page, then SSO is not
             # enabled on that site.
@@ -298,7 +293,7 @@ class Saml2Sso(object):
 
         if session.error:
             # If there are any errors, we exit by force-closing the dialog.
-            log.error("%s: %s" % (url, session.error))
+            log.error("==- on_http_response_finished: %s - %s" % (url, error))
             self._dialog.reject()
 
     def is_handling_event(self):
