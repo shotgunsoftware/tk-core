@@ -703,7 +703,7 @@ class ConfigurationResolver(object):
 
         log.debug("The descriptor representing the config is %s" % descriptor)
 
-        return self.resolve_configuration(descriptor, sg_connection, pc_id)
+        return self._resolve_configuration(descriptor, sg_connection, pc_id)
 
     def _is_classic_pc(self, pc):
         """
