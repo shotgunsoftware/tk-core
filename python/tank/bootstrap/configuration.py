@@ -8,12 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import inspect
 
 from .import_handler import CoreImportHandler
 
-from .. import LogManager
+from ..log import LogManager
+from ..pipelineconfig_utils import get_core_python_path_for_config
 
 log = LogManager.get_logger(__name__)
 
@@ -76,7 +76,7 @@ class Configuration(object):
                         the tk instance with.
         """
         path = self._path.current_os
-        core_path = os.path.join(path, "install", "core", "python")
+        core_path = get_core_python_path_for_config(path)
 
         # swap the core out
         CoreImportHandler.swap_core(core_path)

@@ -56,6 +56,8 @@ class IODescriptorAppStore(IODescriptorBase):
 
     """
 
+    _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "download_complete"
+
     # cache app store connections for performance
     _app_store_connections = {}
 
@@ -185,7 +187,7 @@ class IODescriptorAppStore(IODescriptorBase):
         return metadata
 
     @LogManager.log_timing
-    def __refresh_metadata(self, sg_bundle_data=None, sg_version_data=None):
+    def __refresh_metadata(self, path, sg_bundle_data=None, sg_version_data=None):
         """
         Refreshes the metadata cache on disk. The metadata cache contains
         app store information such as deprecation status, label information
@@ -197,21 +199,14 @@ class IODescriptorAppStore(IODescriptorBase):
         If the descriptor resides in a read-only bundle cache, for example
         baked into a DCC distribution, the cache will not be updated.
 
+        :param path: The path to the bundle where cache info should be written
         :param sg_bundle_data, sg_version_data: Shotgun data to cache
         :returns: A dictionary with keys 'sg_bundle_data' and 'sg_version_data',
                   containing Shotgun metadata.
         """
         log.debug("Attempting to refresh app store metadata for %r" % self)
 
-        # see if a cached version exists
-        local_bundle_path = self.get_path()
-
-        if local_bundle_path is None:
-            # if we don't have bundle cached locally yet, skip
-            log.debug("Bundle does not exist on disk yet. Skipping metadata caching")
-            return
-
-        cache_file = os.path.join(self.get_path(), METADATA_FILE)
+        cache_file = os.path.join(path, METADATA_FILE)
         log.debug("Will attempt to refresh cache in %s" % cache_file)
 
         if sg_version_data:  # no none-check for sg_bundle_data param since this is none for tk-core
@@ -405,6 +400,58 @@ class IODescriptorAppStore(IODescriptorBase):
             pass
         return (summary, url)
 
+    def _exists_local(self, path):
+        """
+        Checks is the bundle exists on disk and ensures that it has been completely
+        downloaded if possible.
+
+        :param str path: Path to the bundle to test.
+
+        :returns: True if the bundle is deemed completed, False otherwise.
+        """
+        if not super(IODescriptorAppStore, self)._exists_local(path):
+            return False
+
+        # Now that we are guaranteed there is a folder on disk, we'll attempt to do some integrity
+        # checking.
+
+        # The metadata folder is a folder that lives inside the bundle.
+        metadata_folder = self._get_metadata_folder(path)
+
+        # If the metadata folder does not exist, this is a bundle that was downloaded with an older
+        # core. We will have to assume that it has been unzipped correctly.
+        if not os.path.isdir(metadata_folder):
+            log.debug(
+                "Pre-core-0.18.80 AppStore download found at '%s'. Assuming it is complete.", metadata_folder
+            )
+            return True
+
+        # Great, we're in the presence of a bundle that was downloaded with integrity check logic.
+
+        # The completed file flag is a file that gets written out after the bundle has been
+        # completely unzipped.
+        completed_file_flag = os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+
+        # If the complete file flag is missing, it means the download operation failed, so we'll
+        # consider it as inexistent.
+        if os.path.exists(completed_file_flag):
+            return True
+        else:
+            log.debug(
+                "Note: Missing download complete ticket file '%s'. "
+                "This suggests a partial download" % completed_file_flag
+            )
+            return False
+
+    def _get_metadata_folder(self, path):
+        """
+        Returns the corresponding metadata folder given a path
+        """
+        # Do not set this as a hidden folder (with a . in front) in case somebody does a
+        # rm -rf * or a manual deletion of the files. This will ensure this is treated just like
+        # any other file.
+        return os.path.join(path, "appstore-metadata")
+
     def download_local(self):
         """
         Retrieves this version to local repo.
@@ -420,11 +467,15 @@ class IODescriptorAppStore(IODescriptorBase):
         # create folder
         filesystem.ensure_folder_exists(target)
 
+        # create settings folder
+        metadata_folder = self._get_metadata_folder(target)
+        filesystem.ensure_folder_exists(metadata_folder)
+
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
 
         # fetch metadata from sg...
-        metadata = self.__refresh_metadata()
+        metadata = self.__refresh_metadata(target)
 
         # now get the attachment info
         version = metadata.get("sg_version_data")
@@ -445,6 +496,11 @@ class IODescriptorAppStore(IODescriptorBase):
             raise TankAppStoreError(
                 "Failed to download %s. Error: %s" % (self, e)
             )
+
+        # write end receipt
+        filesystem.touch_file(
+            os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+        )
 
         # write a stats record to the tank app store
         data = {}
@@ -487,7 +543,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 try:
                     if self.__match_label(metadata["sg_version_data"]["tag_list"]):
                         version_numbers.append(version_str)
-                except Exception, e:
+                except Exception:
                     log.debug("Could not determine label metadata for %s. Ignoring." % path)
 
         else:
@@ -610,7 +666,11 @@ class IODescriptorAppStore(IODescriptorBase):
             if version_to_use is None:
                 raise TankDescriptorError(
                     "'%s' does not have a version matching the pattern '%s'. "
-                    "Available versions are: %s" % (self.get_system_name(), constraint_pattern, ", ".join(version_numbers))
+                    "Available versions are: %s" % (
+                        self.get_system_name(),
+                        constraint_pattern,
+                        ", ".join(version_numbers)
+                    )
                 )
             # get the sg data for the given version
             sg_data_for_version = [d for d in matching_records if d["code"] == version_to_use][0]
@@ -637,7 +697,9 @@ class IODescriptorAppStore(IODescriptorBase):
         # if this item exists locally, attempt to update the metadata cache
         # this ensures that if labels are added in the app store, these
         # are correctly cached locally.
-        desc.__refresh_metadata(sg_bundle_data, sg_data_for_version)
+        cached_path = desc.get_path()
+        if cached_path:
+            desc.__refresh_metadata(cached_path, sg_bundle_data, sg_data_for_version)
 
         return desc
 
@@ -844,4 +906,3 @@ class IODescriptorAppStore(IODescriptorBase):
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect
-

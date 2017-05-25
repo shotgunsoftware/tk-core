@@ -8,10 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
 import os
-import tempfile
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import setUpModule # noqa
+
 import sgtk
 
 
@@ -62,8 +64,6 @@ class TestIODescriptors(TankTestBase):
         self.assertEqual(d.get_path(), app_path)
         self.assertEqual(d.find_latest_cached_version(), d)
 
-
-
         self.assertEqual(d2.get_path(), None)
 
         app_path = os.path.join(root, "app_store", "tk-bundle", "v1.2.1")
@@ -89,7 +89,6 @@ class TestIODescriptors(TankTestBase):
         self.assertEqual(d.find_latest_cached_version("v1.x.x"), d3)
         self.assertEqual(d.find_latest_cached_version("v2.x.x"), None)
 
-
     def test_cache_locations(self):
         """
         Tests locations of caches when using fallback paths.
@@ -101,9 +100,7 @@ class TestIODescriptors(TankTestBase):
         root_c = os.path.join(self.project_root, "cache_root_c")
         root_d = os.path.join(self.project_root, "cache_root_d")
 
-
         location = {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"}
-
 
         d = sgtk.descriptor.create_descriptor(
             sg,
@@ -129,3 +126,45 @@ class TestIODescriptors(TankTestBase):
             ]
         )
 
+    def test_download_receipt(self):
+        """
+        Tests the download receipt logic
+        """
+        sg = self.tk.shotgun
+        root = os.path.join(self.project_root, "cache_root")
+
+        d = sgtk.descriptor.create_descriptor(
+            sg,
+            sgtk.descriptor.Descriptor.APP,
+            {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"},
+            bundle_cache_root_override=root
+        )
+
+        self.assertEqual(d.get_path(), None)
+        self.assertEqual(d.find_latest_cached_version(), None)
+
+        bundle_path = os.path.join(root, "app_store", "tk-bundle", "v1.1.1")
+        info_path = os.path.join(bundle_path, "info.yml")
+
+        os.makedirs(bundle_path)
+        with open(info_path, "wt") as fh:
+            fh.write("test data\n")
+
+        self.assertEqual(d.get_path(), bundle_path)
+        self.assertEqual(d.find_latest_cached_version(), d)
+
+        # create metadata folder
+        metadata_dir = os.path.join(bundle_path, "appstore-metadata")
+        os.makedirs(metadata_dir)
+
+        # because download receipt is missing, nothing is detected
+        self.assertEqual(d.get_path(), None)
+        self.assertEqual(d.find_latest_cached_version(), None)
+
+        # add download receipt and re-check
+        path = os.path.join(metadata_dir, "download_complete")
+        with open(path, "wt") as fh:
+            fh.write("test data\n")
+
+        self.assertEqual(d.get_path(), bundle_path)
+        self.assertEqual(d.find_latest_cached_version(), d)

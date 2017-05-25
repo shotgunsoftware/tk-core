@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import inspect
 
 from . import constants
 from .errors import TankBootstrapError
@@ -18,7 +19,7 @@ from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
-from ..util import ShotgunPath
+from ..util.version import is_version_older
 
 log = LogManager.get_logger(__name__)
 
@@ -371,6 +372,7 @@ class ToolkitManager(object):
         self._log_startup_message(engine_name, entity)
 
         tk = self._bootstrap_sgtk(engine_name, entity)
+
         engine = self._start_engine(tk, engine_name, entity)
 
         self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
@@ -568,7 +570,7 @@ class ToolkitManager(object):
         :type project: Dictionary with keys ``type`` and ``id``.
 
         :returns: List of pipeline configurations.
-        :rtype: List of dictionaries with keys ``type``, ``id``, ``name``, ``project``, and ``descriptor``. 
+        :rtype: List of dictionaries with keys ``type``, ``id``, ``name``, ``project``, and ``descriptor``.
             The pipeline configurations will always be sorted such as the primary pipeline configuration,
             if available, will be first. Then the remaining pipeline configurations will be sorted by
             ``name`` field (case insensitive), then the ``project`` field and finally then ``id`` field.
@@ -801,7 +803,6 @@ class ToolkitManager(object):
                 self._sg_connection,
             )
 
-        log.info("Using %s" % config)
         log.debug("Bootstrapping into configuration %r" % config)
 
         # see what we have locally
@@ -873,6 +874,7 @@ class ToolkitManager(object):
         else:
             log.debug("Configuration has local bundle cache, skipping bundle caching.")
 
+        log.debug("Initialized core %s" % tk)
         return tk
 
     def _start_engine(self, tk, engine_name, entity, progress_callback=None):
@@ -919,7 +921,32 @@ class ToolkitManager(object):
 
         # perform absolute import to ensure we get the new swapped core.
         import tank
-        engine = tank.platform.start_engine(engine_name, tk, ctx)
+
+        # handle legacy cases
+        if engine_name == constants.SHOTGUN_ENGINE_NAME and is_version_older(tk.version, "v0.18.77"):
+
+            # bootstrapping into a shotgun engine with an older core
+            # we perform this special check to make sure that we correctly pick up
+            # the shotgun_xxx.yml environment files, even for older cores.
+            # new cores handles all this inside the tank.platform.start_shotgun_engine
+            # business logic.
+            log.debug(
+                "Target core version is %s. Starting shotgun engine via legacy pathway." % tk.version
+            )
+
+            if entity is None:
+                raise TankBootstrapError(
+                    "Legacy shotgun environments do not support bootstrapping into a site context."
+                )
+
+            # start engine via legacy pathway
+            # note the local import due to core swapping.
+            from tank.platform import engine
+            engine = engine.start_shotgun_engine(tk, entity["type"], ctx)
+
+        else:
+            # no legacy cases
+            engine = tank.platform.start_engine(engine_name, tk, ctx)
 
         log.debug("Launched engine %r" % engine)
 
@@ -1048,7 +1075,9 @@ class ToolkitManager(object):
 
         # Perform an absolute import to ensure we get the new swapped core.
         # This is required to make sure we log into the logging queue of this swapped core.
-        from tank.util import log_user_activity_metric
+        from tank import util
+        if not hasattr(util, "log_user_activity_metric"):
+            return
 
         module = "tk-core"
 
@@ -1059,4 +1088,28 @@ class ToolkitManager(object):
 
         log.debug("Logging user activity metric: module '%s', action '%s'" % (module, action))
 
-        log_user_activity_metric(module, action)
+        util.log_user_activity_metric(module, action)
+
+    @staticmethod
+    def get_core_python_path():
+        """
+        Computes the path to the current Toolkit core.
+
+        The current Toolkit core is defined as the core that gets imported when you type
+        ``import sgtk`` and the python path is derived from that module.
+
+        For example, if the ``sgtk`` module was found at ``/path/to/config/install/core/python/sgtk``,
+        the return path would be ``/path/to/config/install/core/python``
+
+        This can be useful if you want to hand down to a subprocess the location of the current
+        process's core, since ``sys.path`` and the ``PYTHONPATH`` are not updated after
+        bootstrapping.
+
+        :returns: Path to the current core.
+        :rtype: str
+        """
+        import sgtk
+        sgtk_file = inspect.getfile(sgtk)
+        tank_folder = os.path.dirname(sgtk_file)
+        python_folder = os.path.dirname(tank_folder)
+        return python_folder

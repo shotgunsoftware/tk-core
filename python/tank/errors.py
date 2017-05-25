@@ -27,7 +27,7 @@ class TankUnreadableFileError(TankError):
 
 class TankFileDoesNotExistError(TankUnreadableFileError):
     """
-    Exceptions that indicates that a required file does not exist.
+    Exception that indicates that a required file does not exist.
     """
 
 

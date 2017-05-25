@@ -40,6 +40,7 @@ class IODescriptorBase(object):
     systems: There may be an app descriptor which knows how to communicate with the
     Tank App store and one which knows how to handle the local file system.
     """
+
     def __init__(self, descriptor_dict):
         """
         Constructor
@@ -322,11 +323,13 @@ class IODescriptorBase(object):
                     # check that it's a folder and not a system folder
                     if os.path.isdir(version_full_path) and \
                             not version_folder.startswith("_") and \
-                            not version_folder.startswith("."):
+                            not version_folder.startswith(".") and \
+                            self._exists_local(version_full_path):
+                        # looks like a valid descriptor. Make sure
+                        # it is valid and fully downloaded
                         all_versions[version_folder] = version_full_path
 
         return all_versions
-
 
     def copy(self, target_path):
         """
@@ -556,6 +559,22 @@ class IODescriptorBase(object):
         """
         return self.get_path() is not None
 
+    def _exists_local(self, path):
+        """
+        Returns true if the given bundle path exists in valid local cached form
+
+        This can be reimplemented in derived classes to have more complex validation, like ensuring
+        that the bundle is fully downloaded.
+        """
+        if path is None:
+            return False
+
+        # check that the main path exists locally and is a folder
+        if not os.path.isdir(path):
+            return False
+
+        return True
+
     def _get_primary_cache_path(self):
         """
         Get the path to the cache location in the bundle cache.
@@ -591,7 +610,7 @@ class IODescriptorBase(object):
         for path in self._get_cache_paths():
             # we determine local existence based on the existence of the
             # bundle's directory on disk.
-            if os.path.exists(path):
+            if self._exists_local(path):
                 return path
 
         return None
