@@ -125,6 +125,10 @@ class Saml2Sso(object):
                 True
             )
 
+    def __del__(self):
+        """Destructor."""
+        log.debug("==- __del__")
+
     @property
     def _session(self):
         """String RO property."""
