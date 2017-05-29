@@ -48,7 +48,9 @@ class ConfigurationResolver(object):
         "linux_path",
         "mac_path",
         "sg_descriptor",
-        "descriptor"
+        "descriptor",
+        "uploaded_config",
+        "sg_uploaded_config"
     ]
 
     def __init__(
@@ -310,6 +312,7 @@ class ConfigurationResolver(object):
             path = ShotgunPath.from_shotgun_dict(pc)
             current_os_path = path.current_os
             uri = pc.get("descriptor") or pc.get("sg_descriptor")
+            uploaded_config = pc.get("uploaded_config") or pc.get("sg_uploaded_config")
 
             if path:
                 # Make sure that the config has a path for the current OS.
@@ -320,20 +323,53 @@ class ConfigurationResolver(object):
                     cfg_descriptor = create_descriptor(
                         sg_connection,
                         Descriptor.CONFIG,
-                        dict(path=current_os_path, type="path"),
+                        dict(path=current_os_path, type="path")
                     )
             elif uri:
                 log.debug("Using descriptor uri: %s", uri)
                 cfg_descriptor = create_descriptor(
                     sg_connection,
                     Descriptor.CONFIG,
-                    uri,
+                    uri
                 )
+            elif uploaded_config:
+                log.debug("Using uploaded_config: %w", uploaded_config)
+
+                if uploaded_config == pc.get("uploaded_config"):
+                    uploaded_config_field_name = "uploaded_config"
+                else:
+                    uploaded_config_field_name = "sg_uploaded_config"
+
+                # We'll report this
+                cfg_descriptor = create_descriptor(
+                    sg_connection,
+                    Descriptor.CONFIG,
+                    dict(
+                        type="shotgun",
+                        entity_type="PipelineConfiguration",
+                        field=uploaded_config_field_name,
+                        version=uploaded_config["id"], # Attachment id changes for each upload, so
+                        # this is a good way to detect changes in the zip file.
+                        name=uploaded_config["name"]
+                    )
+                )
+
+                # The uploaded config field is a shorthand for using a shotgun descriptor, so
+                # pretend that it doesn't even exist and report it as a descriptor to the rest of
+                # the code to simplify calling code
+                if "uploaded_config" in pc:
+                    del pc["uploaded_config"]
+                if "sg_uploaded_config" in pc:
+                    del pc["sg_uploaded_config"]
+
+                pc["descriptor"] = cfg_descriptor.get_uri()
+
             else:
                 # If we have neither a uri, nor a path, then we can't get
                 # a descriptor for this config.
                 log.debug("No uri or path found for config: %s", pc)
                 cfg_descriptor = None
+
 
             # We add to the pc dict even if the descriptor is a None. We have an obligation
             # to return configs even when they're not viable on the current platform. This
