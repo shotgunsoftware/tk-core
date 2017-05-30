@@ -19,6 +19,7 @@ from ... import LogManager
 
 log = LogManager.get_logger(__name__)
 
+
 class IODescriptorShotgunEntity(IODescriptorBase):
     """
     Represents a shotgun entity to which apps have been attached.
@@ -28,11 +29,23 @@ class IODescriptorShotgunEntity(IODescriptorBase):
     entity in the case you want to store a descriptor (app, engine or config)
     that can be easily accessed from any project.
 
+    There are two ways of addressing an entity.
+
     {
      type: shotgun,
      entity_type: CustomEntity01,   # entity type
-     name: tk-foo,                  # name of the record in shotgun (e.g. 'code' field)
+     name: tk-foo,                  # name of the record in shotgun (i.e. 'code' field)
      project_id: 123,               # optional project id. If omitted, name is assumed to be unique.
+     field: sg_config,              # attachment field where payload can be found
+     version: 456                   # attachment id of particular attachment
+    }
+
+    or
+
+    {
+     type: shotgun,
+     entity_type: CustomEntity01,   # entity type
+     id: 123,                       # id of the record in shotgun (i.e. 'id' field)
      field: sg_config,              # attachment field where payload can be found
      version: 456                   # attachment id of particular attachment
     }
@@ -60,11 +73,17 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         """
         super(IODescriptorShotgunEntity, self).__init__(descriptor_dict)
 
-        self._validate_descriptor(
-            descriptor_dict,
-            required=["type", "entity_type", "name", "version", "field"],
-            optional=["project_id"]
-        )
+        if "id" in descriptor_dict:
+            self._validate_descriptor(
+                descriptor_dict,
+                required=["type", "entity_type", "id", "version", "field"],
+            )
+        else:
+            self._validate_descriptor(
+                descriptor_dict,
+                required=["type", "entity_type", "name", "version", "field"],
+                optional=["project_id"]
+            )
 
         self._sg_connection = sg_connection
         self._entity_type = descriptor_dict.get("entity_type")
@@ -109,7 +128,6 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         # note: readability is promoted here - if in the future we discover issues with MAXPATH,
         #       we turn the wintermute/PipelineConfiguration.sg_config/p509_Primary part into
         #       a hash.
-
 
         # Firstly, because the bundle cache can be global, make sure we include the sg site name.
         # first, get site only; https://www.FOO.com:8080 -> www.foo.com
