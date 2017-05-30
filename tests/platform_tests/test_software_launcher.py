@@ -235,10 +235,13 @@ class TestEngineLauncher(TankTestBase):
         launcher = create_engine_launcher(self.tk, self.context, self.engine_name, products=products_list)
 
         self.assertEqual(launcher._is_product_supported("A B C"), True)
+        self.assertEqual(launcher._is_product_supported("A B c"), True)
         self.assertEqual(launcher._is_product_supported("ABC"), False)
         self.assertEqual(launcher._is_product_supported("DEF"), True)
+        self.assertEqual(launcher._is_product_supported("def"), True)
         self.assertEqual(launcher._is_product_supported("D E F"), False)
         self.assertEqual(launcher._is_product_supported("G HI"), True)
+        self.assertEqual(launcher._is_product_supported("g HI"), True)
         self.assertEqual(launcher._is_product_supported(" G HI "), False)
 
     def test_is_supported(self):
