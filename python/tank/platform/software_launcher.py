@@ -617,6 +617,9 @@ class SoftwareLauncher(object):
         ``products`` constraint. If there are no constraints on the products,
         the method will return ``True``.
 
+        .. note::
+            Product name comparison is case-insensitive.
+
         :param str product: A string representing the product name to check
             against.
 
