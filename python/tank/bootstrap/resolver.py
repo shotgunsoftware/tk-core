@@ -340,18 +340,22 @@ class ConfigurationResolver(object):
                 else:
                     uploaded_config_field_name = "sg_uploaded_config"
 
+                location = dict(
+                    type="shotgun",
+                    entity_type="PipelineConfiguration",
+                    name=pc["code"],
+                    version=uploaded_config["id"], # Attachment id changes for each upload, so
+                    # this is a good way to detect changes in the zip file.
+                    field=uploaded_config_field_name
+                )
+                if pc.get("project"):
+                    location["project_id"] = pc["project"]["id"]
+
                 # We'll report this
                 cfg_descriptor = create_descriptor(
                     sg_connection,
                     Descriptor.CONFIG,
-                    dict(
-                        type="shotgun",
-                        entity_type="PipelineConfiguration",
-                        field=uploaded_config_field_name,
-                        version=uploaded_config["id"], # Attachment id changes for each upload, so
-                        # this is a good way to detect changes in the zip file.
-                        name=uploaded_config["name"]
-                    )
+                    location
                 )
 
                 # The uploaded config field is a shorthand for using a shotgun descriptor, so
@@ -369,7 +373,6 @@ class ConfigurationResolver(object):
                 # a descriptor for this config.
                 log.debug("No uri or path found for config: %s", pc)
                 cfg_descriptor = None
-
 
             # We add to the pc dict even if the descriptor is a None. We have an obligation
             # to return configs even when they're not viable on the current platform. This
