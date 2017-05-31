@@ -52,7 +52,9 @@ def create_engine_launcher(tk, context, engine_name, versions=None, products=Non
         >>> launcher = sgtk.platform.create_engine_launcher(tk, context, "tk-maya")
         >>> software_versions = launcher.scan_software()
         >>> launch_info = launcher.prepare_launch(
-        ...     software_versions[0].path, args, "/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma"
+        ...     software_versions[0].path,
+        ...     args,
+        ...     "/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma"
         ... )
         >>> subprocess.Popen([launch_info.path + " " + launch_info.args], env=launch_info.environment)
 
