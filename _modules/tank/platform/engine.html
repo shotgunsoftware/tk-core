@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.73 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -188,6 +188,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">weakref</span>
@@ -202,6 +203,7 @@
     <span class="n">TankEngineInitError</span><span class="p">,</span>
     <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span>
     <span class="n">TankEngineEventError</span><span class="p">,</span>
+    <span class="n">TankMissingEnvironmentFile</span>
 <span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">log_user_activity_metric</span> <span class="k">as</span> <span class="n">util_log_user_activity_metric</span>
@@ -919,7 +921,7 @@
         <span class="c1"># context change, it&#39;s that the target context isn&#39;t configured properly.</span>
         <span class="c1"># As such, we&#39;ll let any exceptions (mostly TankEngineInitError) bubble</span>
         <span class="c1"># up since it&#39;s a critical error case.</span>
-        <span class="p">(</span><span class="n">new_env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">_get_env_and_descriptor_for_engine</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">new_env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span>
             <span class="n">engine_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">instance_name</span><span class="p">,</span>
             <span class="n">tk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="p">,</span>
             <span class="n">context</span><span class="o">=</span><span class="n">new_context</span><span class="p">,</span>
@@ -1205,6 +1207,10 @@
 
             <span class="c1"># run the actual payload callback</span>
             <span class="k">return</span> <span class="n">callback</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span>
+            <span class="s2">&quot;Registering command &#39;</span><span class="si">%s</span><span class="s2">&#39; with options:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">properties</span><span class="p">))</span>
+        <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;callback&quot;</span><span class="p">:</span> <span class="n">callback_wrapper</span><span class="p">,</span>
@@ -2680,7 +2686,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># get environment and engine location</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">_get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">TankEngineInitError</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
 
@@ -2842,7 +2848,34 @@
             <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">initialize_base_file_handler</span><span class="p">(</span><span class="n">engine_name</span><span class="p">)</span>
 
         <span class="c1"># get environment and engine location</span>
-        <span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">_get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">new_context</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">new_context</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">TankEngineInitError</span><span class="p">,</span> <span class="n">TankMissingEnvironmentFile</span><span class="p">):</span>
+            <span class="c1"># If we failed using the typical pick_environment approach, then we</span>
+            <span class="c1"># need to check and see if this is the Shotgun engine. If it is, then</span>
+            <span class="c1"># we can also try the legacy engine start method, which will make use</span>
+            <span class="c1"># of shotgun_xxx.yml environment files if they exist in the config.</span>
+            <span class="k">if</span> <span class="n">engine_name</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span><span class="p">:</span>
+                <span class="c1"># If the new context has an associated entity, we get the type from</span>
+                <span class="c1"># that. If it doesn&#39;t, then we can check to see if it&#39;s a project</span>
+                <span class="c1"># context. If neither is the case, meaning we have an empty context,</span>
+                <span class="c1"># then we re-raise.</span>
+                <span class="k">if</span> <span class="n">new_context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">entity_type</span> <span class="o">=</span> <span class="n">new_context</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">new_context</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">entity_type</span> <span class="o">=</span> <span class="s2">&quot;Project&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Empty context, in which case we know the start_shotgun_engine won&#39;t do what we need.</span>
+                    <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
+                        <span class="s2">&quot;Legacy shotgun environment configuration &quot;</span>
+                        <span class="s2">&quot;does not support context &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">new_context</span>
+                    <span class="p">)</span>
+
+                <span class="n">core_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting Shotgun engine in legacy mode...&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">start_shotgun_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">new_context</span><span class="p">)</span>
+            <span class="c1"># If this isn&#39;t the Shotgun engine or we haven&#39;t yet returned, then</span>
+            <span class="c1"># we just re-raise.</span>
+            <span class="k">raise</span>
 
         <span class="c1"># make sure it exists locally</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">exists_local</span><span class="p">():</span>
@@ -3033,7 +3066,7 @@
 <span class="c1">##########################################################################################</span>
 <span class="c1"># utilities</span>
 
-<span class="k">def</span> <span class="nf">_get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Utility method to return commonly needed objects when instantiating engines.</span>
 
@@ -3138,7 +3171,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

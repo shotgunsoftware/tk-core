@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.authentication.user &mdash; tk-core v0.18.73 documentation</title>
+  <title>tank.authentication.user &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -256,10 +256,7 @@
 <span class="sd">        Refreshes the credentials of this user so that they don&#39;t expire.</span>
 <span class="sd">        If they are expired, you will be prompted for the user&#39;s password.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Make a very simple authenticated request that returns as little information as possible.</span>
-        <span class="c1"># If the session token was expired, the ShotgunWrapper returned by create_sg_connection</span>
-        <span class="c1"># will take care of the session renewal.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s2">&quot;HumanUser&quot;</span><span class="p">,</span> <span class="p">[])</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">refresh_credentials</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -344,7 +341,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

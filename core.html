@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Foundation &mdash; tk-core v0.18.73 documentation</title>
+  <title>Foundation &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Deploy and management" href="bootstrap.html"/> 
 
@@ -120,6 +120,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#timestampkey">TimestampKey</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-file-resolution">Configuration file resolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a></li>
 </ul>
 </li>
@@ -148,7 +149,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -362,6 +363,24 @@ will be backwards compatible.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Sgtk.configuration_descriptor">
+<code class="descname">configuration_descriptor</code><a class="headerlink" href="#sgtk.Sgtk.configuration_descriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>The configuration descriptor represents the source of the environments associated
+with this pipeline configuration.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If this is a Toolkit Classic pipeline configuration, no descriptor will be associated
+with the pipeline configuration.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Sgtk.bundle_cache_fallback_paths">
+<code class="descname">bundle_cache_fallback_paths</code><a class="headerlink" href="#sgtk.Sgtk.bundle_cache_fallback_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of paths to the fallback bundle caches for the pipeline configuration.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1974,7 +1993,7 @@ in a given fields.</p>
 values of None.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)">list</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
 </td>
 </tr>
 </tbody>
@@ -2294,7 +2313,7 @@ without any parameters whenever a default value is required.</li>
 of choice:label pairs.</li>
 <li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
 <li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
-<li><strong>exclusions</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of forbidden values.</li>
+<li><strong>exclusions</strong> (<em>list</em>) &#8211; List of forbidden values.</li>
 <li><strong>abstract</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flagging that this should be treated as an abstract key.</li>
 <li><strong>length</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; If non-None, indicating that the value should be of a fixed length.</li>
 </ul>
@@ -2462,7 +2481,7 @@ of choice:label pairs.</li>
 only accepted values are &#8216;alphanumeric&#8217;, &#8216;alpha&#8217;, None and a regex string.</li>
 <li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
 <li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
-<li><strong>exclusions</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of forbidden values.</li>
+<li><strong>exclusions</strong> (<em>list</em>) &#8211; List of forbidden values.</li>
 <li><strong>abstract</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flagging that this should be treated as an abstract key.</li>
 <li><strong>length</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; If non-None, indicating that the value should be of a fixed length.</li>
 <li><strong>subset</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Regular expression defining a subset of the value to use.</li>
@@ -2624,7 +2643,7 @@ correct padding.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
 <li><strong>default</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Default value for this key.</li>
-<li><strong>choices</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of possible values for this key.</li>
+<li><strong>choices</strong> (<em>list</em>) &#8211; List of possible values for this key.</li>
 <li><strong>format_spec</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Specification for formatting when casting to a string.
 The form is a zero followed the number of spaces to pad
 the value.</li>
@@ -2652,13 +2671,13 @@ the value.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
 <li><strong>default</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Default value for this key.</li>
-<li><strong>choices</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of possible values for this key.</li>
+<li><strong>choices</strong> (<em>list</em>) &#8211; List of possible values for this key.</li>
 <li><strong>format_spec</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Specification for formatting when casting to a string.
 The form is a zero followed the number of spaces to pad
 the value.</li>
 <li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
 <li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
-<li><strong>exclusions</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of forbidden values.</li>
+<li><strong>exclusions</strong> (<em>list</em>) &#8211; List of forbidden values.</li>
 <li><strong>abstract</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flagging that this should be treated as an abstract key.</li>
 <li><strong>length</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; If non-None, indicating that the value should be of a fixed length.</li>
 <li><strong>strict_matching</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Indicates if the padding should be matching exactly the
@@ -2745,6 +2764,48 @@ The format follows the convention of <code class="xref py py-meth docutils liter
 
 </div>
 </div>
+<div class="section" id="configuration-file-resolution">
+<h2>Configuration file resolution<a class="headerlink" href="#configuration-file-resolution" title="Permalink to this headline">¶</a></h2>
+<p>Each pipeline configuration has configuration files that help Toolkit locate the Python interpreter to use.</p>
+<dl class="function">
+<dt id="sgtk.get_python_interpreter_for_config">
+<code class="descclassname">sgtk.</code><code class="descname">get_python_interpreter_for_config</code><span class="sig-paren">(</span><em>pipeline_config_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/pipelineconfig_utils.html#get_python_interpreter_for_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.get_python_interpreter_for_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the path to the Python interpreter for a given pipeline configuration
+path.</p>
+<p>Each pipeline configuration has three (one for Windows, one for macOS and one for Linux) interpreter
+files that provide a path to the Python interpreter used to launch the <code class="docutils literal"><span class="pre">tank</span></code>
+command.</p>
+<p>If you require a <cite>python</cite> executable to launch a script that will use a pipeline configuration, it is
+recommended its associated Python interpreter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pipeline_config_path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Path to the pipeline configuration root.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Path to the Python interpreter for that configuration.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><strong>TankInvalidInterpreterLocationError</strong> &#8211; Raised if the interpreter in the interpreter file doesn&#8217;t
+exist.</li>
+<li><strong>TankFileDoesNotExistError</strong> &#8211; Raised if the interpreter file can&#8217;t be found.</li>
+<li><strong>TankNotPipelineConfigurationError</strong> &#8211; Raised if the pipeline configuration path is not
+a pipeline configuration.</li>
+<li><strong>TankInvalidCoreLocationError</strong> &#8211; Raised if the core location specified in core_xxxx.cfg
+does not exist.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
 <div class="section" id="exceptions">
 <h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
 <p>The following exceptions are raised by the Toolkit Core API classes:</p>
@@ -2756,20 +2817,6 @@ The format follows the convention of <code class="xref py py-meth docutils liter
 </dd></dl>
 
 <dl class="class">
-<dt id="sgtk.TankUnreadableFileError">
-<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankUnreadableFileError</code><a class="reference internal" href="_modules/tank/errors.html#TankUnreadableFileError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankUnreadableFileError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
-<p>Exception that indicates that a required file can&#8217;t be read from disk.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="sgtk.TankFileDoesNotExistError">
-<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankFileDoesNotExistError</code><a class="reference internal" href="_modules/tank/errors.html#TankFileDoesNotExistError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankFileDoesNotExistError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankUnreadableFileError</span></code></p>
-<p>Exceptions that indicates that a required file does not exist.</p>
-</dd></dl>
-
-<dl class="class">
 <dt id="sgtk.TankErrorProjectIsSetup">
 <em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankErrorProjectIsSetup</code><a class="reference internal" href="_modules/tank/errors.html#TankErrorProjectIsSetup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankErrorProjectIsSetup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
@@ -2778,10 +2825,59 @@ The format follows the convention of <code class="xref py py-meth docutils liter
 </dd></dl>
 
 <dl class="class">
+<dt id="sgtk.TankFileDoesNotExistError">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankFileDoesNotExistError</code><a class="reference internal" href="_modules/tank/errors.html#TankFileDoesNotExistError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankFileDoesNotExistError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankUnreadableFileError</span></code></p>
+<p>Exception that indicates that a required file does not exist.</p>
+</dd></dl>
+
+<dl class="class">
 <dt id="sgtk.TankHookMethodDoesNotExistError">
 <em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankHookMethodDoesNotExistError</code><a class="reference internal" href="_modules/tank/errors.html#TankHookMethodDoesNotExistError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankHookMethodDoesNotExistError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
 <p>Exception that indicates that a called method does not exist in the hook.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.TankUnreadableFileError">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankUnreadableFileError</code><a class="reference internal" href="_modules/tank/errors.html#TankUnreadableFileError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankUnreadableFileError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Exception that indicates that a required file can&#8217;t be read from disk.</p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankFileDoesNotExistError</code><a class="reference internal" href="_modules/tank/errors.html#TankFileDoesNotExistError"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankUnreadableFileError</span></code></p>
+<p>Exception that indicates that a required file does not exist.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.TankInvalidInterpreterLocationError">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankInvalidInterpreterLocationError</code><a class="reference internal" href="_modules/tank/errors.html#TankInvalidInterpreterLocationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankInvalidInterpreterLocationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Exception that indicates that the interpreter specified in a file was not found.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.TankInvalidCoreLocationError">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankInvalidCoreLocationError</code><a class="reference internal" href="_modules/tank/errors.html#TankInvalidCoreLocationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankInvalidCoreLocationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Exception that indicates the core location file contained an invalid path.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.TankNotPipelineConfigurationError">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankNotPipelineConfigurationError</code><a class="reference internal" href="_modules/tank/errors.html#TankNotPipelineConfigurationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankNotPipelineConfigurationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Exception that indicates that a folder doesn&#8217;t contain a pipeline configuration.</p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankUnreadableFileError</code><a class="reference internal" href="_modules/tank/errors.html#TankUnreadableFileError"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<p>Exception that indicates that a required file can&#8217;t be read from disk.</p>
 </dd></dl>
 
 </div>
@@ -2827,7 +2923,7 @@ The format follows the convention of <code class="xref py py-meth docutils liter
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

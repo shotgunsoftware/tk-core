@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.18.73 documentation</title>
+  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -169,35 +169,41 @@
             
   <h1>Source code for tank.descriptor.descriptor_bundle</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2016 Shotgun Software Inc.</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
-<span class="c1"># </span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
-<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
-<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
 <span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span><span class="p">,</span> <span class="n">CheckVersionConstraintsError</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..util.version</span> <span class="kn">import</span> <span class="n">is_version_older</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">shotgun</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">pipelineconfig_utils</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
 
 <span class="k">class</span> <span class="nc">BundleDescriptor</span><span class="p">(</span><span class="n">Descriptor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor that describes a Toolkit Bundle (App/Engine/Framework)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">        creating new descriptor objects.</span>
 
+<span class="sd">        :param sg_descriptor: Connection to the current site.</span>
 <span class="sd">        :param io_descriptor: Associated IO descriptor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span> <span class="o">=</span> <span class="n">sg_connection</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -225,6 +231,109 @@
             <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_desktop&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_desktop_version&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">constraints</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_get_sg_version</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the version of the studio shotgun server. It caches the result per site.</span>
+
+<span class="sd">        :param connection: Connection to the Shotgun site.</span>
+<span class="sd">        :type: :class:`shotgun_api3.Shotgun`</span>
+
+<span class="sd">        :returns: a string on the form &quot;X.Y.Z&quot;</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">version_tuple</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">server_info</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span><span class="s2">&quot;Could not extract version number for site: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">version_tuple</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_test_version_constraint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">current_version</span><span class="p">,</span> <span class="n">item_name</span><span class="p">,</span> <span class="n">reasons</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tests a version constraint by ensuring the user provided a version that is not older than the expected</span>
+<span class="sd">        one.</span>
+
+<span class="sd">        :param key: Name of the version constraint</span>
+<span class="sd">        :param current_version: Version the user passed in.</span>
+<span class="sd">        :param item_name: Pretty name for the version constraint.</span>
+<span class="sd">        :param reasons: List of reasons errors will be added to.</span>
+
+<span class="sd">        :returns: ``True`` if the constraint test passed, ``False`` if not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_constraints</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+            <span class="n">minimum_version</span> <span class="o">=</span> <span class="n">constraints</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">current_version</span><span class="p">:</span>
+                <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Requires at least </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> but no version was specified.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item_name</span><span class="p">,</span> <span class="n">minimum_version</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">is_version_older</span><span class="p">(</span><span class="n">current_version</span><span class="p">,</span> <span class="n">minimum_version</span><span class="p">):</span>
+                <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Requires at least </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> but currently installed version is </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">item_name</span><span class="p">,</span> <span class="n">minimum_version</span><span class="p">,</span> <span class="n">current_version</span>
+                <span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">check_version_constraints</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">core_version</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">engine_descriptor</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">desktop_version</span><span class="o">=</span><span class="bp">None</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if there are constraints blocking an upgrade or install.</span>
+
+<span class="sd">        :param core_version: Core version. If None, current core version will be used.</span>
+<span class="sd">        :type core_version: str</span>
+<span class="sd">        :param engine_descriptor: Descriptor of the engine this bundle will run under. None by default.</span>
+<span class="sd">        :type engine_descriptor: :class:`~sgtk.bootstrap.DescriptorBundle`</span>
+<span class="sd">        :param desktop_version: Version of the Shotgun Desktop. None by default.</span>
+<span class="sd">        :type desktop_version: str</span>
+
+<span class="sd">        :raises: Raised if one or multiple constraint checks has failed.</span>
+<span class="sd">        :rtype: :class:`sgtk.descriptor.CheckVersionConstraintsError`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">reasons</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test_version_constraint</span><span class="p">(</span>
+            <span class="s2">&quot;min_sg&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_sg_version</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">,</span> <span class="n">reasons</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test_version_constraint</span><span class="p">(</span>
+            <span class="s2">&quot;min_core&quot;</span><span class="p">,</span> <span class="n">core_version</span> <span class="ow">or</span> <span class="n">pipelineconfig_utils</span><span class="o">.</span><span class="n">get_currently_running_api_version</span><span class="p">(),</span> <span class="s2">&quot;Core API&quot;</span><span class="p">,</span> <span class="n">reasons</span>
+        <span class="p">)</span>
+
+        <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_constraints</span>
+
+        <span class="k">if</span> <span class="s2">&quot;min_engine&quot;</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">engine_descriptor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Requires a minimal engine version but no engine was specified.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">curr_engine_version</span> <span class="o">=</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">version</span>
+
+                <span class="n">minimum_engine_version</span> <span class="o">=</span> <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_engine&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">is_version_older</span><span class="p">(</span><span class="n">curr_engine_version</span><span class="p">,</span> <span class="n">minimum_engine_version</span><span class="p">):</span>
+                    <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Requires at least Engine </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> but currently &quot;</span>
+                                   <span class="s2">&quot;installed version is </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_descriptor</span><span class="o">.</span><span class="n">display_name</span><span class="p">,</span>
+                                                                 <span class="n">minimum_engine_version</span><span class="p">,</span>
+                                                                 <span class="n">curr_engine_version</span><span class="p">))</span>
+
+        <span class="c1"># for multi engine apps, validate the supported_engines list</span>
+        <span class="n">supported_engines</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_engines</span>
+        <span class="k">if</span> <span class="n">supported_engines</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">engine_descriptor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Bundle is compatible with a subset of engines but no engine was specified.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># this is a multi engine app!</span>
+                <span class="n">engine_name</span> <span class="o">=</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">system_name</span>
+                <span class="k">if</span> <span class="n">engine_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">supported_engines</span><span class="p">:</span>
+                    <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Not compatible with engine </span><span class="si">%s</span><span class="s2">. &quot;</span>
+                                   <span class="s2">&quot;Supported engines are </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">supported_engines</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test_version_constraint</span><span class="p">(</span>
+            <span class="s2">&quot;min_desktop&quot;</span><span class="p">,</span> <span class="n">desktop_version</span><span class="p">,</span> <span class="s2">&quot;Shotgun Desktop&quot;</span><span class="p">,</span> <span class="n">reasons</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reasons</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CheckVersionConstraintsError</span><span class="p">(</span><span class="n">reasons</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">required_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -288,8 +397,6 @@
         <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;supported_engines&quot;</span><span class="p">)</span>
 
-
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">required_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -310,15 +417,27 @@
             <span class="n">frameworks</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">return</span> <span class="n">frameworks</span>
 
+    <span class="c1">###############################################################################################</span>
     <span class="c1"># compatibility accessors to ensure that all systems</span>
     <span class="c1"># calling this (previously internal!) parts of toolkit</span>
     <span class="c1"># will still work.</span>
-    <span class="k">def</span> <span class="nf">get_version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_constraints</span>
-    <span class="k">def</span> <span class="nf">get_required_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_context</span>
-    <span class="k">def</span> <span class="nf">get_supported_platforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_platforms</span>
-    <span class="k">def</span> <span class="nf">get_configuration_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">configuration_schema</span>
-    <span class="k">def</span> <span class="nf">get_supported_engines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_engines</span>
-    <span class="k">def</span> <span class="nf">get_required_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_frameworks</span>
+    <span class="k">def</span> <span class="nf">get_version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_constraints</span>
+
+    <span class="k">def</span> <span class="nf">get_required_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_context</span>
+
+    <span class="k">def</span> <span class="nf">get_supported_platforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_platforms</span>
+
+    <span class="k">def</span> <span class="nf">get_configuration_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">configuration_schema</span>
+
+    <span class="k">def</span> <span class="nf">get_supported_engines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_engines</span>
+
+    <span class="k">def</span> <span class="nf">get_required_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_frameworks</span> <span class="c1"># noqa</span>
 
     <span class="c1">###############################################################################################</span>
     <span class="c1"># helper methods</span>
@@ -443,14 +562,15 @@
 <span class="sd">    Descriptor that describes a Toolkit Engine</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">        creating new descriptor objects.</span>
 
+<span class="sd">        :param sg_descriptor: Connection to the current site.</span>
 <span class="sd">        :param io_descriptor: Associated IO descriptor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">EngineDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span></div>
+        <span class="nb">super</span><span class="p">(</span><span class="n">EngineDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="AppDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.AppDescriptor">[docs]</a><span class="k">class</span> <span class="nc">AppDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
@@ -458,14 +578,15 @@
 <span class="sd">    Descriptor that describes a Toolkit App</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">        creating new descriptor objects.</span>
 
+<span class="sd">        :param sg_descriptor: Connection to the current site.</span>
 <span class="sd">        :param io_descriptor: Associated IO descriptor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">AppDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span></div>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AppDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FrameworkDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.FrameworkDescriptor">[docs]</a><span class="k">class</span> <span class="nc">FrameworkDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
@@ -473,14 +594,15 @@
 <span class="sd">    Descriptor that describes a Toolkit Framework</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">        creating new descriptor objects.</span>
 
+<span class="sd">        :param sg_descriptor: Connection to the current site.</span>
 <span class="sd">        :param io_descriptor: Associated IO descriptor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">FrameworkDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FrameworkDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FrameworkDescriptor.is_shared_framework"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.FrameworkDescriptor.is_shared_framework">[docs]</a>    <span class="k">def</span> <span class="nf">is_shared_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -529,7 +651,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

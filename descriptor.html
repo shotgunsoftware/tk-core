@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.73 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -137,7 +137,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -564,7 +564,7 @@ This is a string that can be on the following form:</p>
 <h3>AppDescriptor<a class="headerlink" href="#appdescriptor" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.descriptor.AppDescriptor">
-<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">AppDescriptor</code><span class="sig-paren">(</span><em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_bundle.html#AppDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.AppDescriptor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">AppDescriptor</code><span class="sig-paren">(</span><em>sg_connection</em>, <em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_bundle.html#AppDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.AppDescriptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Descriptor that describes a Toolkit App</p>
 <p>Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
 creating new descriptor objects.</p>
@@ -572,7 +572,11 @@ creating new descriptor objects.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sg_descriptor</strong> &#8211; Connection to the current site.</li>
+<li><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -586,6 +590,31 @@ creating new descriptor objects.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
 to indicate that no changelog exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.AppDescriptor.check_version_constraints">
+<code class="descname">check_version_constraints</code><span class="sig-paren">(</span><em>core_version=None</em>, <em>engine_descriptor=None</em>, <em>desktop_version=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.check_version_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if there are constraints blocking an upgrade or install.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
+<li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal"><span class="pre">DescriptorBundle</span></code>) &#8211; Descriptor of the engine this bundle will run under. None by default.</li>
+<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">Raised if one or multiple constraint checks has failed.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.descriptor.CheckVersionConstraintsError" title="sgtk.descriptor.CheckVersionConstraintsError"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></a></p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1033,7 +1062,7 @@ min_engine and min_desktop</td>
 <h3>EngineDescriptor<a class="headerlink" href="#enginedescriptor" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.descriptor.EngineDescriptor">
-<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">EngineDescriptor</code><span class="sig-paren">(</span><em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_bundle.html#EngineDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">EngineDescriptor</code><span class="sig-paren">(</span><em>sg_connection</em>, <em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_bundle.html#EngineDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Descriptor that describes a Toolkit Engine</p>
 <p>Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
 creating new descriptor objects.</p>
@@ -1041,7 +1070,11 @@ creating new descriptor objects.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sg_descriptor</strong> &#8211; Connection to the current site.</li>
+<li><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1055,6 +1088,31 @@ creating new descriptor objects.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
 to indicate that no changelog exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.EngineDescriptor.check_version_constraints">
+<code class="descname">check_version_constraints</code><span class="sig-paren">(</span><em>core_version=None</em>, <em>engine_descriptor=None</em>, <em>desktop_version=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.check_version_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if there are constraints blocking an upgrade or install.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
+<li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal"><span class="pre">DescriptorBundle</span></code>) &#8211; Descriptor of the engine this bundle will run under. None by default.</li>
+<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">Raised if one or multiple constraint checks has failed.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.descriptor.CheckVersionConstraintsError" title="sgtk.descriptor.CheckVersionConstraintsError"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></a></p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1502,7 +1560,7 @@ min_engine and min_desktop</td>
 <h3>FrameworkDescriptor<a class="headerlink" href="#frameworkdescriptor" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.descriptor.FrameworkDescriptor">
-<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">FrameworkDescriptor</code><span class="sig-paren">(</span><em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_bundle.html#FrameworkDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">FrameworkDescriptor</code><span class="sig-paren">(</span><em>sg_connection</em>, <em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_bundle.html#FrameworkDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Descriptor that describes a Toolkit Framework</p>
 <p>Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
 creating new descriptor objects.</p>
@@ -1510,7 +1568,11 @@ creating new descriptor objects.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sg_descriptor</strong> &#8211; Connection to the current site.</li>
+<li><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1540,6 +1602,31 @@ current environment.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
 to indicate that no changelog exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.FrameworkDescriptor.check_version_constraints">
+<code class="descname">check_version_constraints</code><span class="sig-paren">(</span><em>core_version=None</em>, <em>engine_descriptor=None</em>, <em>desktop_version=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.check_version_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if there are constraints blocking an upgrade or install.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
+<li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal"><span class="pre">DescriptorBundle</span></code>) &#8211; Descriptor of the engine this bundle will run under. None by default.</li>
+<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">Raised if one or multiple constraint checks has failed.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.descriptor.CheckVersionConstraintsError" title="sgtk.descriptor.CheckVersionConstraintsError"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></a></p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -2723,6 +2810,27 @@ If not url has been defined, None is returned.</p>
 <p>Base class for all descriptor related errors.</p>
 </dd></dl>
 
+<dl class="class">
+<dt id="sgtk.descriptor.CheckVersionConstraintsError">
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">CheckVersionConstraintsError</code><span class="sig-paren">(</span><em>reasons</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/errors.html#CheckVersionConstraintsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.CheckVersionConstraintsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankDescriptorError</span></code></p>
+<p>Error throw when one or more version constraints checks failed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>reasons</strong> (<em>list(str)</em>) &#8211; List of reasons why the check failed.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.descriptor.CheckVersionConstraintsError.reasons">
+<code class="descname">reasons</code><a class="headerlink" href="#sgtk.descriptor.CheckVersionConstraintsError.reasons" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of strings explaining why the constraints check failed.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 </div>
@@ -2767,7 +2875,7 @@ If not url has been defined, None is returned.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

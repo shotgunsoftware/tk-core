@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.18.73 documentation</title>
+  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -185,10 +185,6 @@
 <span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="c1"># for performance, we keep cached instances of</span>
-<span class="c1"># descriptors in a cache.</span>
-<span class="n">g_cached_instances</span> <span class="o">=</span> <span class="p">{}</span>
-
 
 <span class="k">def</span> <span class="nf">create_io_descriptor</span><span class="p">(</span>
         <span class="n">sg</span><span class="p">,</span>
@@ -243,25 +239,9 @@
     <span class="c1"># resolve into both dict and uri form</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
         <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">dict_from_uri</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
-        <span class="n">descriptor_uri</span> <span class="o">=</span> <span class="n">dict_or_uri</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># make a copy to make sure the original object is never altered</span>
         <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
-        <span class="n">descriptor_uri</span> <span class="o">=</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">uri_from_dict</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
-
-    <span class="c1"># first check if we already have this in our cache</span>
-    <span class="c1"># Since all our normal descriptors are immutable - they represent a specific,</span>
-    <span class="c1"># read only and cached version of an app, engine or framework on disk, we can</span>
-    <span class="c1"># also cache their wrapper objects.</span>
-    <span class="c1"># NOTE! We are not keying the cache based on bundle_cache_root or</span>
-    <span class="c1"># fallback_roots -- the assumption here is that if you find for example</span>
-    <span class="c1"># &lt;core appstore v1.2.3&gt; this represents that particular version of some code</span>
-    <span class="c1"># and it doesn&#39;t matter where we are fetching it from. If &lt;core appstore v1.2.3&gt;</span>
-    <span class="c1"># is available in multiple different locations on disk, the content of each location</span>
-    <span class="c1"># should be identical</span>
-    <span class="k">if</span> <span class="n">descriptor_uri</span> <span class="ow">in</span> <span class="n">g_cached_instances</span><span class="p">:</span>
-        <span class="c1"># cache hit</span>
-        <span class="k">return</span> <span class="n">g_cached_instances</span><span class="p">[</span><span class="n">descriptor_uri</span><span class="p">]</span>
 
     <span class="c1"># at this point we didn&#39;t have a cache hit,</span>
     <span class="c1"># so construct the object manually</span>
@@ -325,11 +305,8 @@
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Resolved latest to be </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
 
-    <span class="c1"># Now see if we should cache it. Only cache descriptors that represent immutable</span>
-    <span class="k">if</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">is_immutable</span><span class="p">():</span>
-        <span class="n">g_cached_instances</span><span class="p">[</span><span class="n">descriptor_uri</span><span class="p">]</span> <span class="o">=</span> <span class="n">descriptor</span>
-
     <span class="k">return</span> <span class="n">descriptor</span>
+
 
 <div class="viewcode-block" id="descriptor_uri_to_dict"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.descriptor_uri_to_dict">[docs]</a><span class="k">def</span> <span class="nf">descriptor_uri_to_dict</span><span class="p">(</span><span class="n">uri</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -340,6 +317,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">IODescriptorBase</span>
     <span class="k">return</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">dict_from_uri</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="descriptor_dict_to_uri"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.descriptor_dict_to_uri">[docs]</a><span class="k">def</span> <span class="nf">descriptor_dict_to_uri</span><span class="p">(</span><span class="n">ddict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -382,7 +360,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

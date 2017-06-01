@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.bundle &mdash; tk-core v0.18.73 documentation</title>
+  <title>tank.platform.bundle &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1055,62 +1055,6 @@
 
         <span class="k">return</span> <span class="n">resolved_hook_paths</span>
 
-    <span class="k">def</span> <span class="nf">__post_process_settings_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Recursive post-processing of settings values</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        
-        <span class="n">settings_type</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
-        
-        <span class="k">if</span> <span class="n">settings_type</span> <span class="o">==</span> <span class="s2">&quot;list&quot;</span><span class="p">:</span>
-            <span class="n">processed_val</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">value_schema</span> <span class="o">=</span> <span class="n">schema</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-                <span class="n">processed_val</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__post_process_settings_r</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">value_schema</span><span class="p">))</span>
-        
-        <span class="k">elif</span> <span class="n">settings_type</span> <span class="o">==</span> <span class="s2">&quot;dict&quot;</span><span class="p">:</span>
-            <span class="n">items</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;items&quot;</span><span class="p">,</span> <span class="p">{})</span>
-            <span class="c1"># note - we assign the original values here because we </span>
-            <span class="n">processed_val</span> <span class="o">=</span> <span class="n">value</span>
-            <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value_schema</span><span class="p">)</span> <span class="ow">in</span> <span class="n">items</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>            
-                <span class="n">processed_val</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__post_process_settings_r</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value_schema</span><span class="p">)</span>
-            
-        
-        <span class="k">elif</span> <span class="n">settings_type</span> <span class="o">==</span> <span class="s2">&quot;config_path&quot;</span><span class="p">:</span>
-            <span class="c1"># this is a config path. Stored on the form</span>
-            <span class="c1"># foo/bar/baz.png, we should translate that into</span>
-            <span class="c1"># PROJECT_PATH/tank/config/foo/bar/baz.png</span>
-            <span class="n">config_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_config_location</span><span class="p">()</span>
-            <span class="n">adjusted_value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
-            <span class="n">processed_val</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config_folder</span><span class="p">,</span> <span class="n">adjusted_value</span><span class="p">)</span>
-        
-        
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;hook:&quot;</span><span class="p">):</span>
-            
-            <span class="c1"># handle the special form where the value is computed in a hook.</span>
-            <span class="c1"># </span>
-            <span class="c1"># if the template parameter is on the form</span>
-            <span class="c1"># a) hook:foo_bar</span>
-            <span class="c1"># b) hook:foo_bar:testing:testing</span>
-            <span class="c1">#        </span>
-            <span class="c1"># The following hook will be called</span>
-            <span class="c1"># a) foo_bar with parameters []</span>
-            <span class="c1"># b) foo_bar with parameters [testing, testing]</span>
-            <span class="c1">#</span>
-            <span class="n">chunks</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
-            <span class="n">hook_name</span> <span class="o">=</span> <span class="n">chunks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">params</span> <span class="o">=</span> <span class="n">chunks</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> 
-            <span class="n">processed_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span><span class="n">hook_name</span><span class="p">,</span> 
-                                                        <span class="n">setting</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> 
-                                                        <span class="n">bundle_obj</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> 
-                                                        <span class="n">extra_params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># pass-through</span>
-            <span class="n">processed_val</span> <span class="o">=</span> <span class="n">value</span>
-        
-        <span class="k">return</span> <span class="n">processed_val</span>
-        
     <span class="k">def</span> <span class="nf">__resolve_setting_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Resolve a setting value.  Exposed to allow values to be resolved for</span>
@@ -1120,41 +1064,20 @@
 <span class="sd">        :param key: setting name</span>
 <span class="sd">        :param default: a default value to use for the setting</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c1"># The post processing code requires the schema to introspect the</span>
-        <span class="c1"># setting&#39;s types, defaults, etc. An old use case exists whereby the key</span>
-        <span class="c1"># does not exist in the config schema so we need to account for that.</span>
+        <span class="c1"># An old use case exists whereby the key does not exist in the</span>
+        <span class="c1"># config schema so we need to account for that.</span>
         <span class="n">schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__descriptor</span><span class="o">.</span><span class="n">configuration_schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-
-        <span class="c1"># Get the value for the supplied key</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
-            <span class="c1"># Value provided by the settings</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">schema</span><span class="p">:</span>
-            <span class="c1"># Resolve a default value from the schema. This checks various</span>
-            <span class="c1"># legacy default value forms in the schema keys.</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="n">resolve_default_value</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_get_engine_name</span><span class="p">())</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Nothing in the settings, no schema, fallback to the supplied</span>
-            <span class="c1"># default value</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="n">default</span>
-
-        <span class="c1"># We have a value of some kind and a schema. Allow the post</span>
-        <span class="c1"># processing code to further resolve the value.</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">and</span> <span class="n">schema</span><span class="p">:</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__post_process_settings_r</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">resolve_setting_value</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_engine_name</span><span class="p">(),</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_engine_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the bundle&#39;s engine name if available. None otherwise.</span>
-
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the bundle&#39;s engine name if available. None otherwise.</span>
 <span class="sd">        Convenience method to avoid try/except everywhere.</span>
 
 <span class="sd">        :return: The engine name or None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="c1"># note - this technically violates the generic nature of the bundle</span>
         <span class="c1"># base class implementation because the engine member is not defined</span>
         <span class="c1"># in the bundle base class (only in App and Framework, not Engine) - an</span>
@@ -1167,8 +1090,104 @@
 
         <span class="k">return</span> <span class="n">engine_name</span>
 
-<span class="k">def</span> <span class="nf">resolve_default_value</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">engine_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-    <span class="n">raise_if_missing</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+<span class="k">def</span> <span class="nf">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursive post-processing of settings values</span>
+
+<span class="sd">    :param tk: Toolkit API instance</span>
+<span class="sd">    :param key: setting name</span>
+<span class="sd">    :param value: Input value to resolve using specified schema</span>
+<span class="sd">    :param schema: A schema defining types and defaults for settings.</span>
+<span class="sd">    :returns: Processed value for key setting</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">settings_type</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">settings_type</span> <span class="o">==</span> <span class="s2">&quot;list&quot;</span><span class="p">:</span>
+        <span class="n">processed_val</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">value_schema</span> <span class="o">=</span> <span class="n">schema</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">processed_val</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">value_schema</span><span class="p">))</span>
+
+    <span class="k">elif</span> <span class="n">settings_type</span> <span class="o">==</span> <span class="s2">&quot;dict&quot;</span><span class="p">:</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;items&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="c1"># note - we assign the original values here because we</span>
+        <span class="n">processed_val</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value_schema</span><span class="p">)</span> <span class="ow">in</span> <span class="n">items</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">processed_val</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value_schema</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">settings_type</span> <span class="o">==</span> <span class="s2">&quot;config_path&quot;</span><span class="p">:</span>
+        <span class="c1"># this is a config path. Stored on the form</span>
+        <span class="c1"># foo/bar/baz.png, we should translate that into</span>
+        <span class="c1"># PROJECT_PATH/tank/config/foo/bar/baz.png</span>
+        <span class="n">config_folder</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_config_location</span><span class="p">()</span>
+        <span class="n">adjusted_value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+        <span class="n">processed_val</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config_folder</span><span class="p">,</span> <span class="n">adjusted_value</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;hook:&quot;</span><span class="p">):</span>
+        <span class="c1"># handle the special form where the value is computed in a hook.</span>
+        <span class="c1">#</span>
+        <span class="c1"># if the template parameter is on the form</span>
+        <span class="c1"># a) hook:foo_bar</span>
+        <span class="c1"># b) hook:foo_bar:testing:testing</span>
+        <span class="c1">#</span>
+        <span class="c1"># The following hook will be called</span>
+        <span class="c1"># a) foo_bar with parameters []</span>
+        <span class="c1"># b) foo_bar with parameters [testing, testing]</span>
+        <span class="c1">#</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+        <span class="n">hook_name</span> <span class="o">=</span> <span class="n">chunks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">chunks</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">processed_val</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span>
+            <span class="n">hook_name</span><span class="p">,</span> <span class="n">setting</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">bundle_obj</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">extra_params</span><span class="o">=</span><span class="n">params</span>
+        <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># pass-through</span>
+        <span class="n">processed_val</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">return</span> <span class="n">processed_val</span>
+
+<span class="k">def</span> <span class="nf">resolve_setting_value</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Resolve a setting value.  Exposed to allow values to be resolved for</span>
+<span class="sd">    settings derived outside of the app.</span>
+
+<span class="sd">    :param tk: :class:`~sgtk.Sgtk` Toolkit API instance</span>
+<span class="sd">    :param str engine_name: Name of Toolkit engine instance.</span>
+<span class="sd">    :param dict schema: A schema defining types and defaults for settings.</span>
+<span class="sd">                        The post processing code requires the schema to</span>
+<span class="sd">                        introspect the settings&#39; types, defaults, etc.</span>
+<span class="sd">    :param dict settings: the settings dictionary source</span>
+<span class="sd">    :param str key: setting name</span>
+<span class="sd">    :param default: a default value to use for the setting</span>
+<span class="sd">    :returns: Resolved value of input setting key</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get the value for the supplied key</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
+        <span class="c1"># Value provided by the settings</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="n">schema</span><span class="p">:</span>
+        <span class="c1"># Resolve a default value from the schema. This checks various</span>
+        <span class="c1"># legacy default value forms in the schema keys.</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">resolve_default_value</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Nothing in the settings, no schema, fallback to the supplied</span>
+        <span class="c1"># default value</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">default</span>
+
+    <span class="c1"># We have a value of some kind and a schema. Allow the post</span>
+    <span class="c1"># processing code to further resolve the value.</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">and</span> <span class="n">schema</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">value</span>
+
+<span class="k">def</span> <span class="nf">resolve_default_value</span><span class="p">(</span>
+        <span class="n">schema</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">engine_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">raise_if_missing</span><span class="o">=</span><span class="bp">False</span>
+    <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract a default value from the supplied schema.</span>
 
@@ -1182,7 +1201,6 @@
 <span class="sd">        default value is found.</span>
 <span class="sd">    :return: The resolved default value</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="n">default_missing</span> <span class="o">=</span> <span class="bp">False</span>
 
     <span class="c1"># Engine-specific default value keys are allowed (ex:</span>
@@ -1302,7 +1320,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

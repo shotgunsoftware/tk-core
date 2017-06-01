@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun_path &mdash; tk-core v0.18.73 documentation</title>
+  <title>tank.util.shotgun_path &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -316,7 +316,7 @@
         <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
             <span class="n">macosx_path</span> <span class="o">=</span> <span class="n">path</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported platform &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported platform &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">windows_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span></div>
 
@@ -348,6 +348,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_windows_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_path</span><span class="p">(</span><span class="n">windows_path</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_linux_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_path</span><span class="p">(</span><span class="n">linux_path</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_macosx_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_path</span><span class="p">(</span><span class="n">macosx_path</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__nonzero__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if one or more of the OSes have a path specified.</span>
+
+<span class="sd">        :returns: True if one or more of the OSes has a path specified. False if all are None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If we&#39;re different than an empty path, we&#39;re not zero!</span>
+        <span class="k">return</span> <span class="bp">True</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">linux</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">macosx</span> <span class="k">else</span> <span class="bp">False</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;Path win:&#39;</span><span class="si">%s</span><span class="s2">&#39;, linux:&#39;</span><span class="si">%s</span><span class="s2">&#39;, macosx:&#39;</span><span class="si">%s</span><span class="s2">&#39;&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
@@ -498,7 +507,7 @@
         <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">macosx</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported platform &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported platform &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_set_current_os</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -511,7 +520,7 @@
         <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">macosx</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported platform &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported platform &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
 
     <span class="n">current_os</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_current_os</span><span class="p">,</span> <span class="n">_set_current_os</span><span class="p">)</span>
 
@@ -608,7 +617,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

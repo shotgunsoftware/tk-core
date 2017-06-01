@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.log &mdash; tk-core v0.18.73 documentation</title>
+  <title>tank.log &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -223,6 +223,8 @@
 <span class="sd">     |   |- project                                   Toolkit Environment</span>
 <span class="sd">     |       |</span>
 <span class="sd">     |       |- tk-maya                               Toolkit Engine</span>
+<span class="sd">     |             |</span>
+<span class="sd">     |             |- startup                         Toolkit Engine Software Launcher</span>
 <span class="sd">     |             |</span>
 <span class="sd">     |             |- tk-multi-workfiles2             Toolkit App (or framework)</span>
 <span class="sd">     |                  |</span>
@@ -860,7 +862,7 @@
 <span class="sd">        exist per session.</span>
 
 <span class="sd">        :param log_name: Name of logger to create. This will form the</span>
-<span class="sd">                         filename of the log file.</span>
+<span class="sd">                         filename of the log file. The ``.log`` will be suffixed.</span>
 
 <span class="sd">        :returns: The path to the previous log file that is being switched away from,</span>
 <span class="sd">                  None if no base logger was previously active.</span>
@@ -1002,7 +1004,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

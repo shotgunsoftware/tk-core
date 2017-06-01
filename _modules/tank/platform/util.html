@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.util &mdash; tk-core v0.18.73 documentation</title>
+  <title>tank.platform.util &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -169,21 +169,22 @@
             
   <h1>Source code for tank.platform.util</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2013 Shotgun Software Inc.</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
-<span class="c1"># </span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
-<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
-<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">from</span> <span class="nn">.import_stack</span> <span class="kn">import</span> <span class="n">ImportStack</span>
 <span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankContextChangeNotSupportedError</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span> <span class="n">TankCurrentModuleNotFoundError</span>
 <span class="kn">from</span> <span class="nn">.engine</span> <span class="kn">import</span> <span class="n">current_engine</span><span class="p">,</span> <span class="n">_restart_engine</span>
+<span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
 
 
 <span class="k">def</span> <span class="nf">_get_current_bundle</span><span class="p">():</span>
@@ -221,18 +222,22 @@
             <span class="n">calling_package_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">chunks</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
             <span class="c1"># get the caller&#39;s module from sys.modules</span>
             <span class="n">parent_module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">calling_package_str</span><span class="p">]</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;import_framework could not determine the calling module layout! &quot;</span>
-                            <span class="s2">&quot;You can only use this method on items imported using the import_module() &quot;</span>
-                            <span class="s2">&quot;method!&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankCurrentModuleNotFoundError</span><span class="p">(</span>
+                <span class="s2">&quot;import_framework could not determine the calling module layout! &quot;</span>
+                <span class="s2">&quot;You can only use this method on items imported using the import_module() &quot;</span>
+                <span class="s2">&quot;method!&quot;</span>
+            <span class="p">)</span>
 
         <span class="c1"># ok we got our module</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">current_bundle</span> <span class="o">=</span> <span class="n">parent_module</span><span class="o">.</span><span class="n">_tank_bundle</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;import_framework could not access current app/engine on calling module </span><span class="si">%s</span><span class="s2">. &quot;</span>
-                            <span class="s2">&quot;You can only use this method on items imported using the import_module() &quot;</span>
-                            <span class="s2">&quot;method!&quot;</span> <span class="o">%</span> <span class="n">parent_module</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankCurrentModuleNotFoundError</span><span class="p">(</span>
+                <span class="s2">&quot;import_framework could not access current app/engine on calling module </span><span class="si">%s</span><span class="s2">. &quot;</span>
+                <span class="s2">&quot;You can only use this method on items imported using the import_module() &quot;</span>
+                <span class="s2">&quot;method!&quot;</span> <span class="o">%</span> <span class="n">parent_module</span>
+            <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">current_bundle</span>
 
@@ -426,10 +431,12 @@
 <span class="sd">    :param module_name: Pass ``__name__`` to this parameter</span>
 <span class="sd">    :return: Standard python logger</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">curr_bundle</span> <span class="o">=</span> <span class="n">_get_current_bundle</span><span class="p">()</span>
-    <span class="n">full_log_path</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curr_bundle</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">module_name</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">full_log_path</span><span class="p">)</span>
-
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">curr_bundle</span> <span class="o">=</span> <span class="n">_get_current_bundle</span><span class="p">()</span>
+        <span class="n">full_log_path</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curr_bundle</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">module_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">full_log_path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">TankCurrentModuleNotFoundError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;no_current_bundle.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module_name</span><span class="p">,))</span>
 </pre></div>
 
            </div>
@@ -462,7 +469,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

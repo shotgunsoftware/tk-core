@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Deploy and management &mdash; tk-core v0.18.73 documentation</title>
+  <title>Deploy and management &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,9 +32,9 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="index.html"/>
         <link rel="next" title="Foundation" href="core.html"/>
-        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.73" href="index.html"/> 
+        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.83" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -126,7 +126,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -252,6 +252,31 @@ and pass it in.</td>
 </tbody>
 </table>
 <dl class="attribute">
+<dt id="sgtk.bootstrap.ToolkitManager.allow_config_overrides">
+<code class="descname">allow_config_overrides</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.allow_config_overrides" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether pipeline configuration resolution can be overridden via the
+environment. Defaults to True on manager instantiation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.bootstrap.ToolkitManager.pre_engine_start_callback">
+<code class="descname">pre_engine_start_callback</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.pre_engine_start_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>This callback will be invoked after the Toolkit instance has been
+created but before the engine is started.</p>
+<p>This function should have the following signature:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pre_engine_start_callback</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Called before the engine is started.</span>
+
+<span class="sd">    :param :class:&quot;~sgtk.Context&quot; ctx: Context into</span>
+<span class="sd">        which the engine will be launched. This can also be used</span>
+<span class="sd">        to access the Toolkit instance.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sgtk.bootstrap.ToolkitManager.pipeline_configuration">
 <code class="descname">pipeline_configuration</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="Permalink to this definition">¶</a></dt>
 <dd><p>The pipeline configuration that is should be operated on.</p>
@@ -264,7 +289,7 @@ the primary configuration, and in case this is not found, it will fall back on t
 <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal"><span class="pre">base_configuration()</span></code></a>. If you don&#8217;t want this check to be carried out in
 Shotgun, please set <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup" title="sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup"><code class="xref py py-meth docutils literal"><span class="pre">do_shotgun_config_lookup()</span></code></a> to False.</p>
 <p>Alternatively, you can set this to a specific pipeline configuration. In that
-case, the Manager will look for a pipeline configuration that matches that name
+case, the Manager will look for a pipeline configuration that matches that name or id
 and the associated project and plugin id. If such a config cannot be found in
 Shotgun, it falls back on the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal"><span class="pre">base_configuration()</span></code></a>.</p>
 </dd></dl>
@@ -457,6 +482,138 @@ with the following signature:</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="sgtk.bootstrap.ToolkitManager.prepare_engine">
+<code class="descname">prepare_engine</code><span class="sig-paren">(</span><em>engine_name</em>, <em>entity</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.prepare_engine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.prepare_engine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates and caches a configuration on disk for a given project. The resolution of the pipeline
+configuration will follow the same rules as the method <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="sgtk.bootstrap.ToolkitManager.bootstrap_engine"><code class="xref py py-meth docutils literal"><span class="pre">ToolkitManager.bootstrap_engine()</span></code></a>,
+but it simply caches all the bundles for later use instead of bootstrapping directly into it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the engine instance to cache if using sparse caching. If <code class="docutils literal"><span class="pre">None</span></code>,
+all engine instances will be cached.</li>
+<li><strong>entity</strong> &#8211; An entity link. If the entity is not a project, the project for that entity will be resolved.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Path to the fully realized pipeline configuration on disk and to the descriptor that
+spawned it.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">(str, <a class="reference internal" href="descriptor.html#sgtk.descriptor.ConfigDescriptor" title="sgtk.descriptor.ConfigDescriptor"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.ConfigDescriptor</span></code></a>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.bootstrap.ToolkitManager.get_pipeline_configurations">
+<code class="descname">get_pipeline_configurations</code><span class="sig-paren">(</span><em>project</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.get_pipeline_configurations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.get_pipeline_configurations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the pipeline configurations available for a given project.</p>
+<p>In order for a pipeline configuration to be considered as available, the following
+conditions must be met:</p>
+<blockquote>
+<div><ul class="simple">
+<li>There can only be one primary</li>
+<li>If there is one site level and one project level primary, the site level
+primary is not available.</li>
+<li>If there are multiple site level or multiple project level primaries,
+only the one with the lowest id is available, unless one or more of them is a Toolkit
+Classic Primary, in which case the Toolkit Classic Primary with the lowest id will
+be returned.</li>
+<li>A <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> object must be able to be created from the
+pipeline configuration.</li>
+<li>All sandboxes are available.</li>
+</ul>
+</div></blockquote>
+<p>In practice, this means that if there are 3 primaries, two of them using plugin ids and
+one of them not using them, the one not using a plugin id will always be used.</p>
+<p>This filtering also takes into account the current user and optional pipeline
+configuration name or id. If the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="sgtk.bootstrap.ToolkitManager.pipeline_configuration"><code class="xref py py-meth docutils literal"><span class="pre">pipeline_configuration()</span></code></a> property has been
+set to a string, it will look for pipeline configurations with that specific name.
+If it has been set to <code class="docutils literal"><span class="pre">None</span></code>, any pipeline that can be applied for the current
+user and project will be retrieved. Note that this method does not support
+<a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="sgtk.bootstrap.ToolkitManager.pipeline_configuration"><code class="xref py py-meth docutils literal"><span class="pre">pipeline_configuration()</span></code></a> being an integer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project</strong> (Dictionary with keys <code class="docutils literal"><span class="pre">type</span></code> and <code class="docutils literal"><span class="pre">id</span></code>.) &#8211; Project entity link to enumerate pipeline configurations for.
+If <code class="docutils literal"><span class="pre">None</span></code>, this will enumerate the pipeline configurations
+for the site configuration.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of pipeline configurations.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List of dictionaries with keys <code class="docutils literal"><span class="pre">type</span></code>, <code class="docutils literal"><span class="pre">id</span></code>, <code class="docutils literal"><span class="pre">name</span></code>, <code class="docutils literal"><span class="pre">project</span></code>, and <code class="docutils literal"><span class="pre">descriptor</span></code>.
+The pipeline configurations will always be sorted such as the primary pipeline configuration,
+if available, will be first. Then the remaining pipeline configurations will be sorted by
+<code class="docutils literal"><span class="pre">name</span></code> field (case insensitive), then the <code class="docutils literal"><span class="pre">project</span></code> field and finally then <code class="docutils literal"><span class="pre">id</span></code> field.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.bootstrap.ToolkitManager.get_entity_from_environment">
+<code class="descname">get_entity_from_environment</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.get_entity_from_environment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.get_entity_from_environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method that looks for the standard environment variables
+<code class="docutils literal"><span class="pre">SHOTGUN_SITE</span></code>, <code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_TYPE</span></code> and
+<code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_ID</span></code> and attempts to extract and validate them.
+This is typically used in conjunction with <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="sgtk.bootstrap.ToolkitManager.bootstrap_engine"><code class="xref py py-meth docutils literal"><span class="pre">bootstrap_engine()</span></code></a>.
+The standard environment variables read by this method can be
+generated by <a class="reference internal" href="platform.html#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment" title="sgtk.platform.SoftwareLauncher.get_standard_plugin_environment"><code class="xref py py-meth docutils literal"><span class="pre">get_standard_plugin_environment()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Standard Shotgun entity dictionary with type and id or
+None if not defined.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.bootstrap.ToolkitManager.resolve_descriptor">
+<code class="descname">resolve_descriptor</code><span class="sig-paren">(</span><em>project</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.resolve_descriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.resolve_descriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolves a pipeline configuration and returns its associated descriptor object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; The project entity, or None.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="sgtk.bootstrap.ToolkitManager.get_core_python_path">
+<em class="property">static </em><code class="descname">get_core_python_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.get_core_python_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.get_core_python_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the path to the current Toolkit core.</p>
+<p>The current Toolkit core is defined as the core that gets imported when you type
+<code class="docutils literal"><span class="pre">import</span> <span class="pre">sgtk</span></code> and the python path is derived from that module.</p>
+<p>For example, if the <code class="docutils literal"><span class="pre">sgtk</span></code> module was found at <code class="docutils literal"><span class="pre">/path/to/config/install/core/python/sgtk</span></code>,
+the return path would be <code class="docutils literal"><span class="pre">/path/to/config/install/core/python</span></code></p>
+<p>This can be useful if you want to hand down to a subprocess the location of the current
+process&#8217;s core, since <code class="docutils literal"><span class="pre">sys.path</span></code> and the <code class="docutils literal"><span class="pre">PYTHONPATH</span></code> are not updated after
+bootstrapping.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path to the current core.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -511,7 +668,7 @@ likely to contain changes which have not yet been full tested.</p>
         <a href="core.html" class="btn btn-neutral float-right" title="Foundation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.73" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.83" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -541,7 +698,7 @@ likely to contain changes which have not yet been full tested.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.publish_resolve &mdash; tk-core v0.18.73 documentation</title>
+  <title>tank.util.shotgun.publish_resolve &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -169,13 +169,13 @@
             
   <h1>Source code for tank.util.shotgun.publish_resolve</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2017 Shotgun Software Inc.</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
-<span class="c1"># </span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
-<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
-<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
@@ -215,151 +215,6 @@
 <span class="sd">    .. note:: This method is also called by :meth:`sgtk.Hook.get_publish_path`</span>
 <span class="sd">              which is a common method Toolkit apps use to resolve publishes</span>
 <span class="sd">              into paths.</span>
-
-<span class="sd">    **Resolution Logic**</span>
-
-<span class="sd">    The method will attempt to resolve the publish data into a path</span>
-<span class="sd">    by applying several recipes:</span>
-
-<span class="sd">    - First, the ``resolve_publish`` core hook will be called. This hook</span>
-<span class="sd">      can be used either in order to override any built-in behavior or</span>
-<span class="sd">      to implement support for url schemes, uploaded files or other modes</span>
-<span class="sd">      which the default implementation currently doesn&#39;t support. The hook</span>
-<span class="sd">      returns ``None`` by default, indicating that no resolve overrides</span>
-<span class="sd">      are present.</span>
-
-<span class="sd">    - If no path was resolved by the hook, the method will check if the</span>
-<span class="sd">      publish is associated with a local file link and if so attempt to</span>
-<span class="sd">      resolve this to a path (for more details see below).</span>
-
-<span class="sd">    - Next, it will check if the publish is linked to a ``file://`` url</span>
-<span class="sd">      and attempt to resolve this.</span>
-
-<span class="sd">    - Lastly, if the publish still cannot be resolved, a</span>
-<span class="sd">      :class:`~sgtk.util.PublishPathNotSupported` is raised.</span>
-
-<span class="sd">    **Resolving local file links**</span>
-
-<span class="sd">    If the publish is a local file link, its local OS representation</span>
-<span class="sd">    will be used. Local file links are generated automatically by</span>
-<span class="sd">    :meth:`register_publish` if the path you are publishing matches</span>
-<span class="sd">    any local file storage defined in the Shotgun Site Preferences.</span>
-<span class="sd">    Read more about local file links `here &lt;https://support.shotgunsoftware.com/hc/en-us/articles/219030938-Linking-to-local-files&gt;`_.</span>
-
-<span class="sd">    Local file storage mappings in Shotgun are global and affect</span>
-<span class="sd">    all machines, all users and all projects.</span>
-
-<span class="sd">    If a local storage doesn&#39;t define the operating system platform</span>
-<span class="sd">    you are currently using, you can augment it by adding an</span>
-<span class="sd">    environment variable. For example, if there</span>
-<span class="sd">    is a local storage named ``Renders`` that is defined on Linux and Windows,</span>
-<span class="sd">    you can extend to support mac by creating an environment variable named</span>
-<span class="sd">    ``SHOTGUN_PATH_MAC_RENDERS``. The general syntax for this is</span>
-<span class="sd">    ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME``.</span>
-
-<span class="sd">    .. note:: If you define a ``SHOTGUN_PATH_MAC_RENDERS`` environment variable</span>
-<span class="sd">              and there is a local storage ``Renders`` with a mac path set,</span>
-<span class="sd">              the local storage value will be used and a warning will be logged.</span>
-
-<span class="sd">    .. note:: If no storage can be resolved for the current operating system,</span>
-<span class="sd">              a :class:`~sgtk.util.PublishPathNotDefinedError` is raised.</span>
-
-
-<span class="sd">    **Resolving file urls**</span>
-
-<span class="sd">    The method also supports the resolution of ``file://`` urls. Contrary to</span>
-<span class="sd">    local file storage objects in Shotgun (see above), these paths are not</span>
-<span class="sd">    stored in a multi-os representation but are just defined on the operating</span>
-<span class="sd">    system where they were created.</span>
-
-<span class="sd">    If you are trying to resolve a ``file://`` url on an os platform different</span>
-<span class="sd">    from the one where where the url was created, the method will attempt to</span>
-<span class="sd">    resolve it into a valid path using several different approaches:</span>
-
-<span class="sd">    - First, it will look for the three environment variables ``SHOTGUN_PATH_WINDOWS``,</span>
-<span class="sd">      ``SHOTGUN_PATH_MAC``, and ``SHOTGUN_PATH_LINUX``. If these are defined,</span>
-<span class="sd">      the method will attempt to translate the path this way. For example, if</span>
-<span class="sd">      you are trying to resolve ``file:///prod/proj_x/assets/bush/file.txt`` on</span>
-<span class="sd">      windows, you could set up ``SHOTGUN_PATH_WINDOWS=P:\prod`` and</span>
-<span class="sd">      ``SHOTGUN_PATH_LINUX=/prod`` in order to hint the way the path should be</span>
-<span class="sd">      resolved.</span>
-
-<span class="sd">    - If you wanted to use more than one set of environment variables, this is possible</span>
-<span class="sd">      by extending the above syntax with a suffix:</span>
-
-<span class="sd">        - If you have a storage for renders, you could for example define</span>
-<span class="sd">          ``SHOTGUN_PATH_LINUX_RENDERS``, ``SHOTGUN_PATH_MAC_RENDERS`` and</span>
-<span class="sd">          ``SHOTGUN_PATH_WINDOWS_RENDERS`` in order to provide a translation</span>
-<span class="sd">          mechanism for all ``file://`` urls published that refer to data</span>
-<span class="sd">          inside your render storage.</span>
-
-<span class="sd">        - If you have a storage for editorial data, you could for example define</span>
-<span class="sd">          ``SHOTGUN_PATH_LINUX_EDITORIAL``, ``SHOTGUN_PATH_MAC_EDITORIAL`` and</span>
-<span class="sd">          ``SHOTGUN_PATH_WINDOWS_EDITORIAL`` in order to provide another translation</span>
-<span class="sd">          mechanism for those roots.</span>
-
-<span class="sd">      Once you have standardized on these environment variables, you could consider</span>
-<span class="sd">      converting them into a Shotgun local storages. Once they are defined in the</span>
-<span class="sd">      Shotgun preferences, they will be automatically picked up and no</span>
-<span class="sd">      environment variables would be needed.</span>
-
-<span class="sd">    - In addition to the above, all local storages defined in the Shotgun</span>
-<span class="sd">      preferences will be handled the same way.</span>
-
-<span class="sd">    - If a local storage has been defined, but an operating system is missing,</span>
-<span class="sd">      this can be supplied via an environment variable. For example, if there</span>
-<span class="sd">      is a local storage named ``Renders`` that is defined on Linux and Windows,</span>
-<span class="sd">      you can extend to support mac by creating an environment variable named</span>
-<span class="sd">      ``SHOTGUN_PATH_MAC_RENDERS``. The general syntax for this is</span>
-<span class="sd">      ``SHOTGUN_PATH_WINDOWS|MAC|LINUX_STORAGENAME``.</span>
-
-<span class="sd">    - If no root matches, the file path will be returned as is.</span>
-
-<span class="sd">    .. note::   For example, you have published the file ``/projects/some/file.txt`` on Linux</span>
-<span class="sd">                and a Shotgun publish with the url ``file:///projects/some/file.txt`` was generated.</span>
-<span class="sd">                The Linux path ``/projects`` equates to ``Q:\projects`` on Windows</span>
-<span class="sd">                and hence you want the full path to be translated to</span>
-<span class="sd">                ``Q:\\projects\\some\\file.txt``. All of the setups below would handle this:</span>
-
-<span class="sd">                - A general environment based override:</span>
-
-<span class="sd">                    - ``SHOTGUN_PATH_LINUX=/projects``</span>
-<span class="sd">                    - ``SHOTGUN_PATH_WINDOWS=Q:\projects``</span>
-<span class="sd">                    - ``SHOTGUN_PATH_MAC=/projects``</span>
-
-<span class="sd">                - A Shotgun local storage &quot;Projects&quot; set up with:</span>
-
-<span class="sd">                    - Linux Path: ``/projects``</span>
-<span class="sd">                    - Windows Path: ``Q:\projects``</span>
-<span class="sd">                    - Mac Path: ``/projects``</span>
-
-<span class="sd">                - A Shotgun local storage &quot;Projects&quot; augmented with an environment variable:</span>
-
-<span class="sd">                    - Linux Path: ``/projects``</span>
-<span class="sd">                    - Windows Path: ``&lt;blank&gt;``</span>
-<span class="sd">                    - Mac Path: ``/projects``</span>
-<span class="sd">                    - ``SHOTGUN_PATH_WINDOWS_PROJECTS=Q:\projects``</span>
-
-
-<span class="sd">    .. note:: If you have a local storage ``Renders`` defined in Shotgun with</span>
-<span class="sd">       a Linux path set and also a ``SHOTGUN_PATH_LINUX_RENDERS`` environment</span>
-<span class="sd">       variable defined, the storage will take precedence, the environment</span>
-<span class="sd">       variable will be ignored and a warning will be logged. Generally speaking,</span>
-<span class="sd">       local storage definitions always take precedence over environment variables.</span>
-
-
-<span class="sd">    **Customization examples**</span>
-
-<span class="sd">    If you want to add support beyond local file links and ``file://`` urls, you can</span>
-<span class="sd">    customize the ``resolve_publish.py`` core hook. This can for example be used to</span>
-<span class="sd">    add support for the following customizations:</span>
-
-<span class="sd">    - Publishes with associated uploaded files could be automatically downloaded</span>
-<span class="sd">      into an appropriate cache location by the core hook and the path would be</span>
-<span class="sd">      be returned.</span>
-
-<span class="sd">    - Custom url schemes (such as ``perforce://``) could be resolved into local paths.</span>
-
 
 <span class="sd">    **Parameters**</span>
 
@@ -719,7 +574,6 @@
     <span class="n">resolved_path</span> <span class="o">=</span> <span class="n">resolved_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Converted </span><span class="si">%s</span><span class="s2"> -&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attachment_data</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">],</span> <span class="n">resolved_path</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">resolved_path</span>
-
 </pre></div>
 
            </div>
@@ -752,7 +606,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

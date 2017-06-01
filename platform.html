@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.73 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -93,7 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="bootstrap.html">Deploy and management</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Foundation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Apps, Engines and Frameworks</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#launching-and-accessing-engines-and-apps">Launching and accessing Engines and Apps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#managing-engines-and-apps">Managing Engines and Apps</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#engines">Engines</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#engine-events">Engine Events</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#engine">Engine</a></li>
@@ -135,11 +135,29 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#launching-software">Launching Software</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#a-simple-launch-application">A Simple Launch Application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#engine-implementation">Engine Implementation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#starting-the-engine-on-dcc-launch-classic-vs-taap">Starting the Engine on DCC Launch: Classic vs. TaaP</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#configuration-using-the-software-entity-in-shotgun">Configuration Using the Software Entity in Shotgun</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#software-entity-field-reference">Software Entity Field Reference</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#softwarelauncher">SoftwareLauncher</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#softwareversion">SoftwareVersion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#launchinformation">LaunchInformation</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#using-qt-inside-your-toolkit-app">Using QT inside your Toolkit App</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-qt-5-inside-your-toolkit-app">Using QT 5 inside your Toolkit App</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#creating-dialogs">Creating Dialogs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#modal-dialogs-and-exit-codes">Modal dialogs and exit codes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#hiding-the-default-toolkit-title-bar">Hiding the default Toolkit title bar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#software-launching">Software launching</a></li>
 </ul>
 </li>
 </ul>
@@ -168,7 +186,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -222,12 +240,13 @@
 <p>This part of the API documentation covers all the classes and methods used when dealing with Engines, Apps and Frameworks.
 If you are interested in developing your own apps, engines or frameworks, the base classes needed to be derived
 from are outlined below. The documentation also covers how to initialize and shut down the Toolkit engine platform.</p>
-<div class="section" id="launching-and-accessing-engines-and-apps">
-<h2>Launching and accessing Engines and Apps<a class="headerlink" href="#launching-and-accessing-engines-and-apps" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="managing-engines-and-apps">
+<h2>Managing Engines and Apps<a class="headerlink" href="#managing-engines-and-apps" title="Permalink to this headline">¶</a></h2>
 <p>The methods in this section are used when you want to start up or manage a Toolkit engine.
 This typically happens directly once a host application (e.g. Maya or Nuke) has been launched.
 A running engine typically needs to be terminated before a new engine can be started. The method
-for terminating an engine can be found on the engine class itself.</p>
+for terminating an engine can be found on the engine class itself. Methods defining a standard
+interface for launching host applications are also provided.</p>
 <dl class="function">
 <dt id="sgtk.platform.start_engine">
 <code class="descclassname">sgtk.platform.</code><code class="descname">start_engine</code><span class="sig-paren">(</span><em>engine_name</em>, <em>tk</em>, <em>context</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#start_engine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.start_engine" title="Permalink to this definition">¶</a></dt>
@@ -400,8 +419,8 @@ is to restart the engine with its current context.</td>
 <div class="section" id="engines">
 <h2>Engines<a class="headerlink" href="#engines" title="Permalink to this headline">¶</a></h2>
 <p>A Toolkit engine connects a runtime environment such as a DCC with the rest of the Toolkit ecosystem.
-As the engine starts up, it loads the various associated apps and frameworks defined in the configuration and acts a
-host for all these objects, ensuring that they can operate in a consistent fashion across integrations.</p>
+As the engine starts up, it loads the various associated apps and frameworks defined in the configuration and acts
+as a host for all these objects, ensuring that they can operate in a consistent fashion across integrations.</p>
 <p><strong>Information for App Developers</strong></p>
 <p>If you are developing an app, you typically call out to the engine via the <a class="reference internal" href="#sgtk.platform.Application.engine" title="sgtk.platform.Application.engine"><code class="xref py py-meth docutils literal"><span class="pre">Application.engine()</span></code></a> accessor.
 You use the engine for a couple of main things:</p>
@@ -409,7 +428,7 @@ You use the engine for a couple of main things:</p>
 <li>Dialog UI creation via <a class="reference internal" href="#sgtk.platform.Engine.show_dialog" title="sgtk.platform.Engine.show_dialog"><code class="xref py py-meth docutils literal"><span class="pre">Engine.show_dialog()</span></code></a>, <a class="reference internal" href="#sgtk.platform.Engine.show_modal" title="sgtk.platform.Engine.show_modal"><code class="xref py py-meth docutils literal"><span class="pre">Engine.show_modal()</span></code></a> or <a class="reference internal" href="#sgtk.platform.Engine.show_panel" title="sgtk.platform.Engine.show_panel"><code class="xref py py-meth docutils literal"><span class="pre">Engine.show_panel()</span></code></a></li>
 <li>Command registration via <a class="reference internal" href="#sgtk.platform.Engine.register_command" title="sgtk.platform.Engine.register_command"><code class="xref py py-meth docutils literal"><span class="pre">Engine.register_command()</span></code></a></li>
 </ul>
-<p>The engine takes acts as a bridge betgween the DCC and the App so that the app doesn&#8217;t have to
+<p>The engine acts as a bridge between the DCC and the App so that the app doesn&#8217;t have to
 contain DCC-specific code to create dialogs or manage menus etc. Typically, any DCC specific code
 is contained within a <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>, making it easy to design apps that
 can be extended easily to support new engine environments.</p>
@@ -437,6 +456,9 @@ launch the engines, load all apps etc. The goal with the engine is that once it 
 the it provides a consistent python/QT interface to the apps. Since all engines implement the
 same base class, apps can call methods on the engines to for example create UIs. It is up to each
 engine to implement these methods so that they work nicely inside the host application.</li>
+<li>An interface to startup DCC applications that centralizes the business logic of discovering executable
+paths, setting a proper environment for launch, and initializing toolkit integration during the launch
+phase. This is described in detail in the <a class="reference internal" href="#launching-software"><span class="std std-ref">Launching Software</span></a> section.</li>
 </ul>
 <div class="section" id="engine-events">
 <h3>Engine Events<a class="headerlink" href="#engine-events" title="Permalink to this headline">¶</a></h3>
@@ -4362,6 +4384,719 @@ default values, and type info for the values which will be used for validation:<
 </div>
 </div>
 </div>
+<div class="section" id="launching-software">
+<h2>Launching Software<a class="headerlink" href="#launching-software" title="Permalink to this headline">¶</a></h2>
+<p>This section provides an overview of Toolkit standards around launching DCC software. Generally,
+Toolkit exists and executes in an initialized state after a DCC application has already started up.
+The software launch interface is specialized to operate outside of this known state. The interface
+is made up of three main components:</p>
+<ul class="simple">
+<li><strong>Software Entity</strong> - An entity in Shotgun used to identify local software installs to display in Launch interfaces such as Desktop and SG web</li>
+<li><strong>Core Launch Interface</strong> - Standard methods and interfaces that provide the launch mechanism for scripts and apps such as tk-multi-launchapp</li>
+<li><strong>Toolkit Engine</strong> - Implementation of the core interface for a specific toolkit integration which includes finding installed executables, preparing the toolkit environment, and launching the DCC</li>
+</ul>
+<div class="section" id="a-simple-launch-application">
+<h3>A Simple Launch Application<a class="headerlink" href="#a-simple-launch-application" title="Permalink to this headline">¶</a></h3>
+<p>The Toolkit core API provides an interface custom applications can use to implement the business
+logic for launching DCC software related to a particular Toolkit engine. This interface is comprised
+of a factory method <a class="reference internal" href="#sgtk.platform.create_engine_launcher" title="sgtk.platform.create_engine_launcher"><code class="xref py py-meth docutils literal"><span class="pre">create_engine_launcher()</span></code></a> and classes <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a>,
+<a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a>, and <a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal"><span class="pre">LaunchInformation</span></code></a>. The factory method is called for a specific
+engine in the environment configuration and returns a SoftwareLauncher subclass instance implemented
+by that engine.</p>
+<p>Methods on the launcher instance can be used to determine which versions of the DCC
+are installed on the local filesystem and the proper environment, including command line arguments,
+required for a successful launch.</p>
+<p>The following lines of python code demonstrate how to launch Maya using the core interface:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sgtk</span>
+
+<span class="c1"># Create a Toolkit Core API instance based on a project path or</span>
+<span class="c1"># path that points directly at a pipeline configuration.</span>
+<span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/site/project_root&quot;</span><span class="p">)</span>
+
+<span class="c1"># Specify the context the DCC will be started up in.</span>
+<span class="n">context</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/site/project_root/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
+
+<span class="c1"># Using a core factory method, construct a SoftwareLauncher</span>
+<span class="c1"># subclass for the desired tk engine.</span>
+<span class="n">software_launcher</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="s2">&quot;tk-maya&quot;</span><span class="p">)</span>
+
+<span class="c1"># Use the SoftwareLauncher instance to find a list of Maya versions installed on the</span>
+<span class="c1"># local filesystem. A list of SoftwareVersion instances is returned.</span>
+<span class="n">software_versions</span> <span class="o">=</span> <span class="n">software_launcher</span><span class="o">.</span><span class="n">get_supported_software</span><span class="p">()</span>
+
+<span class="c1"># Ask the SoftwareLauncher instance to prepare an environment to launch Maya in.</span>
+<span class="c1"># For simplicity, use the first version returned from the list of software_versions.</span>
+<span class="c1"># A LaunchInformation instance is returned from the call to prepare_launch().</span>
+<span class="n">extra_command_line_args</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="n">file_to_open_on_startup</span> <span class="o">=</span> <span class="s2">&quot;/site/project_root/sequences/AAA/ABC/Light/work/scene.ma&quot;</span>
+<span class="n">launch_info</span> <span class="o">=</span> <span class="n">software_launcher</span><span class="o">.</span><span class="n">prepare_launch</span><span class="p">(</span><span class="n">software_versions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">extra_command_line_args</span><span class="p">,</span> <span class="n">file_to_open_on_startup</span><span class="p">)</span>
+
+<span class="c1"># Launch Maya!</span>
+<span class="n">launch_command</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+<span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">launch_command</span><span class="p">],</span> <span class="n">env</span><span class="o">=</span><span class="n">launch_info</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>More robust launch applications can utilize <a class="reference internal" href="#configuration-using-the-software-entity-in-shotgun"><span class="std std-ref">Configuration Using the Software Entity in Shotgun</span></a>
+to determine information about DCCs that are available to launch.</p>
+</div>
+<div class="section" id="engine-implementation">
+<h3>Engine Implementation<a class="headerlink" href="#engine-implementation" title="Permalink to this headline">¶</a></h3>
+<p>To plug into the core API software launch interface, a Toolkit engine must implement a subclass of
+<a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> in a <code class="docutils literal"><span class="pre">startup.py</span></code> file at the engine root level, analogous to the
+<code class="docutils literal"><span class="pre">engine.py</span></code> file.</p>
+<p>For the classic tooklit scenario, scripts required by the engine to prepare the launch environment
+or initialize the engine once the DCC has started up typically reside under a sibiling <code class="docutils literal"><span class="pre">startup</span></code>
+directory:</p>
+<img alt="_images/tk_engine_root_directory_structure.png" src="_images/tk_engine_root_directory_structure.png" />
+<p>Since the launch logic for the engine is invoked while the engine is not actually running, the
+<a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> base class provides functionality similar to the <a class="reference internal" href="#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a> base
+class. Two SoftwareLauncher methods that <em>must</em> be implemented by an engine are <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.scan_software" title="sgtk.platform.SoftwareLauncher.scan_software"><code class="xref py py-meth docutils literal"><span class="pre">scan_software()</span></code></a>
+and <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.prepare_launch" title="sgtk.platform.SoftwareLauncher.prepare_launch"><code class="xref py py-meth docutils literal"><span class="pre">prepare_launch()</span></code></a>.</p>
+<p>The <code class="docutils literal"><span class="pre">scan_software</span></code> method is responsible for discovering the executable paths for the related DCC
+installed on the local filesystem and returns a list of <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> instances representing
+the executables found.</p>
+<p>The <code class="docutils literal"><span class="pre">prepare_launch</span></code> method establishes the environment to launch the DCC in, confirms the correct
+executable path to launch, and supplies command line arguments required for launch. This method returns a
+<a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal"><span class="pre">LaunchInformation</span></code></a> instance that contains all information required to successfully launch the
+DCC and startup the engine integration.</p>
+<p>To recap, a skeleton <code class="docutils literal"><span class="pre">startup.py</span></code> file for the Maya engine contains the following:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk.platform</span> <span class="k">import</span> <span class="n">SoftwareLauncher</span><span class="p">,</span> <span class="n">SoftwareVersion</span><span class="p">,</span> <span class="n">LaunchInformation</span>
+
+<span class="k">class</span> <span class="nc">MayaLauncher</span><span class="p">(</span><span class="n">SoftwareLauncher</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">scan_software</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Construct a list of SoftwareVersion instances representing executable versions of the DCC</span>
+        <span class="c1"># installed on the local filesystem.</span>
+        <span class="n">software_versions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="o">...</span>
+        <span class="k">return</span> <span class="n">software_versions</span>
+
+    <span class="k">def</span> <span class="nf">prepare_launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exec_path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">file_to_open</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Construct an environment to launch the DCC in, confirm the correct executable path to</span>
+        <span class="c1"># launch, and provide required command line args. Return this information as a</span>
+        <span class="c1"># LaunchInformation instance.</span>
+        <span class="n">correct_executable_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">command_line_args</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">launch_environment</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="o">...</span>
+        <span class="n">launch_information</span> <span class="o">=</span> <span class="n">LaunchInformation</span><span class="p">(</span><span class="n">correct_executable_path</span><span class="p">,</span> <span class="n">command_line_args</span><span class="p">,</span> <span class="n">launch_environment</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">launch_information</span>
+</pre></div>
+</div>
+<div class="section" id="starting-the-engine-on-dcc-launch-classic-vs-taap">
+<h4>Starting the Engine on DCC Launch: Classic vs. TaaP<a class="headerlink" href="#starting-the-engine-on-dcc-launch-classic-vs-taap" title="Permalink to this headline">¶</a></h4>
+<p>The engine implementation of <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.prepare_launch" title="sgtk.platform.SoftwareLauncher.prepare_launch"><code class="xref py py-meth docutils literal"><span class="pre">prepare_launch()</span></code></a> should be able to handle
+starting the engine during the DCC launch phase in either Classic or Toolkit as a Plugin mode.</p>
+<p>In Classic mode, environment variables for the engine name (SGTK_ENGINE) and current context (SGTK_CONTEXT)
+are set and a startup script calling <a class="reference internal" href="#sgtk.platform.start_engine" title="sgtk.platform.start_engine"><code class="xref py py-meth docutils literal"><span class="pre">start_engine()</span></code></a> with those values parsed
+from the environment is registered with the DCC.</p>
+<p>For plugin mode, values for required environment variables are set and a startup script to load the plugin(s)
+is registered with the DCC. Which mode to use at runtime is controlled by the <code class="docutils literal"><span class="pre">launch_builtin_plugins</span></code> engine
+configuration setting. If the resolved setting value is an empty list, Classic mode is invoked. Otherwise, the
+list of plugins will be loaded.</p>
+<p>For either case, the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.prepare_launch" title="sgtk.platform.SoftwareLauncher.prepare_launch"><code class="xref py py-meth docutils literal"><span class="pre">prepare_launch()</span></code></a> method must assure the paths to <code class="docutils literal"><span class="pre">sgtk</span></code> and any
+startup files are specified in the <code class="docutils literal"><span class="pre">PYTHONPATH</span></code> environment variable. It is also considered good practice to
+account for the name of a file to open on launch in the environment (e.g. SGTK_FILE_TO_OPEN).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">How to initialize and runs code at startup will vary from DCC to DCC. The supported toolkit engines for Maya, Nuke, and Houdini are good reference implementations.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When setting an environment variable containing the current context value, be sure to use a serialized version of the context to encode login information in the shell.</p>
+</div>
+<p>To put this into practice, here is <code class="docutils literal"><span class="pre">tk-maya</span></code>&#8216;s implementation of prepare_launch():</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="kn">from</span> <span class="nn">sgtk.platform</span> <span class="k">import</span> <span class="n">SoftwareLauncher</span><span class="p">,</span> <span class="n">SoftwareVersion</span><span class="p">,</span> <span class="n">LaunchInformation</span>
+
+<span class="k">class</span> <span class="nc">MayaLauncher</span><span class="p">(</span><span class="n">SoftwareLauncher</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">prepare_launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exec_path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">file_to_open</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prepares an environment to launch Maya in that will automatically</span>
+<span class="sd">    load Toolkit and the tk-maya engine when Maya starts.</span>
+<span class="sd">    :param str exec_path: Path to Maya executable to launch.</span>
+<span class="sd">    :param str args: Command line arguments as strings.</span>
+<span class="sd">    :param str file_to_open: (optional) Full path name of a file to open on launch.</span>
+<span class="sd">    :returns: :class:`LaunchInformation` instance</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">required_env</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Run the engine&#39;s userSetup.py file when Maya starts up</span>
+    <span class="c1"># by appending it to the env PYTHONPATH.</span>
+    <span class="n">startup_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;startup&quot;</span><span class="p">)</span>
+    <span class="n">sgtk</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">append_path_to_env_var</span><span class="p">(</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">,</span> <span class="n">startup_path</span><span class="p">)</span>
+    <span class="n">required_env</span><span class="p">[</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Check the engine settings to see whether any plugins have been</span>
+    <span class="c1"># specified to load.</span>
+    <span class="n">find_plugins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;launch_builtin_plugins&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">find_plugins</span><span class="p">:</span>
+        <span class="c1"># Parse the specified comma-separated list of plugins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Plugins found from &#39;launch_builtin_plugins&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">find_plugins</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Keep track of the specific list of Toolkit plugins to load when</span>
+        <span class="c1"># launching Maya. This list is passed through the environment and</span>
+        <span class="c1"># used by the startup/userSetup.py file.</span>
+        <span class="n">load_maya_plugins</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Add Toolkit plugins to load to the MAYA_MODULE_PATH environment</span>
+        <span class="c1"># variable so the Maya loadPlugin command can find them.</span>
+        <span class="n">maya_module_paths</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MAYA_MODULE_PATH&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">maya_module_paths</span><span class="p">:</span>
+            <span class="n">maya_module_paths</span> <span class="o">=</span> <span class="n">maya_module_paths</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">find_plugin</span> <span class="ow">in</span> <span class="n">find_plugins</span><span class="p">:</span>
+            <span class="n">load_plugin</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;plugins&quot;</span><span class="p">,</span> <span class="n">find_plugin</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">load_plugin</span><span class="p">):</span>
+                <span class="c1"># If the plugin path exists, add it to the list of MAYA_MODULE_PATHS</span>
+                <span class="c1"># so Maya can find it and to the list of SGTK_LOAD_MAYA_PLUGINS so</span>
+                <span class="c1"># the startup&#39;s userSetup.py file knows what plugins to load.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Preparing to launch builtin plugin &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">load_plugin</span><span class="p">)</span>
+                <span class="n">load_maya_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">load_plugin</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">load_plugin</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">maya_module_paths</span><span class="p">:</span>
+                    <span class="n">maya_module_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">load_plugin</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Report the missing plugin directory</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Resolved plugin path &#39;</span><span class="si">%s</span><span class="s2">&#39; does not exist!&quot;</span> <span class="o">%</span>
+                    <span class="n">load_plugin</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Add MAYA_MODULE_PATH and SGTK_LOAD_MAYA_PLUGINS to the launch</span>
+        <span class="c1"># environment.</span>
+        <span class="n">required_env</span><span class="p">[</span><span class="s2">&quot;MAYA_MODULE_PATH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">maya_module_paths</span><span class="p">)</span>
+        <span class="n">required_env</span><span class="p">[</span><span class="s2">&quot;SGTK_LOAD_MAYA_PLUGINS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">load_maya_plugins</span><span class="p">)</span>
+
+        <span class="c1"># Add context and site info</span>
+        <span class="n">std_env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_standard_plugin_environment</span><span class="p">()</span>
+        <span class="n">required_env</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">std_env</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Prepare the launch environment with variables required by the</span>
+        <span class="c1"># classic bootstrap approach.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Preparing Maya Launch via Toolkit Classic methodology ...&quot;</span><span class="p">)</span>
+        <span class="n">required_env</span><span class="p">[</span><span class="s2">&quot;SGTK_ENGINE&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_name</span>
+        <span class="n">required_env</span><span class="p">[</span><span class="s2">&quot;SGTK_CONTEXT&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">file_to_open</span><span class="p">:</span>
+        <span class="c1"># Add the file name to open to the launch environment</span>
+        <span class="n">required_env</span><span class="p">[</span><span class="s2">&quot;SGTK_FILE_TO_OPEN&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file_to_open</span>
+
+    <span class="k">return</span> <span class="n">LaunchInformation</span><span class="p">(</span><span class="n">exec_path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">required_env</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="configuration-using-the-software-entity-in-shotgun">
+<h3>Configuration Using the Software Entity in Shotgun<a class="headerlink" href="#configuration-using-the-software-entity-in-shotgun" title="Permalink to this headline">¶</a></h3>
+<p>Software entities are used to specify and configure locally installed DCC applications that are
+launchable from Toolkit and/or Shotgun for a user on the site. They are readable by all users, but
+only writeable by admins.</p>
+<p>The <code class="docutils literal"><span class="pre">tk-multi-launchapp</span></code> Toolkit application (installed by default with Desktop and available in
+the App Store for download) parses the site Software entries to determine which launch commands to
+present in Desktop for a specific Project and user. At minimum, a <code class="docutils literal"><span class="pre">Software</span> <span class="pre">Name</span></code> and <code class="docutils literal"><span class="pre">Engine</span></code>
+for DCCs that have Toolkit integrations or <code class="docutils literal"><span class="pre">&lt;platform&gt;</span> <span class="pre">Path</span></code> for those that do not must be specified
+for a launch command to be added to Desktop. The full list of launch commands a user has access to
+may be limited by Project, user name, Group membership, or DCC version.</p>
+<p>The Software site page can be accessed from either &#8220;All Pages &gt; Global Pages &gt; Software&#8221; or &#8220;User Menu &gt;
+Admin &gt; Software&#8221; menus. Here are sample Software entries:</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since the engine field is optional, any locally installed DCC application can be registered to launch by specifying a <code class="docutils literal"><span class="pre">Software</span> <span class="pre">Name</span></code>, <code class="docutils literal"><span class="pre">&lt;platform&gt;</span> <span class="pre">Path</span></code>, and <code class="docutils literal"><span class="pre">Thumbnail</span></code>. A proper Toolkit integration for this DCC is not required. This is demonstrated by the GIMP entry on the sample Software page.</p>
+</div>
+<div class="section" id="software-entity-field-reference">
+<h4>Software Entity Field Reference<a class="headerlink" href="#software-entity-field-reference" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><strong>Thumbnail</strong> (<code class="docutils literal"><span class="pre">image</span></code> <code class="docutils literal"><span class="pre">[url</span></code>) - Icon to use for Desktop launch command. If no thumbnail is uploaded, the corresponding Toolkit engine (if specified) will attempt to load one from the resolved DCC application bundle.  In auto discovery mode*, this value will be overridden by the SoftwareVersion.icon value, unless no icon is found for the DCC.</li>
+<li><strong>Software Name</strong> (<code class="docutils literal"><span class="pre">code</span></code> <code class="docutils literal"><span class="pre">[text]</span></code>) - Menu name to use for Desktop launch command. In auto discovery mode*, this value will be overridden by the SoftwareVersion.display_name value.</li>
+<li><strong>Status List</strong> (<code class="docutils literal"><span class="pre">sg_status_list</span></code> <code class="docutils literal"><span class="pre">[status</span> <span class="pre">list]</span></code>) - Active (act) or Disabled (dis). These are the same status values applicable to HumanUsers.</li>
+<li><strong>Engine</strong> (<code class="docutils literal"><span class="pre">engine</span></code> <code class="docutils literal"><span class="pre">[text]</span></code>) - Toolkit engine to construct a SoftwareLauncher instance for and startup on application launch. If specified, the Shotgun Panel and other related Toolkit applications will be available to the user once the DCC has finished loading. The engine may be able to locate corresponding application executables and/or icons in the case all platform path and/or thumbnail fields are left blank. This field may be left blank to launch DCC applications that do not have a Toolkit integration implemented.</li>
+<li><strong>Projects</strong> (<code class="docutils literal"><span class="pre">projects</span></code> <code class="docutils literal"><span class="pre">[multi-entity:Project]</span></code>) - List of Projects to restrict launch commands generated by this Software entity to. If no Projects are specified, then the resulting  launch command(s) will be displayed for all Projects.</li>
+<li><strong>Users (User Restrictions)</strong> (<code class="docutils literal"><span class="pre">user_restrictions</span></code> <code class="docutils literal"><span class="pre">[multi-entity:HumanUser|Group]</span></code>) - List of Groups and/or HumanUsers launch commands generated by this Software entity are restricted to. If no Groups or HumanUsers are specified, then the resulting launch commands will be visible to all Groups and HumanUsers.</li>
+<li><strong>Products</strong> (<code class="docutils literal"><span class="pre">products</span></code> <code class="docutils literal"><span class="pre">[text]</span></code>) - Comma separated list of strings representing project names relevant to DCC applications to create launch commands for. If not specified, all products will be searched for. A product string is DCC-specific but could be something like : <code class="docutils literal"><span class="pre">“Houdini</span> <span class="pre">FX,</span> <span class="pre">Houdini</span> <span class="pre">Core,</span> <span class="pre">Houdini”</span></code></li>
+<li><strong>Versions</strong> (<code class="docutils literal"><span class="pre">versions</span></code> <code class="docutils literal"><span class="pre">[text]</span></code>) - Comma separated list of specific DCC application versions to create launch commands for. If any of the specified versions are not found locally installed, then a launch command will not be created for those versions. Conversely, launch commands will not be constructed for locally installed DCC versions that do not appear in this list.  This field may be left empty to register launch commands for all available versions of a DCC.</li>
+<li><strong>Group</strong> (<code class="docutils literal"><span class="pre">group</span></code> <code class="docutils literal"><span class="pre">[text]</span></code>) - Group name launch commands for this Software entity belong to.  This value is interpreted by the engine the commands are being registered with. For example, in Desktop all launch commands generated for this Software entity will appear as drop-down menu items of a button with this name on a Project window.</li>
+<li><strong>Group Default</strong> (<code class="docutils literal"><span class="pre">group_default</span></code> <code class="docutils literal"><span class="pre">[checkbox]</span></code>) - If a single launch command is generated by this Software entity and a <code class="docutils literal"><span class="pre">group</span></code> value has been specified, this field value indicates whether to launch this command if the group is selected instead of an individual command. This value is ignored if more than one launch command is generated for this Software entity, and the command with the highest version is used as the default instead.  This value is interpreted by the engine the commands are being registered with.</li>
+<li><strong>Linux Path / Mac Path / Windows Path</strong> (<code class="docutils literal"><span class="pre">linux_path</span></code> / <code class="docutils literal"><span class="pre">mac_path</span></code> / <code class="docutils literal"><span class="pre">windows_path</span></code> <code class="docutils literal"><span class="pre">[text]</span></code>) - DCC application executable path or name to launch on the specified platform (linux, mac, or windows). The specified path may contain environment and/or configuration variables. If no applicaion path or name is given, the corresponding Toolkit engine (if specified) will attempt to create launch commands for ALL versions of the DCC application found installed on the local file system. The list of commands generated bay be limited by the contents of the <code class="docutils literal"><span class="pre">versions</span></code> field</li>
+<li><strong>Linux Args / Mac Args / Windows Args</strong> (<code class="docutils literal"><span class="pre">linux_args</span></code> / <code class="docutils literal"><span class="pre">mac_args</span></code> / <code class="docutils literal"><span class="pre">windows_args</span></code> <code class="docutils literal"><span class="pre">[text]</span></code>) - Command line options to pass to the DCC as it is being launched.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="softwarelauncher">
+<h2>SoftwareLauncher<a class="headerlink" href="#softwarelauncher" title="Permalink to this headline">¶</a></h2>
+<p>This section contains the techincal documentation for the core classes and methods described in the
+<a class="reference internal" href="#launching-software"><span class="std std-ref">Launching Software</span></a> section above.</p>
+<dl class="function">
+<dt id="sgtk.platform.create_engine_launcher">
+<code class="descclassname">sgtk.platform.</code><code class="descname">create_engine_launcher</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>engine_name</em>, <em>versions=None</em>, <em>products=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#create_engine_launcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.create_engine_launcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory method that creates a <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> subclass 
+instance implemented by a toolkit engine in the environment config
+that can be used by a custom script or toolkit app. The engine 
+subclass manages the business logic for DCC executable path 
+discovery and the environmental requirements for launching the DCC.
+Toolkit is automatically started up during the DCC&#8217;s launch phase.
+A very simple example of how this works is demonstrated here:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">context</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">launcher</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="s2">&quot;tk-maya&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">software_versions</span> <span class="o">=</span> <span class="n">launcher</span><span class="o">.</span><span class="n">scan_software</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">launch_info</span> <span class="o">=</span> <span class="n">launcher</span><span class="o">.</span><span class="n">prepare_launch</span><span class="p">(</span><span class="n">software_versions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s2">&quot;/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">],</span> <span class="n">env</span><span class="o">=</span><span class="n">launch_info</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal"><span class="pre">software_versions</span></code> is a list of <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a>
+instances and <code class="docutils literal"><span class="pre">launch_info</span></code> is a <a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal"><span class="pre">LaunchInformation</span></code></a>
+instance. This example will launch the first version of Maya
+found installed on the local filesystem, automatically start
+the tk-maya engine for that Maya session, and open
+/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> Toolkit instance.</li>
+<li><strong>context</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> Context to launch the DCC in.</li>
+<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the Toolkit engine associated with
+the DCC(s) to launch.</li>
+<li><strong>versions</strong> (<em>list</em>) &#8211; A list of version strings for filtering software
+versions. See the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> for more info.</li>
+<li><strong>products</strong> (<em>list</em>) &#8211; A list of product strings for filtering software
+versions. See the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> for more info.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> instance or <code class="docutils literal"><span class="pre">None</span></code> if the 
+engine can be found on disk, but no <code class="docutils literal"><span class="pre">startup.py</span></code> file exists.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code> if the specified engine cannot be found
+on disk.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.platform.SoftwareLauncher">
+<em class="property">class </em><code class="descclassname">sgtk.platform.</code><code class="descname">SoftwareLauncher</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>engine_name</em>, <em>env</em>, <em>versions=None</em>, <em>products=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Functionality related to the discovery and launch of a DCC. This class
+should only be constructed through the <a class="reference internal" href="#sgtk.platform.create_engine_launcher" title="sgtk.platform.create_engine_launcher"><code class="xref py py-meth docutils literal"><span class="pre">create_engine_launcher()</span></code></a>
+factory method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> Toolkit instance</li>
+<li><strong>context</strong> &#8211; A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> object to define the
+context on disk where the engine is operating.</li>
+<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the Toolkit engine associated
+with the DCC(s) to launch.</li>
+<li><strong>env</strong> &#8211; An <code class="xref py py-class docutils literal"><span class="pre">Environment</span></code> object to
+associate with this launcher.</li>
+<li><strong>versions</strong> (<em>list</em>) &#8211; List of strings representing versions to search
+for. If set to <code class="docutils literal"><span class="pre">None</span></code> or <code class="docutils literal"><span class="pre">[]</span></code>, search for all versions. A version string
+is DCC-specific but could be something like &#8220;2017&#8221;, &#8220;6.3v7&#8221; or
+&#8220;1.2.3.52&#8221;</li>
+<li><strong>products</strong> (<em>list</em>) &#8211; List of strings representing product names to
+search for. If set to <code class="docutils literal"><span class="pre">None</span></code> or <code class="docutils literal"><span class="pre">[]</span></code>, search for all products. A product
+string is DCC-specific but could be something like &#8220;Houdini FX&#8221;,
+&#8220;Houdini Core&#8221; or &#8220;Houdini&#8221;</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareLauncher.context">
+<code class="descname">context</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.context" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> associated with this launcher.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareLauncher.sgtk">
+<code class="descname">sgtk</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.sgtk" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance associated with this item</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareLauncher.disk_location">
+<code class="descname">disk_location</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.disk_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>The folder on disk where this item is located.
+This can be useful if you want to write app code
+to retrieve a local resource:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">app_font</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;font.fnt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareLauncher.display_name">
+<code class="descname">display_name</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.display_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The display name for the item. Automatically
+appends &#8216;Startup&#8217; to the end of the display
+name if that string is missing from the display
+name (e.g. Maya Engine Startup)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareLauncher.engine_name">
+<code class="descname">engine_name</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.engine_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the toolkit engine name this launcher is based on as a <code class="docutils literal"><span class="pre">str</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareLauncher.logger">
+<code class="descname">logger</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.logger" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="https://docs.python.org/2/library/logging.html#logging.Logger" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">logging.Logger</span></code></a> for this launcher. Use this whenever you want to emit or process log messages.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareLauncher.shotgun">
+<code class="descname">shotgun</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.shotgun" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal"><span class="pre">shotgun_api3.Shotgun</span></code> handle associated with the currently running
+environment. This method is a convenience method that calls out
+to <code class="xref py py-meth docutils literal"><span class="pre">shotgun()</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareLauncher.minimum_supported_version">
+<code class="descname">minimum_supported_version</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.minimum_supported_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>The minimum software version that is supported by the launcher.
+Returned as a string, for example <cite>2015</cite> or <cite>2015.3.sp3</cite>.
+Returns <code class="docutils literal"><span class="pre">None</span></code> if no constraint has been set.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareLauncher.products">
+<code class="descname">products</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.products" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of product names limiting executable discovery.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;Houdini&quot;</span><span class="p">,</span> <span class="s2">&quot;Houdini Core&quot;</span><span class="p">,</span> <span class="s2">&quot;Houdini FX&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareLauncher.versions">
+<code class="descname">versions</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.versions" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of versions limiting executable discovery.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;15.5.324&quot;</span><span class="p">,</span> <span class="s2">&quot;16.0.1.322&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.SoftwareLauncher.prepare_launch">
+<code class="descname">prepare_launch</code><span class="sig-paren">(</span><em>exec_path</em>, <em>args</em>, <em>file_to_open=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher.prepare_launch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.prepare_launch" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is an abstract method that must be implemented by a subclass. The
+engine implementation should prepare an environment to launch the specified
+executable path in.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">By returning an executable path and args string, we allow for
+a workflow where the engine launcher can rewrite the launch
+sequence in arbitrary ways. For example, if a DCC has a
+pre-check phase that requires input from a human, a different
+executable path that launches a standalone UI which in turn
+launches the specified path can be returned with the appropriate
+args.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>exec_path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Path to DCC executable to launch</li>
+<li><strong>args</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Command line arguments as strings</li>
+<li><strong>file_to_open</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; (optional) Full path name of a file to open on
+launch</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal"><span class="pre">LaunchInformation</span></code></a> instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.SoftwareLauncher.get_setting">
+<code class="descname">get_setting</code><span class="sig-paren">(</span><em>key</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher.get_setting"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.get_setting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a value from the item&#8217;s settings:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s1">&#39;entity_types&#39;</span><span class="p">)</span>
+<span class="go">[&#39;Sequence&#39;, &#39;Shot&#39;, &#39;Asset&#39;, &#39;Task&#39;]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key</strong> &#8211; config name</li>
+<li><strong>default</strong> &#8211; default value to return</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Value from the environment configuration</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.SoftwareLauncher.get_standard_plugin_environment">
+<code class="descname">get_standard_plugin_environment</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher.get_standard_plugin_environment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a standard plugin environment, suitable for
+plugins to utilize. This will compute the following
+environment variables:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">SHOTGUN_SITE</span></code>: The current shotgun site url</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_TYPE</span></code>: The current context</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_ID</span></code>: The current context</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_PIPELINE_CONFIGURATION_ID</span></code>: The current pipeline config id</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dictionary of environment variables</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.SoftwareLauncher.scan_software">
+<code class="descname">scan_software</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher.scan_software"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.scan_software" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a search for supported software installations.</p>
+<p>Typical implementations will use functionality such as <a class="reference internal" href="#sgtk.platform.SoftwareLauncher._glob_and_match" title="sgtk.platform.SoftwareLauncher._glob_and_match"><code class="xref py py-meth docutils literal"><span class="pre">_glob_and_match()</span></code></a>
+or <code class="xref py py-meth docutils literal"><span class="pre">glob.glob()</span></code> to locate all versions and variations of executables on disk
+and then create <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> objects for each executable and check against the launcher&#8217;s
+lists of supported version and product variations via the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher._is_supported" title="sgtk.platform.SoftwareLauncher._is_supported"><code class="xref py py-meth docutils literal"><span class="pre">_is_supported()</span></code></a> method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> supported by this launcher.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="softwareversion">
+<h3>SoftwareVersion<a class="headerlink" href="#softwareversion" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.platform.SoftwareVersion">
+<em class="property">class </em><code class="descclassname">sgtk.platform.</code><code class="descname">SoftwareVersion</code><span class="sig-paren">(</span><em>version</em>, <em>product</em>, <em>path</em>, <em>icon=None</em>, <em>args=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareVersion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareVersion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Container class that stores properties of a DCC that
+are useful for Toolkit Engine Startup functionality.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Explicit version of the DCC represented
+(e.g. 2017)</li>
+<li><strong>product</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Explicit product name of the DCC represented
+(e.g. &#8220;Houdini Apprentice&#8221;)</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Full path to the DCC executable.</li>
+<li><strong>icon</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; (optional) Full path to a 256x256 (or smaller)
+<code class="docutils literal"><span class="pre">png</span></code> file to use for graphical displays of
+this <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a>.</li>
+<li><strong>args</strong> (<em>list</em>) &#8211; (optional) List of command line arguments
+that need to be passed down to the DCC.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareVersion.version">
+<code class="descname">version</code><a class="headerlink" href="#sgtk.platform.SoftwareVersion.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>An explicit version of the DCC represented by this :class`SoftwareVersion`.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String version</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareVersion.product">
+<code class="descname">product</code><a class="headerlink" href="#sgtk.platform.SoftwareVersion.product" title="Permalink to this definition">¶</a></dt>
+<dd><p>An explicit product name for the DCC represented by this
+:class`SoftwareVersion`. Example: &#8220;Houdini FX&#8221;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String product name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareVersion.display_name">
+<code class="descname">display_name</code><a class="headerlink" href="#sgtk.platform.SoftwareVersion.display_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name to use for this :class`SoftwareVersion` in graphical displays.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String display name, a combination of the product and version.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareVersion.path">
+<code class="descname">path</code><a class="headerlink" href="#sgtk.platform.SoftwareVersion.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specified path to the DCC executable. May be relative.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String path</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareVersion.icon">
+<code class="descname">icon</code><a class="headerlink" href="#sgtk.platform.SoftwareVersion.icon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to the icon to use for graphical displays of this
+<a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a>. Expected to be a 256x256 (or smaller)
+<cite>png</cite> file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String path</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.SoftwareVersion.args">
+<code class="descname">args</code><a class="headerlink" href="#sgtk.platform.SoftwareVersion.args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command line arguments required to launch the DCC.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of string arguments.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="launchinformation">
+<h3>LaunchInformation<a class="headerlink" href="#launchinformation" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.platform.LaunchInformation">
+<em class="property">class </em><code class="descclassname">sgtk.platform.</code><code class="descname">LaunchInformation</code><span class="sig-paren">(</span><em>path=None</em>, <em>args=None</em>, <em>environ=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#LaunchInformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.LaunchInformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores blueprints for how to launch a specific DCC which includes
+required environment variables, the executable path, and command
+line arguments to pass when launching the DCC. For example, given
+a LaunchInformation instance <code class="docutils literal"><span class="pre">launch_info</span></code>, open a DCC using 
+<code class="docutils literal"><span class="pre">subprocess</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">launch_cmd</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">launch_cmd</span><span class="p">],</span> <span class="n">env</span><span class="o">=</span><span class="n">launch_info</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A LaunchInformation instance is generally obtained from an engine&#8217;s
+subclass implementation of <code class="xref py py-meth docutils literal"><span class="pre">SoftwareLauncher.prepare_launch`()</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Resolved path to DCC</li>
+<li><strong>args</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Args to pass on the command line
+when launching the DCC</li>
+<li><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Environment variables that
+must be set to successfully
+launch the DCC.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="sgtk.platform.LaunchInformation.path">
+<code class="descname">path</code><a class="headerlink" href="#sgtk.platform.LaunchInformation.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>The DCC path to launch</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String path</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.LaunchInformation.args">
+<code class="descname">args</code><a class="headerlink" href="#sgtk.platform.LaunchInformation.args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Arguments to pass to the DCC on launch</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String args</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.platform.LaunchInformation.environment">
+<code class="descname">environment</code><a class="headerlink" href="#sgtk.platform.LaunchInformation.environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary of environment variables to set before
+launching DCC.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dict {env_var: value}</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
 <div class="section" id="using-qt-inside-your-toolkit-app">
 <h2>Using QT inside your Toolkit App<a class="headerlink" href="#using-qt-inside-your-toolkit-app" title="Permalink to this headline">¶</a></h2>
 <p>You can use QT classes inside your app code. Sgtk will handle the import and gracefully manage different
@@ -4455,6 +5190,413 @@ especially when the contained widget is quite small. To hide the title bar, just
 </pre></div>
 </div>
 </div>
+<div class="section" id="software-launching">
+<h3>Software launching<a class="headerlink" href="#software-launching" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">sgtk.platform.</code><code class="descname">SoftwareLauncher</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>engine_name</em>, <em>env</em>, <em>versions=None</em>, <em>products=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Functionality related to the discovery and launch of a DCC. This class
+should only be constructed through the <a class="reference internal" href="#sgtk.platform.create_engine_launcher" title="sgtk.platform.create_engine_launcher"><code class="xref py py-meth docutils literal"><span class="pre">create_engine_launcher()</span></code></a>
+factory method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> Toolkit instance</li>
+<li><strong>context</strong> &#8211; A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> object to define the
+context on disk where the engine is operating.</li>
+<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the Toolkit engine associated
+with the DCC(s) to launch.</li>
+<li><strong>env</strong> &#8211; An <code class="xref py py-class docutils literal"><span class="pre">Environment</span></code> object to
+associate with this launcher.</li>
+<li><strong>versions</strong> (<em>list</em>) &#8211; List of strings representing versions to search
+for. If set to <code class="docutils literal"><span class="pre">None</span></code> or <code class="docutils literal"><span class="pre">[]</span></code>, search for all versions. A version string
+is DCC-specific but could be something like &#8220;2017&#8221;, &#8220;6.3v7&#8221; or
+&#8220;1.2.3.52&#8221;</li>
+<li><strong>products</strong> (<em>list</em>) &#8211; List of strings representing product names to
+search for. If set to <code class="docutils literal"><span class="pre">None</span></code> or <code class="docutils literal"><span class="pre">[]</span></code>, search for all products. A product
+string is DCC-specific but could be something like &#8220;Houdini FX&#8221;,
+&#8220;Houdini Core&#8221; or &#8220;Houdini&#8221;</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The following methods can be used by subclasses to help implement <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.scan_software" title="sgtk.platform.SoftwareLauncher.scan_software"><code class="xref py py-meth docutils literal"><span class="pre">scan_software()</span></code></a>.</p>
+<dl class="method">
+<dt id="sgtk.platform.SoftwareLauncher._is_supported">
+<code class="descname">_is_supported</code><span class="sig-paren">(</span><em>sw_version</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher._is_supported"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher._is_supported" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inspects the supplied <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> object to see if it
+aligns with this launcher&#8217;s known product and version limitations. Will
+check the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.minimum_supported_version" title="sgtk.platform.SoftwareLauncher.minimum_supported_version"><code class="xref py py-meth docutils literal"><span class="pre">minimum_supported_version()</span></code></a> as well as the list of
+product and version filters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sw_version</strong> &#8211; <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> object to test against the
+launcher&#8217;s product and version limitations.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A tuple of the form: <code class="docutils literal"><span class="pre">(bool,</span> <span class="pre">str)</span></code> where the first item
+is a boolean indicating whether the supplied <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> is
+supported or not. The second argument is <code class="docutils literal"><span class="pre">&quot;&quot;</span></code> if supported, but if
+not supported will be a string representing the reason the support
+check failed.</td>
+</tr>
+</tbody>
+</table>
+<p>This helper method can be used by subclasses in the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.scan_software" title="sgtk.platform.SoftwareLauncher.scan_software"><code class="xref py py-meth docutils literal"><span class="pre">scan_software()</span></code></a>
+method.</p>
+<p>The method can be overridden by subclasses that require more
+sophisticated <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> support checks.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.SoftwareLauncher._glob_and_match">
+<code class="descname">_glob_and_match</code><span class="sig-paren">(</span><em>match_template</em>, <em>template_key_expressions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher._glob_and_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher._glob_and_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a helper method that can be invoked in an implementation of <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.scan_software" title="sgtk.platform.SoftwareLauncher.scan_software"><code class="xref py py-meth docutils literal"><span class="pre">scan_software()</span></code></a>.</p>
+<p>The <code class="docutils literal"><span class="pre">match_template</span></code> argument provides a template to use both for globbing files and then pattern
+matching them using regular expressions provided by the <code class="docutils literal"><span class="pre">tokens_expressions</span></code> dictionary.</p>
+<p>The method will first substitute every token surrounded by <code class="docutils literal"><span class="pre">{}</span></code> from the template with a <code class="docutils literal"><span class="pre">*</span></code>
+for globbing files. It will then replace the tokens in the template with the regular expressions
+that were provided.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_glob_and_match</span><span class="p">(</span>
+    <span class="s2">&quot;C:</span><span class="se">\\</span><span class="s2">Program Files</span><span class="se">\\</span><span class="s2">Nuke</span><span class="si">{full_version}</span><span class="se">\\</span><span class="s2">Nuke</span><span class="si">{major_minor_version}</span><span class="s2">.exe&quot;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;full_version&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;[\d.v]+&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;major_minor_version&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;[\d.]+&quot;</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The example above would look for every file matching the glob <code class="docutils literal"><span class="pre">C:\Program</span> <span class="pre">Files\softwares\Nuke*\Nuke*.exe</span></code>
+and then run the regular expression <code class="docutils literal"><span class="pre">C:\\Program</span> <span class="pre">Files\\Nuke([\d.v]+)\\Nuke([\d.]+).exe</span></code>
+on each match. Each match will be comprised of a path and a dictionary with they token&#8217;s value.</p>
+<p>For example, if Nuke 10.0v1 was installed, the following would have been returned:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="s2">&quot;C:</span><span class="se">\\</span><span class="s2">Program Files</span><span class="se">\\</span><span class="s2">Nuke10.0v1</span><span class="se">\\</span><span class="s2">Nuke10.1.exe&quot;</span><span class="p">,</span>
+  <span class="p">{</span><span class="s2">&quot;full_version&quot;</span><span class="p">:</span> <span class="s2">&quot;10.0v1&quot;</span><span class="p">,</span> <span class="s2">&quot;major_minor_version&quot;</span><span class="o">=</span><span class="s2">&quot;10.0&quot;</span><span class="p">})]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>match_template</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; String template that will be used both for globbing and performing
+a regular expression.</li>
+<li><strong>template_key_expressions</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Dictionary of regular expressions that can be substituted
+in the template. The key should be the name of the token to substitute.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of tuples containing the path and a dictionary with each token&#8217;s value.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">context</code></dt>
+<dd><p>The <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> associated with this launcher.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">sgtk</code></dt>
+<dd><p>The <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance associated with this item</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">disk_location</code></dt>
+<dd><p>The folder on disk where this item is located.
+This can be useful if you want to write app code
+to retrieve a local resource:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">app_font</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;font.fnt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">display_name</code></dt>
+<dd><p>The display name for the item. Automatically
+appends &#8216;Startup&#8217; to the end of the display
+name if that string is missing from the display
+name (e.g. Maya Engine Startup)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">engine_name</code></dt>
+<dd><p>Returns the toolkit engine name this launcher is based on as a <code class="docutils literal"><span class="pre">str</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">logger</code></dt>
+<dd><p><a class="reference external" href="https://docs.python.org/2/library/logging.html#logging.Logger" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">logging.Logger</span></code></a> for this launcher. Use this whenever you want to emit or process log messages.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">shotgun</code></dt>
+<dd><p><code class="xref py py-class docutils literal"><span class="pre">shotgun_api3.Shotgun</span></code> handle associated with the currently running
+environment. This method is a convenience method that calls out
+to <code class="xref py py-meth docutils literal"><span class="pre">shotgun()</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">minimum_supported_version</code></dt>
+<dd><p>The minimum software version that is supported by the launcher.
+Returned as a string, for example <cite>2015</cite> or <cite>2015.3.sp3</cite>.
+Returns <code class="docutils literal"><span class="pre">None</span></code> if no constraint has been set.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">products</code></dt>
+<dd><p>A list of product names limiting executable discovery.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;Houdini&quot;</span><span class="p">,</span> <span class="s2">&quot;Houdini Core&quot;</span><span class="p">,</span> <span class="s2">&quot;Houdini FX&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">versions</code></dt>
+<dd><p>A list of versions limiting executable discovery.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;15.5.324&quot;</span><span class="p">,</span> <span class="s2">&quot;16.0.1.322&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">prepare_launch</code><span class="sig-paren">(</span><em>exec_path</em>, <em>args</em>, <em>file_to_open=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher.prepare_launch"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>This is an abstract method that must be implemented by a subclass. The
+engine implementation should prepare an environment to launch the specified
+executable path in.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">By returning an executable path and args string, we allow for
+a workflow where the engine launcher can rewrite the launch
+sequence in arbitrary ways. For example, if a DCC has a
+pre-check phase that requires input from a human, a different
+executable path that launches a standalone UI which in turn
+launches the specified path can be returned with the appropriate
+args.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>exec_path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Path to DCC executable to launch</li>
+<li><strong>args</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Command line arguments as strings</li>
+<li><strong>file_to_open</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; (optional) Full path name of a file to open on
+launch</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal"><span class="pre">LaunchInformation</span></code></a> instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_setting</code><span class="sig-paren">(</span><em>key</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher.get_setting"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Get a value from the item&#8217;s settings:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s1">&#39;entity_types&#39;</span><span class="p">)</span>
+<span class="go">[&#39;Sequence&#39;, &#39;Shot&#39;, &#39;Asset&#39;, &#39;Task&#39;]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key</strong> &#8211; config name</li>
+<li><strong>default</strong> &#8211; default value to return</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Value from the environment configuration</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_standard_plugin_environment</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher.get_standard_plugin_environment"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Create a standard plugin environment, suitable for
+plugins to utilize. This will compute the following
+environment variables:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">SHOTGUN_SITE</span></code>: The current shotgun site url</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_TYPE</span></code>: The current context</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_ID</span></code>: The current context</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_PIPELINE_CONFIGURATION_ID</span></code>: The current pipeline config id</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dictionary of environment variables</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">scan_software</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher.scan_software"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Performs a search for supported software installations.</p>
+<p>Typical implementations will use functionality such as <a class="reference internal" href="#sgtk.platform.SoftwareLauncher._glob_and_match" title="sgtk.platform.SoftwareLauncher._glob_and_match"><code class="xref py py-meth docutils literal"><span class="pre">_glob_and_match()</span></code></a>
+or <code class="xref py py-meth docutils literal"><span class="pre">glob.glob()</span></code> to locate all versions and variations of executables on disk
+and then create <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> objects for each executable and check against the launcher&#8217;s
+lists of supported version and product variations via the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher._is_supported" title="sgtk.platform.SoftwareLauncher._is_supported"><code class="xref py py-meth docutils literal"><span class="pre">_is_supported()</span></code></a> method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> supported by this launcher.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">sgtk.platform.</code><code class="descname">SoftwareVersion</code><span class="sig-paren">(</span><em>version</em>, <em>product</em>, <em>path</em>, <em>icon=None</em>, <em>args=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareVersion"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Container class that stores properties of a DCC that
+are useful for Toolkit Engine Startup functionality.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Explicit version of the DCC represented
+(e.g. 2017)</li>
+<li><strong>product</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Explicit product name of the DCC represented
+(e.g. &#8220;Houdini Apprentice&#8221;)</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Full path to the DCC executable.</li>
+<li><strong>icon</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; (optional) Full path to a 256x256 (or smaller)
+<code class="docutils literal"><span class="pre">png</span></code> file to use for graphical displays of
+this <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a>.</li>
+<li><strong>args</strong> (<em>list</em>) &#8211; (optional) List of command line arguments
+that need to be passed down to the DCC.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt>
+<code class="descname">version</code></dt>
+<dd><p>An explicit version of the DCC represented by this :class`SoftwareVersion`.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String version</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">product</code></dt>
+<dd><p>An explicit product name for the DCC represented by this
+:class`SoftwareVersion`. Example: &#8220;Houdini FX&#8221;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String product name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">display_name</code></dt>
+<dd><p>Name to use for this :class`SoftwareVersion` in graphical displays.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String display name, a combination of the product and version.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">path</code></dt>
+<dd><p>Specified path to the DCC executable. May be relative.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String path</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">icon</code></dt>
+<dd><p>Path to the icon to use for graphical displays of this
+<a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a>. Expected to be a 256x256 (or smaller)
+<cite>png</cite> file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">String path</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">args</code></dt>
+<dd><p>Command line arguments required to launch the DCC.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of string arguments.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 </div>
 </div>
 
@@ -4498,7 +5640,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

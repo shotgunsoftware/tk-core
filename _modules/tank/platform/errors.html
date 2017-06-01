@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.errors &mdash; tk-core v0.18.73 documentation</title>
+  <title>tank.platform.errors &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -197,12 +197,23 @@
 <span class="sd">    Exception that indicates that an engine could not start up.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
+
 <span class="k">class</span> <span class="nc">TankEngineEventError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that is raised when there is a problem during engine event emission.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span>
 
+
+<span class="k">class</span> <span class="nc">TankCurrentModuleNotFoundError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exception that is raised when :meth:`sgtk.platform.current_bundle` couldn&#39;t</span>
+<span class="sd">    resolve a bundle.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<span class="k">class</span> <span class="nc">TankMissingEnvironmentFile</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exception that indicates that an environment file can&#39;t be found on disk.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
 <span class="c1"># backwards compatibility to ensure code that was calling internal</span>
 <span class="c1"># parts of the API will still work.</span>
@@ -239,7 +250,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

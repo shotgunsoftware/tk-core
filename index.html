@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Shotgun pipeline Toolkit Core reference, v0.18.73 &mdash; tk-core v0.18.73 documentation</title>
+  <title>Shotgun pipeline Toolkit Core reference, v0.18.83 &mdash; tk-core v0.18.83 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.73 documentation" href="#"/>
+    <link rel="top" title="tk-core v0.18.83 documentation" href="#"/>
         <link rel="next" title="Deploy and management" href="bootstrap.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.73.<br>
+    <b>tk-core</b> v0.18.83.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -153,7 +153,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="#">Docs</a> &raquo;</li>
       
-    <li>Shotgun pipeline Toolkit Core reference, v0.18.73</li>
+    <li>Shotgun pipeline Toolkit Core reference, v0.18.83</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -166,7 +166,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="shotgun-pipeline-toolkit-core-reference-release">
-<h1>Shotgun pipeline Toolkit Core reference, v0.18.73<a class="headerlink" href="#shotgun-pipeline-toolkit-core-reference-release" title="Permalink to this headline">¶</a></h1>
+<h1>Shotgun pipeline Toolkit Core reference, v0.18.83<a class="headerlink" href="#shotgun-pipeline-toolkit-core-reference-release" title="Permalink to this headline">¶</a></h1>
 <p>Welcome to the Shotgun pipeline Toolkit developer and reference documentation.
 Below you will find a detailed technical reference of all Toolkit Core APIs as well
 as information useful for developers and engineers.</p>
@@ -207,17 +207,20 @@ package level whenever possible:</p>
 <li class="toctree-l2"><a class="reference internal" href="core.html#executing-tank-commands">Executing Tank commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#hooks">Hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#template-system">Template system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#configuration-file-resolution">Configuration file resolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#exceptions">Exceptions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="platform.html">Apps, Engines and Frameworks</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="platform.html#launching-and-accessing-engines-and-apps">Launching and accessing Engines and Apps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="platform.html#managing-engines-and-apps">Managing Engines and Apps</a></li>
 <li class="toctree-l2"><a class="reference internal" href="platform.html#engines">Engines</a></li>
 <li class="toctree-l2"><a class="reference internal" href="platform.html#applications">Applications</a></li>
 <li class="toctree-l2"><a class="reference internal" href="platform.html#frameworks">Frameworks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="platform.html#exceptions">Exceptions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="platform.html#import-and-access-methods">Import and access methods</a></li>
 <li class="toctree-l2"><a class="reference internal" href="platform.html#configuration-and-info-yml-manifest">Configuration and <code class="docutils literal"><span class="pre">info.yml</span></code> manifest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="platform.html#launching-software">Launching Software</a></li>
+<li class="toctree-l2"><a class="reference internal" href="platform.html#softwarelauncher">SoftwareLauncher</a></li>
 <li class="toctree-l2"><a class="reference internal" href="platform.html#using-qt-inside-your-toolkit-app">Using QT inside your Toolkit App</a></li>
 <li class="toctree-l2"><a class="reference internal" href="platform.html#using-qt-5-inside-your-toolkit-app">Using QT 5 inside your Toolkit App</a></li>
 </ul>
@@ -284,7 +287,7 @@ package level whenever possible:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.73',
+            VERSION:'v0.18.83',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
