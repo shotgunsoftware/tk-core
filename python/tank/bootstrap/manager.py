@@ -947,7 +947,7 @@ class ToolkitManager(object):
                         # really know whether this is a legacy core or not, so if both
                         # the legacy and new code paths failed, we'll raise the exception
                         # from the new code path.
-                        log.debug(
+                        log.warning(
                             "Attempted legacy engine start path for Shotgun engine, which failed. "
                             "This attempt was made because the tk-core version is HEAD, which means "
                             "we don't know if it's new or old. As such, when the new-style bootstrap "
