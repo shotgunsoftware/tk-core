@@ -20,7 +20,6 @@ from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
 from ..util.version import is_version_older, is_version_head
-from ..platform.errors import TankEngineInitError
 
 log = LogManager.get_logger(__name__)
 
@@ -931,7 +930,7 @@ class ToolkitManager(object):
             # no legacy cases
             try:
                 engine = tank.platform.start_engine(engine_name, tk, ctx)
-            except TankEngineInitError as exc:
+            except Exception as exc:
                 # It's possible that a tk-core is being used that didn't come from
                 # the app_store. This might be the case where a site config has been
                 # locked off, and populated with a tk-core cloned from Github. In that
