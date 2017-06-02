@@ -214,7 +214,7 @@ class ConfigurationWriter(object):
             return (config_backup_path, core_backup_path)
 
     @filesystem.with_cleared_umask
-    def create_tank_command(self):
+    def create_tank_command(self, executable=sys.executable, prefix=sys.prefix):
         """
         Create a tank command for this configuration.
 
@@ -248,16 +248,31 @@ class ConfigurationWriter(object):
         # up a bit in my mouth.
 
         # Figures out which is the current Python interpreter.
-        if os.path.split(sys.executable)[1].lower().startswith("shotgun"):
+        # If we're in the Shotgun Desktop
+        if os.path.split(executable)[1].lower().startswith("shotgun"):
             log.debug("Shotgun Desktop process detected.")
+            # We'll use the builtin Python.
             if sys.platform == "darwin":
-                current_interpreter = os.path.join(sys.prefix, "bin", "python")
+                current_interpreter = os.path.join(prefix, "bin", "python")
             elif sys.platform == "win32":
-                current_interpreter = os.path.join(sys.prefix, "python.exe")
+                current_interpreter = os.path.join(prefix, "python.exe")
             else:
-                current_interpreter = os.path.join(sys.prefix, "bin", "python")
+                current_interpreter = os.path.join(prefix, "bin", "python")
+        elif os.path.split(executable)[1].lower().startswith("python"):
+            # If we're in a Python executable, we should use that.
+            current_interpreter = executable
         else:
-            current_interpreter = sys.executable
+            # If we don't recognize the executable, we'll hardcode the desktop default install
+            # location for now. In practice, we don't have any DCCs who launch something
+            # from another process at the moment in descriptor based pipelines, so its
+            # not an issue for now. Might become one in the future for certain clients tough.
+            # We'll see.
+            if sys.platform == "darwin":
+                current_interpreter = constants.DESKTOP_PYTHON_MAC
+            elif sys.platform == "win32":
+                current_interpreter = constants.DESKTOP_PYTHON_WIN
+            else:
+                current_interpreter = constants.DESKTOP_PYTHON_LINUX
 
         # Sets the interpreter in the current OS.
         if sys.platform == "darwin":
