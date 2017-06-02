@@ -138,8 +138,6 @@ class IODescriptorAppStore(IODescriptorBase):
         self._version = descriptor_dict.get("version")
         self._label = descriptor_dict.get("label")
         self._branch = descriptor_dict.get("branch")
-        # cached metadata - loaded on demand
-        # CHECK WHEN THIS WAS REMOVED !self.__cached_metadata = None
 
     def __str__(self):
         """
