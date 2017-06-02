@@ -143,9 +143,9 @@ class TestInterpreterFilesWriter(TankTestBase):
             sys_executable = "/Applications/Shotgun.v1.4.3.app/Contents/MacOS/Shotgun"
             python_exe = os.path.join(sys_prefix, "bin", "python")
         else:
-            sys_prefix = "/opt/Shotgun.v.1.4.3/python"
+            sys_prefix = "/opt/Shotgun.v.1.4.3/Python"
             sys_executable = "/opt/Shotgun.v.1.4.3/Shotgun"
-            python_exe = os.path.join(sys_prefix, "python")
+            python_exe = os.path.join(sys_prefix, "bin", "python")
 
         interpreter = self._writer_interpreter_file(sys_executable, sys_prefix)
 
