@@ -549,6 +549,8 @@ class IODescriptorAppStore(IODescriptorBase):
 
         else:
             # no label based filtering. all versions are valid.
+            # it means we consider all releases, with or without tags, for backward
+            # compatibility.
             version_numbers = all_versions.keys()
 
         if len(version_numbers) == 0:

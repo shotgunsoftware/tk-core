@@ -246,7 +246,7 @@ class IODescriptorBase(object):
                     if token2 != "x":
                         raise TankDescriptorError(
                             "Incorrect version pattern '%s'. "
-                            "There should be no string after a 'x', found %s." % (
+                            "There should be no digit after a 'x', found %s." % (
                                 pattern, token2,
                             )
                         )

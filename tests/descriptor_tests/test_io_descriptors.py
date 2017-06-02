@@ -44,11 +44,9 @@ class TestIODescriptors(TankTestBase):
                     bundle_cache_root_override=root,
                 )
             )
-            # Check there is no branch
-            self.assertIsNone(releases[-1].branch)
-            # check the uri, we shouldn't have any branch param in it
+            # check the uri, we shouldn't have any label param in it
             # sgtk:descriptor:app_store?version=v2.1.2&name=tk-bundle
-            self.assertFalse("branch" in releases[-1].get_uri())
+            self.assertFalse("label" in releases[-1].get_uri())
             # Create a branch release
             releases.append(
                 sgtk.descriptor.create_descriptor(
@@ -56,46 +54,75 @@ class TestIODescriptors(TankTestBase):
                     sgtk.descriptor.Descriptor.APP, {
                         "type": "app_store",
                         "version": "%s-topic" % release,
-                        "branch": "topic",
+                        "label": "topic",
                         "name": "tk-bundle"
                     },
                     bundle_cache_root_override=root,
                 )
             )
-            # Check the branch is correctly set
-            self.assertTrue(releases[-1].branch=="topic")
-            # check the uri, we should have branch=topic in it
-            # e.g. sgtk:descriptor:app_store?version=v2.1.2.topic&name=tk-bundle&branch=topic
-            self.assertTrue("&branch=topic" in releases[-1].get_uri())
+            # check the uri, we should have label=topic in it
+            # e.g. sgtk:descriptor:app_store?version=v2.1.2.topic&name=tk-bundle&label=topic
+            self.assertTrue("&label=topic" in releases[-1].get_uri())
 
+        sg_bundle_data = {
+            "id": 666,
+            "sg_system_name": "tk-bundle",
+            "sg_status_list": "ip",
+            "sg_deprecation_message": "",
+        }
         # Create dummy app payload
-        for release in releases:
-            app_path = release._io_descriptor._get_bundle_cache_path(root)
+        for i, release in enumerate(releases):
+            app_path = os.path.join(root, "app_store", "tk-bundle", release.version)
             path = os.path.join(app_path, "info.yml")
-
             os.makedirs(app_path)
             fh = open(path, "wt")
             fh.write("test data\n")
             fh.close()
 
-        # Check we don't mix up branch and non-branch releases
-        self.assertEqual(
-            releases[-1].branch,
-            releases[-1].find_latest_cached_version().branch
+            # Generate cached meta data
+            sg_data_for_version = {
+                "id": i,
+                "code": release.version,
+                "sg_status_list": "alpha",
+                "description": "",
+                "tag_list": ["topic"] if i%2 else [None],
+                "sg_detailed_release_notes": "",
+                "sg_documentation": "",
+                "sg_branch": "topic" if i%2 else None,
+            }
+            # Need to access the private method directly
+            release._io_descriptor._IODescriptorAppStore__refresh_metadata(
+                release.get_path(),
+                sg_bundle_data,
+                sg_data_for_version
+            )
+
+        all_versions = releases[-2]._io_descriptor._get_locally_cached_versions()
+        all_metadata = {}
+        for v, p in all_versions.iteritems():
+            all_metadata[v] = releases[-2]._io_descriptor._IODescriptorAppStore__load_cached_app_store_metadata(
+            p,
         )
-        self.assertEqual(
-            releases[-2].branch,
-            releases[-2].find_latest_cached_version().branch
-        )
+
+        #raise ValueError(all_metadata)
         # Check various release constraint patterns
         self.assertEqual(
             releases[-1].find_latest_cached_version("vx.x.x").version,
             releases[-1].version
         )
-        self.assertEqual(
-            releases[-2].find_latest_cached_version("vx.x.x").version,
-            releases[-2].version
+        metadata = releases[-2]._io_descriptor._IODescriptorAppStore__load_cached_app_store_metadata(
+            releases[-2].get_path(),
         )
+        # With no tag we see all versions, so latest version for the version with
+        # no tag will be the latest topic release
+        latest = releases[-2].find_latest_cached_version("vx.x.x")
+        self.assertEqual(
+            latest.version,
+            releases[-1].version
+        )
+        # Even if we picked a "topic" release, it shouldn't have a label set in its
+        # descriptor, otherwise we will not see all versions anymore.
+        self.assertFalse("label" in latest.get_uri())
 
     def test_latest_cached(self):
         """
@@ -162,6 +189,7 @@ class TestIODescriptors(TankTestBase):
         self.assertEqual(d.find_latest_cached_version("v1.1.x"), d)
         self.assertEqual(d.find_latest_cached_version("v1.2.x"), d2)
         self.assertEqual(d.find_latest_cached_version("v1.x.x"), d3)
+        self.assertEqual(d.find_latest_cached_version("vx.x.x"), d3)
         self.assertEqual(d.find_latest_cached_version("v2.x.x"), None)
 
     def test_cache_locations(self):
