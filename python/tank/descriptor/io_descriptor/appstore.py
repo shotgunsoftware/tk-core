@@ -700,7 +700,7 @@ class IODescriptorAppStore(IODescriptorBase):
         descriptor_dict = {
             "type": "app_store",
             "name": self._name,
-            "version": version_to_use
+            "version": version_to_use,
             "branch": self._branch,
         }
 
