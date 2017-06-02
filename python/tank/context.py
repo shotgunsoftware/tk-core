@@ -89,26 +89,32 @@ class Context(object):
         return "<Sgtk Context: %s>" % ("\n".join(msg))
 
     def __str__(self):
-        # smart looking string representation
-        
+        """
+        String representation for context
+        """
         if self.project is None:
             # We're in a "site" context, so we'll give the site's url
             # minus the "https://" if that's attached.
             ctx_name = self.shotgun_url.split("//")[-1]
         
         elif self.entity is None:
-            # project-only!
-            ctx_name = "%s" % self.project.get("name")
+            # project-only, e.g 'Project foobar'
+            ctx_name = "Project %s" % self.project.get("name")
         
         elif self.step is None and self.task is None:
             # entity only
             # e.g. Shot ABC_123
             
             # resolve custom entities to their real display
-            entity_display_name = shotgun.get_entity_type_display_name(self.__tk, 
-                                                                       self.entity.get("type"))
+            entity_display_name = shotgun.get_entity_type_display_name(
+                self.__tk,
+                self.entity.get("type")
+            )
             
-            ctx_name = "%s %s" % (entity_display_name, self.entity.get("name"))
+            ctx_name = "%s %s" % (
+                entity_display_name,
+                self.entity.get("name")
+            )
 
         else:
             # we have either step or task
@@ -121,12 +127,16 @@ class Context(object):
             # e.g. Lighting, Shot ABC_123
             
             # resolve custom entities to their real display
-            entity_display_name = shotgun.get_entity_type_display_name(self.__tk, 
-                                                                       self.entity.get("type"))
+            entity_display_name = shotgun.get_entity_type_display_name(
+                self.__tk,
+                self.entity.get("type")
+            )
             
-            ctx_name = "%s, %s %s" % (task_step, 
-                                      entity_display_name, 
-                                      self.entity.get("name"))
+            ctx_name = "%s, %s %s" % (
+                task_step,
+                entity_display_name,
+                self.entity.get("name")
+            )
         
         return ctx_name
 

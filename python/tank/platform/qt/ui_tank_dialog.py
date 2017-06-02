@@ -30,9 +30,9 @@ class Ui_TankDialog(object):
         self.top_group.setMinimumSize(QtCore.QSize(0, 45))
         self.top_group.setMaximumSize(QtCore.QSize(16777215, 45))
         self.top_group.setStyleSheet("#top_group {\n"
-"background-image: url(:/Tank.Platform.Qt/bg.png); \n"
+"background-color:  #2D2D2D;\n"
 "border: none;\n"
-"border-bottom:1px solid #606161\n"
+"border-bottom:1px solid #202020;\n"
 "}\n"
 "")
         self.top_group.setTitle("")
@@ -160,7 +160,7 @@ class Ui_TankDialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 383, 566))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 383, 577))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_4 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_4.setObjectName("verticalLayout_4")

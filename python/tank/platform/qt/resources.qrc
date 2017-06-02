@@ -3,12 +3,10 @@
     <file>sg_logo_80px.png</file>
     <file>pencil.png</file>
     <file>gradient.png</file>
-    <file>bg2.png</file>
     <file>arrow_hover.png</file>
     <file>arrow_pressed.png</file>
     <file>arrow.png</file>
     <file>tank_logo.png</file>
-    <file>bg.png</file>
     <file>default_app_icon_256.png</file>
   </qresource>
 </RCC>

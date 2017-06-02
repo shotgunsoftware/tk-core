@@ -88,13 +88,13 @@ def create_descriptor(
 
     # now create a high level descriptor and bind that with the low level descriptor
     if descriptor_type == Descriptor.APP:
-        return AppDescriptor(io_descriptor)
+        return AppDescriptor(sg_connection, io_descriptor)
 
     elif descriptor_type == Descriptor.ENGINE:
-        return EngineDescriptor(io_descriptor)
+        return EngineDescriptor(sg_connection, io_descriptor)
 
     elif descriptor_type == Descriptor.FRAMEWORK:
-        return FrameworkDescriptor(io_descriptor)
+        return FrameworkDescriptor(sg_connection, io_descriptor)
 
     elif descriptor_type == Descriptor.CONFIG:
         return ConfigDescriptor(io_descriptor)

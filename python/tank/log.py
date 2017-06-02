@@ -54,6 +54,8 @@ Below is a simple log hierarchy to illustrate what this might look like in pract
      |       |
      |       |- tk-maya                               Toolkit Engine
      |             |
+     |             |- startup                         Toolkit Engine Software Launcher
+     |             |
      |             |- tk-multi-workfiles2             Toolkit App (or framework)
      |                  |
      |                  |- tkimp63c3b2d57f85          Toolkit Command Session
@@ -677,7 +679,7 @@ class LogManager(object):
         location and will capture all log messages passed through
         the log hierarchy.
 
-        .. note:: Files will be written into the a location on disk
+        .. note:: Files will be written into the location on disk
                   defined by :meth:`log_folder`.
 
         When you start an engine via the :meth:`sgtk.platform.start_engine` method,
@@ -690,7 +692,7 @@ class LogManager(object):
         exist per session.
 
         :param log_name: Name of logger to create. This will form the
-                         filename of the log file.
+                         filename of the log file. The ``.log`` will be suffixed.
 
         :returns: The path to the previous log file that is being switched away from,
                   None if no base logger was previously active.

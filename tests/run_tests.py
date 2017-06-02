@@ -103,12 +103,18 @@ if __name__ == "__main__":
                       action="store",
                       dest="test_root", 
                       help="Specify a folder where to look for tests.")
+    parser.add_option("--log-to-console", "-l",
+                      action="store_true",
+                      help="run tests and redirect logging output to the console.")
 
     (options, args) = parser.parse_args()
     
     test_name = None
     if args:
         test_name = args[0]
+
+    if options.log_to_console:
+        tank.LogManager().initialize_custom_handler()
      
     if options.test_root:
         # resolve path

@@ -27,7 +27,7 @@ class TankUnreadableFileError(TankError):
 
 class TankFileDoesNotExistError(TankUnreadableFileError):
     """
-    Exceptions that indicates that a required file does not exist.
+    Exception that indicates that a required file does not exist.
     """
 
 
@@ -40,6 +40,24 @@ class TankNoDefaultValueError(TankError):
 class TankHookMethodDoesNotExistError(TankError):
     """
     Exception that indicates that a called method does not exist in the hook.
+    """
+
+
+class TankInvalidInterpreterLocationError(TankError):
+    """
+    Exception that indicates that the interpreter specified in a file was not found.
+    """
+
+
+class TankInvalidCoreLocationError(TankError):
+    """
+    Exception that indicates the core location file contained an invalid path.
+    """
+
+
+class TankNotPipelineConfigurationError(TankError):
+    """
+    Exception that indicates that a folder doesn't contain a pipeline configuration.
     """
 
 
@@ -68,4 +86,3 @@ class TankMultipleMatchingTemplatesError(TankError):
     """
     Exception that indicates that a path matches multiple templates.
     """
-

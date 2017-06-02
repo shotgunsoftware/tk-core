@@ -12,10 +12,20 @@
 Encapsulates the pipeline configuration and helps navigate and resolve paths
 across storages, configurations etc.
 """
+
+from __future__ import with_statement
+
 import os
 import sys
 
-from .errors import TankError
+from .errors import (
+    TankError,
+    TankNotPipelineConfigurationError,
+    TankInvalidInterpreterLocationError,
+    TankFileDoesNotExistError,
+    TankInvalidCoreLocationError
+)
+
 from . import constants
 from . import LogManager
 from .util import yaml_cache
@@ -152,19 +162,55 @@ def get_path_to_current_core():
                         "This can happen if you try to move or symlink the Toolkit API. The "
                         "Toolkit API is currently picked up from %s which is an "
                         "invalid location." % full_path_to_file)
-    return curr_os_core_root    
-    
-    
+    return curr_os_core_root
+
+
+def get_core_python_path_for_config(pipeline_config_path):
+    """
+    Returns the location of the Toolkit library associated with the given pipeline configuration.
+
+    :param pipeline_config_path: path to a pipeline configuration
+
+    :returns: Path to location where the Toolkit Python library associated with the config resides.
+    :rtype: str
+    """
+    return os.path.join(_get_core_path_for_config(pipeline_config_path), "install", "core", "python")
+
+
 def get_core_path_for_config(pipeline_config_path):
     """
     Returns the core api install location associated with the given pipeline configuration.
+
     In the case of a localized PC, it just returns the given path.
     Otherwise, it resolves the location via the core_xxxx.cfg files.
     
     :param pipeline_config_path: path to a pipeline configuration
+
     :returns: Path to the studio location root or pipeline configuration root or None if not resolved
     """
+    try:
+        return _get_core_path_for_config(pipeline_config_path)
+    except:
+        return None
 
+
+def _get_core_path_for_config(pipeline_config_path):
+    """
+    Returns the core api install location associated with the given pipeline configuration.
+    In the case of a localized PC, it just returns the given path.
+    Otherwise, it resolves the location via the core_xxxx.cfg files.
+
+    :param str pipeline_config_path: path to a pipeline configuration
+
+    :returns: Path to the studio location root or pipeline configuration root or None if not resolved
+    :rtype: str
+
+    :raises TankFileDoesNotExistError: Raised if the core_xxxx.cfg file is missing for the
+        pipeline configuration.
+    :raises TankNotPipelineConfigurationError: Raised if the path is not referencing a pipeline configuration.
+    :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg
+        does not exist.
+    """
     if is_localized(pipeline_config_path):
         # first, try to locate an install local to this pipeline configuration.
         # this would find any localized APIs.
@@ -172,31 +218,152 @@ def get_core_path_for_config(pipeline_config_path):
 
     else:
         # this pipeline config is associated with a shared API (studio install)
-        # follow the links defined in the configuration to establish which 
+        # follow the links defined in the configuration to establish which
         # setup it has been associated with.
-        studio_linkback_files = {"win32": os.path.join(pipeline_config_path, "install", "core", "core_Windows.cfg"), 
-                                 "linux2": os.path.join(pipeline_config_path, "install", "core", "core_Linux.cfg"), 
-                                 "darwin": os.path.join(pipeline_config_path, "install", "core", "core_Darwin.cfg")}
-        
-        curr_linkback_file = studio_linkback_files[sys.platform]
-        
+        studio_linkback_file = _get_current_platform_core_location_file_name(pipeline_config_path)
+
+        if not os.path.exists(studio_linkback_file):
+            raise TankFileDoesNotExistError(
+                "Configuration at '%s' without a localized core is missing a core location file at '%s'" %
+                (pipeline_config_path, studio_linkback_file)
+            )
+
         # this file will contain the path to the API which is meant to be used with this PC.
         install_path = None
-        try:
-            fh = open(curr_linkback_file, "rt")
+        with open(studio_linkback_file, "rt") as fh:
             data = fh.read().strip() # remove any whitespace, keep text
-            # expand any env vars that are used in the files. For example, you could have 
-            # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your 
-            # linkback file may just contain "$STUDIO_TANK_PATH" instead of an explicit path.
-            data = os.path.expandvars(data)
-            if data not in ["None", "undefined"] and os.path.exists(data):
-                install_path = data
-            fh.close()  
-        except Exception:
-            pass
-                
+
+        # expand any env vars that are used in the files. For example, you could have
+        # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your
+        # linkback file may just contain "$STUDIO_TANK_PATH" instead of an explicit path.
+        data = os.path.expanduser(os.path.expandvars(data))
+        if data not in ["None", "undefined"] and os.path.exists(data):
+            install_path = data
+        else:
+            raise TankInvalidCoreLocationError(
+                "Cannot find core location '%s' defined in "
+                "config file '%s'." %
+                (data, studio_linkback_file)
+            )
+
     return install_path
-    
+
+
+def _get_current_platform_file_suffix():
+    """
+    Find the suffix for the current platform's configuration file.
+
+    :returns: Suffix for the current platform's configuration file.
+    :rtype: str
+    """
+    # Now find out the appropriate python interpreter file to search for
+    if sys.platform == "darwin":
+        return "Darwin"
+    elif sys.platform == "win32":
+        return "Windows"
+    elif sys.platform.startswith("linux"):
+        return "Linux"
+    else:
+        raise TankError("Unknown platform: %s." % sys.platform)
+
+
+def _get_current_platform_interpreter_file_name(install_root):
+    """
+    Retrieves the path to the interpreter file for a given install root.
+
+    :param str install_root: This can be the root to a studio install for a core
+        or a pipeline configuration root.
+
+    :returns: Path for the current platform's interpreter file.
+    :rtype: str
+    """
+    return os.path.join(
+        install_root, "config", "core", "interpreter_%s.cfg" % _get_current_platform_file_suffix()
+    )
+
+
+def _get_current_platform_core_location_file_name(install_root):
+    """
+    Retrieves the path to the core location file for a given install root.
+
+    :param str install_root: This can be the root to a studio install for a core
+        or a pipeline configuration root.
+
+    :returns: Path for the current platform's core location file.
+    :rtype: str
+    """
+    return os.path.join(
+        install_root, "install", "core", "core_%s.cfg" % _get_current_platform_file_suffix()
+    )
+
+
+def _find_interpreter_location(pipeline_config_path):
+    """
+    Looks for a Python interpreter associated with this config.
+
+    :param str pipeline_config_path: Config root to look for the interpreter.
+
+    :raises TankInvalidInterpreterLocationError: Raised if the interpreter in the interpreter file doesn't
+        exist.
+    :raises TankFileDoesNotExistError: Raised if the interpreter file can't be found.
+
+    :returns: Path to the interpreter or None if the interpreter file was missing.
+    """
+    interpreter_config_file = _get_current_platform_interpreter_file_name(pipeline_config_path)
+    if os.path.exists(interpreter_config_file):
+        with open(interpreter_config_file, "r") as f:
+            path_to_python = f.read().strip()
+
+        if not path_to_python or not os.path.exists(path_to_python):
+            raise TankInvalidInterpreterLocationError(
+                "Cannot find interpreter '%s' defined in "
+                "config file '%s'." % (path_to_python, interpreter_config_file)
+            )
+        else:
+            return path_to_python
+    else:
+        raise TankFileDoesNotExistError(
+            "No interpreter file for the current platform found at '%s'." % interpreter_config_file
+        )
+
+
+def get_python_interpreter_for_config(pipeline_config_path):
+    """
+    Retrieves the path to the Python interpreter for a given pipeline configuration
+    path.
+
+    Each pipeline configuration has three (one for Windows, one for macOS and one for Linux) interpreter
+    files that provide a path to the Python interpreter used to launch the ``tank``
+    command.
+
+    If you require a `python` executable to launch a script that will use a pipeline configuration, it is
+    recommended its associated Python interpreter.
+
+    :param str pipeline_config_path: Path to the pipeline configuration root.
+
+    :returns: Path to the Python interpreter for that configuration.
+    :rtype: str
+
+    :raises TankInvalidInterpreterLocationError: Raised if the interpreter in the interpreter file doesn't
+        exist.
+    :raises TankFileDoesNotExistError: Raised if the interpreter file can't be found.
+    :raises TankNotPipelineConfigurationError: Raised if the pipeline configuration path is not
+        a pipeline configuration.
+    :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg
+        does not exist.
+    """
+    if not is_pipeline_config(pipeline_config_path):
+        raise TankNotPipelineConfigurationError(
+            "The folder at '%s' does not contain a pipeline configuration." % pipeline_config_path
+        )
+    # Config is localized, we're supposed to find an interpreter file in it.
+    if is_localized(pipeline_config_path):
+        return _find_interpreter_location(pipeline_config_path)
+    else:
+        studio_path = _get_core_path_for_config(pipeline_config_path)
+        return _find_interpreter_location(studio_path)
+
+
 def resolve_all_os_paths_to_core(core_path):
     """
     Given a core path on the current os platform, 

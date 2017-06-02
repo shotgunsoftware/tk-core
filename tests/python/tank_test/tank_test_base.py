@@ -280,8 +280,8 @@ class TankTestBase(unittest.TestCase):
         # Mock this so that authentication manager works even tough we are not in a config.
         # If we don't mock it than the path cache calling get_current_user will fail.
         self._mock_return_value(
-            "tank.util.shotgun.get_associated_sg_config_data",
-            {"host": "https://somewhere.shotguntudio.com"}
+            "tank.util.shotgun.connection.get_associated_sg_config_data",
+            {"host": "https://somewhere.shotgunstudio.com"}
         )
 
         # define entity for test project
@@ -357,6 +357,8 @@ class TankTestBase(unittest.TestCase):
         # fake a version response from the server
         self.mockgun.server_info = {"version": (7, 0, 0)}
 
+        self._mock_return_value("tank.util.shotgun.connection.get_associated_sg_base_url", "http://unit_test_mock_sg")
+        self._mock_return_value("tank.util.shotgun.connection.create_sg_connection", self.mockgun)
         self._mock_return_value("tank.util.shotgun.get_associated_sg_base_url", "http://unit_test_mock_sg")
         self._mock_return_value("tank.util.shotgun.create_sg_connection", self.mockgun)
 
@@ -405,7 +407,8 @@ class TankTestBase(unittest.TestCase):
                 os.remove(path_cache_file)
 
             # clear global shotgun accessor
-            tank.util.shotgun._g_sg_cached_connections = threading.local()
+            tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
+
 
             # get rid of init cache
             if os.path.exists(pipelineconfig_factory._get_cache_location()):
@@ -737,6 +740,18 @@ class TankTestBase(unittest.TestCase):
         self.pipeline_configuration = pc
         # push this new pipeline config into the tk api
         self.tk._Sgtk__pipeline_config = self.pipeline_configuration
+
+
+class SealedMock(mock.Mock):
+    """
+    Sealed mock ensures that no one is accessing something we have not planned for.
+    """
+    def __init__(self, **kwargs):
+        """
+        :param kwargs: Passed down directly to the base class as kwargs. Each keys are passed to the ``spec_set``
+            argument from the base class to seal the gettable and settable properties.
+        """
+        super(SealedMock, self).__init__(spec_set=kwargs.keys(), **kwargs)
 
 
 def _move_data(path):

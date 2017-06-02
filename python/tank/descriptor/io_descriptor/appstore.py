@@ -14,6 +14,7 @@ Toolkit App Store Descriptor.
 
 import os
 import urllib
+import fnmatch
 import urllib2
 import httplib
 from tank_vendor.shotgun_api3.lib import httplib2
@@ -55,6 +56,8 @@ class IODescriptorAppStore(IODescriptorBase):
 
     """
 
+    _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "download_complete"
+
     # cache app store connections for performance
     _app_store_connections = {}
 
@@ -93,6 +96,25 @@ class IODescriptorAppStore(IODescriptorBase):
         Descriptor.CORE: "TankAppStore_CoreApi_Download",
     }
 
+    _VERSION_FIELDS_TO_CACHE = [
+        "id",
+        "code",
+        "sg_status_list",
+        "description",
+        "tag_list",
+        "sg_detailed_release_notes",
+        "sg_documentation",
+        "sg_branch",
+        constants.TANK_CODE_PAYLOAD_FIELD
+    ]
+
+    _BUNDLE_FIELDS_TO_CACHE = [
+        "id",
+        "sg_system_name",
+        "sg_status_list",
+        "sg_deprecation_message"
+    ]
+
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
@@ -107,16 +129,17 @@ class IODescriptorAppStore(IODescriptorBase):
         self._validate_descriptor(
             descriptor_dict,
             required=["type", "name", "version"],
-            optional=["branch"]
+            optional=["label", "branch"]
         )
 
         self._sg_connection = sg_connection
         self._type = bundle_type
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")
+        self._label = descriptor_dict.get("label")
         self._branch = descriptor_dict.get("branch")
         # cached metadata - loaded on demand
-        self.__cached_metadata = None
+        # CHECK WHEN THIS WAS REMOVED !self.__cached_metadata = None
 
     def __str__(self):
         """
@@ -134,128 +157,136 @@ class IODescriptorAppStore(IODescriptorBase):
         # Toolkit App Store Framework tk-framework-shotgunutils v1.2.3
         # Toolkit App Store Core v1.2.3
         if self._type == Descriptor.CORE:
-            return "Toolkit App Store Core %s" % self._version
+            display_name = "Toolkit App Store Core %s" % self._version
         else:
             display_name = display_name_lookup[self._type]
-            return "Toolkit App Store %s %s %s" % (display_name, self._name, self._version)
+            display_name = "Toolkit App Store %s %s %s" % (display_name, self._name, self._version)
 
-    def _get_app_store_metadata(self):
+        if self._label:
+            display_name += " [label %s]" % self._label
+
+        return display_name
+
+    def __load_cached_app_store_metadata(self, path):
         """
-        Returns a metadata dictionary.
-        Tries to use a cache if possible.
+        Loads the metadata for a path in the app store
+
+        :param path: path to bundle location on disk
+        :return: metadata dictionary or None if not found
         """
-        if not self.__cached_metadata:
+        cache_file = os.path.join(path, METADATA_FILE)
+        if os.path.exists(cache_file):
+            fp = open(cache_file, "rt")
+            try:
+                metadata = pickle.load(fp)
+            finally:
+                fp.close()
+        else:
+            log.debug(
+                "%r Could not find cached metadata file %s - "
+                "will proceed with empty app store metadata." % (self, cache_file)
+            )
+            metadata = {}
 
-            # make sure we have the app payload
-            self.ensure_local()
+        return metadata
 
-            # try to load from cache file
-            # cache is typically downloaded on app installation but in some legacy cases
-            # this is not happening so don't assume file exists
-            cache_file = os.path.join(self.get_path(), METADATA_FILE)
-            if os.path.exists(cache_file):
-                fp = open(cache_file, "rt")
-                try:
-                    self.__cached_metadata = pickle.load(fp)
-                finally:
-                    fp.close()
-            else:
-                log.debug(
-                    "%r Could not find cached metadata file %s - "
-                    "will proceed with empty app store metadata." % (self, cache_file)
-                )
-                self.__cached_metadata = {}
-
-        # finally return the data!
-        return self.__cached_metadata
-
-    def __refresh_app_store_metadata(self):
+    @LogManager.log_timing
+    def __refresh_metadata(self, path, sg_bundle_data=None, sg_version_data=None):
         """
-        Rebuilds the app store metadata cache
-        """
-        # make sure we have the app payload
-        self.ensure_local()
+        Refreshes the metadata cache on disk. The metadata cache contains
+        app store information such as deprecation status, label information
+        and release note data.
 
-        # and cache the file
-        cache_file = os.path.join(self.get_path(), METADATA_FILE)
-        self.__cache_app_store_metadata(cache_file)
+        For performance, the metadata can be provided by the caller. If
+        not provided, the method will retrieve it from the app store.
 
-    def __cache_app_store_metadata(self, path):
-        """
-        Fetches metadata about the app from the toolkit app store. Writes it to disk.
+        If the descriptor resides in a read-only bundle cache, for example
+        baked into a DCC distribution, the cache will not be updated.
 
-        :param path: Path to write the cache file to.
+        :param path: The path to the bundle where cache info should be written
+        :param sg_bundle_data, sg_version_data: Shotgun data to cache
         :returns: A dictionary with keys 'sg_bundle_data' and 'sg_version_data',
                   containing Shotgun metadata.
         """
-        # get the appropriate shotgun app store types and fields
-        bundle_entity_type = self._APP_STORE_OBJECT[self._type]
-        version_entity_type = self._APP_STORE_VERSION[self._type]
-        link_field = self._APP_STORE_LINK[self._type]
+        log.debug("Attempting to refresh app store metadata for %r" % self)
 
-        # connect to the app store
-        (sg, _) = self.__create_sg_app_store_connection()
+        cache_file = os.path.join(path, METADATA_FILE)
+        log.debug("Will attempt to refresh cache in %s" % cache_file)
 
-        if self._type == self.CORE:
-            # special handling of core since it doesn't have a high-level
-            # 'bundle' entity
-            sg_bundle_data = None
-
-            sg_version_data = sg.find_one(
-                constants.TANK_CORE_VERSION_ENTITY_TYPE,
-                [["code", "is", self._version]],
-                ["description",
-                 "sg_detailed_release_notes",
-                 "sg_documentation",
-                 constants.TANK_CODE_PAYLOAD_FIELD]
-            )
-            if sg_version_data is None:
-                raise TankDescriptorError(
-                    "The App store does not have a version '%s' of Core!" % self._version
-                )
+        if sg_version_data:  # no none-check for sg_bundle_data param since this is none for tk-core
+            log.debug("Will cache pre-fetched cache data.")
         else:
-            # engines, apps etc have a 'bundle level entity' in the app store,
-            # e.g. something representing the app or engine.
-            # then a version entity representing a particular version
-            sg_bundle_data = sg.find_one(
-                bundle_entity_type,
-                [["sg_system_name", "is", self._name]],
-                ["sg_status_list", "sg_deprecation_message"]
-            )
+            log.debug("Connecting to Shotgun to retrieve metadata for %r" % self)
 
-            if sg_bundle_data is None:
-                raise TankDescriptorError(
-                    "The App store does not contain an item named '%s'!" % self._name
+            # get the appropriate shotgun app store types and fields
+            bundle_entity_type = self._APP_STORE_OBJECT[self._type]
+            version_entity_type = self._APP_STORE_VERSION[self._type]
+            link_field = self._APP_STORE_LINK[self._type]
+
+            # connect to the app store
+            (sg, _) = self.__create_sg_app_store_connection()
+
+            if self._type == self.CORE:
+                # special handling of core since it doesn't have a high-level 'bundle' entity
+                sg_bundle_data = None
+
+                sg_version_data = sg.find_one(
+                    constants.TANK_CORE_VERSION_ENTITY_TYPE,
+                    [["code", "is", self._version]],
+                    self._VERSION_FIELDS_TO_CACHE
+                )
+                if sg_version_data is None:
+                    raise TankDescriptorError(
+                        "The App store does not have a version '%s' of Core!" % self._version
+                    )
+            else:
+                # engines, apps etc have a 'bundle level entity' in the app store,
+                # e.g. something representing the app or engine.
+                # then a version entity representing a particular version
+                sg_bundle_data = sg.find_one(
+                    bundle_entity_type,
+                    [["sg_system_name", "is", self._name]],
+                    self._BUNDLE_FIELDS_TO_CACHE
                 )
 
-            # now get the version
-            sg_version_data = sg.find_one(
-                version_entity_type,
-                [[link_field, "is", sg_bundle_data], ["code", "is", self._version]],
-                ["description",
-                 "sg_detailed_release_notes",
-                 "sg_documentation",
-                 "sg_branch",
-                 constants.TANK_CODE_PAYLOAD_FIELD]
-            )
-            if sg_version_data is None:
-                raise TankDescriptorError(
-                    "The App store does not have a "
-                    "version '%s' of item '%s'!" % (self._version, self._name)
-                )
+                if sg_bundle_data is None:
+                    raise TankDescriptorError(
+                        "The App store does not contain an item named '%s'!" % self._name
+                    )
 
+                # now get the version
+                sg_version_data = sg.find_one(
+                    version_entity_type,
+                    [
+                        [link_field, "is", sg_bundle_data],
+                        ["code", "is", self._version]
+                    ],
+                    self._VERSION_FIELDS_TO_CACHE
+                )
+                if sg_version_data is None:
+                    raise TankDescriptorError(
+                        "The App store does not have a "
+                        "version '%s' of item '%s'!" % (self._version, self._name)
+                    )
+
+        # create metadata
         metadata = {
             "sg_bundle_data": sg_bundle_data,
             "sg_version_data": sg_version_data
         }
 
-        filesystem.ensure_folder_exists(os.path.dirname(path))
-        fp = open(path, "wt")
+        # try to write to location - but it may be located in a
+        # readonly bundle cache - if the caching fails, gracefully
+        # fall back and log
         try:
-            pickle.dump(metadata, fp)
-            log.debug("Wrote app store cache file '%s'" % path)
-        finally:
-            fp.close()
+            fp = open(cache_file, "wt")
+            try:
+                pickle.dump(metadata, fp)
+                log.debug("Wrote app store metadata cache '%s'" % cache_file)
+            finally:
+                fp.close()
+        except Exception, e:
+            log.debug("Did not update app store metadata cache '%s': %s" % (cache_file, e))
 
         return metadata
 
@@ -326,10 +357,18 @@ class IODescriptorAppStore(IODescriptorBase):
         """
         Returns information about deprecation.
 
+        May download the item from the app store in order
+        to retrieve the metadata.
+
         :returns: Returns a tuple (is_deprecated, message) to indicate
                   if this item is deprecated.
         """
-        metadata = self._get_app_store_metadata()
+        # make sure we have the app payload + metadata
+        self.ensure_local()
+        # grab metadata
+        metadata = self.__load_cached_app_store_metadata(
+            self.get_path()
+        )
         sg_bundle_data = metadata.get("sg_bundle_data") or {}
         if sg_bundle_data.get("sg_status_list") == "dep":
             msg = sg_bundle_data.get("sg_deprecation_message", "No reason given.")
@@ -355,12 +394,21 @@ class IODescriptorAppStore(IODescriptorBase):
         """
         Returns information about the changelog for this item.
 
+        May download the item from the app store in order
+        to retrieve the metadata.
+
         :returns: A tuple (changelog_summary, changelog_url). Values may be None
                   to indicate that no changelog exists.
         """
         summary = None
         url = None
-        metadata = self._get_app_store_metadata()
+
+        # make sure we have the app payload + metadata
+        self.ensure_local()
+        # grab metadata
+        metadata = self.__load_cached_app_store_metadata(
+            self.get_path()
+        )
         try:
             sg_version_data = metadata.get("sg_version_data") or {}
             summary = sg_version_data.get("description")
@@ -369,10 +417,63 @@ class IODescriptorAppStore(IODescriptorBase):
             pass
         return (summary, url)
 
+    def _exists_local(self, path):
+        """
+        Checks is the bundle exists on disk and ensures that it has been completely
+        downloaded if possible.
+
+        :param str path: Path to the bundle to test.
+
+        :returns: True if the bundle is deemed completed, False otherwise.
+        """
+        if not super(IODescriptorAppStore, self)._exists_local(path):
+            return False
+
+        # Now that we are guaranteed there is a folder on disk, we'll attempt to do some integrity
+        # checking.
+
+        # The metadata folder is a folder that lives inside the bundle.
+        metadata_folder = self._get_metadata_folder(path)
+
+        # If the metadata folder does not exist, this is a bundle that was downloaded with an older
+        # core. We will have to assume that it has been unzipped correctly.
+        if not os.path.isdir(metadata_folder):
+            log.debug(
+                "Pre-core-0.18.80 AppStore download found at '%s'. Assuming it is complete.", metadata_folder
+            )
+            return True
+
+        # Great, we're in the presence of a bundle that was downloaded with integrity check logic.
+
+        # The completed file flag is a file that gets written out after the bundle has been
+        # completely unzipped.
+        completed_file_flag = os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+
+        # If the complete file flag is missing, it means the download operation failed, so we'll
+        # consider it as inexistent.
+        if os.path.exists(completed_file_flag):
+            return True
+        else:
+            log.debug(
+                "Note: Missing download complete ticket file '%s'. "
+                "This suggests a partial download" % completed_file_flag
+            )
+            return False
+
+    def _get_metadata_folder(self, path):
+        """
+        Returns the corresponding metadata folder given a path
+        """
+        # Do not set this as a hidden folder (with a . in front) in case somebody does a
+        # rm -rf * or a manual deletion of the files. This will ensure this is treated just like
+        # any other file.
+        return os.path.join(path, "appstore-metadata")
+
     def download_local(self):
         """
         Retrieves this version to local repo.
         Will exit early if app already exists local.
+        Caches app store metadata.
         """
         if self.exists_local():
             # nothing to do!
@@ -380,13 +481,18 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # cache into the primary location
         target = self._get_primary_cache_path()
+        # create folder
+        filesystem.ensure_folder_exists(target)
+
+        # create settings folder
+        metadata_folder = self._get_metadata_folder(target)
+        filesystem.ensure_folder_exists(metadata_folder)
 
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
 
         # fetch metadata from sg...
-        metadata_cache_file = os.path.join(target, METADATA_FILE)
-        metadata = self.__cache_app_store_metadata(metadata_cache_file)
+        metadata = self.__refresh_metadata(target)
 
         # now get the attachment info
         version = metadata.get("sg_version_data")
@@ -407,6 +513,11 @@ class IODescriptorAppStore(IODescriptorBase):
             raise TankAppStoreError(
                 "Failed to download %s. Error: %s" % (self, e)
             )
+
+        # write end receipt
+        filesystem.touch_file(
+            os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+        )
 
         # write a stats record to the tank app store
         data = {}
@@ -438,10 +549,28 @@ class IODescriptorAppStore(IODescriptorBase):
         log.debug("Looking for cached versions of %r..." % self)
         all_versions = self._get_locally_cached_versions()
         log.debug("Found %d versions" % len(all_versions))
-        if len(all_versions) == 0:
+
+        if self._label:
+            # now filter the list of versions to only include things with
+            # the sought-after label
+            version_numbers = []
+            log.debug("culling out versions not labelled '%s'..." % self._label)
+            for (version_str, path) in all_versions.iteritems():
+                metadata = self.__load_cached_app_store_metadata(path)
+                try:
+                    if self.__match_label(metadata["sg_version_data"]["tag_list"]):
+                        version_numbers.append(version_str)
+                except Exception:
+                    log.debug("Could not determine label metadata for %s. Ignoring." % path)
+
+        else:
+            # no label based filtering. all versions are valid.
+            version_numbers = all_versions.keys()
+
+        if len(version_numbers) == 0:
             return None
 
-        version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
+        version_to_use = self._find_latest_tag_by_pattern(version_numbers, constraint_pattern)
         if version_to_use is None:
             return None
 
@@ -452,6 +581,8 @@ class IODescriptorAppStore(IODescriptorBase):
             "version": version_to_use,
             "branch": self._branch
         }
+        if self._label:
+            descriptor_dict["label"] = self._label
 
         # and return a descriptor instance
         desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
@@ -460,9 +591,13 @@ class IODescriptorAppStore(IODescriptorBase):
         log.debug("Latest cached version resolved to %r" % desc)
         return desc
 
+    @LogManager.log_timing
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
+
+        This method will connect to the toolkit app store and download
+        metadata to determine the latest version.
 
         :param constraint_pattern: If this is specified, the query will be constrained
                by the given pattern. Version patterns are on the following forms:
@@ -473,191 +608,144 @@ class IODescriptorAppStore(IODescriptorBase):
 
         :returns: IODescriptorAppStore object
         """
-        if constraint_pattern:
-            return self._find_latest_for_pattern(constraint_pattern)
-        else:
-            return self._find_latest()
+        log.debug(
+            "Determining latest version for %r given constraint pattern %s" % (self, constraint_pattern)
+        )
 
-    def _find_latest_for_pattern(self, version_pattern):
-        """
-        Returns an object representing the latest version
-        of the sought after object. If no matching item is found, an
-        exception is raised.
-
-        :param version_pattern: If this is specified, the query will be constrained
-               by the given pattern. Version patterns are on the following forms:
-
-                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
-                - v0.12.x - get the highest v0.12 version
-                - v1.x.x - get the highest v1 version
-
-        :returns: IODescriptorAppStore instance
-        """
         # connect to the app store
         (sg, _) = self.__create_sg_app_store_connection()
 
         # get latest get the filter logic for what to exclude
         if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
-            latest_filter = [["sg_status_list", "is_not", "bad"]]
+            sg_filter = [["sg_status_list", "is_not", "bad"]]
         else:
-            latest_filter = [["sg_status_list", "is_not", "rev"],
-                             ["sg_status_list", "is_not", "bad"]]
+            sg_filter = [
+                ["sg_status_list", "is_not", "rev"],
+                ["sg_status_list", "is_not", "bad"]
+            ]
 
-        is_deprecated = False
         if self._type != self.CORE:
             # find the main entry
             sg_bundle_data = sg.find_one(
                 self._APP_STORE_OBJECT[self._type],
                 [["sg_system_name", "is", self._name]],
-                ["id", "sg_status_list"]
+                self._BUNDLE_FIELDS_TO_CACHE
             )
 
             if sg_bundle_data is None:
                 raise TankDescriptorError("App store does not contain an item named '%s'!" % self._name)
 
-            # check if this has been deprecated in the app store
-            # in that case we should ensure that the metadata is refreshed later
-            if sg_bundle_data["sg_status_list"] == "dep":
-                is_deprecated = True
-
             # now get all versions
             link_field = self._APP_STORE_LINK[self._type]
             entity_type = self._APP_STORE_VERSION[self._type]
-            filters = [[link_field, "is", sg_bundle_data]] + latest_filter
+            sg_filter += [[link_field, "is", sg_bundle_data]]
             if self._branch:
-                filters.append(["sg_branch", "is", self._branch])
-            sg_data = sg.find(
-                entity_type,
-                filters,
-                ["code"]
-            )
+                sg_filter += [["sg_branch", "is", self._branch]]
         else:
-            # now get all versions
-            sg_data = sg.find(
-                constants.TANK_CORE_VERSION_ENTITY_TYPE,
-                filters=latest_filter,
-                fields=["code"]
-            )
+            # core doesn't have a parent entity for its versions
+            sg_bundle_data = None
+            entity_type = constants.TANK_CORE_VERSION_ENTITY_TYPE
 
-        if len(sg_data) == 0:
-            raise TankDescriptorError("Cannot find any versions for %s in the App store!" % self._name)
+        # optimization: if there is no constraint pattern and no label
+        # set, just download the latest record
+        if self._label is None and constraint_pattern is None:
+            # only download one record
+            limit = 1
+        else:
+            limit = 0  # all records
 
-        version_numbers = [x.get("code") for x in sg_data]
-        version_to_use = self._find_latest_tag_by_pattern(version_numbers, version_pattern)
-        if version_to_use is None:
-            raise TankDescriptorError(
-                "'%s' does not have a version matching the pattern '%s'. "
-                "Available versions are: %s" % (self.get_system_name(), version_pattern, ", ".join(version_numbers))
-            )
+        # now get all versions
+        sg_versions = sg.find(
+            entity_type,
+            filters=sg_filter,
+            fields=self._VERSION_FIELDS_TO_CACHE,
+            order=[{"field_name": "created_at", "direction": "desc"}],
+            limit=limit
+        )
+
+        log.debug("Downloaded data for %d versions from Shotgun." % len(sg_versions))
+
+        # now filter out all labels that aren't matching
+        matching_records = []
+        for sg_version_entry in sg_versions:
+            if self.__match_label(sg_version_entry["tag_list"]):
+                matching_records.append(sg_version_entry)
+
+        log.debug("After applying label filters, %d records remain." % len(matching_records))
+
+        if len(matching_records) == 0:
+            raise TankDescriptorError("Cannot find any versions for %s in the App store!" % self)
+
+        # and filter out based on version constraint
+        if constraint_pattern:
+
+            version_numbers = [x.get("code") for x in matching_records]
+            version_to_use = self._find_latest_tag_by_pattern(version_numbers, constraint_pattern)
+            if version_to_use is None:
+                raise TankDescriptorError(
+                    "'%s' does not have a version matching the pattern '%s'. "
+                    "Available versions are: %s" % (
+                        self.get_system_name(),
+                        constraint_pattern,
+                        ", ".join(version_numbers)
+                    )
+                )
+            # get the sg data for the given version
+            sg_data_for_version = [d for d in matching_records if d["code"] == version_to_use][0]
+
+        else:
+            # no constraints applied. Pick first (latest) match
+            sg_data_for_version = matching_records[0]
+            version_to_use = sg_data_for_version["code"]
 
         # make a descriptor dict
         descriptor_dict = {
             "type": "app_store",
             "name": self._name,
-            "version": version_to_use,
+            "version": version_to_use
             "branch": self._branch,
         }
 
-        # and return a descriptor instance
-        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
-        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
-
-        # now if this item has been deprecated, meaning that someone has gone in to the app
-        # store and updated the record's deprecation status, we want to make sure we download
-        # all this info the next time it is being requested. So we force clear the metadata
-        # cache.
-        if is_deprecated:
-            self.__refresh_app_store_metadata()
-
-        return desc
-
-    def _find_latest(self):
-        """
-        Returns an IODescriptorAppStore object representing the latest version
-        of the sought after object. If no matching item is found, an
-        exception is raised.
-
-        :returns: IODescriptorAppStore instance
-        """
-        # connect to the app store
-        (sg, _) = self.__create_sg_app_store_connection()
-
-        # get latest
-        # get the filter logic for what to exclude
-        if constants.APP_STORE_QA_MODE_ENV_VAR in os.environ:
-            latest_filter = [["sg_status_list", "is_not", "bad"]]
-        else:
-            latest_filter = [["sg_status_list", "is_not", "rev"],
-                             ["sg_status_list", "is_not", "bad"]]
-
-        is_deprecated = False
-
-        if self._type != self.CORE:
-            # items other than core have a main entity that represents
-            # app/engine/etc.
-
-            # find the main entry
-            sg_bundle_data = sg.find_one(
-                self._APP_STORE_OBJECT[self._type],
-                [["sg_system_name", "is", self._name]],
-                ["id", "sg_status_list"]
-            )
-
-            if sg_bundle_data is None:
-                raise TankDescriptorError("App store does not contain an item named '%s'!" % self._name)
-
-            # check if this has been deprecated in the app store
-            # in that case we should ensure that the cache is cleared later
-            if sg_bundle_data["sg_status_list"] == "dep":
-                is_deprecated = True
-
-            # now get the version
-            link_field = self._APP_STORE_LINK[self._type]
-            entity_type = self._APP_STORE_VERSION[self._type]
-            filters = [[link_field, "is", sg_bundle_data]] + latest_filter
-            if self._branch:
-                filters.append(["sg_branch", "is", self._branch])
-            sg_version_data = sg.find_one(
-                entity_type,
-                filters=filters,
-                fields=["code"],
-                order=[{"field_name": "created_at", "direction": "desc"}]
-            )
-
-        else:
-            # core API
-            sg_version_data = sg.find_one(
-                constants.TANK_CORE_VERSION_ENTITY_TYPE,
-                filters=latest_filter,
-                fields=["code"],
-                order=[{"field_name": "created_at", "direction": "desc"}]
-            )
-
-        if sg_version_data is None:
-            raise TankDescriptorError("Cannot find any versions for %s in the App store!" % self._name)
-
-        version_str = sg_version_data.get("code")
-        if version_str is None:
-            raise TankDescriptorError("Invalid version number for %s" % sg_version_data)
-
-        # make a descriptor dict
-        descriptor_dict = {"type": "app_store",
-                           "name": self._name,
-                           "version": version_str,
-                           "branch": self._branch}
+        if self._label:
+            descriptor_dict["label"] = self._label
 
         # and return a descriptor instance
         desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
-        # now if this item has been deprecated, meaning that someone has gone in to the app
-        # store and updated the record's deprecation status, we want to make sure we download
-        # all this info the next time it is being requested. So we force clear the metadata
-        # cache.
-        if is_deprecated:
-            self.__refresh_app_store_metadata()
+        # if this item exists locally, attempt to update the metadata cache
+        # this ensures that if labels are added in the app store, these
+        # are correctly cached locally.
+        cached_path = desc.get_path()
+        if cached_path:
+            desc.__refresh_metadata(cached_path, sg_bundle_data, sg_data_for_version)
 
         return desc
+
+    def __match_label(self, tag_list):
+        """
+        Given a list of tags, see if it matches the given label
+
+        Shotgun tags are glob style: *, 2017.*, 2018.2
+
+        :param tag_list: list of tags (strings) from shotgun
+        :return: True if matching false if not
+        """
+        if self._label is None:
+            # no label set - all matching!
+            return True
+
+
+        if tag_list is None:
+            # no tags defined, so no match
+            return False
+
+        # glob match each item
+        for tag in tag_list:
+            if fnmatch.fnmatch(self._label, tag):
+                return True
+
+        return False
 
     @LogManager.log_timing
     def __create_sg_app_store_connection(self):
@@ -772,11 +860,12 @@ class IODescriptorAppStore(IODescriptorBase):
             return config_data[constants.APP_STORE_HTTP_PROXY]
 
         settings = UserSettings()
-        if settings.is_app_store_proxy_set():
+        if settings.app_store_proxy is not None:
             return settings.app_store_proxy
 
         # Use the http proxy from the connection so we don't have to run
-        # the connection hook again.
+        # the connection hook again or look up the system settings as they
+        # will have been previously looked up to create the connection to Shotgun.
         return self._sg_connection.config.raw_http_proxy
 
     @LogManager.log_timing
@@ -837,4 +926,3 @@ class IODescriptorAppStore(IODescriptorBase):
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect
-

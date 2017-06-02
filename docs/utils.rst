@@ -86,6 +86,9 @@ following order:
     - macOS: ``~/Library/Caches/Shotgun/desktop/config/config.ini``
     - Linux: ``~/shotgun/desktop/config/config.ini``
 
+    Note that the ``SHOTGUN_HOME`` environment variable can impact the location
+    of the Shotgun Toolkit preferences file.
+
 .. note::
     When the http proxy is not specified in this file, the Shotgun Toolkit will try to retrieve
     the operating system http proxy.
@@ -106,10 +109,11 @@ following order:
 
         https://docs.python.org/2/library/urllib.html#urllib.getproxies
 
+You can access those values programmatically.
 
-Incorrectly configuring this file may raise an exception:
-
-.. autoclass:: sgtk.util.EnvironmentVariableFileLookupError
+.. autoclass:: sgtk.util.UserSettings
+    :members:
+    :exclude-members: __new__
 
 
 File System Utilities
@@ -164,9 +168,7 @@ and convenience methods:
 
 .. autofunction:: register_publish(tk, context, path, name, version_number, **kwargs)
 
-Incorrectly configuring this file may raise an exception:
-
-.. autoclass:: sgtk.util.ShotgunPublishError
+.. autofunction:: resolve_publish_path(tk, sg_publish_data)
 
 .. autofunction:: find_publish(tk, list_of_paths, f ilters=None, fields=None)
 .. autofunction:: download_url(sg, url, location)
@@ -183,4 +185,31 @@ Miscellaneous
 .. autofunction:: get_current_user
 
 
+Exceptions
+================================================
+
+.. autoclass:: sgtk.util.EnvironmentVariableFileLookupError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: sgtk.util.ShotgunPublishError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: sgtk.util.PublishResolveError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: sgtk.util.PublishPathNotDefinedError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: sgtk.util.PublishPathNotSupported
+    :show-inheritance:
+    :inherited-members:
+    :members:
 

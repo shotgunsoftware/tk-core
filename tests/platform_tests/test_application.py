@@ -27,6 +27,10 @@ from tank.deploy import descriptor
 
 
 class TestApplication(TankTestBase):
+    """
+    Base class for Application tests
+    """
+
     def setUp(self):
         super(TestApplication, self).setUp()
         self.setup_fixtures()
@@ -55,7 +59,6 @@ class TestApplication(TankTestBase):
 
         
     def tearDown(self):
-                
         # engine is held as global, so must be destroyed.
         cur_engine = tank.platform.current_engine()
         if cur_engine:
@@ -67,7 +70,14 @@ class TestApplication(TankTestBase):
 
 
 class TestAppFrameworks(TestApplication):
+    """
+    Tests for framework related operations
+    """
+
     def test_minimum_version(self):
+        """
+        Tests the min required frameworks for an app
+        """
         app = self.engine.apps["test_app"]
         previous_mins = dict()
         frameworks = app.descriptor.required_frameworks
@@ -111,7 +121,13 @@ class TestAppFrameworks(TestApplication):
 
 
 class TestGetApplication(TestApplication):
+    """
+    Tests the application.get_application method
+    """
     def test_bad_app_path(self):
+        """
+        Tests a get_application invalid path
+        """
         bogus_path = os.path.join(self.tank_temp, "bogus_path")
         
         self.assertRaises(TankError,
@@ -125,6 +141,9 @@ class TestGetApplication(TestApplication):
             self.assertTrue(cm.message.startswith(expected_msg))
         
     def test_good_path(self):
+        """
+        Tests a get_application valid path
+        """
         app_path = os.path.join(self.project_config, "bundles", "test_app")
         # make a dev location and create descriptor
         app_desc = self.tk.pipeline_configuration.get_app_descriptor({"type": "dev", "path": app_path})
@@ -133,11 +152,18 @@ class TestGetApplication(TestApplication):
         
 
 class TestGetSetting(TestApplication):
+    """
+    Tests settings retrieval
+    """
+
     def setUp(self):
         super(TestGetSetting, self).setUp()
         self.app = self.engine.apps["test_app"]
         
     def test_get_setting(self):
+        """
+        Tests application.get_setting()
+        """
         # Test that app is able to locate a template based on the template name
         tmpl = self.app.get_template("test_template")
         self.assertEqual("maya_publish_name", tmpl.name)
@@ -213,7 +239,9 @@ class TestGetSetting(TestApplication):
         )
 
 class TestExecuteHookByName(TestApplication):
-    
+    """
+    Tests execute_hook_by_name
+    """
 
     def test_legacy_format_old_method(self):
         app = self.engine.apps["test_app"]
@@ -256,7 +284,9 @@ class TestExecuteHookByName(TestApplication):
 
 
 class TestExecuteHook(TestApplication):
-    
+    """
+    Tests the app.execute_hook method
+    """
 
     def test_standard_format(self):
         app = self.engine.apps["test_app"]
@@ -277,11 +307,28 @@ class TestExecuteHook(TestApplication):
         instance_2 = app.create_hook_instance(hook_expression)
         self.assertNotEquals(instance_1, instance_2)
 
+    def test_parent(self):
+        """
+        Tests hook.parent for applications
+        """
+        app = self.engine.apps["test_app"]
+        hook_expression = app.get_setting("test_hook_std")
+        hook_instance = app.create_hook_instance(hook_expression)
+        self.assertEquals(hook_instance.parent, app)
+
+    def test_sgtk(self):
+        """
+        Tests hook.sgtk accessor for applications
+        """
+        app = self.engine.apps["test_app"]
+        hook_expression = app.get_setting("test_hook_std")
+        hook_instance = app.create_hook_instance(hook_expression)
+        self.assertEquals(hook_instance.sgtk, app.sgtk)
+
     def test_logger(self):
         """
-        tests the logger property
+        tests the logger property for application hooks
         """
-
         # capture sync log to string
         stream = StringIO.StringIO()
         handler = logging.StreamHandler(stream)

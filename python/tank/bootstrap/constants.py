@@ -62,6 +62,17 @@ DESKTOP_PYTHON_LINUX = "/opt/Shotgun/Python/bin/python"
 BAKED_DESCRIPTOR_TYPE = "baked"
 BAKED_DESCRIPTOR_FOLDER_NAME = "baked"
 
+# Name fo the special installed descriptor that is used for Toolkit Classic
+# based pipeline configurations.
+INSTALLED_DESCRIPTOR_TYPE = "installed"
+
 # environment variable that can be used to override the
 # configuration loaded when a bootstrap/plugin is starting up.
 CONFIG_OVERRIDE_ENV_VAR = "TK_BOOTSTRAP_CONFIG_OVERRIDE"
+
+# environment variable that is used to indicate a specific
+# pipeline configuration to be used.
+PIPELINE_CONFIG_ID_ENV_VAR = "SHOTGUN_PIPELINE_CONFIGURATION_ID"
+
+# the shotgun engine always has this name
+SHOTGUN_ENGINE_NAME = "tk-shotgun"

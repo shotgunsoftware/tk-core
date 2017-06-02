@@ -33,6 +33,7 @@ from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
 
 log = LogManager.get_logger(__name__)
 
+
 class PipelineConfiguration(object):
     """
     Represents a pipeline configuration in Tank.
@@ -41,27 +42,34 @@ class PipelineConfiguration(object):
     to construct this object, do not create directly via the constructor.
     """
 
-    def __init__(self, pipeline_configuration_path):
+    def __init__(self, pipeline_configuration_path, descriptor=None):
         """
         Constructor. Do not call this directly, use the factory methods
         in pipelineconfig_factory.
-        
+
         NOTE ABOUT SYMLINKS!
-        
+
         The pipeline_configuration_path is always populated by the paths
         that were registered in shotgun, regardless of how the symlink setup
         is handled on the OS level.
+
+        :param str pipeline_configuration_path: Path to the pipeline configuration on disk.
+        :param descriptor: Descriptor that was used to create this pipeline configuration if one
+            was used. Defaults to ``None``.
+        :type descriptor: :class:`sgtk.descriptor.ConfigDescriptor`
         """
         self._pc_root = pipeline_configuration_path
+
+        self._descriptor = descriptor
 
         # validate that the current code version matches or is compatible with
         # the code that is locally stored in this config!!!!
         our_associated_api_version = self.get_associated_core_version()
-        
+
         # and get the version of the API currently in memory
         current_api_version = pipelineconfig_utils.get_currently_running_api_version()
         
-        if our_associated_api_version is not None and \
+        if our_associated_api_version not in [None, "unknown", "HEAD"] and \
            is_version_older(current_api_version, our_associated_api_version):
             # currently running API is too old!
             current_api_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -282,6 +290,12 @@ class PipelineConfiguration(object):
         Returns the master root for this pipeline configuration
         """
         return self._pc_root
+
+    def get_bundle_cache_fallback_paths(self):
+        """
+        Returns the list of bundle cache fallback location for this pipeline configuration.
+        """
+        return self._bundle_cache_fallback_paths
 
     def get_all_os_paths(self):
         """
@@ -764,6 +778,14 @@ class PipelineConfiguration(object):
             constraint_pattern=constraint_pattern
         )
 
+    def get_configuration_descriptor(self):
+        """
+        Returns the descriptor that was used to create this pipeline configuration.
+
+        .. note:: In Toolkit Classic, this value will always be ``None`` since pipeline configurations
+            are not based off a descriptor.
+        """
+        return self._descriptor
 
     ########################################################################################
     # configuration disk locations

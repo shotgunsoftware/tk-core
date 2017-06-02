@@ -10,6 +10,7 @@
 
 
 from .shotgun import register_publish
+from .shotgun import resolve_publish_path
 from .shotgun import find_publish
 from .shotgun import download_url
 from .shotgun import create_event_log_entry
@@ -33,5 +34,10 @@ from . import filesystem
 
 from .local_file_storage import LocalFileStorageManager
 
+from .errors import PublishResolveError
 from .errors import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
 from .errors import EnvironmentVariableFileLookupError, ShotgunPublishError
+from .errors import PublishResolveError
+from .errors import PublishPathNotDefinedError, PublishPathNotSupported
+
+from .user_settings import UserSettings

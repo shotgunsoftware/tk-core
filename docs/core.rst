@@ -107,7 +107,7 @@ Hook
 =========================================
 .. autoclass:: Hook
     :members:
-    :exclude-members: execute
+    :exclude-members: execute, get_publish_paths
 
 get_hook_baseclass
 =========================================
@@ -219,6 +219,12 @@ TimestampKey
     :members:
 
 
+Configuration file resolution
+-----------------------------------------
+Each pipeline configuration has configuration files that help Toolkit locate the Python interpreter to use.
+
+.. autofunction:: get_python_interpreter_for_config
+
 
 Exceptions
 ------------------------------------------
@@ -226,11 +232,53 @@ Exceptions
 The following exceptions are raised by the Toolkit Core API classes:
 
 .. autoclass:: TankError
-
-.. autoclass:: TankUnreadableFileError
-
-.. autoclass:: TankFileDoesNotExistError
+    :show-inheritance:
+    :inherited-members:
+    :members:
 
 .. autoclass:: TankErrorProjectIsSetup
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: TankFileDoesNotExistError
+    :show-inheritance:
+    :inherited-members:
+    :members:
 
 .. autoclass:: TankHookMethodDoesNotExistError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: TankUnreadableFileError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: TankFileDoesNotExistError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: TankInvalidInterpreterLocationError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: TankInvalidCoreLocationError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: TankNotPipelineConfigurationError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+.. autoclass:: TankUnreadableFileError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
+

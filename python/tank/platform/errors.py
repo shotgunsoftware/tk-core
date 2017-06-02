@@ -27,12 +27,23 @@ class TankEngineInitError(errors.TankError):
     Exception that indicates that an engine could not start up.
     """
 
+
 class TankEngineEventError(errors.TankError):
     """
     Exception that is raised when there is a problem during engine event emission.
     """
-    pass
 
+
+class TankCurrentModuleNotFoundError(errors.TankError):
+    """
+    Exception that is raised when :meth:`sgtk.platform.current_bundle` couldn't
+    resolve a bundle.
+    """
+
+class TankMissingEnvironmentFile(errors.TankError):
+    """
+    Exception that indicates that an environment file can't be found on disk.
+    """
 
 # backwards compatibility to ensure code that was calling internal
 # parts of the API will still work.
