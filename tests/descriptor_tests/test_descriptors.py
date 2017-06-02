@@ -258,7 +258,7 @@ class TestDescriptorSupport(TankTestBase):
 
         # invalids
         self.assertRaisesRegexp(TankError,
-                                "Incorrect version pattern '.*'. There should be no string after a 'x'",
+                                "Incorrect version pattern '.*'. There should be no digit after a 'x'",
                                 desc._io_descriptor._find_latest_tag_by_pattern,
                                 ["v1.2.3", "v1.2.233", "v1.3.1"],
                                 "v1.x.2")

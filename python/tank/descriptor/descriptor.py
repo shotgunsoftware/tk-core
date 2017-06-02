@@ -319,13 +319,6 @@ class Descriptor(object):
         The version number string for this item.
         """
         return self._io_descriptor.get_version()
-    
-    @property
-    def branch(self):
-        """
-        The branch name string for this item.
-        """
-        return self._io_descriptor.get_branch()
 
     def get_path(self):
         """

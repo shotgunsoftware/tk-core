@@ -129,7 +129,7 @@ class IODescriptorAppStore(IODescriptorBase):
         self._validate_descriptor(
             descriptor_dict,
             required=["type", "name", "version"],
-            optional=["label", "branch"]
+            optional=["label"]
         )
 
         self._sg_connection = sg_connection
@@ -137,7 +137,6 @@ class IODescriptorAppStore(IODescriptorBase):
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")
         self._label = descriptor_dict.get("label")
-        self._branch = descriptor_dict.get("branch")
 
     def __str__(self):
         """
@@ -300,7 +299,6 @@ class IODescriptorAppStore(IODescriptorBase):
             bundle_cache_root,
             "app_store",
             self.get_system_name(),
-            self.get_branch() or "",
             self.get_version()
         )
 
@@ -333,11 +331,7 @@ class IODescriptorAppStore(IODescriptorBase):
             self.get_version()
         )
         if legacy_folder:
-            if self.get_branch():
-                # For now issue a warning until a better approach is found
-                log.warning("Legacy bundle caches are not supported with branches")
-            else:
-                paths.append(legacy_folder)
+            paths.append(legacy_folder)
 
         return paths
 
@@ -379,14 +373,6 @@ class IODescriptorAppStore(IODescriptorBase):
         Returns the version number string for this item
         """
         return self._version
-
-    def get_branch(self):
-        """
-        Returns the branch name string, if any, for this item
-
-        :returns: A string or None.
-        """
-        return self._branch
 
     def get_changelog(self):
         """
@@ -576,9 +562,9 @@ class IODescriptorAppStore(IODescriptorBase):
         descriptor_dict = {
             "type": "app_store",
             "name": self._name,
-            "version": version_to_use,
-            "branch": self._branch
+            "version": version_to_use
         }
+
         if self._label:
             descriptor_dict["label"] = self._label
 
@@ -637,8 +623,7 @@ class IODescriptorAppStore(IODescriptorBase):
             link_field = self._APP_STORE_LINK[self._type]
             entity_type = self._APP_STORE_VERSION[self._type]
             sg_filter += [[link_field, "is", sg_bundle_data]]
-            if self._branch:
-                sg_filter += [["sg_branch", "is", self._branch]]
+
         else:
             # core doesn't have a parent entity for its versions
             sg_bundle_data = None
@@ -700,8 +685,7 @@ class IODescriptorAppStore(IODescriptorBase):
         descriptor_dict = {
             "type": "app_store",
             "name": self._name,
-            "version": version_to_use,
-            "branch": self._branch,
+            "version": version_to_use
         }
 
         if self._label:
@@ -732,7 +716,6 @@ class IODescriptorAppStore(IODescriptorBase):
         if self._label is None:
             # no label set - all matching!
             return True
-
 
         if tag_list is None:
             # no tags defined, so no match

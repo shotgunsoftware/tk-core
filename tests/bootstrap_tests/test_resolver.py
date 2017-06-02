@@ -35,7 +35,6 @@ class TestResolverBase(TankTestBase):
         self._create_info_yaml(path)
 
         self.config_1 = {"type": "app_store", "version": "v0.1.2", "name": "tk-config-test"}
-        self.config_2 = {"type": "app_store", "version": "v0.1.4", "branch" : None, "name": "tk-config-test"}
 
         self._john_smith = self.mockgun.create("HumanUser", {"login": "john.smith", "name": "John Smith"})
         self._project = self.mockgun.create("Project", {"name": "my_project"})
