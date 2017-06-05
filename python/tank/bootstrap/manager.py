@@ -930,7 +930,7 @@ class ToolkitManager(object):
             # no legacy cases
             try:
                 engine = tank.platform.start_engine(engine_name, tk, ctx)
-            except Exception as exc:
+            except Exception, exc:
                 # It's possible that a tk-core is being used that didn't come from
                 # the app_store. This might be the case where a site config has been
                 # locked off, and populated with a tk-core cloned from Github. In that
