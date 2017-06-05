@@ -226,7 +226,7 @@ class ConfigurationWriter(object):
         log.debug("Installing tank command...")
 
         # First set up the interpreter_xxx files needed for the tank command
-        # default to the shotgun desktop python. We want those defaults, in even with descriptor
+        # default to the shotgun desktop python. We want those defaults, even with descriptor
         # based pipeline configurations, because from a descriptor based pipeline configuration
         # we might want call setup_project, which will copy the interpreter files. So as a
         # convenience we'll pre-fill those files with an interpreter we know is available on all
