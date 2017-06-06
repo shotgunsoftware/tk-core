@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+﻿# Copyright (c) 2013 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -141,6 +141,22 @@ def _copy_folder(log, src, dst):
     
     return files
 
+def _delete_old_backup_folders(log, backups_folder, latest_backup_folder): 
+    """
+    Deletes all of the folders in the backups_folder except
+    for the last backup created.
+    """
+    
+    if os.path.exists(backups_folder):
+        names = os.listdir(backups_folder) 
+        for name in names:
+            srcname = os.path.join(backups_folder, name) 
+            try: 
+                if os.path.isdir(srcname) and not name == latest_backup_folder: 
+                    shutil.rmtree(srcname)
+        
+            except Exception, e: 
+                log.error("Could not delete %s: %s" % (srcname, e)) 
 
 ###################################################################################################
 # Migrations
@@ -276,7 +292,11 @@ def upgrade_tank(sgtk_install_root, log):
         log.info("Installing %s -> %s" % (this_folder, core_install_location))
         _copy_folder(log, this_folder, core_install_location)
         
+        log.info("Core upgrade old backup cleanup.")
+        _delete_old_backup_folders(log, core_backup_location, backup_folder_name)
+
         log.info("Core upgrade complete.")
+
     finally:
         os.umask(old_umask)
 
