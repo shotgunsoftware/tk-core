@@ -833,14 +833,14 @@ The software launch interface is specialized to operate outside of this known st
 is made up of three main components:  
 
 - **Software Entity** - An entity in Shotgun used to identify local software installs to display in Launch interfaces such as Desktop and SG web
-- **Core Launch Interface** - Standard methods and interfaces that provide the launch mechanism for scripts and apps such as tk-multi-launchapp
+- **Core Launch Interface** - Standard methods and interfaces that provide the launch mechanism for scripts and apps such as ``tk-multi-launchapp``
 - **Toolkit Engine** - Implementation of the core interface for a specific toolkit integration which includes finding installed executables, preparing the toolkit environment, and launching the DCC
 
 
 A Simple Launch Application
 ===================================================
 
-The Toolkit core API provides an interface custom applications can use to implement the business
+The Toolkit core API provides an interface that custom applications can use to implement the business
 logic for launching DCC software related to a particular Toolkit engine. This interface is comprised
 of a factory method :meth:`~sgtk.platform.create_engine_launcher` and classes :class:`SoftwareLauncher`,
 :class:`SoftwareVersion`, and :class:`LaunchInformation`. The factory method is called for a specific
@@ -1061,12 +1061,13 @@ for a launch command to be added to Desktop. The full list of launch commands a 
 may be limited by Project, user name, Group membership, or DCC version.
 
 The Software site page can be accessed from either "All Pages > Global Pages > Software" or "User Menu >
-Admin > Software" menus. Here are sample Software entries:
+Admin > Software" menus.
 
-.. TODO: Insert Final SW entity page image here.
-.. TODO: Insert Desktop launchers image here that matches ^
+.. image:: ./resources/software_entities.png
 
-.. note:: Since the engine field is optional, any locally installed DCC application can be registered to launch by specifying a ``Software Name``, ``<platform> Path``, and ``Thumbnail``. A proper Toolkit integration for this DCC is not required. This is demonstrated by the GIMP entry on the sample Software page.
+.. note:: Since the engine field is optional, any locally installed DCC application can be registered to launch by specifying a ``Software Name``, ``<platform> Path``, and ``Thumbnail``. A proper Toolkit integration for this DCC is not required.
+
+.. image:: ./resources/desktop_sw_entities.png
 
 Software Entity Field Reference
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

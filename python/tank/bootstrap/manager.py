@@ -19,7 +19,7 @@ from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
-from ..util.version import is_version_older
+from ..util.version import is_version_older, is_version_head
 
 log = LogManager.get_logger(__name__)
 
@@ -921,38 +921,77 @@ class ToolkitManager(object):
 
         # perform absolute import to ensure we get the new swapped core.
         import tank
+        is_shotgun_engine = engine_name == constants.SHOTGUN_ENGINE_NAME
 
         # handle legacy cases
-        if engine_name == constants.SHOTGUN_ENGINE_NAME and is_version_older(tk.version, "v0.18.77"):
-
-            # bootstrapping into a shotgun engine with an older core
-            # we perform this special check to make sure that we correctly pick up
-            # the shotgun_xxx.yml environment files, even for older cores.
-            # new cores handles all this inside the tank.platform.start_shotgun_engine
-            # business logic.
-            log.debug(
-                "Target core version is %s. Starting shotgun engine via legacy pathway." % tk.version
-            )
-
-            if entity is None:
-                raise TankBootstrapError(
-                    "Legacy shotgun environments do not support bootstrapping into a site context."
-                )
-
-            # start engine via legacy pathway
-            # note the local import due to core swapping.
-            from tank.platform import engine
-            engine = engine.start_shotgun_engine(tk, entity["type"], ctx)
-
+        if is_shotgun_engine and is_version_older(tk.version, "v0.18.77"):
+            engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
         else:
             # no legacy cases
-            engine = tank.platform.start_engine(engine_name, tk, ctx)
+            try:
+                engine = tank.platform.start_engine(engine_name, tk, ctx)
+            except Exception, exc:
+                # It's possible that a tk-core is being used that didn't come from
+                # the app_store. This might be the case where a site config has been
+                # locked off, and populated with a tk-core cloned from Github. In that
+                # case, it'll have "HEAD" as its version. In that situation, we don't
+                # actually know if this is a "new" core, or something super old. Given
+                # that, we need to try going the legacy route here just to see if we
+                # might actually have an old core.
+                if is_version_head(tk.version) and is_shotgun_engine:
+                    try:
+                        engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
+                    except Exception:
+                        # We'll want to raise the original exception here. We don't
+                        # really know whether this is a legacy core or not, so if both
+                        # the legacy and new code paths failed, we'll raise the exception
+                        # from the new code path.
+                        log.warning(
+                            "Attempted legacy engine start path for Shotgun engine, which failed. "
+                            "This attempt was made because the tk-core version is HEAD, which means "
+                            "we don't know if it's new or old. As such, when the new-style bootstrap "
+                            "failed, the legacy pathway was attempted."
+                        )
+                        raise exc
+                else:
+                    # In this case, we know we're in a new enough core, but that we
+                    # just failed for some legitimate reason.
+                    raise exc
 
         log.debug("Launched engine %r" % engine)
 
         self._report_progress(progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
 
         return engine
+
+    def _legacy_start_shotgun_engine(self, tk, engine_name, entity, ctx):
+        """
+        Starts the tk-shotgun engine by way of the legacy "start_shotgun_engine"
+        method provided by tank.platform.engine.
+
+        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance.
+        :param engine_name: Name of the engine to start up.
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        """
+        # bootstrapping into a shotgun engine with an older core
+        # we perform this special check to make sure that we correctly pick up
+        # the shotgun_xxx.yml environment files, even for older cores.
+        # new cores handles all this inside the tank.platform.start_shotgun_engine
+        # business logic.
+        log.debug(
+            "Target core version is %s. Starting shotgun engine via legacy pathway." % tk.version
+        )
+
+        if entity is None:
+            raise TankBootstrapError(
+                "Legacy shotgun environments do not support bootstrapping into a site context."
+            )
+
+        # start engine via legacy pathway
+        # note the local import due to core swapping.
+        from tank.platform import engine
+        return engine.start_shotgun_engine(tk, entity["type"], ctx)
 
     def _report_progress(self, progress_callback, progress_value, message):
         """

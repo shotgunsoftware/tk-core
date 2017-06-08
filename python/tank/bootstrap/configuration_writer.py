@@ -11,6 +11,7 @@
 from __future__ import with_statement
 
 import os
+import sys
 import datetime
 
 from . import constants
@@ -213,26 +214,73 @@ class ConfigurationWriter(object):
             return (config_backup_path, core_backup_path)
 
     @filesystem.with_cleared_umask
-    def create_tank_command(self, win_python=None, mac_python=None, linux_python=None):
+    def create_tank_command(self, executable=sys.executable, prefix=sys.prefix):
         """
         Create a tank command for this configuration.
 
         The tank command binaries will be copied from the current core distribution
-        The interpreter_xxx.cfg files will be created based on the given interpreter settings.
-        Uses sg desktop python if no interpreter paths are provided.
+        The interpreter_xxx.cfg files will be created based on the ``sys.executable``.
 
-        :param win_python: Optional path to a python interpreter
-        :param mac_python: Optional path to a python interpreter
-        :param linux_python: Optional path to a python interpreter
+        :param current_interpreter: Path to the current interpreter. Defaults to sys.executable.
         """
         log.debug("Installing tank command...")
 
-        # first set up the interpreter_xxx files needed for the tank command
-        # default to the shotgun desktop python
-        executables = {}
-        executables["Linux"] = linux_python or constants.DESKTOP_PYTHON_LINUX
-        executables["Darwin"] = mac_python or constants.DESKTOP_PYTHON_MAC
-        executables["Windows"] = win_python or constants.DESKTOP_PYTHON_WIN
+        # First set up the interpreter_xxx files needed for the tank command
+        # default to the shotgun desktop python. We want those defaults, even with descriptor
+        # based pipeline configurations, because from a descriptor based pipeline configuration
+        # we might want call setup_project, which will copy the interpreter files. So as a
+        # convenience we'll pre-fill those files with an interpreter we know is available on all
+        # platforms.
+        executables = dict(
+            Linux=constants.DESKTOP_PYTHON_LINUX,
+            Darwin=constants.DESKTOP_PYTHON_MAC,
+            Windows=constants.DESKTOP_PYTHON_WIN
+        )
+
+        # FIXME: This is a really bad hack. We're looking to see if we are running inside the
+        # Shogun Desktop and if we are then we're using the Python that is package with it.
+        #
+        # The reason we are doing this is because we need the interpreter files
+        # written out during bootstrapping to be using the ones from the Shotgun Desktop.
+        #
+        # We could have introduced a way on the ToolkitManager to specify the interpreter
+        # to use for the current platform for descriptor based configuration, but we're trying
+        # to kill the interpreter files in the first place mid-term, so introducing an API
+        # that allows the caller to specify which one to use feels backwards in the first place.
+        #
+        # This feels like the lesser of two evils, even tough as I type this I've thrown
+        # up a bit in my mouth.
+
+        # Figures out which is the current Python interpreter.
+        # If we're in the Shotgun Desktop
+        if os.path.split(executable)[1].lower().startswith("shotgun"):
+            log.debug("Shotgun Desktop process detected.")
+            # We'll use the builtin Python.
+            if sys.platform == "darwin":
+                current_interpreter = os.path.join(prefix, "bin", "python")
+            elif sys.platform == "win32":
+                current_interpreter = os.path.join(prefix, "python.exe")
+            else:
+                current_interpreter = os.path.join(prefix, "bin", "python")
+        elif os.path.split(executable)[1].lower().startswith("python"):
+            # If we're in a Python executable, we should use that.
+            current_interpreter = executable
+        else:
+            current_interpreter = None
+
+        # Sets the interpreter in the current OS, we'll leave the defaults for the other platforms.
+        if current_interpreter:
+            if sys.platform == "darwin":
+                executables["Darwin"] = current_interpreter
+            elif sys.platform == "win32":
+                executables["Windows"] = current_interpreter
+            else:
+                executables["Linux"] = current_interpreter
+
+        if current_interpreter:
+            log.debug("Current OS interpreter will be %s.", current_interpreter)
+        else:
+            log.debug("Current OS interpreter will be the default Shotgun Desktop location.")
 
         config_root_path = self._path.current_os
 

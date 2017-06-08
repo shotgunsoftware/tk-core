@@ -46,6 +46,10 @@ def resolve_publish_path(tk, sg_publish_data):
               which is a common method Toolkit apps use to resolve publishes
               into paths.
 
+    **Published File Path Resolution**
+
+    For more information on the published file path resolution, see our `Admin Guide <https://support.shotgunsoftware.com/hc/en-us/articles/115000067493#Published%20File%20Path%20Resolution>`_.
+
     **Parameters**
 
     :param tk: :class:`~sgtk.Sgtk` instance
