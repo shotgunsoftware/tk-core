@@ -899,9 +899,6 @@ class IODescriptorAppStore(IODescriptorBase):
             # connect to the app store
             (sg, _) = self.__create_sg_app_store_connection()
             log.debug("...connection established: %s" % sg)
-        except InvalidAppStoreCredentialsError:
-            # Let this one bubble up, there's something wrong going on with the appstore credentials
-            raise
         except Exception, e:
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
