@@ -16,7 +16,6 @@ from tank_test.tank_test_base import TankTestBase, SealedMock
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.errors import TankError
 from tank.descriptor import CheckVersionConstraintsError
-import tank
 
 from mock import Mock, patch
 
@@ -192,7 +191,7 @@ class TestDescriptorSupport(TankTestBase):
             side_effect=sgtk.descriptor.TankAppStoreError("This is my unit test exception.")
         ):
             with patch("tank.descriptor.io_descriptor.appstore.log.debug") as log_debug_mock:
-                descriptor = tank.descriptor.io_descriptor.appstore.IODescriptorAppStore(
+                descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
                     {"name": "tk-config-basic", "version": "v1.0.0", "type": "app_store"},
                     self.mockgun,
                     sgtk.descriptor.Descriptor.CONFIG
