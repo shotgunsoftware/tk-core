@@ -179,6 +179,29 @@ class TestDescriptorSupport(TankTestBase):
         ]:
             self._test_git_descriptor_location_with_repo(uri)
 
+    def test_bad_app_store_credentials(self):
+        """
+        Ensures that app store connection errors don't bubble up to the surface.
+        """
+        # Nested patches because Python 2.5 doesn't support multiple arguments to the `with`
+        # keyword.
+        with patch(
+            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
+            "._IODescriptorAppStore__create_sg_app_store_connection",
+            side_effect=sgtk.descriptor.TankAppStoreError("This is my unit test exception.")
+        ):
+            with patch("tank.descriptor.io_descriptor.appstore.log.debug") as log_debug_mock:
+                descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
+                    {"name": "tk-config-basic", "version": "v1.0.0", "type": "app_store"},
+                    self.mockgun,
+                    sgtk.descriptor.Descriptor.CONFIG
+                )
+                self.assertEqual(descriptor.has_remote_access(), False)
+
+                log_debug_mock.assert_called_with(
+                    "...could not establish connection: This is my unit test exception."
+                )
+
     def test_git_version_logic(self):
         """
         Test git descriptor version logic

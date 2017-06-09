@@ -329,10 +329,11 @@ class ConfigurationResolver(object):
                     log.debug("Config isn't setup for %s: %s", sys.platform, pc)
                     cfg_descriptor = None
                 else:
+                    cfg_path = os.path.join(current_os_path, "config")
                     cfg_descriptor = create_descriptor(
                         sg_connection,
                         Descriptor.CONFIG,
-                        dict(path=current_os_path, type="path"),
+                        dict(path=cfg_path, type="path"),
                     )
             elif uri:
                 log.debug("Using descriptor uri: %s", uri)
