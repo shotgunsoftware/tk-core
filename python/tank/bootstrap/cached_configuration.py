@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Shotgun Software Inc.
+﻿# Copyright (c) 2016 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -10,6 +10,7 @@
 
 import os
 import shutil
+import stat
 
 from . import constants
 
@@ -26,6 +27,15 @@ from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
+def _get_perm(fname):
+    return stat.S_IMODE(os.lstat(fname)[stat.ST_MODE])
+
+def _make_writeable_recursive(path):
+    for root, dirs, files in os.walk(path, topdown=False):
+        for dir in [os.path.join(root, d) for d in dirs]:
+            os.chmod(dir, _get_perm(dir) | stat.S_IWRITE)
+        for file in [os.path.join(root, f) for f in files]:
+            os.chmod(file, _get_perm(file) | stat.S_IWRITE)
 
 class CachedConfiguration(Configuration):
     """
@@ -296,6 +306,7 @@ class CachedConfiguration(Configuration):
                 item_path = os.path.join(backups_folder_path, name) 
                 try: 
                     if os.path.isdir(item_path): 
+                        _make_writeable_recursive(item_path)
                         shutil.rmtree(item_path)
                         log.debug("Deleted backups folder: %s" % item_path)
                 except Exception, e: 
