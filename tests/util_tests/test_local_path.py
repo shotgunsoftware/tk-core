@@ -244,14 +244,14 @@ class TestLocalFileStorage(TankTestBase):
             project_id=None,
             plugin_id="foo",
             pc_id=1234,
-            expected_suffix="sitec1234"
+            expected_suffix="sitec1234.foo"
         )
 
         self._compute_config_root(
             project_id=123,
             plugin_id="foo",
             pc_id=1234,
-            expected_suffix="p123c1234"
+            expected_suffix="p123c1234.foo"
         )
 
         self._compute_config_root(
