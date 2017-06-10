@@ -31,6 +31,9 @@ from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
 
+# Name used to identify the client application when connecting via SSO to Shotugn.
+TOOLKIT_PRODUCT_NAME = "toolkit"
+
 
 class LoginDialog(QtGui.QDialog):
     """
@@ -134,8 +137,8 @@ class LoginDialog(QtGui.QDialog):
         Check to see if the web site uses sso.
 
         We want this method to fail as quickly as possible if there are any
-        issues. Failure is not considere critical, thus known exceptions are
-        silently ignored. At the moment this method is only use to make the
+        issues. Failure is not considered critical, thus known exceptions are
+        silently ignored. At the moment this method is only used to make the
         GUI show/hide some of the input fields.
 
         :returns: a boolean indicating if SSO has been enabled or not.
@@ -144,11 +147,12 @@ class LoginDialog(QtGui.QDialog):
             # Temporary shotgun instance, used only for the purpose of checking
             # the site infos.
             info = Shotgun(url, session_token="dummy", connect=False).info()
+            logger.debug("User authentication method for %s: %s" % (url, info["user_authentication_method"]))
             if "user_authentication_method" in info:
                 return info["user_authentication_method"] == "saml2"
         except (ServerNotFoundError, ProtocolError, ValueError, socket.error):
             # Silently ignore exception
-            logger.info('Unable to connect with %sm, assuming SSO is not enabled' % url)
+            logger.debug("Unable to connect with %s, assuming SSO is not enabled" % url)
 
         return False
 
@@ -247,7 +251,7 @@ class LoginDialog(QtGui.QDialog):
             res = self._saml2_sso.on_sso_login_attempt({
                 "host": self.ui.site.text().encode("utf-8"),
                 "cookies": self._cookies,
-                "product": "toolkit"
+                "product": TOOLKIT_PRODUCT_NAME
             }, use_watchdog=True)
             # If the offscreen session renewal failed, show the GUI as a failsafe
             if res == QtGui.QDialog.Accepted:
@@ -260,7 +264,9 @@ class LoginDialog(QtGui.QDialog):
                 return self._saml2_sso.get_session_data()
             return (self.ui.site.text().encode("utf-8"),
                     self.ui.login.text().encode("utf-8"),
-                    self._new_session_token, self._cookies, 0)
+                    self._new_session_token,
+                    None,
+                    None)
         else:
             return None
 
@@ -298,34 +304,15 @@ class LoginDialog(QtGui.QDialog):
             site = "https://%s" % site
             self.ui.site.setText(site)
 
-        session_token = None
-        if self._use_sso:
-            login = ""
-            password = ""
-            res = self._saml2_sso.on_sso_login_attempt({
-                "host": site,
-                "cookies": self._cookies,
-                "product": "toolkit"
-            })
-            if res == QtGui.QDialog.Accepted:
-                session_token = self._saml2_sso._session.session_id
-                login = self._saml2_sso._session.user_id
-                self._cookies = self._saml2_sso._session.cookies
-            else:
-                error = self._saml2_sso.get_session_error()
-                if error:
-                    self._set_error_message(self.ui.message, error)
-                return
-
         try:
-            self._authenticate(self.ui.message, site, login, password, session_token=session_token)
+            self._authenticate(self.ui.message, site, login, password)
         except MissingTwoFactorAuthenticationFault:
             # We need a two factor authentication code, move to the next page.
             self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
         except Exception, e:
             self._set_error_message(self.ui.message, e)
 
-    def _authenticate(self, error_label, site, login, password, auth_code=None, session_token=None):
+    def _authenticate(self, error_label, site, login, password, auth_code=None):
         """
         Authenticates the user using the passed in credentials.
 
@@ -334,25 +321,35 @@ class LoginDialog(QtGui.QDialog):
         :param login: Login to use for that site.
         :param password: Password to use with the login.
         :param auth_code: Optional two factor authentication code.
-        :param session_token: Optionnal If present, then we do not need to generate a
-               new one. We also do not use the site, login, password and auth_code arguments.
 
         :raises MissingTwoFactorAuthenticationFault: Raised if auth_code was None but was required
             by the server.
         """
         success = False
         try:
-            # set the wait cursor
-            QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-            QtGui.QApplication.processEvents()
+            if self._use_sso:
+                res = self._saml2_sso.on_sso_login_attempt({
+                    "host": site,
+                    "cookies": self._cookies,
+                    "product": TOOLKIT_PRODUCT_NAME
+                })
+                if res == QtGui.QDialog.Accepted:
+                    self._new_session_token = self._saml2_sso._session.session_id
+                    self._cookies = self._saml2_sso._session.cookies
+                else:
+                    error_msg = self._saml2_sso.get_session_error()
+                    if error_msg:
+                        raise AuthenticationError(error_msg)
+                    return
+            else:
+                # set the wait cursor
+                QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+                QtGui.QApplication.processEvents()
 
-            if session_token is None:
                 # try and authenticate
                 self._new_session_token = session_cache.generate_session_token(
                     site, login, password, self._http_proxy, auth_code
                 )
-            else:
-                self._new_session_token = session_token
         except AuthenticationError, e:
             # authentication did not succeed
             self._set_error_message(error_label, e)

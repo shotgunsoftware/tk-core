@@ -43,6 +43,12 @@ URL_SAML_RENEW_LANDING_PATH = "/saml/saml_renew_landing"
 # Old login path, which is not used for SSO.
 URL_LOGIN_PATH = "/user/login"
 
+# Timer related values.
+# @TODO: parametrize these and add environment variable overload.
+WATCHDOG_TIMEOUT_MS = 5000
+PREEMPTIVE_RENEWAL_THRESHOLD = 0.9
+SHOTGUN_SSO_RENEWAL_INTERVAL = 5000
+
 
 class Saml2Sso(object):
     """Performs Shotgun SSO login and pre-emptive renewal."""
@@ -68,15 +74,27 @@ class Saml2Sso(object):
         self._view.page().action(QtWebKit.QWebPage.Reload).setVisible(False)
 
         # Ensure that the background color is not controlled by the login page.
+        # We want to be able to display any login dialog page without having
+        # the night theme of the SG Desktop impacting it. White is the safest
+        # background color.
         self._view.setStyleSheet("background-color:white;")
+
         # Ensure that we do not show any warnings about unsupported browser.
+        # There are circumstances where you will be presented some Shotgun
+        # pages (e.g. account linking). In those cases, Shotgun will complain
+        # about the browser used not being supported... Since login flow uses
+        # very simple pages, the warning is not warranted. Given that we do not
+        # know on the Shotgun side that the client is a Qt app, and that we
+        # will only limit the visit to the login flow, it is difficult to
+        # display the warning only conditionnally. It is much simpler to hide
+        # the message on our side.
         css_style = base64.b64encode('div.browser_not_approved { display: none !important; }')
         self._view.settings().setUserStyleSheetUrl("data:text/css;charset=utf-8;base64," + css_style)
 
         # Threshold percentage of the SSO session duration, at which
         # time the pre-emptive renewal operation should be started.
         # @TODO: Make threshold parameter configurable.
-        self._sso_preemptive_renewal_threshold = 0.9
+        self._sso_preemptive_renewal_threshold = PREEMPTIVE_RENEWAL_THRESHOLD
 
         # We use the _sso_countdown_timer so that it fires once. Its purpose
         # is to start the other _sso_renew_timer. It fires once at an interval
@@ -86,11 +104,11 @@ class Saml2Sso(object):
         #
         # The _sso_countdown_timer will be re-started in on_renew_sso_session.
         # Thus re-starting the chain of reneal events.
-        self._sso_countdown_timer = QtCore.QTimer()
+        self._sso_countdown_timer = QtCore.QTimer(self._dialog)
         self._sso_countdown_timer.setSingleShot(True)
         self._sso_countdown_timer.timeout.connect(self.on_schedule_sso_session_renewal)
 
-        self._sso_renew_timer = QtCore.QTimer()
+        self._sso_renew_timer = QtCore.QTimer(self._dialog)
         self._sso_renew_timer.setInterval(0)
         self._sso_renew_timer.setSingleShot(True)
         self._sso_renew_timer.timeout.connect(self.on_renew_sso_session)
@@ -101,15 +119,16 @@ class Saml2Sso(object):
         # failed, therefore the operation is aborted and recovery
         # by interactive authentication is initiated.
         # @TODO: Make watchdog timer duration configurable.
-        self._sso_renew_watchdog_timeout_ms = 5000
-        self._sso_renew_watchdog_timer = QtCore.QTimer()
+        self._sso_renew_watchdog_timeout_ms = WATCHDOG_TIMEOUT_MS
+        self._sso_renew_watchdog_timer = QtCore.QTimer(self._dialog)
         self._sso_renew_watchdog_timer.setInterval(self._sso_renew_watchdog_timeout_ms)
         self._sso_renew_watchdog_timer.setSingleShot(True)
         self._sso_renew_watchdog_timer.timeout.connect(self.on_renew_sso_session_timeout)
 
         # For debugging purposes
         # @TODO: Find a better way than to use the log level
-        if log.level == logging.DEBUG or "SAML2_SHOTGUN_USING_VM" in os.environ:
+        if log.level == logging.DEBUG or "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ:
+            log.debug("==- Using developer mode. Disabling strict SSL mode, enabling developer tools and local storage.")
             # Disable SSL validation, useful when using a VM or a test site.
             config = QtNetwork.QSslConfiguration.defaultConfiguration()
             config.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
@@ -131,7 +150,12 @@ class Saml2Sso(object):
 
     @property
     def _session(self):
-        """String RO property."""
+        """
+        String RO property.
+
+        Returns the current session, if any. The session provides information
+        on the current context (host, user ID, etc.)
+        """
         return self._sessions_stack[-1] if len(self._sessions_stack) > 0 else None
 
     def start_new_session(self, session_data):
@@ -248,8 +272,8 @@ class Saml2Sso(object):
 
             # For debugging purposes
             # @TODO: Find a better way than to use this EV
-            if "SAML2_SHOTGUN_USING_VM" in os.environ:
-                interval = 5000
+            if "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ:
+                interval = SHOTGUN_SSO_RENEWAL_INTERVAL
         log.debug("==- start_sso_renewal: interval: %s" % interval)
 
         self._sso_countdown_timer.setInterval(interval)
@@ -257,11 +281,13 @@ class Saml2Sso(object):
         self._session_renewal_active = True
 
     def on_http_response_finished(self, reply):
-        """on_http_response_finished."""
+        """
+        This callbaback is triggered after every page load in the QWebView.
+        """
         # log.debug("==- on_http_response_finished")
 
         error = reply.error()
-        url = reply.url().toString()
+        url = reply.url().toString().encode("utf-8")
         session = AuthenticationSessionData() if self._session is None else self._session
 
         if (
@@ -420,7 +446,7 @@ class Saml2Sso(object):
         """
         # log.debug("==- on_load_finished")
 
-        url = self._view.page().mainFrame().url().toString()
+        url = self._view.page().mainFrame().url().toString().encode("utf-8")
         if (
                 self._session is not None and
                 url.startswith(self._session.host + URL_SAML_RENEW_LANDING_PATH)
@@ -460,7 +486,7 @@ class Saml2Sso(object):
         # If we do have session cookies, let's attempt a session renewal
         # without presenting any GUI.
         if self._session.cookies:
-            loop = QtCore.QEventLoop()
+            loop = QtCore.QEventLoop(self._dialog)
             self._dialog.finished.connect(loop.exit)
             self.on_renew_sso_session()
             res = loop.exec_()
@@ -556,17 +582,17 @@ class Saml2Sso(object):
 ################################################################################
 
 
-def _decode_cookies(rv_cookies):
+def _decode_cookies(app_cookies):
     sg_cookies = []
-    if rv_cookies:
-        sg_cookies = json.loads(base64.b64decode(rv_cookies))
+    if app_cookies:
+        sg_cookies = json.loads(base64.b64decode(app_cookies))
         sg_cookies = [cookie.encode("utf-8") for cookie in sg_cookies]
     return sg_cookies
 
 
 def _encode_cookies(sg_cookies):
-    rv_cookies = base64.b64encode(json.dumps(sg_cookies))
-    return rv_cookies
+    app_cookies = base64.b64encode(json.dumps(sg_cookies))
+    return app_cookies
 
 
 ################################################################################

@@ -65,16 +65,6 @@ class ShotgunUser(object):
         """
         return self._impl.get_login()
 
-    @property
-    def cookies(self):
-        """
-        The raw cookies for this current user. For Shotgun user types that don't have a concept
-        of a login (like API scripts), and None returned.
-
-        :returns: A string of raw cookies.
-        """
-        return self._impl.get_cookies()
-
     def create_sg_connection(self):
         """
         Creates a Shotgun connection using the credentials for this user.

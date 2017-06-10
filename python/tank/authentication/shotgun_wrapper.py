@@ -15,6 +15,7 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+import httplib
 
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
 from tank_vendor.shotgun_api3.lib.xmlrpclib import ProtocolError
@@ -63,13 +64,13 @@ class ShotgunWrapper(Shotgun):
         except AuthenticationFault:
             logger.debug("Authentication failure.")
             pass
-        except ProtocolError as e:
+        except ProtocolError, e:
             # One potential source of the error is that our SAML claims have
             # expired. We check if we were given a 302 and the
             # saml_login_request URL. In that case we will proceed to renew
             # the session.
             if (
-                e.errcode == 302 and
+                e.errcode == httplib.FOUND and
                 "location" in e.headers and
                 e.headers["location"].endswith("/saml/saml_login_request")
             ):

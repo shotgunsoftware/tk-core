@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Console based authentication. This module implements UX and prompting for a 
+Console based authentication. This module implements UX and prompting for a
 workflow where the user gets prompted via stdin/stdout.
 
 --------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ class ConsoleAuthenticationHandlerBase(object):
         :param hostname: Host to renew a token for.
         :param login: User to renew a token for.
         :param http_proxy: Proxy to use for the request. Can be None.
-        :returns: The (hostname, login, session token) tuple.
+        :returns: The (hostname, login, session token, cookies, saml_expiration) tuple.
         :raises AuthenticationCancelled: If the user aborts the login process, this exception
                                          is raised.
 
@@ -62,7 +62,7 @@ class ConsoleAuthenticationHandlerBase(object):
                 try:
                     # Try to generate a session token and return the user info.
                     return hostname, login, session_cache.generate_session_token(
-                        hostname, login, password, http_proxy
+                        hostname, login, password, http_proxy, None, None
                     )
                 except MissingTwoFactorAuthenticationFault:
                     # session_token was None, we need 2fa.
@@ -71,7 +71,7 @@ class ConsoleAuthenticationHandlerBase(object):
                     # the code is invalid or already used, it will be caught by the except clause beneath.
                     return hostname, login, session_cache.generate_session_token(
                         hostname, login, password, http_proxy, auth_token=code
-                    )
+                    ), None, None
             except AuthenticationError:
                 # If any combination of credentials are invalid (user + invalid pass or
                 # user + valid pass + invalid 2da code) we'll end up here.

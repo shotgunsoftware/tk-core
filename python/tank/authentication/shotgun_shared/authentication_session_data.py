@@ -90,7 +90,12 @@ class AuthenticationSessionData(object):
 
     @property
     def csrf_key(self):
-        """String R/W property."""
+        """
+        String R/W property.
+
+        This is the key name of the CRSF token, which will include a unique ID.
+        The ID corresponds to the Shogun user ID.
+        """
         return str(self._csrf_key or "")
 
     @csrf_key.setter
@@ -99,7 +104,11 @@ class AuthenticationSessionData(object):
 
     @property
     def csrf_value(self):
-        """String R/W property."""
+        """
+        String R/W property.
+
+        This is the value of the Cross-Site Request Forgery token.
+        """
         return str(self._csrf_value or "")
 
     @csrf_value.setter

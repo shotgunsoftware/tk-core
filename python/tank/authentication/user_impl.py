@@ -20,6 +20,7 @@ at any point.
 """
 
 import cPickle
+import httplib
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
 
@@ -325,7 +326,7 @@ class SessionUser(ShotgunUserImpl):
             # But if we get there, it means our session_token is still valid
             # as far as Shotgun is concerned.
             if (
-                e.errcode == 302 and
+                e.errcode == httplib.FOUND and
                 "location" in e.headers and
                 e.headers["location"].endswith("/saml/saml_login_request")
             ):
