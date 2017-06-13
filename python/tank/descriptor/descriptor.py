@@ -15,6 +15,7 @@ from ..util import filesystem
 from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
+from ..util.shotgun import get_deferred_sg_connection
 
 def create_descriptor(
         sg_connection,
@@ -60,6 +61,7 @@ def create_descriptor(
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
     from .descriptor_config import ConfigDescriptor
+    from .descriptor_installed_config import InstalledConfigDescriptor
     from .descriptor_core import CoreDescriptor
 
     # if bundle root is not set, fall back on default location
@@ -99,6 +101,9 @@ def create_descriptor(
     elif descriptor_type == Descriptor.CONFIG:
         return ConfigDescriptor(io_descriptor)
 
+    elif descriptor_type == Descriptor.INSTALLED_CONFIG:
+        return InstalledConfigDescriptor(io_descriptor)
+
     elif descriptor_type == Descriptor.CORE:
         return CoreDescriptor(io_descriptor)
 
@@ -128,7 +133,7 @@ class Descriptor(object):
     and helper methods.
     """
 
-    (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = range(5)
+    (APP, FRAMEWORK, ENGINE, CONFIG, CORE, INSTALLED_CONFIG) = range(6)
 
     def __init__(self, io_descriptor):
         """
@@ -439,3 +444,84 @@ class Descriptor(object):
     def get_version(self): return self.version
     def get_changelog(self): return self.changelog
 
+
+def _create_installed_config_descriptor(pipeline_config_path):
+    return create_descriptor(
+        get_deferred_sg_connection(),
+        Descriptor.INSTALLED_CONFIG,
+        dict(path=os.path.join(pipeline_config_path, "config"), type="path")
+    )
+
+# For backwards compatibility with the previous versions of core.
+def get_python_interpreter_for_config(pipeline_config_path):
+    """
+    Retrieves the path to the Python interpreter for a given pipeline configuration
+    path.
+
+    Each pipeline configuration has three (one for Windows, one for macOS and one for Linux) interpreter
+    files that provide a path to the Python interpreter used to launch the ``tank``
+    command.
+
+    If you require a `python` executable to launch a script that will use a pipeline configuration, it is
+    recommended its associated Python interpreter.
+
+    :param str pipeline_config_path: Path to the pipeline configuration root.
+
+    :returns: Path to the Python interpreter for that configuration.
+    :rtype: str
+
+    :raises TankInvalidInterpreterLocationError: Raised if the interpreter in the interpreter file doesn't
+        exist.
+    :raises TankFileDoesNotExistError: Raised if the interpreter file can't be found.
+    :raises TankNotPipelineConfigurationError: Raised if the pipeline configuration path is not
+        a pipeline configuration.
+    :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg
+        does not exist.
+    """
+    return _create_installed_config_descriptor(pipeline_config_path).current_os_interpreter
+
+
+def get_core_python_path_for_config(pipeline_config_path):
+    """
+    Returns the location of the Toolkit library associated with the given pipeline configuration.
+
+    :param pipeline_config_path: path to a pipeline configuration
+
+    :returns: Path to location where the Toolkit Python library associated with the config resides.
+    :rtype: str
+    """
+    return os.path.join(
+        _create_installed_config_descriptor(pipeline_config_path).associated_core_descriptor["path"],
+        "python"
+    )
+
+
+def get_core_path_for_config(pipeline_config_path):
+    """
+    Returns the core api install location associated with the given pipeline configuration.
+
+    In the case of a localized PC, it just returns the given path.
+    Otherwise, it resolves the location via the core_xxxx.cfg files.
+
+    :param pipeline_config_path: path to a pipeline configuration
+
+    :returns: Path to the studio location root or pipeline configuration root or None if not resolved
+    """
+    try:
+        studio_folder = os.path.join(
+            # <config-root>/install/core
+            _create_installed_config_descriptor(pipeline_config_path).associated_core_descriptor["path"],
+            # <config-root>/install
+            "..",
+            # <config-root>/
+            ".."
+        )
+        studio_folder = os.path.normpath(studio_folder)
+        return studio_folder
+    except Exception:
+        return None
+
+from .. import pipelineconfig_utils
+pipelineconfig_utils.get_python_interpreter_for_config = get_python_interpreter_for_config
+pipelineconfig_utils.get_core_python_path_for_config = get_core_python_path_for_config
+pipelineconfig_utils.get_core_path_for_config = get_core_path_for_config

@@ -56,10 +56,10 @@ from .log import LogManager
 
 # make sure that all sub-modules are imported at the same as the main module
 from . import authentication
+from . import descriptor
 from . import bootstrap
 from . import commands
 from . import deploy
-from . import descriptor
 from . import folder
 from . import platform
 from . import util

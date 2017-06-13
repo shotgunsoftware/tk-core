@@ -284,6 +284,7 @@ class ConfigurationWriter(object):
 
         config_root_path = self._path.current_os
 
+        # Write out missing files.
         for platform in executables:
             sg_config_location = os.path.join(
                 config_root_path,
@@ -291,8 +292,8 @@ class ConfigurationWriter(object):
                 "core",
                 "interpreter_%s.cfg" % platform
             )
-            # clean out any existing files
-            filesystem.safe_delete_file(sg_config_location)
+            if os.path.exists(sg_config_location):
+                continue
             # create new file
             with open(sg_config_location, "wt") as fh:
                 fh.write(executables[platform])

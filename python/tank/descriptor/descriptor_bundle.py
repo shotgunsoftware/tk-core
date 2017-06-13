@@ -13,8 +13,6 @@ from .errors import TankDescriptorError, CheckVersionConstraintsError
 from . import constants
 from .. import LogManager
 from ..util.version import is_version_older
-from ..util import shotgun
-from .. import pipelineconfig_utils
 
 log = LogManager.get_logger(__name__)
 
@@ -127,6 +125,8 @@ class BundleDescriptor(Descriptor):
         self._test_version_constraint(
             "min_sg", self._get_sg_version(self._sg_connection), "Shotgun", reasons
         )
+        # Lazy init to avoid circular dependencies
+        from .. import pipelineconfig_utils
         self._test_version_constraint(
             "min_core", core_version or pipelineconfig_utils.get_currently_running_api_version(), "Core API", reasons
         )

@@ -13,6 +13,7 @@ All custom exceptions that this module emits are defined here.
 """
 
 from ..errors import TankError
+from .. import errors
 
 
 class TankDescriptorError(TankError):
@@ -65,3 +66,12 @@ class CheckVersionConstraintsError(TankDescriptorError):
         List of strings explaining why the constraints check failed.
         """
         return self._reasons
+
+
+class TankInvalidInterpreterLocationError(TankDescriptorError):
+    """
+    Exception that indicates that the interpreter specified in a file was not found.
+    """
+
+# For backwards compatibility with previous versions of core.
+errors.TankInvalidInterpreterLocationError = TankInvalidInterpreterLocationError

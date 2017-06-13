@@ -117,7 +117,7 @@ class ConfigurationResolver(object):
 
             cfg_descriptor = create_descriptor(
                 sg_connection,
-                Descriptor.CONFIG,
+                Descriptor.INSTALLED_CONFIG,
                 dict(path=config_path, type="path"),
                 fallback_roots=self._bundle_cache_fallback_paths,
                 resolve_latest=False

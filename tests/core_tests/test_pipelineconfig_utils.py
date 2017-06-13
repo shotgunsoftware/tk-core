@@ -17,6 +17,7 @@ import sgtk
 
 from tank import pipelineconfig_utils
 from tank import (
+    TankError,
     TankInvalidInterpreterLocationError,
     TankFileDoesNotExistError,
     TankInvalidCoreLocationError,
@@ -32,6 +33,23 @@ class TestPipelineConfigUtils(TankTestBase):
     Tests pipeline configuration utilities.
     """
 
+    def _get_current_platform_file_suffix(self):
+        """
+        Find the suffix for the current platform's configuration file.
+
+        :returns: Suffix for the current platform's configuration file.
+        :rtype: str
+        """
+        # Now find out the appropriate python interpreter file to search for
+        if sys.platform == "darwin":
+            return "Darwin"
+        elif sys.platform == "win32":
+            return "Windows"
+        elif sys.platform.startswith("linux"):
+            return "Linux"
+        else:
+            raise TankError("Unknown platform: %s." % sys.platform)
+
     def _create_interpreter_file(self, config_root, path):
         """
         Creates an interpreter file in a configuration.
@@ -42,7 +60,7 @@ class TestPipelineConfigUtils(TankTestBase):
         self.create_file(
             os.path.join(
                 config_root, "config", "core",
-                "interpreter_%s.cfg" % pipelineconfig_utils._get_current_platform_file_suffix()
+                "interpreter_%s.cfg" % self._get_current_platform_file_suffix()
             ),
             path
         )
@@ -57,7 +75,7 @@ class TestPipelineConfigUtils(TankTestBase):
         self.create_file(
             os.path.join(
                 config_root, "install", "core",
-                "core_%s.cfg" % pipelineconfig_utils._get_current_platform_file_suffix()
+                "core_%s.cfg" % self._get_current_platform_file_suffix()
             ),
             path
         )
