@@ -12,10 +12,11 @@ import sys
 import os
 from optparse import OptionParser
 
+# Let the user know which Python is picked up to run the tests.
 print
-print "Using Python version \"%s\"" % (".".join(
+print "Using Python version \"%s\" at \"%s\"" % (".".join(
     str(i) for i in sys.version_info[0:3]
-),)
+), sys.executable)
 
 # prepend tank_vendor location to PYTHONPATH to make sure we are running
 # the tests against the vendor libs, not local libs on the machine
@@ -72,7 +73,65 @@ class TankTestRunner(object):
         return unittest.TextTestRunner(verbosity=2).run(self.suite)
 
 
-if __name__ == "__main__":
+def _initialize_coverage():
+    """
+    Starts covering the code inside the tank module.
+
+    :returns: The coverate instance.
+    """
+    import coverage
+    shotgun_path = os.path.join(core_python_path, "tank_vendor", "*")
+    cov = coverage.coverage(source=["tank"], omit=shotgun_path)
+    cov.start()
+    return cov
+
+
+def _finalize_coverage(cov):
+    """
+    Stops covering code and writes out coverage.xml in the current directory.
+    """
+    cov.stop()
+    cov.report()
+    cov.xml_report(outfile="coverage.xml")
+
+
+def _initialize_logging(log_to_console):
+    """
+    Sets up a log file for the unit tests and optionally logs everything to the console.
+
+    :param log_to_console: If True, all Toolkit logging will go to the console.
+    """
+    import tank
+    tank.LogManager().initialize_base_file_handler("run_tests")
+
+    if options.log_to_console:
+        tank.LogManager().initialize_custom_handler()
+
+
+def _run_tests(test_root, test_name):
+    """
+    Runs the tests.
+
+    :param test_root: Folder where unit tests can be found.
+    :param test_name: Name of the unit test to run. If None, all tests are run.
+    """
+    if test_root:
+        # resolve path
+        test_root = os.path.expanduser(os.path.expandvars(test_root))
+        test_root = os.path.abspath(test_root)
+        tank_test_runner = TankTestRunner(test_root)
+    else:
+        tank_test_runner = TankTestRunner()
+
+    return tank_test_runner.run_tests(test_name)
+
+
+def _parse_command_line():
+    """
+    Parses the command line.
+
+    :returns: The options and the name of the unit test specified on the command line, if any.
+    """
     parser = OptionParser()
     parser.add_option("--with-coverage",
                       action="store_true",
@@ -96,39 +155,30 @@ if __name__ == "__main__":
     if args:
         test_name = args[0]
 
+    return options, test_name
+
+
+if __name__ == "__main__":
+
+    options, test_name = _parse_command_line()
+
     # Do not import Toolkit before coverage or it will tank (pun intended) our coverage
-    # score.
+    # score. We'll do this test even when we're not running code coverage to make sure
+    # we don't introduce unintended regressions.
     if "tank" in sys.modules or "sgtk" in sys.modules:
         raise RuntimeError(
             "tank or sgtk was imported before the coverage module. Please fix run_tests.py."
         )
 
     if options.coverage:
-        import coverage
-        shotgun_path = os.path.join(core_python_path, "tank_vendor", "*")
-        cov = coverage.coverage(source=["tank"], omit=shotgun_path)
-        cov.start()
+        cov = _initialize_coverage()
 
-    import tank
-    tank.LogManager().initialize_base_file_handler("run_tests")
+    _initialize_logging(options.log_to_console)
 
-    if options.log_to_console:
-        tank.LogManager().initialize_custom_handler()
-
-    if options.test_root:
-        # resolve path
-        test_root = os.path.expanduser(os.path.expandvars(options.test_root))
-        test_root = os.path.abspath(test_root)
-        tank_test_runner = TankTestRunner(test_root)
-    else:
-        tank_test_runner = TankTestRunner()
-
-    ret_val = tank_test_runner.run_tests(test_name)
+    ret_val = _run_tests(options.test_root, test_name)
 
     if options.coverage:
-        cov.stop()
-        cov.report()
-        cov.xml_report(outfile="coverage.xml")
+        _finalize_coverage(cov)
 
     # Exit value determined by failures and errors
     exit_val = 0
