@@ -343,3 +343,76 @@ def create_valid_filename(value):
         # so that we return a string
         u_src = value.decode("utf-8")
         return exp.sub("_", u_src).encode("utf-8")
+
+def get_permissions(path):
+    """
+    Retrieve the file system permissions for the file or folder in the
+    given path.
+
+    :param filename: Path to the file to be queried for permissions
+    :returns: permissions bits of the file 
+    :raises: OSError - if there was a problem retrieving permissions for the path
+    """
+    return stat.S_IMODE(os.lstat(path)[stat.ST_MODE])
+
+@with_cleared_umask
+def add_permissions(path, permissions=0775):
+    """
+    Add the permissions to a file system item at the path given
+
+    :param path: Path to the file or folder whose permissions will be added to
+    :param permissions: permissions to add
+    :raises: OSError - if there was a problem retrieving permissions for the path
+    """
+    os.chmod(path, get_permissions(path) | permissions)
+
+
+def add_permissions_recursive(path, permissions=0775):
+    """
+    Add the permissions to a folder in path and to all of its 
+    contents recursively
+    
+    :param path: Path to the folder whose permissions will be added to
+    :param permissions: permissions to add    
+    :returns: True if all files and folders new permissions could be set,
+              False otherwise. Files that can't be changed will be logged
+              as errors and skipped
+    """
+    noError = True
+    for root, dirs, files in os.walk(path, topdown=False):
+        for folder in [os.path.join(root, d) for d in dirs]:
+            try:
+                add_permissions(folder, permissions)
+            except Exception, e:
+                log.error("Could not change permissions on %s: %s" % (folder, e))
+                noError = False
+        for file in [os.path.join(root, f) for f in files]:
+            try:
+                add_permissions(file, permissions)
+            except Exception, e:
+                log.error("Could not change permissions on %s: %s" % (file, e))
+                noError = False
+    return noError
+
+def delete_folder(path):
+    """
+    Deletes a folder and all of its contents recursively
+
+    :param path: File system path to location to the folder to be deleted
+    :returns: True if the folder was deleted, False otherwise
+    """
+
+    deleted = False
+    if os.path.isdir(path):
+        log.debug("Deleting folder: %s" % path)
+        try:
+            add_permissions_recursive(path, stat.S_IWRITE)
+            shutil.rmtree(path)
+            log.debug("Deleted folder: %s" % path)
+            deleted = True
+        except Exception, e:
+            log.error("Could not delete %s: %s" % (path, e))
+    else:
+        log.error("Could not delete %s. Folder not found." % path)
+
+    return deleted

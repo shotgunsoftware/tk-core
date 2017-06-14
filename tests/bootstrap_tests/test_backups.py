@@ -36,19 +36,17 @@ class TestBackups(TankTestBase):
         )
 
     def test_cleanup(self):
+        """
+        Ensures that after a successful update the backup folder created by the
+        update process is properly deleted 
+        """
         pathHead, pathTail = os.path.split(__file__)
-        core_path=os.path.join(pathHead,
- "..", ".."
-)
-        temp_test_path=os.path.join(pathHead,
- "..", "fixtures", "bootstrap_tests", "test_update"
-)
+        core_path=os.path.join(pathHead,"..", "..")
+        temp_test_path=os.path.join(pathHead, "..", "fixtures", "bootstrap_tests", "test_update")
         core_copy_path=os.path.join(self.tank_temp, "tk-core-copy")
         copytree(core_path, core_copy_path, ignore=ignore_patterns('tests', 'docs'))
-        with temp_env_var(SGTK_REPO_ROOT=temp_test_path
-):
-	    with temp_env_var(SGTK_CORE_REPO=core_copy_path
-):
+        with temp_env_var(SGTK_REPO_ROOT=temp_test_path):
+            with temp_env_var(SGTK_CORE_REPO=core_copy_path):
                 config = self._resolver.resolve_configuration(
                     {"type": "dev", "name": "backup_tests", "path": "$SGTK_REPO_ROOT"}, self.tk.shotgun
                 )
@@ -66,14 +64,14 @@ class TestBackups(TankTestBase):
                 config.update_configuration()
                 core_install_backup_path = os.path.join(config_root_path, "install", "core.backup")
                 for root, dirs, files in os.walk(core_install_backup_path, topdown=False):
-                    # check core backup folders are removed
+                    # check core backup folder was not removed
                     self.assertEqual(0, len(dirs))
                 config_install_backup_path = os.path.join(config_root_path, "install", "config.backup")
                 for root, dirs, files in os.walk(config_install_backup_path, topdown=False):
-                    # check core config backup folders are removed
+                    # check core config backup folder was removed
                     self.assertEqual(0, len(dirs))
 
-                # Update a second time and check that backups are cleaned up again
+                # Update a second time and check that backup was cleaned up again
                 config.update_configuration()
                 core_install_backup_path = os.path.join(config_root_path, "install", "core.backup")
                 for root, dirs, files in os.walk(core_install_backup_path, topdown=False):
@@ -81,3 +79,4 @@ class TestBackups(TankTestBase):
                 config_install_backup_path = os.path.join(config_root_path, "install", "config.backup")
                 for root, dirs, files in os.walk(config_install_backup_path, topdown=False):
                     self.assertEqual(0, len(dirs))
+

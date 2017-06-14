@@ -27,16 +27,6 @@ from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
-def _get_perm(fname):
-    return stat.S_IMODE(os.lstat(fname)[stat.ST_MODE])
-
-def _make_writeable_recursive(path):
-    for root, dirs, files in os.walk(path, topdown=False):
-        for dir in [os.path.join(root, d) for d in dirs]:
-            os.chmod(dir, _get_perm(dir) | stat.S_IWRITE)
-        for file in [os.path.join(root, f) for f in files]:
-            os.chmod(file, _get_perm(file) | stat.S_IWRITE)
-
 class CachedConfiguration(Configuration):
     """
     Represents a configuration which is cached in temp space at runtime
@@ -252,8 +242,8 @@ class CachedConfiguration(Configuration):
                 )
                 log.debug("Previous core restore complete...")
         else:
-            self._delete_old_backups(os.path.dirname(os.path.dirname(config_backup_path)))
-            self._delete_old_backups(os.path.dirname(core_backup_path))
+            filesystem.delete_folder(os.path.dirname(config_backup_path))
+            filesystem.delete_folder(core_backup_path)
 
         # @todo - prime caches (yaml, path cache)
 
@@ -290,28 +280,6 @@ class CachedConfiguration(Configuration):
                     self._pipeline_config_id,
                     self.path.as_shotgun_dict()
                 )
-
-    def _delete_old_backups(self, backups_folder_path):
-        """
-        Deletes all of the folders in the backups_folder_path
-
-        :param backups_folder_path: File system path to location where core backups
-                                    are temporarily saved
-        """
-    
-        if os.path.exists(backups_folder_path):
-            log.debug("Deleting all core backups in folder: %s" % backups_folder_path)
-            names = os.listdir(backups_folder_path)
-            for name in names:
-                item_path = os.path.join(backups_folder_path, name) 
-                try: 
-                    if os.path.isdir(item_path): 
-                        _make_writeable_recursive(item_path)
-                        shutil.rmtree(item_path)
-                        log.debug("Deleted backups folder: %s" % item_path)
-                except Exception, e: 
-                    log.error("Could not delete %s: %s" % (item_path, e)) 
-        
 
     @property
     def has_local_bundle_cache(self):
