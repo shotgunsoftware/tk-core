@@ -242,6 +242,7 @@ class CachedConfiguration(Configuration):
                 )
                 log.debug("Previous core restore complete...")
         else:
+            # remove backup folders now that the update has completed successfully
             filesystem.delete_folder(os.path.dirname(config_backup_path))
             filesystem.delete_folder(core_backup_path)
 
