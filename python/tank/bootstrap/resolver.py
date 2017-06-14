@@ -329,6 +329,7 @@ class ConfigurationResolver(object):
                     sg_connection,
                     Descriptor.CONFIG,
                     uri,
+                    resolve_latest=True
                 )
             else:
                 # If we have neither a uri, nor a path, then we can't get
