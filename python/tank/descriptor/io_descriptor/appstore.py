@@ -44,7 +44,7 @@ log = LogManager.get_logger(__name__)
 
 
 # file where we cache the app store metadata for an item
-METADATA_FILE = ".cached_metadata.pickle"
+METADATA_FILE = "details.cache"
 
 
 class IODescriptorAppStore(IODescriptorBase):
@@ -101,7 +101,7 @@ class IODescriptorAppStore(IODescriptorBase):
         "code",
         "sg_status_list",
         "description",
-        "tag_list",
+        "tags",
         "sg_detailed_release_notes",
         "sg_documentation",
         constants.TANK_CODE_PAYLOAD_FIELD
@@ -170,7 +170,8 @@ class IODescriptorAppStore(IODescriptorBase):
         :param path: path to bundle location on disk
         :return: metadata dictionary or None if not found
         """
-        cache_file = os.path.join(path, METADATA_FILE)
+        metadata_folder = self._get_metadata_folder(path)
+        cache_file = os.path.join(metadata_folder, METADATA_FILE)
         if os.path.exists(cache_file):
             fp = open(cache_file, "rt")
             try:
@@ -206,7 +207,8 @@ class IODescriptorAppStore(IODescriptorBase):
         """
         log.debug("Attempting to refresh app store metadata for %r" % self)
 
-        cache_file = os.path.join(path, METADATA_FILE)
+        metadata_folder = self._get_metadata_folder(path)
+        cache_file = os.path.join(metadata_folder, METADATA_FILE)
         log.debug("Will attempt to refresh cache in %s" % cache_file)
 
         if sg_version_data:  # no none-check for sg_bundle_data param since this is none for tk-core
@@ -541,7 +543,8 @@ class IODescriptorAppStore(IODescriptorBase):
             for (version_str, path) in all_versions.iteritems():
                 metadata = self.__load_cached_app_store_metadata(path)
                 try:
-                    if self.__match_label(metadata["sg_version_data"]["tag_list"]):
+                    tags = [x["name"] for x in metadata["sg_version_data"]["tags"]]
+                    if self.__match_label(tags):
                         version_numbers.append(version_str)
                 except Exception:
                     log.debug("Could not determine label metadata for %s. Ignoring." % path)
@@ -650,7 +653,8 @@ class IODescriptorAppStore(IODescriptorBase):
         # now filter out all labels that aren't matching
         matching_records = []
         for sg_version_entry in sg_versions:
-            if self.__match_label(sg_version_entry["tag_list"]):
+            tags = [x["name"] for x in sg_version_entry["tags"]]
+            if self.__match_label(tags):
                 matching_records.append(sg_version_entry)
 
         log.debug("After applying label filters, %d records remain." % len(matching_records))
