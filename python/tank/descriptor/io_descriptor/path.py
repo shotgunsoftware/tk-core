@@ -17,6 +17,7 @@ from ... import LogManager
 
 log = LogManager.get_logger(__name__)
 
+
 class IODescriptorPath(IODescriptorBase):
     """
     Represents a local item on disk. This item is never downloaded

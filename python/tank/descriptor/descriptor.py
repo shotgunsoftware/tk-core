@@ -99,11 +99,10 @@ def create_descriptor(
         return FrameworkDescriptor(sg_connection, io_descriptor)
 
     elif descriptor_type == Descriptor.CONFIG:
-        return ConfigDescriptor(io_descriptor)
-
-    elif descriptor_type == Descriptor.INSTALLED_CONFIG:
-        return InstalledConfigDescriptor(io_descriptor)
-
+        if io_descriptor.get_type() == "installed":
+            return InstalledConfigDescriptor(io_descriptor)
+        else:
+            return ConfigDescriptor(io_descriptor)
     elif descriptor_type == Descriptor.CORE:
         return CoreDescriptor(io_descriptor)
 
@@ -133,7 +132,7 @@ class Descriptor(object):
     and helper methods.
     """
 
-    (APP, FRAMEWORK, ENGINE, CONFIG, CORE, INSTALLED_CONFIG) = range(6)
+    (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = range(5)
 
     def __init__(self, io_descriptor):
         """
@@ -448,8 +447,8 @@ class Descriptor(object):
 def _create_installed_config_descriptor(pipeline_config_path):
     return create_descriptor(
         get_deferred_sg_connection(),
-        Descriptor.INSTALLED_CONFIG,
-        dict(path=os.path.join(pipeline_config_path, "config"), type="path")
+        Descriptor.CONFIG,
+        dict(path=pipeline_config_path, type="installed")
     )
 
 # For backwards compatibility with the previous versions of core.

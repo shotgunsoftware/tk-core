@@ -17,32 +17,20 @@ from tank_vendor import yaml
 
 from ..errors import TankError, TankFileDoesNotExistError
 from . import constants
-from .errors import TankDescriptorError, TankInvalidInterpreterLocationError
-from .descriptor_config_base import ConfigDescriptorBase
+from .errors import TankInvalidInterpreterLocationError
+from .descriptor import Descriptor
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
 
-class ConfigDescriptor(ConfigDescriptorBase):
+class ConfigDescriptorBase(Descriptor):
     """
     Descriptor that describes a Toolkit Configuration
     """
 
-    def __init__(self, io_descriptor):
-        """
-        Use the factory method :meth:`create_descriptor` when
-        creating new descriptor objects.
-
-        :param io_descriptor: Associated IO descriptor.
-        """
-        super(ConfigDescriptor, self).__init__(io_descriptor)
-
     def _get_config_folder(self):
-        """
-        """
-        self._io_descriptor.ensure_local()
-        return self._io_descriptor.get_path()
+        raise NotImplementedError("ConfigDescriptorBase._get_config_folder is not implemented.")
 
     @property
     def version_constraints(self):
@@ -74,11 +62,10 @@ class ConfigDescriptor(ConfigDescriptorBase):
 
         :returns: list of strings
         """
-        self._io_descriptor.ensure_local()
         readme_content = []
 
         readme_file = os.path.join(
-            self._io_descriptor.get_path(),
+            self._get_config_folder(),
             constants.CONFIG_README_FILE
         )
         if os.path.exists(readme_file):
@@ -88,47 +75,6 @@ class ConfigDescriptor(ConfigDescriptorBase):
             fh.close()
 
         return readme_content
-
-    @property
-    def associated_core_descriptor(self):
-        """
-        The descriptor dict or url required for this core or None if not defined.
-
-        :returns: Core descriptor dict or uri or None if not defined
-        """
-        core_descriptor_dict = None
-
-        self._io_descriptor.ensure_local()
-
-        core_descriptor_path = os.path.join(
-            self._io_descriptor.get_path(),
-            "core",
-            constants.CONFIG_CORE_DESCRIPTOR_FILE
-        )
-
-        if os.path.exists(core_descriptor_path):
-            # the core_api.yml contains info about the core config:
-            #
-            # location:
-            #    name: tk-core
-            #    type: app_store
-            #    version: v0.16.34
-
-            log.debug("Detected core descriptor file '%s'" % core_descriptor_path)
-
-            # read the file first
-            fh = open(core_descriptor_path, "rt")
-            try:
-                data = yaml.load(fh)
-                core_descriptor_dict = data["location"]
-            except Exception, e:
-                raise TankDescriptorError(
-                    "Cannot read invalid core descriptor file '%s': %s" % (core_descriptor_path, e)
-                )
-            finally:
-                fh.close()
-
-        return core_descriptor_dict
 
     def _get_current_platform_file_suffix(self):
         """
@@ -161,11 +107,6 @@ class ConfigDescriptor(ConfigDescriptorBase):
             install_root, "core", "interpreter_%s.cfg" % self._get_current_platform_file_suffix()
         )
 
-    @property
-    def current_os_interpreter(self):
-        path = self.get_path()
-        return self._find_interpreter_location(path)
-
     def _find_interpreter_location(self, path):
 
         # Find the interpreter file for the current platform.
@@ -196,11 +137,9 @@ class ConfigDescriptor(ConfigDescriptorBase):
 
         :returns: Roots data yaml content, usually a dictionary
         """
-        self._io_descriptor.ensure_local()
-
         # get the roots definition
         root_file_path = os.path.join(
-            self._io_descriptor.get_path(),
+            self._get_config_folder(),
             "core",
             constants.STORAGE_ROOTS_FILE)
 

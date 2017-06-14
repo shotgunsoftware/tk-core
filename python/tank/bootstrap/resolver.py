@@ -107,24 +107,25 @@ class ConfigurationResolver(object):
             # convert to dict so we can introspect
             config_descriptor = descriptor_uri_to_dict(config_descriptor)
 
+        # FIXME: This is a bit backwards. The code calling this method usually has a fully built
+        # descriptor object, so there's no point passing in a config descriptor dict in order
+        # to rebuild it.
         if config_descriptor["type"] == constants.INSTALLED_DESCRIPTOR_TYPE:
-
-            config_path = os.path.expanduser(os.path.expandvars(config_descriptor["path"]))
-            if not os.path.exists(config_path):
-                raise TankBootstrapError(
-                    "Installed pipeline configuration '%s' does not exist on disk!" % (config_path,)
-                )
-
             cfg_descriptor = create_descriptor(
                 sg_connection,
-                Descriptor.INSTALLED_CONFIG,
-                dict(path=config_path, type="path"),
+                Descriptor.CONFIG,
+                config_descriptor,
                 fallback_roots=self._bundle_cache_fallback_paths,
                 resolve_latest=False
             )
 
             # Convert into a ShotgunPath.
-            config_path = ShotgunPath.from_current_os_path(config_path)
+            config_path = ShotgunPath.from_current_os_path(cfg_descriptor.get_path())
+
+            if not cfg_descriptor.exists_local():
+                raise TankBootstrapError(
+                    "Installed pipeline configuration '%s' does not exist on disk!" % (config_path,)
+                )
 
             # The configuration path here points to the actual pipeline configuration that contains
             # config, cache and install folders.
@@ -329,11 +330,13 @@ class ConfigurationResolver(object):
                     log.debug("Config isn't setup for %s: %s", sys.platform, pc)
                     cfg_descriptor = None
                 else:
-                    cfg_path = os.path.join(current_os_path, "config")
+                    # Create an installed descriptor
+                    descriptor_dict = path.as_shotgun_dict()
+                    descriptor_dict["type"] = constants.INSTALLED_DESCRIPTOR_TYPE
                     cfg_descriptor = create_descriptor(
                         sg_connection,
                         Descriptor.CONFIG,
-                        dict(path=cfg_path, type="path"),
+                        descriptor_dict
                     )
             elif uri:
                 log.debug("Using descriptor uri: %s", uri)
@@ -690,7 +693,7 @@ class ConfigurationResolver(object):
                                 "Using path based field.")
 
                 log.debug("Descriptor will be based off the path in the pipeline configuration")
-                descriptor = {"type": constants.INSTALLED_DESCRIPTOR_TYPE, "path": path.current_os}
+                descriptor = pipeline_config.get("descriptor")
             elif pipeline_config.get("descriptor"):
                 # Emit a warning when the sg_descriptor is set as well.
                 if pipeline_config.get("sg_descriptor"):

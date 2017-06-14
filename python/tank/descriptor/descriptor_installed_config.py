@@ -12,7 +12,7 @@ from __future__ import with_statement
 
 import os
 
-from .descriptor_config import ConfigDescriptor
+from .descriptor_config_base import ConfigDescriptorBase
 from .. import pipelineconfig_utils
 from .. import LogManager
 
@@ -21,28 +21,14 @@ from ..errors import TankNotPipelineConfigurationError, TankFileDoesNotExistErro
 log = LogManager.get_logger(__name__)
 
 
-class InstalledConfigDescriptor(ConfigDescriptor):
+class InstalledConfigDescriptor(ConfigDescriptorBase):
     """
     Descriptor that describes a Toolkit Configuration
     """
 
-    def __init__(self, io_descriptor):
-        """
-        Use the factory method :meth:`create_descriptor` when
-        creating new descriptor objects.
-
-        :param io_descriptor: Associated IO descriptor.
-        """
-        super(ConfigDescriptor, self).__init__(io_descriptor)
-
     @property
     def current_os_interpreter(self):
         pipeline_config_path = self._get_pipeline_config_path()
-
-        if not pipelineconfig_utils.is_pipeline_config(pipeline_config_path):
-            raise TankNotPipelineConfigurationError(
-                "The folder at '%s' does not contain a pipeline configuration." % pipeline_config_path
-            )
 
         # Config is localized, we're supposed to find an interpreter file in it.
         if pipelineconfig_utils.is_localized(pipeline_config_path):
@@ -50,16 +36,6 @@ class InstalledConfigDescriptor(ConfigDescriptor):
         else:
             studio_path = self._get_core_path_for_config(pipeline_config_path)
             return self._find_interpreter_location(os.path.join(studio_path, "config"))
-
-    def _get_pipeline_config_path(self):
-        path = self.get_path()
-
-        if not path:
-            raise TankNotPipelineConfigurationError(
-                "The folder at '%s' does not contain a pipeline configuration." % path
-            )
-
-        return os.path.dirname(path)
 
     @property
     def associated_core_descriptor(self):
@@ -73,6 +49,21 @@ class InstalledConfigDescriptor(ConfigDescriptor):
             "type": "path",
             "path": os.path.join(self._get_core_path_for_config(pipeline_config_path), "install", "core")
         }
+
+    def _get_config_folder(self):
+        """
+        """
+        return self._io_descriptor.get_path()
+
+    def _get_pipeline_config_path(self):
+        path = self.get_path()
+
+        if not self.exists_local():
+            raise TankNotPipelineConfigurationError(
+                "The folder at '%s' does not contain a pipeline configuration." % path
+            )
+
+        return path
 
     def _get_core_path_for_config(self, pipeline_config_path):
         """

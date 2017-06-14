@@ -1,17 +1,16 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
 import re
 import cgi
-import sys
 import urllib
 import urlparse
 
@@ -24,7 +23,6 @@ from ..errors import TankDescriptorError
 from tank_vendor import yaml
 
 log = LogManager.get_logger(__name__)
-
 
 
 class IODescriptorBase(object):
@@ -224,7 +222,7 @@ class IODescriptorBase(object):
         for version_num in version_numbers:
             try:
                 version_split = map(int, version_num[1:].split("."))
-            except Exception, e:
+            except Exception:
                 # this git tag is not on the expected form vX.Y.Z where X Y and Z are ints. skip.
                 continue
 
@@ -446,7 +444,6 @@ class IODescriptorBase(object):
             path = parsed_uri.path
             query = parsed_uri.query
 
-
         split_path = path.split(constants.DESCRIPTOR_URI_SEPARATOR)
         # e.g. 'descriptor:app_store' -> ('descriptor', 'app_store')
         if len(split_path) != 2 or split_path[0] != constants.DESCRIPTOR_URI_PATH_PREFIX:
@@ -473,6 +470,9 @@ class IODescriptorBase(object):
         Returns the dictionary associated with this descriptor
         """
         return self._descriptor_dict
+
+    def get_type(self):
+        return self._descriptor_dict["type"]
 
     @classmethod
     def uri_from_dict(cls, descriptor_dict):
