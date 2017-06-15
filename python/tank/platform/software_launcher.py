@@ -495,9 +495,15 @@ class SoftwareLauncher(object):
         # note: get_shotgun_id() returns None for unmanaged configs.
         pipeline_config_id = self.sgtk.pipeline_configuration.get_shotgun_id()
         if pipeline_config_id:
+            self.logger.debug(
+                "Setting SHOTGUN_PIPELINE_CONFIGURATION_ID to %s", pipeline_config_id
+            )
             env["SHOTGUN_PIPELINE_CONFIGURATION_ID"] = str(pipeline_config_id)
         else:
-            self.logger.debug("Unmanaged config. Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID.")
+            self.logger.debug(
+                "Pipeline configuration doesn't have an id. "
+                "Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID."
+            )
 
         # get the most accurate entity, first see if there is a task, then entity then project
         entity_dict = self.context.task or self.context.entity or self.context.project
