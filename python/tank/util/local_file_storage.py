@@ -299,12 +299,16 @@ class LocalFileStorageManager(object):
             # project 123, config 33:       root/mysite/p123c33
             # project 123 with plugin id:   root/mysite/p123.review.rv
             # site project:                 root/mysite/p0
-            if pipeline_config_id:
+
+            pc_suffix = ""
+            if pipeline_config_id and not plugin_id:
                 # a config that has a shotgun counterpart
                 pc_suffix = "c%d" % pipeline_config_id
-            elif plugin_id:
+            elif plugin_id and not pipeline_config_id:
                 # no pc id but instead an plugin id string
                 pc_suffix = ".%s" % filesystem.create_valid_filename(plugin_id)
+            elif plugin_id and pipeline_config_id:
+                pc_suffix = "c%d.%s" % (pipeline_config_id, filesystem.create_valid_filename(plugin_id))
             else:
                 # this is a possible, however not recommended state
                 pc_suffix = ""

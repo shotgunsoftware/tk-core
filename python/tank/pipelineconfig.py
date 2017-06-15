@@ -99,6 +99,7 @@ class PipelineConfiguration(object):
         self._pc_id = pipeline_config_metadata.get("pc_id")
         self._plugin_id = pipeline_config_metadata.get("plugin_id")
         self._pc_name = pipeline_config_metadata.get("pc_name")
+        self._is_unmanaged = pipeline_config_metadata.get("unmanaged", False)
         self._published_file_entity_type = pipeline_config_metadata.get(
             "published_file_entity_type",
             "TankPublishedFile"
@@ -367,7 +368,7 @@ class PipelineConfiguration(object):
 
         :return: boolean indicating if config is unmanaged
         """
-        return self.get_shotgun_id() is None
+        return self._is_unmanaged
 
     def is_localized(self):
         """

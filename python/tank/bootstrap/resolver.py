@@ -83,6 +83,18 @@ class ConfigurationResolver(object):
         :param sg_connection: Shotgun API instance
         :return: :class:`Configuration` instance
         """
+        return self._resolve_configuration(config_descriptor, sg_connection, pc_id=None)
+
+    def _resolve_configuration(self, config_descriptor, sg_connection, pc_id):
+        """
+        Return a configuration object given a config descriptor
+
+        :param config_descriptor: descriptor dict or string
+        :param sg_connection: Shotgun API instance
+        :param pc_id: Id of the pipeline configuration in Shotgun. Can be ``None``.
+        :return: :class:`Configuration` instance
+        """
+
         log.debug("%s resolving configuration for descriptor %s" % (self, config_descriptor))
 
         if config_descriptor is None:
@@ -156,7 +168,7 @@ class ConfigurationResolver(object):
                 sg_connection,
                 self._project_id,
                 self._plugin_id,
-                None,  # pipeline config id
+                pc_id,
                 self._bundle_cache_fallback_paths,
                 cfg_descriptor
             )
@@ -194,7 +206,7 @@ class ConfigurationResolver(object):
                 sg_connection.base_url,
                 self._project_id,
                 self._plugin_id,
-                None,  # pipeline config id
+                pc_id,
                 LocalFileStorageManager.CACHE
             )
 
@@ -219,7 +231,7 @@ class ConfigurationResolver(object):
                 cfg_descriptor,
                 self._project_id,
                 self._plugin_id,
-                None,  # pipeline config id
+                pc_id,
                 self._bundle_cache_fallback_paths
             )
 
@@ -641,6 +653,7 @@ class ConfigurationResolver(object):
 
         # default to the fallback descriptor
         descriptor = fallback_config_descriptor
+        pc_id = None
 
         if pipeline_config is None:
             log.debug("No pipeline configuration found. Using fallback descriptor")
@@ -649,6 +662,8 @@ class ConfigurationResolver(object):
             log.debug(
                 "The following pipeline configuration will be used: %s" % pprint.pformat(pipeline_config)
             )
+
+            pc_id = pipeline_config["id"]
 
             # now create a descriptor based on the data in the fields.
             # the following priority order exists:
@@ -689,7 +704,7 @@ class ConfigurationResolver(object):
 
         log.debug("The descriptor representing the config is %s" % descriptor)
 
-        return self.resolve_configuration(descriptor, sg_connection)
+        return self._resolve_configuration(descriptor, sg_connection, pc_id)
 
     def _is_classic_pc(self, pc):
         """
