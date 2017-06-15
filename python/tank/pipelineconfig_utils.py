@@ -159,6 +159,7 @@ def get_path_to_current_core():
                         "invalid location." % full_path_to_file)
     return curr_os_core_root
 
+
 def _create_installed_config_descriptor(pipeline_config_path):
 
     # Do a local import to avoid circular imports. This happens because descriptor_installed_config

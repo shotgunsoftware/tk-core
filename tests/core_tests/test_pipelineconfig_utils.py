@@ -87,6 +87,10 @@ class TestPipelineConfigUtils(TankTestBase):
         )
         return core_root
 
+    def _create_studio_core(self, core_name):
+        core_root = os.path.join(self.tank_temp, core_name)
+        return self._create_core(core_root)
+
     def _create_unlocalized_pipeline_configuration(self, config_name):
         config_root = os.path.join(self.tank_temp, config_name)
         self.create_file(
@@ -99,10 +103,9 @@ class TestPipelineConfigUtils(TankTestBase):
         config_root = self._create_unlocalized_pipeline_configuration(config_name)
         # If we want to create a localized one.
         if core_location:
-            # Make it localized.
             self._create_core_file(config_root, core_location)
-            self._create_core(core_location)
         else:
+            # Make it localized.
             self._create_core(config_root)
         return config_root
 
@@ -147,15 +150,47 @@ class TestPipelineConfigUtils(TankTestBase):
         with self.assertRaisesRegexp(TankFileDoesNotExistError, "No interpreter file for"):
             pipelineconfig_utils.get_python_interpreter_for_config(config_root_without_interpreter_file)
 
+    def test_core_location_retrieval(self):
+
+        config_root = self._create_pipeline_configuration(
+            "localized_core"
+        )
+
+        self.assertEqual(
+            pipelineconfig_utils.get_core_python_path_for_config(config_root),
+            os.path.join(config_root, "install", "core", "python")
+        )
+
+        self.assertEqual(
+            pipelineconfig_utils.get_core_path_for_config(config_root),
+            config_root
+        )
+
+        unlocalized_core_root = self._create_studio_core("unlocalized_core")
+
+        config_root = self._create_pipeline_configuration(
+            "config_without_core",
+            core_location=unlocalized_core_root
+        )
+
+        self.assertEqual(
+            pipelineconfig_utils.get_core_python_path_for_config(config_root),
+            os.path.join(unlocalized_core_root, "install", "core", "python")
+        )
+
+        self.assertEqual(
+            pipelineconfig_utils.get_core_path_for_config(config_root),
+            unlocalized_core_root
+        )
+
     def test_shared_config_interpreter_file(self):
         """
         Test for interpreter file in a non-localized config.
         """
 
         # Shared config with valid core.
-        valid_studio_core = self._create_core(
-            os.path.join(self.tank_temp, "valid_studio_core")
-        )
+        valid_studio_core = self._create_studio_core("valid_studio_core")
+
         self._create_interpreter_file(valid_studio_core, sys.executable)
         self.assertEqual(
             pipelineconfig_utils.get_python_interpreter_for_config(
@@ -168,9 +203,10 @@ class TestPipelineConfigUtils(TankTestBase):
         )
 
         # Test shared config with a bad interpreter location.
-        studio_core_with_bad_interpreter_location = self._create_core(
-            os.path.join(self.tank_temp, "studio_core_with_bad_interpreter")
+        studio_core_with_bad_interpreter_location = self._create_studio_core(
+            "studio_core_with_bad_interpreter"
         )
+
         self._create_interpreter_file(
             studio_core_with_bad_interpreter_location, "/path/to/missing/python"
         )
@@ -183,8 +219,8 @@ class TestPipelineConfigUtils(TankTestBase):
             )
 
         # Test shared config with missing interpreter file.
-        studio_core_with_missing_interpreter_file_location = self._create_core(
-            os.path.join(self.tank_temp, "studio_core_with_missing_interpreter_file")
+        studio_core_with_missing_interpreter_file_location = self._create_studio_core(
+            "studio_core_with_missing_interpreter_file"
         )
         with self.assertRaisesRegexp(TankFileDoesNotExistError, "No interpreter file for"):
             pipelineconfig_utils.get_python_interpreter_for_config(

@@ -93,6 +93,7 @@ def _finalize_coverage(cov):
     cov.stop()
     cov.report()
     cov.xml_report(outfile="coverage.xml")
+    cov.html_report(directory="covhtml")
 
 
 def _initialize_logging(log_to_console):
