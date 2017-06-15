@@ -162,7 +162,7 @@ class ConfigDescriptor(ConfigDescriptorBase):
         )
 
     @property
-    def current_os_interpreter(self):
+    def python_interpreter(self):
         path = self.get_path()
         return self._find_interpreter_location(path)
 

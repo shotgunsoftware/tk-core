@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -16,18 +16,15 @@ across storages, configurations etc.
 from __future__ import with_statement
 
 import os
-import sys
 
 from . import constants
 from . import LogManager
+
 from .util import yaml_cache
 from .util import ShotgunPath
+from .util.shotgun import get_deferred_sg_connection
 
-from .errors import (
-    TankError,
-    TankFileDoesNotExistError,
-    TankInvalidCoreLocationError
-)
+from .errors import TankError
 
 log = LogManager.get_logger(__name__)
 
@@ -48,6 +45,7 @@ def is_localized(pipeline_config_path):
     api_file = os.path.join(pipeline_config_path, "install", "core", "_core_upgrader.py")
     return os.path.exists(api_file)
 
+
 def is_pipeline_config(pipeline_config_path):
     """
     Returns true if the path points to the root of a pipeline configuration
@@ -58,6 +56,7 @@ def is_pipeline_config(pipeline_config_path):
     # probe by looking for the existence of a key config file.
     pc_file = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
     return os.path.exists(pc_file)
+
 
 def get_metadata(pipeline_config_path):
     """
@@ -136,10 +135,8 @@ def get_roots_metadata(pipeline_config_path):
     return shotgun_paths
 
 
-
-
 ####################################################################################################################
-# Core API resolve utils 
+# Core API resolve utils
 
 def get_path_to_current_core():
     """
@@ -161,6 +158,87 @@ def get_path_to_current_core():
                         "Toolkit API is currently picked up from %s which is an "
                         "invalid location." % full_path_to_file)
     return curr_os_core_root
+
+def _create_installed_config_descriptor(pipeline_config_path):
+
+    # Do a local import to avoid circular imports. This happens because descriptor_installed_config
+    # and pipelineconfig_utils import each other. At some point we will refactor the functionality from
+    # this file on the ConfigDescriptor objects and these circular includes won't be necessary anymore.
+    from .descriptor import Descriptor, create_descriptor
+    return create_descriptor(
+        get_deferred_sg_connection(),
+        Descriptor.CONFIG,
+        dict(path=pipeline_config_path, type="installed")
+    )
+
+
+def get_core_python_path_for_config(pipeline_config_path):
+    """
+    Returns the location of the Toolkit library associated with the given pipeline configuration.
+
+    :param pipeline_config_path: path to a pipeline configuration
+
+    :returns: Path to location where the Toolkit Python library associated with the config resides.
+    :rtype: str
+    """
+    return os.path.join(
+        _create_installed_config_descriptor(pipeline_config_path).associated_core_descriptor["path"],
+        "python"
+    )
+
+
+def get_core_path_for_config(pipeline_config_path):
+    """
+    Returns the core api install location associated with the given pipeline configuration.
+
+    In the case of a localized PC, it just returns the given path.
+    Otherwise, it resolves the location via the core_xxxx.cfg files.
+
+    :param pipeline_config_path: path to a pipeline configuration
+
+    :returns: Path to the studio location root or pipeline configuration root or None if not resolved
+    """
+    try:
+        studio_folder = os.path.join(
+            # <config-root>/install/core
+            _create_installed_config_descriptor(pipeline_config_path).associated_core_descriptor["path"],
+            # <config-root>/install
+            "..",
+            # <config-root>/
+            ".."
+        )
+        studio_folder = os.path.normpath(studio_folder)
+        return studio_folder
+    except Exception:
+        return None
+
+
+def get_python_interpreter_for_config(pipeline_config_path):
+    """
+    Retrieves the path to the Python interpreter for a given pipeline configuration
+    path.
+
+    Each pipeline configuration has three (one for Windows, one for macOS and one for Linux) interpreter
+    files that provide a path to the Python interpreter used to launch the ``tank``
+    command.
+
+    If you require a `python` executable to launch a script that will use a pipeline configuration, it is
+    recommended its associated Python interpreter.
+
+    :param str pipeline_config_path: Path to the pipeline configuration root.
+
+    :returns: Path to the Python interpreter for that configuration.
+    :rtype: str
+
+    :raises TankInvalidInterpreterLocationError: Raised if the interpreter in the interpreter file doesn't
+        exist.
+    :raises TankFileDoesNotExistError: Raised if the interpreter file can't be found.
+    :raises TankNotPipelineConfigurationError: Raised if the pipeline configuration path is not
+        a pipeline configuration.
+    :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg
+        does not exist.
+    """
+    return _create_installed_config_descriptor(pipeline_config_path).current_os_interpreter
 
 
 def resolve_all_os_paths_to_core(core_path):
