@@ -10,6 +10,7 @@
 
 import sys
 import os
+import inspect
 from optparse import OptionParser
 
 # Let the user know which Python is picked up to run the tests.
@@ -86,14 +87,20 @@ def _initialize_coverage():
     return cov
 
 
-def _finalize_coverage(cov):
+def _finalize_coverage(cov, is_html_coverage):
     """
     Stops covering code and writes out coverage.xml in the current directory.
     """
     cov.stop()
-    cov.report()
-    cov.xml_report(outfile="coverage.xml")
-    cov.html_report(directory="covhtml")
+
+    index_html = os.path.join(os.getcwd(), "covhtml", "index.html")
+    if is_html_coverage:
+        cov.html_report(directory="covhtml")
+        import webbrowser
+        webbrowser.open("file://%s" % index_html)
+    else:
+        cov.report()
+        cov.xml_report(outfile="coverage.xml")
 
 
 def _initialize_logging(log_to_console):
@@ -138,6 +145,10 @@ def _parse_command_line():
                       action="store_true",
                       dest="coverage",
                       help="run with coverage (requires coverage is installed)")
+    parser.add_option("--with-html-coverage",
+                      action="store_true",
+                      dest="html_coverage",
+                      help="run with coverage (requires coverage is installed) and generates html report")
     parser.add_option("--interactive",
                       action="store_true",
                       dest="interactive",
@@ -171,15 +182,15 @@ if __name__ == "__main__":
             "tank or sgtk was imported before the coverage module. Please fix run_tests.py."
         )
 
-    if options.coverage:
+    if options.coverage or options.html_coverage:
         cov = _initialize_coverage()
 
     _initialize_logging(options.log_to_console)
 
     ret_val = _run_tests(options.test_root, test_name)
 
-    if options.coverage:
-        _finalize_coverage(cov)
+    if options.coverage or options.html_coverage:
+        _finalize_coverage(cov, options.html_coverage)
 
     # Exit value determined by failures and errors
     exit_val = 0
