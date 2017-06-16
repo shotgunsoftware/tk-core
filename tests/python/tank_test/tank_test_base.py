@@ -186,6 +186,8 @@ class TankTestBase(unittest.TestCase):
         # where to go for test data
         self.fixtures_root = os.environ["TK_TEST_FIXTURES"]
 
+        self._tear_down_called = False
+
     def setUp(self, parameters=None):
         """
         Sets up a Shotgun Mockgun instance with a project and a basic project scaffold on
@@ -208,6 +210,7 @@ class TankTestBase(unittest.TestCase):
 
 
         """
+        self.addCleanup(self._assert_teardown_called)
         # Override SHOTGUN_HOME so that unit tests can be sandboxed.
         self._old_shotgun_home = os.environ.get(self.SHOTGUN_HOME)
         os.environ[self.SHOTGUN_HOME] = TANK_TEMP
@@ -392,10 +395,17 @@ class TankTestBase(unittest.TestCase):
         patch.start()
         self.addCleanup(patch.stop)
 
+    def _assert_teardown_called(self):
+        """
+        Ensures tear down has been called. Called during cleanup, which is executed after tear down.
+        """
+        self.assertTrue(self._tear_down_called)
+
     def tearDown(self):
         """
         Cleans up after tests.
         """
+        self._tear_down_called = True
         try:
             sgtk.set_authenticated_user(self._authenticated_user)
 
