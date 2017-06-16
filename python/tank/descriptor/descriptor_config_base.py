@@ -40,16 +40,17 @@ class ConfigDescriptorBase(Descriptor):
     def core_descriptor(self):
         """
         Creates a core descriptor for the configuration. If no core is specified on disk,
-        we'll assume we want to refer to the latest appstore core.
+        the latest app store descriptor core is returned.
 
-        :returns: CoreDescriptor or InstalledCoreDescriptor
+        :returns: CoreDescriptor or InstalledCoreDescriptor associated with this configuration.
         """
         roots = self._io_descriptor.get_cache_roots()
 
         core_dict = self.associated_core_descriptor
 
         if core_dict is None:
-            # FIXME: This is arguable... maybe we should return a path descriptor instead?
+            # FIXME: This is arguable... maybe we should return a path descriptor to the current
+            # core instead?
 
             # we don't have a core descriptor specified. Get latest from app store.
             log.debug(
