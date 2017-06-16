@@ -18,7 +18,7 @@ from tank_vendor import yaml
 from ..errors import TankError, TankFileDoesNotExistError
 from . import constants
 from .errors import TankInvalidInterpreterLocationError
-from .descriptor import Descriptor
+from .descriptor import Descriptor, create_descriptor
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
@@ -29,8 +29,50 @@ class ConfigDescriptorBase(Descriptor):
     Descriptor that describes a Toolkit Configuration
     """
 
+    def __init__(self, sg_connection, io_descriptor):
+        super(ConfigDescriptorBase, self).__init__(io_descriptor)
+        self._sg_connection = sg_connection
+
     def _get_config_folder(self):
         raise NotImplementedError("ConfigDescriptorBase._get_config_folder is not implemented.")
+
+    @property
+    def core_descriptor(self):
+        """
+        Creates a core descriptor for the configuration. If no core is specified on disk,
+        we'll assume we want to refer to the latest appstore core.
+
+        :returns: CoreDescriptor or InstalledCoreDescriptor
+        """
+        roots = self._io_descriptor.get_cache_roots()
+
+        core_dict = self.associated_core_descriptor
+
+        if core_dict is None:
+            # FIXME: This is arguable... maybe we should return a path descriptor instead?
+
+            # we don't have a core descriptor specified. Get latest from app store.
+            log.debug(
+                "Config does not have a core/core_api.yml file to define which core to use. "
+                "Will use the latest approved core in the app store."
+            )
+            core_dict = constants.LATEST_CORE_DESCRIPTOR
+            # resolve latest core
+            resolve_latest = True
+        else:
+            # we have an exact core descriptor. Get a descriptor for it
+            log.debug("Config has a specific core defined in core/core_api.yml: %s" % core_dict)
+            # when core is specified, it is always a specific version
+            resolve_latest = False
+
+        return create_descriptor(
+            self._sg_connection,
+            Descriptor.CORE,
+            core_dict,
+            roots[0],
+            roots[1],
+            resolve_latest=resolve_latest
+        )
 
     @property
     def version_constraints(self):

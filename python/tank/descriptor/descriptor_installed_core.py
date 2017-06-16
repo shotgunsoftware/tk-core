@@ -12,11 +12,11 @@ import os
 from .descriptor_core_base import CoreDescriptorBase
 
 
-class CoreDescriptor(CoreDescriptorBase):
+class InstalledCoreDescriptor(CoreDescriptorBase):
     """
-    Descriptor object which describes a Toolkit Core API version.
+    Descriptor object which describes an installed Toolkit Core API version.
     """
 
     @property
     def python_path(self):
-        return os.path.join(self.get_path(), "python")
+        return os.path.join(self.get_path(), "install", "core", "python")

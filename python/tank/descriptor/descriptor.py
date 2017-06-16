@@ -15,8 +15,8 @@ from ..util import filesystem
 from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
-from ..util.shotgun import get_deferred_sg_connection
-from .constants import INSTALLED_CONFIG_DESCRIPTOR
+from .constants import INSTALLED_CONFIG_DESCRIPTOR, INSTALLED_CORE_DESCRIPTOR
+
 
 def create_descriptor(
         sg_connection,
@@ -64,6 +64,7 @@ def create_descriptor(
     from .descriptor_config import ConfigDescriptor
     from .descriptor_installed_config import InstalledConfigDescriptor
     from .descriptor_core import CoreDescriptor
+    from .descriptor_installed_core import InstalledCoreDescriptor
 
     # if bundle root is not set, fall back on default location
     if bundle_cache_root_override is None:
@@ -101,11 +102,14 @@ def create_descriptor(
 
     elif descriptor_type == Descriptor.CONFIG:
         if io_descriptor.get_type() == INSTALLED_CONFIG_DESCRIPTOR:
-            return InstalledConfigDescriptor(io_descriptor)
+            return InstalledConfigDescriptor(sg_connection, io_descriptor)
         else:
-            return ConfigDescriptor(io_descriptor)
+            return ConfigDescriptor(sg_connection, io_descriptor)
     elif descriptor_type == Descriptor.CORE:
-        return CoreDescriptor(io_descriptor)
+        if io_descriptor.get_type() == INSTALLED_CORE_DESCRIPTOR:
+            return InstalledCoreDescriptor(io_descriptor)
+        else:
+            return CoreDescriptor(io_descriptor)
 
     else:
         raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)

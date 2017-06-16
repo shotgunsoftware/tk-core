@@ -29,15 +29,6 @@ class ConfigDescriptor(ConfigDescriptorBase):
     Descriptor that describes a Toolkit Configuration
     """
 
-    def __init__(self, io_descriptor):
-        """
-        Use the factory method :meth:`create_descriptor` when
-        creating new descriptor objects.
-
-        :param io_descriptor: Associated IO descriptor.
-        """
-        super(ConfigDescriptor, self).__init__(io_descriptor)
-
     def _get_config_folder(self):
         """
         """

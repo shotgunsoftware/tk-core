@@ -27,7 +27,7 @@ class InstalledConfigDescriptor(ConfigDescriptorBase):
     """
 
     @property
-    def current_os_interpreter(self):
+    def python_interpreter(self):
         pipeline_config_path = self._get_pipeline_config_path()
 
         # Config is localized, we're supposed to find an interpreter file in it.

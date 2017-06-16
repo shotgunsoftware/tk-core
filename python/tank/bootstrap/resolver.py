@@ -366,7 +366,8 @@ class ConfigurationResolver(object):
                 cfg_descriptor = create_descriptor(
                     sg_connection,
                     Descriptor.CONFIG,
-                    descriptor_dict
+                    descriptor_dict,
+                    fallback_roots=self._bundle_cache_fallback_paths,
                 )
         elif pc.get("descriptor"):
             if pc.get("sg_descriptor"):
@@ -378,13 +379,15 @@ class ConfigurationResolver(object):
             cfg_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.CONFIG,
-                pc.get("descriptor")
+                pc.get("descriptor"),
+                fallback_roots=self._bundle_cache_fallback_paths,
             )
         elif pc.get("sg_descriptor"):
             cfg_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.CONFIG,
-                pc.get("sg_descriptor")
+                pc.get("sg_descriptor"),
+                fallback_roots=self._bundle_cache_fallback_paths,
             )
         else:
             # If we have neither a uri, nor a path, then we can't get

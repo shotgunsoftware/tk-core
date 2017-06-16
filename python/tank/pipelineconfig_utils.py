@@ -240,7 +240,7 @@ def get_python_interpreter_for_config(pipeline_config_path):
     :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg
         does not exist.
     """
-    return _create_installed_config_descriptor(pipeline_config_path).current_os_interpreter
+    return _create_installed_config_descriptor(pipeline_config_path).python_interpreter
 
 
 def resolve_all_os_paths_to_core(core_path):
