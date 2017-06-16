@@ -10,6 +10,7 @@
 
 import sys
 
+
 class ShotgunPath(object):
     """
     Helper class that handles a path on multiple operating systems.
@@ -141,7 +142,7 @@ class ShotgunPath(object):
 
         if sys.platform == "win32":
             windows_path = path
-        elif sys.platform == "linux2":
+        elif sys.platform.startswith("linux"):
             linux_path = path
         elif sys.platform == "darwin":
             macosx_path = path
@@ -283,7 +284,6 @@ class ShotgunPath(object):
 
         return local_path
 
-
     def _get_macosx(self):
         """
         The macosx representation of the path
@@ -332,7 +332,7 @@ class ShotgunPath(object):
         """
         if sys.platform == "win32":
             return self.windows
-        elif sys.platform == "linux2":
+        elif sys.platform.startswith("linux"):
             return self.linux
         elif sys.platform == "darwin":
             return self.macosx
@@ -345,7 +345,7 @@ class ShotgunPath(object):
         """
         if sys.platform == "win32":
             self.windows = value
-        elif sys.platform == "linux2":
+        elif sys.platform.startswith("linux"):
             self.linux = value
         elif sys.platform == "darwin":
             self.macosx = value
