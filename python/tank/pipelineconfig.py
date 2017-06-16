@@ -30,6 +30,7 @@ from . import template_includes
 from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
+from .descriptor.constants import INSTALLED_CONFIG_DESCRIPTOR
 
 log = LogManager.get_logger(__name__)
 
@@ -59,8 +60,6 @@ class PipelineConfiguration(object):
         :type descriptor: :class:`sgtk.descriptor.ConfigDescriptor`
         """
         self._pc_root = pipeline_configuration_path
-
-        self._descriptor = descriptor
 
         # validate that the current code version matches or is compatible with
         # the code that is locally stored in this config!!!!
@@ -121,6 +120,35 @@ class PipelineConfiguration(object):
             self._bundle_cache_fallback_paths = pipeline_config_metadata.get("bundle_cache_fallback_roots")
         else:
             self._bundle_cache_fallback_paths = []
+
+        # If no descriptor is passed in, the best we can assume is that we are an installed configuration,
+        # so create the descriptor as such. Ideally the descriptor would be passed in by the caller,
+        # unfortunately this can be invoked from an old core that doesn't pass information in.
+        # Because of this, we'll assume we're an installed configuration.
+        if descriptor is None:
+            descriptor = create_descriptor(
+                shotgun.get_deferred_sg_connection(),
+                Descriptor.CONFIG,
+                {"type": INSTALLED_CONFIG_DESCRIPTOR, "path": pipeline_configuration_path}
+            )
+        else:
+            # The descriptor that is being passed in could be from an old bootstrap that doesn't
+            # support all the features we want, so recreate it. It could also be from a future
+            # version of core that introduces a new descriptor type that we don't know about!!! For
+            # these reasons, we'll try to recreate it. If it fails, we'll use the one that was
+            # passed in and hope for the best!
+            try:
+                descriptor = create_descriptor(
+                    shotgun.get_deferred_sg_connection(),
+                    Descriptor.CONFIG,
+                    descriptor.get_uri(),
+                    self._bundle_cache_root_override,
+                    self._bundle_cache_fallback_paths
+                )
+            except Exception:
+                log.debug("Could not recreate the descriptor", exc_info=1)
+
+        self._descriptor = descriptor
 
         #
         # Now handle the case of a baked and immutable configuration.

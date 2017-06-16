@@ -16,10 +16,21 @@ from tank_test.tank_test_base import TankTestBase, SealedMock
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.errors import TankError
 from tank.descriptor import CheckVersionConstraintsError
+from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
 
 from mock import Mock, patch
 
 from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
+
+
+class TestClassicPipelineDescriptor(TankTestBase):
+
+    def test_classic_pipeline_descriptor(self):
+        """
+        Ensures pipeline configurations created through legacy means have an
+        InstalledConfigDescriptor.
+        """
+        self.assertIsInstance(self.tk.configuration_descriptor, InstalledConfigDescriptor)
 
 
 class TestDescriptorSupport(TankTestBase):

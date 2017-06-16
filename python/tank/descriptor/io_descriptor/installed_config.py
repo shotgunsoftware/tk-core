@@ -11,14 +11,10 @@
 from __future__ import with_statement
 
 import os
-import cgi
-import urllib
-import urlparse
 
 from .path import IODescriptorPath
 from .. import constants
 from ... import LogManager
-from ...util import filesystem
 
 from ..errors import TankDescriptorError
 
@@ -27,7 +23,7 @@ from tank_vendor import yaml
 log = LogManager.get_logger(__name__)
 
 
-class IODescriptorInstalled(IODescriptorPath):
+class IODescriptorInstalledConfig(IODescriptorPath):
     """
     Installed descriptor type is a special type of io_descriptor that can only be used for installed
     configurations and the InstalledConfigurationDescriptor. Its role is to differentiate
@@ -36,6 +32,11 @@ class IODescriptorInstalled(IODescriptorPath):
     doesn't support copying itself.
     """
 
+    def __init__(self, descriptor_dict):
+
+        super(IODescriptorInstalledConfig, self).__init__(descriptor_dict)
+        self.__manifest_data = None
+
     def copy(self, target_path):
         """
         Copy the contents of the descriptor to an external location
@@ -43,9 +44,6 @@ class IODescriptorInstalled(IODescriptorPath):
         :param target_path: target path to copy the descriptor to.
         """
         raise TankDescriptorError("Installed descriptor is not copiable.")
-
-    def _get_manifest_location(self):
-        return os.path.join(self._path, "config")
 
     def get_manifest(self):
         """
@@ -75,5 +73,3 @@ class IODescriptorInstalled(IODescriptorPath):
             self.__manifest_data = metadata
 
         return self.__manifest_data
-
-

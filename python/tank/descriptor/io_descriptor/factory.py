@@ -66,7 +66,7 @@ def create_io_descriptor(
     from .git_tag import IODescriptorGitTag
     from .git_branch import IODescriptorGitBranch
     from .manual import IODescriptorManual
-    from .installed import IODescriptorInstalled
+    from .installed_config import IODescriptorInstalledConfig
 
     # resolve into both dict and uri form
     if isinstance(dict_or_uri, basestring):
@@ -113,7 +113,7 @@ def create_io_descriptor(
         descriptor = IODescriptorPath(descriptor_dict)
 
     elif descriptor_dict.get("type") == constants.INSTALLED_CONFIG_DESCRIPTOR:
-        descriptor = IODescriptorInstalled(descriptor_dict)
+        descriptor = IODescriptorInstalledConfig(descriptor_dict)
 
     else:
         raise TankDescriptorError("Unknown descriptor type for '%s'" % descriptor_dict)
