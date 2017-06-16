@@ -213,7 +213,7 @@ class TestPluginMatching(TestResolverBase):
         self.assertFalse(resolver._match_plugin_id(None))
         self.assertFalse(resolver._match_plugin_id("foo.maya"))
 
-    @patch("tank.descriptor.io_descriptor.base.IODescriptorBase._exists_local", return_value=True)
+    @patch("os.path.isdir", return_value=True)
     def test_single_matching_id(self, _):
         """
         Picks the sandbox with the right plugin id.
@@ -382,7 +382,7 @@ class TestResolverPriority(TestResolverBase):
         :param str expected_path: Expected value for the current platform's path.
         """
         with patch(
-            "tank.descriptor.io_descriptor.base.IODescriptorBase._exists_local", return_value=True
+            "os.path.isdir", return_value=True
         ):
             config = self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=None,
@@ -491,7 +491,7 @@ class TestResolverPriority(TestResolverBase):
         self.assertEqual(primaries[0]["sg_plugin_ids"], None)
         self.assertEqual(primaries[0]["plugin_ids"], None)
 
-    @patch("tank.descriptor.io_descriptor.base.IODescriptorBase._exists_local", return_value=True)
+    @patch("os.path.isdir", return_value=True)
     def test_more_recent_pipeline_is_shadowed(self, _):
         """
         When two pipeline configurations could have be chosen during resolve_shotgun_configuration
@@ -746,7 +746,7 @@ class TestResolverSiteConfig(TestResolverBase):
             bundle_cache_fallback_paths=[self.install_root]
         )
 
-    @patch("tank.descriptor.io_descriptor.base.IODescriptorBase._exists_local", return_value=True)
+    @patch("os.path.isdir", return_value=True)
     def test_resolve_installed_from_sg(self, _):
         """
         When a path is set, we have an installed configuration.
@@ -845,7 +845,7 @@ class TestResolvedConfiguration(TankTestBase):
 
 class TestResolveWithFilter(TestResolverBase):
 
-    @patch("tank.descriptor.io_descriptor.base.IODescriptorBase._exists_local", return_value=True)
+    @patch("os.path.isdir", return_value=True)
     def test_existing_pc_ic(self, _):
         """
         Resolve an existing pipeline configuration by id.
@@ -863,7 +863,7 @@ class TestResolveWithFilter(TestResolverBase):
 
         self.assertEqual(config._path.current_os, "sg_path")
 
-    @patch("tank.descriptor.io_descriptor.base.IODescriptorBase._exists_local", return_value=True)
+    @patch("os.path.isdir", return_value=True)
     def test_non_existing_pc_ic(self, _):
         """
         Resolve a non-existent pipeline configuration by id should fail.
@@ -876,7 +876,7 @@ class TestResolveWithFilter(TestResolverBase):
                 current_login="john.smith"
             )
 
-    @patch("tank.descriptor.io_descriptor.base.IODescriptorBase._exists_local", return_value=True)
+    @patch("os.path.isdir", return_value=True)
     def test_resolve_by_name(self, _):
         """
         Ensure that specifying for pipeline by name works.
