@@ -78,3 +78,5 @@ LOWEST_SHOTGUN_VERSION = "5.0.0"
 
 # name of the app store specific proxy setting
 APP_STORE_HTTP_PROXY = "app_store_http_proxy"
+
+INSTALLED_CONFIG_DESCRIPTOR = "installed_config"

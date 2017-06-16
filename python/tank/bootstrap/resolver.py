@@ -23,6 +23,7 @@ from .errors import TankBootstrapError
 from .baked_configuration import BakedConfiguration
 from .cached_configuration import CachedConfiguration
 from .installed_configuration import InstalledConfiguration
+from ..descriptor.constants import INSTALLED_CONFIG_DESCRIPTOR
 from ..util import filesystem
 from ..util import ShotgunPath
 from ..util import LocalFileStorageManager
@@ -110,7 +111,7 @@ class ConfigurationResolver(object):
         # FIXME: This is a bit backwards. The code calling this method usually has a fully built
         # descriptor object, so there's no point passing in a config descriptor dict in order
         # to rebuild it.
-        if config_descriptor["type"] == constants.INSTALLED_DESCRIPTOR_TYPE:
+        if config_descriptor["type"] == INSTALLED_CONFIG_DESCRIPTOR:
             cfg_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.CONFIG,
@@ -349,11 +350,11 @@ class ConfigurationResolver(object):
         path = ShotgunPath.from_shotgun_dict(pc)
 
         if path:
-            # Emit a warning when both the OS field and descriptor field is set.
             if pc.get("descriptor") or pc.get("sg_descriptor"):
-                log.warning(
+                log.debug(
                     "Fields for path based and descriptor based pipeline configuration are both "
                     "set on pipeline configuration %s. Using path based field.", pc["id"])
+
             # Make sure that the config has a path for the current OS.
             if path.current_os is None:
                 log.debug("Config isn't setup for %s: %s", sys.platform, pc)
@@ -361,19 +362,19 @@ class ConfigurationResolver(object):
             else:
                 # Create an installed descriptor
                 descriptor_dict = path.as_shotgun_dict()
-                descriptor_dict["type"] = constants.INSTALLED_DESCRIPTOR_TYPE
+                descriptor_dict["type"] = INSTALLED_CONFIG_DESCRIPTOR
                 cfg_descriptor = create_descriptor(
                     sg_connection,
                     Descriptor.CONFIG,
                     descriptor_dict
                 )
         elif pc.get("descriptor"):
-            # Emit a warning when the sg_descriptor is set as well.
             if pc.get("sg_descriptor"):
-                log.warning(
+                log.debug(
                     "Both sg_descriptor and descriptor fields are set on pipeline configuration "
                     "%s. Using descriptor field.", pc["id"]
                 )
+
             cfg_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.CONFIG,

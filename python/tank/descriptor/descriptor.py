@@ -16,6 +16,7 @@ from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
 from ..util.shotgun import get_deferred_sg_connection
+from .constants import INSTALLED_CONFIG_DESCRIPTOR
 
 def create_descriptor(
         sg_connection,
@@ -99,7 +100,7 @@ def create_descriptor(
         return FrameworkDescriptor(sg_connection, io_descriptor)
 
     elif descriptor_type == Descriptor.CONFIG:
-        if io_descriptor.get_type() == "installed":
+        if io_descriptor.get_type() == INSTALLED_CONFIG_DESCRIPTOR:
             return InstalledConfigDescriptor(io_descriptor)
         else:
             return ConfigDescriptor(io_descriptor)
@@ -448,7 +449,7 @@ def _create_installed_config_descriptor(pipeline_config_path):
     return create_descriptor(
         get_deferred_sg_connection(),
         Descriptor.CONFIG,
-        dict(path=pipeline_config_path, type="installed")
+        dict(path=pipeline_config_path, type=c)
     )
 
 # For backwards compatibility with the previous versions of core.

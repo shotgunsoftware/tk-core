@@ -10,6 +10,7 @@
 
 import copy
 
+from .. import constants
 from ..errors import TankDescriptorError
 
 from ... import LogManager
@@ -111,7 +112,7 @@ def create_io_descriptor(
     elif descriptor_dict.get("type") == "path":
         descriptor = IODescriptorPath(descriptor_dict)
 
-    elif descriptor_dict.get("type") == "installed":
+    elif descriptor_dict.get("type") == constants.INSTALLED_CONFIG_DESCRIPTOR:
         descriptor = IODescriptorInstalled(descriptor_dict)
 
     else:
