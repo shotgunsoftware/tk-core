@@ -798,7 +798,7 @@ class TestResolvedConfiguration(TankTestBase):
         Makes sure an installed configuration is resolved.
         """
         config = self._resolver.resolve_configuration(
-            {"type": "installed", "path": self.pipeline_config_root}, self.tk.shotgun
+            {"type": "installed_config", "path": self.pipeline_config_root}, self.tk.shotgun
         )
         self.assertIsInstance(
             config,

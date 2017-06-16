@@ -678,7 +678,6 @@ class ConfigurationResolver(object):
         # now resolve the descriptor to use based on the pipeline config record
 
         # default to the fallback descriptor
-        descriptor = fallback_config_descriptor
         pc_id = None
 
         if pipeline_config is None:
@@ -712,9 +711,9 @@ class ConfigurationResolver(object):
                 )
             config_descriptor_dict = pipeline_config["config_descriptor"].get_uri()
 
-        log.debug("The descriptor representing the config is %s" % descriptor)
+        log.debug("The descriptor representing the config is %s" % config_descriptor_dict)
 
-        return self._resolve_configuration(descriptor, sg_connection, pc_id)
+        return self._resolve_configuration(config_descriptor_dict, sg_connection, pc_id)
 
     def _is_classic_pc(self, pc):
         """
