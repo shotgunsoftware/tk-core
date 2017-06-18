@@ -38,16 +38,20 @@ def create_descriptor(
                            apps will be searched for. Note that when descriptors
                            download new content, it always ends up in the
                            bundle_cache_root.
-    :param resolve_latest: If true, the latest version will be determined and returned.
-                           If set to True, no version information need to be supplied with
-                           the descriptor dictionary/uri. Please note that setting this flag
+    :param resolve_latest: If true, the latest version may be determined and returned.
+                           If set to True, no version information needs to be supplied with
+                           the descriptor dictionary/uri for descriptor types which support
+                           a version number concept. Please note that setting this flag
                            to true will typically affect performance - an external connection
                            is often required in order to establish what the latest version is.
+
+                           If a version number is supplied as part of the descriptor with this
+                           flag set to True, no attempt to determine what the latest version is
+                           will be attempted.
 
                            If a remote connection cannot be established when attempting to determine
                            the latest version, a local scan will be carried out and the highest
                            version number that is cached locally will be returned.
-
     :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain
                            the search for latest to only take part over a subset of versions.
                            This is a string that can be on the following form:

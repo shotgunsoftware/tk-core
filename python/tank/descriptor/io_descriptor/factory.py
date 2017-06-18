@@ -40,11 +40,16 @@ def create_io_descriptor(
                            apps will be searched for. Note that when descriptors
                            download new content, it always ends up in the
                            bundle_cache_root.
-    :param resolve_latest: If true, the latest version will be determined and returned.
-                           If set to True, no version information need to be supplied with
-                           the descriptor dictionary/uri. Please note that setting this flag
+    :param resolve_latest: If true, the latest version may be determined and returned.
+                           If set to True, no version information needs to be supplied with
+                           the descriptor dictionary/uri for descriptor types which support
+                           a version number concept. Please note that setting this flag
                            to true will typically affect performance - an external connection
                            is often required in order to establish what the latest version is.
+
+                           If a version number is supplied as part of the descriptor with this
+                           flag set to True, no attempt to determine what the latest version is
+                           will be attempted.
 
                            If a remote connection cannot be established when attempting to determine
                            the latest version, a local scan will be carried out and the highest
@@ -75,6 +80,7 @@ def create_io_descriptor(
 
     # at this point we didn't have a cache hit,
     # so construct the object manually
+    perform_latest_check = False
     if resolve_latest:
         # if someone is requesting a latest descriptor and not providing a version token
         # make sure to add an artificial one so that we can resolve it.
@@ -87,6 +93,8 @@ def create_io_descriptor(
             # key as part of the descriptor dictionary so that the descriptor
             # is valid
             descriptor_dict["version"] = "latest"
+            # indicate that we should go out and search for latest
+            perform_latest_check = True
 
     # factory logic
     if descriptor_dict.get("type") == "app_store":
@@ -116,7 +124,7 @@ def create_io_descriptor(
     # specify where to go look for caches
     descriptor.set_cache_roots(bundle_cache_root, fallback_roots)
 
-    if resolve_latest:
+    if perform_latest_check:
         # attempt to get "remote" latest first
         # and if that fails, fall back on the latest item
         # available in the local cache.
