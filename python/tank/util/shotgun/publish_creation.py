@@ -46,21 +46,37 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     and will be used to populate the number field of the publish that is created
     in Shotgun. The name should represent the name of the item, without any version
     number. This is used to group together publishes in Shotgun and various
-    integrations. For example, if the file you are publishing belongs to Shot
-    AAA_003 and is named ``AAA_003_foreground.v012.ma``, you could set
-    the name to be ``foreground`` and the version to be ``12``. The Shot name
-    will be implied by the associated context.
-
-    The path will first be checked against the current template definitions.
-    If it matches any template definition and is determined to be a sequence
-    of some kind (per frame, per eye), any sequence tokens such as ``@@@@``, ``$4F``
-    etc. will be normalised to a ``%04d`` form before written to Shotgun.
+    integrations.
 
     If the path matches any local storage roots defined by the toolkit project,
     it will be uploaded as a local file link to Shotgun. If not matching roots
     are found, the method will retrieve the list of local storages from Shotgun
     and try to locate a suitable storage. Failing that, it will fall back on a
-    register the path as a ``file://`` url.
+    register the path as a ``file://`` url. For more information on
+    this resolution logic, see our
+    `Admin Guide <https://support.shotgunsoftware.com/hc/en-us/articles/115000067493#Configuring%20published%20file%20path%20resolution>`_.
+
+    .. note:: Shotgun follows a convention where the name passed to the register publish method is used
+              to control how things are grouped together. When Shotgun and Toolkit groups things together,
+              things are typically grouped first by project/entity/task and then by publish name and version.
+
+              If you create three publishes in Shotgun, all having the name 'foreground.ma' and version numbers
+              1, 2 and 3, Shotgun will assume that these are three revisions of the same content and will
+              group them together in a group called 'foreground.ma'.
+
+              We recommend a convention where the ``name`` parameter reflects the filename passed in via
+              the ``file_path`` parameter, but with the version number removed. For example:
+
+              - ``file_path: /tmp/layout.v027.ma, name: layout.ma, version_number: 27``
+              - ``file_path: /tmp/foreground_v002.%04d.exr, name: foreground.exr, version_number: 2``
+
+    .. note:: When publishing file sequences, the method will try to normalize your path based on the
+              current template configuration. For example, if you supply the path ``render.$F4.dpx``,
+              it will translated to ``render.%04d.dpx`` automatically, assuming there is a matching
+              template defined. If you are not using templates or publishing files that do not match
+              any configured templates, always provide sequences on a ``%0xd`` or
+              ``%xd`` `printf <https://en.wikipedia.org/wiki/Printf_format_string>`_ style
+              pattern.
 
     **Examples**
 
@@ -68,7 +84,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     recommended to supply at least a comment and a Publish Type::
 
         >>> file_path = '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma'
-        >>> name = 'layout'
+        >>> name = 'layout.ma'
         >>> version_number = 1
         >>>
         >>> sgtk.util.register_publish(
@@ -78,7 +94,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
             name,
             version_number,
             comment = 'Initial layout composition.',
-            published_file_type = 'Layout Scene'
+            published_file_type = 'Maya Scene'
         )
 
         {'code': 'layout.v001.ma',
@@ -86,7 +102,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
          'description': 'Initial layout composition.',
          'entity': {'id': 2, 'name': 'shot_010', 'type': 'Shot'},
          'id': 2,
-         'name': 'layout',
+         'published_file_type': {'id': 134, 'type': 'PublishedFileType'},
+         'name': 'layout.ma',
          'path': {'content_type': None,
           'link_type': 'local',
           'local_path': '/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma',
@@ -156,7 +173,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         - ``task`` - A shotgun entity dictionary with id and type (which should always be Task).
           if no value is specified, the task will be grabbed from the context object.
 
-        - ``comment`` - A string containing a description of the comment
+        - ``comment`` - A string containing a description of what is being published.
 
         - ``thumbnail_path`` - A path to a thumbnail (png or jpeg) which will be uploaded to shotgun
           and associated with the publish.
@@ -166,12 +183,12 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
         - ``dependency_ids`` - A list of publish ids which should be registered as dependencies.
 
-        - ``published_file_type`` - A tank type in the form of a string which should match a tank type
-          that is registered in Shotgun.
+        - ``published_file_type`` - A publish type in the form of a string. If the publish type does not
+          already exist in Shotgun, it will be created.
 
-        - ``update_entity_thumbnail`` - Push thumbnail up to the attached entity
+        - ``update_entity_thumbnail`` - Push thumbnail up to the associated entity
 
-        - ``update_task_thumbnail`` - Push thumbnail up to the attached task
+        - ``update_task_thumbnail`` - Push thumbnail up to the associated task
 
         - ``created_by`` - Override for the user that will be marked as creating the publish.  This should
           be in the form of shotgun entity, e.g. {"type":"HumanUser", "id":7}. If not set, the user will
