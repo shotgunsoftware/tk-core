@@ -89,13 +89,7 @@ class TestApi(TankTestBase):
             {"type": "app_store", "name": "tk-testbundlefactory"}
         )
 
-        # we can do a direct lookup even when the version flag is set
-        d = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
-            sgtk.descriptor.Descriptor.CONFIG,
-            {"type": "app_store", "version": "v0.1.6", "name": "tk-testbundlefactory"},
-            resolve_latest=True
-        )
+        # if we omit the version number, a latest check is carried out
         app_root_path = os.path.join(
             tank.util.LocalFileStorageManager.get_global_root(tank.util.LocalFileStorageManager.CACHE),
             "bundle_cache",
@@ -104,9 +98,6 @@ class TestApi(TankTestBase):
             "v0.1.6"
         )
         self._touch_info_yaml(app_root_path)
-        self.assertEqual(app_root_path, d.get_path())
-
-        # if we omit the version number, a latest check is carried out
         d = sgtk.descriptor.create_descriptor(
             self.tk.shotgun,
             sgtk.descriptor.Descriptor.CONFIG,
@@ -131,6 +122,17 @@ class TestApi(TankTestBase):
             resolve_latest=True
         )
         self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?version=v0.2.3&name=tk-testbundlefactory")
+
+        # we can do a direct lookup even when the version flag is set
+        # but it will result in a latest version translation
+        d = sgtk.descriptor.create_descriptor(
+            self.tk.shotgun,
+            sgtk.descriptor.Descriptor.CONFIG,
+            {"type": "app_store", "version": "v9999.1.6", "name": "tk-testbundlefactory"},
+            resolve_latest=True
+        )
+        self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?version=v0.2.3&name=tk-testbundlefactory")
+
 
     def test_alt_cache_root(self):
         """
