@@ -319,7 +319,7 @@ class SessionUser(ShotgunUserImpl):
         try:
             sg.find_one("HumanUser", [])
             return False
-        except ProtocolError as e:
+        except ProtocolError, e:
             # One potential source of the error is that our SAML claims have
             # expired. We check if we were given a 302 and the
             # saml_login_request URL.

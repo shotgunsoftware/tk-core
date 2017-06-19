@@ -146,6 +146,9 @@ class SessionRenewal(object):
                     logger.debug("Attempting to renew our SSO session.")
                 else:
                     logger.debug("Not authenticated, requesting user input.")
+
+                # @TODO: Refactor the authenticate methods to return a struct-like
+                #        object instead of a 5 elements tuple.
                 hostname, login, session_token, cookies, saml_expiration = credentials_handler.authenticate(
                     user.get_host(),
                     user.get_login(),
@@ -244,6 +247,8 @@ def authenticate(default_host, default_login, http_proxy, fixed_host):
 
     QtCore, QtGui, QtNetwork, QtWebKit, has_ui = _get_qt_state()
 
+    # @TODO: refactor the authenticator functions to return a struct-like
+    #        object instead of 5 element tuple.
     # If we have a gui, we need gui based authentication
     if has_ui:
         # If we are renewing for a background thread, use the invoker

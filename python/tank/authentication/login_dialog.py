@@ -17,22 +17,18 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-import socket
-
 from .ui import login_dialog
 from . import session_cache
 from shotgun_shared import saml2_sso
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
 from tank_vendor.shotgun_api3 import Shotgun, MissingTwoFactorAuthenticationFault
-from tank_vendor.shotgun_api3.lib.httplib2 import ServerNotFoundError
-from tank_vendor.shotgun_api3.lib.xmlrpclib import ProtocolError
 from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
 
 # Name used to identify the client application when connecting via SSO to Shotugn.
-TOOLKIT_PRODUCT_NAME = "toolkit"
+PRODUCT_IDENTIFIER = "toolkit"
 
 
 class LoginDialog(QtGui.QDialog):
@@ -128,7 +124,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui._2fa_code.editingFinished.connect(self._strip_whitespaces)
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
 
-        url = self.ui.site.text()
+        url = self.ui.site.text().encode("utf-8")
         if self._check_sso_enabled(url):
             self._toggle_sso()
 
@@ -146,13 +142,18 @@ class LoginDialog(QtGui.QDialog):
         try:
             # Temporary shotgun instance, used only for the purpose of checking
             # the site infos.
+            #
+            # The constructor of Shotgun requires either a username/login or
+            # key/scriptname pair or a session_token. The token is only used in
+            # calls which need to be authenticated. The 'info' call does not
+            # require authentication.
             info = Shotgun(url, session_token="dummy", connect=False).info()
             logger.debug("User authentication method for %s: %s" % (url, info["user_authentication_method"]))
             if "user_authentication_method" in info:
                 return info["user_authentication_method"] == "saml2"
-        except (ServerNotFoundError, ProtocolError, ValueError, socket.error):
-            # Silently ignore exception
-            logger.debug("Unable to connect with %s, assuming SSO is not enabled" % url)
+        except Exception, e:
+            # Silently ignore exceptions
+            logger.debug("Unable to connect with %s, got exception '%s' assuming SSO is not enabled" % (url, e))
 
         return False
 
@@ -251,7 +252,7 @@ class LoginDialog(QtGui.QDialog):
             res = self._saml2_sso.on_sso_login_attempt({
                 "host": self.ui.site.text().encode("utf-8"),
                 "cookies": self._cookies,
-                "product": TOOLKIT_PRODUCT_NAME
+                "product": PRODUCT_IDENTIFIER
             }, use_watchdog=True)
             # If the offscreen session renewal failed, show the GUI as a failsafe
             if res == QtGui.QDialog.Accepted:
@@ -331,7 +332,7 @@ class LoginDialog(QtGui.QDialog):
                 res = self._saml2_sso.on_sso_login_attempt({
                     "host": site,
                     "cookies": self._cookies,
-                    "product": TOOLKIT_PRODUCT_NAME
+                    "product": PRODUCT_IDENTIFIER
                 })
                 if res == QtGui.QDialog.Accepted:
                     self._new_session_token = self._saml2_sso._session.session_id

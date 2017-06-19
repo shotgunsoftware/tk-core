@@ -122,17 +122,21 @@ class ShotgunAuthenticator(object):
             self._defaults_manager.get_http_proxy(),
             self._defaults_manager.is_host_fixed()
         )
-        return self.create_session_user(
+        return self._create_session_user(
             login=login, session_token=session_token,
             host=host, http_proxy=self._defaults_manager.get_http_proxy(),
             cookies=cookies, saml_expiration=saml_expiration
         )
 
-    def create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None, cookies=None, saml_expiration=0):
+    def _create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None, cookies=None, saml_expiration=0):
         """
         Create an AuthenticatedUser given a set of human user credentials.
         Either a password or session token must be supplied. If a password is supplied,
         a session token will be generated for security reasons.
+
+        This is an internal version of the method, which makes reference to the
+        cookies and the saml expiration. These are implementation details which
+        we want to hide from the public interface.
 
         :param login: Shotgun user login
         :param session_token: Shotgun session token
@@ -152,6 +156,23 @@ class ShotgunAuthenticator(object):
         return user.ShotgunUser(
             user_impl.SessionUser(host, login, session_token, http_proxy, password=password, cookies=cookies, saml_expiration=saml_expiration)
         )
+
+    def create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None):
+        """
+        Create an AuthenticatedUser given a set of human user credentials.
+        Either a password or session token must be supplied. If a password is supplied,
+        a session token will be generated for security reasons.
+
+        :param login: Shotgun user login
+        :param session_token: Shotgun session token
+        :param password: Shotgun password
+        :param host: Shotgun host to log in to. If None, the default host will be used.
+        :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
+
+        :returns: A :class:`ShotgunUser` instance.
+        """
+        # Leverage the private implementation.
+        return self._create_session_user(login, session_token, password, host, http_proxy)
 
     def create_script_user(self, api_script, api_key, host=None, http_proxy=None):
         """
@@ -219,7 +240,7 @@ class ShotgunAuthenticator(object):
         # If some of the arguments are missing, don't worry, create_session_user
         # will take care of it.
         elif "login" in credentials or "password" in credentials or "session_token" in credentials:
-            return self.create_session_user(
+            return self._create_session_user(
                 login=credentials.get("login"),
                 password=credentials.get("password"),
                 session_token=credentials.get("session_token"),
