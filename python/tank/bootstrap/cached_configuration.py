@@ -242,9 +242,12 @@ class CachedConfiguration(Configuration):
                 )
                 log.debug("Previous core restore complete...")
         else:
-            # remove backup folders now that the update has completed successfully
-            filesystem.delete_folder(os.path.dirname(config_backup_path))
-            filesystem.delete_folder(core_backup_path)
+            try:
+                # remove backup folders now that the update has completed successfully
+                filesystem.delete_folder(os.path.dirname(config_backup_path))
+                filesystem.delete_folder(core_backup_path)
+            except Exception, e:
+                log.error("Failed to clean up the previous installation")
 
         # @todo - prime caches (yaml, path cache)
 
