@@ -37,10 +37,10 @@ core_logger = LogManager.get_logger(__name__)
 
 def create_engine_launcher(tk, context, engine_name, versions=None, products=None):
     """
-    Factory method that creates a :class:`SoftwareLauncher` subclass 
+    Factory method that creates a :class:`SoftwareLauncher` subclass
     instance implemented by a toolkit engine in the environment config
-    that can be used by a custom script or toolkit app. The engine 
-    subclass manages the business logic for DCC executable path 
+    that can be used by a custom script or toolkit app. The engine
+    subclass manages the business logic for DCC executable path
     discovery and the environmental requirements for launching the DCC.
     Toolkit is automatically started up during the DCC's launch phase.
     A very simple example of how this works is demonstrated here::
@@ -51,7 +51,11 @@ def create_engine_launcher(tk, context, engine_name, versions=None, products=Non
         >>> context = tk.context_from_path("/studio/project_root/sequences/AAA/ABC/Light/work")
         >>> launcher = sgtk.platform.create_engine_launcher(tk, context, "tk-maya")
         >>> software_versions = launcher.scan_software()
-        >>> launch_info = launcher.prepare_launch(software_versions[0].path, args, "/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma")
+        >>> launch_info = launcher.prepare_launch(
+        ...     software_versions[0].path,
+        ...     args,
+        ...     "/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma"
+        ... )
         >>> subprocess.Popen([launch_info.path + " " + launch_info.args], env=launch_info.environment)
 
     where ``software_versions`` is a list of :class:`SoftwareVersion`
@@ -70,7 +74,7 @@ def create_engine_launcher(tk, context, engine_name, versions=None, products=Non
     :param list products: A list of product strings for filtering software
         versions. See the :class:`SoftwareLauncher` for more info.
 
-    :rtype: :class:`SoftwareLauncher` instance or ``None`` if the 
+    :rtype: :class:`SoftwareLauncher` instance or ``None`` if the
             engine can be found on disk, but no ``startup.py`` file exists.
     :raises: :class:`TankError` if the specified engine cannot be found
              on disk.
@@ -176,6 +180,7 @@ class SoftwareLauncher(object):
 
         # product and version string lists to limit the scope of sw discovery
         self._products = products or []
+        self._lower_case_products = [product.lower() for product in self._products]
         self._versions = versions or []
 
     ##########################################################################################
@@ -490,9 +495,15 @@ class SoftwareLauncher(object):
         # note: get_shotgun_id() returns None for unmanaged configs.
         pipeline_config_id = self.sgtk.pipeline_configuration.get_shotgun_id()
         if pipeline_config_id:
+            self.logger.debug(
+                "Setting SHOTGUN_PIPELINE_CONFIGURATION_ID to %s", pipeline_config_id
+            )
             env["SHOTGUN_PIPELINE_CONFIGURATION_ID"] = str(pipeline_config_id)
         else:
-            self.logger.debug("Unmanaged config. Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID.")
+            self.logger.debug(
+                "Pipeline configuration doesn't have an id. "
+                "Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID."
+            )
 
         # get the most accurate entity, first see if there is a task, then entity then project
         entity_dict = self.context.task or self.context.entity or self.context.project
@@ -614,6 +625,9 @@ class SoftwareLauncher(object):
         ``products`` constraint. If there are no constraints on the products,
         the method will return ``True``.
 
+        .. note::
+            Product name comparison is case-insensitive.
+
         :param str product: A string representing the product name to check
             against.
 
@@ -626,7 +640,7 @@ class SoftwareLauncher(object):
             return True
 
         # check products list
-        return product in self.products
+        return product.lower() in self._lower_case_products
 
 
 class SoftwareVersion(object):
@@ -729,7 +743,7 @@ class LaunchInformation(object):
     Stores blueprints for how to launch a specific DCC which includes
     required environment variables, the executable path, and command
     line arguments to pass when launching the DCC. For example, given
-    a LaunchInformation instance ``launch_info``, open a DCC using 
+    a LaunchInformation instance ``launch_info``, open a DCC using
     ``subprocess``::
 
         >>> launch_cmd = "%s %s" % (launch_info.path, launch_info.args)

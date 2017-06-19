@@ -877,13 +877,21 @@ class Engine(TankBundle):
 
     def register_command(self, name, callback, properties=None):
         """
-        Register a command with a name and a callback function.
+        Register a ``command`` with a name and a callback function.
 
         A *command* refers to an access point for some functionality.
         In most cases, commands will appear as items on a Shotgun dropdown
         menu, but it ultimately depends on the engine - in the Shell engine,
         commands are instead represented as a text base listing and in the
         Shotgun Desktop it is a scrollable list of larger icons.
+
+        .. note:: This method is used to add menu entries for launching
+           toolkit UIs. If you wish to register a panel UI with toolkit,
+           you need call this method in order to register a menu command
+           with which a user can launch the panel. In addition to this,
+           you also need to call :meth:`register_panel` in order to
+           register the panel so that the engine can handle its
+           management and persistence.
 
         An arbitrary list of properties can be passed into the engine
         in the form of a properties dictionary. The interpretation of
@@ -899,16 +907,23 @@ class Engine(TankBundle):
 
         - ``title`` - Title to appear on shotgun action menu (e.g. "Create Folders")
 
-        - ``type`` - The type of command - hinting where it should appear. Options vary between
-          engines and the following three are supported:
+        - ``type`` - The type of command - hinting at which menu the command should appear.
+          Options vary between engines and the following are supported:
 
-            - ``context_menu`` - Supported on all engines. Place item on
-              the context menu (first item on the shotgun menu).
-            - ``panel`` - This command is associated with a panel app if the target
-              environment supports a special notion of panel related actions, place
-              the command there. (supported by for example Nuke)
-            - ``node`` - For applications that have a specific node menu (like Nuke),
-              place the command there.
+            - ``context_menu`` - Supported on all engines. Places an item on
+              the context menu (first item on the shotgun menu). The context menu is a
+              suitable location for utility items, helpers and tools.
+
+            - ``panel`` - Some DCCs have a special menu which is accessible only when
+              right clicking on a panel. Passing ``panel`` as the command type hints
+              to the system that the command should be added to this menu. If no panel
+              menu is available, it will be added to the main menu. Nuke is an example
+              of a DCC which supports this behavior.
+
+            - ``node`` - Node based applications such as Nuke typically have a separate
+              menu system for accessing nodes. If you want your registered command to appear
+              on this menu, use this type.
+
 
         **Grouping commands into collections**
 
@@ -929,7 +944,8 @@ class Engine(TankBundle):
         - ``group_default`` - Boolean value indicating whether this command should represent the
           group as a whole.
 
-        .. note:: It is up to each engine to implement grouping and group defaults in an appropriate way. Some engines may not support grouping.
+        .. note:: It is up to each engine to implement grouping and group defaults in an
+                  appropriate way. Some engines may not support grouping.
 
 
         The following properties are supported for the Shotgun engine specifically:

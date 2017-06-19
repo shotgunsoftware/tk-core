@@ -641,34 +641,6 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         )
         self.assertEqual(len(pcs), 0)
 
-    def test_descriptor_without_plugin(self):
-        """
-        Ensures only plugin based pipeline configurations are reported as valid when the descriptor
-        field is set.
-        """
-
-        # First make sure we've created a valid pipeline configuration.
-        pc_id = self._create_pc(
-            "Primary",
-            project=self._project,
-            descriptor="sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test",
-            plugin_ids="foo.*"
-        )["id"]
-        pcs = self.resolver.find_matching_pipeline_configurations(None, "john.smith", self.mockgun)
-        self.assertEqual(len(pcs), 1)
-        self.assertEqual(pcs[0]["id"], pc_id)
-
-        # Not clear the plugin fields and the pipeline should not be reported by
-        # find_matching_pipeline_configurations.
-        self.mockgun.update(
-            "PipelineConfiguration",
-            pc_id,
-            {
-                "sg_plugin_ids": None
-            }
-        )
-        self.assertEqual(len(pcs), 0)
-
     def test_pipeline_without_current_os_path(self):
         """
         Ensures that we get back a configuration that's missing a current_os path
@@ -752,9 +724,6 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
                 "sg_plugin_ids": None
             }
         )
-
-        pcs = self.resolver.find_matching_pipeline_configurations(None, "john.smith", self.mockgun)
-        self.assertListEqual(pcs, [])
 
         pcs = self.resolver.find_matching_pipeline_configurations(None, "john.smith", self.mockgun)
         self.assertListEqual(pcs, [])

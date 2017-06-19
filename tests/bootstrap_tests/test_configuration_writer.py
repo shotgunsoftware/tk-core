@@ -130,10 +130,21 @@ class TestInterpreterFilesWriter(TankTestBase):
             self.mockgun
         )
 
+    def _get_default_intepreters(self):
+        """
+        Gets the default interpreter values for the Shotgun Desktop.
+        """
+        return ShotgunPath(
+            r"C:\Program Files\Shotgun\Python\python.exe",
+            "/opt/Shotgun/Python/bin/python",
+            "/Applications/Shotgun.app/Contents/Resources/Python/bin/python"
+        )
+
     def test_desktop_interpreter(self):
         """
         Checks that if we're running in the Shotgun Desktop we're writing the correct interpreter.
         """
+        expected_interpreters = self._get_default_intepreters()
         if sys.platform == "win32":
             sys_prefix = r"C:\Program Files\Shotgun.v1.4.3\Python"
             sys_executable = r"C:\Program Files\Shotgun_v1.4.3\Shotgun.exe"
@@ -147,47 +158,46 @@ class TestInterpreterFilesWriter(TankTestBase):
             sys_executable = "/opt/Shotgun.v.1.4.3/Shotgun"
             python_exe = os.path.join(sys_prefix, "bin", "python")
 
-        interpreter = self._writer_interpreter_file(sys_executable, sys_prefix)
+        expected_interpreters.current_os = python_exe
 
-        self.assertEqual(interpreter, python_exe)
+        interpreters = self._writer_interpreter_file(sys_executable, sys_prefix)
+
+        self.assertEqual(interpreters, expected_interpreters)
 
     def test_python_interpreter(self):
         """
         Checks that if we're running inside a real interpreter we reuse it.
         """
-        interpreter = self._writer_interpreter_file(sys.executable, sys.prefix)
-        self.assertEqual(interpreter, sys.executable)
+        expected_interpreters = self._get_default_intepreters()
+        expected_interpreters.current_os = sys.executable
+
+        interpreters = self._writer_interpreter_file(sys.executable, sys.prefix)
+        self.assertEqual(interpreters, expected_interpreters)
 
     def test_unknown_interpreter(self):
         """
         Checks that we default to the default desktop locations when we can't guess the interpreter location.
         """
-        interpreter = self._writer_interpreter_file(r"C:\Program Files\Autodesk\Maya2017\bin\maya.exe", r"C:\whatever")
-
-        if sys.platform == "win32":
-            self.assertEqual(interpreter, r"C:\Program Files\Shotgun\Python\python.exe")
-        elif sys.platform == "darwin":
-            self.assertEqual(interpreter, r"/Applications/Shotgun.app/Contents/Resources/Python/bin/python")
-        else:
-            self.assertEqual(interpreter, r"/opt/Shotgun/Python/bin/python")
+        interpreters = self._writer_interpreter_file(r"C:\Program Files\Autodesk\Maya2017\bin\maya.exe", r"C:\whatever")
+        self.assertEqual(interpreters, self._get_default_intepreters())
 
     def _writer_interpreter_file(self, executable, prefix):
         """
         Writes the interpreter file to disk based on an executable and prefix.
 
-        :returns: Path to the interpreter that was written to disk.
+        :returns: Path that was written in each interpreter file.
+        :rtype: sgtk.util.ShotgunPath
         """
         os.makedirs(os.path.join(self._root, "config", "core"))
         os.makedirs(os.path.join(self._root, "install", "core", "setup", "root_binaries"))
 
         self._cw.create_tank_command(executable, prefix)
 
-        if sys.platform == "win32":
-            file_name = os.path.join(self._root, "config", "core", "interpreter_Windows.cfg")
-        elif sys.platform == "darwin":
-            file_name = os.path.join(self._root, "config", "core", "interpreter_Darwin.cfg")
-        else:
-            file_name = os.path.join(self._root, "config", "core", "interpreter_Linux.cfg")
+        interpreters = []
+        for platform in ["Windows", "Linux", "Darwin"]:
+            file_name = os.path.join(self._root, "config", "core", "interpreter_%s.cfg" % platform)
 
-        with open(file_name, "r") as w:
-            return w.read()
+            with open(file_name, "r") as w:
+                interpreters.append(w.read())
+
+        return ShotgunPath(*interpreters)
