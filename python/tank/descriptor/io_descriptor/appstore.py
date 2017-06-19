@@ -44,7 +44,7 @@ log = LogManager.get_logger(__name__)
 
 
 # file where we cache the app store metadata for an item
-METADATA_FILE = "details.cache"
+METADATA_FILE = ".cached_metadata.pickle"
 
 
 class IODescriptorAppStore(IODescriptorBase):
@@ -170,8 +170,7 @@ class IODescriptorAppStore(IODescriptorBase):
         :param path: path to bundle location on disk
         :return: metadata dictionary or None if not found
         """
-        metadata_folder = self._get_metadata_folder(path)
-        cache_file = os.path.join(metadata_folder, METADATA_FILE)
+        cache_file = os.path.join(path, METADATA_FILE)
         if os.path.exists(cache_file):
             fp = open(cache_file, "rt")
             try:
@@ -207,8 +206,7 @@ class IODescriptorAppStore(IODescriptorBase):
         """
         log.debug("Attempting to refresh app store metadata for %r" % self)
 
-        metadata_folder = self._get_metadata_folder(path)
-        cache_file = os.path.join(metadata_folder, METADATA_FILE)
+        cache_file = os.path.join(path, METADATA_FILE)
         log.debug("Will attempt to refresh cache in %s" % cache_file)
 
         if sg_version_data:  # no none-check for sg_bundle_data param since this is none for tk-core
