@@ -22,6 +22,7 @@ from tank_test.tank_test_base import TankTestBase
 
 
 class TestResolverBase(TankTestBase):
+
     def setUp(self):
         super(TestResolverBase, self).setUp()
 
@@ -839,6 +840,78 @@ class TestResolvedConfiguration(TankTestBase):
             sgtk.bootstrap.resolver.CachedConfiguration
         )
         self.assertEqual(config.has_local_bundle_cache, False)
+
+
+
+class TestResolvedLatestConfiguration(TankTestBase):
+    """
+    Ensures that resolving a descriptor with no version specified returns the right Configuration object.
+    """
+
+    def setUp(self):
+        super(TestResolvedLatestConfiguration, self).setUp()
+
+        self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
+        self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
+            plugin_id="tk-maya",
+            bundle_cache_fallback_paths=[self._tmp_bundle_cache]
+        )
+
+    def test_resolve_latest_cached_configuration(self):
+        """
+        Makes sure a cached configuration is resolved.
+        """
+
+        os.makedirs(
+            os.path.join(self._tmp_bundle_cache, "app_store", "latest_test", "v0.1.0")
+        )
+
+        config = self._resolver.resolve_configuration(
+            {"type": "app_store", "name": "latest_test"},
+            self.tk.shotgun
+        )
+
+        self.assertEquals(
+            config.descriptor.get_uri(),
+            "sgtk:descriptor:app_store?version=v0.1.0&name=latest_test"
+        )
+
+        os.makedirs(
+            os.path.join(self._tmp_bundle_cache, "app_store", "latest_test", "v0.1.1")
+        )
+
+        config = self._resolver.resolve_configuration(
+            {"type": "app_store", "name": "latest_test"},
+            self.tk.shotgun
+        )
+
+        self.assertEquals(
+            config.descriptor.get_uri(),
+            "sgtk:descriptor:app_store?version=v0.1.1&name=latest_test"
+        )
+
+        # make sure direct lookup also works
+        config = self._resolver.resolve_configuration(
+            {"type": "app_store", "name": "latest_test", "version": "v0.1.0"},
+            self.tk.shotgun
+        )
+
+        self.assertEquals(
+            config.descriptor.get_uri(),
+            "sgtk:descriptor:app_store?version=v0.1.0&name=latest_test"
+        )
+
+        config = self._resolver.resolve_configuration(
+            {"type": "app_store", "name": "latest_test", "version": "v0.1.1"},
+            self.tk.shotgun
+        )
+
+        self.assertEquals(
+            config.descriptor.get_uri(),
+            "sgtk:descriptor:app_store?version=v0.1.1&name=latest_test"
+        )
+
+
 
 
 class TestResolveWithFilter(TestResolverBase):

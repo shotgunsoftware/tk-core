@@ -22,4 +22,4 @@ from .errors import (
 )
 
 from .descriptor import create_descriptor
-from .io_descriptor import descriptor_dict_to_uri, descriptor_uri_to_dict
+from .io_descriptor import descriptor_dict_to_uri, descriptor_uri_to_dict, is_descriptor_version_missing

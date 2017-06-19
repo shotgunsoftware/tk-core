@@ -41,8 +41,10 @@ def create_io_descriptor(
                            download new content, it always ends up in the
                            bundle_cache_root.
     :param resolve_latest: If true, the latest version will be determined and returned.
-                           If set to True, no version information need to be supplied with
-                           the descriptor dictionary/uri. Please note that setting this flag
+
+                           If set to True, no version information needs to be supplied with
+                           the descriptor dictionary/uri for descriptor types which support
+                           a version number concept. Please note that setting this flag
                            to true will typically affect performance - an external connection
                            is often required in order to establish what the latest version is.
 
@@ -75,18 +77,10 @@ def create_io_descriptor(
 
     # at this point we didn't have a cache hit,
     # so construct the object manually
-    if resolve_latest:
+    if resolve_latest and is_descriptor_version_missing(descriptor_dict):
         # if someone is requesting a latest descriptor and not providing a version token
         # make sure to add an artificial one so that we can resolve it.
-        #
-        # We only do this for descriptor types that supports a version number concept
-        descriptors_using_version = ["app_store", "shotgun", "manual", "git", "git_branch"]
-
-        if "version" not in descriptor_dict and descriptor_dict.get("type") in descriptors_using_version:
-            # for the case of latest version, make sure we attach a version
-            # key as part of the descriptor dictionary so that the descriptor
-            # is valid
-            descriptor_dict["version"] = "latest"
+        descriptor_dict["version"] = "latest"
 
     # factory logic
     if descriptor_dict.get("type") == "app_store":
@@ -136,6 +130,59 @@ def create_io_descriptor(
         log.debug("Resolved latest to be %r" % descriptor)
 
     return descriptor
+
+
+def is_descriptor_version_missing(dict_or_uri):
+    """
+    Helper method which checks if a descriptor needs a version.
+
+    If the given descriptor dictionary or uri is one of the
+    types which requires a version token, and this token is not
+    defined, ``True`` will be returned, otherwise ``False``.
+
+    This is useful for a standard pattern which can be used used
+    where you want to allow users to configure toolkit
+    descriptors which track either the latest version or a specific one.
+    In this pattern, the user hints that they want to track latest
+    version by omitting the version token altogether.
+
+    The following standard pattern can then be implemented::
+
+        # determine if we should request the latest version
+        # of the given descriptor
+        if is_descriptor_version_missing(descriptor_uri):
+            # require the descriptor system to return
+            # the latest descriptor it can detect
+            resolve_latest = True
+        else:
+            # normal direct lookup of a particular
+            # descriptor version
+            resolve_latest = False
+
+        descriptor_obj = create_descriptor(
+            sg_connection,
+            Descriptor.CONFIG,
+            descriptor_uri,
+            resolve_latest=resolve_latest
+        )
+
+    :param dict_or_uri: A std descriptor dictionary dictionary or string
+    :return: Boolean to indicate if a required version token is missing
+    """
+    # resolve into both dict and uri form
+    if isinstance(dict_or_uri, basestring):
+        descriptor_dict = descriptor_uri_to_dict(dict_or_uri)
+    else:
+        # make a copy to make sure the original object is never altered
+        descriptor_dict = dict_or_uri
+
+    # We only do this for descriptor types that supports a version number concept
+    descriptors_using_version = ["app_store", "shotgun", "manual", "git", "git_branch"]
+
+    if "version" not in descriptor_dict and descriptor_dict.get("type") in descriptors_using_version:
+        return True
+    else:
+        return False
 
 
 def descriptor_uri_to_dict(uri):

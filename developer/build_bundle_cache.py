@@ -30,7 +30,7 @@ sys.path.append(python_folder)
 # sgtk imports
 from sgtk import LogManager
 from sgtk.util import filesystem
-from sgtk.descriptor import Descriptor, create_descriptor
+from sgtk.descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
 
 from utils import (
     cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache,
@@ -73,7 +73,7 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
         Descriptor.CONFIG,
         config_descriptor_uri,
         # If the user hasn't specified the version to retrieve, resolve the latest from Shotgun.
-        resolve_latest="version" not in config_descriptor_uri
+        resolve_latest=is_descriptor_version_missing(config_descriptor_uri)
     )
 
     logger.info("Resolved config %r" % cfg_descriptor)

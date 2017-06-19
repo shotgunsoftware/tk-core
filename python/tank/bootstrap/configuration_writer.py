@@ -17,7 +17,7 @@ import datetime
 from . import constants
 
 from .errors import TankBootstrapError
-from ..descriptor import Descriptor, create_descriptor
+from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
 
 from ..util import filesystem
 from ..util import ShotgunPath
@@ -98,8 +98,8 @@ class ConfigurationWriter(object):
         else:
             # we have an exact core descriptor. Get a descriptor for it
             log.debug("Config has a specific core defined in core/core_api.yml: %s" % core_uri_or_dict)
-            # when core is specified, it is always a specific version
-            use_latest = False
+            # when core is specified, check if it defines a specific version or not
+            use_latest = is_descriptor_version_missing(core_uri_or_dict)
 
         core_descriptor = create_descriptor(
             self._sg_connection,

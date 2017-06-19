@@ -18,7 +18,7 @@ import os
 import fnmatch
 import pprint
 
-from ..descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
+from ..descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict, is_descriptor_version_missing
 from .errors import TankBootstrapError
 from .baked_configuration import BakedConfiguration
 from .cached_configuration import CachedConfiguration
@@ -180,16 +180,15 @@ class ConfigurationResolver(object):
             #
             # if a version token is omitted, we request that the latest version
             # should be resolved.
-            if "version" in config_descriptor:
-                log.debug("Base configuration has a version token defined. "
-                          "Will use this fixed version for the bootstrap.")
-                resolve_latest = False
-
-            else:
+            if is_descriptor_version_missing(config_descriptor):
                 log.debug("Base configuration descriptor does not have a "
                           "version token defined. Will attempt to determine "
                           "the latest version available.")
                 resolve_latest = True
+            else:
+                log.debug("Base configuration has a version token defined. "
+                          "Will use this fixed version for the bootstrap.")
+                resolve_latest = False
 
             cfg_descriptor = create_descriptor(
                 sg_connection,
@@ -341,6 +340,7 @@ class ConfigurationResolver(object):
                     sg_connection,
                     Descriptor.CONFIG,
                     uri,
+                    resolve_latest=is_descriptor_version_missing(uri)
                 )
             else:
                 # If we have neither a uri, nor a path, then we can't get
