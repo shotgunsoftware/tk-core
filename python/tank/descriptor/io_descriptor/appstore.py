@@ -544,8 +544,10 @@ class IODescriptorAppStore(IODescriptorBase):
                     tags = [x["name"] for x in metadata["sg_version_data"]["tags"]]
                     if self.__match_label(tags):
                         version_numbers.append(version_str)
-                except Exception:
-                    log.debug("Could not determine label metadata for %s. Ignoring." % path)
+                except Exception, e:
+                    log.debug(
+                        "Could not determine label metadata for %s. Ignoring. Details: %s" % (path, e)
+                    )
 
         else:
             # no label based filtering. all versions are valid.
