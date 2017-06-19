@@ -42,7 +42,7 @@ class TestBackups(TankTestBase):
         """
         pathHead, pathTail = os.path.split(__file__)
         core_path=os.path.join(pathHead,"..", "..")
-        temp_test_path=os.path.join(pathHead, "..", "fixtures", "bootstrap_tests", "test_update")
+        temp_test_path=os.path.join(pathHead, "..", "fixtures", "bootstrap_tests", "test_backups")
         core_copy_path=os.path.join(self.tank_temp, "tk-core-copy")
         copytree(core_path, core_copy_path, ignore=ignore_patterns('tests', 'docs'))
         with temp_env_var(SGTK_REPO_ROOT=temp_test_path, SGTK_CORE_REPO=core_copy_path):

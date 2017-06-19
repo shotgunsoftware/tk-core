@@ -367,25 +367,26 @@ def delete_folder(path):
               skipped; meaning the function will continue deleting as much
               as it can.
     """
-    deleted = True
+    deleted = []
     def _on_rm_error(func, path, exc_info):
         # On Windows, Python's shutil can't delete read-only files, so if we were trying to delete one,
         # remove the flag.
         # Inspired by http://stackoverflow.com/a/4829285/1074536
-        if func == os.unlink:
-            os.chmod(path, stat.S_IWRITE)
+        if func == os.unlink or func == os.remove:
             try:
+                os.chmod(path, stat.S_IWRITE)
                 func(path)
             except Exception, e:
                 log.error("Could not delete %s: %s. Skipping" % (path, e))
-                deleted = False
+                _on_rm_error.deleted[0] = False
         else:
             log.error("Could not delete %s. Skipping." % path)
-            deleted = False
+            _on_rm_error.deleted[0] = False
 
     try:
+        _on_rm_error.deleted = deleted
         shutil.rmtree(path, onerror=_on_rm_error)
     except Exception, e:
         log.error("Could not delete %s: %s" % (path, e))
         deleted = False
-    return deleted
+    return deleted == []
