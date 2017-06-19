@@ -72,6 +72,9 @@ class CachedConfiguration(Configuration):
 
         self._config_writer = ConfigurationWriter(self._path, self._sg_connection)
 
+        self.config_backup_folder_path = None
+        self.core_backup_folder_path = None
+
     def __str__(self):
         """
         User friendly representation of the config
@@ -161,7 +164,7 @@ class CachedConfiguration(Configuration):
             log.debug("Local config is up to date")
             return self.LOCAL_CFG_UP_TO_DATE
 
-    def update_configuration(self):
+    def update_configuration(self, cleanup_backups=True):
         """
         Ensure that the configuration is up to date with the one
         given by the associated descriptor.
@@ -178,6 +181,10 @@ class CachedConfiguration(Configuration):
             # Move to backup needs to undo changes when failing because we need to put the configuration
             # in a usable state.
             (config_backup_path, core_backup_path) = self._config_writer.move_to_backup(undo_on_error=True)
+            # Need the os.path.dirname call because this path of the backup config
+            # folder actually points to a 'config' subfolder of the backup folder
+            self.config_backup_folder_path = os.path.dirname(config_backup_path)
+            self.core_backup_folder_path = core_backup_path
         except Exception, e:
             log.exception(
                 "Unexpected error while making a backup of the configuration. Toolkit will use the "
@@ -242,14 +249,9 @@ class CachedConfiguration(Configuration):
                 )
                 log.debug("Previous core restore complete...")
         else:
-            # remove backup folders now that the update has completed successfully
-            try:
-                # Need the os.path.dirname call because this path of the backup config
-                # folder actually points to a 'config' subfolder of the backup folder
-                filesystem.delete_folder(os.path.dirname(config_backup_path))
-                filesystem.delete_folder(core_backup_path)
-            except Exception, e:
-                log.error("Failed to clean up the previous installation")
+            if cleanup_backups:
+                # remove backup folders now that the update has completed successfully
+                self.cleanup_backup_folders()
 
         # @todo - prime caches (yaml, path cache)
 
@@ -286,6 +288,17 @@ class CachedConfiguration(Configuration):
                     self._pipeline_config_id,
                     self.path.as_shotgun_dict()
                 )
+
+    def cleanup_backup_folders(self):
+        try:
+            if self.config_backup_folder_path is not None:
+                filesystem.delete_folder(self.config_backup_folder_path)
+                self.config_backup_folder_path = None
+            if self.core_backup_folder_path is not None:
+                filesystem.delete_folder(self.core_backup_folder_path)
+                self.core_backup_folder_path = None
+        except Exception, e:
+            log.error("Failed to clean up the previous installation")
 
     @property
     def has_local_bundle_cache(self):
