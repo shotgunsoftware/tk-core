@@ -104,7 +104,11 @@ class IODescriptorAppStore(IODescriptorBase):
         "tag_list",
         "sg_detailed_release_notes",
         "sg_documentation",
-        "sg_branch",
+        # Branches are cached but not used yet. Later we might want to have
+        # dedicated workflows for branch releases, or even simply display them
+        # to the user. So we start retrieving and storing this information in
+        # case it will be needed.
+         "sg_branch",
         constants.TANK_CODE_PAYLOAD_FIELD
     ]
 

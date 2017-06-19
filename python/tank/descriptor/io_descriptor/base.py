@@ -222,7 +222,11 @@ class IODescriptorBase(object):
         # - we can then have more .<digit or x>
         # - we can then have a -<topic name>, optionally followed by multiple .<alphanumeric or _>
         if not re.match("^v(\d+|x)(\.(\d+|x)){2,}(-\w+(\.\w+)*)?$", pattern):
-            raise TankDescriptorError("Cannot parse version expression '%s'!" % pattern)
+            raise TankDescriptorError(
+                "Cannot parse version expression '%s', it must follow a vx.x.x[-topic] pattern "
+                "where 'x' can either be a digit or the letter 'x', and 'topic' is an "
+                "optional arbitrary string." % pattern
+            )
         # Split the pattern either with "." or "-", keep the separator in the result
         # with the grouping in the regexp
         version_split = re.split("(\.|-)", pattern)
@@ -236,12 +240,16 @@ class IODescriptorBase(object):
             version_split[0] = "x"
         # Build a base version string that versions will have to match. The base
         # version contains all tokens until we find a "x".
+        # Separators are kept by the split being done above, so actual tokens are
+        # every other entry and we need to only consider even entries, hence the '2'
+        # step
         for i in range(0, num_tokens, 2):
             token = version_split[i]
             if token == "x":
-                # if we found a "x", check that all following tokens are "x" as
+                # If we found a "x", check that all following tokens are "x" as
                 # well, having something like v4.x.2 is illegal
-                # we can't use 'any' here until supporting Python 2.4 is deprecated
+                # Tokens are every other entry, so next token is at current index+2
+                # and we only consider even entries from it, hence the '2' step.
                 for token2 in version_split[i+2:num_tokens:2]:
                     if token2 != "x":
                         raise TankDescriptorError(
@@ -261,7 +269,8 @@ class IODescriptorBase(object):
             # No "x" in our pattern
             base_version = "".join(version_split)
 
-        if not base_version: # Match anything
+        if not base_version:
+            # Match anything, this happens if the pattern was vx.x.x
             # Sort in reverse order, for the "v" case, hoping a valid "v" version
             # will be in the latest ones
             version_numbers.sort(key=LooseVersion, reverse=True)
