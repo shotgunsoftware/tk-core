@@ -12,6 +12,8 @@ import os
 from tank_test.tank_test_base import *
 import tank.util.filesystem as fs
 import shutil
+import sys
+
 
 class TestFileSystem(TankTestBase):
     
@@ -43,6 +45,10 @@ class TestFileSystem(TankTestBase):
         # open a file in the directory to remove ...
         with open(os.path.join(dst_folder, "ReadWrite.txt")) as f:
             # ... and check that a failure occurs
-            self.assertFalse(fs.delete_folder(dst_folder))
+            noErrors = fs.delete_folder(dst_folder)
+            if sys.platform == "win32":
+                self.assertFalse(noErrors) # on Windows removal of in-use files behaves differently than...
+            else:
+                self.assertTrue(noErrors)  # ... on Unix, see comments for https://docs.python.org/2/library/os.html#os.remove
         # A failure occurred, folder should still be there
         self.assertTrue(os.path.exists(dst_folder))
