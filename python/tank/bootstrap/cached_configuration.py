@@ -178,8 +178,6 @@ class CachedConfiguration(Configuration):
             # Move to backup needs to undo changes when failing because we need to put the configuration
             # in a usable state.
             (config_backup_path, core_backup_path) = self._config_writer.move_to_backup(undo_on_error=True)
-            print(config_backup_path)
-            print(core_backup_path)
         except Exception, e:
             log.exception(
                 "Unexpected error while making a backup of the configuration. Toolkit will use the "
