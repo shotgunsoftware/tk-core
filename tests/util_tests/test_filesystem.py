@@ -22,13 +22,17 @@ class TestFileSystem(TankTestBase):
         self.util_filesystem_test_folder_location = os.path.join(self.fixtures_root, "util", "filesystem")
 
     def test_delete_non_existing_folder(self):
-        # Check that a non-existing folder deletion fails
+        """
+        Check that a non-existing folder deletion fails
+        """
         dst_folder = os.path.join(self.tank_temp, "non_existing_folder")
         self.assertFalse(os.path.exists(dst_folder))
         self.assertFalse(fs.delete_folder(dst_folder))
 
     def test_delete_folder(self):
-        # Check that the test folder and all its contents are deleted recursively
+        """
+        Check that the test folder and all its contents are deleted recursively
+        """
         src_folder = os.path.join(self.util_filesystem_test_folder_location, "delete_folder")
         dst_folder = os.path.join(self.tank_temp, "folder")
         shutil.copytree(src_folder, dst_folder)
@@ -37,7 +41,9 @@ class TestFileSystem(TankTestBase):
         self.assertFalse(os.path.exists(dst_folder))
 
     def test_delete_folder_with_file_in_use(self):
-        # Check that delete folder will delete as much as it can
+        """
+        Check that delete folder will delete as much as it can
+        """
         src_folder = os.path.join(self.util_filesystem_test_folder_location, "delete_folder")
         dst_folder = os.path.join(self.tank_temp, "folder_in_use")
         shutil.copytree(src_folder, dst_folder)
@@ -48,7 +54,8 @@ class TestFileSystem(TankTestBase):
             noErrors = fs.delete_folder(dst_folder)
             if sys.platform == "win32":
                 self.assertFalse(noErrors) # on Windows removal of in-use files behaves differently than...
+                # A failure occurred, folder should still be there
+                self.assertTrue(os.path.exists(dst_folder))
             else:
                 self.assertTrue(noErrors)  # ... on Unix, see comments for https://docs.python.org/2/library/os.html#os.remove
-        # A failure occurred, folder should still be there
-        self.assertTrue(os.path.exists(dst_folder))
+                self.assertFalse(os.path.exists(dst_folder))
