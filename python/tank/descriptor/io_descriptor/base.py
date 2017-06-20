@@ -480,6 +480,9 @@ class IODescriptorBase(object):
         return self._descriptor_dict
 
     def get_type(self):
+        """
+        Returns the type of the descriptor.
+        """
         return self._descriptor_dict["type"]
 
     @classmethod

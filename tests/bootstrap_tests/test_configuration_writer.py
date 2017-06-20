@@ -20,14 +20,12 @@ import sgtk
 from sgtk.bootstrap.configuration_writer import ConfigurationWriter
 from sgtk.util import ShotgunPath
 from tank_vendor import yaml
+from mock import patch
 
 
-class TestShotgunYmlWriting(TankTestBase):
-    """
-    Makes sure zero-config based pipelines end up with a valid shotgun.yml file.
-    """
+class TestConfigurationWriterBase(TankTestBase):
 
-    def _write_mock_config(self, shotgun_yml_data):
+    def _write_mock_config(self, shotgun_yml_data=None):
         """
         Creates a fake config with the provided shotgun.yml data.
         """
@@ -56,10 +54,18 @@ class TestShotgunYmlWriting(TankTestBase):
         # Ensures the location for the shotgun.yml exists.
         os.makedirs(shotgun_yml_root)
 
-        return ConfigurationWriter(
+        writer = ConfigurationWriter(
             ShotgunPath.from_current_os_path(new_config_root),
             self.mockgun
         )
+        writer.ensure_project_scaffold()
+        return writer
+
+
+class TestShotgunYmlWriting(TestConfigurationWriterBase):
+    """
+    Makes sure zero-config based pipelines end up with a valid shotgun.yml file.
+    """
 
     def _get_shotgun_yml_content(self, cw):
         """
@@ -115,7 +121,7 @@ class TestShotgunYmlWriting(TankTestBase):
         self.assertDictEqual(shotgun_yml_template, shotgun_yml_actual)
 
 
-class TestInterpreterFilesWriter(TankTestBase):
+class TestInterpreterFilesWriter(TestConfigurationWriterBase):
     """
     Ensures interpreter files are written out correctly.
     """
@@ -140,6 +146,36 @@ class TestInterpreterFilesWriter(TankTestBase):
             "/Applications/Shotgun.app/Contents/Resources/Python/bin/python"
         )
 
+    def test_existing_files_not_overwritten(self):
+        """
+        Ensures that if there were already interpreter files present in the config that they won't be overwritten.
+        """
+        descriptor = self._write_mock_config()
+
+        interpreter_yml_path = ShotgunPath.get_current_platform_file(
+            os.path.join(descriptor.get_path(), "core", "interpreter_%s.cfg")
+        )
+        # Do not write sys.executable in this file, otherwise we won't know if we're reading our value
+        # or the default value. This means however that we'll have to present the file exists when
+        # os.path.exists is called.
+        os.makedirs(os.path.dirname(interpreter_yml_path))
+        with open(interpreter_yml_path, "w") as fh:
+            fh.write("/a/b/c")
+
+        # We're going to pretend the interpreter location exists
+        with patch("os.path.exists", return_value=True):
+            # Check that our descriptors sees the value we just wrote to disk
+            self.assertEqual(descriptor.python_interpreter, "/a/b/c")
+
+        # Copy the descriptor to its location.
+        descriptor.copy(os.path.join(self._cw.path.current_os, "config"))
+
+        # have the interpreter files be written out by the writer. The interpreter file we just
+        # wrote should have been left alone.
+        self.assertEqual(
+            self._write_interpreter_file().current_os, "/a/b/c"
+        )
+
     def test_desktop_interpreter(self):
         """
         Checks that if we're running in the Shotgun Desktop we're writing the correct interpreter.
@@ -160,7 +196,7 @@ class TestInterpreterFilesWriter(TankTestBase):
 
         expected_interpreters.current_os = python_exe
 
-        interpreters = self._writer_interpreter_file(sys_executable, sys_prefix)
+        interpreters = self._write_interpreter_file(sys_executable, sys_prefix)
 
         self.assertEqual(interpreters, expected_interpreters)
 
@@ -171,24 +207,26 @@ class TestInterpreterFilesWriter(TankTestBase):
         expected_interpreters = self._get_default_intepreters()
         expected_interpreters.current_os = sys.executable
 
-        interpreters = self._writer_interpreter_file(sys.executable, sys.prefix)
+        interpreters = self._write_interpreter_file(sys.executable, sys.prefix)
         self.assertEqual(interpreters, expected_interpreters)
 
     def test_unknown_interpreter(self):
         """
         Checks that we default to the default desktop locations when we can't guess the interpreter location.
         """
-        interpreters = self._writer_interpreter_file(r"C:\Program Files\Autodesk\Maya2017\bin\maya.exe", r"C:\whatever")
+        interpreters = self._write_interpreter_file(r"C:\Program Files\Autodesk\Maya2017\bin\maya.exe", r"C:\whatever")
         self.assertEqual(interpreters, self._get_default_intepreters())
 
-    def _writer_interpreter_file(self, executable, prefix):
+    def _write_interpreter_file(self, executable=sys.executable, prefix=sys.prefix):
         """
         Writes the interpreter file to disk based on an executable and prefix.
 
         :returns: Path that was written in each interpreter file.
         :rtype: sgtk.util.ShotgunPath
         """
-        os.makedirs(os.path.join(self._root, "config", "core"))
+        core_folder = os.path.join(self._root, "config", "core")
+        if not os.path.exists(core_folder):
+            os.makedirs(core_folder)
         os.makedirs(os.path.join(self._root, "install", "core", "setup", "root_binaries"))
 
         self._cw.create_tank_command(executable, prefix)

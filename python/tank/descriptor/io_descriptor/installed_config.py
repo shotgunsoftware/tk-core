@@ -33,7 +33,9 @@ class IODescriptorInstalledConfig(IODescriptorPath):
     """
 
     def __init__(self, descriptor_dict):
-
+        """
+        :param dict descriptor_dict: Dictionary form of the descriptor.
+        """
         super(IODescriptorInstalledConfig, self).__init__(descriptor_dict)
         self.__manifest_data = None
 
@@ -46,6 +48,13 @@ class IODescriptorInstalledConfig(IODescriptorPath):
         raise TankDescriptorError("Installed descriptor is not copiable.")
 
     def is_immutable(self):
+        """
+        Returns true if this descriptor never changes its content.
+
+        For installed configurations this is always ``False``.
+
+        :returns: ``False``
+        """
         return False
 
     def get_manifest(self):

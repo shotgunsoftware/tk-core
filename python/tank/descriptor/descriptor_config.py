@@ -17,13 +17,13 @@ from tank_vendor import yaml
 
 from . import constants
 from .errors import TankDescriptorError
-from .descriptor import Descriptor
+from .descriptor_config_base import ConfigDescriptorBase
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
 
-class ConfigDescriptor(Descriptor):
+class ConfigDescriptor(ConfigDescriptorBase):
     """
     Descriptor that describes a Toolkit Configuration
     """
