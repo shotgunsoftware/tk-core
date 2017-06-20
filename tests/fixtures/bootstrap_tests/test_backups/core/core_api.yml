@@ -14,4 +14,4 @@
 location:
   type: dev
   name: core
-  path: $SGTK_CORE_REPO
+  path: $SGTK_REPO_ROOT

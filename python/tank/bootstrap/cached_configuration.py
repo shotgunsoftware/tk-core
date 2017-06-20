@@ -183,7 +183,7 @@ class CachedConfiguration(Configuration):
             (config_backup_path, core_backup_path) = self._config_writer.move_to_backup(undo_on_error=True)
             # Need the os.path.dirname call because this path of the backup config
             # folder actually points to a 'config' subfolder of the backup folder
-            self.config_backup_folder_path = os.path.dirname(config_backup_path)
+            self.config_backup_folder_path = os.path.dirname(config_backup_path) if config_backup_path else config_backup_path
             self.core_backup_folder_path = core_backup_path
         except Exception, e:
             log.exception(

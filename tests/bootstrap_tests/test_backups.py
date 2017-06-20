@@ -29,7 +29,12 @@ class TestBackups(TankTestBase):
     def setUp(self):
         super(TestBackups, self).setUp()
 
-        self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
+        pathHead, pathTail = os.path.split(__file__)
+        core_path=os.path.join(pathHead,"..", "..")
+        self._temp_test_path=os.path.join(pathHead, "..", "fixtures", "bootstrap_tests", "test_backups")
+        self._core_copy_path=os.path.join(self.tank_temp, "tk-core-copy")
+        if not os.path.exists(self._core_copy_path):
+            copytree(core_path, self._core_copy_path, ignore=ignore_patterns('tests', 'docs'))
 
     def test_cleanup(self):
         """
@@ -37,27 +42,14 @@ class TestBackups(TankTestBase):
         update process is properly deleted 
         """
         resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
-            plugin_id="backup_tests",
-            bundle_cache_fallback_paths=[self._tmp_bundle_cache]
+            plugin_id="backup_tests"
         )
-        pathHead, pathTail = os.path.split(__file__)
-        core_path=os.path.join(pathHead,"..", "..")
-        temp_test_path=os.path.join(pathHead, "..", "fixtures", "bootstrap_tests", "test_backups")
-        core_copy_path=os.path.join(self.tank_temp, "tk-core-copy")
-        copytree(core_path, core_copy_path, ignore=ignore_patterns('tests', 'docs'))
-        with temp_env_var(SGTK_REPO_ROOT=temp_test_path, SGTK_CORE_REPO=core_copy_path):
+        with temp_env_var(SGTK_REPO_ROOT=self._core_copy_path):
             config = resolver.resolve_configuration(
-                {"type": "dev", "name": "backup_tests", "path": "$SGTK_REPO_ROOT"}, self.tk.shotgun
+                {"type": "dev", "name": "backup_tests", "path": self._temp_test_path}, self.tk.shotgun
             )
             self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
             config_root_path = config.path.current_os
-            sg_config_dir = os.path.join(config_root_path, "config", "core")
-            os.makedirs(sg_config_dir)
-            sg_install_dir = os.path.join(config_root_path, "install", "core")
-            os.makedirs(sg_install_dir)
-            sg_config_location = os.path.join(sg_config_dir, "core_api.yml")
-            with open(sg_config_location, "w") as f:
-                f.write("location:\n  type: dev\n  path: $SGTK_CORE_REPO\n")
 
             # Update the configuration
             config.update_configuration()
@@ -80,27 +72,17 @@ class TestBackups(TankTestBase):
         process still succeeds
         """
         resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
-            plugin_id="backup_tests_with_fail",
-            bundle_cache_fallback_paths=[self._tmp_bundle_cache]
+            plugin_id="backup_tests_with_fail"
         )
-        pathHead, pathTail = os.path.split(__file__)
-        core_path=os.path.join(pathHead,"..", "..")
-        temp_test_path=os.path.join(pathHead, "..", "fixtures", "bootstrap_tests", "test_backups")
-        core_copy_path=os.path.join(self.tank_temp, "tk-core-copy-with_fail")
-        copytree(core_path, core_copy_path, ignore=ignore_patterns('tests', 'docs'))
-        with temp_env_var(SGTK_REPO_ROOT=temp_test_path, SGTK_CORE_REPO=core_copy_path):
+        with temp_env_var(SGTK_REPO_ROOT=self._core_copy_path):
             config = resolver.resolve_configuration(
-                {"type": "dev", "name": "backup_tests_with_fail", "path": "$SGTK_REPO_ROOT"}, self.tk.shotgun
+                {"type": "dev", "name": "backup_tests_with_fail", "path": self._temp_test_path}, self.tk.shotgun
             )
             self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
             config_root_path = config.path.current_os
-            sg_config_dir = os.path.join(config_root_path, "config", "core")
-            os.makedirs(sg_config_dir)
-            sg_install_dir = os.path.join(config_root_path, "install", "core")
-            os.makedirs(sg_install_dir)
-            sg_config_location = os.path.join(sg_config_dir, "core_api.yml")
-            with open(sg_config_location, "w") as f:
-                f.write("location:\n  type: dev\n  path: $SGTK_CORE_REPO\n")
+
+            # First update, no backup
+            config.update_configuration()
 
             # Update the configuration, but don't clean up backups
             config.update_configuration(False)
@@ -109,9 +91,8 @@ class TestBackups(TankTestBase):
             # Create a file
             with open(in_use_file_name, "w") as f:
                 f.write("Test")
-            # Open the file and make it 'in use'
-            with open(in_use_file_name) as f:
                 config.cleanup_backup_folders()
+
             if sys.platform == "win32":
                 # check that the backup folder was left behind, it is one of the 2 items, the cleanup failed
                 self.assertEqual(2, len(os.listdir(core_install_backup_path)))  # ['placeholder', config.core_backup_folder_path]
