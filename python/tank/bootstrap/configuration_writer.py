@@ -84,7 +84,30 @@ class ConfigurationWriter(object):
         :param config_descriptor: Config descriptor to use to determine core version
         :param bundle_cache_fallback_paths: bundle cache search path
         """
-        core_descriptor = config_descriptor.core_descriptor
+        core_uri_or_dict = config_descriptor.associated_core_descriptor
+
+        if core_uri_or_dict is None:
+            # we don't have a core descriptor specified. Get latest from app store.
+            log.debug(
+                "Config does not have a core/core_api.yml file to define which core to use. "
+                "Will use the latest approved core in the app store."
+            )
+            core_uri_or_dict = constants.LATEST_CORE_DESCRIPTOR
+            # resolve latest core
+            use_latest = True
+        else:
+            # we have an exact core descriptor. Get a descriptor for it
+            log.debug("Config has a specific core defined in core/core_api.yml: %s" % core_uri_or_dict)
+            # when core is specified, it is always a specific version
+            use_latest = False
+
+        core_descriptor = create_descriptor(
+            self._sg_connection,
+            Descriptor.CORE,
+            core_uri_or_dict,
+            fallback_roots=bundle_cache_fallback_paths,
+            resolve_latest=use_latest
+        )
 
         # make sure we have our core on disk
         core_descriptor.ensure_local()
