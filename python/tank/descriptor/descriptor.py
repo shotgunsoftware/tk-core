@@ -15,7 +15,7 @@ from ..util import filesystem
 from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
-from .constants import INSTALLED_CONFIG_DESCRIPTOR, INSTALLED_CORE_DESCRIPTOR
+from .constants import INSTALLED_CONFIG_DESCRIPTOR
 
 
 def create_descriptor(
@@ -101,9 +101,9 @@ def create_descriptor(
 
     elif descriptor_type == Descriptor.CONFIG:
         if io_descriptor.get_type() == INSTALLED_CONFIG_DESCRIPTOR:
-            return InstalledConfigDescriptor(sg_connection, io_descriptor)
+            return InstalledConfigDescriptor(io_descriptor)
         else:
-            return ConfigDescriptor(sg_connection, io_descriptor)
+            return ConfigDescriptor(io_descriptor)
     elif descriptor_type == Descriptor.CORE:
         return CoreDescriptor(io_descriptor)
     else:

@@ -18,7 +18,7 @@ import os
 import fnmatch
 import pprint
 
-from ..descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
+from ..descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri
 from .errors import TankBootstrapError
 from .baked_configuration import BakedConfiguration
 from .cached_configuration import CachedConfiguration
@@ -120,14 +120,13 @@ class ConfigurationResolver(object):
                 resolve_latest=False
             )
 
-            # Convert into a ShotgunPath.
-            config_path = ShotgunPath.from_current_os_path(cfg_descriptor.get_path())
-
             if not cfg_descriptor.exists_local():
                 raise TankBootstrapError(
-                    "Installed pipeline configuration '%s' does not exist on disk!" % (config_path,)
+                    "Installed pipeline configuration '%s' does not exist on disk!" %
+                    descriptor_dict_to_uri(config_descriptor)
                 )
 
+            config_path = ShotgunPath.from_current_os_path(cfg_descriptor.get_path())
             # The configuration path here points to the actual pipeline configuration that contains
             # config, cache and install folders.
             return InstalledConfiguration(config_path, cfg_descriptor)
@@ -341,6 +340,14 @@ class ConfigurationResolver(object):
                     log.debug("Pipeline configuration's 'path' fields are not set: %s" % pc)
 
     def _create_config_descriptor(self, sg_connection, pc):
+        """
+        Creates a configuration descriptor for a given pipeline configuration.
+
+        :param sg_connection: Connection to Shotgun.
+        :param dict pc: Pipeline configuration dictionary with keys ``descriptor`` and ``*_path`.
+
+        :returns: A :class:`sgtk.descriptor.ConfigDescriptorBase` instance.
+        """
         # As in resolve_shotgun_configuration, the order of precedence
         # is as follows:
         #

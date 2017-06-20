@@ -18,13 +18,13 @@ from tank_vendor import yaml
 from ..errors import TankError, TankFileDoesNotExistError
 from . import constants
 from .errors import TankDescriptorError, TankInvalidInterpreterLocationError
-from .descriptor_config_base import ConfigDescriptorBase
+from .descriptor import Descriptor
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
 
-class ConfigDescriptor(ConfigDescriptorBase):
+class ConfigDescriptor(Descriptor):
     """
     Descriptor that describes a Toolkit Configuration
     """

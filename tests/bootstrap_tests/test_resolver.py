@@ -986,3 +986,18 @@ class TestErrorHandling(TestResolverBase):
                 sg_connection=self.tk.shotgun,
                 current_login="john.smith"
             )
+
+    def test_configuration_not_found_on_disk(self):
+        """
+        Ensure that the resolver detects when an installed configuration is not available for the
+        current platform.
+        """
+        with self.assertRaisesRegexp(
+            sgtk.bootstrap.TankBootstrapError,
+            "Installed pipeline configuration 'sgtk:descriptor:installed_config"
+            "\?path=/this/does/not/exists/on/disk' does not exist on disk!"
+        ):
+            self.resolver.resolve_configuration(
+                "sgtk:descriptor:installed_config?path=/this/does/not/exists/on/disk",
+                self.mockgun
+            )

@@ -29,10 +29,6 @@ class ConfigDescriptorBase(Descriptor):
     Descriptor that describes a Toolkit Configuration
     """
 
-    def __init__(self, sg_connection, io_descriptor):
-        super(ConfigDescriptorBase, self).__init__(io_descriptor)
-        self._sg_connection = sg_connection
-
     def _get_config_folder(self):
         """
         Returns the folder in which the configuration files are located.
