@@ -48,6 +48,22 @@ class TestIntalledConfigDescriptor(TankTestBase):
         )
 
 
+# class TestConfigDescriptor(TankTestBase):
+
+#     def test_missing_interpreter_files(self):
+
+#         config_root = os.path.join(
+#             self.tank_temp,
+#             "test_missing_interpreter_files",
+#             "core",
+
+#         )
+
+#         os.makedirs(
+
+#         )
+
+
 class TestDescriptorSupport(TankTestBase):
 
     def setUp(self, parameters=None):

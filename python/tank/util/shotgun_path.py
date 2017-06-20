@@ -62,6 +62,30 @@ class ShotgunPath(object):
     """
 
     @staticmethod
+    def get_current_platform_file(template, platform=sys.platform):
+        """
+        Returns the complete file name for the current platform based on
+        file name template passed in.
+
+        :param str template: Template for a file name with a ``%s`` to indicate
+            where the platform name should be inserted.
+
+        :returns: Path with the OS name substituted in.
+        """
+        if platform == "win32":
+            os_name = "Windows"
+        elif platform == "darwin":
+            os_name = "Darwin"
+        elif platform.startswith("linux"):
+            os_name = "Linux"
+        else:
+            raise ValueError(
+                "Cannot resolve file name - unsupported "
+                "os platform '%s'" % platform
+            )
+        return template % os_name
+
+    @staticmethod
     def get_shotgun_storage_key(platform=sys.platform):
         """
         Given a ``sys.platform`` constant, resolve a Shotgun storage key

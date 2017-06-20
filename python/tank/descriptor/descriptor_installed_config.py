@@ -15,6 +15,7 @@ import os
 from .descriptor_config_base import ConfigDescriptorBase
 from .. import pipelineconfig_utils
 from .. import LogManager
+from ..util import ShotgunPath
 
 from ..errors import TankNotPipelineConfigurationError, TankFileDoesNotExistError, TankInvalidCoreLocationError
 
@@ -130,6 +131,6 @@ class InstalledConfigDescriptor(ConfigDescriptorBase):
         :returns: Path for the current platform's core location file.
         :rtype: str
         """
-        return os.path.join(
-            install_root, "install", "core", "core_%s.cfg" % self._get_current_platform_file_suffix()
+        return ShotgunPath.get_current_platform_file(
+            os.path.join(install_root, "install", "core", "core_%s.cfg")
         )

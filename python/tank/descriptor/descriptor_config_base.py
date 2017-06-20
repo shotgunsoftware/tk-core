@@ -11,15 +11,15 @@
 from __future__ import with_statement
 
 import os
-import sys
 
 from tank_vendor import yaml
 
-from ..errors import TankError, TankFileDoesNotExistError
+from ..errors import TankFileDoesNotExistError
 from . import constants
 from .errors import TankInvalidInterpreterLocationError
 from .descriptor import Descriptor
 from .. import LogManager
+from ..util import ShotgunPath
 
 log = LogManager.get_logger(__name__)
 
@@ -83,23 +83,6 @@ class ConfigDescriptorBase(Descriptor):
 
         return readme_content
 
-    def _get_current_platform_file_suffix(self):
-        """
-        Find the suffix for the current platform's configuration file.
-
-        :returns: Suffix for the current platform's configuration file.
-        :rtype: str
-        """
-        # Now find out the appropriate python interpreter file to search for
-        if sys.platform == "darwin":
-            return "Darwin"
-        elif sys.platform == "win32":
-            return "Windows"
-        elif sys.platform.startswith("linux"):
-            return "Linux"
-        else:
-            raise TankError("Unknown platform: %s." % sys.platform)
-
     def _get_current_platform_interpreter_file_name(self, install_root):
         """
         Retrieves the path to the interpreter file for a given install root.
@@ -110,8 +93,8 @@ class ConfigDescriptorBase(Descriptor):
         :returns: Path for the current platform's interpreter file.
         :rtype: str
         """
-        return os.path.join(
-            install_root, "core", "interpreter_%s.cfg" % self._get_current_platform_file_suffix()
+        return ShotgunPath.get_current_platform_file(
+            os.path.join(install_root, "core", "interpreter_%s.cfg")
         )
 
     def _find_interpreter_location(self, path):

@@ -11,11 +11,11 @@
 from __future__ import with_statement
 
 import os
-import sys
+
 
 from tank_vendor import yaml
 
-from ..errors import TankError, TankFileDoesNotExistError
+from ..errors import TankFileDoesNotExistError
 from . import constants
 from .errors import TankDescriptorError, TankInvalidInterpreterLocationError
 from .descriptor import Descriptor
@@ -124,64 +124,10 @@ class ConfigDescriptor(Descriptor):
 
         return core_descriptor_dict
 
-    def _get_current_platform_file_suffix(self):
-        """
-        Find the suffix for the current platform's configuration file.
-
-        :returns: Suffix for the current platform's configuration file.
-        :rtype: str
-        """
-        # Now find out the appropriate python interpreter file to search for
-        if sys.platform == "darwin":
-            return "Darwin"
-        elif sys.platform == "win32":
-            return "Windows"
-        elif sys.platform.startswith("linux"):
-            return "Linux"
-        else:
-            raise TankError("Unknown platform: %s." % sys.platform)
-
-    def _get_current_platform_interpreter_file_name(self, install_root):
-        """
-        Retrieves the path to the interpreter file for a given install root.
-
-        :param str install_root: This can be the root to a studio install for a core
-            or a pipeline configuration root.
-
-        :returns: Path for the current platform's interpreter file.
-        :rtype: str
-        """
-        return os.path.join(
-            install_root, "core", "interpreter_%s.cfg" % self._get_current_platform_file_suffix()
-        )
-
     @property
     def python_interpreter(self):
         path = self.get_path()
         return self._find_interpreter_location(path)
-
-    def _find_interpreter_location(self, path):
-
-        # Find the interpreter file for the current platform.
-        interpreter_config_file = self._get_current_platform_interpreter_file_name(
-            path
-        )
-
-        if os.path.exists(interpreter_config_file):
-            with open(interpreter_config_file, "r") as f:
-                path_to_python = f.read().strip()
-
-            if not path_to_python or not os.path.exists(path_to_python):
-                raise TankInvalidInterpreterLocationError(
-                    "Cannot find interpreter '%s' defined in "
-                    "config file '%s'." % (path_to_python, interpreter_config_file)
-                )
-            else:
-                return path_to_python
-        else:
-            raise TankFileDoesNotExistError(
-                "No interpreter file for the current platform found at '%s'." % interpreter_config_file
-            )
 
     def _get_roots_data(self):
         """
