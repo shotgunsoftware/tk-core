@@ -106,7 +106,6 @@ class ConfigDescriptorBase(Descriptor):
 
 
         """
-
         # Find the interpreter file for the current platform.
         interpreter_config_file = self._get_current_platform_interpreter_file_name(
             path

@@ -43,7 +43,7 @@ class PipelineConfiguration(object):
     to construct this object, do not create directly via the constructor.
     """
 
-    def __init__(self, pipeline_configuration_path, descriptor=None):
+    def __init__(self, pipeline_configuration_path, descriptor_uri_or_dict=None):
         """
         Constructor. Do not call this directly, use the factory methods
         in pipelineconfig_factory.
@@ -55,9 +55,9 @@ class PipelineConfiguration(object):
         is handled on the OS level.
 
         :param str pipeline_configuration_path: Path to the pipeline configuration on disk.
-        :param descriptor: Descriptor that was used to create this pipeline configuration if one
-            was used. Defaults to ``None``.
-        :type descriptor: :class:`sgtk.descriptor.ConfigDescriptor`
+        :param descriptor_uri_or_dict: Descriptor that was used to create this pipeline configuration. 
+            Defaults to ``None`` for backwards compatibility with Bootstrapper that only pass down one argument.
+        :type descriptor: ``dict`` or ``str``
         """
         self._pc_root = pipeline_configuration_path
 
@@ -125,28 +125,20 @@ class PipelineConfiguration(object):
         # so create the descriptor as such. Ideally the descriptor would be passed in by the caller,
         # unfortunately this can be invoked from an old core that doesn't pass information in.
         # Because of this, we'll assume we're an installed configuration.
-        if descriptor is None:
-            descriptor = create_descriptor(
-                shotgun.get_deferred_sg_connection(),
-                Descriptor.CONFIG,
-                {"type": INSTALLED_CONFIG_DESCRIPTOR, "path": pipeline_configuration_path}
-            )
-        else:
-            # The descriptor that is being passed in could be from an old bootstrap that doesn't
-            # support all the features we want, so recreate it. It could also be from a future
-            # version of core that introduces a new descriptor type that we don't know about!!! For
-            # these reasons, we'll try to recreate it. If it fails, we'll use the one that was
-            # passed in and hope for the best!
-            try:
-                descriptor = create_descriptor(
-                    shotgun.get_deferred_sg_connection(),
-                    Descriptor.CONFIG,
-                    descriptor.get_uri(),
-                    self._bundle_cache_root_override,
-                    self._bundle_cache_fallback_paths
-                )
-            except Exception:
-                log.debug("Could not recreate the descriptor", exc_info=1)
+        if descriptor_uri_or_dict is None:
+            descriptor_uri_or_dict = {"type": INSTALLED_CONFIG_DESCRIPTOR, "path": pipeline_configuration_path}
+
+        # For backwards compatibility, we'll support being passed in a full descriptor object.
+        if isinstance(descriptor_uri_or_dict, Descriptor):
+            descriptor_uri_or_dict = descriptor_uri_or_dict.get_dict()
+
+        descriptor = create_descriptor(
+            shotgun.get_deferred_sg_connection(),
+            Descriptor.CONFIG,
+            descriptor_uri_or_dict,
+            self._bundle_cache_root_override,
+            self._bundle_cache_fallback_paths
+        )
 
         self._descriptor = descriptor
 
