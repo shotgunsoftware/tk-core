@@ -31,6 +31,9 @@ class ConfigDescriptor(ConfigDescriptorBase):
 
     def _get_config_folder(self):
         """
+        Returns the folder in which the configuration files are located.
+
+        :returns: Path to the configuration files folder.
         """
         self._io_descriptor.ensure_local()
         return self._io_descriptor.get_path()

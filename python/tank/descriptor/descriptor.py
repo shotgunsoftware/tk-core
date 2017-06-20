@@ -64,7 +64,6 @@ def create_descriptor(
     from .descriptor_config import ConfigDescriptor
     from .descriptor_installed_config import InstalledConfigDescriptor
     from .descriptor_core import CoreDescriptor
-    from .descriptor_installed_core import InstalledCoreDescriptor
 
     # if bundle root is not set, fall back on default location
     if bundle_cache_root_override is None:
@@ -106,11 +105,7 @@ def create_descriptor(
         else:
             return ConfigDescriptor(sg_connection, io_descriptor)
     elif descriptor_type == Descriptor.CORE:
-        if io_descriptor.get_type() == INSTALLED_CORE_DESCRIPTOR:
-            return InstalledCoreDescriptor(io_descriptor)
-        else:
-            return CoreDescriptor(io_descriptor)
-
+        return CoreDescriptor(io_descriptor)
     else:
         raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)
 

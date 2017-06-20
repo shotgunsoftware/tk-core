@@ -219,7 +219,14 @@ def get_core_path_for_config(pipeline_config_path):
 def get_sgtk_module_path():
     """
     Returns the path to ``sgtk`` module. This path can be used by another process to update its
-        ``PYTHONPATH`` and use the ``sgtk`` module as the process invoking this method.
+    ``PYTHONPATH`` and use the same ``sgtk`` module as the process invoking this method.
+
+    For example, if the Toolkit core was installed at
+    ``%APPDATA%\Shotgun\bundle_cache\app_store\tk-core\v0.18.94``, the method would return
+    ``%APPDATA%\Shotgun\bundle_cache\app_store\tk-core\v0.18.94\python``.
+
+    .. note:: This method can be invoked for cores that are part of a pipeline configuration, that
+        lives inside the bundle cache or a development copy of the core.
 
     :returns: Path to the ``sgtk`` module on disk.
     """
