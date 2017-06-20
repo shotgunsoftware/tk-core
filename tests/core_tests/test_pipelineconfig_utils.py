@@ -11,6 +11,7 @@
 from __future__ import with_statement
 
 import os
+import inspect
 import sys
 
 import sgtk
@@ -247,3 +248,17 @@ class TestPipelineConfigUtils(TankTestBase):
 
         with self.assertRaisesRegexp(TankFileDoesNotExistError, "is missing a core location file"):
             pipelineconfig_utils.get_python_interpreter_for_config(config_with_no_core_file_location)
+
+    def test_get_sgtk_module_path(self):
+
+        source = inspect.getsourcefile(self.test_get_sgtk_module_path)
+        core_tests_folder = os.path.dirname(source)
+        tests_folder = os.path.dirname(core_tests_folder)
+        core_folder = os.path.dirname(tests_folder)
+        python_path = os.path.join(core_folder, "python")
+
+        import sgtk
+        import tank
+
+        self.assertEqual(sgtk.get_sgtk_module_path(), python_path)
+        self.assertEqual(sgtk.get_sgtk_module_path(), tank.get_sgtk_module_path())
