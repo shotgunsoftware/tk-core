@@ -956,7 +956,7 @@ class ToolkitManager(object):
                 else:
                     # In this case, we know we're in a new enough core, but that we
                     # just failed for some legitimate reason.
-                    raise exc
+                    raise
 
         log.debug("Launched engine %r" % engine)
 

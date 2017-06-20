@@ -305,6 +305,7 @@ Factory Methods
 .. autofunction:: create_descriptor
 .. autofunction:: descriptor_dict_to_uri
 .. autofunction:: descriptor_uri_to_dict
+.. autofunction:: is_descriptor_version_missing
 
 
 AppDescriptor

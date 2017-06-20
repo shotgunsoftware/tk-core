@@ -257,7 +257,12 @@ class TankCoreUpdater(object):
 
         if not core_version:
             uri = "sgtk:descriptor:app_store?name=tk-core"
-            self._new_core_descriptor = create_descriptor(self._local_sg, Descriptor.CORE, uri, resolve_latest=True)
+            self._new_core_descriptor = create_descriptor(
+                self._local_sg,
+                Descriptor.CORE,
+                uri,
+                resolve_latest=True
+            )
         else:
             uri = "sgtk:descriptor:app_store?name=tk-core&version=%s" % core_version
             self._new_core_descriptor = create_descriptor(self._local_sg, Descriptor.CORE, uri)

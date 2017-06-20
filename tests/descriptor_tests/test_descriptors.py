@@ -23,14 +23,29 @@ from mock import Mock, patch
 from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 
 
-class TestClassicPipelineDescriptor(TankTestBase):
+class TestIntalledConfigDescriptor(TankTestBase):
 
-    def test_classic_pipeline_descriptor(self):
+    def test_legacy_configs(self):
         """
         Ensures pipeline configurations created through legacy means have an
         InstalledConfigDescriptor.
         """
         self.assertIsInstance(self.tk.configuration_descriptor, InstalledConfigDescriptor)
+
+    def test_mutability(self):
+        """
+        Ensures the pipeline configuration is mutable.
+        """
+        self.assertEqual(self.tk.configuration_descriptor.is_immutable(), False)
+
+    def test_manifest(self):
+        """
+        Ensures the manifest is read correctly from the config subfolder.
+        """
+        self.assertEqual(
+            self.tk.configuration_descriptor.display_name,
+            "pipeline_configuration"
+        )
 
 
 class TestDescriptorSupport(TankTestBase):
