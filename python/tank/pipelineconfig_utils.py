@@ -16,6 +16,7 @@ across storages, configurations etc.
 from __future__ import with_statement
 
 import os
+import inspect
 
 from . import constants
 from . import LogManager
@@ -215,6 +216,20 @@ def get_core_path_for_config(pipeline_config_path):
         return None
 
 
+def get_sgtk_module_path():
+    """
+    Returns the path to ``sgtk`` module. This path can be used by another process to update its
+        ``PYTHONPATH`` and use the ``sgtk`` module as the process invoking this method.
+
+    :returns: Path to the ``sgtk`` module on disk.
+    """
+    pipelineconfig_utils_py_location = inspect.getsourcefile(get_sgtk_module_path)
+    tank_folder = os.path.dirname(pipelineconfig_utils_py_location)
+    python_folder = os.path.dirname(tank_folder)
+
+    return python_folder
+
+
 def get_python_interpreter_for_config(pipeline_config_path):
     """
     Retrieves the path to the Python interpreter for a given pipeline configuration
@@ -226,6 +241,14 @@ def get_python_interpreter_for_config(pipeline_config_path):
 
     If you require a `python` executable to launch a script that will use a pipeline configuration, it is
     recommended its associated Python interpreter.
+
+    .. deprecated:: v0.18.94
+        You can now access the content of the ``interpreter_*.yml``
+        through the :method:`sgtk.descriptor.ConfigDescriptor.python_interpreter` property.
+
+        >>> engine = sgtk.platform.current_engine()
+        >>> descriptor = engine.sgtk.configuration_descriptor
+        >>> print descriptor.python_interpreter
 
     :param str pipeline_config_path: Path to the pipeline configuration root.
 
