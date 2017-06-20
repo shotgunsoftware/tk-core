@@ -98,6 +98,14 @@ class ConfigDescriptorBase(Descriptor):
         )
 
     def _find_interpreter_location(self, path):
+        """
+        Finds the interpreter file in a given ``config`` folder.
+
+        :param path: Path to a config folder, which traditionally has ``core``
+            and ``env`` subfolders.
+
+
+        """
 
         # Find the interpreter file for the current platform.
         interpreter_config_file = self._get_current_platform_interpreter_file_name(

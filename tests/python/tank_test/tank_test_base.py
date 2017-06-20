@@ -12,6 +12,8 @@
 Base class for engine and app testing
 """
 
+from __future__ import with_statement 
+
 import sys
 import os
 import time

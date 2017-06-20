@@ -15,15 +15,16 @@ import sgtk
 from tank_test.tank_test_base import TankTestBase, SealedMock
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.errors import TankError
-from tank.descriptor import CheckVersionConstraintsError
+from tank.descriptor import CheckVersionConstraintsError, TankDescriptorError
 from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
 
 from mock import Mock, patch
 
 from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
+from tank_vendor import yaml
 
 
-class TestIntalledConfigDescriptor(TankTestBase):
+class TestConfigDescriptor(TankTestBase):
 
     def test_legacy_configs(self):
         """
@@ -31,6 +32,14 @@ class TestIntalledConfigDescriptor(TankTestBase):
         InstalledConfigDescriptor.
         """
         self.assertIsInstance(self.tk.configuration_descriptor, InstalledConfigDescriptor)
+
+    def test_cant_copy_installed_config(self):
+
+        with self.assertRaisesRegexp(
+            TankDescriptorError,
+            "Installed descriptor is not copiable."
+        ):
+            self.tk.configuration_descriptor.copy("/a/b/c")
 
     def test_mutability(self):
         """
@@ -40,28 +49,80 @@ class TestIntalledConfigDescriptor(TankTestBase):
 
     def test_manifest(self):
         """
+        Ensures the manifest is read correctly.
+        """
+        with open(os.path.join(self.pipeline_config_root, "config", "info.yml"), "w") as fh:
+            fh.write(
+                yaml.dump({
+                    "display_name": "Unit Test Configuration",
+                    "description": "Configuration used for unit testing",
+                    "requires_shotgun_version": "v6.3.0",
+                    "requires_core_version": "HEAD"
+                })
+            )
+
+        self.assertEqual(
+            self.tk.configuration_descriptor.display_name,
+            "Unit Test Configuration"
+        )
+
+        self.assertEqual(
+            self.tk.configuration_descriptor.version_constraints["min_sg"],
+            "v6.3.0"
+        )
+
+        self.assertEqual(
+            self.tk.configuration_descriptor.version_constraints["min_core"],
+            "HEAD"
+        )
+
+    def test_empty_manifest(self):
+        """
         Ensures the manifest is read correctly from the config subfolder.
         """
         self.assertEqual(
             self.tk.configuration_descriptor.display_name,
-            "pipeline_configuration"
+            # Named after the pipeline configuration folder since no manifest is present.
+            os.path.split(self.pipeline_config_root)[1]
         )
 
+        self.assertNotIn(
+            "min_sg",
+            self.tk.configuration_descriptor.version_constraints
+        )
 
-# class TestConfigDescriptor(TankTestBase):
+        self.assertNotIn(
+            "min_core",
+            self.tk.configuration_descriptor.version_constraints
+        )
 
-#     def test_missing_interpreter_files(self):
+    def test_readme_content(self):
+        """
+        Ensures readme content is read correctly.
+        """
+        with open(os.path.join(self.pipeline_config_root, "config", "README"), "w") as fh:
+            fh.write("1 2\ntesting")
 
-#         config_root = os.path.join(
-#             self.tank_temp,
-#             "test_missing_interpreter_files",
-#             "core",
+        self.assertListEqual(self.tk.configuration_descriptor.readme_content, ["1 2", "testing"])
 
-#         )
+    def test_missing_readme_file(self):
+        """
+        Ensures missing readme file works.
+        """
+        self.assertFalse(os.path.exists(os.path.join(self.pipeline_config_root, "config", "README")))
+        self.assertListEqual(self.tk.configuration_descriptor.readme_content, [])
 
-#         os.makedirs(
+    def test_required_storages(self):
+        """
+        Ensures we can get the required storages.
+        """
+        # Base class already creates a roots.yml file.
+        self.assertListEqual(self.tk.configuration_descriptor.required_storages, ["primary"])
 
-#         )
+    def test_missing_roots_yml(self):
+        # Base class already creates a roots.yml file, so we remove it.
+        os.unlink(os.path.join(self.pipeline_config_root, "config", "core", "roots.yml"))
+        self.assertListEqual(self.tk.configuration_descriptor.required_storages, [])
 
 
 class TestDescriptorSupport(TankTestBase):

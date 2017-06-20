@@ -53,8 +53,11 @@ class InstalledConfigDescriptor(ConfigDescriptorBase):
 
     def _get_config_folder(self):
         """
+        Returns the path to the ``config`` folder inside the pipeline configuration.
+
+        :returns: Path to the ``config`` folder.
         """
-        return self._io_descriptor.get_path()
+        return os.path.join(self._io_descriptor.get_path(), "config")
 
     def _get_pipeline_config_path(self):
         path = self.get_path()

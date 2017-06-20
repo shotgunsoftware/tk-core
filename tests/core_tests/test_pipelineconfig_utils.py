@@ -249,8 +249,22 @@ class TestPipelineConfigUtils(TankTestBase):
         with self.assertRaisesRegexp(TankFileDoesNotExistError, "is missing a core location file"):
             pipelineconfig_utils.get_python_interpreter_for_config(config_with_no_core_file_location)
 
-    def test_get_sgtk_module_path(self):
+    def test_missing_core_location_file(self):
 
+        config_root = self._create_unlocalized_pipeline_configuration("missing_core_location_file")
+
+        self.assertIsNone(pipelineconfig_utils.get_core_path_for_config(config_root), None)
+
+        with self.assertRaisesRegexp(
+            TankFileDoesNotExistError,
+            "without a localized core is missing a core"
+        ):
+            print pipelineconfig_utils.get_python_interpreter_for_config(config_root)
+
+    def test_get_sgtk_module_path(self):
+        """
+        Ensures that the current core knows its place.
+        """
         source = inspect.getsourcefile(self.test_get_sgtk_module_path)
         core_tests_folder = os.path.dirname(source)
         tests_folder = os.path.dirname(core_tests_folder)

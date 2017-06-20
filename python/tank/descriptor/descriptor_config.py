@@ -15,9 +15,8 @@ import os
 
 from tank_vendor import yaml
 
-from ..errors import TankFileDoesNotExistError
 from . import constants
-from .errors import TankDescriptorError, TankInvalidInterpreterLocationError
+from .errors import TankDescriptorError
 from .descriptor import Descriptor
 from .. import LogManager
 
@@ -37,51 +36,6 @@ class ConfigDescriptor(Descriptor):
         """
         self._io_descriptor.ensure_local()
         return self._io_descriptor.get_path()
-
-    @property
-    def version_constraints(self):
-        """
-        A dictionary with version constraints. The absence of a key
-        indicates that there is no defined constraint. The following keys can be
-        returned: min_sg, min_core, min_engine and min_desktop
-
-        :returns: Dictionary with optional keys min_sg, min_core,
-                  min_engine and min_desktop
-        """
-        constraints = {}
-
-        manifest = self._io_descriptor.get_manifest()
-
-        if manifest.get("requires_shotgun_version") is not None:
-            constraints["min_sg"] = manifest.get("requires_shotgun_version")
-
-        if manifest.get("requires_core_version") is not None:
-            constraints["min_core"] = manifest.get("requires_core_version")
-
-        return constraints
-
-    @property
-    def readme_content(self):
-        """
-        Associated readme content as a list.
-        If not readme exists, an empty list is returned
-
-        :returns: list of strings
-        """
-        self._io_descriptor.ensure_local()
-        readme_content = []
-
-        readme_file = os.path.join(
-            self._io_descriptor.get_path(),
-            constants.CONFIG_README_FILE
-        )
-        if os.path.exists(readme_file):
-            fh = open(readme_file)
-            for line in fh:
-                readme_content.append(line.strip())
-            fh.close()
-
-        return readme_content
 
     @property
     def associated_core_descriptor(self):
@@ -126,44 +80,12 @@ class ConfigDescriptor(Descriptor):
 
     @property
     def python_interpreter(self):
+        """
+        Retrieves the Python interpreter for the current platform from the interpreter files at
+        ``core/interpreter_Linux.yml``, ``core/interpreter_Darwin.yml`` or
+        ``core/interpreter_Windows.yml``.
+
+        :returns: Path value stored in the interpreter file.
+        """
         path = self.get_path()
         return self._find_interpreter_location(path)
-
-    def _get_roots_data(self):
-        """
-        Returns roots.yml data for this config.
-        If no root file can be loaded, {} is returned.
-
-        :returns: Roots data yaml content, usually a dictionary
-        """
-        self._io_descriptor.ensure_local()
-
-        # get the roots definition
-        root_file_path = os.path.join(
-            self._io_descriptor.get_path(),
-            "core",
-            constants.STORAGE_ROOTS_FILE)
-
-        roots_data = {}
-
-        if os.path.exists(root_file_path):
-            root_file = open(root_file_path, "r")
-            try:
-                # if file is empty, initializae with empty dict...
-                roots_data = yaml.load(root_file) or {}
-            finally:
-                root_file.close()
-
-        return roots_data
-
-    @property
-    def required_storages(self):
-        """
-        A list of storage names needed for this config.
-        This may be an empty list if the configuration doesn't
-        make use of the file system.
-
-        :returns: List of storage names as strings
-        """
-        roots_data = self._get_roots_data()
-        return roots_data.keys()
