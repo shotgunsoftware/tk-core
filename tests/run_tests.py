@@ -88,11 +88,13 @@ def _initialize_coverage():
 
 def _finalize_coverage(cov):
     """
-    Stops covering code and writes out coverage.xml in the current directory.
+    Stops covering code and writes out reports.
     """
     cov.stop()
     cov.report()
     cov.xml_report(outfile="coverage.xml")
+    cov.html_report(directory="coverage_html_report")
+    print "Note: Full html coverage report can be found in the coverage_html_report folder."
 
 
 def _initialize_logging(log_to_console):
