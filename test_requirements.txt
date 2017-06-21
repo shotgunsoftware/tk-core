@@ -1,2 +1,2 @@
 coverage==4.4.1
-python-coveralls
+coveralls==1.1
