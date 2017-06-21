@@ -1,0 +1,7 @@
+[run]
+source=python/tank
+
+[report]
+exclude_lines =
+    raise NotImplementedError
+

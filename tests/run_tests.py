@@ -80,8 +80,8 @@ def _initialize_coverage():
     :returns: The coverate instance.
     """
     import coverage
-    # To update coverage settings, update .coveragerc.
-    cov = coverage.coverage()
+    shotgun_path = os.path.join(core_python_path, "tank_vendor", "*")
+    cov = coverage.coverage(source=["tank"], omit=shotgun_path)
     cov.start()
     return cov
 
