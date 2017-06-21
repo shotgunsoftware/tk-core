@@ -70,5 +70,8 @@ CONFIG_OVERRIDE_ENV_VAR = "TK_BOOTSTRAP_CONFIG_OVERRIDE"
 # pipeline configuration to be used.
 PIPELINE_CONFIG_ID_ENV_VAR = "SHOTGUN_PIPELINE_CONFIGURATION_ID"
 
+# environment variable that is used to indicate which bundle caches to be used.
+FALLBACK_BUNDLE_CACHE_ENV_VAR = "SHOTGUN_FALLBACK_BUNDLE_CACHE"
+
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"

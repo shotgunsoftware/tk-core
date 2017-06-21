@@ -482,6 +482,7 @@ class SoftwareLauncher(object):
         - ``SHOTGUN_ENTITY_TYPE``: The current context
         - ``SHOTGUN_ENTITY_ID``: The current context
         - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: The current pipeline config id
+        - ``SHOTGUN_FALLBACK_BUNDLE_CACHE``: Fallback bundle cache
 
         :returns: dictionary of environment variables
         """
@@ -504,6 +505,16 @@ class SoftwareLauncher(object):
                 "Pipeline configuration doesn't have an id. "
                 "Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID."
             )
+
+        bundle_cache_fallback_paths = []
+        if "SHOTGUN_FALLBACK_BUNDLE_CACHE" in env:
+            bundle_cache_fallback_paths = set(os.pathsep.split(env["SHOTGUN_FALLBACK_BUNDLE_CACHE"]))
+
+        bundle_cache_fallback_paths += set(
+            self.sgtk.pipeline_configuration.get_bundle_cache_fallback_paths()
+        )
+
+        env["SHOTGUN_FALLBACK_BUNDLE_CACHE"] = os.pathset.join(bundle_cache_fallback_paths)
 
         # get the most accurate entity, first see if there is a task, then entity then project
         entity_dict = self.context.task or self.context.entity or self.context.project
