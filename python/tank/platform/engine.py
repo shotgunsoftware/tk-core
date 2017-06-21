@@ -2541,7 +2541,7 @@ def get_engine_path(engine_name, tk, context):
     return engine_path
 
 
-def start_engine(engine_name, tk, context):
+def start_engine(engine_name, tk, context, entity_type=None):
     """
     Creates an engine and makes it the current engine.
     Returns the newly created engine object. Example::
@@ -2556,11 +2556,15 @@ def start_engine(engine_name, tk, context):
     :param engine_name: Name of the engine to launch, e.g. tk-maya
     :param tk: :class:`~sgtk.Sgtk` instance to associate the engine with
     :param context: :class:`~sgtk.Context` object of the context to launch the engine for.
+    :param str entity_type: In the event that the Shotgun engine is being
+        started and this method is required to make use of the legacy
+        start_shotgun_engine method, this given entity type will be passed
+        through to that method.
     :returns: :class:`Engine` instance
     :raises: :class:`TankEngineInitError` if an engine could not be started
              for the passed context.
     """
-    return _start_engine(engine_name, tk, None, context)
+    return _start_engine(engine_name, tk, None, context, entity_type)
 
 
 def _restart_engine(new_context):
@@ -2667,7 +2671,7 @@ class _CoreContextChangeHookGuard(object):
             current_context=new_context
         )
 
-def _start_engine(engine_name, tk, old_context, new_context):
+def _start_engine(engine_name, tk, old_context, new_context, entity_type=None):
     """
     Starts an engine for a given Toolkit instance and context.
 
@@ -2678,6 +2682,10 @@ def _start_engine(engine_name, tk, old_context, new_context):
     :type old_context: :class:`~sgtk.Context`
     :param new_context: Context after the context change.
     :type new_context: :class:`~sgtk.Context`
+    :param str entity_type: In the event that the Shotgun engine is being
+        started and this method is required to make use of the legacy
+        start_shotgun_engine method, this given entity type will be passed
+        through to that method.
 
     :returns: A new sgtk.platform.Engine object.
     """
@@ -2707,16 +2715,17 @@ def _start_engine(engine_name, tk, old_context, new_context):
                 # context. If neither is the case, meaning we have an empty context,
                 # then we re-raise.
                 if new_context.entity is not None:
-                    entity_type = new_context.entity["type"]
+                    ctx_entity_type = new_context.entity["type"]
                 elif new_context.project is not None:
-                    entity_type = "Project"
-                else:
+                    ctx_entity_type = "Project"
+                elif entity_type is None:
                     # Empty context, in which case we know the start_shotgun_engine won't do what we need.
                     raise TankError(
                         "Legacy shotgun environment configuration "
                         "does not support context '%s'" % new_context
                     )
 
+                entity_type = entity_type or ctx_entity_type
                 core_logger.debug("Starting Shotgun engine in legacy mode...")
                 return start_shotgun_engine(tk, entity_type, new_context)
             # If this isn't the Shotgun engine or we haven't yet returned, then

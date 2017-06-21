@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Shotgun Software Inc.
+ # Copyright (c) 2016 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -908,7 +908,9 @@ class ToolkitManager(object):
         self._report_progress(progress_callback, self._RESOLVING_CONTEXT_RATE, "Resolving context...")
         if entity is None:
             ctx = tk.context_empty()
+            entity_type = None
         else:
+            entity_type = entity.get("type")
             ctx = tk.context_from_entity_dictionary(entity)
 
         self._report_progress(progress_callback, self._LAUNCHING_ENGINE_RATE, "Launching Engine...")
@@ -924,12 +926,20 @@ class ToolkitManager(object):
         is_shotgun_engine = engine_name == constants.SHOTGUN_ENGINE_NAME
 
         # handle legacy cases
-        if is_shotgun_engine and is_version_older(tk.version, "v0.18.77"):
+        if is_shotgun_engine and is_version_older(tk.version, "v0.18.93"):
             engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
         else:
-            # no legacy cases
-            try:
-                engine = tank.platform.start_engine(engine_name, tk, ctx)
+            if is_shotgun_engine:
+                log.debug(
+                    "Core is at least v0.18.93. "
+                    "Starting the shotgun engine using start_engine."
+                )
+            # Hopefully no legacy cases are required. However, if the core version is
+            # recorded as HEAD, then we still might be in a case where we're using an
+            # older core, and we have no way to know for certain except to try the
+            # modern code path and fall back to legacy if it fails.
+            try: 
+                engine = tank.platform.start_engine(engine_name, tk, ctx, entity_type)
             except Exception, exc:
                 # It's possible that a tk-core is being used that didn't come from
                 # the app_store. This might be the case where a site config has been
@@ -939,6 +949,13 @@ class ToolkitManager(object):
                 # that, we need to try going the legacy route here just to see if we
                 # might actually have an old core.
                 if is_version_head(tk.version) and is_shotgun_engine:
+                    log.debug(
+                        "The start_engine method failed to launch the shotgun engine. "
+                        "This most likely means that we are using a pre-v0.18.77 core, "
+                        "which is possible if its info.yml states that it is version HEAD. "
+                        "Given this possibility, the legacy_start_shotgun_engine routine "
+                        "will be attempted."
+                    )
                     try:
                         engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
                     except Exception:
