@@ -1,4 +1,5 @@
 [![Build Status](https://secure.travis-ci.org/shotgunsoftware/tk-core.png?branch=master)](http://travis-ci.org/shotgunsoftware/tk-core)
+[![Coverage Status](https://coveralls.io/repos/github/shotgunsoftware/tk-core/badge.svg?branch=master)](https://coveralls.io/github/shotgunsoftware/tk-core?branch=master)
 
 # Shotgun Pipeline Toolkit Core API
 
