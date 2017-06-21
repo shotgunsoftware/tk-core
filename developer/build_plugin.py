@@ -340,7 +340,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
 
             # set bundle cache fallback path
             fh.write("    bundle_cache_path = os.path.join(plugin_root, 'bundle_cache')\n")
-            fh.write("    manager.bundle_cache_fallback_paths.extend([bundle_cache_path])\n")
+            fh.write("    manager.bundle_cache_fallback_paths = [bundle_cache_path]\n")
 
             fh.write("    return manager\n")
 

@@ -120,7 +120,9 @@ class TestEngineLauncher(TankTestBase):
             self.assertIsInstance(swv, SoftwareVersion)
 
     def test_get_standard_plugin_environment(self):
-
+        """
+        Ensures get_standard_plugin_environment sets all expected environment variables.
+        """
         MOCKED_FALLBACKS = ["/a/b/c", "/d/e/f"]
 
         for entity in [self.shot, self.project, self.task]:
@@ -143,7 +145,9 @@ class TestEngineLauncher(TankTestBase):
             self.assertDictEqual(expected_env, env)
 
     def test_get_standard_plugin_environment_empty(self):
-
+        """
+        Ensures only site and pc id are set when we have an empty context.
+        """
         ctx = self.tk.context_empty()
         launcher = create_engine_launcher(self.tk, ctx, self.engine_name)
         env = launcher.get_standard_plugin_environment()
