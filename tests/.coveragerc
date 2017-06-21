@@ -1,5 +1,8 @@
 [run]
+# coveralls expects the coverage file to be at the root of the repo.
 data_file=../.coverage
+# Referencing the sources this way allows for relative paths in the report,
+# which makes online reports on coveralls much more readable.
 source=../python/tank
 
 [report]
