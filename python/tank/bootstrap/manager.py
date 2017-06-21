@@ -108,8 +108,8 @@ class ToolkitManager(object):
                 log.debug("Setting pipeline configuration to %s" % pipeline_config_id)
                 self.pipeline_configuration = pipeline_config_id
 
-        if constants.FALLBACK_BUNDLE_CACHE_ENV_VAR in os.environ:
-            fallback_str = os.environ[constants.FALLBACK_BUNDLE_CACHE_ENV_VAR]
+        if constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR in os.environ:
+            fallback_str = os.environ[constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR]
             log.debug(
                 "Detected %s environment variable set to '%s'" % (
                     constants.PIPELINE_CONFIG_ID_ENV_VAR,
