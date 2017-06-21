@@ -1,6 +1,6 @@
 [run]
 data_file=../.coverage
-source=tank,sgtk
+source=../python/tank
 
 [report]
 exclude_lines =
