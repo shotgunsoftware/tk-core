@@ -10,7 +10,10 @@
 
 import sys
 import os
+import inspect
 from optparse import OptionParser
+
+
 
 # Let the user know which Python is picked up to run the tests.
 print
@@ -80,8 +83,14 @@ def _initialize_coverage():
     :returns: The coverate instance.
     """
     import coverage
-    shotgun_path = os.path.join(core_python_path, "tank_vendor", "*")
-    cov = coverage.coverage(source=["tank"], omit=shotgun_path)
+    run_tests_py_location = inspect.getsourcefile(_initialize_coverage)
+    coveragerc_location = os.path.abspath(
+        os.path.join(
+            os.path.dirname(run_tests_py_location), # <root>/tests
+            "..", # <root>
+            ".coveragerc") # <root>/.coveragerc
+    )
+    cov = coverage.coverage(config_file=coveragerc_location)
     cov.start()
     return cov
 
