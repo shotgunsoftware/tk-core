@@ -128,8 +128,11 @@ class PipelineConfiguration(object):
         if descriptor_uri_or_dict is None:
             descriptor_uri_or_dict = {"type": INSTALLED_CONFIG_DESCRIPTOR, "path": pipeline_configuration_path}
 
-        # For backwards compatibility, we'll support being passed in a full descriptor object.
-        if isinstance(descriptor_uri_or_dict, Descriptor):
+        # For backwards compatibility, we'll support being passed in a descriptor instance.
+        # Note that we can't test for the actual instance type since the type of that
+        # object is from a different version of core, so ``isinstance` will fail if we test it.
+        # So we'll test for the existance of the method we're going to call.
+        if hasattr(descriptor_uri_or_dict, "get_dict"):
             descriptor_uri_or_dict = descriptor_uri_or_dict.get_dict()
 
         descriptor = create_descriptor(
