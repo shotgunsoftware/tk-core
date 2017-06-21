@@ -1,0 +1,8 @@
+[run]
+data_file=../.coverage
+source=tank,sgtk
+
+[report]
+exclude_lines =
+    raise NotImplementedError
+
