@@ -82,8 +82,8 @@ class ConfigDescriptor(ConfigDescriptorBase):
     def python_interpreter(self):
         """
         Retrieves the Python interpreter for the current platform from the interpreter files at
-        ``core/interpreter_Linux.yml``, ``core/interpreter_Darwin.yml`` or
-        ``core/interpreter_Windows.yml``.
+        ``core/interpreter_Linux.cfg``, ``core/interpreter_Darwin.cfg`` or
+        ``core/interpreter_Windows.cfg``.
 
         :returns: Path value stored in the interpreter file.
         """

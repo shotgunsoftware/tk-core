@@ -18,12 +18,12 @@ import sgtk
 
 from tank import pipelineconfig_utils
 from tank import (
-    TankError,
     TankInvalidInterpreterLocationError,
     TankFileDoesNotExistError,
     TankInvalidCoreLocationError,
     TankNotPipelineConfigurationError
 )
+from tank.util import ShotgunPath
 
 from tank_test.tank_test_base import TankTestBase
 from tank_test.tank_test_base import setUpModule # noqa
@@ -33,24 +33,6 @@ class TestPipelineConfigUtils(TankTestBase):
     """
     Tests pipeline configuration utilities.
     """
-
-    def _get_current_platform_file_suffix(self):
-        """
-        Find the suffix for the current platform's configuration file.
-
-        :returns: Suffix for the current platform's configuration file.
-        :rtype: str
-        """
-        # Now find out the appropriate python interpreter file to search for
-        if sys.platform == "darwin":
-            return "Darwin"
-        elif sys.platform == "win32":
-            return "Windows"
-        elif sys.platform.startswith("linux"):
-            return "Linux"
-        else:
-            raise TankError("Unknown platform: %s." % sys.platform)
-
     def _create_interpreter_file(self, config_root, path):
         """
         Creates an interpreter file in a configuration.
@@ -59,9 +41,11 @@ class TestPipelineConfigUtils(TankTestBase):
         :param str path: Path to write in the interpreter file.
         """
         self.create_file(
-            os.path.join(
-                config_root, "config", "core",
-                "interpreter_%s.cfg" % self._get_current_platform_file_suffix()
+            ShotgunPath.get_file_name_from_template(
+                os.path.join(
+                    config_root, "config", "core",
+                    "interpreter_%s.cfg"
+                )
             ),
             path
         )
@@ -74,14 +58,24 @@ class TestPipelineConfigUtils(TankTestBase):
         :param str path: Path to write in the interpreter file.
         """
         self.create_file(
-            os.path.join(
-                config_root, "install", "core",
-                "core_%s.cfg" % self._get_current_platform_file_suffix()
+            ShotgunPath.get_file_name_from_template(
+                os.path.join(
+                    config_root, "install", "core",
+                    "core_%s.cfg"
+                )
             ),
             path
         )
 
     def _create_core(self, core_root):
+        """
+        Creates a core at a given location.
+
+        :param core_root: Path to the core to create.
+
+        :returns: Path to the created core.
+        """
+
         self.create_file(
             os.path.join(core_root, "install", "core", "_core_upgrader.py"),
             "" # Content is unimportant.
@@ -89,10 +83,24 @@ class TestPipelineConfigUtils(TankTestBase):
         return core_root
 
     def _create_studio_core(self, core_name):
+        """
+        Create a standalone core with a given name.
+
+        :param core_name: Name of the folder for the core.
+
+        :returns: Path to the standalone core.
+        """
         core_root = os.path.join(self.tank_temp, core_name)
         return self._create_core(core_root)
 
     def _create_unlocalized_pipeline_configuration(self, config_name):
+        """
+        Creates a pipeline configuration without a localized core.
+
+        :param config_name: Name of the configuration.
+
+        :returns: Root of the configuration.
+        """
         config_root = os.path.join(self.tank_temp, config_name)
         self.create_file(
             os.path.join(config_root, "config", "core", "roots.yml"),
@@ -101,6 +109,13 @@ class TestPipelineConfigUtils(TankTestBase):
         return config_root
 
     def _create_pipeline_configuration(self, config_name, core_location=None):
+        """
+        Creates a pipeline configuration with a localized core.
+
+        :param config_name: Name of the configuration.
+
+        :returns: Root of the configuration.
+        """
         config_root = self._create_unlocalized_pipeline_configuration(config_name)
         # If we want to create a localized one.
         if core_location:
@@ -152,7 +167,9 @@ class TestPipelineConfigUtils(TankTestBase):
             pipelineconfig_utils.get_python_interpreter_for_config(config_root_without_interpreter_file)
 
     def test_core_location_retrieval(self):
-
+        """
+        Ensure we can retrieve the core location for localize and unlocalized cores.
+        """
         config_root = self._create_pipeline_configuration(
             "localized_core"
         )
@@ -250,7 +267,9 @@ class TestPipelineConfigUtils(TankTestBase):
             pipelineconfig_utils.get_python_interpreter_for_config(config_with_no_core_file_location)
 
     def test_missing_core_location_file(self):
-
+        """
+        Ensure we detect missing core location file.
+        """
         config_root = self._create_unlocalized_pipeline_configuration("missing_core_location_file")
 
         self.assertIsNone(pipelineconfig_utils.get_core_path_for_config(config_root), None)

@@ -152,7 +152,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
         """
         descriptor = self._write_mock_config()
 
-        interpreter_yml_path = ShotgunPath.get_current_platform_file(
+        interpreter_yml_path = ShotgunPath.get_file_name_from_template(
             os.path.join(descriptor.get_path(), "core", "interpreter_%s.cfg")
         )
         # Do not write sys.executable in this file, otherwise we won't know if we're reading our value

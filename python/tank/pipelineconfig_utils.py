@@ -162,7 +162,14 @@ def get_path_to_current_core():
 
 
 def _create_installed_config_descriptor(pipeline_config_path):
+    """
+    Creates an InstalledConfigurationDescriptor for the pipeline configuration
+    at the given location.
 
+    :param str pipeline_config_path: Path to the installed pipeline configuration.
+
+    :returns: An :class:`sgtk.descriptor.InstalledConfigurationDescriptor` instance.
+    """
     # Do a local import to avoid circular imports. This happens because descriptor_installed_config
     # and pipelineconfig_utils import each other. At some point we will refactor the functionality from
     # this file on the ConfigDescriptor objects and these circular includes won't be necessary anymore.

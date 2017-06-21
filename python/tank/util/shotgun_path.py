@@ -62,7 +62,7 @@ class ShotgunPath(object):
     """
 
     @staticmethod
-    def get_current_platform_file(template, platform=sys.platform):
+    def get_file_name_from_template(template, platform=sys.platform):
         """
         Returns the complete file name for the current platform based on
         file name template passed in.

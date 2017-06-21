@@ -74,14 +74,6 @@ class IODescriptorBase(object):
         self._bundle_cache_root = primary_root
         self._fallback_roots = fallback_roots
 
-    def get_cache_roots(self):
-        """
-        Returns the cache roots.
-
-        :returns: Tuple of primary root and fallback roots paths.
-        """
-        return self._bundle_cache_root, self._fallback_roots
-
     def __str__(self):
         """
         Human readable representation

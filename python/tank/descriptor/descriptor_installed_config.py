@@ -29,6 +29,17 @@ class InstalledConfigDescriptor(ConfigDescriptorBase):
 
     @property
     def python_interpreter(self):
+        """
+        Retrieves the Python interpreter for the current platform from the interpreter files at
+        ``core/interpreter_Linux.cfg``, ``core/interpreter_Darwin.cfg`` or
+        ``core/interpreter_Windows.cfg``.
+
+        :raises TankFileDoesNotExistError: Raised if the core_xxxx.cfg file is missing for the
+            pipeline configuration.
+        :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg
+            does not exist.
+        :returns: Path value stored in the interpreter file.
+        """
         pipeline_config_path = self._get_pipeline_config_path()
 
         # Config is localized, we're supposed to find an interpreter file in it.
@@ -82,7 +93,7 @@ class InstalledConfigDescriptor(ConfigDescriptorBase):
 
         :raises TankFileDoesNotExistError: Raised if the core_xxxx.cfg file is missing for the
             pipeline configuration.
-            :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg
+        :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg
             does not exist.
         """
         if pipelineconfig_utils.is_localized(pipeline_config_path):
@@ -134,6 +145,6 @@ class InstalledConfigDescriptor(ConfigDescriptorBase):
         :returns: Path for the current platform's core location file.
         :rtype: str
         """
-        return ShotgunPath.get_current_platform_file(
+        return ShotgunPath.get_file_name_from_template(
             os.path.join(install_root, "install", "core", "core_%s.cfg")
         )

@@ -76,10 +76,9 @@ class ConfigDescriptorBase(Descriptor):
             constants.CONFIG_README_FILE
         )
         if os.path.exists(readme_file):
-            fh = open(readme_file)
-            for line in fh:
-                readme_content.append(line.strip())
-            fh.close()
+            with open(readme_file) as fh:
+                for line in fh:
+                    readme_content.append(line.strip())
 
         return readme_content
 
@@ -93,7 +92,7 @@ class ConfigDescriptorBase(Descriptor):
         :returns: Path for the current platform's interpreter file.
         :rtype: str
         """
-        return ShotgunPath.get_current_platform_file(
+        return ShotgunPath.get_file_name_from_template(
             os.path.join(install_root, "core", "interpreter_%s.cfg")
         )
 
@@ -143,12 +142,9 @@ class ConfigDescriptorBase(Descriptor):
         roots_data = {}
 
         if os.path.exists(root_file_path):
-            root_file = open(root_file_path, "r")
-            try:
+            with open(root_file_path, "r") as root_file:
                 # if file is empty, initializae with empty dict...
                 roots_data = yaml.load(root_file) or {}
-            finally:
-                root_file.close()
 
         return roots_data
 

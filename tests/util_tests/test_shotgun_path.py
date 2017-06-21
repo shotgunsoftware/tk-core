@@ -227,24 +227,26 @@ class TestShotgunPath(TankTestBase):
             self.assertEqual(ShotgunPath.normalize("/foo\\bar/"), "/foo/bar")
 
     def test_current_platform_file(self):
-
+        """
+        Ensures the get_file_name_from_template subtitutes the OS name correctly.
+        """
         self.assertEqual(
-            ShotgunPath.get_current_platform_file(r"C:\%s.yml", "win32"),
+            ShotgunPath.get_file_name_from_template(r"C:\%s.yml", "win32"),
             r"C:\Windows.yml"
         )
 
         self.assertEqual(
-            ShotgunPath.get_current_platform_file("/%s.yml", "linux2"),
+            ShotgunPath.get_file_name_from_template("/%s.yml", "linux2"),
             "/Linux.yml"
         )
 
         self.assertEqual(
-            ShotgunPath.get_current_platform_file("/%s.yml", "linux3"),
+            ShotgunPath.get_file_name_from_template("/%s.yml", "linux3"),
             "/Linux.yml"
         )
 
         self.assertEqual(
-            ShotgunPath.get_current_platform_file("/%s.yml", "darwin"),
+            ShotgunPath.get_file_name_from_template("/%s.yml", "darwin"),
             "/Darwin.yml"
         )
 
@@ -252,4 +254,4 @@ class TestShotgunPath(TankTestBase):
             ValueError,
             "Cannot resolve file name - unsupported os platform 'potato'"
         ):
-            ShotgunPath.get_current_platform_file("/%s.yml", "potato")
+            ShotgunPath.get_file_name_from_template("/%s.yml", "potato")

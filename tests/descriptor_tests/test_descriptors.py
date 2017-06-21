@@ -34,7 +34,9 @@ class TestConfigDescriptor(TankTestBase):
         self.assertIsInstance(self.tk.configuration_descriptor, InstalledConfigDescriptor)
 
     def test_cant_copy_installed_config(self):
-
+        """
+        Ensures installed pipeline configurations can't be copied.
+        """
         with self.assertRaisesRegexp(
             TankDescriptorError,
             "Installed descriptor is not copiable."
