@@ -229,11 +229,11 @@ def get_sgtk_module_path():
     ``PYTHONPATH`` and use the same ``sgtk`` module as the process invoking this method.
 
     For example, if the Toolkit core was installed at
-    ``%APPDATA%\Shotgun\bundle_cache\app_store\tk-core\v0.18.94``, the method would return
-    ``%APPDATA%\Shotgun\bundle_cache\app_store\tk-core\v0.18.94\python``.
+    ``/home/user/.shotgun/bundle_cache/app_store/tk-core/v0.18.94``, the method would return
+    ``/home/user/.shotgun/bundle_cache/app_store/tk-core/v0.18.94/python``.
 
     .. note:: This method can be invoked for cores that are part of a pipeline configuration, that
-        lives inside the bundle cache or a development copy of the core.
+              lives inside the bundle cache or a development copy of the core.
 
     :returns: Path to the ``sgtk`` module on disk.
     """
@@ -263,7 +263,7 @@ def get_python_interpreter_for_config(pipeline_config_path):
 
     .. deprecated:: v0.18.94
         You can now access the content of the ``interpreter_*.yml``
-        through the :method:`sgtk.descriptor.ConfigDescriptor.python_interpreter` property.
+        through the :meth:`ConfigDescriptor.python_interpreter` property.
 
         >>> engine = sgtk.platform.current_engine()
         >>> descriptor = engine.sgtk.configuration_descriptor

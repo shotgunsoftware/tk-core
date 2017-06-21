@@ -24,20 +24,23 @@ log = LogManager.get_logger(__name__)
 
 class InstalledConfigDescriptor(ConfigDescriptorBase):
     """
-    Descriptor that describes a Toolkit Configuration
+    Descriptor that describes an installed Toolkit Configuration.
     """
 
     @property
     def python_interpreter(self):
         """
         Retrieves the Python interpreter for the current platform from the interpreter files at
-        ``core/interpreter_Linux.cfg``, ``core/interpreter_Darwin.cfg`` or
-        ``core/interpreter_Windows.cfg``.
+        ``config/core/interpreter_Linux.cfg``, ``config/core/interpreter_Darwin.cfg`` or
+        ``config/core/interpreter_Windows.cfg``.
 
-        :raises TankFileDoesNotExistError: Raised if the core_xxxx.cfg file is missing for the
+        .. note:: If the pipeline configuration uses a shared core, the ``core_<os>.cfg`` files will be
+            followed to get to the interpreter files.
+
+        :raises TankFileDoesNotExistError: Raised if the ``core_<os>.cfg`` file is missing for the
             pipeline configuration.
-        :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg
-            does not exist.
+        :raises TankInvalidCoreLocationError: Raised if the core location specified in
+            ``core_<os>.cfg`` does not exist.
         :returns: Path value stored in the interpreter file.
         """
         pipeline_config_path = self._get_pipeline_config_path()
@@ -52,9 +55,12 @@ class InstalledConfigDescriptor(ConfigDescriptorBase):
     @property
     def associated_core_descriptor(self):
         """
-        The descriptor dict or url required for this core or None if not defined.
+        The descriptor dict or url required for this core.
 
-        :returns: Core descriptor dict or uri or None if not defined
+        .. note:: If the pipeline configuration uses a shared core, the ``core_<os>.cfg`` files will
+            be followed and refer the shared core location.
+
+        :returns: Core descriptor dict.
         """
         pipeline_config_path = self._get_pipeline_config_path()
         return {
