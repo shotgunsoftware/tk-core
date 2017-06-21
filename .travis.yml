@@ -7,4 +7,4 @@ install:
 
 # command to run tests
 script: cd tests && coverage run run_tests.py
-after_success: coveralls --data_file=tests/.coverage
+after_success: cd tests && coveralls
