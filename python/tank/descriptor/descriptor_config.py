@@ -87,5 +87,5 @@ class ConfigDescriptor(ConfigDescriptorBase):
 
         :returns: Path value stored in the interpreter file.
         """
-        config_folder = self._get_config_folder()
-        return self._find_interpreter_location(config_folder)
+        self._io_descriptor.ensure_local()
+        return self._find_interpreter_location(self.get_path())
