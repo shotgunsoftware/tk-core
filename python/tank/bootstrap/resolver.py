@@ -111,9 +111,6 @@ class ConfigurationResolver(object):
             # convert to dict so we can introspect
             config_descriptor = descriptor_uri_to_dict(config_descriptor)
 
-        # FIXME: This is a bit backwards. The code calling this method usually has a fully built
-        # descriptor object, so there's no point passing in a config descriptor dict in order
-        # to rebuild it.
         if config_descriptor["type"] == INSTALLED_CONFIG_DESCRIPTOR:
             cfg_descriptor = create_descriptor(
                 sg_connection,
@@ -719,10 +716,11 @@ class ConfigurationResolver(object):
                     pipeline_config["id"]
                 )
                 raise TankBootstrapError(
-                    "The pipeline configuration %s has no location specified been set for your operating system." %
+                    "The pipeline configuration %s has no location specified for "
+                    "your operating system." %
                     pipeline_config["id"]
                 )
-            config_descriptor_dict = pipeline_config["config_descriptor"].get_uri()
+            config_descriptor_dict = pipeline_config["config_descriptor"].get_dict()
 
         log.debug("The descriptor representing the config is %s" % config_descriptor_dict)
 
