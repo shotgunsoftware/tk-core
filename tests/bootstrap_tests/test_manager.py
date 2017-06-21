@@ -9,15 +9,15 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
+import os
 
 import sgtk
-import os
 from mock import patch, Mock
 
 from sgtk.bootstrap import ToolkitManager
 
 from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import TankTestBase, temp_env_var
 
 
 class TestErrorHandling(TankTestBase):
@@ -37,7 +37,6 @@ class TestErrorHandling(TankTestBase):
                 mgr.get_pipeline_configurations(None)
 
 
-
 class TestFunctionality(TankTestBase):
 
     @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
@@ -48,61 +47,88 @@ class TestFunctionality(TankTestBase):
         mgr = ToolkitManager()
         self.assertEqual(mgr.pipeline_configuration, None)
 
-        os.environ["SHOTGUN_PIPELINE_CONFIGURATION_ID"] = "123"
-        try:
+        with temp_env_var(SHOTGUN_PIPELINE_CONFIGURATION_ID="123"):
             mgr = ToolkitManager()
             self.assertEqual(mgr.pipeline_configuration, 123)
-        finally:
-            del os.environ["SHOTGUN_PIPELINE_CONFIGURATION_ID"]
 
-        os.environ["SHOTGUN_PIPELINE_CONFIGURATION_ID"] = "invalid"
-        try:
+        with temp_env_var(SHOTGUN_PIPELINE_CONFIGURATION_ID="invalid"):
             mgr = ToolkitManager()
             self.assertEqual(mgr.pipeline_configuration, None)
-        finally:
-            del os.environ["SHOTGUN_PIPELINE_CONFIGURATION_ID"]
 
     @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
     def test_get_entity_from_environment(self, _):
+        """
+        Ensure the ToolkitManager can extract the entities from the environment
+        """
 
         # no env set
         mgr = ToolkitManager()
         self.assertEqual(mgr.get_entity_from_environment(), None)
 
         # std case
-        os.environ["SHOTGUN_ENTITY_TYPE"] = "Shot"
-        os.environ["SHOTGUN_ENTITY_ID"] = "123"
-        try:
+        with temp_env_var(SHOTGUN_ENTITY_TYPE="Shot", SHOTGUN_ENTITY_ID="123"):
             self.assertEqual(
                 mgr.get_entity_from_environment(),
                 {"type": "Shot", "id": 123}
             )
-        finally:
-            del os.environ["SHOTGUN_ENTITY_TYPE"]
-            del os.environ["SHOTGUN_ENTITY_ID"]
-
         # site mismatch
-        os.environ["SHOTGUN_SITE"] = "https://some.other.site"
-        os.environ["SHOTGUN_ENTITY_TYPE"] = "Shot"
-        os.environ["SHOTGUN_ENTITY_ID"] = "123"
-        try:
+        with temp_env_var(
+            SHOTGUN_SITE="https://some.other.site",
+            SHOTGUN_ENTITY_TYPE="Shot",
+            SHOTGUN_ENTITY_ID="123"
+        ):
             self.assertEqual(
                 mgr.get_entity_from_environment(),
                 None
             )
-        finally:
-            del os.environ["SHOTGUN_ENTITY_TYPE"]
-            del os.environ["SHOTGUN_ENTITY_ID"]
-            del os.environ["SHOTGUN_SITE"]
 
         # invalid data case
-        os.environ["SHOTGUN_ENTITY_TYPE"] = "Shot"
-        os.environ["SHOTGUN_ENTITY_ID"] = "invalid"
-        try:
+        with temp_env_var(
+            SHOTGUN_ENTITY_TYPE="Shot",
+            SHOTGUN_ENTITY_ID="invalid"
+        ):
             self.assertEqual(
                 mgr.get_entity_from_environment(),
                 None
             )
-        finally:
-            del os.environ["SHOTGUN_ENTITY_TYPE"]
-            del os.environ["SHOTGUN_ENTITY_ID"]
+
+    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    def test_shotgun_bundle_cache(self, _):
+        """
+        Ensures ToolkitManager deals property with bundle cache from the user and from
+        environment variables.
+        """
+
+        # Ensure the list is empty by default.
+        mgr = ToolkitManager()
+        self.assertEqual(mgr._get_bundle_cache_fallback_paths(), [])
+
+        # If the user bundle cache is set, we should see it in the results.
+        mgr.bundle_cache_fallback_paths = ["/a/b/c", "/d/e/f"]
+        self.assertEqual(
+            set(mgr._get_bundle_cache_fallback_paths()), set(["/a/b/c", "/d/e/f"]))
+
+        # Reset the user bundle cache.
+        mgr.bundle_cache_fallback_paths = []
+        self.assertEqual(mgr._get_bundle_cache_fallback_paths(), [])
+
+        # Set the environment variable which allows to inherit paths from another process.
+        with temp_env_var(
+            SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS=os.pathsep.join(["/g/h/i", "/j/k/l", "/a/b/c"])
+        ):
+            # Should see the content from the environment variable.
+            self.assertEqual(
+                set(mgr._get_bundle_cache_fallback_paths()), set(["/g/h/i", "/j/k/l", "/a/b/c"]))
+
+            # Add a few user specified folders.
+            mgr.bundle_cache_fallback_paths = ["/a/b/c", "/d/e/f"]
+
+            self.assertEqual(
+                set(mgr._get_bundle_cache_fallback_paths()),
+                set(["/a/b/c", "/d/e/f", "/g/h/i", "/j/k/l"])
+            )
+
+        # Now that the env var is not set anymore we should see its bundle caches.
+        self.assertEqual(
+            set(mgr._get_bundle_cache_fallback_paths()), set(["/a/b/c", "/d/e/f"])
+        )

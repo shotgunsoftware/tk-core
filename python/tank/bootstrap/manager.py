@@ -74,7 +74,7 @@ class ToolkitManager(object):
         self._sg_connection = self._sg_user.create_sg_connection()
 
         # defaults
-        self._bundle_cache_fallback_paths = []
+        self._user_bundle_cache_fallback_paths = []
         self._caching_policy = self.CACHE_SPARSE
         self._pipeline_configuration_identifier = None # name or id
         self._base_config_descriptor = None
@@ -108,16 +108,6 @@ class ToolkitManager(object):
                 log.debug("Setting pipeline configuration to %s" % pipeline_config_id)
                 self.pipeline_configuration = pipeline_config_id
 
-        if constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR in os.environ:
-            fallback_str = os.environ[constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR]
-            log.debug(
-                "Detected %s environment variable set to '%s'" % (
-                    constants.PIPELINE_CONFIG_ID_ENV_VAR,
-                    pipeline_config_str
-                )
-            )
-            self._bundle_cache_fallback_paths = os.pathsep.split(fallback_str)
-
         log.debug("%s instantiated" % self)
 
     def __repr__(self):
@@ -130,13 +120,36 @@ class ToolkitManager(object):
 
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
-        repr += " Cache fallback path %s\n" % self._bundle_cache_fallback_paths
+        repr += " Cache fallback path %s\n" % self._get_bundle_cache_fallback_paths()
         repr += " Caching policy %s\n" % self._caching_policy
         repr += " Plugin id %s\n" % self._plugin_id
         repr += " Config %s %s\n" % (identifier_type, self._pipeline_configuration_identifier)
         repr += " Allows config overrides %s\n" % self._allow_config_overrides
         repr += " Base %s >" % self._base_config_descriptor
         return repr
+
+    def _get_bundle_cache_fallback_paths(self):
+        """
+        Retuns a list containing both the user specified bundle caches and the ones specified by
+        Toolkit.
+
+        :returns: List of bundle cache paths.
+        """
+        if constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR in os.environ:
+            fallback_str = os.environ[constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR]
+            log.debug(
+                "Detected %s environment variable set to '%s'" % (
+                    constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR,
+                    fallback_str
+                )
+            )
+            toolkit_bundle_cache_fallback_paths = fallback_str.split(os.pathsep)
+        else:
+            toolkit_bundle_cache_fallback_paths = []
+
+        return list(
+            set(self._user_bundle_cache_fallback_paths + toolkit_bundle_cache_fallback_paths)
+        )
 
     def _get_pipeline_configuration(self):
         """
@@ -273,7 +286,7 @@ class ToolkitManager(object):
 
     base_configuration = property(_get_base_configuration, _set_base_configuration)
 
-    def _get_bundle_cache_fallback_paths(self):
+    def _get_user_bundle_cache_fallback_paths(self):
         """
         Specifies a list of fallback paths where toolkit will go
         look for cached bundles in case a bundle isn't found in
@@ -287,15 +300,15 @@ class ToolkitManager(object):
         Any missing bundles will be downloaded and cached into
         the *primary* bundle cache.
         """
-        return self._bundle_cache_fallback_paths
+        return self._user_bundle_cache_fallback_paths
 
-    def _set_bundle_cache_fallback_paths(self, paths):
+    def _set_user_bundle_cache_fallback_paths(self, paths):
         # setter for bundle_cache_fallback_paths
-        self._bundle_cache_fallback_paths = paths
+        self._user_bundle_cache_fallback_paths = paths
 
     bundle_cache_fallback_paths = property(
-        _get_bundle_cache_fallback_paths,
-        _set_bundle_cache_fallback_paths
+        _get_user_bundle_cache_fallback_paths,
+        _set_user_bundle_cache_fallback_paths
     )
 
     def _get_caching_policy(self):
@@ -759,7 +772,7 @@ class ToolkitManager(object):
         resolver = ConfigurationResolver(
             self._plugin_id,
             project_id,
-            self._bundle_cache_fallback_paths
+            self._get_bundle_cache_fallback_paths()
         )
 
         # now request a configuration object from the resolver.
@@ -810,7 +823,7 @@ class ToolkitManager(object):
             # do the full resolve where we connect to shotgun etc.
             config = resolver.resolve_configuration(
                 self._base_config_descriptor,
-                self._sg_connection,
+                self._sg_connection
             )
 
         log.debug("Bootstrapping into configuration %r" % config)
