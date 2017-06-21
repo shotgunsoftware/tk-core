@@ -30,11 +30,14 @@ class TestBackups(TankTestBase):
         super(TestBackups, self).setUp()
 
         pathHead, pathTail = os.path.split(__file__)
-        core_path=os.path.join(pathHead,"..", "..")
+        self._core_repo_path=os.path.join(pathHead,"..", "..")
         self._temp_test_path=os.path.join(pathHead, "..", "fixtures", "bootstrap_tests", "test_backups")
-        self._core_copy_path=os.path.join(self.tank_temp, "tk-core-copy")
-        if not os.path.exists(self._core_copy_path):
-            copytree(core_path, self._core_copy_path, ignore=ignore_patterns('tests', 'docs'))
+        if sys.platform == "win32": # On Windows, filenames in temp path are too long for straight copy ...
+            core_copy_path=os.path.join(self.tank_temp, "tk-core-copy")
+            if not os.path.exists(core_copy_path):
+                # ... so avoid copying ignore folders to avoid errors when copying the core repo
+                copytree(self._core_repo_path, core_copy_path, ignore=ignore_patterns('tests', 'docs')) 
+            self._core_repo_path = core_copy_path
 
     def test_cleanup(self):
         """
@@ -44,7 +47,7 @@ class TestBackups(TankTestBase):
         resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="backup_tests"
         )
-        with temp_env_var(SGTK_REPO_ROOT=self._core_copy_path):
+        with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
             config = resolver.resolve_configuration(
                 {"type": "dev", "name": "backup_tests", "path": self._temp_test_path}, self.tk.shotgun
             )
@@ -74,7 +77,7 @@ class TestBackups(TankTestBase):
         resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="backup_tests_with_fail"
         )
-        with temp_env_var(SGTK_REPO_ROOT=self._core_copy_path):
+        with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
             config = resolver.resolve_configuration(
                 {"type": "dev", "name": "backup_tests_with_fail", "path": self._temp_test_path}, self.tk.shotgun
             )
