@@ -12,6 +12,7 @@ import os
 from tank_test.tank_test_base import *
 import tank.util.filesystem as fs
 import shutil
+import stat
 import sys
 
 
@@ -42,7 +43,9 @@ class TestFileSystem(TankTestBase):
 
     def test_delete_folder_with_file_in_use(self):
         """
-        Check that delete folder will delete as much as it can
+        Check that delete folder will delete as much as it can, even when
+        it encounters errors like failures to delete some of the items in
+        the folder
         """
         src_folder = os.path.join(self.util_filesystem_test_folder_location, "delete_folder")
         dst_folder = os.path.join(self.tank_temp, "folder_in_use")
@@ -59,3 +62,22 @@ class TestFileSystem(TankTestBase):
             else:
                 self.assertTrue(noErrors)  # ... on Unix, see comments for https://docs.python.org/2/library/os.html#os.remove
                 self.assertFalse(os.path.exists(dst_folder))
+
+    def test_delete_folder_with_read_only_items(self):
+        """
+        Check that delete_folder will delete all items in the folder, even read only ones
+        """
+        src_folder = os.path.join(self.util_filesystem_test_folder_location, "delete_folder")
+        dst_folder = os.path.join(self.tank_temp, "folder_with_read_only_items")
+        shutil.copytree(src_folder, dst_folder)
+        self.assertTrue(os.path.exists(dst_folder))
+
+        # make folder items read-only
+        os.chmod(os.path.join(dst_folder, "ReadOnly.txt"), stat.S_IREAD)
+        os.chmod(dst_folder, stat.S_IREAD)
+
+        noErrors = fs.delete_folder(dst_folder)
+
+        # check that the folder is deleted successfully
+        self.assertTrue(noErrors)
+        self.assertFalse(os.path.exists(dst_folder))

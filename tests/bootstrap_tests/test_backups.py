@@ -12,6 +12,7 @@ from __future__ import with_statement
 
 import itertools
 import os
+import stat
 import sys
 from mock import patch
 import sgtk
@@ -72,7 +73,7 @@ class TestBackups(TankTestBase):
     def test_cleanup_with_fail(self):
         """
         Ensures that after an update with a cleanup failure, the succeeding update 
-        process still succeeds
+        process completes smoothly
         """
         resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="backup_tests_with_fail"
@@ -113,5 +114,42 @@ class TestBackups(TankTestBase):
                 self.assertEqual(2, len(os.listdir(core_install_backup_path))) # ['placeholder', config.core_backup_folder_path]
             else:
                 self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
+            self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
+
+    def test_cleanup_read_only(self):
+        """
+        Ensures that backup cleanup will succeed even with read only folder items
+        """
+        resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
+            plugin_id="backup_tests_read_only"
+        )
+        with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
+            config = resolver.resolve_configuration(
+                {"type": "dev", "name": "backup_tests_read_only", "path": self._temp_test_path}, self.tk.shotgun
+            )
+            self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
+            config_root_path = config.path.current_os
+
+            # First update, no backup
+            config.update_configuration()
+
+            # Update the configuration, but don't clean up backups in order to ...
+            config.update_configuration(False)
+
+            core_install_backup_path = os.path.join(config_root_path, "install", "core.backup")
+            config_install_backup_path = os.path.join(config_root_path, "install", "config.backup")
+            read_only_file_name = os.path.join(config.core_backup_folder_path, "test.txt")
+
+            # ... create a read only file ...
+            with open(read_only_file_name, "w") as f:
+                f.write("Test")
+            os.chmod(read_only_file_name, stat.S_IREAD)
+            # ... and a read only folder
+            os.chmod(config_install_backup_path, stat.S_IREAD)
+            # Now try to clean up the backup folders with read-only file
+            config.cleanup_backup_folders()
+
+            # Verify that backup folders were cleaned up
+            self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
             self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
 
