@@ -355,7 +355,8 @@ def get_permissions(path):
     """
     return stat.S_IMODE(os.lstat(path)[stat.ST_MODE])
 
-_delete_folder_success = True
+_delete_folder_success = True # global for function below
+
 def delete_folder(path):
     """
     Deletes a folder and all of its contents recursively, even if it has read only items
@@ -369,6 +370,7 @@ def delete_folder(path):
               as it can.
     """
     global _delete_folder_success
+    _delete_folder_success = True
 
     def _on_rm_error(func, path, exc_info, ):
         # On Windows, Python's shutil can't delete read-only files, so if we were trying to delete one,
@@ -386,10 +388,13 @@ def delete_folder(path):
             log.error("Could not delete %s. Skipping." % path)
             _delete_folder_success = False
 
-    try:
-        _delete_folder_success = True
-        shutil.rmtree(path, onerror=_on_rm_error)
-    except Exception, e:
-        log.error("Could not delete %s: %s" % (path, e))
+    if os.path.exists(path):
+        try:
+            shutil.rmtree(path, onerror=_on_rm_error)
+        except Exception, e:
+            log.error("Could not delete %s: %s" % (path, e))
+            _delete_folder_success = False
+    else:
+        log.error("Could not delete: %s. Because it does not exist" % path)
         _delete_folder_success = False
     return _delete_folder_success
