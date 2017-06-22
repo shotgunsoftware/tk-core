@@ -120,7 +120,7 @@ class ToolkitManager(object):
 
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
-        repr += " Cache fallback path %s\n" % self._get_bundle_cache_fallback_paths()
+        repr += " Bundle cache fallback paths %s\n" % self._get_bundle_cache_fallback_paths()
         repr += " Caching policy %s\n" % self._caching_policy
         repr += " Plugin id %s\n" % self._plugin_id
         repr += " Config %s %s\n" % (identifier_type, self._pipeline_configuration_identifier)
@@ -130,8 +130,25 @@ class ToolkitManager(object):
 
     def _get_bundle_cache_fallback_paths(self):
         """
-        Retuns a list containing both the user specified bundle caches and the ones specified by
-        Toolkit.
+        Retuns a list containing both the user specified bundle caches and the one specified
+        by the SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS.
+
+        .. note::
+            While the method will preserve the order of the fallback locations by first
+            returning user defined locations and then ones found with the environment variable,
+            the method will remove duplicate locations.
+
+        For example::
+
+            >>> os.environ["SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS"] = "/a/b/c:/d/e/f"
+            >>> mgr = ToolkitManager()
+            >>> mgr.bundle_cache_fallback_paths = ["/g/h/i:/d/e/f"]
+            >>> repr(mgr)
+            <TkManager
+             User boismej
+             Bundle cache fallback paths ["/g/h/i", "/d/e/f", "/a/b/c"]
+             ...
+            >
 
         :returns: List of bundle cache paths.
         """
@@ -144,12 +161,21 @@ class ToolkitManager(object):
                 )
             )
             toolkit_bundle_cache_fallback_paths = fallback_str.split(os.pathsep)
-        else:
-            toolkit_bundle_cache_fallback_paths = []
 
-        return list(
-            set(self._user_bundle_cache_fallback_paths + toolkit_bundle_cache_fallback_paths)
-        )
+            # Python' sets do not preserve insertion order and Python 2.5 doesn't support
+            # OrderedDicts, which would have been perfect for this, so we will...
+
+            # First build the complete list of paths with possible duplicates.
+            concatenated_lists = self._user_bundle_cache_fallback_paths +\
+                toolkit_bundle_cache_fallback_paths
+
+            # Then build a set of unique paths.
+            unique_items = set(concatenated_lists)
+
+            # Finally iterate on complete list of items.
+            return [x for x in concatenated_lists if x in unique_items]
+        else:
+            return self._user_bundle_cache_fallback_paths
 
     def _get_pipeline_configuration(self):
         """
