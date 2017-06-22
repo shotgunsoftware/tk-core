@@ -923,40 +923,33 @@ class ToolkitManager(object):
         import tank
         is_shotgun_engine = engine_name == constants.SHOTGUN_ENGINE_NAME
 
-        # handle legacy cases
-        if is_shotgun_engine and is_version_older(tk.version, "v0.18.77"):
-            engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
-        else:
-            # no legacy cases
+        # If this is the shotgun engine we are starting, then we will attempt a typical
+        # engine start first, which will work if the engine is configured in the standard
+        # environment files in the config. If it fails, though, then we can try the
+        # legacy approach, which will try to use shotgun_xxx.yml environments if they
+        # exist in the config. If both fail, we reraise the legacy method exception
+        # and log the first one that came from the start_engine attempt.
+        if is_shotgun_engine:
             try:
+                log.debug(
+                    "Attempting to start the shotgun engine using the standard "
+                    "start_engine routine..."
+                )
                 engine = tank.platform.start_engine(engine_name, tk, ctx)
-            except Exception, exc:
-                # It's possible that a tk-core is being used that didn't come from
-                # the app_store. This might be the case where a site config has been
-                # locked off, and populated with a tk-core cloned from Github. In that
-                # case, it'll have "HEAD" as its version. In that situation, we don't
-                # actually know if this is a "new" core, or something super old. Given
-                # that, we need to try going the legacy route here just to see if we
-                # might actually have an old core.
-                if is_version_head(tk.version) and is_shotgun_engine:
-                    try:
-                        engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
-                    except Exception:
-                        # We'll want to raise the original exception here. We don't
-                        # really know whether this is a legacy core or not, so if both
-                        # the legacy and new code paths failed, we'll raise the exception
-                        # from the new code path.
-                        log.warning(
-                            "Attempted legacy engine start path for Shotgun engine, which failed. "
-                            "This attempt was made because the tk-core version is HEAD, which means "
-                            "we don't know if it's new or old. As such, when the new-style bootstrap "
-                            "failed, the legacy pathway was attempted."
-                        )
-                        raise exc
-                else:
-                    # In this case, we know we're in a new enough core, but that we
-                    # just failed for some legitimate reason.
+            except Exception as exc:
+                log.debug(
+                    "Shotgun engine failed to start using start_engine. An "
+                    "attempt will now be made to start it using an legacy "
+                    "shotgun_xxx.yml environment. The start_engine exception "
+                    "was the following: %r" % exc
+                )
+                try:
+                    engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
+                    log.debug("Shotgun engine started using a legacy shotgun_xxx.yml environment.")
+                except Exception:
                     raise
+        else:
+            engine = tank.platform.start_engine(engine_name, tk, ctx)
 
         log.debug("Launched engine %r" % engine)
 
