@@ -369,12 +369,12 @@ def delete_folder(path):
     """
     deleted = True
 
-    def _on_rm_error(func, path, exc_info, ):
+    def _on_rm_error(func, path, exc_info):
         # On Windows, Python's shutil can't delete read-only files, so if we were trying to delete one,
         # remove the flag.
         # Inspired by http://stackoverflow.com/a/4829285/1074536
         global deleted
-        if func == os.unlink or func == os.remove or os.rmdir:
+        if func == os.unlink or func == os.remove or func == os.rmdir:
             try:
                 attr = os.stat(path)[stat.ST_MODE]
                 if (not attr & stat.S_IWRITE):
