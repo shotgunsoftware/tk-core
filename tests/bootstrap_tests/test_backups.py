@@ -162,9 +162,11 @@ class TestBackups(TankTestBase):
             # ... create a read only file ...
             with open(read_only_file_name, "w") as f:
                 f.write("Test")
-            os.chmod(read_only_file_name, stat.S_IREAD)
+            file_permissions = os.stat(read_only_file_name)[stat.ST_MODE]
+            os.chmod(read_only_file_name, file_permissions & ~stat.S_IWRITE)
             # ... and a read only folder
-            os.chmod(config_install_backup_path, stat.S_IREAD)
+            folder_permissions = os.stat(config_install_backup_path)[stat.ST_MODE]
+            os.chmod(config_install_backup_path, folder_permissions & ~stat.S_IWRITE)
             # Now try to clean up the backup folders with read-only file
             config._cleanup_backup_folders(config_backup_folder_path_test_cleanup_read_only, core_backup_folder_path_test_cleanup_read_only)
 

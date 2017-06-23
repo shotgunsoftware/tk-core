@@ -72,8 +72,11 @@ class TestFileSystem(TankTestBase):
         self.assertTrue(os.path.exists(dst_folder))
 
         # make folder items read-only
-        os.chmod(os.path.join(dst_folder, "ReadOnly.txt"), stat.S_IREAD)
-        os.chmod(dst_folder, stat.S_IREAD)
+        read_only_filename = os.path.join(dst_folder, "ReadOnly.txt")
+        file_permissions = os.stat(read_only_filename)[stat.ST_MODE]
+        os.chmod(read_only_filename, file_permissions & ~stat.S_IWRITE)
+        folder_permissions = os.stat(dst_folder)[stat.ST_MODE]
+        os.chmod(dst_folder, folder_permissions & ~stat.S_IWRITE)
 
         noErrors = fs.delete_folder(dst_folder)
 
