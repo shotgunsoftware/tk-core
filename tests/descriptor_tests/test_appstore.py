@@ -39,7 +39,7 @@ class TestAppStoreLabels(TankTestBase):
         """
         Clear cached appstore connection
         """
-        super(TestAppStore, self).setUp()
+        super(TestAppStoreLabels, self).setUp()
 
         # work around the app store connection lookup loops to just use std mockgun instance to mock the app store
         self._get_app_store_key_from_shotgun_mock = patch(
@@ -108,8 +108,8 @@ class TestAppStoreLabels(TankTestBase):
             }
             """
             self.assertEqual(args, ('CustomNonProjectEntity09',))
-            print kwargs
 
+            # app store is trying to be smart about bandwidth depending on queries, so limit may vary.
             kwargs["limit"] = None
 
             self.assertEqual(
