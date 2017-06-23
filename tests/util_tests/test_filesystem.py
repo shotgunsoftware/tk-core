@@ -55,13 +55,12 @@ class TestFileSystem(TankTestBase):
         with open(os.path.join(dst_folder, "ReadWrite.txt")) as f:
             # ... and check that a failure occurs
             noErrors = fs.delete_folder(dst_folder)
-            if sys.platform == "win32":
-                self.assertFalse(noErrors) # on Windows removal of in-use files behaves differently than...
+            self.assertTrue(noErrors)
+            if sys.platform == "win32":                
                 # A failure occurred, folder should still be there
-                self.assertTrue(os.path.exists(dst_folder))
+                self.assertTrue(os.path.exists(dst_folder)) # on Windows removal of in-use files behaves differently than...
             else:
-                self.assertTrue(noErrors)  # ... on Unix, see comments for https://docs.python.org/2/library/os.html#os.remove
-                self.assertFalse(os.path.exists(dst_folder))
+                self.assertFalse(os.path.exists(dst_folder)) # ... on Unix, see comments for https://docs.python.org/2/library/os.html#os.remove
 
     def test_delete_folder_with_read_only_items(self):
         """
