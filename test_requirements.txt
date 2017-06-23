@@ -1,0 +1,2 @@
+coverage==4.4.1
+coveralls==1.1
