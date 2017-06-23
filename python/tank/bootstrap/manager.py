@@ -936,7 +936,7 @@ class ToolkitManager(object):
                     "start_engine routine..."
                 )
                 engine = tank.platform.start_engine(engine_name, tk, ctx)
-            except Exception as exc:
+            except Exception, exc:
                 log.debug(
                     "Shotgun engine failed to start using start_engine. An "
                     "attempt will now be made to start it using an legacy "
