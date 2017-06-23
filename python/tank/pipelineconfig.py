@@ -885,7 +885,7 @@ class PipelineConfiguration(object):
         )
 
         try:
-            data = yaml_cache.g_yaml_cache.get(templates_file, deepcopy_data=False)
+            data = yaml_cache.g_yaml_cache.get(templates_file, deepcopy_data=False) or {}
             data = template_includes.process_includes(templates_file, data)
         except TankUnreadableFileError:
             data = dict()
