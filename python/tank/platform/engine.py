@@ -2694,34 +2694,7 @@ def _start_engine(engine_name, tk, old_context, new_context):
             LogManager().initialize_base_file_handler(engine_name)
 
         # get environment and engine location
-        try:
-            (env, engine_descriptor) = get_env_and_descriptor_for_engine(engine_name, tk, new_context)
-        except (TankEngineInitError, TankMissingEnvironmentFile):
-            # If we failed using the typical pick_environment approach, then we
-            # need to check and see if this is the Shotgun engine. If it is, then
-            # we can also try the legacy engine start method, which will make use
-            # of shotgun_xxx.yml environment files if they exist in the config.
-            if engine_name == constants.SHOTGUN_ENGINE_NAME:
-                # If the new context has an associated entity, we get the type from
-                # that. If it doesn't, then we can check to see if it's a project
-                # context. If neither is the case, meaning we have an empty context,
-                # then we re-raise.
-                if new_context.entity is not None:
-                    entity_type = new_context.entity["type"]
-                elif new_context.project is not None:
-                    entity_type = "Project"
-                else:
-                    # Empty context, in which case we know the start_shotgun_engine won't do what we need.
-                    raise TankError(
-                        "Legacy shotgun environment configuration "
-                        "does not support context '%s'" % new_context
-                    )
-
-                core_logger.debug("Starting Shotgun engine in legacy mode...")
-                return start_shotgun_engine(tk, entity_type, new_context)
-            # If this isn't the Shotgun engine or we haven't yet returned, then
-            # we just re-raise.
-            raise
+        (env, engine_descriptor) = get_env_and_descriptor_for_engine(engine_name, tk, new_context)
 
         # make sure it exists locally
         if not engine_descriptor.exists_local():
