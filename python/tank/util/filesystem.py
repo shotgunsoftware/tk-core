@@ -377,9 +377,16 @@ def delete_folder(path):
         if func == os.unlink or func == os.remove or func == os.rmdir:
             try:
                 attr = os.stat(path)[stat.ST_MODE]
-                if (not attr & stat.S_IWRITE):
-                    os.chmod(path, stat.S_IWRITE)
-                    func(path)
+                if not (attr & stat.S_IWRITE):
+                    os.chmod(path, stat.S_IWRITE | attr)
+                    try:
+                        func(path)
+                    except Exception, e:
+                        log.error("Could not delete %s: %s. Skipping" % (path, e))
+                        deleted = False
+                else:
+                    log.error("Could not delete %s: %s. Skipping" % (path, e))
+                    deleted = False
             except Exception, e:
                 log.error("Could not delete %s: %s. Skipping" % (path, e))
                 deleted = False
