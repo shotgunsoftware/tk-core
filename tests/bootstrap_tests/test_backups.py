@@ -164,9 +164,11 @@ class TestBackups(TankTestBase):
                 f.write("Test")
             file_permissions = os.stat(read_only_file_name)[stat.ST_MODE]
             os.chmod(read_only_file_name, file_permissions & ~stat.S_IWRITE)
-            # ... and a read only folder
-            folder_permissions = os.stat(config_install_backup_path)[stat.ST_MODE]
-            os.chmod(config_install_backup_path, folder_permissions & ~stat.S_IWRITE)
+            if sys.platform == "win32":
+                # ... and a read only folder
+                folder_permissions = os.stat(config_install_backup_path)[stat.ST_MODE]
+                os.chmod(config_install_backup_path, folder_permissions & ~stat.S_IWRITE)
+
             # Now try to clean up the backup folders with read-only file
             config._cleanup_backup_folders(config_backup_folder_path_test_cleanup_read_only, core_backup_folder_path_test_cleanup_read_only)
 

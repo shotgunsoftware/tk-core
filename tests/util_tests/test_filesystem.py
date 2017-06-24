@@ -75,8 +75,9 @@ class TestFileSystem(TankTestBase):
         read_only_filename = os.path.join(dst_folder, "ReadOnly.txt")
         file_permissions = os.stat(read_only_filename)[stat.ST_MODE]
         os.chmod(read_only_filename, file_permissions & ~stat.S_IWRITE)
-        folder_permissions = os.stat(dst_folder)[stat.ST_MODE]
-        os.chmod(dst_folder, folder_permissions & ~stat.S_IWRITE)
+        if sys.platform == "win32":
+            folder_permissions = os.stat(dst_folder)[stat.ST_MODE]
+            os.chmod(dst_folder, folder_permissions & ~stat.S_IWRITE)
 
         noErrors = fs.delete_folder(dst_folder)
 
