@@ -69,9 +69,6 @@ class TestBackups(TankTestBase):
             self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
             self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
 
-    config_backup_folder_path_test_cleanup_with_fail = None
-    core_backup_folder_path_test_cleanup_with_fail = None
-
     def test_cleanup_with_fail(self):
         """
         Ensures that after an update with a cleanup failure, the succeeding update 
@@ -92,20 +89,20 @@ class TestBackups(TankTestBase):
             config.update_configuration()
 
             def dont_cleanup_backup_folders(self, config, core):
-                global config_backup_folder_path_test_cleanup_with_fail
-                global core_backup_folder_path_test_cleanup_with_fail
-                config_backup_folder_path_test_cleanup_with_fail = config
-                core_backup_folder_path_test_cleanup_with_fail = core
+                self.config_backup_folder_path = config
+                self.core_backup_folder_path = core
 
             # Update the configuration, but don't clean up backups
             with patch.object(sgtk.bootstrap.resolver.CachedConfiguration, '_cleanup_backup_folders', new=dont_cleanup_backup_folders):
                 config.update_configuration()
-                in_use_file_name = os.path.join(core_backup_folder_path_test_cleanup_with_fail, "test.txt")
+                config_backup_folder_path = config.config_backup_folder_path
+                core_backup_folder_path = config.core_backup_folder_path
+                in_use_file_name = os.path.join(core_backup_folder_path, "test.txt")
             
             # Create a file
             with open(in_use_file_name, "w") as f:
                 f.write("Test")
-                config._cleanup_backup_folders(config_backup_folder_path_test_cleanup_with_fail, core_backup_folder_path_test_cleanup_with_fail)
+                config._cleanup_backup_folders(config_backup_folder_path, core_backup_folder_path)
 
             if sys.platform == "win32":
                 # check that the backup folder was left behind, it is one of the 2 items, the cleanup failed
@@ -125,9 +122,6 @@ class TestBackups(TankTestBase):
             else:
                 self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
             self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
-
-    config_backup_folder_path_test_cleanup_read_only = None
-    core_backup_folder_path_test_cleanup_read_only = None
 
     def test_cleanup_read_only(self):
         """
@@ -149,15 +143,15 @@ class TestBackups(TankTestBase):
             config.update_configuration()
             
             def dont_cleanup_backup_folders(self, config, core):
-                global config_backup_folder_path_test_cleanup_read_only
-                global core_backup_folder_path_test_cleanup_read_only
-                config_backup_folder_path_test_cleanup_read_only = config
-                core_backup_folder_path_test_cleanup_read_only = core
+                self.config_backup_folder_path = config
+                self.core_backup_folder_path = core
 
             with patch.object(sgtk.bootstrap.resolver.CachedConfiguration, '_cleanup_backup_folders', new=dont_cleanup_backup_folders):
                 # Update the configuration, but don't clean up backups in order to ...
                 config.update_configuration()
-                read_only_file_name = os.path.join(core_backup_folder_path_test_cleanup_read_only, "test.txt")
+                config_backup_folder_path = config.config_backup_folder_path
+                core_backup_folder_path = config.core_backup_folder_path
+                read_only_file_name = os.path.join(core_backup_folder_path, "test.txt")
 
             # ... create a read only file ...
             with open(read_only_file_name, "w") as f:
@@ -170,7 +164,7 @@ class TestBackups(TankTestBase):
                 os.chmod(config_install_backup_path, folder_permissions & ~stat.S_IWRITE)
 
             # Now try to clean up the backup folders with read-only file
-            config._cleanup_backup_folders(config_backup_folder_path_test_cleanup_read_only, core_backup_folder_path_test_cleanup_read_only)
+            config._cleanup_backup_folders(config_backup_folder_path, core_backup_folder_path)
 
             # Verify that backup folders were cleaned up
             self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
