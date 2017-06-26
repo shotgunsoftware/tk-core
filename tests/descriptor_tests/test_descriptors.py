@@ -39,7 +39,7 @@ class TestConfigDescriptor(TankTestBase):
         """
         with self.assertRaisesRegexp(
             TankDescriptorError,
-            "Installed descriptor is not copiable."
+            "cannot be copied"
         ):
             self.tk.configuration_descriptor.copy("/a/b/c")
 

@@ -292,7 +292,11 @@ class ConfigurationWriter(object):
                 "core",
                 "interpreter_%s.cfg" % platform
             )
+            # If the interpreter file already existed in the configuration, we won't overwrite it.
             if os.path.exists(sg_config_location):
+                log.debug(
+                    "Interpreter file %s already exists, leaving as is.", sg_config_location
+                )
                 continue
             # create new file
             with open(sg_config_location, "wt") as fh:

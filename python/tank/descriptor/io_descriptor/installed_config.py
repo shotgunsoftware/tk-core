@@ -45,17 +45,7 @@ class IODescriptorInstalledConfig(IODescriptorPath):
 
         :param target_path: target path to copy the descriptor to.
         """
-        raise TankDescriptorError("Installed descriptor is not copiable.")
-
-    def is_immutable(self):
-        """
-        Returns true if this descriptor never changes its content.
-
-        For installed configurations this is always ``False``.
-
-        :returns: ``False``
-        """
-        return False
+        raise TankDescriptorError("%r cannot be copied." % self)
 
     def get_manifest(self):
         """

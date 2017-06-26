@@ -307,43 +307,49 @@ class ConfigurationResolver(object):
             "The following pipeline configurations were found: %s" % pprint.pformat(pipeline_configs)
         )
 
-        for pc in pipeline_configs:
+        for pipeline_config in pipeline_configs:
             # We'll need to provide a descriptor object for the config if
             # possible. Note that it's possible that we'll be returning a
             # None for the config descriptor. It's up to other filtering
             # operations to remove those if desired.
             #
-            pc["config_descriptor"] = self._create_config_descriptor(sg_connection, pc)
+            pipeline_config["config_descriptor"] = self._create_config_descriptor(
+                sg_connection, pipeline_config
+            )
 
-            path = ShotgunPath.from_shotgun_dict(pc)
+            path = ShotgunPath.from_shotgun_dict(pipeline_config)
             # If we have a plugin based pipeline.
             if (
-                self._match_plugin_id(pc.get("plugin_ids")) or
-                self._match_plugin_id(pc.get("sg_plugin_ids"))
+                self._match_plugin_id(pipeline_config.get("plugin_ids")) or
+                self._match_plugin_id(pipeline_config.get("sg_plugin_ids"))
             ):
-                # If a location was specified to get access to that pipeline, return it. Note that we are
-                # potentially returning pipeline configurations that have been configured for one platform but
-                # not all.
-                if pc.get("descriptor") or pc.get("sg_descriptor") or path:
-                    yield pc
+                # If a location was specified to get access to that pipeline, return it. Note that
+                # we are potentially returning pipeline configurations that have been configured for
+                # one platform but not all.
+                if pipeline_config.get("descriptor") or pipeline_config.get("sg_descriptor") or path:
+                    yield pipeline_config
                 else:
-                    log.warning("Pipeline configuration's 'path' and 'descriptor' fields are not set: %s" % pc)
-            elif self._is_classic_pc(pc):
+                    log.warning(
+                        "Pipeline configuration's 'path' and 'descriptor' "
+                        "fields are not set: %s" % pipeline_config
+                    )
+            elif self._is_classic_pc(pipeline_config):
                 # We have a classic pipeline, those only supported the path fields.
-                # If a location was specified to get access to that pipeline, return it. Note that we are
-                # potentially returning pipeline configurations that have been configured for one platform but
-                # not all.
+                # If a location was specified to get access to that pipeline, return it. Note that
+                # we are potentially returning pipeline configurations that have been configured for
+                # one platform but not all.
                 if path:
-                    yield pc
+                    yield pipeline_config
                 else:
-                    log.debug("Pipeline configuration's 'path' fields are not set: %s" % pc)
+                    log.debug("Pipeline configuration's 'path' fields are not set: %s" % pipeline_config)
 
-    def _create_config_descriptor(self, sg_connection, pc):
+    def _create_config_descriptor(self, sg_connection, shotgun_pc_data):
         """
         Creates a configuration descriptor for a given pipeline configuration.
 
         :param sg_connection: Connection to Shotgun.
-        :param dict pc: Pipeline configuration dictionary with keys ``descriptor`` and ``*_path`.
+        :param dict shotgun_pc_data: Pipeline configuration dictionary with keys ``descriptor``,
+            ``sg_descriptor`` and ``*_path`.
 
         :returns: A :class:`sgtk.descriptor.ConfigDescriptorBase` instance.
         """
@@ -353,17 +359,17 @@ class ConfigurationResolver(object):
         # 1. windows/linux/mac path
         # 2. descriptor
         # 3. sg_descriptor
-        path = ShotgunPath.from_shotgun_dict(pc)
+        path = ShotgunPath.from_shotgun_dict(shotgun_pc_data)
 
         if path:
-            if pc.get("descriptor") or pc.get("sg_descriptor"):
+            if shotgun_pc_data.get("descriptor") or shotgun_pc_data.get("sg_descriptor"):
                 log.debug(
                     "Fields for path based and descriptor based pipeline configuration are both "
-                    "set on pipeline configuration %s. Using path based field.", pc["id"])
+                    "set on pipeline configuration %s. Using path based field.", shotgun_pc_data["id"])
 
             # Make sure that the config has a path for the current OS.
             if path.current_os is None:
-                log.debug("Config isn't setup for %s: %s", sys.platform, pc)
+                log.debug("Config isn't setup for %s: %s", sys.platform, shotgun_pc_data)
                 cfg_descriptor = None
             else:
                 # Create an installed descriptor
@@ -375,39 +381,35 @@ class ConfigurationResolver(object):
                     descriptor_dict,
                     fallback_roots=self._bundle_cache_fallback_paths,
                 )
-        elif pc.get("descriptor"):
-            if pc.get("sg_descriptor"):
+        elif shotgun_pc_data.get("descriptor"):
+            if shotgun_pc_data.get("sg_descriptor"):
                 log.debug(
                     "Both sg_descriptor and descriptor fields are set on pipeline configuration "
-                    "%s. Using descriptor field.", pc["id"]
+                    "%s. Using descriptor field.", shotgun_pc_data["id"]
                 )
 
             cfg_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.CONFIG,
-                pc.get("descriptor"),
+                shotgun_pc_data.get("descriptor"),
                 fallback_roots=self._bundle_cache_fallback_paths,
-                resolve_latest=is_descriptor_version_missing(pc.get("descriptor"))
+                resolve_latest=is_descriptor_version_missing(shotgun_pc_data.get("descriptor"))
             )
-        elif pc.get("sg_descriptor"):
+        elif shotgun_pc_data.get("sg_descriptor"):
             cfg_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.CONFIG,
-                pc.get("sg_descriptor"),
+                shotgun_pc_data.get("sg_descriptor"),
                 fallback_roots=self._bundle_cache_fallback_paths,
             )
         else:
             # If we have neither a uri, nor a path, then we can't get
             # a descriptor for this config.
-            log.debug("No uri or path found for config: %s", pc)
+            log.debug("No uri or path found for config: %s", shotgun_pc_data)
             cfg_descriptor = None
 
-        # We add to the pc dict even if the descriptor is a None. We have an obligation
-        # to return configs even when they're not viable on the current platform. This
-        # is because Shotgun Desktop is aware of, and properly handles, situations
-        # where a config needs to be setup on the current platform.
         if cfg_descriptor is None:
-            log.debug("Unable to create descriptor for config: %s", pc)
+            log.debug("Unable to create descriptor for config: %s", shotgun_pc_data)
         else:
             log.debug("Config descriptor created: %r", cfg_descriptor)
 
@@ -716,7 +718,7 @@ class ConfigurationResolver(object):
                     pipeline_config["id"]
                 )
                 raise TankBootstrapError(
-                    "The pipeline configuration %s has no location specified for "
+                    "The Shotgun pipeline configuration with id %s has no location specified for "
                     "your operating system." %
                     pipeline_config["id"]
                 )
