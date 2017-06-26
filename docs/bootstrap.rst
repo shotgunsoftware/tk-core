@@ -79,19 +79,19 @@ applications to individual user's computers. To remedy this, an environment vari
 applications bundles to a centralized location on the network which every user can then access.
 
 In order to cache all the applications bundle for a configuration, you can use the script that is
-part of the Toolkit core at the `developper/cache_bundle.py`
+part of the Toolkit core at the `developper/populate_bundle_cache.py`
 
 In it's simplest form, you can provide a descriptor to a configuration and the location
 where the bundle cache should be created::
 
-    python build_bundle_cache.py
+    python populate_bundle_cache.py
         "sgtk:descriptor:app_store?version=v1.3.36&name=tk-config-basic"
         /tmp
 
 Note that it is important to use quotes around the descriptor as shells usually give special meaning
 to the & character.
 
-To learn more about the ``cache_bundle.py`` script, run the script with ``--help``.
+To learn more about the ``populate_bundle_cache.py`` script, run the script with ``--help``.
 
 ToolkitManager
 ========================================
