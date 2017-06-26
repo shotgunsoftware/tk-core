@@ -68,31 +68,6 @@ command - the :class:`ToolkitManager` instead becomes the entry point into the s
 handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.
 
-Working with Toolkit without access to the Internet
----------------------------------------------------
-
-When running Toolkit using the bootstrap API, Toolkit will download any packages required from
-the app store or git reposiroties and will cache those bundles into a user's home folder. Since
-bundles are executed from the user's hard drive, it can become difficult to deploy the required
-applications to individual user's computers. To remedy this, an environment variable named
-``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS`` is available which allows a facility to deploy all the
-applications bundles to a centralized location on the network which every user can then access.
-
-In order to cache all the applications bundle for a configuration, you can use the script that is
-part of the Toolkit core at the ``developper/populate_bundle_cache.py``.
-
-In it's simplest form, you can provide a descriptor to a configuration and the location
-where the bundle cache should be created::
-
-    python populate_bundle_cache.py
-        "sgtk:descriptor:app_store?version=v1.3.36&name=tk-config-basic"
-        /tmp
-
-Note that it is important to use quotes around the descriptor as shells usually give special meaning
-to the & character.
-
-To learn more about the ``populate_bundle_cache.py`` script, run the script with ``--help``.
-
 ToolkitManager
 ========================================
 
