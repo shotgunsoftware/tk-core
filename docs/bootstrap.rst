@@ -38,6 +38,9 @@ Toolkit. It allows for several advanced use cases:
 - A setup can be pre-bundled with for example an application plugin, allowing
   Toolkit to act as a distribution platform.
 
+- The application bundles that are required can be stored anywhere on the local machine or the
+  network via the use of the ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS`` environment variable.
+
 - The Toolkit manager makes it easy to track remote resources (via the ``sgtk.descriptor``
   framework).
 
@@ -64,6 +67,31 @@ In this example, there is no need to construct any :class:`sgtk.Sgtk` instance o
 command - the :class:`ToolkitManager` instead becomes the entry point into the system. It will
 handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.
+
+Working with Toolkit without access to the Internet
+---------------------------------------------------
+
+When running Toolkit using the bootstrap API, Toolkit will download any packages required from
+the app store or git reposiroties and will cache those bundles into a user's home folder. Since
+bundles are executed from the user's hard drive, it can become difficult to deploy the required
+applications to individual user's computers. To remedy this, an environment variable named
+``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS`` is available which allows a facility to deploy all the
+applications bundles to a centralized location on the network which every user can then access.
+
+In order to cache all the applications bundle for a configuration, you can use the script that is
+part of the Toolkit core at the `developper/cache_bundle.py`
+
+In it's simplest form, you can provide a descriptor to a configuration and the location
+where the bundle cache should be created::
+
+    python build_bundle_cache.py
+        "sgtk:descriptor:app_store?version=v1.3.36&name=tk-config-basic"
+        /tmp
+
+Note that it is important to use quotes around the descriptor as shells usually give special meaning
+to the & character.
+
+To learn more about the ``cache_bundle.py`` script, run the script with ``--help``.
 
 ToolkitManager
 ========================================
@@ -106,4 +134,3 @@ If you want to add an sgtk core to a ``requirements.txt`` file, use the followin
              number will currently download the latest commit from the master branch and
              associate it with the highest available version number tag. Such downloads are
              likely to contain changes which have not yet been full tested.
-

@@ -44,7 +44,7 @@ logger = LogManager.get_logger("build_plugin")
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
 
-def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
+def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri, clear_output_folder):
     """
     Perform a build of the bundle cache.
 
@@ -58,8 +58,8 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
 
     bundle_cache_root = os.path.join(target_path, BUNDLE_CACHE_ROOT_FOLDER_NAME)
 
-    # check that target path doesn't exist
-    if os.path.exists(bundle_cache_root):
+    # If the user requested to clear the folder, clear it!
+    if clear_output_folder and os.path.exists(bundle_cache_root):
         logger.info("The folder '%s' already exists on disk. Removing it" % bundle_cache_root)
         wipe_folder(bundle_cache_root)
 
@@ -164,6 +164,14 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         help="Enable debug logging"
     )
 
+    parser.add_option(
+        "-c",
+        "--clear",
+        default=False,
+        action="store_true",
+        help="Clears the 'bundle_cache' directory in the output folder before caching any bundles."
+    )
+
     add_authentication_options(parser)
 
     # parse cmd line
@@ -194,7 +202,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     _build_bundle_cache(
         sg_connection,
         target_path,
-        config_descriptor_str
+        config_descriptor_str,
+        options.clear
     )
 
     # all good!
