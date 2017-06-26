@@ -79,7 +79,7 @@ applications to individual user's computers. To remedy this, an environment vari
 applications bundles to a centralized location on the network which every user can then access.
 
 In order to cache all the applications bundle for a configuration, you can use the script that is
-part of the Toolkit core at the `developper/populate_bundle_cache.py`
+part of the Toolkit core at the ``developper/populate_bundle_cache.py``.
 
 In it's simplest form, you can provide a descriptor to a configuration and the location
 where the bundle cache should be created::
