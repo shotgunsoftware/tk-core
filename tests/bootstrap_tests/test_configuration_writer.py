@@ -10,6 +10,7 @@
 
 from __future__ import with_statement
 
+import contextlib
 import os
 import sys
 
@@ -239,3 +240,213 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
                 interpreters.append(w.read())
 
         return ShotgunPath(*interpreters)
+
+
+class TestWritePipelineConfigFile(TankTestBase):
+
+    FALLBACK_PATHS = ["/bundle/cache", "/fallback/paths"]
+
+    def _create_test_data(self, create_project):
+        """
+        Creates test data, including
+            - __pipeline_configuration, a shotgun entity dict.
+            - optional __project entity dict, linked from the pipeline configuration
+            - __descriptor, a sgtk.descriptor.Descriptor refering to a config on disk.
+            - __cw, a ConfigurationWriter
+        """
+
+        if create_project:
+            self.__project = self.mockgun.create(
+                "Project",
+                {
+                    "code": "TestWritePipelineConfigFile",
+                    "tank_name": "pc_tank_name"
+                }
+            )
+        else:
+            self.__project = None
+
+        self.__pipeline_configuration = self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "PC_TestWritePipelineConfigFile",
+                "project": self.__project
+            }
+        )
+
+        self.__descriptor = sgtk.descriptor.create_descriptor(
+            self.mockgun,
+            sgtk.descriptor.Descriptor.CONFIG,
+            dict(type="dev", path="/a/b/c")
+        )
+
+        config_root = os.path.join(self.tank_temp, self.id())
+
+        self.__cw = ConfigurationWriter(
+            ShotgunPath.from_current_os_path(config_root),
+            self.mockgun
+        )
+        os.makedirs(
+            os.path.join(
+                config_root,
+                "config",
+                "core"
+            )
+        )
+
+    def test_write_site_config(self):
+        """
+        Expects site configurations are written out properly.
+        """
+        self._create_test_data(create_project=False)
+
+        path = self.__cw.write_pipeline_config_file(
+            None,
+            None,
+            "basic.plugin",
+            self.FALLBACK_PATHS,
+            self.__descriptor
+        )
+
+        with open(path, "r") as fh:
+            config_info = yaml.safe_load(fh)
+
+        self.assertDictEqual(
+            config_info,
+            {
+                "pc_id": None,
+                "pc_name": "Unmanaged",
+                "project_id": None,
+                "project_name": "Site",
+                "plugin_id": "basic.plugin",
+                "published_file_entity_type": "PublishedFile",
+                "use_bundle_cache": True,
+                "bundle_cache_fallback_roots": self.FALLBACK_PATHS,
+                "use_shotgun_path_cache": True,
+                "descriptor": self.__descriptor.get_dict()
+            }
+        )
+
+    def test_write_site_sandbox_config(self):
+        """
+        Expects site configuration sanboxes are written out properly.
+        """
+        self._create_test_data(create_project=False)
+
+        with self._fixme_find_one():
+            path = self.__cw.write_pipeline_config_file(
+                self.__pipeline_configuration["id"],
+                None,
+                "basic.plugin",
+                self.FALLBACK_PATHS,
+                self.__descriptor
+            )
+
+        with open(path, "r") as fh:
+            config_info = yaml.safe_load(fh)
+
+        self.assertDictEqual(
+            config_info,
+            {
+                "pc_id": self.__pipeline_configuration["id"],
+                "pc_name": self.__pipeline_configuration["code"],
+                "project_id": None,
+                "project_name": "unnamed",
+                "plugin_id": "basic.plugin",
+                "published_file_entity_type": "PublishedFile",
+                "use_bundle_cache": True,
+                "bundle_cache_fallback_roots": self.FALLBACK_PATHS,
+                "use_shotgun_path_cache": True,
+                "descriptor": self.__descriptor.get_dict()
+            }
+        )
+
+    def test_write_project_config(self):
+        """
+        Expects project configurations are written out properly.
+        """
+        self._create_test_data(create_project=True)
+
+        path = self.__cw.write_pipeline_config_file(
+            None,
+            self.__project["id"],
+            "basic.plugin",
+            self.FALLBACK_PATHS,
+            self.__descriptor
+        )
+
+        with open(path, "r") as fh:
+            config_info = yaml.safe_load(fh)
+
+        self.assertDictEqual(
+            config_info,
+            {
+                "pc_id": None,
+                "pc_name": "Unmanaged",
+                "project_id": self.__project["id"],
+                "project_name": "pc_tank_name",
+                "plugin_id": "basic.plugin",
+                "published_file_entity_type": "PublishedFile",
+                "use_bundle_cache": True,
+                "bundle_cache_fallback_roots": self.FALLBACK_PATHS,
+                "use_shotgun_path_cache": True,
+                "descriptor": self.__descriptor.get_dict()
+            }
+        )
+
+    @contextlib.contextmanager
+    def _fixme_find_one(self):
+        """
+        Workaround for a bug in Mockgun.
+        """
+        # FIXME: There's a bug in the Python API when a linked field is set to None.
+        # A client fixed this bug, we're only waiting for the PR to be merged.
+        with patch("tank_vendor.shotgun_api3.lib.mockgun.mockgun.Shotgun.find_one") as p:
+            def mocked_find_one(entity_type, filters, *args):
+                # Make sure we're being queried for the pipeline configuration we are expecting.
+                self.assertEqual(entity_type, "PipelineConfiguration")
+                self.assertEqual(
+                    filters, [["id", "is", self.__pipeline_configuration["id"]]]
+                )
+                # Make sure we are mocking the call for the project which is None.
+                self.assertIsNone(self.__pipeline_configuration["project"])
+                result = {
+                    "project.Project.tank_name": None
+                }
+                result.update(self.__pipeline_configuration)
+                return result
+
+            p.side_effect = mocked_find_one
+            yield
+
+    def test_write_project_sandbox_config(self):
+        """
+        Expects project configuration sandboxes are written out properly.
+        """
+        self._create_test_data(create_project=True)
+        path = self.__cw.write_pipeline_config_file(
+            self.__pipeline_configuration["id"],
+            self.__project["id"],
+            "basic.plugin",
+            self.FALLBACK_PATHS,
+            self.__descriptor
+        )
+
+        with open(path, "r") as fh:
+            config_info = yaml.safe_load(fh)
+
+        self.assertDictEqual(
+            config_info,
+            {
+                "pc_id": self.__pipeline_configuration["id"],
+                "pc_name": self.__pipeline_configuration["code"],
+                "project_id": self.__project["id"],
+                "project_name": self.__project["tank_name"],
+                "plugin_id": "basic.plugin",
+                "published_file_entity_type": "PublishedFile",
+                "use_bundle_cache": True,
+                "bundle_cache_fallback_roots": self.FALLBACK_PATHS,
+                "use_shotgun_path_cache": True,
+                "descriptor": self.__descriptor.get_dict()
+            }
+        )

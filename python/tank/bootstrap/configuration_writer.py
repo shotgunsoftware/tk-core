@@ -413,7 +413,9 @@ class ConfigurationWriter(object):
 
         log.debug("Wrote %s", dest_config_sg_file)
 
-    def write_pipeline_config_file(self, pipeline_config_id, project_id, plugin_id, bundle_cache_fallback_paths):
+    def write_pipeline_config_file(
+        self, pipeline_config_id, project_id, plugin_id, bundle_cache_fallback_paths, descriptor
+    ):
         """
         Writes out the the pipeline configuration file config/core/pipeline_config.yml
 
@@ -427,6 +429,8 @@ class ConfigurationWriter(object):
                           see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
                           non-plugin based toolkit projects, this value is None.
         :param bundle_cache_fallback_paths: List of bundle cache fallback paths.
+
+        :returns: Path to the configuration file that was written out.
         """
         # the pipeline config metadata
         # resolve project name and pipeline config name from shotgun.
@@ -478,7 +482,8 @@ class ConfigurationWriter(object):
             "published_file_entity_type": "PublishedFile",
             "use_bundle_cache": True,
             "bundle_cache_fallback_roots": bundle_cache_fallback_paths,
-            "use_shotgun_path_cache": True
+            "use_shotgun_path_cache": True,
+            "descriptor": descriptor.get_dict()
         }
 
         # write pipeline_configuration.yml
@@ -493,6 +498,8 @@ class ConfigurationWriter(object):
             yaml.safe_dump(pipeline_config_content, fh)
             fh.write("\n")
             fh.write("# End of file.\n")
+
+        return pipeline_config_path
 
     def update_roots_file(self, config_descriptor):
         """

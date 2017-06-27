@@ -43,7 +43,7 @@ class PipelineConfiguration(object):
     to construct this object, do not create directly via the constructor.
     """
 
-    def __init__(self, pipeline_configuration_path, descriptor_uri_or_dict=None):
+    def __init__(self, pipeline_configuration_path, descriptor=None):
         """
         Constructor. Do not call this directly, use the factory methods
         in pipelineconfig_factory.
@@ -55,9 +55,12 @@ class PipelineConfiguration(object):
         is handled on the OS level.
 
         :param str pipeline_configuration_path: Path to the pipeline configuration on disk.
-        :param descriptor_uri_or_dict: Descriptor that was used to create this pipeline configuration. 
-            Defaults to ``None`` for backwards compatibility with Bootstrapper that only pass down one argument.
-        :type descriptor: ``dict`` or ``str``
+        :param descriptor: Descriptor that was used to create this pipeline configuration. 
+            Defaults to ``None`` for backwards compatibility with Bootstrapper that only
+            pass down one argument. Also this argument was passed down by cores from
+            v0.18.72 to 0.18.94. The descriptor is now read from the disk inside
+            pipeline_configuration.yml.
+        :type descriptor: :class:`sgtk.descriptor.ConfigDescriptor`
         """
         self._pc_root = pipeline_configuration_path
 
@@ -121,24 +124,42 @@ class PipelineConfiguration(object):
         else:
             self._bundle_cache_fallback_paths = []
 
-        # If no descriptor is passed in, the best we can assume is that we are an installed configuration,
-        # so create the descriptor as such. Ideally the descriptor would be passed in by the caller,
-        # unfortunately this can be invoked from an old core that doesn't pass information in.
-        # Because of this, we'll assume we're an installed configuration.
-        if descriptor_uri_or_dict is None:
-            descriptor_uri_or_dict = {"type": INSTALLED_CONFIG_DESCRIPTOR, "path": pipeline_configuration_path}
+        # There are four ways this initializer can be invoked.
+        #
+        # 1) Classic: We're instantiated from sgtk_from_path with a single path.
+        # 2) Bootstrap: path is set, descriptor is unset and no descriptor inside
+        #    pipeline_configuration.yml
+        # 3) Bootstrap: path is set, descriptor is set and no descriptor inside
+        #    pipeline_configuration.yml
+        # 4) Bootstrap, path is set, descriptor is set and descriptor inside
+        #    pipeline_configuration.yml
+        #
+        # The correct way to handle all of this is to go from a descriptor string or dictionary
+        # and instantiate the correct descriptor type.
+        #
+        # Note that since the boostapper can't tell if the pipeline configuration is going to use
+        # the file to read the descriptor or not, it is always going to pass down the descriptor
+        # in the arguments. We can however ignore that argument in favor of the descriptor on disk.
 
-        # For backwards compatibility, we'll support being passed in a descriptor instance.
-        # Note that we can't test for the actual instance type since the type of that
-        # object is from a different version of core, so ``isinstance` will fail if we test it.
-        # So we'll test for the existance of the method we're going to call.
-        if hasattr(descriptor_uri_or_dict, "get_dict"):
-            descriptor_uri_or_dict = descriptor_uri_or_dict.get_dict()
+        # Let's handle 4 first, since its the easiest one to do.
+        descriptor_dict = pipeline_config_metadata.get("descriptor")
+        if descriptor_dict:
+            # The bootstrapper wrote the descriptor in the pipeline_configuration.yml file, nothing
+            # more needs to be done.
+            pass
+        # If there's nothing in the file, but we're being passed down something by the bootstrapper,
+        # we should use it!
+        elif descriptor:
+            descriptor_dict = descriptor.get_dict()
+        # now we only have a path set.
+        else:
+            # At this point the best we can hope for is that this is an installed configuration.
+            descriptor_dict = {"type": INSTALLED_CONFIG_DESCRIPTOR, "path": pipeline_configuration_path}
 
         descriptor = create_descriptor(
             shotgun.get_deferred_sg_connection(),
             Descriptor.CONFIG,
-            descriptor_uri_or_dict,
+            descriptor_dict,
             self._bundle_cache_root_override,
             self._bundle_cache_fallback_paths
         )
@@ -803,10 +824,8 @@ class PipelineConfiguration(object):
 
     def get_configuration_descriptor(self):
         """
-        Returns the descriptor that was used to create this pipeline configuration.
-
-        .. note:: In Toolkit Classic, this value will always be ``None`` since pipeline configurations
-            are not based off a descriptor.
+        Returns the :class:`~sgtk.descriptor.ConfigDescriptor` associated with
+        the pipeline configuration.
         """
         return self._descriptor
 

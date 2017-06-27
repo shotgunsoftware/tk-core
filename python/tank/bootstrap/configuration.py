@@ -93,18 +93,13 @@ class Configuration(object):
         # and pass that into the factory method.
 
         # Previous versions of the PipelineConfiguration API didn't support having a descriptor
-        # passed in, so we'll have to be backwards compatible with these. We'll inspect the arguments
-        # that can be passed down to it to figure out which version of the API we're using.
-
-        args = inspect.getargspec(pipelineconfig.PipelineConfiguration.__init__)[0]
-
-        if "descriptor_uri_or_dict" in args:
-            pc = pipelineconfig.PipelineConfiguration(path, self.descriptor.get_dict())
-        elif "descriptor" in args:
+        # passed in, so we'll have to be backwards compatible with these. If the pipeline
+        # configuration does support the get_configuration_descriptor method however, we can
+        # pass the descriptor in.
+        if hasattr(pipelineconfig.PipelineConfiguration, "get_configuration_descriptor"):
             pc = pipelineconfig.PipelineConfiguration(path, self.descriptor)
         else:
             pc = pipelineconfig.PipelineConfiguration(path)
-
         tk = api.tank_from_path(pc)
 
         log.debug("Bootstrapped into tk instance %r (%r)" % (tk, tk.pipeline_configuration))
