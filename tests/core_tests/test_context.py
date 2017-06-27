@@ -376,12 +376,14 @@ class TestStringRepresentation(TestContext):
         super(TestStringRepresentation, self).setUp()
 
         # Add task data to mocked shotgun
-        self.task = {"id": 1,
-                     "type": "Task",
-                     "content": "task_content",
-                     "project": self.project,
-                     "entity": self.shot,
-                     "step": self.step}
+        self.task = {
+            "id": 1,
+            "type": "Task",
+            "content": "task_content",
+            "project": self.project,
+            "entity": self.shot,
+            "step": self.step
+        }
 
         self.add_to_sg_mock_db(self.task)
 
@@ -428,14 +430,40 @@ class TestFromEntity(TestContext):
         super(TestFromEntity, self).setUp()
 
         # Add task data to mocked shotgun
-        self.task = {"id": 1,
-                     "type": "Task",
-                     "content": "task_content",
-                     "project": self.project,
-                     "entity": self.shot,
-                     "step": self.step}
-        
+        self.task = {
+            "id": 1,
+            "type": "Task",
+            "content": "task_content",
+            "project": self.project,
+            "entity": self.shot,
+            "step": self.step
+        }
+
         self.add_to_sg_mock_db(self.task)
+
+        # Add publish data to mocked shotgun
+        self.publish = {
+            "id": 100,
+            "type": "PublishedFile",
+            "code": "publish 100",
+            "project": self.project,
+            "entity": self.shot,
+            "task": self.task
+        }
+
+        self.add_to_sg_mock_db(self.publish)
+
+        # Add publish data to mocked shotgun
+        self.version = {
+            "id": 101,
+            "type": "Version",
+            "code": "version 101",
+            "project": self.project,
+            "entity": self.shot,
+            "task": self.task
+        }
+
+        self.add_to_sg_mock_db(self.version)
 
     @patch("tank.util.login.get_current_user")
     def test_entity_from_cache(self, get_current_user):
@@ -520,6 +548,59 @@ class TestFromEntity(TestContext):
         num_finds_after = self.tk.shotgun.finds
         self.assertTrue( (num_finds_after-num_finds_before) == 1 )
 
+    @patch("tank.util.login.get_current_user")
+    def test_publish(self, get_current_user):
+        """
+        Test that we can resolve a context from a PublishedFile
+        """
+        get_current_user.return_value = self.current_user
+
+        result = context.from_entity(self.tk, self.publish["type"], self.publish["id"])
+
+        self.check_entity(self.project, result.project)
+        self.assertEquals(3, len(result.project))
+
+        self.check_entity(self.shot, result.entity)
+        self.assertEquals(3, len(result.entity))
+
+        self.check_entity(self.step, result.step)
+        self.assertEquals(3, len(result.step))
+
+        self.assertEquals(self.task["type"], result.task["type"])
+        self.assertEquals(self.task["id"], result.task["id"])
+        self.assertEquals(self.task["content"], result.task["name"])
+        self.assertEquals(3, len(result.task))
+
+        self.check_entity(self.current_user, result.user)
+        self.assertEquals(self.current_user["id"], result.user["id"])
+        self.assertEquals(self.current_user["type"], result.user["type"])
+
+    @patch("tank.util.login.get_current_user")
+    def test_version(self, get_current_user):
+        """
+        Test that we can resolve a context from a Version
+        """
+        get_current_user.return_value = self.current_user
+
+        result = context.from_entity(self.tk, self.version["type"], self.version["id"])
+
+        self.check_entity(self.project, result.project)
+        self.assertEquals(3, len(result.project))
+
+        self.check_entity(self.shot, result.entity)
+        self.assertEquals(3, len(result.entity))
+
+        self.check_entity(self.step, result.step)
+        self.assertEquals(3, len(result.step))
+
+        self.assertEquals(self.task["type"], result.task["type"])
+        self.assertEquals(self.task["id"], result.task["id"])
+        self.assertEquals(self.task["content"], result.task["name"])
+        self.assertEquals(3, len(result.task))
+
+        self.check_entity(self.current_user, result.user)
+        self.assertEquals(self.current_user["id"], result.user["id"])
+        self.assertEquals(self.current_user["type"], result.user["type"])
 
     @patch("tank.util.login.get_current_user")
     def test_data_missing_non_task(self, get_current_user):

@@ -1051,7 +1051,7 @@ def from_entity(tk, entity_type, entity_id):
         task_context = _task_from_sg(tk, entity_id)
         context.update(task_context)
 
-    elif entity_type in ["PublishedFile", "TankPublishedFile"]:
+    elif entity_type in ["PublishedFile", "TankPublishedFile", "Version"]:
         
         sg_entity = tk.shotgun.find_one(entity_type, 
                                         [["id", "is", entity_id]], 
