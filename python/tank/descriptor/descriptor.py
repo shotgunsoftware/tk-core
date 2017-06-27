@@ -65,7 +65,7 @@ def create_descriptor(
     :returns: :class:`Descriptor` object
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
-    from .descriptor_config import ConfigDescriptor
+    from .descriptor_cached_config import CachedConfigDescriptor
     from .descriptor_installed_config import InstalledConfigDescriptor
     from .descriptor_core import CoreDescriptor
 
@@ -107,7 +107,7 @@ def create_descriptor(
         if io_descriptor.get_type() == INSTALLED_CONFIG_DESCRIPTOR:
             return InstalledConfigDescriptor(io_descriptor)
         else:
-            return ConfigDescriptor(io_descriptor)
+            return CachedConfigDescriptor(io_descriptor)
     elif descriptor_type == Descriptor.CORE:
         return CoreDescriptor(io_descriptor)
     else:

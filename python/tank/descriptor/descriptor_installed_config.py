@@ -12,7 +12,7 @@ from __future__ import with_statement
 
 import os
 
-from .descriptor_config_base import ConfigDescriptorBase
+from .descriptor_config import ConfigDescriptor
 from .. import pipelineconfig_utils
 from .. import LogManager
 from ..util import ShotgunPath
@@ -22,9 +22,14 @@ from ..errors import TankNotPipelineConfigurationError, TankFileDoesNotExistErro
 log = LogManager.get_logger(__name__)
 
 
-class InstalledConfigDescriptor(ConfigDescriptorBase):
+class InstalledConfigDescriptor(ConfigDescriptor):
     """
-    Descriptor that describes an installed Toolkit Configuration.
+    Descriptor that describes an installed Toolkit Configuration. An installed configuration
+    is what we otherwise refer to as a classic pipeline configuration, which is a pipeline
+    configuration is that installed in a folder on the network, which contains a copy of the
+    environment files, a copy of core and all the bundles required by that pipeline configuration.
+    It supports localized as well as shared core and as such, the interpreter files can be found
+    inside the configuration folder or alongside the shared core.
     """
 
     @property

@@ -12,18 +12,19 @@ from __future__ import with_statement
 
 import os
 
-
 from tank_vendor import yaml
 
+from ..errors import TankFileDoesNotExistError
 from . import constants
-from .errors import TankDescriptorError
-from .descriptor_config_base import ConfigDescriptorBase
+from .errors import TankInvalidInterpreterLocationError
+from .descriptor import Descriptor
 from .. import LogManager
+from ..util import ShotgunPath
 
 log = LogManager.get_logger(__name__)
 
 
-class ConfigDescriptor(ConfigDescriptorBase):
+class ConfigDescriptor(Descriptor):
     """
     Descriptor that describes a Toolkit Configuration
     """
@@ -32,60 +33,129 @@ class ConfigDescriptor(ConfigDescriptorBase):
         """
         Returns the folder in which the configuration files are located.
 
+        Derived classes need to implement this method or a ``NotImplementedError`` will be raised.
+
         :returns: Path to the configuration files folder.
         """
-        self._io_descriptor.ensure_local()
-        return self._io_descriptor.get_path()
+        raise NotImplementedError("ConfigDescriptor._get_config_folder is not implemented.")
 
     @property
-    def associated_core_descriptor(self):
+    def version_constraints(self):
         """
-        The descriptor dict or url required for this core or None if not defined.
+        A dictionary with version constraints. The absence of a key
+        indicates that there is no defined constraint. The following keys can be
+        returned: min_sg, min_core, min_engine and min_desktop
 
-        :returns: Core descriptor dict or uri or None if not defined
+        :returns: Dictionary with optional keys min_sg, min_core,
+                  min_engine and min_desktop
         """
-        core_descriptor_dict = None
+        constraints = {}
 
-        self._io_descriptor.ensure_local()
+        manifest = self._io_descriptor.get_manifest()
 
-        core_descriptor_path = os.path.join(
-            self._io_descriptor.get_path(),
-            "core",
-            constants.CONFIG_CORE_DESCRIPTOR_FILE
+        if manifest.get("requires_shotgun_version") is not None:
+            constraints["min_sg"] = manifest.get("requires_shotgun_version")
+
+        if manifest.get("requires_core_version") is not None:
+            constraints["min_core"] = manifest.get("requires_core_version")
+
+        return constraints
+
+    @property
+    def readme_content(self):
+        """
+        Associated readme content as a list.
+        If not readme exists, an empty list is returned
+
+        :returns: list of strings
+        """
+        readme_content = []
+
+        readme_file = os.path.join(
+            self._get_config_folder(),
+            constants.CONFIG_README_FILE
+        )
+        if os.path.exists(readme_file):
+            with open(readme_file) as fh:
+                for line in fh:
+                    readme_content.append(line.strip())
+
+        return readme_content
+
+    def _get_current_platform_interpreter_file_name(self, install_root):
+        """
+        Retrieves the path to the interpreter file for a given install root.
+
+        :param str install_root: This can be the root to a studio install for a core
+            or a pipeline configuration root.
+
+        :returns: Path for the current platform's interpreter file.
+        :rtype: str
+        """
+        return ShotgunPath.get_file_name_from_template(
+            os.path.join(install_root, "core", "interpreter_%s.cfg")
         )
 
-        if os.path.exists(core_descriptor_path):
-            # the core_api.yml contains info about the core config:
-            #
-            # location:
-            #    name: tk-core
-            #    type: app_store
-            #    version: v0.16.34
+    def _find_interpreter_location(self, path):
+        """
+        Finds the interpreter file in a given ``config`` folder.
 
-            log.debug("Detected core descriptor file '%s'" % core_descriptor_path)
+        :param path: Path to a config folder, which traditionally has ``core``
+            and ``env`` subfolders.
 
-            # read the file first
-            fh = open(core_descriptor_path, "rt")
-            try:
-                data = yaml.load(fh)
-                core_descriptor_dict = data["location"]
-            except Exception, e:
-                raise TankDescriptorError(
-                    "Cannot read invalid core descriptor file '%s': %s" % (core_descriptor_path, e)
+
+        """
+        # Find the interpreter file for the current platform.
+        interpreter_config_file = self._get_current_platform_interpreter_file_name(
+            path
+        )
+
+        if os.path.exists(interpreter_config_file):
+            with open(interpreter_config_file, "r") as f:
+                path_to_python = f.read().strip()
+
+            if not path_to_python or not os.path.exists(path_to_python):
+                raise TankInvalidInterpreterLocationError(
+                    "Cannot find interpreter '%s' defined in "
+                    "config file '%s'." % (path_to_python, interpreter_config_file)
                 )
-            finally:
-                fh.close()
+            else:
+                return path_to_python
+        else:
+            raise TankFileDoesNotExistError(
+                "No interpreter file for the current platform found at '%s'." % interpreter_config_file
+            )
 
-        return core_descriptor_dict
+    def _get_roots_data(self):
+        """
+        Returns roots.yml data for this config.
+        If no root file can be loaded, {} is returned.
+
+        :returns: Roots data yaml content, usually a dictionary
+        """
+        # get the roots definition
+        root_file_path = os.path.join(
+            self._get_config_folder(),
+            "core",
+            constants.STORAGE_ROOTS_FILE)
+
+        roots_data = {}
+
+        if os.path.exists(root_file_path):
+            with open(root_file_path, "r") as root_file:
+                # if file is empty, initializae with empty dict...
+                roots_data = yaml.load(root_file) or {}
+
+        return roots_data
 
     @property
-    def python_interpreter(self):
+    def required_storages(self):
         """
-        Retrieves the Python interpreter for the current platform from the interpreter files at
-        ``core/interpreter_Linux.cfg``, ``core/interpreter_Darwin.cfg`` or
-        ``core/interpreter_Windows.cfg``.
+        A list of storage names needed for this config.
+        This may be an empty list if the configuration doesn't
+        make use of the file system.
 
-        :returns: Path value stored in the interpreter file.
+        :returns: List of storage names as strings
         """
-        self._io_descriptor.ensure_local()
-        return self._find_interpreter_location(self.get_path())
+        roots_data = self._get_roots_data()
+        return roots_data.keys()

@@ -712,7 +712,7 @@ class ConfigurationResolver(object):
             # 3 sg_descriptor
             if pipeline_config["config_descriptor"] is None:
                 log.debug(
-                    "No location set for %s on the Pipeline Configuration \"%s\" (id %d).",
+                    "No source set for %s on the Pipeline Configuration \"%s\" (id %d).",
                     sys.platform,
                     pipeline_config["code"],
                     pipeline_config["id"]

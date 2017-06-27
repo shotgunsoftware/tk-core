@@ -336,13 +336,6 @@ ConfigDescriptor
     :inherited-members:
     :members:
 
-InstalledConfigDescriptor
-================================================
-
-.. autoclass:: InstalledConfigDescriptor
-    :inherited-members:
-    :members:
-
 CoreDescriptor
 ================================================
 
