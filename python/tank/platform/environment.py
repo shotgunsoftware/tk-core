@@ -199,7 +199,7 @@ class Environment(object):
         loads the main data from disk, raw form
         """
         logger.debug("Loading environment data from path: %s", self._env_path)
-        return g_yaml_cache.get(path)
+        return g_yaml_cache.get(path) or {}
 
     def __load_environment_data(self):
         """
