@@ -27,6 +27,7 @@ from .baked_configuration import BakedConfiguration
 from .cached_configuration import CachedConfiguration
 from .installed_configuration import InstalledConfiguration
 from ..descriptor.constants import INSTALLED_CONFIG_DESCRIPTOR
+from ..descriptor.descriptor_installed_config import InstalledConfigDescriptor
 from ..util import filesystem
 from ..util import ShotgunPath
 from ..util import LocalFileStorageManager
@@ -111,32 +112,10 @@ class ConfigurationResolver(object):
             # convert to dict so we can introspect
             config_descriptor = descriptor_uri_to_dict(config_descriptor)
 
-        if config_descriptor["type"] == INSTALLED_CONFIG_DESCRIPTOR:
-            cfg_descriptor = create_descriptor(
-                sg_connection,
-                Descriptor.CONFIG,
-                config_descriptor,
-                fallback_roots=self._bundle_cache_fallback_paths,
-                resolve_latest=False
-            )
-
-            if not cfg_descriptor.exists_local():
-                raise TankBootstrapError(
-                    "Installed pipeline configuration '%s' does not exist on disk!" %
-                    descriptor_dict_to_uri(config_descriptor)
-                )
-
-            config_path = ShotgunPath.from_current_os_path(cfg_descriptor.get_path())
-            # The configuration path here points to the actual pipeline configuration that contains
-            # config, cache and install folders.
-            return InstalledConfiguration(config_path, cfg_descriptor)
-
-        elif config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
-
+        if config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
             # special case -- this is a full configuration scaffold that
             # has been pre-baked and can be used directly at runtime
             # without having to do lots of copying into temp space.
-
             baked_config_root = None
             log.debug("Searching for baked config %s" % config_descriptor)
             for root_path in self._bundle_cache_fallback_paths:
@@ -173,8 +152,8 @@ class ConfigurationResolver(object):
                 self._bundle_cache_fallback_paths,
                 cfg_descriptor
             )
-
         else:
+
             # now probe for a version token in the given descriptor.
             # if that exists, a fixed version workflow will be used where
             # that exact version of the config is used.
@@ -199,41 +178,54 @@ class ConfigurationResolver(object):
                 resolve_latest=resolve_latest
             )
 
-            log.debug("Configuration resolved to %r." % cfg_descriptor)
+            if isinstance(cfg_descriptor, InstalledConfigDescriptor):
+                if not cfg_descriptor.exists_local():
+                    raise TankBootstrapError(
+                        "Installed pipeline configuration '%s' does not exist on disk!" %
+                        descriptor_dict_to_uri(config_descriptor)
+                    )
 
-            # first get the cache root
-            cache_root = LocalFileStorageManager.get_configuration_root(
-                sg_connection.base_url,
-                self._project_id,
-                self._plugin_id,
-                pc_id,
-                LocalFileStorageManager.CACHE
-            )
+                config_path = ShotgunPath.from_current_os_path(cfg_descriptor.get_path())
+                # The configuration path here points to the actual pipeline configuration that contains
+                # config, cache and install folders.
+                return InstalledConfiguration(config_path, cfg_descriptor)
+            else:
 
-            # resolve the config location both based on plugin id and current engine.
-            #
-            # Example: ~/Library/Caches/Shotgun/mysitename/site.review.rv/cfg
-            #
-            config_cache_root = os.path.join(cache_root, "cfg")
-            filesystem.ensure_folder_exists(config_cache_root)
+                log.debug("Configuration resolved to %r." % cfg_descriptor)
 
-            log.debug("Configuration root resolved to %s." % config_cache_root)
+                # first get the cache root
+                cache_root = LocalFileStorageManager.get_configuration_root(
+                    sg_connection.base_url,
+                    self._project_id,
+                    self._plugin_id,
+                    pc_id,
+                    LocalFileStorageManager.CACHE
+                )
 
-            # populate current platform, leave rest blank.
-            # this resolver only supports local, on-the-fly
-            # configurations
-            config_root = ShotgunPath.from_current_os_path(config_cache_root)
+                # resolve the config location both based on plugin id and current engine.
+                #
+                # Example: ~/Library/Caches/Shotgun/mysitename/site.review.rv/cfg
+                #
+                config_cache_root = os.path.join(cache_root, "cfg")
+                filesystem.ensure_folder_exists(config_cache_root)
 
-            # create an object to represent our configuration install
-            return CachedConfiguration(
-                config_root,
-                sg_connection,
-                cfg_descriptor,
-                self._project_id,
-                self._plugin_id,
-                pc_id,
-                self._bundle_cache_fallback_paths
-            )
+                log.debug("Configuration root resolved to %s." % config_cache_root)
+
+                # populate current platform, leave rest blank.
+                # this resolver only supports local, on-the-fly
+                # configurations
+                config_root = ShotgunPath.from_current_os_path(config_cache_root)
+
+                # create an object to represent our configuration install
+                return CachedConfiguration(
+                    config_root,
+                    sg_connection,
+                    cfg_descriptor,
+                    self._project_id,
+                    self._plugin_id,
+                    pc_id,
+                    self._bundle_cache_fallback_paths
+                )
 
     def _get_pipeline_configurations_for_project(self, pipeline_config_name, current_login, sg_connection):
         """

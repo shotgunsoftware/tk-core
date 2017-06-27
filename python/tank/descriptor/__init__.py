@@ -13,7 +13,6 @@ from .descriptor import Descriptor
 from .descriptor_core import CoreDescriptor
 from .descriptor_bundle import AppDescriptor, FrameworkDescriptor, EngineDescriptor
 from .descriptor_config import ConfigDescriptor
-from .descriptor_installed_config import InstalledConfigDescriptor
 
 from .errors import (
     TankAppStoreConnectionError, TankAppStoreError, TankDescriptorError, InvalidAppStoreCredentialsError,
