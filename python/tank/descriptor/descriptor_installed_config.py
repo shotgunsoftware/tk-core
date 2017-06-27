@@ -13,6 +13,7 @@ from __future__ import with_statement
 import os
 
 from .descriptor_config import ConfigDescriptor
+from . import constants
 from .. import pipelineconfig_utils
 from .. import LogManager
 from ..util import ShotgunPath
@@ -31,6 +32,25 @@ class InstalledConfigDescriptor(ConfigDescriptor):
     It supports localized as well as shared core and as such, the interpreter files can be found
     inside the configuration folder or alongside the shared core.
     """
+
+    def __init__(self, io_descriptor):
+        super(InstalledConfigDescriptor, self).__init__(io_descriptor)
+        self._io_descriptor.set_missing_manifest_supported(True)
+        self._io_descriptor.set_is_copiable(False)
+
+        # As it is possible to create an installed config descriptor that is not actually on disk,
+        # get_path might return None. Only attempt to set the manifest location when the config
+        # actually exists. Not setting it when it doesn't exist isn't a big deal as it won't be
+        # use anyway.
+        path = self.get_path()
+        if path:
+            self._io_descriptor.set_manifest_location_override(
+                os.path.join(
+                    path,
+                    "config",
+                    constants.BUNDLE_METADATA_FILE
+                )
+            )
 
     @property
     def python_interpreter(self):

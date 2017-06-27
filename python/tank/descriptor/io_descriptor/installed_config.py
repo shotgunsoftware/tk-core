@@ -10,15 +10,10 @@
 
 from __future__ import with_statement
 
-import os
 
 from .path import IODescriptorPath
-from .. import constants
 from ... import LogManager
 
-from ..errors import TankDescriptorError
-
-from tank_vendor import yaml
 
 log = LogManager.get_logger(__name__)
 
@@ -37,41 +32,3 @@ class IODescriptorInstalledConfig(IODescriptorPath):
         :param dict descriptor_dict: Dictionary form of the descriptor.
         """
         super(IODescriptorInstalledConfig, self).__init__(descriptor_dict)
-        self.__manifest_data = None
-
-    def copy(self, target_path):
-        """
-        Copy the contents of the descriptor to an external location
-
-        :param target_path: target path to copy the descriptor to.
-        """
-        raise TankDescriptorError("%r cannot be copied." % self)
-
-    def get_manifest(self):
-        """
-        Returns the info.yml metadata associated with this descriptor.
-        Note that this call involves deep introspection; in order to
-        access the metadata we normally need to have the code content
-        local, so this method may trigger a remote code fetch if necessary.
-
-        :returns: dictionary with the contents of info.yml
-        """
-        if self.__manifest_data is None:
-            # get the metadata
-            bundle_root = self.get_path()
-            file_path = os.path.join(bundle_root, "config", constants.BUNDLE_METADATA_FILE)
-
-            if not os.path.exists(file_path):
-                # installed descriptors do not always have an info.yml file, so allow an empty dict.
-                metadata = {}
-            else:
-                try:
-                    with open(file_path) as fh:
-                        metadata = yaml.load(fh)
-                except Exception, exp:
-                    raise TankDescriptorError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
-
-            # cache it
-            self.__manifest_data = metadata
-
-        return self.__manifest_data

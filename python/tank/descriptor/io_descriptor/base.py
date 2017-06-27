@@ -50,6 +50,9 @@ class IODescriptorBase(object):
         self._fallback_roots = []
         self._descriptor_dict = descriptor_dict
         self.__manifest_data = None
+        self._empty_manifest_supported = False
+        self._manifest_location_override = None
+        self._is_copiable = True
 
     def set_cache_roots(self, primary_root, fallback_roots):
         """
@@ -329,9 +332,28 @@ class IODescriptorBase(object):
 
         return all_versions
 
+    def set_is_copiable(self, copiable):
+        """
+        Sets whether copying is supported by this descriptor.
+
+        :param bool copiable: If True, bundle can be copied.
+        """
+        self._is_copiable = copiable
+
     def copy(self, target_path):
         """
-        Copy the contents of the descriptor to an external location
+        Copy the contents of the descriptor to an external location, if supported.
+
+        :param target_path: target path to copy the descriptor to.
+        """
+        if self._is_copiable:
+            self._copy(target_path)
+        else:
+            raise TankDescriptorError("%r cannot be copied." % self)
+
+    def _copy(self, target_path):
+        """
+        Copy the contents of the descriptor to an external location, if supported.
 
         :param target_path: target path to copy the descriptor to.
         """
@@ -341,6 +363,22 @@ class IODescriptorBase(object):
         self.ensure_local()
         # copy descriptor in
         filesystem.copy_folder(self.get_path(), target_path)
+
+    def set_missing_manifest_supported(self, is_supported):
+        """
+        When set to True, manifests can be missing.
+
+        :param bool is_supported: If ``True``, the manifest file can be missing
+        """
+        self._empty_manifest_supported = is_supported
+
+    def set_manifest_location_override(self, location):
+        """
+        Overrides the default location of the manifest file.
+
+        :param str location: Path to the manifest (info.yml) file for this descriptor.
+        """
+        self._manifest_location_override = location
 
     def get_manifest(self):
         """
@@ -363,13 +401,21 @@ class IODescriptorBase(object):
                 self.download_local()
 
             # get the metadata
-            bundle_root = self.get_path()
-            file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
+
+            if self._manifest_location_override:
+                file_path = self._manifest_location_override
+            else:
+                bundle_root = self.get_path()
+                file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
 
             if not os.path.exists(file_path):
-                # at this point we have downloaded the bundle, but it may have
-                # an invalid internal structure.
-                raise TankDescriptorError("Toolkit metadata file '%s' missing." % file_path)
+                if self._empty_manifest_supported:
+                    self.__manifest_data = {}
+                    return self.__manifest_data
+                else:
+                    # at this point we have downloaded the bundle, but it may have
+                    # an invalid internal structure.
+                    raise TankDescriptorError("Toolkit metadata file '%s' missing." % file_path)
 
             try:
                 file_data = open(file_path)
