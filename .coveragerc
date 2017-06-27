@@ -1,0 +1,12 @@
+[run]
+source=tank
+omit=
+    # We can't unit test our uis, so we're not going to put them inside the coverage
+    *tank/authentication/ui/*
+    *tank/platform/qt/*
+    *tank/platform/qt5/*
+
+[report]
+exclude_lines =
+    raise NotImplementedError
+
