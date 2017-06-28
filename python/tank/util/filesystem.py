@@ -343,3 +343,64 @@ def create_valid_filename(value):
         # so that we return a string
         u_src = value.decode("utf-8")
         return exp.sub("_", u_src).encode("utf-8")
+
+def get_permissions(path):
+    """
+    Retrieve the file system permissions for the file or folder in the
+    given path.
+
+    :param filename: Path to the file to be queried for permissions
+    :returns: permissions bits of the file 
+    :raises: OSError - if there was a problem retrieving permissions for the path
+    """
+    return stat.S_IMODE(os.stat(path)[stat.ST_MODE])
+
+def safe_delete_folder(path):
+    """
+    Deletes a folder and all of its contents recursively, even if it has read-only
+    items. 
+
+    .. note::
+        Problems deleting any items will be reported as warnings in the log 
+        output but otherwise ignored and skipped; meaning the function will continue
+        deleting as much as it can.
+
+    :param path: File system path to location to the folder to be deleted
+    """
+
+    def _on_rm_error(func, path, exc_info):
+        """
+        Error function called whenever shutil.rmtree fails to remove a file system
+        item. Exceptions raised by this function will not be caught.
+        
+        :param func: The function which raised the exception; it will be: 
+                     os.path.islink(), os.listdir(), os.remove() or os.rmdir().
+        :param path: The path name passed to function.
+        :param exc_info: The exception information return by sys.exc_info().
+        """
+        if func == os.unlink or func == os.remove or func == os.rmdir:
+            try:
+                attr = get_permissions(path)
+                if not (attr & stat.S_IWRITE):
+                    os.chmod(path, stat.S_IWRITE | attr)
+                    try:
+                        func(path)
+                    except Exception, e:
+                        log.warning("Could not delete %s: %s. Skipping" % (path, e))
+                else:
+                    log.warning("Could not delete %s: %s. Skipping" % (path, e))
+            except Exception, e:
+                log.warning("Could not delete %s: %s. Skipping" % (path, e))
+        else:
+            log.warning("Could not delete %s. Skipping." % path)
+
+    if os.path.exists(path):
+        try:
+            # On Windows, Python's shutil can't delete read-only files, so if we were trying to delete one,
+            # remove the flag.
+            # Inspired by http://stackoverflow.com/a/4829285/1074536
+            shutil.rmtree(path, onerror=_on_rm_error)
+        except Exception, e:
+            log.warning("Could not delete %s: %s" % (path, e))
+    else:
+        log.warning("Could not delete: %s. Folder does not exist" % path)
