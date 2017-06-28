@@ -17,6 +17,8 @@ from mock import patch
 import sgtk
 from sgtk.util import ShotgunPath
 
+from tank.descriptor import descriptor_dict_to_uri
+
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import TankTestBase
 
@@ -798,8 +800,11 @@ class TestResolvedConfiguration(TankTestBase):
         """
         Makes sure an installed configuration is resolved.
         """
-        config = self._resolver.resolve_configuration(
-            {"type": "installed_config", "path": self.pipeline_config_root}, self.tk.shotgun
+        config = self._resolver.resolve_shotgun_configuration(
+            self.tk.pipeline_configuration.get_shotgun_id(),
+            "sgtk:descriptor:not?a=descriptor",
+            self.tk.shotgun,
+            "john.smith"
         )
         self.assertIsInstance(
             config,
@@ -842,7 +847,6 @@ class TestResolvedConfiguration(TankTestBase):
             sgtk.bootstrap.resolver.CachedConfiguration
         )
         self.assertEqual(config.has_local_bundle_cache, False)
-
 
 
 class TestResolvedLatestConfiguration(TankTestBase):
@@ -912,8 +916,6 @@ class TestResolvedLatestConfiguration(TankTestBase):
             config.descriptor.get_uri(),
             "sgtk:descriptor:app_store?version=v0.1.1&name=latest_test"
         )
-
-
 
 
 class TestResolveWithFilter(TestResolverBase):
@@ -1065,12 +1067,25 @@ class TestErrorHandling(TestResolverBase):
         Ensure that the resolver detects when an installed configuration is not available for the
         current platform.
         """
+        this_path_does_not_exists = "/this/does/not/exists/on/disk"
+        pc_id = self._create_pc(
+            "Primary",
+            None,
+            this_path_does_not_exists
+        )["id"]
+
+        expected_descriptor_dict = ShotgunPath(
+            this_path_does_not_exists, this_path_does_not_exists, this_path_does_not_exists
+        ).as_shotgun_dict()
+        expected_descriptor_dict["type"] = "path"
+
         with self.assertRaisesRegexp(
             sgtk.bootstrap.TankBootstrapError,
-            "Installed pipeline configuration 'sgtk:descriptor:installed_config"
-            "\?path=/this/does/not/exists/on/disk' does not exist on disk!"
+            "Installed pipeline configuration '.*' does not exist on disk!"
         ):
-            self.resolver.resolve_configuration(
-                "sgtk:descriptor:installed_config?path=/this/does/not/exists/on/disk",
-                self.mockgun
+            self.resolver.resolve_shotgun_configuration(
+                pc_id,
+                [],
+                self.mockgun,
+                "john.smith"
             )

@@ -69,6 +69,7 @@ class IODescriptorAppStore(IODescriptorBase):
         Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY_TYPE,
         Descriptor.ENGINE: constants.TANK_ENGINE_ENTITY_TYPE,
         Descriptor.CONFIG: constants.TANK_CONFIG_ENTITY_TYPE,
+        Descriptor.INSTALLED_CONFIG: None,
         Descriptor.CORE: None,
     }
 
@@ -77,6 +78,7 @@ class IODescriptorAppStore(IODescriptorBase):
         Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY_TYPE,
         Descriptor.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY_TYPE,
         Descriptor.CONFIG: constants.TANK_CONFIG_VERSION_ENTITY_TYPE,
+        Descriptor.INSTALLED_CONFIG: None,
         Descriptor.CORE: constants.TANK_CORE_VERSION_ENTITY_TYPE,
     }
 
@@ -85,6 +87,7 @@ class IODescriptorAppStore(IODescriptorBase):
         Descriptor.FRAMEWORK: "sg_tank_framework",
         Descriptor.ENGINE: "sg_tank_engine",
         Descriptor.CONFIG: "sg_tank_config",
+        Descriptor.INSTALLED_CONFIG: None,
         Descriptor.CORE: None,
     }
 
@@ -93,6 +96,7 @@ class IODescriptorAppStore(IODescriptorBase):
         Descriptor.FRAMEWORK: "TankAppStore_Framework_Download",
         Descriptor.ENGINE: "TankAppStore_Engine_Download",
         Descriptor.CONFIG: "TankAppStore_Config_Download",
+        Descriptor.INSTALLED_CONFIG: None,
         Descriptor.CORE: "TankAppStore_CoreApi_Download",
     }
 

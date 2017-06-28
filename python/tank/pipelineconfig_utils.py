@@ -174,11 +174,10 @@ def _create_installed_config_descriptor(pipeline_config_path):
     # and pipelineconfig_utils import each other. At some point we will refactor the functionality from
     # this file on the ConfigDescriptor objects and these circular includes won't be necessary anymore.
     from .descriptor import Descriptor, create_descriptor
-    from .descriptor import constants
     return create_descriptor(
         get_deferred_sg_connection(),
-        Descriptor.CONFIG,
-        dict(path=pipeline_config_path, type=constants.INSTALLED_CONFIG_DESCRIPTOR)
+        Descriptor.INSTALLED_CONFIG,
+        dict(path=pipeline_config_path, type="path")
     )
 
 

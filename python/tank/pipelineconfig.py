@@ -30,7 +30,6 @@ from . import template_includes
 from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
-from .descriptor.constants import INSTALLED_CONFIG_DESCRIPTOR
 
 log = LogManager.get_logger(__name__)
 
@@ -134,31 +133,52 @@ class PipelineConfiguration(object):
         # 4) Bootstrap, path is set, descriptor is set and descriptor inside
         #    pipeline_configuration.yml
         #
-        # The correct way to handle all of this is to go from a descriptor string or dictionary
-        # and instantiate the correct descriptor type.
+        # The correct way to handle all of this is to go from a descriptor string or dictionary and
+        # instantiate the correct descriptor type.
         #
         # Note that since the boostapper can't tell if the pipeline configuration is going to use
-        # the file to read the descriptor or not, it is always going to pass down the descriptor
-        # in the arguments. We can however ignore that argument in favor of the descriptor on disk.
+        # the file to read the descriptor or not, it is always going to pass down the descriptor in
+        # the arguments. We can however ignore that argument in favor of the descriptor on disk.
 
-        # Let's handle 4 first, since its the easiest one to do.
         descriptor_dict = pipeline_config_metadata.get("descriptor")
+        # We'll first assume the pipeline configuration is not installed.
+        is_installed = False
+
+        # If there is a descriptor in the file (4), we know we're not installed and we're done!
         if descriptor_dict:
             # The bootstrapper wrote the descriptor in the pipeline_configuration.yml file, nothing
             # more needs to be done.
             pass
         # If there's nothing in the file, but we're being passed down something by the bootstrapper,
-        # we should use it!
+        # we should use it! (3)
         elif descriptor:
+            # Up to 0.18.94, we could be passed in a descriptor pointing to what we now consider to
+            # be an Descriptor.INSTALLED_CONFIG, but the API back then didn't make the distinction
+            # and called it a Descriptor.CONFIG.
+
+            # We will test to see if the path referred to by the descriptor is the same as the
+            # current os path. If it is the same then the descriptor is an installed descriptor. If
+            # it isn't then it must be pointing to something inside the bundle cache, which means it
+            # isn't installed.
+            if self._pc_root == descriptor.get_path():
+                is_installed = True
+
             descriptor_dict = descriptor.get_dict()
-        # now we only have a path set.
+        # Now we only have a path set. (1&2). We can't assume anything, but since all pipeline
+        # configurations, cached or installed, have the same layout on disk, we'll assume that we're
+        # in an installed one. Also, since installed configurations are a bit more lenient about
+        # things like info.yml, its a great fit since there are definitely installed configurations
+        # in the wild without an info.yml in their config folder.
         else:
-            # At this point the best we can hope for is that this is an installed configuration.
-            descriptor_dict = {"type": INSTALLED_CONFIG_DESCRIPTOR, "path": pipeline_configuration_path}
+            is_installed = True
+            descriptor_dict = {
+                "type": "path",
+                "path": self._pc_root
+            }
 
         descriptor = create_descriptor(
             shotgun.get_deferred_sg_connection(),
-            Descriptor.CONFIG,
+            Descriptor.INSTALLED_CONFIG if is_installed else Descriptor.CONFIG,
             descriptor_dict,
             self._bundle_cache_root_override,
             self._bundle_cache_fallback_paths

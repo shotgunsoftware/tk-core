@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -15,10 +15,6 @@ from ..util import filesystem
 from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
-from .constants import INSTALLED_CONFIG_DESCRIPTOR
-
-
-
 
 
 def create_descriptor(
@@ -104,10 +100,11 @@ def create_descriptor(
         return FrameworkDescriptor(sg_connection, io_descriptor)
 
     elif descriptor_type == Descriptor.CONFIG:
-        if io_descriptor.get_type() == INSTALLED_CONFIG_DESCRIPTOR:
-            return InstalledConfigDescriptor(io_descriptor)
-        else:
-            return CachedConfigDescriptor(io_descriptor)
+        return CachedConfigDescriptor(io_descriptor)
+
+    elif descriptor_type == Descriptor.INSTALLED_CONFIG:
+        return InstalledConfigDescriptor(io_descriptor)
+
     elif descriptor_type == Descriptor.CORE:
         return CoreDescriptor(io_descriptor)
     else:
@@ -136,7 +133,7 @@ class Descriptor(object):
     and helper methods.
     """
 
-    (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = range(5)
+    (APP, FRAMEWORK, ENGINE, CONFIG, CORE, INSTALLED_CONFIG) = range(6)
 
     def __init__(self, io_descriptor):
         """
@@ -262,7 +259,7 @@ class Descriptor(object):
         meta = self._io_descriptor.get_manifest()
         desc = meta.get("description")
         if desc is None:
-            desc = "No description available." 
+            desc = "No description available."
         return desc
 
     @property
@@ -291,7 +288,7 @@ class Descriptor(object):
         meta = self._io_descriptor.get_manifest()
         support_url = meta.get("support_url")
         if support_url is None:
-            support_url = "https://support.shotgunsoftware.com" 
+            support_url = "https://support.shotgunsoftware.com"
         return support_url
 
     @property
@@ -320,14 +317,14 @@ class Descriptor(object):
         A short name, suitable for use in configuration files and for folders on disk.
         """
         return self._io_descriptor.get_system_name()
-    
+
     @property
     def version(self):
         """
         The version number string for this item.
         """
         return self._io_descriptor.get_version()
-    
+
     def get_path(self):
         """
         Returns the path to the folder where this item either currently resides
@@ -437,12 +434,29 @@ class Descriptor(object):
     # compatibility accessors to ensure that all systems
     # calling this (previously internal!) parts of toolkit
     # will still work.
-    def get_display_name(self): return self.display_name
-    def get_description(self): return self.description
-    def get_icon_256(self): return self.icon_256
-    def get_support_url(self): return self.support_url
-    def get_doc_url(self): return self.documentation_url
-    def get_deprecation_status(self): return self.deprecation_status
-    def get_system_name(self): return self.system_name
-    def get_version(self): return self.version
-    def get_changelog(self): return self.changelog
+    def get_display_name(self):
+        return self.display_name
+
+    def get_description(self):
+        return self.description
+
+    def get_icon_256(self):
+        return self.icon_256
+
+    def get_support_url(self):
+        return self.support_url
+
+    def get_doc_url(self):
+        return self.documentation_url
+
+    def get_deprecation_status(self):
+        return self.deprecation_status
+
+    def get_system_name(self):
+        return self.system_name
+
+    def get_version(self):
+        return self.version
+
+    def get_changelog(self):
+        return self.changelog
