@@ -29,15 +29,23 @@ class ConfigDescriptor(Descriptor):
     Descriptor that describes a Toolkit Configuration
     """
 
-    def _get_config_folder(self):
+    @property
+    def associated_core_descriptor(self):
         """
-        Returns the folder in which the configuration files are located.
+        The descriptor dict or url required for this core or ``None`` if not defined.
 
-        Derived classes need to implement this method or a ``NotImplementedError`` will be raised.
-
-        :returns: Path to the configuration files folder.
+        :returns: Core descriptor dict or uri or ``None`` if not defined
         """
-        raise NotImplementedError("ConfigDescriptor._get_config_folder is not implemented.")
+        raise NotImplementedError("ConfigDescriptor.associated_core_descriptor is not implemented.")
+
+    @property
+    def python_interpreter(self):
+        """
+        Retrieves the Python interpreter for the current platform from the interpreter files.
+
+        :returns: Path value stored in the interpreter file.
+        """
+        raise NotImplementedError("ConfigDescriptor.python_interpreter is not implemented.")
 
     @property
     def version_constraints(self):
@@ -82,6 +90,16 @@ class ConfigDescriptor(Descriptor):
 
         return readme_content
 
+    def _get_config_folder(self):
+        """
+        Returns the folder in which the configuration files are located.
+
+        Derived classes need to implement this method or a ``NotImplementedError`` will be raised.
+
+        :returns: Path to the configuration files folder.
+        """
+        raise NotImplementedError("ConfigDescriptor._get_config_folder is not implemented.")
+
     def _get_current_platform_interpreter_file_name(self, install_root):
         """
         Retrieves the path to the interpreter file for a given install root.
@@ -100,10 +118,12 @@ class ConfigDescriptor(Descriptor):
         """
         Finds the interpreter file in a given ``config`` folder.
 
+        This is a helper method for derived classes.
+
         :param path: Path to a config folder, which traditionally has ``core``
             and ``env`` subfolders.
 
-
+        :returns: Path to the Python interpreter.
         """
         # Find the interpreter file for the current platform.
         interpreter_config_file = self._get_current_platform_interpreter_file_name(
