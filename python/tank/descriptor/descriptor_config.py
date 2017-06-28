@@ -43,6 +43,9 @@ class ConfigDescriptor(Descriptor):
         """
         Retrieves the Python interpreter for the current platform from the interpreter files.
 
+        :raises TankFileDoesNotExistError: If the interpreter file is missing.
+        :raises TankInvalidInterpreterLocationError: If the interpreter can't be found on disk.
+
         :returns: Path value stored in the interpreter file.
         """
         raise NotImplementedError("ConfigDescriptor.python_interpreter is not implemented.")
