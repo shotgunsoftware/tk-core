@@ -278,7 +278,7 @@ class TestPipelineConfigUtils(TankTestBase):
             TankFileDoesNotExistError,
             "without a localized core is missing a core"
         ):
-            print pipelineconfig_utils.get_python_interpreter_for_config(config_root)
+            pipelineconfig_utils.get_python_interpreter_for_config(config_root)
 
     def test_get_sgtk_module_path(self):
         """
