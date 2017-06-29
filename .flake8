@@ -1,0 +1,21 @@
+# Flake8 Configuration
+[flake8]
+
+exclude =
+    .tox,
+    .git,
+    __pycache__,
+    docs,
+    tests,
+    python/tank_vendor,
+    *.pyc,
+    *.egg-info,
+    .cache,
+    .eggs
+
+# it's not a bug that we aren't using all of hacking, ignore:
+# E501 line too long (112 > 79 characters)
+# W291 trailing whitespace
+# W293 blank line contains whitespace
+ignore = E501, W291, W293
+
