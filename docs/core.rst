@@ -60,7 +60,10 @@ Sgtk
                       log_metric,
                       execute_core_hook,
                       execute_hook,
-                      execute_core_hook_method
+                      execute_core_hook_method,
+                      get_cache_item,
+                      set_cache_item
+
 
 Context
 =========================================
