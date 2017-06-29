@@ -146,7 +146,7 @@ class BakedConfiguration(Configuration):
             project_id=None,
             plugin_id=plugin_id,
             bundle_cache_fallback_paths=[],
-            descriptor=config_descriptor
+            source_descriptor=config_descriptor
         )
 
     @property

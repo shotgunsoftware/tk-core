@@ -15,23 +15,14 @@ Unit tests tank updates.
 from __future__ import with_statement
 
 import os
-import re
 import logging
-import functools
-
-import mock
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
-from sgtk.descriptor import Descriptor
-from sgtk.descriptor.io_descriptor.base import IODescriptorBase
-from sgtk.descriptor import create_descriptor
-
 from tank.platform.environment import InstalledEnvironment
-from distutils.version import LooseVersion
 
+from tank_test.mock_appstore import TankMockStoreDescriptor, patch_app_store
 
-from tank_test.mock_appstore import MockStore, TankMockStoreDescriptor, patch_app_store
 
 class TestSimpleUpdates(TankTestBase):
     """

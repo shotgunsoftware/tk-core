@@ -323,7 +323,7 @@ class TestWritePipelineConfigFile(TankTestBase):
                 "use_bundle_cache": True,
                 "bundle_cache_fallback_roots": self.FALLBACK_PATHS,
                 "use_shotgun_path_cache": True,
-                "descriptor": self.__descriptor.get_dict()
+                "source_descriptor": self.__descriptor.get_dict()
             }
         )
 
@@ -357,7 +357,7 @@ class TestWritePipelineConfigFile(TankTestBase):
                 "use_bundle_cache": True,
                 "bundle_cache_fallback_roots": self.FALLBACK_PATHS,
                 "use_shotgun_path_cache": True,
-                "descriptor": self.__descriptor.get_dict()
+                "source_descriptor": self.__descriptor.get_dict()
             }
         )
 
@@ -390,7 +390,7 @@ class TestWritePipelineConfigFile(TankTestBase):
                 "use_bundle_cache": True,
                 "bundle_cache_fallback_roots": self.FALLBACK_PATHS,
                 "use_shotgun_path_cache": True,
-                "descriptor": self.__descriptor.get_dict()
+                "source_descriptor": self.__descriptor.get_dict()
             }
         )
 
@@ -399,8 +399,8 @@ class TestWritePipelineConfigFile(TankTestBase):
         """
         Workaround for a bug in Mockgun.
         """
-        # FIXME: There's a bug in the Python API when a linked field is set to None.
-        # A client fixed this bug, we're only waiting for the PR to be merged.
+        # FIXME: There's a bug in Mockgun when a linked field is set to None. A client fixed this
+        # bug, we're only waiting for the PR to be merged.
         with patch("tank_vendor.shotgun_api3.lib.mockgun.mockgun.Shotgun.find_one") as p:
             def mocked_find_one(entity_type, filters, *args):
                 # Make sure we're being queried for the pipeline configuration we are expecting.
@@ -447,6 +447,6 @@ class TestWritePipelineConfigFile(TankTestBase):
                 "use_bundle_cache": True,
                 "bundle_cache_fallback_roots": self.FALLBACK_PATHS,
                 "use_shotgun_path_cache": True,
-                "descriptor": self.__descriptor.get_dict()
+                "source_descriptor": self.__descriptor.get_dict()
             }
         )

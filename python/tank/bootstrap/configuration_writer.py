@@ -414,7 +414,9 @@ class ConfigurationWriter(object):
         log.debug("Wrote %s", dest_config_sg_file)
 
     def write_pipeline_config_file(
-        self, pipeline_config_id, project_id, plugin_id, bundle_cache_fallback_paths, descriptor
+        self,
+        pipeline_config_id, project_id, plugin_id,
+        bundle_cache_fallback_paths, source_descriptor
     ):
         """
         Writes out the the pipeline configuration file config/core/pipeline_config.yml
@@ -483,7 +485,7 @@ class ConfigurationWriter(object):
             "use_bundle_cache": True,
             "bundle_cache_fallback_roots": bundle_cache_fallback_paths,
             "use_shotgun_path_cache": True,
-            "descriptor": descriptor.get_dict()
+            "source_descriptor": source_descriptor.get_dict()
         }
 
         # write pipeline_configuration.yml

@@ -201,7 +201,7 @@ class CachedConfiguration(Configuration):
                 self._project_id,
                 self._plugin_id,
                 self._bundle_cache_fallback_paths,
-                descriptor=self._descriptor
+                self._descriptor
             )
 
             # make sure roots file reflects current paths

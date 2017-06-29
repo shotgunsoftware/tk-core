@@ -17,8 +17,6 @@ from mock import patch
 import sgtk
 from sgtk.util import ShotgunPath
 
-from tank.descriptor import descriptor_dict_to_uri
-
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import TankTestBase
 

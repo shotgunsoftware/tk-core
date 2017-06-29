@@ -140,7 +140,7 @@ class PipelineConfiguration(object):
         # the file to read the descriptor or not, it is always going to pass down the descriptor in
         # the arguments. We can however ignore that argument in favor of the descriptor on disk.
 
-        descriptor_dict = pipeline_config_metadata.get("descriptor")
+        descriptor_dict = pipeline_config_metadata.get("source_descriptor")
         # We'll first assume the pipeline configuration is not installed.
         is_installed = False
 

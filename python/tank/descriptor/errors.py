@@ -73,5 +73,6 @@ class TankInvalidInterpreterLocationError(TankDescriptorError):
     Exception that indicates that the interpreter specified in a file was not found.
     """
 
+
 # For backwards compatibility with previous versions of core.
 errors.TankInvalidInterpreterLocationError = TankInvalidInterpreterLocationError
