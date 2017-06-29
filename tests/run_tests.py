@@ -102,8 +102,15 @@ def _finalize_coverage(cov):
     cov.stop()
     cov.report()
     cov.xml_report(outfile="coverage.xml")
-    cov.html_report(directory="coverage_html_report")
-    print "Note: Full html coverage report can be found in the coverage_html_report folder."
+
+    try:
+        # seems to be some CI issues with html coverage so
+        # failing gracefully with a warning in case it doesn't work.
+        cov.html_report(directory="coverage_html_report")
+    except Exception, e:
+        print "WARNING: Html coverage report could not be written: %s" % e
+    else:
+        print "Note: Full html coverage report can be found in the coverage_html_report folder."
 
 
 def _initialize_logging(log_to_console):
