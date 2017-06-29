@@ -51,5 +51,6 @@ exclude =
 # E402 module level import not top of file
 # N802 Variables should be lower case. (clashes with Qt naming conventions)
 # N806 Variables should be lower case. (clashes with Qt naming conventions)
-ignore = E501, W291, W293, E221, E261, E402, N802, N806
+# E999 SyntaxError: invalid syntax (hack for hound CI which runs python 3.x)
+ignore = E501, W291, W293, E221, E261, E402, N802, N806, E999
 
