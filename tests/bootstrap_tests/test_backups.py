@@ -10,20 +10,31 @@
 
 from __future__ import with_statement
 
-import itertools
 import os
+import fnmatch
 import stat
 import sys
 from mock import patch
 import sgtk
-from sgtk.util import ShotgunPath
-from sgtk.bootstrap.configuration_writer import ConfigurationWriter
-from shutil import copytree, ignore_patterns
+from shutil import copytree
 
-from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri, create_descriptor
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import temp_env_var
 from tank_test.tank_test_base import TankTestBase
+
+
+# Copied from Python 2.7's source code.
+def ignore_patterns(*patterns):
+    """Function that can be used as copytree() ignore parameter.
+
+    Patterns is a sequence of glob-style patterns
+    that are used to exclude files"""
+    def _ignore_patterns(path, names):
+        ignored_names = []
+        for pattern in patterns:
+            ignored_names.extend(fnmatch.filter(names, pattern))
+        return set(ignored_names)
+    return _ignore_patterns
 
 
 class TestBackups(TankTestBase):
