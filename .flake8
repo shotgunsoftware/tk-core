@@ -24,14 +24,22 @@
 exclude =
     .tox,
     .git,
-    __pycache__,
-    docs,
-    tests,
-    python/tank_vendor,
-    *.pyc,
-    *.egg-info,
+    .flake8,
+    .gitignore,
+    .travis.yml,
     .cache,
-    .eggs
+    .eggs,
+    *.rst,
+    *.yml,
+    *.pyc,
+    *.pyo,
+    *.egg-info,
+    __pycache__,
+    # Those are our third parties, do not lint them!
+    python/tank_vendor,
+    # Otherwise you'll have a lot of 'xxx' imported but unused
+    python/tank/__init__.py,
+    python/tank/*/__init__.py
 
 # toolkit exceptions
 #
