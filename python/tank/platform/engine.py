@@ -33,7 +33,7 @@ from .errors import (
     TankEngineInitError,
     TankContextChangeNotSupportedError,
     TankEngineEventError,
-    TankMissingEnvironmentFile
+    TankMissingEngineInitError
 )
 
 from ..util import log_user_activity_metric as util_log_user_activity_metric
@@ -2819,8 +2819,8 @@ def start_shotgun_engine(tk, entity_type, context):
     env = tk.pipeline_configuration.get_environment("shotgun_%s" % entity_type.lower(), context)
 
     # get the location for our engine
-    if not constants.SHOTGUN_ENGINE_NAME in env.get_engines():
-        raise TankEngineInitError("Cannot find a shotgun engine in %s. Please contact support." % env)
+    if constants.SHOTGUN_ENGINE_NAME not in env.get_engines():
+        raise TankMissingEngineInitError("Cannot find a shotgun engine in %s. Please contact support." % env)
     
     engine_descriptor = env.get_engine_descriptor(constants.SHOTGUN_ENGINE_NAME)
 
@@ -2902,8 +2902,8 @@ def get_env_and_descriptor_for_engine(engine_name, tk, context):
     env = tk.pipeline_configuration.get_environment(env_name, context)
 
     # make sure that the environment has an engine instance with that name
-    if not engine_name in env.get_engines():
-        raise TankEngineInitError("Cannot find an engine instance %s in %s." % (engine_name, env))
+    if engine_name not in env.get_engines():
+        raise TankMissingEngineInitError("Cannot find an engine instance %s in %s." % (engine_name, env))
 
     # get the location for our engine
     engine_descriptor = env.get_engine_descriptor(engine_name)
