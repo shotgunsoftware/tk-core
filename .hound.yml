@@ -7,19 +7,10 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-#
-# coverage configuration - used by https://coveralls.io/ integration
-#
-#
-[run]
-source=tank
-omit=
-    # We can't unit test our uis, so we're not going to put them inside the coverage
-    *tank/authentication/ui/*
-    *tank/platform/qt/*
-    *tank/platform/qt5/*
 
-[report]
-exclude_lines =
-    raise NotImplementedError
+# https://houndci.com configuration file for linting and PEP8
+
+python:
+  enabled: true
+  config_file: .flake8
 

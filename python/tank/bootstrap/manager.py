@@ -946,7 +946,13 @@ class ToolkitManager(object):
                 try:
                     engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
                     log.debug("Shotgun engine started using a legacy shotgun_xxx.yml environment.")
-                except Exception:
+                except Exception, exc:
+                    log.debug(
+                        "Shotgun engine failed to start using the legacy "
+                        "start_shotgun_engine routine. No more attempts will "
+                        "be made to initialize the engine. The start_shotgun_engine "
+                        "exception was the following: %r" % exc
+                    )
                     raise
         else:
             engine = tank.platform.start_engine(engine_name, tk, ctx)

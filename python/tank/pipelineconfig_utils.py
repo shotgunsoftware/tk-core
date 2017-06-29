@@ -341,7 +341,7 @@ def _get_install_locations(path):
 
     # load the config file
     try:
-        location_data = yaml_cache.g_yaml_cache.get(location_file, deepcopy_data=False)
+        location_data = yaml_cache.g_yaml_cache.get(location_file, deepcopy_data=False) or {}
     except Exception, error:
         raise TankError("Cannot load core config file '%s'. Error: %s" % (location_file, error))
 
@@ -411,7 +411,7 @@ def _get_version_from_manifest(info_yml_path):
     :returns: Always a string, 'unknown' if data cannot be found
     """
     try:
-        data = yaml_cache.g_yaml_cache.get(info_yml_path, deepcopy_data=False)
+        data = yaml_cache.g_yaml_cache.get(info_yml_path, deepcopy_data=False) or {}
         data = str(data.get("version", "unknown"))
     except Exception:
         data = "unknown"
