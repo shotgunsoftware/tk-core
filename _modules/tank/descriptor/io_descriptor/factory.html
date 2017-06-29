@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.18.88 documentation</title>
+  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.18.93 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.88 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.88.<br>
+    <b>tk-core</b> v0.18.93.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -211,8 +211,10 @@
 <span class="sd">                           download new content, it always ends up in the</span>
 <span class="sd">                           bundle_cache_root.</span>
 <span class="sd">    :param resolve_latest: If true, the latest version will be determined and returned.</span>
-<span class="sd">                           If set to True, no version information need to be supplied with</span>
-<span class="sd">                           the descriptor dictionary/uri. Please note that setting this flag</span>
+
+<span class="sd">                           If set to True, no version information needs to be supplied with</span>
+<span class="sd">                           the descriptor dictionary/uri for descriptor types which support</span>
+<span class="sd">                           a version number concept. Please note that setting this flag</span>
 <span class="sd">                           to true will typically affect performance - an external connection</span>
 <span class="sd">                           is often required in order to establish what the latest version is.</span>
 
@@ -245,18 +247,10 @@
 
     <span class="c1"># at this point we didn&#39;t have a cache hit,</span>
     <span class="c1"># so construct the object manually</span>
-    <span class="k">if</span> <span class="n">resolve_latest</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">resolve_latest</span> <span class="ow">and</span> <span class="n">is_descriptor_version_missing</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">):</span>
         <span class="c1"># if someone is requesting a latest descriptor and not providing a version token</span>
         <span class="c1"># make sure to add an artificial one so that we can resolve it.</span>
-        <span class="c1">#</span>
-        <span class="c1"># We only do this for descriptor types that supports a version number concept</span>
-        <span class="n">descriptors_using_version</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;app_store&quot;</span><span class="p">,</span> <span class="s2">&quot;shotgun&quot;</span><span class="p">,</span> <span class="s2">&quot;manual&quot;</span><span class="p">,</span> <span class="s2">&quot;git&quot;</span><span class="p">,</span> <span class="s2">&quot;git_branch&quot;</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="s2">&quot;version&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">descriptor_dict</span> <span class="ow">and</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">descriptors_using_version</span><span class="p">:</span>
-            <span class="c1"># for the case of latest version, make sure we attach a version</span>
-            <span class="c1"># key as part of the descriptor dictionary so that the descriptor</span>
-            <span class="c1"># is valid</span>
-            <span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;latest&quot;</span>
+        <span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;latest&quot;</span>
 
     <span class="c1"># factory logic</span>
     <span class="k">if</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;app_store&quot;</span><span class="p">:</span>
@@ -306,6 +300,59 @@
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Resolved latest to be </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">descriptor</span>
+
+
+<div class="viewcode-block" id="is_descriptor_version_missing"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.is_descriptor_version_missing">[docs]</a><span class="k">def</span> <span class="nf">is_descriptor_version_missing</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper method which checks if a descriptor needs a version.</span>
+
+<span class="sd">    If the given descriptor dictionary or uri is one of the</span>
+<span class="sd">    types which requires a version token, and this token is not</span>
+<span class="sd">    defined, ``True`` will be returned, otherwise ``False``.</span>
+
+<span class="sd">    This is useful for a standard pattern which can be used used</span>
+<span class="sd">    where you want to allow users to configure toolkit</span>
+<span class="sd">    descriptors which track either the latest version or a specific one.</span>
+<span class="sd">    In this pattern, the user hints that they want to track latest</span>
+<span class="sd">    version by omitting the version token altogether.</span>
+
+<span class="sd">    The following standard pattern can then be implemented::</span>
+
+<span class="sd">        # determine if we should request the latest version</span>
+<span class="sd">        # of the given descriptor</span>
+<span class="sd">        if is_descriptor_version_missing(descriptor_uri):</span>
+<span class="sd">            # require the descriptor system to return</span>
+<span class="sd">            # the latest descriptor it can detect</span>
+<span class="sd">            resolve_latest = True</span>
+<span class="sd">        else:</span>
+<span class="sd">            # normal direct lookup of a particular</span>
+<span class="sd">            # descriptor version</span>
+<span class="sd">            resolve_latest = False</span>
+
+<span class="sd">        descriptor_obj = create_descriptor(</span>
+<span class="sd">            sg_connection,</span>
+<span class="sd">            Descriptor.CONFIG,</span>
+<span class="sd">            descriptor_uri,</span>
+<span class="sd">            resolve_latest=resolve_latest</span>
+<span class="sd">        )</span>
+
+<span class="sd">    :param dict_or_uri: A std descriptor dictionary dictionary or string</span>
+<span class="sd">    :return: Boolean to indicate if a required version token is missing</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># resolve into both dict and uri form</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+        <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">descriptor_uri_to_dict</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># make a copy to make sure the original object is never altered</span>
+        <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">dict_or_uri</span>
+
+    <span class="c1"># We only do this for descriptor types that supports a version number concept</span>
+    <span class="n">descriptors_using_version</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;app_store&quot;</span><span class="p">,</span> <span class="s2">&quot;shotgun&quot;</span><span class="p">,</span> <span class="s2">&quot;manual&quot;</span><span class="p">,</span> <span class="s2">&quot;git&quot;</span><span class="p">,</span> <span class="s2">&quot;git_branch&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="s2">&quot;version&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">descriptor_dict</span> <span class="ow">and</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">descriptors_using_version</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
 
 
 <div class="viewcode-block" id="descriptor_uri_to_dict"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.descriptor_uri_to_dict">[docs]</a><span class="k">def</span> <span class="nf">descriptor_uri_to_dict</span><span class="p">(</span><span class="n">uri</span><span class="p">):</span>
@@ -360,7 +407,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.88',
+            VERSION:'v0.18.93',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

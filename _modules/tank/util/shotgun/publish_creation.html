@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.18.88 documentation</title>
+  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.18.93 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.88 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.88.<br>
+    <b>tk-core</b> v0.18.93.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -216,21 +216,37 @@
 <span class="sd">    and will be used to populate the number field of the publish that is created</span>
 <span class="sd">    in Shotgun. The name should represent the name of the item, without any version</span>
 <span class="sd">    number. This is used to group together publishes in Shotgun and various</span>
-<span class="sd">    integrations. For example, if the file you are publishing belongs to Shot</span>
-<span class="sd">    AAA_003 and is named ``AAA_003_foreground.v012.ma``, you could set</span>
-<span class="sd">    the name to be ``foreground`` and the version to be ``12``. The Shot name</span>
-<span class="sd">    will be implied by the associated context.</span>
-
-<span class="sd">    The path will first be checked against the current template definitions.</span>
-<span class="sd">    If it matches any template definition and is determined to be a sequence</span>
-<span class="sd">    of some kind (per frame, per eye), any sequence tokens such as ``@@@@``, ``$4F``</span>
-<span class="sd">    etc. will be normalised to a ``%04d`` form before written to Shotgun.</span>
+<span class="sd">    integrations.</span>
 
 <span class="sd">    If the path matches any local storage roots defined by the toolkit project,</span>
 <span class="sd">    it will be uploaded as a local file link to Shotgun. If not matching roots</span>
 <span class="sd">    are found, the method will retrieve the list of local storages from Shotgun</span>
 <span class="sd">    and try to locate a suitable storage. Failing that, it will fall back on a</span>
-<span class="sd">    register the path as a ``file://`` url.</span>
+<span class="sd">    register the path as a ``file://`` url. For more information on</span>
+<span class="sd">    this resolution logic, see our</span>
+<span class="sd">    `Admin Guide &lt;https://support.shotgunsoftware.com/hc/en-us/articles/115000067493#Configuring%20published%20file%20path%20resolution&gt;`_.</span>
+
+<span class="sd">    .. note:: Shotgun follows a convention where the name passed to the register publish method is used</span>
+<span class="sd">              to control how things are grouped together. When Shotgun and Toolkit groups things together,</span>
+<span class="sd">              things are typically grouped first by project/entity/task and then by publish name and version.</span>
+
+<span class="sd">              If you create three publishes in Shotgun, all having the name &#39;foreground.ma&#39; and version numbers</span>
+<span class="sd">              1, 2 and 3, Shotgun will assume that these are three revisions of the same content and will</span>
+<span class="sd">              group them together in a group called &#39;foreground.ma&#39;.</span>
+
+<span class="sd">              We recommend a convention where the ``name`` parameter reflects the filename passed in via</span>
+<span class="sd">              the ``file_path`` parameter, but with the version number removed. For example:</span>
+
+<span class="sd">              - ``file_path: /tmp/layout.v027.ma, name: layout.ma, version_number: 27``</span>
+<span class="sd">              - ``file_path: /tmp/foreground_v002.%04d.exr, name: foreground.exr, version_number: 2``</span>
+
+<span class="sd">    .. note:: When publishing file sequences, the method will try to normalize your path based on the</span>
+<span class="sd">              current template configuration. For example, if you supply the path ``render.$F4.dpx``,</span>
+<span class="sd">              it will translated to ``render.%04d.dpx`` automatically, assuming there is a matching</span>
+<span class="sd">              template defined. If you are not using templates or publishing files that do not match</span>
+<span class="sd">              any configured templates, always provide sequences on a ``%0xd`` or</span>
+<span class="sd">              ``%xd`` `printf &lt;https://en.wikipedia.org/wiki/Printf_format_string&gt;`_ style</span>
+<span class="sd">              pattern.</span>
 
 <span class="sd">    **Examples**</span>
 
@@ -238,7 +254,7 @@
 <span class="sd">    recommended to supply at least a comment and a Publish Type::</span>
 
 <span class="sd">        &gt;&gt;&gt; file_path = &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
-<span class="sd">        &gt;&gt;&gt; name = &#39;layout&#39;</span>
+<span class="sd">        &gt;&gt;&gt; name = &#39;layout.ma&#39;</span>
 <span class="sd">        &gt;&gt;&gt; version_number = 1</span>
 <span class="sd">        &gt;&gt;&gt;</span>
 <span class="sd">        &gt;&gt;&gt; sgtk.util.register_publish(</span>
@@ -248,7 +264,7 @@
 <span class="sd">            name,</span>
 <span class="sd">            version_number,</span>
 <span class="sd">            comment = &#39;Initial layout composition.&#39;,</span>
-<span class="sd">            published_file_type = &#39;Layout Scene&#39;</span>
+<span class="sd">            published_file_type = &#39;Maya Scene&#39;</span>
 <span class="sd">        )</span>
 
 <span class="sd">        {&#39;code&#39;: &#39;layout.v001.ma&#39;,</span>
@@ -256,7 +272,8 @@
 <span class="sd">         &#39;description&#39;: &#39;Initial layout composition.&#39;,</span>
 <span class="sd">         &#39;entity&#39;: {&#39;id&#39;: 2, &#39;name&#39;: &#39;shot_010&#39;, &#39;type&#39;: &#39;Shot&#39;},</span>
 <span class="sd">         &#39;id&#39;: 2,</span>
-<span class="sd">         &#39;name&#39;: &#39;layout&#39;,</span>
+<span class="sd">         &#39;published_file_type&#39;: {&#39;id&#39;: 134, &#39;type&#39;: &#39;PublishedFileType&#39;},</span>
+<span class="sd">         &#39;name&#39;: &#39;layout.ma&#39;,</span>
 <span class="sd">         &#39;path&#39;: {&#39;content_type&#39;: None,</span>
 <span class="sd">          &#39;link_type&#39;: &#39;local&#39;,</span>
 <span class="sd">          &#39;local_path&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
@@ -326,7 +343,7 @@
 <span class="sd">        - ``task`` - A shotgun entity dictionary with id and type (which should always be Task).</span>
 <span class="sd">          if no value is specified, the task will be grabbed from the context object.</span>
 
-<span class="sd">        - ``comment`` - A string containing a description of the comment</span>
+<span class="sd">        - ``comment`` - A string containing a description of what is being published.</span>
 
 <span class="sd">        - ``thumbnail_path`` - A path to a thumbnail (png or jpeg) which will be uploaded to shotgun</span>
 <span class="sd">          and associated with the publish.</span>
@@ -336,12 +353,12 @@
 
 <span class="sd">        - ``dependency_ids`` - A list of publish ids which should be registered as dependencies.</span>
 
-<span class="sd">        - ``published_file_type`` - A tank type in the form of a string which should match a tank type</span>
-<span class="sd">          that is registered in Shotgun.</span>
+<span class="sd">        - ``published_file_type`` - A publish type in the form of a string. If the publish type does not</span>
+<span class="sd">          already exist in Shotgun, it will be created.</span>
 
-<span class="sd">        - ``update_entity_thumbnail`` - Push thumbnail up to the attached entity</span>
+<span class="sd">        - ``update_entity_thumbnail`` - Push thumbnail up to the associated entity</span>
 
-<span class="sd">        - ``update_task_thumbnail`` - Push thumbnail up to the attached task</span>
+<span class="sd">        - ``update_task_thumbnail`` - Push thumbnail up to the associated task</span>
 
 <span class="sd">        - ``created_by`` - Override for the user that will be marked as creating the publish.  This should</span>
 <span class="sd">          be in the form of shotgun entity, e.g. {&quot;type&quot;:&quot;HumanUser&quot;, &quot;id&quot;:7}. If not set, the user will</span>
@@ -955,7 +972,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.88',
+            VERSION:'v0.18.93',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

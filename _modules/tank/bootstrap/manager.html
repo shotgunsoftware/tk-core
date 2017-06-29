@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.bootstrap.manager &mdash; tk-core v0.18.88 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.93 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.88 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.88.<br>
+    <b>tk-core</b> v0.18.93.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1093,40 +1093,33 @@
         <span class="kn">import</span> <span class="nn">tank</span>
         <span class="n">is_shotgun_engine</span> <span class="o">=</span> <span class="n">engine_name</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span>
 
-        <span class="c1"># handle legacy cases</span>
-        <span class="k">if</span> <span class="n">is_shotgun_engine</span> <span class="ow">and</span> <span class="n">is_version_older</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="s2">&quot;v0.18.77&quot;</span><span class="p">):</span>
-            <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_legacy_start_shotgun_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># no legacy cases</span>
+        <span class="c1"># If this is the shotgun engine we are starting, then we will attempt a typical</span>
+        <span class="c1"># engine start first, which will work if the engine is configured in the standard</span>
+        <span class="c1"># environment files in the config. If it fails, though, then we can try the</span>
+        <span class="c1"># legacy approach, which will try to use shotgun_xxx.yml environments if they</span>
+        <span class="c1"># exist in the config. If both fail, we reraise the legacy method exception</span>
+        <span class="c1"># and log the first one that came from the start_engine attempt.</span>
+        <span class="k">if</span> <span class="n">is_shotgun_engine</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;Attempting to start the shotgun engine using the standard &quot;</span>
+                    <span class="s2">&quot;start_engine routine...&quot;</span>
+                <span class="p">)</span>
                 <span class="n">engine</span> <span class="o">=</span> <span class="n">tank</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span>
-                <span class="c1"># It&#39;s possible that a tk-core is being used that didn&#39;t come from</span>
-                <span class="c1"># the app_store. This might be the case where a site config has been</span>
-                <span class="c1"># locked off, and populated with a tk-core cloned from Github. In that</span>
-                <span class="c1"># case, it&#39;ll have &quot;HEAD&quot; as its version. In that situation, we don&#39;t</span>
-                <span class="c1"># actually know if this is a &quot;new&quot; core, or something super old. Given</span>
-                <span class="c1"># that, we need to try going the legacy route here just to see if we</span>
-                <span class="c1"># might actually have an old core.</span>
-                <span class="k">if</span> <span class="n">is_version_head</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">version</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_shotgun_engine</span><span class="p">:</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_legacy_start_shotgun_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
-                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                        <span class="c1"># We&#39;ll want to raise the original exception here. We don&#39;t</span>
-                        <span class="c1"># really know whether this is a legacy core or not, so if both</span>
-                        <span class="c1"># the legacy and new code paths failed, we&#39;ll raise the exception</span>
-                        <span class="c1"># from the new code path.</span>
-                        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                            <span class="s2">&quot;Attempted legacy engine start path for Shotgun engine, which failed. &quot;</span>
-                            <span class="s2">&quot;This attempt was made because the tk-core version is HEAD, which means &quot;</span>
-                            <span class="s2">&quot;we don&#39;t know if it&#39;s new or old. As such, when the new-style bootstrap &quot;</span>
-                            <span class="s2">&quot;failed, the legacy pathway was attempted.&quot;</span>
-                        <span class="p">)</span>
-                        <span class="k">raise</span> <span class="n">exc</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># In this case, we know we&#39;re in a new enough core, but that we</span>
-                    <span class="c1"># just failed for some legitimate reason.</span>
-                    <span class="k">raise</span> <span class="n">exc</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;Shotgun engine failed to start using start_engine. An &quot;</span>
+                    <span class="s2">&quot;attempt will now be made to start it using an legacy &quot;</span>
+                    <span class="s2">&quot;shotgun_xxx.yml environment. The start_engine exception &quot;</span>
+                    <span class="s2">&quot;was the following: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">exc</span>
+                <span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_legacy_start_shotgun_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Shotgun engine started using a legacy shotgun_xxx.yml environment.&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">raise</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">engine</span> <span class="o">=</span> <span class="n">tank</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Launched engine </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">engine</span><span class="p">)</span>
 
@@ -1354,7 +1347,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.88',
+            VERSION:'v0.18.93',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.software_launcher &mdash; tk-core v0.18.88 documentation</title>
+  <title>tank.platform.software_launcher &mdash; tk-core v0.18.93 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.88 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.88.<br>
+    <b>tk-core</b> v0.18.93.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -207,10 +207,10 @@
 
 <div class="viewcode-block" id="create_engine_launcher"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.create_engine_launcher">[docs]</a><span class="k">def</span> <span class="nf">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">versions</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Factory method that creates a :class:`SoftwareLauncher` subclass </span>
+<span class="sd">    Factory method that creates a :class:`SoftwareLauncher` subclass</span>
 <span class="sd">    instance implemented by a toolkit engine in the environment config</span>
-<span class="sd">    that can be used by a custom script or toolkit app. The engine </span>
-<span class="sd">    subclass manages the business logic for DCC executable path </span>
+<span class="sd">    that can be used by a custom script or toolkit app. The engine</span>
+<span class="sd">    subclass manages the business logic for DCC executable path</span>
 <span class="sd">    discovery and the environmental requirements for launching the DCC.</span>
 <span class="sd">    Toolkit is automatically started up during the DCC&#39;s launch phase.</span>
 <span class="sd">    A very simple example of how this works is demonstrated here::</span>
@@ -221,7 +221,11 @@
 <span class="sd">        &gt;&gt;&gt; context = tk.context_from_path(&quot;/studio/project_root/sequences/AAA/ABC/Light/work&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; launcher = sgtk.platform.create_engine_launcher(tk, context, &quot;tk-maya&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; software_versions = launcher.scan_software()</span>
-<span class="sd">        &gt;&gt;&gt; launch_info = launcher.prepare_launch(software_versions[0].path, args, &quot;/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; launch_info = launcher.prepare_launch(</span>
+<span class="sd">        ...     software_versions[0].path,</span>
+<span class="sd">        ...     args,</span>
+<span class="sd">        ...     &quot;/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma&quot;</span>
+<span class="sd">        ... )</span>
 <span class="sd">        &gt;&gt;&gt; subprocess.Popen([launch_info.path + &quot; &quot; + launch_info.args], env=launch_info.environment)</span>
 
 <span class="sd">    where ``software_versions`` is a list of :class:`SoftwareVersion`</span>
@@ -240,7 +244,7 @@
 <span class="sd">    :param list products: A list of product strings for filtering software</span>
 <span class="sd">        versions. See the :class:`SoftwareLauncher` for more info.</span>
 
-<span class="sd">    :rtype: :class:`SoftwareLauncher` instance or ``None`` if the </span>
+<span class="sd">    :rtype: :class:`SoftwareLauncher` instance or ``None`` if the</span>
 <span class="sd">            engine can be found on disk, but no ``startup.py`` file exists.</span>
 <span class="sd">    :raises: :class:`TankError` if the specified engine cannot be found</span>
 <span class="sd">             on disk.</span>
@@ -346,6 +350,7 @@
 
         <span class="c1"># product and version string lists to limit the scope of sw discovery</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_products</span> <span class="o">=</span> <span class="n">products</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lower_case_products</span> <span class="o">=</span> <span class="p">[</span><span class="n">product</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_products</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_versions</span> <span class="o">=</span> <span class="n">versions</span> <span class="ow">or</span> <span class="p">[]</span>
 
     <span class="c1">##########################################################################################</span>
@@ -660,9 +665,15 @@
         <span class="c1"># note: get_shotgun_id() returns None for unmanaged configs.</span>
         <span class="n">pipeline_config_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_shotgun_id</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">pipeline_config_id</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Setting SHOTGUN_PIPELINE_CONFIGURATION_ID to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">pipeline_config_id</span>
+            <span class="p">)</span>
             <span class="n">env</span><span class="p">[</span><span class="s2">&quot;SHOTGUN_PIPELINE_CONFIGURATION_ID&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pipeline_config_id</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Unmanaged config. Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Pipeline configuration doesn&#39;t have an id. &quot;</span>
+                <span class="s2">&quot;Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID.&quot;</span>
+            <span class="p">)</span>
 
         <span class="c1"># get the most accurate entity, first see if there is a task, then entity then project</span>
         <span class="n">entity_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">task</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">project</span>
@@ -784,6 +795,9 @@
 <span class="sd">        ``products`` constraint. If there are no constraints on the products,</span>
 <span class="sd">        the method will return ``True``.</span>
 
+<span class="sd">        .. note::</span>
+<span class="sd">            Product name comparison is case-insensitive.</span>
+
 <span class="sd">        :param str product: A string representing the product name to check</span>
 <span class="sd">            against.</span>
 
@@ -796,7 +810,7 @@
             <span class="k">return</span> <span class="bp">True</span>
 
         <span class="c1"># check products list</span>
-        <span class="k">return</span> <span class="n">product</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">products</span></div>
+        <span class="k">return</span> <span class="n">product</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lower_case_products</span></div>
 
 
 <div class="viewcode-block" id="SoftwareVersion"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.SoftwareVersion">[docs]</a><span class="k">class</span> <span class="nc">SoftwareVersion</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -899,7 +913,7 @@
 <span class="sd">    Stores blueprints for how to launch a specific DCC which includes</span>
 <span class="sd">    required environment variables, the executable path, and command</span>
 <span class="sd">    line arguments to pass when launching the DCC. For example, given</span>
-<span class="sd">    a LaunchInformation instance ``launch_info``, open a DCC using </span>
+<span class="sd">    a LaunchInformation instance ``launch_info``, open a DCC using</span>
 <span class="sd">    ``subprocess``::</span>
 
 <span class="sd">        &gt;&gt;&gt; launch_cmd = &quot;%s %s&quot; % (launch_info.path, launch_info.args)</span>
@@ -981,7 +995,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.88',
+            VERSION:'v0.18.93',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

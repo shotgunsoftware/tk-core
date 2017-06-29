@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.88 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.93 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.88 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.93 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -186,7 +186,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.88.<br>
+    <b>tk-core</b> v0.18.93.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1077,12 +1077,22 @@ attempt to broadcast the request to the currently active engine.</p>
 <dl class="method">
 <dt id="sgtk.platform.Engine.register_command">
 <code class="descname">register_command</code><span class="sig-paren">(</span><em>name</em>, <em>callback</em>, <em>properties=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.register_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.register_command" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register a command with a name and a callback function.</p>
+<dd><p>Register a <code class="docutils literal"><span class="pre">command</span></code> with a name and a callback function.</p>
 <p>A <em>command</em> refers to an access point for some functionality.
 In most cases, commands will appear as items on a Shotgun dropdown
 menu, but it ultimately depends on the engine - in the Shell engine,
 commands are instead represented as a text base listing and in the
 Shotgun Desktop it is a scrollable list of larger icons.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method is used to add menu entries for launching
+toolkit UIs. If you wish to register a panel UI with toolkit,
+you need call this method in order to register a menu command
+with which a user can launch the panel. In addition to this,
+you also need to call <a class="reference internal" href="#sgtk.platform.Engine.register_panel" title="sgtk.platform.Engine.register_panel"><code class="xref py py-meth docutils literal"><span class="pre">register_panel()</span></code></a> in order to
+register the panel so that the engine can handle its
+management and persistence.</p>
+</div>
 <p>An arbitrary list of properties can be passed into the engine
 in the form of a properties dictionary. The interpretation of
 the properties dictionary is engine specific, but in general
@@ -1097,17 +1107,21 @@ If no description is passed, the one provided in the app manifest will be used.<
 </li>
 <li><p class="first"><code class="docutils literal"><span class="pre">title</span></code> - Title to appear on shotgun action menu (e.g. &#8220;Create Folders&#8221;)</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">type</span></code> - The type of command - hinting where it should appear. Options vary between
-engines and the following three are supported:</p>
+<li><p class="first"><code class="docutils literal"><span class="pre">type</span></code> - The type of command - hinting at which menu the command should appear.
+Options vary between engines and the following are supported:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal"><span class="pre">context_menu</span></code> - Supported on all engines. Place item on
-the context menu (first item on the shotgun menu).</li>
-<li><code class="docutils literal"><span class="pre">panel</span></code> - This command is associated with a panel app if the target
-environment supports a special notion of panel related actions, place
-the command there. (supported by for example Nuke)</li>
-<li><code class="docutils literal"><span class="pre">node</span></code> - For applications that have a specific node menu (like Nuke),
-place the command there.</li>
+<li><code class="docutils literal"><span class="pre">context_menu</span></code> - Supported on all engines. Places an item on
+the context menu (first item on the shotgun menu). The context menu is a
+suitable location for utility items, helpers and tools.</li>
+<li><code class="docutils literal"><span class="pre">panel</span></code> - Some DCCs have a special menu which is accessible only when
+right clicking on a panel. Passing <code class="docutils literal"><span class="pre">panel</span></code> as the command type hints
+to the system that the command should be added to this menu. If no panel
+menu is available, it will be added to the main menu. Nuke is an example
+of a DCC which supports this behavior.</li>
+<li><code class="docutils literal"><span class="pre">node</span></code> - Node based applications such as Nuke typically have a separate
+menu system for accessing nodes. If you want your registered command to appear
+on this menu, use this type.</li>
 </ul>
 </div></blockquote>
 </li>
@@ -1129,7 +1143,8 @@ group as a whole.</li>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">It is up to each engine to implement grouping and group defaults in an appropriate way. Some engines may not support grouping.</p>
+<p class="last">It is up to each engine to implement grouping and group defaults in an
+appropriate way. Some engines may not support grouping.</p>
 </div>
 <p>The following properties are supported for the Shotgun engine specifically:</p>
 <ul class="simple">
@@ -4392,12 +4407,12 @@ The software launch interface is specialized to operate outside of this known st
 is made up of three main components:</p>
 <ul class="simple">
 <li><strong>Software Entity</strong> - An entity in Shotgun used to identify local software installs to display in Launch interfaces such as Desktop and SG web</li>
-<li><strong>Core Launch Interface</strong> - Standard methods and interfaces that provide the launch mechanism for scripts and apps such as tk-multi-launchapp</li>
+<li><strong>Core Launch Interface</strong> - Standard methods and interfaces that provide the launch mechanism for scripts and apps such as <code class="docutils literal"><span class="pre">tk-multi-launchapp</span></code></li>
 <li><strong>Toolkit Engine</strong> - Implementation of the core interface for a specific toolkit integration which includes finding installed executables, preparing the toolkit environment, and launching the DCC</li>
 </ul>
 <div class="section" id="a-simple-launch-application">
 <h3>A Simple Launch Application<a class="headerlink" href="#a-simple-launch-application" title="Permalink to this headline">¶</a></h3>
-<p>The Toolkit core API provides an interface custom applications can use to implement the business
+<p>The Toolkit core API provides an interface that custom applications can use to implement the business
 logic for launching DCC software related to a particular Toolkit engine. This interface is comprised
 of a factory method <a class="reference internal" href="#sgtk.platform.create_engine_launcher" title="sgtk.platform.create_engine_launcher"><code class="xref py py-meth docutils literal"><span class="pre">create_engine_launcher()</span></code></a> and classes <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a>,
 <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a>, and <a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal"><span class="pre">LaunchInformation</span></code></a>. The factory method is called for a specific
@@ -4604,11 +4619,13 @@ for DCCs that have Toolkit integrations or <code class="docutils literal"><span 
 for a launch command to be added to Desktop. The full list of launch commands a user has access to
 may be limited by Project, user name, Group membership, or DCC version.</p>
 <p>The Software site page can be accessed from either &#8220;All Pages &gt; Global Pages &gt; Software&#8221; or &#8220;User Menu &gt;
-Admin &gt; Software&#8221; menus. Here are sample Software entries:</p>
+Admin &gt; Software&#8221; menus.</p>
+<img alt="_images/software_entities.png" src="_images/software_entities.png" />
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Since the engine field is optional, any locally installed DCC application can be registered to launch by specifying a <code class="docutils literal"><span class="pre">Software</span> <span class="pre">Name</span></code>, <code class="docutils literal"><span class="pre">&lt;platform&gt;</span> <span class="pre">Path</span></code>, and <code class="docutils literal"><span class="pre">Thumbnail</span></code>. A proper Toolkit integration for this DCC is not required. This is demonstrated by the GIMP entry on the sample Software page.</p>
+<p class="last">Since the engine field is optional, any locally installed DCC application can be registered to launch by specifying a <code class="docutils literal"><span class="pre">Software</span> <span class="pre">Name</span></code>, <code class="docutils literal"><span class="pre">&lt;platform&gt;</span> <span class="pre">Path</span></code>, and <code class="docutils literal"><span class="pre">Thumbnail</span></code>. A proper Toolkit integration for this DCC is not required.</p>
 </div>
+<img alt="_images/desktop_sw_entities.png" src="_images/desktop_sw_entities.png" />
 <div class="section" id="software-entity-field-reference">
 <h4>Software Entity Field Reference<a class="headerlink" href="#software-entity-field-reference" title="Permalink to this headline">¶</a></h4>
 <ul class="simple">
@@ -4635,10 +4652,10 @@ Admin &gt; Software&#8221; menus. Here are sample Software entries:</p>
 <dl class="function">
 <dt id="sgtk.platform.create_engine_launcher">
 <code class="descclassname">sgtk.platform.</code><code class="descname">create_engine_launcher</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>engine_name</em>, <em>versions=None</em>, <em>products=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#create_engine_launcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.create_engine_launcher" title="Permalink to this definition">¶</a></dt>
-<dd><p>Factory method that creates a <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> subclass 
+<dd><p>Factory method that creates a <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> subclass
 instance implemented by a toolkit engine in the environment config
-that can be used by a custom script or toolkit app. The engine 
-subclass manages the business logic for DCC executable path 
+that can be used by a custom script or toolkit app. The engine
+subclass manages the business logic for DCC executable path
 discovery and the environmental requirements for launching the DCC.
 Toolkit is automatically started up during the DCC&#8217;s launch phase.
 A very simple example of how this works is demonstrated here:</p>
@@ -4648,7 +4665,11 @@ A very simple example of how this works is demonstrated here:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">context</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">launcher</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="s2">&quot;tk-maya&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">software_versions</span> <span class="o">=</span> <span class="n">launcher</span><span class="o">.</span><span class="n">scan_software</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">launch_info</span> <span class="o">=</span> <span class="n">launcher</span><span class="o">.</span><span class="n">prepare_launch</span><span class="p">(</span><span class="n">software_versions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s2">&quot;/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">launch_info</span> <span class="o">=</span> <span class="n">launcher</span><span class="o">.</span><span class="n">prepare_launch</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">software_versions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">args</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">],</span> <span class="n">env</span><span class="o">=</span><span class="n">launch_info</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -4674,7 +4695,7 @@ versions. See the <a class="reference internal" href="#sgtk.platform.SoftwareLau
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> instance or <code class="docutils literal"><span class="pre">None</span></code> if the 
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> instance or <code class="docutils literal"><span class="pre">None</span></code> if the
 engine can be found on disk, but no <code class="docutils literal"><span class="pre">startup.py</span></code> file exists.</p>
 </td>
 </tr>
@@ -5026,7 +5047,7 @@ that need to be passed down to the DCC.</li>
 <dd><p>Stores blueprints for how to launch a specific DCC which includes
 required environment variables, the executable path, and command
 line arguments to pass when launching the DCC. For example, given
-a LaunchInformation instance <code class="docutils literal"><span class="pre">launch_info</span></code>, open a DCC using 
+a LaunchInformation instance <code class="docutils literal"><span class="pre">launch_info</span></code>, open a DCC using
 <code class="docutils literal"><span class="pre">subprocess</span></code>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">launch_cmd</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">launch_cmd</span><span class="p">],</span> <span class="n">env</span><span class="o">=</span><span class="n">launch_info</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
@@ -5640,7 +5661,7 @@ that need to be passed down to the DCC.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.88',
+            VERSION:'v0.18.93',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

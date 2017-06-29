@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.88 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.93 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.88 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.88.<br>
+    <b>tk-core</b> v0.18.93.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1047,13 +1047,21 @@
 
 <div class="viewcode-block" id="Engine.register_command"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.register_command">[docs]</a>    <span class="k">def</span> <span class="nf">register_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Register a command with a name and a callback function.</span>
+<span class="sd">        Register a ``command`` with a name and a callback function.</span>
 
 <span class="sd">        A *command* refers to an access point for some functionality.</span>
 <span class="sd">        In most cases, commands will appear as items on a Shotgun dropdown</span>
 <span class="sd">        menu, but it ultimately depends on the engine - in the Shell engine,</span>
 <span class="sd">        commands are instead represented as a text base listing and in the</span>
 <span class="sd">        Shotgun Desktop it is a scrollable list of larger icons.</span>
+
+<span class="sd">        .. note:: This method is used to add menu entries for launching</span>
+<span class="sd">           toolkit UIs. If you wish to register a panel UI with toolkit,</span>
+<span class="sd">           you need call this method in order to register a menu command</span>
+<span class="sd">           with which a user can launch the panel. In addition to this,</span>
+<span class="sd">           you also need to call :meth:`register_panel` in order to</span>
+<span class="sd">           register the panel so that the engine can handle its</span>
+<span class="sd">           management and persistence.</span>
 
 <span class="sd">        An arbitrary list of properties can be passed into the engine</span>
 <span class="sd">        in the form of a properties dictionary. The interpretation of</span>
@@ -1069,16 +1077,23 @@
 
 <span class="sd">        - ``title`` - Title to appear on shotgun action menu (e.g. &quot;Create Folders&quot;)</span>
 
-<span class="sd">        - ``type`` - The type of command - hinting where it should appear. Options vary between</span>
-<span class="sd">          engines and the following three are supported:</span>
+<span class="sd">        - ``type`` - The type of command - hinting at which menu the command should appear.</span>
+<span class="sd">          Options vary between engines and the following are supported:</span>
 
-<span class="sd">            - ``context_menu`` - Supported on all engines. Place item on</span>
-<span class="sd">              the context menu (first item on the shotgun menu).</span>
-<span class="sd">            - ``panel`` - This command is associated with a panel app if the target</span>
-<span class="sd">              environment supports a special notion of panel related actions, place</span>
-<span class="sd">              the command there. (supported by for example Nuke)</span>
-<span class="sd">            - ``node`` - For applications that have a specific node menu (like Nuke),</span>
-<span class="sd">              place the command there.</span>
+<span class="sd">            - ``context_menu`` - Supported on all engines. Places an item on</span>
+<span class="sd">              the context menu (first item on the shotgun menu). The context menu is a</span>
+<span class="sd">              suitable location for utility items, helpers and tools.</span>
+
+<span class="sd">            - ``panel`` - Some DCCs have a special menu which is accessible only when</span>
+<span class="sd">              right clicking on a panel. Passing ``panel`` as the command type hints</span>
+<span class="sd">              to the system that the command should be added to this menu. If no panel</span>
+<span class="sd">              menu is available, it will be added to the main menu. Nuke is an example</span>
+<span class="sd">              of a DCC which supports this behavior.</span>
+
+<span class="sd">            - ``node`` - Node based applications such as Nuke typically have a separate</span>
+<span class="sd">              menu system for accessing nodes. If you want your registered command to appear</span>
+<span class="sd">              on this menu, use this type.</span>
+
 
 <span class="sd">        **Grouping commands into collections**</span>
 
@@ -1099,7 +1114,8 @@
 <span class="sd">        - ``group_default`` - Boolean value indicating whether this command should represent the</span>
 <span class="sd">          group as a whole.</span>
 
-<span class="sd">        .. note:: It is up to each engine to implement grouping and group defaults in an appropriate way. Some engines may not support grouping.</span>
+<span class="sd">        .. note:: It is up to each engine to implement grouping and group defaults in an</span>
+<span class="sd">                  appropriate way. Some engines may not support grouping.</span>
 
 
 <span class="sd">        The following properties are supported for the Shotgun engine specifically:</span>
@@ -2848,34 +2864,7 @@
             <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">initialize_base_file_handler</span><span class="p">(</span><span class="n">engine_name</span><span class="p">)</span>
 
         <span class="c1"># get environment and engine location</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">new_context</span><span class="p">)</span>
-        <span class="k">except</span> <span class="p">(</span><span class="n">TankEngineInitError</span><span class="p">,</span> <span class="n">TankMissingEnvironmentFile</span><span class="p">):</span>
-            <span class="c1"># If we failed using the typical pick_environment approach, then we</span>
-            <span class="c1"># need to check and see if this is the Shotgun engine. If it is, then</span>
-            <span class="c1"># we can also try the legacy engine start method, which will make use</span>
-            <span class="c1"># of shotgun_xxx.yml environment files if they exist in the config.</span>
-            <span class="k">if</span> <span class="n">engine_name</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span><span class="p">:</span>
-                <span class="c1"># If the new context has an associated entity, we get the type from</span>
-                <span class="c1"># that. If it doesn&#39;t, then we can check to see if it&#39;s a project</span>
-                <span class="c1"># context. If neither is the case, meaning we have an empty context,</span>
-                <span class="c1"># then we re-raise.</span>
-                <span class="k">if</span> <span class="n">new_context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                    <span class="n">entity_type</span> <span class="o">=</span> <span class="n">new_context</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
-                <span class="k">elif</span> <span class="n">new_context</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                    <span class="n">entity_type</span> <span class="o">=</span> <span class="s2">&quot;Project&quot;</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># Empty context, in which case we know the start_shotgun_engine won&#39;t do what we need.</span>
-                    <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                        <span class="s2">&quot;Legacy shotgun environment configuration &quot;</span>
-                        <span class="s2">&quot;does not support context &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">new_context</span>
-                    <span class="p">)</span>
-
-                <span class="n">core_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting Shotgun engine in legacy mode...&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">start_shotgun_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">new_context</span><span class="p">)</span>
-            <span class="c1"># If this isn&#39;t the Shotgun engine or we haven&#39;t yet returned, then</span>
-            <span class="c1"># we just re-raise.</span>
-            <span class="k">raise</span>
+        <span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">new_context</span><span class="p">)</span>
 
         <span class="c1"># make sure it exists locally</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">exists_local</span><span class="p">():</span>
@@ -3171,7 +3160,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.88',
+            VERSION:'v0.18.93',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.88 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.93 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.88 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.93 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -137,7 +137,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.88.<br>
+    <b>tk-core</b> v0.18.93.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -497,9 +497,10 @@ cache that is shared across all sites and projects.</li>
 apps will be searched for. Note that when descriptors
 download new content, it always ends up in the
 bundle_cache_root.</li>
-<li><strong>resolve_latest</strong> &#8211; <p>If true, the latest version will be determined and returned.
-If set to True, no version information need to be supplied with
-the descriptor dictionary/uri. Please note that setting this flag
+<li><strong>resolve_latest</strong> &#8211; <p>If true, the latest version will be determined and returned.</p>
+<p>If set to True, no version information needs to be supplied with
+the descriptor dictionary/uri for descriptor types which support
+a version number concept. Please note that setting this flag
 to true will typically affect performance - an external connection
 is often required in order to establish what the latest version is.</p>
 <p>If a remote connection cannot be established when attempting to determine
@@ -554,6 +555,50 @@ This is a string that can be on the following form:</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>uri</strong> &#8211; descriptor string uri</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">descriptor dictionary</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.descriptor.is_descriptor_version_missing">
+<code class="descclassname">sgtk.descriptor.</code><code class="descname">is_descriptor_version_missing</code><span class="sig-paren">(</span><em>dict_or_uri</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/io_descriptor/factory.html#is_descriptor_version_missing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.is_descriptor_version_missing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method which checks if a descriptor needs a version.</p>
+<p>If the given descriptor dictionary or uri is one of the
+types which requires a version token, and this token is not
+defined, <code class="docutils literal"><span class="pre">True</span></code> will be returned, otherwise <code class="docutils literal"><span class="pre">False</span></code>.</p>
+<p>This is useful for a standard pattern which can be used used
+where you want to allow users to configure toolkit
+descriptors which track either the latest version or a specific one.
+In this pattern, the user hints that they want to track latest
+version by omitting the version token altogether.</p>
+<p>The following standard pattern can then be implemented:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># determine if we should request the latest version</span>
+<span class="c1"># of the given descriptor</span>
+<span class="k">if</span> <span class="n">is_descriptor_version_missing</span><span class="p">(</span><span class="n">descriptor_uri</span><span class="p">):</span>
+    <span class="c1"># require the descriptor system to return</span>
+    <span class="c1"># the latest descriptor it can detect</span>
+    <span class="n">resolve_latest</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># normal direct lookup of a particular</span>
+    <span class="c1"># descriptor version</span>
+    <span class="n">resolve_latest</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="n">descriptor_obj</span> <span class="o">=</span> <span class="n">create_descriptor</span><span class="p">(</span>
+    <span class="n">sg_connection</span><span class="p">,</span>
+    <span class="n">Descriptor</span><span class="o">.</span><span class="n">CONFIG</span><span class="p">,</span>
+    <span class="n">descriptor_uri</span><span class="p">,</span>
+    <span class="n">resolve_latest</span><span class="o">=</span><span class="n">resolve_latest</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dict_or_uri</strong> &#8211; A std descriptor dictionary dictionary or string</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Boolean to indicate if a required version token is missing</td>
 </tr>
 </tbody>
 </table>
@@ -2875,7 +2920,7 @@ If not url has been defined, None is returned.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.88',
+            VERSION:'v0.18.93',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

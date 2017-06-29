@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.88 documentation</title>
+  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.93 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.88 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.88.<br>
+    <b>tk-core</b> v0.18.93.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -186,6 +186,9 @@
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span>
 <span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">LocalFileStorageManager</span>
 
+
+
+
 <div class="viewcode-block" id="create_descriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.create_descriptor">[docs]</a><span class="k">def</span> <span class="nf">create_descriptor</span><span class="p">(</span>
         <span class="n">sg_connection</span><span class="p">,</span>
         <span class="n">descriptor_type</span><span class="p">,</span>
@@ -209,15 +212,16 @@
 <span class="sd">                           download new content, it always ends up in the</span>
 <span class="sd">                           bundle_cache_root.</span>
 <span class="sd">    :param resolve_latest: If true, the latest version will be determined and returned.</span>
-<span class="sd">                           If set to True, no version information need to be supplied with</span>
-<span class="sd">                           the descriptor dictionary/uri. Please note that setting this flag</span>
+
+<span class="sd">                           If set to True, no version information needs to be supplied with</span>
+<span class="sd">                           the descriptor dictionary/uri for descriptor types which support</span>
+<span class="sd">                           a version number concept. Please note that setting this flag</span>
 <span class="sd">                           to true will typically affect performance - an external connection</span>
 <span class="sd">                           is often required in order to establish what the latest version is.</span>
 
 <span class="sd">                           If a remote connection cannot be established when attempting to determine</span>
 <span class="sd">                           the latest version, a local scan will be carried out and the highest</span>
 <span class="sd">                           version number that is cached locally will be returned.</span>
-
 <span class="sd">    :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain</span>
 <span class="sd">                           the search for latest to only take part over a subset of versions.</span>
 <span class="sd">                           This is a string that can be on the following form:</span>
@@ -641,7 +645,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.88',
+            VERSION:'v0.18.93',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

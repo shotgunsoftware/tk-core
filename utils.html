@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.88 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.93 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.88 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.93 documentation" href="index.html"/>
         <link rel="next" title="Descriptor API" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -147,7 +147,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.88.<br>
+    <b>tk-core</b> v0.18.93.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1557,24 +1557,44 @@ The version number should reflect the iteration or revision of the publish
 and will be used to populate the number field of the publish that is created
 in Shotgun. The name should represent the name of the item, without any version
 number. This is used to group together publishes in Shotgun and various
-integrations. For example, if the file you are publishing belongs to Shot
-AAA_003 and is named <code class="docutils literal"><span class="pre">AAA_003_foreground.v012.ma</span></code>, you could set
-the name to be <code class="docutils literal"><span class="pre">foreground</span></code> and the version to be <code class="docutils literal"><span class="pre">12</span></code>. The Shot name
-will be implied by the associated context.</p>
-<p>The path will first be checked against the current template definitions.
-If it matches any template definition and is determined to be a sequence
-of some kind (per frame, per eye), any sequence tokens such as <code class="docutils literal"><span class="pre">&#64;&#64;&#64;&#64;</span></code>, <code class="docutils literal"><span class="pre">$4F</span></code>
-etc. will be normalised to a <code class="docutils literal"><span class="pre">%04d</span></code> form before written to Shotgun.</p>
+integrations.</p>
 <p>If the path matches any local storage roots defined by the toolkit project,
 it will be uploaded as a local file link to Shotgun. If not matching roots
 are found, the method will retrieve the list of local storages from Shotgun
 and try to locate a suitable storage. Failing that, it will fall back on a
-register the path as a <code class="docutils literal"><span class="pre">file://</span></code> url.</p>
+register the path as a <code class="docutils literal"><span class="pre">file://</span></code> url. For more information on
+this resolution logic, see our
+<a class="reference external" href="https://support.shotgunsoftware.com/hc/en-us/articles/115000067493#Configuring%20published%20file%20path%20resolution">Admin Guide</a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Shotgun follows a convention where the name passed to the register publish method is used
+to control how things are grouped together. When Shotgun and Toolkit groups things together,
+things are typically grouped first by project/entity/task and then by publish name and version.</p>
+<p>If you create three publishes in Shotgun, all having the name &#8216;foreground.ma&#8217; and version numbers
+1, 2 and 3, Shotgun will assume that these are three revisions of the same content and will
+group them together in a group called &#8216;foreground.ma&#8217;.</p>
+<p>We recommend a convention where the <code class="docutils literal"><span class="pre">name</span></code> parameter reflects the filename passed in via
+the <code class="docutils literal"><span class="pre">file_path</span></code> parameter, but with the version number removed. For example:</p>
+<ul class="last simple">
+<li><code class="docutils literal"><span class="pre">file_path:</span> <span class="pre">/tmp/layout.v027.ma,</span> <span class="pre">name:</span> <span class="pre">layout.ma,</span> <span class="pre">version_number:</span> <span class="pre">27</span></code></li>
+<li><code class="docutils literal"><span class="pre">file_path:</span> <span class="pre">/tmp/foreground_v002.%04d.exr,</span> <span class="pre">name:</span> <span class="pre">foreground.exr,</span> <span class="pre">version_number:</span> <span class="pre">2</span></code></li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When publishing file sequences, the method will try to normalize your path based on the
+current template configuration. For example, if you supply the path <code class="docutils literal"><span class="pre">render.$F4.dpx</span></code>,
+it will translated to <code class="docutils literal"><span class="pre">render.%04d.dpx</span></code> automatically, assuming there is a matching
+template defined. If you are not using templates or publishing files that do not match
+any configured templates, always provide sequences on a <code class="docutils literal"><span class="pre">%0xd</span></code> or
+<code class="docutils literal"><span class="pre">%xd</span></code> <a class="reference external" href="https://en.wikipedia.org/wiki/Printf_format_string">printf</a> style
+pattern.</p>
+</div>
 <p><strong>Examples</strong></p>
 <p>The example below shows a basic publish. In addition to the required parameters, it is
 recommended to supply at least a comment and a Publish Type:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_path</span> <span class="o">=</span> <span class="s1">&#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;layout&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;layout.ma&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">version_number</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">register_publish</span><span class="p">(</span>
@@ -1584,7 +1604,7 @@ recommended to supply at least a comment and a Publish Type:</p>
 <span class="go">    name,</span>
 <span class="go">    version_number,</span>
 <span class="go">    comment = &#39;Initial layout composition.&#39;,</span>
-<span class="go">    published_file_type = &#39;Layout Scene&#39;</span>
+<span class="go">    published_file_type = &#39;Maya Scene&#39;</span>
 <span class="go">)</span>
 
 <span class="go">{&#39;code&#39;: &#39;layout.v001.ma&#39;,</span>
@@ -1592,7 +1612,8 @@ recommended to supply at least a comment and a Publish Type:</p>
 <span class="go"> &#39;description&#39;: &#39;Initial layout composition.&#39;,</span>
 <span class="go"> &#39;entity&#39;: {&#39;id&#39;: 2, &#39;name&#39;: &#39;shot_010&#39;, &#39;type&#39;: &#39;Shot&#39;},</span>
 <span class="go"> &#39;id&#39;: 2,</span>
-<span class="go"> &#39;name&#39;: &#39;layout&#39;,</span>
+<span class="go"> &#39;published_file_type&#39;: {&#39;id&#39;: 134, &#39;type&#39;: &#39;PublishedFileType&#39;},</span>
+<span class="go"> &#39;name&#39;: &#39;layout.ma&#39;,</span>
 <span class="go"> &#39;path&#39;: {&#39;content_type&#39;: None,</span>
 <span class="go">  &#39;link_type&#39;: &#39;local&#39;,</span>
 <span class="go">  &#39;local_path&#39;: &#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;,</span>
@@ -1669,16 +1690,16 @@ name, the name of the AOV and the name of the render layer.</li>
 <div><ul class="simple">
 <li><code class="docutils literal"><span class="pre">task</span></code> - A shotgun entity dictionary with id and type (which should always be Task).
 if no value is specified, the task will be grabbed from the context object.</li>
-<li><code class="docutils literal"><span class="pre">comment</span></code> - A string containing a description of the comment</li>
+<li><code class="docutils literal"><span class="pre">comment</span></code> - A string containing a description of what is being published.</li>
 <li><code class="docutils literal"><span class="pre">thumbnail_path</span></code> - A path to a thumbnail (png or jpeg) which will be uploaded to shotgun
 and associated with the publish.</li>
 <li><code class="docutils literal"><span class="pre">dependency_paths</span></code> - A list of file system paths that should be attempted to be registered
 as dependencies. Files in this listing that do not appear as publishes in shotgun will be ignored.</li>
 <li><code class="docutils literal"><span class="pre">dependency_ids</span></code> - A list of publish ids which should be registered as dependencies.</li>
-<li><code class="docutils literal"><span class="pre">published_file_type</span></code> - A tank type in the form of a string which should match a tank type
-that is registered in Shotgun.</li>
-<li><code class="docutils literal"><span class="pre">update_entity_thumbnail</span></code> - Push thumbnail up to the attached entity</li>
-<li><code class="docutils literal"><span class="pre">update_task_thumbnail</span></code> - Push thumbnail up to the attached task</li>
+<li><code class="docutils literal"><span class="pre">published_file_type</span></code> - A publish type in the form of a string. If the publish type does not
+already exist in Shotgun, it will be created.</li>
+<li><code class="docutils literal"><span class="pre">update_entity_thumbnail</span></code> - Push thumbnail up to the associated entity</li>
+<li><code class="docutils literal"><span class="pre">update_task_thumbnail</span></code> - Push thumbnail up to the associated task</li>
 <li><code class="docutils literal"><span class="pre">created_by</span></code> - Override for the user that will be marked as creating the publish.  This should
 be in the form of shotgun entity, e.g. {&#8220;type&#8221;:&#8221;HumanUser&#8221;, &#8220;id&#8221;:7}. If not set, the user will
 be determined using <a class="reference internal" href="#sgtk.util.get_current_user" title="sgtk.util.get_current_user"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.util.get_current_user()</span></code></a>.</li>
@@ -1720,7 +1741,7 @@ which is a common method Toolkit apps use to resolve publishes
 into paths.</p>
 </div>
 <p><strong>Published File Path Resolution</strong></p>
-<p>For more information on the published file path resolution, see our <a class="reference external" href="https://support.shotgunsoftware.com/hc/en-us/articles/115000067493#Published%20File%20Path%20Resolution">Admin Guide</a>.</p>
+<p>For more information on the published file path resolution, see our <a class="reference external" href="https://support.shotgunsoftware.com/hc/en-us/articles/115000067493#Configuring%20published%20file%20path%20resolution">Admin Guide</a>.</p>
 <p><strong>Parameters</strong></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2079,7 +2100,7 @@ example unsupported url schemes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.88',
+            VERSION:'v0.18.93',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
