@@ -2402,13 +2402,13 @@ class Engine(TankBundle):
                 # We will only track apps that we know can handle a context
                 # change. Any that do not will not be treated as a persistent
                 # app.
-                if app.context_change_allowed:
+                if app.context_change_allowed and app.instance_name == app_instance_name:
                     app_path = app.descriptor.get_path()
 
                     if app_path not in self.__application_pool:
                         self.__application_pool[app_path] = dict()
 
-                    self.__application_pool[app.descriptor.get_path()][app_instance_name] = app
+                    self.__application_pool[app_path][app_instance_name] = app
 
             # Update the persistent commands pool for use in context changes.
             for command_name, command in self.__commands.iteritems():
