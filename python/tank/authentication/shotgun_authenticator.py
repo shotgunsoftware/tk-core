@@ -128,7 +128,7 @@ class ShotgunAuthenticator(object):
             cookies=cookies, saml_expiration=saml_expiration
         )
 
-    def _create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None, cookies=None, saml_expiration=0):
+    def _create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None, cookies=None, saml_expiration=None):
         """
         Create an AuthenticatedUser given a set of human user credentials.
         Either a password or session token must be supplied. If a password is supplied,
@@ -143,8 +143,8 @@ class ShotgunAuthenticator(object):
         :param password: Shotgun password
         :param host: Shotgun host to log in to. If None, the default host will be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
-        :param cookies: String of raw cookies.
-        :param saml_expiration: Int describing the UTC time in second of the expiration of the SAML claims.
+        :param cookies: String of raw cookies for the user when using SSO.
+        :param saml_expiration: Int or None describing the UTC time in second of the expiration of the SAML claims, if using SSO.
 
         :returns: A :class:`ShotgunUser` instance.
         """
