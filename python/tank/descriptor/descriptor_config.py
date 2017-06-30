@@ -83,7 +83,7 @@ class ConfigDescriptor(Descriptor):
         readme_content = []
 
         readme_file = os.path.join(
-            self._get_config_folder(),
+            self.get_config_folder(),
             constants.CONFIG_README_FILE
         )
         if os.path.exists(readme_file):
@@ -93,7 +93,7 @@ class ConfigDescriptor(Descriptor):
 
         return readme_content
 
-    def _get_config_folder(self):
+    def get_config_folder(self):
         """
         Returns the folder in which the configuration files are located.
 
@@ -101,7 +101,7 @@ class ConfigDescriptor(Descriptor):
 
         :returns: Path to the configuration files folder.
         """
-        raise NotImplementedError("ConfigDescriptor._get_config_folder is not implemented.")
+        raise NotImplementedError("ConfigDescriptor.get_config_folder is not implemented.")
 
     def _get_current_platform_interpreter_file_name(self, install_root):
         """
@@ -158,7 +158,7 @@ class ConfigDescriptor(Descriptor):
         """
         # get the roots definition
         root_file_path = os.path.join(
-            self._get_config_folder(),
+            self.get_config_folder(),
             "core",
             constants.STORAGE_ROOTS_FILE)
 

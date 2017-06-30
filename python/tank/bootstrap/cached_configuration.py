@@ -190,8 +190,6 @@ class CachedConfiguration(Configuration):
 
         # copy the configuration into place
         try:
-            self._descriptor.copy(os.path.join(self._path.current_os, "config"))
-
             # write out config files
             self._config_writer.write_install_location_file()
             self._config_writer.write_config_info_file(self._descriptor)

@@ -93,7 +93,7 @@ class InstalledConfigDescriptor(ConfigDescriptor):
             "path": os.path.join(self._get_core_path_for_config(pipeline_config_path), "install", "core")
         }
 
-    def _get_config_folder(self):
+    def get_config_folder(self):
         """
         Returns the path to the ``config`` folder inside the pipeline configuration.
 

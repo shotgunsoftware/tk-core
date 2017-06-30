@@ -248,7 +248,8 @@ class PipelineConfiguration(object):
     
         # now read in the pipeline_configuration.yml file
         cfg_yml = os.path.join(
-            self.get_config_location(),
+            self._pc_root,
+            "config",
             "core",
             constants.PIPELINECONFIG_FILE
         )
@@ -284,7 +285,8 @@ class PipelineConfiguration(object):
         
         # write the record to disk
         pipe_config_sg_id_path = os.path.join(
-            self.get_config_location(),
+            self._pc_root,
+            "config",
             "core",
             constants.PIPELINECONFIG_FILE
         )
@@ -858,7 +860,7 @@ class PipelineConfiguration(object):
         
         :returns: path string
         """
-        return os.path.join(self._pc_root, "config", "core", "hooks")
+        return os.path.join(self.get_config_location(), "core", "hooks")
 
     def get_schema_config_location(self):
         """
@@ -866,7 +868,7 @@ class PipelineConfiguration(object):
         
         :returns: path string
         """
-        return os.path.join(self._pc_root, "config", "core", "schema")
+        return os.path.join(self.get_config_location(), "core", "schema")
 
     def get_config_location(self):
         """
@@ -874,7 +876,7 @@ class PipelineConfiguration(object):
         
         :returns: path string
         """
-        return os.path.join(self._pc_root, "config")
+        return self._descriptor.get_config_folder()
 
     def get_hooks_location(self):
         """
@@ -882,7 +884,7 @@ class PipelineConfiguration(object):
         
         :returns: path string
         """
-        return os.path.join(self._pc_root, "config", "hooks")
+        return os.path.join(self.get_config_location(), "hooks")
 
     def get_shotgun_menu_cache_location(self):
         """
@@ -900,7 +902,7 @@ class PipelineConfiguration(object):
         """
         Returns a list with all the environments in this configuration.
         """
-        env_root = os.path.join(self._pc_root, "config", "env")
+        env_root = os.path.join(self.get_config_location(), "env")
         env_names = []
         for f in glob.glob(os.path.join(env_root, "*.yml")):
             file_name = os.path.basename(f)
@@ -933,15 +935,14 @@ class PipelineConfiguration(object):
         :param env_name:    The name of the environment.
         :returns:           String path to the environment yaml file.
         """
-        return os.path.join(self._pc_root, "config", "env", "%s.yml" % env_name)
+        return os.path.join(self.get_config_location(), "env", "%s.yml" % env_name)
     
     def get_templates_config(self):
         """
         Returns the templates configuration as an object
         """
         templates_file = os.path.join(
-            self._pc_root,
-            "config",
+            self.get_config_location(),
             "core",
             constants.CONTENT_TEMPLATES_FILE,
         )
