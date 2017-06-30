@@ -174,7 +174,7 @@ class SessionUser(ShotgunUserImpl):
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
         :param password: Password for the user. Defaults to None.
         :param cookies: String of raw cookies for the user when using SSO. Defaults to None.
-        :param saml_expiration: Int or None time in UTC in second when the SAML claims will expire, if using SSO.
+        :param saml_expiration: Int UTC time in seconds when the SAML claims will expire. Can be None if not using SSO.
 
         :raises IncompleteCredentials: If there is not enough values
             provided to initialize the user, this exception will be thrown.
@@ -207,15 +207,18 @@ class SessionUser(ShotgunUserImpl):
         self._session_token = session_token
         self._cookies = cookies
 
+        if self._cookies:
+            logger.debug("Cookie jar: %s" % self._cookies)
+
         # saml expiration is meaningful only with SSO enabled.
         # The presence of cookies implies potential SSO usage.
         if self._cookies is None:
             self._saml_expiration = None
         elif saml_expiration is None:
-            # For lack of accurate information, we will indicates that the
-            # credentials are expired  by setting the expiration to a moment
+            # The expiration having not been provided, we will indicate that the
+            # credentials are expired by setting the expiration to a moment
             # in the past.
-            # @TODO: obtain the expiration from the cookies themselves, if possible.
+            # @TODO: obtain the expiration from the cookies themselves, when we expose the cookies.
             self._saml_expiration = 0
         else:
             self._saml_expiration = saml_expiration
