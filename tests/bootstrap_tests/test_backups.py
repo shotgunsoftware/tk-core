@@ -48,7 +48,7 @@ class TestBackups(TankTestBase):
             core_copy_path=os.path.join(self.tank_temp, "tk-core-copy")
             if not os.path.exists(core_copy_path):
                 # ... so avoid copying ignore folders to avoid errors when copying the core repo
-                copytree(self._core_repo_path, core_copy_path, ignore=ignore_patterns('tests', 'docs')) 
+                copytree(self._core_repo_path, core_copy_path, ignore=ignore_patterns('tests', 'docs', 'coverage_html_report')) 
             self._core_repo_path = core_copy_path
 
     def test_cleanup(self):
