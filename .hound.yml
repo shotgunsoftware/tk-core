@@ -8,15 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# travis-ci.org CI unit tests integration configuration file.
+# https://houndci.com configuration file for linting and PEP8
 
-language: python
 python:
-  - "2.7"
+  enabled: true
+  config_file: .flake8
 
-install:
-  pip install -r test_requirements.txt
-
-# command to run tests
-script: coverage run tests/run_tests.py
-after_success: coveralls

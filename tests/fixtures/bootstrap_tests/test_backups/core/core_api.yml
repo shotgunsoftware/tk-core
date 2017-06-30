@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Shotgun Software Inc.
+# Copyright (c) 2016 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -8,15 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# travis-ci.org CI unit tests integration configuration file.
+# this configuration file defines which version of the toolkit
+# core API that should be used at runtime.
 
-language: python
-python:
-  - "2.7"
-
-install:
-  pip install -r test_requirements.txt
-
-# command to run tests
-script: coverage run tests/run_tests.py
-after_success: coveralls
+location:
+  type: dev
+  name: core
+  path: $SGTK_REPO_ROOT

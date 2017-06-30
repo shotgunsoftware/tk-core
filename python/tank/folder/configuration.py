@@ -162,7 +162,7 @@ class FolderConfiguration(object):
             full_path = os.path.join(parent_path, file_name)
 
             try:
-                metadata = yaml_cache.g_yaml_cache.get(full_path, deepcopy_data=False)
+                metadata = yaml_cache.g_yaml_cache.get(full_path, deepcopy_data=False) or {}
             except Exception, error:
                 raise TankError("Cannot load config file '%s'. Error: %s" % (full_path, error))
 

@@ -7,16 +7,19 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+#
+# coverage configuration - used by https://coveralls.io/ integration
+#
+#
+[run]
+source=tank
+omit=
+    # We can't unit test our uis, so we're not going to put them inside the coverage
+    *tank/authentication/ui/*
+    *tank/platform/qt/*
+    *tank/platform/qt5/*
 
-# travis-ci.org CI unit tests integration configuration file.
+[report]
+exclude_lines =
+    raise NotImplementedError
 
-language: python
-python:
-  - "2.7"
-
-install:
-  pip install -r test_requirements.txt
-
-# command to run tests
-script: coverage run tests/run_tests.py
-after_success: coveralls
