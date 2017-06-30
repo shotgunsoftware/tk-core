@@ -1,5 +1,4 @@
 ﻿# Copyright (c) 2016 Shotgun Software Inc.
-#
 # CONFIDENTIAL AND PROPRIETARY
 #
 # This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
