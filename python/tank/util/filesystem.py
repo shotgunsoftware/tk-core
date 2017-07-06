@@ -238,7 +238,10 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
         dstname = os.path.join(dst, name)
 
         try:
-            if os.path.isdir(srcname):
+            if os.path.islink(srcname):
+                link_to = os.readlink(srcname)
+                os.symlink(link_to, dstname)
+            elif os.path.isdir(srcname):
                 files.extend(copy_folder(srcname, dstname, folder_permissions))
             else:
                 shutil.copy(srcname, dstname)
