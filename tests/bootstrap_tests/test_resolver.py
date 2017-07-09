@@ -842,7 +842,6 @@ class TestResolvedConfiguration(TankTestBase):
         self.assertEqual(config.has_local_bundle_cache, False)
 
 
-
 class TestResolvedLatestConfiguration(TankTestBase):
     """
     Ensures that resolving a descriptor with no version specified returns the right Configuration object.
@@ -873,7 +872,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
 
         self.assertEquals(
             config.descriptor.get_uri(),
-            "sgtk:descriptor:app_store?version=v0.1.0&name=latest_test"
+            "sgtk:descriptor:app_store?name=latest_test&version=v0.1.0"
         )
 
         os.makedirs(
@@ -887,7 +886,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
 
         self.assertEquals(
             config.descriptor.get_uri(),
-            "sgtk:descriptor:app_store?version=v0.1.1&name=latest_test"
+            "sgtk:descriptor:app_store?name=latest_test&version=v0.1.1"
         )
 
         # make sure direct lookup also works
@@ -898,7 +897,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
 
         self.assertEquals(
             config.descriptor.get_uri(),
-            "sgtk:descriptor:app_store?version=v0.1.0&name=latest_test"
+            "sgtk:descriptor:app_store?name=latest_test&version=v0.1.0"
         )
 
         config = self._resolver.resolve_configuration(
@@ -908,10 +907,8 @@ class TestResolvedLatestConfiguration(TankTestBase):
 
         self.assertEquals(
             config.descriptor.get_uri(),
-            "sgtk:descriptor:app_store?version=v0.1.1&name=latest_test"
+            "sgtk:descriptor:app_store?name=latest_test&version=v0.1.1"
         )
-
-
 
 
 class TestResolveWithFilter(TestResolverBase):

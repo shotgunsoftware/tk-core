@@ -188,9 +188,9 @@ class TestAppStoreLabels(TankTestBase):
             Descriptor.FRAMEWORK,
             {"name": "tk-framework-main", "version": "v1.0.0", "type": "app_store"}
         )
-        self.assertEqual(desc.get_uri(), "sgtk:descriptor:app_store?version=v1.0.0&name=tk-framework-main")
+        self.assertEqual(desc.get_uri(), "sgtk:descriptor:app_store?name=tk-framework-main&version=v1.0.0")
         desc2 = desc.find_latest_version()
-        self.assertEqual(desc2.get_uri(), "sgtk:descriptor:app_store?version=v3.0.1&name=tk-framework-main")
+        self.assertEqual(desc2.get_uri(), "sgtk:descriptor:app_store?name=tk-framework-main&version=v3.0.1")
 
         # i am version 2016.3.45 so i am only getting 1.0.1
         desc = create_descriptor(
@@ -200,12 +200,12 @@ class TestAppStoreLabels(TankTestBase):
         )
         self.assertEqual(
             desc.get_uri(),
-            "sgtk:descriptor:app_store?version=v1.0.0&name=tk-framework-main&label=2016.3.45"
+            "sgtk:descriptor:app_store?label=2016.3.45&name=tk-framework-main&version=v1.0.0"
         )
         desc2 = desc.find_latest_version()
         self.assertEqual(
             desc2.get_uri(),
-            "sgtk:descriptor:app_store?version=v1.0.1&name=tk-framework-main&label=2016.3.45"
+            "sgtk:descriptor:app_store?label=2016.3.45&name=tk-framework-main&version=v1.0.1"
         )
 
         # i am version 2017.3.45 so i am getting 2.0.1
@@ -216,12 +216,12 @@ class TestAppStoreLabels(TankTestBase):
         )
         self.assertEqual(
             desc.get_uri(),
-            "sgtk:descriptor:app_store?version=v1.0.0&name=tk-framework-main&label=2017.3.45"
+            "sgtk:descriptor:app_store?label=2017.3.45&name=tk-framework-main&version=v1.0.0"
         )
         desc2 = desc.find_latest_version()
         self.assertEqual(
             desc2.get_uri(),
-            "sgtk:descriptor:app_store?version=v2.0.1&name=tk-framework-main&label=2017.3.45"
+            "sgtk:descriptor:app_store?label=2017.3.45&name=tk-framework-main&version=v2.0.1"
         )
 
         # i am version 2018.3.45 so i am getting 3.0.1
@@ -232,10 +232,10 @@ class TestAppStoreLabels(TankTestBase):
         )
         self.assertEqual(
             desc.get_uri(),
-            "sgtk:descriptor:app_store?version=v1.0.0&name=tk-framework-main&label=2018.3.45"
+            "sgtk:descriptor:app_store?label=2018.3.45&name=tk-framework-main&version=v1.0.0"
         )
         desc2 = desc.find_latest_version()
         self.assertEqual(
             desc2.get_uri(),
-            "sgtk:descriptor:app_store?version=v3.0.1&name=tk-framework-main&label=2018.3.45"
+            "sgtk:descriptor:app_store?label=2018.3.45&name=tk-framework-main&version=v3.0.1"
         )
