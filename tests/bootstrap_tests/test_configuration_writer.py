@@ -160,21 +160,24 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
         # or the default value. This means however that we'll have to present the file exists when
         # os.path.exists is called.
         os.makedirs(os.path.dirname(interpreter_yml_path))
+        path = os.path.join("a", "b", "c")
         with open(interpreter_yml_path, "w") as fh:
-            fh.write("/a/b/c")
+            fh.write(path)
 
         # We're going to pretend the interpreter location exists
         with patch("os.path.exists", return_value=True):
             # Check that our descriptors sees the value we just wrote to disk
-            self.assertEqual(descriptor.python_interpreter, "/a/b/c")
-
+            self.assertEqual(
+                descriptor.python_interpreter,
+                path
+            )
         # Copy the descriptor to its location.
         descriptor.copy(os.path.join(self._cw.path.current_os, "config"))
 
         # have the interpreter files be written out by the writer. The interpreter file we just
         # wrote should have been left alone.
         self.assertEqual(
-            self._write_interpreter_file().current_os, "/a/b/c"
+            self._write_interpreter_file().current_os, path
         )
 
     def test_desktop_interpreter(self):
