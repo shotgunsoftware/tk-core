@@ -503,14 +503,21 @@ class IODescriptorAppStore(IODescriptorBase):
         )
 
         # write a stats record to the tank app store
-        data = {}
-        data["description"] = "%s: %s %s was downloaded" % (self._sg_connection.base_url, self._name, self._version)
-        data["event_type"] = self._DOWNLOAD_STATS_EVENT_TYPE[self._type]
-        data["entity"] = version
-        data["user"] = script_user
-        data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
-        data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
-        sg.create("EventLogEntry", data)
+        try:
+            data = {}
+            data["description"] = "%s: %s %s was downloaded" % (
+                self._sg_connection.base_url,
+                self._name,
+                self._version
+            )
+            data["event_type"] = self._DOWNLOAD_STATS_EVENT_TYPE[self._type]
+            data["entity"] = version
+            data["user"] = script_user
+            data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
+            data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
+            sg.create("EventLogEntry", data)
+        except Exception, e:
+            log.warning("Could not write app store download receipt: %s" % e)
 
     #############################################################################
     # searching for other versions
