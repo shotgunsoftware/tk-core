@@ -2402,13 +2402,13 @@ class Engine(TankBundle):
                 # We will only track apps that we know can handle a context
                 # change. Any that do not will not be treated as a persistent
                 # app.
-                if app.context_change_allowed:
+                if app.context_change_allowed and app.instance_name == app_instance_name:
                     app_path = app.descriptor.get_path()
 
                     if app_path not in self.__application_pool:
                         self.__application_pool[app_path] = dict()
 
-                    self.__application_pool[app.descriptor.get_path()][app_instance_name] = app
+                    self.__application_pool[app_path][app_instance_name] = app
 
             # Update the persistent commands pool for use in context changes.
             for command_name, command in self.__commands.iteritems():
@@ -2681,42 +2681,35 @@ def _start_engine(engine_name, tk, old_context, new_context):
 
     :returns: A new sgtk.platform.Engine object.
     """
-    try:
-        # first ensure that an engine is not currently running
-        if current_engine():
-            raise TankError("An engine (%s) is already running! Before you can start a new engine, "
-                            "please shut down the previous one using the command "
-                            "tank.platform.current_engine().destroy()." % current_engine())
+    # first ensure that an engine is not currently running
+    if current_engine():
+        raise TankError("An engine (%s) is already running! Before you can start a new engine, "
+                        "please shut down the previous one using the command "
+                        "tank.platform.current_engine().destroy()." % current_engine())
 
-        # begin writing log to disk, associated with the engine
-        # only do this if a logger hasn't been previously set up.
-        if LogManager().base_file_handler is None:
-            LogManager().initialize_base_file_handler(engine_name)
+    # begin writing log to disk, associated with the engine
+    # only do this if a logger hasn't been previously set up.
+    if LogManager().base_file_handler is None:
+        LogManager().initialize_base_file_handler(engine_name)
 
-        # get environment and engine location
-        (env, engine_descriptor) = get_env_and_descriptor_for_engine(engine_name, tk, new_context)
+    # get environment and engine location
+    (env, engine_descriptor) = get_env_and_descriptor_for_engine(engine_name, tk, new_context)
 
-        # make sure it exists locally
-        if not engine_descriptor.exists_local():
-            raise TankEngineInitError("Cannot start engine! %s does not exist on disk" % engine_descriptor)
+    # make sure it exists locally
+    if not engine_descriptor.exists_local():
+        raise TankEngineInitError("Cannot start engine! %s does not exist on disk" % engine_descriptor)
 
-        # get path to engine code
-        engine_path = engine_descriptor.get_path()
-        plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
-        class_obj = load_plugin(plugin_file, Engine)
+    # get path to engine code
+    engine_path = engine_descriptor.get_path()
+    plugin_file = os.path.join(engine_path, constants.ENGINE_FILE)
+    class_obj = load_plugin(plugin_file, Engine)
 
-        # Notify the context change and start the engine.
-        with _CoreContextChangeHookGuard(tk, old_context, new_context):
-            # Instantiate the engine
-            engine = class_obj(tk, new_context, engine_name, env)
-            # register this engine as the current engine
-            set_current_engine(engine)
-
-    except:
-        # trap and log the exception and let it bubble in
-        # unchanged form
-        core_logger.exception("Exception raised in start_engine.")
-        raise
+    # Notify the context change and start the engine.
+    with _CoreContextChangeHookGuard(tk, old_context, new_context):
+        # Instantiate the engine
+        engine = class_obj(tk, new_context, engine_name, env)
+        # register this engine as the current engine
+        set_current_engine(engine)
 
     return engine
 

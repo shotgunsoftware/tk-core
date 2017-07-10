@@ -1,5 +1,4 @@
-# Copyright (c) 2016 Shotgun Software Inc.
-#
+﻿# Copyright (c) 2016 Shotgun Software Inc.
 # CONFIDENTIAL AND PROPRIETARY
 #
 # This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
@@ -388,7 +387,7 @@ def safe_delete_folder(path):
                     except Exception, e:
                         log.warning("Could not delete %s: %s. Skipping" % (path, e))
                 else:
-                    log.warning("Could not delete %s: %s. Skipping" % (path, e))
+                    log.warning("Could not delete %s: Skipping" % path)
             except Exception, e:
                 log.warning("Could not delete %s: %s. Skipping" % (path, e))
         else:
