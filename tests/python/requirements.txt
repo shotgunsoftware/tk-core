@@ -1,0 +1,4 @@
+unittest2==1.1.0
+mock==2.0.0
+# This dependency is missing from the mock manifest.
+ordereddict==1.1
