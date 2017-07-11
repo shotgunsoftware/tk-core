@@ -63,7 +63,7 @@ pbr-3.1.1.dist-info/WHEEL,sha256=o2k-Qa-RMNIJmUdIc7KU6VWR_ErNRbWNlxDIpl7lm34,110
 pbr-3.1.1.dist-info/entry_points.txt,sha256=QHw3RnItVVy03jocQCjhoKUiyKjBwiPBhJszz-i5YMg,149
 pbr-3.1.1.dist-info/metadata.json,sha256=o2SKfWli61Jakm2TlhXeOOQ1joytxuErhMWYWURqX2g,1628
 pbr-3.1.1.dist-info/top_level.txt,sha256=X3Q9Vhf2YxJul564xso0UcL55u9D75jaBuGZedivUyE,4
-../../bin/pbr,sha256=_ai9dUoE-QoBYj6Lix_tJk6ikfIWB_RiByLcqmuI638,251
+../../bin/pbr,sha256=aIsJrMMrlTU26kdOD0B9weq4MzolNw-Sb09bmhzgc6o,253
 pbr-3.1.1.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
 pbr/tests/test_integration.pyc,,
 pbr/hooks/files.pyc,,

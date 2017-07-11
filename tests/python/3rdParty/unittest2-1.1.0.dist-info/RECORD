@@ -35,7 +35,7 @@ unittest2-1.1.0.dist-info/RECORD,,
 unittest2-1.1.0.dist-info/top_level.txt,sha256=gvvoWadx5JH1dgDO1TNJkHa2xQtQ0ByBdnR66CXLdQ8,10
 unittest2-1.1.0.dist-info/WHEEL,sha256=AvR0WeTpDaxT645bl5FQxUK6NPsTls2ttpcGJg3j1Xg,110
 unittest2-1.1.0.dist-info/METADATA,sha256=fKYG10grRjdyfHZscN1SrjX7fEwHQzwS6V0rv4RBj8U,15205
-../../bin/unit2,sha256=cpIkqlv5J8KutIlzptTotPNc24DK65apqfDNf0NIiVc,259
+../../bin/unit2,sha256=fO94vKJrJuo1Bw-TIUn4DG2cZO8FPQKzO_gH_3PftMk,261
 unittest2-1.1.0.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
 unittest2/suite.pyc,,
 unittest2/test/test_loader.pyc,,
