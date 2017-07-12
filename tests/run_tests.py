@@ -34,8 +34,8 @@ test_python_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "pyth
 print "Adding tests/python location to python_path: %s" % test_python_path
 sys.path = [test_python_path] + sys.path
 
-test_python_path = os.path.join(test_python_path, "3rdParty")
-print "Adding tests/python/3rdParty location to python_path: %s" % test_python_path
+test_python_path = os.path.join(test_python_path, "third_party")
+print "Adding tests/python/third_party location to python_path: %s" % test_python_path
 sys.path = [test_python_path] + sys.path
 
 import unittest2 as unittest
