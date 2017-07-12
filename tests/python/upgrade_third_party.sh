@@ -61,7 +61,7 @@ def main():
         import coverage
         print("Upgrade successful!")
         print()
-        print("Run 'git add third_party' to add changes made to the repo to the nex commit.")
+        print("Run 'git add third_party' to add changes made to the repo to the next commit.")
     except Exception as e:
         print("Upgrade failed! %s" % e)
 main()
