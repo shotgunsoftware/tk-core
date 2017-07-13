@@ -251,6 +251,7 @@ class CachedConfiguration(Configuration):
             # backup folder. It's this parent folder we want to clean up.
             self._cleanup_backup_folders(os.path.dirname(config_backup_path) if config_backup_path else None,
                                          core_backup_path)
+            log.debug("Latest backup cleanup complete.")
 
         # @todo - prime caches (yaml, path cache)
 
@@ -278,5 +279,6 @@ class CachedConfiguration(Configuration):
             if path:
                 try:
                     filesystem.safe_delete_folder(path)
+                    log.debug("Deleted backup folder: %s" % path)
                 except Exception, e:
                     log.warning("Failed to clean up temporary backup folder '%s': %s" % (path, e))
