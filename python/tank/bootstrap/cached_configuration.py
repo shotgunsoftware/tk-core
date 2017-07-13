@@ -279,6 +279,6 @@ class CachedConfiguration(Configuration):
             if path:
                 try:
                     filesystem.safe_delete_folder(path)
-                    log.debug("Deleted backup folder: %s" % path)
+                    log.debug("Deleted backup folder: %s", path)
                 except Exception, e:
                     log.warning("Failed to clean up temporary backup folder '%s': %s" % (path, e))
