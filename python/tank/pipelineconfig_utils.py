@@ -16,7 +16,6 @@ across storages, configurations etc.
 from __future__ import with_statement
 
 import os
-import inspect
 
 from . import constants
 from . import LogManager
@@ -208,12 +207,14 @@ def get_core_path_for_config(pipeline_config_path):
     :returns: Path to the studio location root or pipeline configuration root or None if not resolved
     """
     try:
+        # Associated core descriptor gives us the path to the <config-or-studio-root>/install/core
+        # folder, so we'll strip out a few folders to get to the <config-or-studio-root>
         studio_folder = os.path.join(
-            # <config-root>/install/core
+            # <config-or-studio-root>/install/core
             _create_installed_config_descriptor(pipeline_config_path).associated_core_descriptor["path"],
-            # <config-root>/install
+            # <config-or-studio-root>/install
             "..",
-            # <config-root>/
+            # <config-or-studio-root>/
             ".."
         )
         studio_folder = os.path.normpath(studio_folder)
@@ -236,14 +237,14 @@ def get_sgtk_module_path():
 
     :returns: Path to the ``sgtk`` module on disk.
     """
-    pipelineconfig_utils_py_location = inspect.getsourcefile(get_sgtk_module_path)
+    pipelineconfig_utils_py_location = __file__ # tk-core/python/tank/pipelineconfig_utils.py
 
     # If the path is not absolute, make it so.
     if not os.path.isabs(pipelineconfig_utils_py_location):
         pipelineconfig_utils_py_location = os.path.join(os.getcwd(), pipelineconfig_utils_py_location)
 
-    tank_folder = os.path.dirname(pipelineconfig_utils_py_location)
-    python_folder = os.path.dirname(tank_folder)
+    tank_folder = os.path.dirname(pipelineconfig_utils_py_location) # tk-core/python/tank
+    python_folder = os.path.dirname(tank_folder) # tk-core/python
 
     return python_folder
 

@@ -133,6 +133,10 @@ class ToolkitManager(object):
         Serializes settings that impact resolution of a pipeline configuration into an
         object and returns it to the user.
 
+        This can be useful when a process is used to enumerate pipeline configurations and another
+        process will be bootstrapping an engine. Calling this method ensures the manager is
+        configured the same across processes.
+
         Those settings can be restored with :meth:`ToolkitManager.restore_settings`.
 
         .. note:: Note that the extracted settings should be treated as opaque data and not something

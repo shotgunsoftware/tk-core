@@ -164,9 +164,9 @@ class ConfigurationResolver(object):
                 resolve_latest=resolve_latest
             )
 
-        return self._create_configuration_from_descriptor(
-            cfg_descriptor, sg_connection, pc_id=None
-        )
+            return self._create_configuration_from_descriptor(
+                cfg_descriptor, sg_connection, pc_id=None
+            )
 
     def _create_configuration_from_descriptor(self, cfg_descriptor, sg_connection, pc_id):
         """
@@ -337,7 +337,7 @@ class ConfigurationResolver(object):
 
     def _create_config_descriptor(self, sg_connection, shotgun_pc_data):
         """
-        Creates a configuration descriptor for a given pipeline configuration.
+        Creates a configuration descriptor for a given pipeline configuration entry.
 
         :param sg_connection: Connection to Shotgun.
         :param dict shotgun_pc_data: Pipeline configuration dictionary with keys ``descriptor``,
@@ -708,7 +708,7 @@ class ConfigurationResolver(object):
                     pipeline_config["id"]
                 )
                 raise TankBootstrapError(
-                    "The Shotgun pipeline configuration with id %s has no location specified for "
+                    "The Shotgun pipeline configuration with id %s has no source location specified for "
                     "your operating system." %
                     pipeline_config["id"]
                 )

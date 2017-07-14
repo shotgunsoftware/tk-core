@@ -26,7 +26,8 @@ log = LogManager.get_logger(__name__)
 class CachedConfigDescriptor(ConfigDescriptor):
     """
     Descriptor that describes a cache Toolkit Configuration. Cached configurations are managed
-    by the ToolkitManager when bootstrapping and therefore are volatile.
+    by the ToolkitManager when bootstrapping and therefore are not meant to be updated manually
+    like installed configurations are.
 
     These configurations live inside a bundle cache and have a core associated with them. They do
     not share a core like an installed configuration would and therefore they have a set of
