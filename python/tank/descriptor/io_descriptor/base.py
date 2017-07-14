@@ -50,8 +50,6 @@ class IODescriptorBase(object):
         self._fallback_roots = []
         self._descriptor_dict = descriptor_dict
         self.__manifest_data = None
-        self._empty_manifest_supported = False
-        self._manifest_location_override = None
         self._is_copiable = True
 
     def set_cache_roots(self, primary_root, fallback_roots):
@@ -364,22 +362,6 @@ class IODescriptorBase(object):
         # copy descriptor in
         filesystem.copy_folder(self.get_path(), target_path)
 
-    def set_missing_manifest_supported(self, is_supported):
-        """
-        When set to True, manifests can be missing.
-
-        :param bool is_supported: If ``True``, the manifest file can be missing
-        """
-        self._empty_manifest_supported = is_supported
-
-    def set_manifest_location_override(self, location):
-        """
-        Overrides the default location of the manifest file.
-
-        :param str location: Path to the manifest (info.yml) file for this descriptor.
-        """
-        self._manifest_location_override = location
-
     def get_manifest(self):
         """
         Returns the info.yml metadata associated with this descriptor.
@@ -402,20 +384,13 @@ class IODescriptorBase(object):
 
             # get the metadata
 
-            if self._manifest_location_override:
-                file_path = self._manifest_location_override
-            else:
-                bundle_root = self.get_path()
-                file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
+            bundle_root = self.get_path()
+            file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
 
             if not os.path.exists(file_path):
-                if self._empty_manifest_supported:
-                    self.__manifest_data = {}
-                    return self.__manifest_data
-                else:
-                    # at this point we have downloaded the bundle, but it may have
-                    # an invalid internal structure.
-                    raise TankDescriptorError("Toolkit metadata file '%s' missing." % file_path)
+                # at this point we have downloaded the bundle, but it may have
+                # an invalid internal structure.
+                raise TankDescriptorError("Toolkit metadata file '%s' missing." % file_path)
 
             try:
                 file_data = open(file_path)

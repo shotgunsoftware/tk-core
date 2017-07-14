@@ -170,6 +170,14 @@ class Descriptor(object):
         """
         return "%s %s" % (self.system_name, self.version)
 
+    def _get_manifest(self):
+        """
+        Returns the info.yml metadata associated with this descriptor.
+
+        :returns: dictionary with the contents of info.yml
+        """
+        return self._io_descriptor.get_manifest()
+
     ###############################################################################################
     # data accessors
 
@@ -225,7 +233,7 @@ class Descriptor(object):
         The display name for this item.
         If no display name has been defined, the system name will be returned.
         """
-        meta = self._io_descriptor.get_manifest()
+        meta = self._get_manifest()
         display_name = meta.get("display_name")
         if display_name is None:
             display_name = self.system_name
@@ -257,7 +265,7 @@ class Descriptor(object):
         """
         A short description of the item.
         """
-        meta = self._io_descriptor.get_manifest()
+        meta = self._get_manifest()
         desc = meta.get("description")
         if desc is None:
             desc = "No description available."
@@ -286,7 +294,7 @@ class Descriptor(object):
         A url that points at a support web page associated with this item.
         If not url has been defined, None is returned.
         """
-        meta = self._io_descriptor.get_manifest()
+        meta = self._get_manifest()
         support_url = meta.get("support_url")
         if support_url is None:
             support_url = "https://support.shotgunsoftware.com"
@@ -297,7 +305,7 @@ class Descriptor(object):
         """
         The documentation url for this item or None if not defined.
         """
-        meta = self._io_descriptor.get_manifest()
+        meta = self._get_manifest()
         doc_url = meta.get("documentation_url")
         # note - doc_url can be none which is fine.
         return doc_url

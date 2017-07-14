@@ -12,11 +12,14 @@ from __future__ import with_statement
 
 import os
 
+from tank_vendor import yaml
+
 from .descriptor_config import ConfigDescriptor
-from . import constants
 from .. import pipelineconfig_utils
 from .. import LogManager
 from ..util import ShotgunPath
+from . import constants
+from .errors import TankDescriptorError
 
 from ..errors import TankNotPipelineConfigurationError, TankFileDoesNotExistError, TankInvalidCoreLocationError
 
@@ -35,22 +38,7 @@ class InstalledConfigDescriptor(ConfigDescriptor):
 
     def __init__(self, io_descriptor):
         super(InstalledConfigDescriptor, self).__init__(io_descriptor)
-        self._io_descriptor.set_missing_manifest_supported(True)
         self._io_descriptor.set_is_copiable(False)
-
-        # As it is possible to create an installed config descriptor that is not actually on disk,
-        # get_path might return None. Only attempt to set the manifest location when the config
-        # actually exists. Not setting it when it doesn't exist isn't a big deal as it won't be
-        # use anyway.
-        path = self.get_path()
-        if path:
-            self._io_descriptor.set_manifest_location_override(
-                os.path.join(
-                    path,
-                    "config",
-                    constants.BUNDLE_METADATA_FILE
-                )
-            )
 
     @property
     def python_interpreter(self):
@@ -92,6 +80,31 @@ class InstalledConfigDescriptor(ConfigDescriptor):
             "type": "path",
             "path": os.path.join(self._get_core_path_for_config(pipeline_config_path), "install", "core")
         }
+
+    def _get_manifest(self):
+        """
+        Returns the info.yml metadata associated with this descriptor.
+
+        :returns: dictionary with the contents of info.yml
+        """
+        manifest_location = os.path.join(
+            self._get_config_folder(),
+            constants.BUNDLE_METADATA_FILE
+        )
+        if not os.path.exists(manifest_location):
+            return {}
+        else:
+            try:
+                with open(manifest_location) as fh:
+                    metadata = yaml.load(fh)
+            except Exception as exp:
+                raise TankDescriptorError(
+                    "Cannot load metadata file '%s'. Error: %s" % (manifest_location, exp)
+                )
+            # cache it
+            self.__manifest_data = metadata
+
+        return self.__manifest_data
 
     def _get_config_folder(self):
         """

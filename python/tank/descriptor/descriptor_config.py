@@ -62,7 +62,7 @@ class ConfigDescriptor(Descriptor):
         """
         constraints = {}
 
-        manifest = self._io_descriptor.get_manifest()
+        manifest = self._get_manifest()
 
         if manifest.get("requires_shotgun_version") is not None:
             constraints["min_sg"] = manifest.get("requires_shotgun_version")
