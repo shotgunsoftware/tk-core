@@ -75,7 +75,6 @@ class TestShotgunFindPublish(TankTestBase):
                     "created_at": datetime.datetime(2012, 10, 13, 12, 2),
                     "path_cache_storage": self.primary_storage}
 
-
         self.pub_5 = {"type": "PublishedFile",
                     "id": 5,
                     "code": "other storage",
@@ -85,8 +84,6 @@ class TestShotgunFindPublish(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
-        
-        
 
     def test_find(self):        
         paths = [os.path.join(self.project_root, "foo", "bar")]
@@ -266,7 +263,6 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
                     "created_at": datetime.datetime(2012, 10, 13, 12, 2),
                     "path_cache_storage": self.primary_storage}
 
-
         self.pub_5 = {"type": "PublishedFile",
                     "id": 5,
                     "code": "other storage",
@@ -276,7 +272,6 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
-        
 
     def test_find(self):        
         paths = [os.path.join(self.project_root, "foo", "bar")]
