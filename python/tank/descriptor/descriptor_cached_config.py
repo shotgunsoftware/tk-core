@@ -34,7 +34,7 @@ class CachedConfigDescriptor(ConfigDescriptor):
     interpreter files that live alongside the configuration, even tough technically these files
     are part of the core's configuration.
     """
-    def _get_config_folder(self):
+    def get_config_folder(self):
         """
         Returns the folder in which the configuration files are located.
 
