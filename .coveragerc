@@ -18,7 +18,6 @@ omit=
     *tank/authentication/ui/*
     *tank/platform/qt/*
     *tank/platform/qt5/*
-    tests
 
 [report]
 exclude_lines =
