@@ -15,6 +15,7 @@ from ..util import filesystem
 from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
+from . import constants
 
 
 def create_descriptor(
@@ -176,7 +177,7 @@ class Descriptor(object):
 
         :returns: dictionary with the contents of info.yml
         """
-        return self._io_descriptor.get_manifest()
+        return self._io_descriptor.get_manifest(constants.BUNDLE_METADATA_FILE)
 
     ###############################################################################################
     # data accessors

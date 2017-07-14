@@ -15,8 +15,9 @@ from .descriptor_bundle import AppDescriptor, FrameworkDescriptor, EngineDescrip
 from .descriptor_config import ConfigDescriptor
 
 from .errors import (
-    TankAppStoreConnectionError, TankAppStoreError, TankDescriptorError, InvalidAppStoreCredentialsError,
-    CheckVersionConstraintsError
+    TankAppStoreConnectionError, TankAppStoreError, TankDescriptorError,
+    InvalidAppStoreCredentialsError, TankInvalidAppStoreCredentialsError,
+    CheckVersionConstraintsError, TankCheckVersionConstraintsError
 )
 
 from .descriptor import create_descriptor

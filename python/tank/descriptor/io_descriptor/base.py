@@ -18,7 +18,7 @@ from .. import constants
 from ... import LogManager
 from ...util import filesystem
 from ...util.version import is_version_newer
-from ..errors import TankDescriptorError
+from ..errors import TankDescriptorError, TankMissingManifestError
 
 from tank_vendor import yaml
 
@@ -362,12 +362,15 @@ class IODescriptorBase(object):
         # copy descriptor in
         filesystem.copy_folder(self.get_path(), target_path)
 
-    def get_manifest(self):
+    def get_manifest(self, file_location):
         """
         Returns the info.yml metadata associated with this descriptor.
         Note that this call involves deep introspection; in order to
         access the metadata we normally need to have the code content
         local, so this method may trigger a remote code fetch if necessary.
+
+        :param file_location: Path relative to the root of the bundle where info.yml
+            can be found.
 
         :returns: dictionary with the contents of info.yml
         """
@@ -385,12 +388,12 @@ class IODescriptorBase(object):
             # get the metadata
 
             bundle_root = self.get_path()
-            file_path = os.path.join(bundle_root, constants.BUNDLE_METADATA_FILE)
+            file_path = os.path.join(bundle_root, file_location)
 
             if not os.path.exists(file_path):
                 # at this point we have downloaded the bundle, but it may have
                 # an invalid internal structure.
-                raise TankDescriptorError("Toolkit metadata file '%s' missing." % file_path)
+                raise TankMissingManifestError("Toolkit metadata file '%s' missing." % file_path)
 
             try:
                 file_data = open(file_path)

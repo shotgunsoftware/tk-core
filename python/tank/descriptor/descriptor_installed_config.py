@@ -12,14 +12,12 @@ from __future__ import with_statement
 
 import os
 
-from tank_vendor import yaml
-
 from .descriptor_config import ConfigDescriptor
 from .. import pipelineconfig_utils
 from .. import LogManager
 from ..util import ShotgunPath
 from . import constants
-from .errors import TankDescriptorError
+from .errors import TankMissingManifestError
 
 from ..errors import TankNotPipelineConfigurationError, TankFileDoesNotExistError, TankInvalidCoreLocationError
 
@@ -87,24 +85,14 @@ class InstalledConfigDescriptor(ConfigDescriptor):
 
         :returns: dictionary with the contents of info.yml
         """
-        manifest_location = os.path.join(
-            self._get_config_folder(),
-            constants.BUNDLE_METADATA_FILE
-        )
-        if not os.path.exists(manifest_location):
+        try:
+            manifest = self._io_descriptor.get_manifest(
+                os.path.join("config", constants.BUNDLE_METADATA_FILE)
+            )
+            # We need to tolerate empty manifests since these exists currently.
+            return manifest or {}
+        except TankMissingManifestError:
             return {}
-        else:
-            try:
-                with open(manifest_location) as fh:
-                    metadata = yaml.load(fh)
-            except Exception as exp:
-                raise TankDescriptorError(
-                    "Cannot load metadata file '%s'. Error: %s" % (manifest_location, exp)
-                )
-            # cache it
-            self.__manifest_data = metadata
-
-        return self.__manifest_data
 
     def _get_config_folder(self):
         """
