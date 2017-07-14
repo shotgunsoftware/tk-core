@@ -18,9 +18,10 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from .ui import resources_rc
+from .ui import resources_rc # noqa
 from .ui import login_dialog
 from . import session_cache
+from . import util
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
@@ -226,10 +227,8 @@ class LoginDialog(QtGui.QDialog):
             self._set_error_message(self.ui.message, "Please enter your password.")
             return
 
-        # if not protocol specified assume https
-        if len(site.split("://")) == 1:
-            site = "https://%s" % site
-            self.ui.site.setText(site)
+        # Cleanup the URL.
+        self.ui.site.setText(util.cleanup_url(site))
 
         try:
             self._authenticate(self.ui.message, site, login, password)
