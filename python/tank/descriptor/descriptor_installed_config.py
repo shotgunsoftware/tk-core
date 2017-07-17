@@ -12,20 +12,31 @@ from __future__ import with_statement
 
 import os
 
-from .descriptor_config_base import ConfigDescriptorBase
+from .descriptor_config import ConfigDescriptor
 from .. import pipelineconfig_utils
 from .. import LogManager
 from ..util import ShotgunPath
+from . import constants
+from .errors import TankMissingManifestError
 
 from ..errors import TankNotPipelineConfigurationError, TankFileDoesNotExistError, TankInvalidCoreLocationError
 
 log = LogManager.get_logger(__name__)
 
 
-class InstalledConfigDescriptor(ConfigDescriptorBase):
+class InstalledConfigDescriptor(ConfigDescriptor):
     """
-    Descriptor that describes an installed Toolkit Configuration.
+    Descriptor that describes an installed Toolkit Configuration. An installed configuration
+    is what we otherwise refer to as a classic pipeline configuration, which is a pipeline
+    configuration is that installed in a folder on the network, which contains a copy of the
+    environment files, a copy of core and all the bundles required by that pipeline configuration.
+    It supports localized as well as shared core and as such, the interpreter files can be found
+    inside the configuration folder or alongside the shared core.
     """
+
+    def __init__(self, io_descriptor):
+        super(InstalledConfigDescriptor, self).__init__(io_descriptor)
+        self._io_descriptor.set_is_copiable(False)
 
     @property
     def python_interpreter(self):
@@ -67,6 +78,21 @@ class InstalledConfigDescriptor(ConfigDescriptorBase):
             "type": "path",
             "path": os.path.join(self._get_core_path_for_config(pipeline_config_path), "install", "core")
         }
+
+    def _get_manifest(self):
+        """
+        Returns the info.yml metadata associated with this descriptor.
+
+        :returns: dictionary with the contents of info.yml
+        """
+        try:
+            manifest = self._io_descriptor.get_manifest(
+                os.path.join("config", constants.BUNDLE_METADATA_FILE)
+            )
+            # We need to tolerate empty manifests since these exists currently.
+            return manifest or {}
+        except TankMissingManifestError:
+            return {}
 
     def _get_config_folder(self):
         """

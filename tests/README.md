@@ -8,6 +8,8 @@ Required packages
 * mock
 * coverage (only if coverage option is used)
 
+These are all packaged under tests/python/third_party.
+
 Running the test suite
 -----------------------
 To run the tests on windows run the core/tests/run_tests.bat. To run on linux run the script run_tests.sh. 

@@ -19,7 +19,6 @@ from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
-from ..util.version import is_version_older, is_version_head
 
 log = LogManager.get_logger(__name__)
 
@@ -69,19 +68,20 @@ class ToolkitManager(object):
         else:
             self._sg_user = sg_user
 
-        self._allow_config_overrides = True
-
         self._sg_connection = self._sg_user.create_sg_connection()
 
         # defaults
+        self._pre_engine_start_callback = None
+        self._progress_cb = None
+
+        # These are serializable parameters from the class.
         self._user_bundle_cache_fallback_paths = []
         self._caching_policy = self.CACHE_SPARSE
         self._pipeline_configuration_identifier = None # name or id
         self._base_config_descriptor = None
-        self._progress_cb = None
         self._do_shotgun_config_lookup = True
         self._plugin_id = None
-        self._pre_engine_start_callback = None
+        self._allow_config_overrides = True
 
         # look for the standard env var SHOTGUN_PIPELINE_CONFIGURATION_ID
         # and in case this is set, use it as a default
@@ -127,6 +127,55 @@ class ToolkitManager(object):
         repr += " Allows config overrides %s\n" % self._allow_config_overrides
         repr += " Base %s >" % self._base_config_descriptor
         return repr
+
+    def extract_settings(self):
+        """
+        Serializes settings that impact resolution of a pipeline configuration into an
+        object and returns it to the user.
+
+        This can be useful when a process is used to enumerate pipeline configurations and another
+        process will be bootstrapping an engine. Calling this method ensures the manager is
+        configured the same across processes.
+
+        Those settings can be restored with :meth:`ToolkitManager.restore_settings`.
+
+        .. note:: Note that the extracted settings should be treated as opaque data and not something
+             that should be manipulated. Their content can be changed at any time.
+
+        :returns: User defined values.
+        :rtype: object
+        """
+        return {
+            "bundle_cache_fallback_paths": self.bundle_cache_fallback_paths,
+            "caching_policy": self.caching_policy,
+            "pipeline_configuration": self.pipeline_configuration,
+            "base_configuration": self.base_configuration,
+            "do_shotgun_config_lookup": self.do_shotgun_config_lookup,
+            "plugin_id": self.plugin_id,
+            "allow_config_overrides": self.allow_config_overrides
+        }
+
+    def restore_settings(self, data):
+        """
+        Restores user defined with :methd:`ToolkitManager.extract_settings`.
+
+        .. note:: Always use :methd:`ToolkitManager.extract_settings` to extract settings when you
+            plan on calling this method. The content of the settings should be treated as opaque
+            data.
+
+        :param object data: Settings obtained from :methd:`ToolkitManager.extract_settings`
+        """
+        self.bundle_cache_fallback_paths = data["bundle_cache_fallback_paths"]
+        self.caching_policy = data["caching_policy"]
+        self.pipeline_configuration = data["pipeline_configuration"]
+        self.base_configuration = data["base_configuration"]
+        self.do_shotgun_config_lookup = data["do_shotgun_config_lookup"]
+        self.plugin_id = data["plugin_id"]
+        self.allow_config_overrides = data["allow_config_overrides"]
+
+            return [x for x in concatenated_lists if x in unique_items]
+        else:
+            return self._user_bundle_cache_fallback_paths
 
     def _get_bundle_cache_fallback_paths(self):
         """
@@ -972,40 +1021,39 @@ class ToolkitManager(object):
         import tank
         is_shotgun_engine = engine_name == constants.SHOTGUN_ENGINE_NAME
 
-        # handle legacy cases
-        if is_shotgun_engine and is_version_older(tk.version, "v0.18.77"):
-            engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
-        else:
-            # no legacy cases
+        # If this is the shotgun engine we are starting, then we will attempt a typical
+        # engine start first, which will work if the engine is configured in the standard
+        # environment files in the config. If it fails, though, then we can try the
+        # legacy approach, which will try to use shotgun_xxx.yml environments if they
+        # exist in the config. If both fail, we reraise the legacy method exception
+        # and log the first one that came from the start_engine attempt.
+        if is_shotgun_engine:
             try:
+                log.debug(
+                    "Attempting to start the shotgun engine using the standard "
+                    "start_engine routine..."
+                )
                 engine = tank.platform.start_engine(engine_name, tk, ctx)
             except Exception, exc:
-                # It's possible that a tk-core is being used that didn't come from
-                # the app_store. This might be the case where a site config has been
-                # locked off, and populated with a tk-core cloned from Github. In that
-                # case, it'll have "HEAD" as its version. In that situation, we don't
-                # actually know if this is a "new" core, or something super old. Given
-                # that, we need to try going the legacy route here just to see if we
-                # might actually have an old core.
-                if is_version_head(tk.version) and is_shotgun_engine:
-                    try:
-                        engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
-                    except Exception:
-                        # We'll want to raise the original exception here. We don't
-                        # really know whether this is a legacy core or not, so if both
-                        # the legacy and new code paths failed, we'll raise the exception
-                        # from the new code path.
-                        log.warning(
-                            "Attempted legacy engine start path for Shotgun engine, which failed. "
-                            "This attempt was made because the tk-core version is HEAD, which means "
-                            "we don't know if it's new or old. As such, when the new-style bootstrap "
-                            "failed, the legacy pathway was attempted."
-                        )
-                        raise exc
-                else:
-                    # In this case, we know we're in a new enough core, but that we
-                    # just failed for some legitimate reason.
+                log.debug(
+                    "Shotgun engine failed to start using start_engine. An "
+                    "attempt will now be made to start it using an legacy "
+                    "shotgun_xxx.yml environment. The start_engine exception "
+                    "was the following: %r" % exc
+                )
+                try:
+                    engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
+                    log.debug("Shotgun engine started using a legacy shotgun_xxx.yml environment.")
+                except Exception, exc:
+                    log.debug(
+                        "Shotgun engine failed to start using the legacy "
+                        "start_shotgun_engine routine. No more attempts will "
+                        "be made to initialize the engine. The start_shotgun_engine "
+                        "exception was the following: %r" % exc
+                    )
                     raise
+        else:
+            engine = tank.platform.start_engine(engine_name, tk, ctx)
 
         log.debug("Launched engine %r" % engine)
 

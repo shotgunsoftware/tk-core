@@ -13,6 +13,8 @@ import os
 import inspect
 from optparse import OptionParser
 
+
+
 # Let the user know which Python is picked up to run the tests.
 print
 print "Using Python version \"%s\" at \"%s\"" % (".".join(
@@ -30,6 +32,10 @@ sys.path = [core_python_path] + sys.path
 # the tests against the vendor libs, not local libs on the machine
 test_python_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "python"))
 print "Adding tests/python location to python_path: %s" % test_python_path
+sys.path = [test_python_path] + sys.path
+
+test_python_path = os.path.join(test_python_path, "third_party")
+print "Adding tests/python/third_party location to python_path: %s" % test_python_path
 sys.path = [test_python_path] + sys.path
 
 import unittest2 as unittest
@@ -81,26 +87,35 @@ def _initialize_coverage():
     :returns: The coverate instance.
     """
     import coverage
-    shotgun_path = os.path.join(core_python_path, "tank_vendor", "*")
-    cov = coverage.coverage(source=["tank"], omit=shotgun_path)
+    run_tests_py_location = inspect.getsourcefile(_initialize_coverage)
+    coveragerc_location = os.path.abspath(
+        os.path.join(
+            os.path.dirname(run_tests_py_location), # <root>/tests
+            "..", # <root>
+            ".coveragerc") # <root>/.coveragerc
+    )
+    cov = coverage.coverage(config_file=coveragerc_location)
     cov.start()
     return cov
 
 
-def _finalize_coverage(cov, is_html_coverage):
+def _finalize_coverage(cov):
     """
-    Stops covering code and writes out coverage.xml in the current directory.
+    Stops covering code and writes out reports.
     """
     cov.stop()
+    cov.report()
+    cov.html_report(directory="coverage_html_report")
+    print "Note: Full html coverage report can be found in the coverage_html_report folder."
 
-    index_html = os.path.join(os.getcwd(), "covhtml", "index.html")
-    if is_html_coverage:
-        cov.html_report(directory="covhtml")
-        import webbrowser
-        webbrowser.open("file://%s" % index_html)
+    try:
+        # seems to be some CI issues with html coverage so
+        # failing gracefully with a warning in case it doesn't work.
+        cov.html_report(directory="coverage_html_report")
+    except Exception, e:
+        print "WARNING: Html coverage report could not be written: %s" % e
     else:
-        cov.report()
-        cov.xml_report(outfile="coverage.xml")
+        print "Note: Full html coverage report can be found in the coverage_html_report folder."
 
 
 def _initialize_logging(log_to_console):
@@ -145,10 +160,6 @@ def _parse_command_line():
                       action="store_true",
                       dest="coverage",
                       help="run with coverage (requires coverage is installed)")
-    parser.add_option("--with-html-coverage",
-                      action="store_true",
-                      dest="html_coverage",
-                      help="run with coverage (requires coverage is installed) and generates html report")
     parser.add_option("--interactive",
                       action="store_true",
                       dest="interactive",
@@ -182,15 +193,15 @@ if __name__ == "__main__":
             "tank or sgtk was imported before the coverage module. Please fix run_tests.py."
         )
 
-    if options.coverage or options.html_coverage:
+    if options.coverage:
         cov = _initialize_coverage()
 
     _initialize_logging(options.log_to_console)
 
     ret_val = _run_tests(options.test_root, test_name)
 
-    if options.coverage or options.html_coverage:
-        _finalize_coverage(cov, options.html_coverage)
+    if options.coverage:
+        _finalize_coverage(cov)
 
     # Exit value determined by failures and errors
     exit_val = 0

@@ -37,13 +37,13 @@ class TankAppStoreConnectionError(TankAppStoreError):
     pass
 
 
-class InvalidAppStoreCredentialsError(TankAppStoreConnectionError):
+class TankInvalidAppStoreCredentialsError(TankAppStoreConnectionError):
     """
     Error indicating no credentials for the Toolkit App Store were found in Shotgun.
     """
 
 
-class CheckVersionConstraintsError(TankDescriptorError):
+class TankCheckVersionConstraintsError(TankDescriptorError):
     """
     Error throw when one or more version constraints checks failed.
     """
@@ -73,5 +73,14 @@ class TankInvalidInterpreterLocationError(TankDescriptorError):
     Exception that indicates that the interpreter specified in a file was not found.
     """
 
+
+class TankMissingManifestError(TankDescriptorError):
+    """
+    Exception that indicates that the manifest file is missing.
+    """
+
+
 # For backwards compatibility with previous versions of core.
 errors.TankInvalidInterpreterLocationError = TankInvalidInterpreterLocationError
+InvalidAppStoreCredentialsError = TankInvalidAppStoreCredentialsError
+CheckVersionConstraintsError = TankCheckVersionConstraintsError

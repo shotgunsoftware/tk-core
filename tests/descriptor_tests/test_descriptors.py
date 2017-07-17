@@ -15,7 +15,9 @@ import sgtk
 from tank_test.tank_test_base import TankTestBase, SealedMock
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.errors import TankError
-from tank.descriptor import CheckVersionConstraintsError, TankDescriptorError
+from tank.descriptor import (
+    CheckVersionConstraintsError, TankDescriptorError, create_descriptor, Descriptor
+)
 from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
 
 from mock import Mock, patch
@@ -39,7 +41,7 @@ class TestConfigDescriptor(TankTestBase):
         """
         with self.assertRaisesRegexp(
             TankDescriptorError,
-            "Installed descriptor is not copiable."
+            "cannot be copied"
         ):
             self.tk.configuration_descriptor.copy("/a/b/c")
 
@@ -49,15 +51,79 @@ class TestConfigDescriptor(TankTestBase):
         """
         self.assertEqual(self.tk.configuration_descriptor.is_immutable(), False)
 
-    def test_manifest(self):
+    def test_installed_config_associated_core_descriptor(self):
+        """
+        Ensures the core descriptor for an installed configuration points inside the pipeline
+        configuration.
+        """
+        self.assertDictEqual(
+            self.tk.configuration_descriptor.associated_core_descriptor,
+            {"path": os.path.join(self.pipeline_config_root, "install", "core"), "type": "path"}
+        )
+
+    def test_cached_config_associated_core_descriptor(self):
+        """
+        Ensures core_api.yml is handled properly.
+        """
+        descriptor_dict = {
+            "path": os.path.join("$TK_TEST_FIXTURES", "descriptor_tests", "cached_configuration"),
+            "type": "path"
+        }
+        # Make sure we see the core descriptor.
+        desc = create_descriptor(self.mockgun, Descriptor.CONFIG, descriptor_dict)
+        self.assertDictEqual(
+            desc.associated_core_descriptor,
+            {"type": "app_store", "version": "v0.18.91", "name": "tk-core"}
+        )
+
+        descriptor_dict = {
+            "path": os.path.join("$TK_TEST_FIXTURES", "descriptor_tests", "cached_configuration_no_core"),
+            "type": "path"
+        }
+        # Make sure we see the core descriptor.
+        desc = create_descriptor(self.mockgun, Descriptor.CONFIG, descriptor_dict)
+        self.assertIsNone(desc.associated_core_descriptor)
+
+    def test_cached_config_manifest(self):
+        """
+        Ensures we can read the manifest file.
+        """
+        descriptor_dict = {
+            "path": os.path.join("$TK_TEST_FIXTURES", "descriptor_tests", "cached_configuration"),
+            "type": "path"
+        }
+        # Make sure we see the core descriptor.
+        desc = create_descriptor(self.mockgun, Descriptor.CONFIG, descriptor_dict)
+
+        self.assertEqual(
+            desc.display_name,
+            "Descriptor Tests Cached Configuration with core."
+        )
+
+        self.assertEqual(
+            desc.description,
+            "This configuration has a core_api.yml file."
+        )
+
+        self.assertEqual(
+            desc.version_constraints["min_sg"],
+            "v6.3.0"
+        )
+
+        self.assertEqual(
+            desc.version_constraints["min_core"],
+            "v0.18.18"
+        )
+
+    def test_installed_config_manifest(self):
         """
         Ensures the manifest is read correctly.
         """
+        # Create a manifest file for the pipeline configuration.
         with open(os.path.join(self.pipeline_config_root, "config", "info.yml"), "w") as fh:
             fh.write(
                 yaml.dump({
                     "display_name": "Unit Test Configuration",
-                    "description": "Configuration used for unit testing",
                     "requires_shotgun_version": "v6.3.0",
                     "requires_core_version": "HEAD"
                 })
@@ -66,6 +132,11 @@ class TestConfigDescriptor(TankTestBase):
         self.assertEqual(
             self.tk.configuration_descriptor.display_name,
             "Unit Test Configuration"
+        )
+
+        self.assertEqual(
+            self.tk.configuration_descriptor.description,
+            "No description available."
         )
 
         self.assertEqual(

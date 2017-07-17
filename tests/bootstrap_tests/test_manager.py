@@ -66,7 +66,10 @@ class TestFunctionality(TankTestBase):
         self.assertEqual(mgr.get_entity_from_environment(), None)
 
         # std case
-        with temp_env_var(SHOTGUN_ENTITY_TYPE="Shot", SHOTGUN_ENTITY_ID="123"):
+        with temp_env_var(
+            SHOTGUN_ENTITY_TYPE="Shot",
+            SHOTGUN_ENTITY_ID="123"
+        ):
             self.assertEqual(
                 mgr.get_entity_from_environment(),
                 {"type": "Shot", "id": 123}
@@ -91,7 +94,7 @@ class TestFunctionality(TankTestBase):
                 mgr.get_entity_from_environment(),
                 None
             )
-
+            
     @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
     def test_shotgun_bundle_cache(self, _):
         """
@@ -132,3 +135,53 @@ class TestFunctionality(TankTestBase):
         self.assertEqual(
             set(mgr._get_bundle_cache_fallback_paths()), set(["/a/b/c", "/d/e/f"])
         )
+
+
+    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    def test_serialization(self, _):
+        """
+        Ensures we're serializing the manager properly.
+        """
+        # Make sure nobody has added new parameters that need to be serialized.
+        class_attrs = set(dir(ToolkitManager))
+        instance_attrs = set(dir(ToolkitManager()))
+        unserializable_attrs = set(
+            ["_sg_connection", "_sg_user", "_pre_engine_start_callback", "_progress_cb"]
+        )
+        # Through this operation, we're taking all the symbols that are defined from an instance,
+        # we then remove everything that is defined also in the class, which means we're left
+        # with what was added during __init__, and then we remove the parameters we know can't
+        # be serialized. We're left with a small list of values that can be serialized.
+        instance_data_members = instance_attrs - class_attrs - unserializable_attrs
+        self.assertEqual(len(instance_data_members), 7)
+
+        # Create a manager that hasn't been updated yet.
+        clean_mgr = ToolkitManager()
+        clean_settings = clean_mgr.extract_settings()
+
+        # Now create one where we modify everything.
+        modified_mgr = ToolkitManager()
+        modified_mgr.bundle_cache_fallback_paths = ["/a/b/c"]
+        modified_mgr.caching_policy = ToolkitManager.CACHE_FULL
+        modified_mgr.pipeline_configuration = "Primary"
+        modified_mgr.base_configuration = "sgtk:descriptor:app_store?"\
+            "version=v0.18.91&name=tk-config-basic"
+        modified_mgr.do_shotgun_config_lookup = False
+        modified_mgr.plugin_id = "basic.default"
+        modified_mgr.allow_config_overrides = False
+
+        # Extract settings and make sure the implementation still stores dictionaries.
+        modified_settings = modified_mgr.extract_settings()
+        self.assertIsInstance(modified_settings, dict)
+
+        # Make sure the unit test properly changes all the settings from their default values.
+        for k, v in modified_settings.iteritems():
+            self.assertNotEqual(v, clean_settings[k])
+
+        # Restore the settings from the manager.
+        restored_mgr = ToolkitManager()
+        restored_mgr.restore_settings(modified_settings)
+
+        # Extract the settings back from the restored manager to make sure everything was written
+        # back correctly.
+        self.assertEqual(restored_mgr.extract_settings(), modified_settings)

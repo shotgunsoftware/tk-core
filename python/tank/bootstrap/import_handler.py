@@ -108,7 +108,7 @@ class CoreImportHandler(object):
                 tank.LogManager().initialize_base_file_handler_from_path(prev_log_file)
         except AttributeError, e:
             # older versions of the API may not have this defined.
-            log.warning(
+            log.debug(
                 "Switching to a version of the core API that doesn't "
                 "have a LogManager.initialize_base_file_handler_from_path method defined."
             )

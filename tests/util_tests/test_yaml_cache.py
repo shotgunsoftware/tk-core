@@ -31,6 +31,15 @@ class TestYamlCache(TankTestBase):
         # data root for all test data:
         self._data_root = os.path.join(self.fixtures_root, "misc", "yaml_cache")
 
+    def test_empty_yml_return(self):
+        """
+        Tests that getting the contents of an empty yml file via the cache
+        results in a None.
+        """
+        yaml_path = os.path.join(self._data_root, "empty.yml")
+        yaml_cache = YamlCache()
+        self.assertIsNone(yaml_cache.get(yaml_path))
+
     def test_get_incorrect_path(self):
         """
         Test that an error is correctly raised when the yaml cache is asked
