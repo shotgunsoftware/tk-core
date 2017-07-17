@@ -29,7 +29,7 @@ pip-log.txt
 .coverage
 .tox
 coverage.xml
-coverage_html_report
+tests/coverage_html_report
 
 #Translations
 *.mo
