@@ -173,10 +173,6 @@ class ToolkitManager(object):
         self.plugin_id = data["plugin_id"]
         self.allow_config_overrides = data["allow_config_overrides"]
 
-            return [x for x in concatenated_lists if x in unique_items]
-        else:
-            return self._user_bundle_cache_fallback_paths
-
     def _get_bundle_cache_fallback_paths(self):
         """
         Retuns a list containing both the user specified bundle caches and the one specified
