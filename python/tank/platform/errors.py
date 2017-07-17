@@ -28,7 +28,7 @@ class TankEngineInitError(errors.TankError):
     """
 
 
-class TankMissingEngineInitError(TankEngineInitError):
+class TankMissingEngineError(TankEngineInitError):
     """
     Exception that indicates that an engine could not start up.
     """
