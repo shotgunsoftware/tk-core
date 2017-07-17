@@ -14,7 +14,8 @@ will provide a default host and an optional http proxy. If a script user has
 been configured with the core, its credentials will also be provided.
 """
 
-from ..authentication import DefaultsManager
+from .defaults_manager import DefaultsManager
+from ..util import shotgun
 
 
 class CoreDefaultsManager(DefaultsManager):
@@ -47,7 +48,6 @@ class CoreDefaultsManager(DefaultsManager):
         Returns the host found in the core configuration.
         :returns: The host value from the configuration
         """
-        from . import shotgun
         return shotgun.get_associated_sg_config_data().get("host")
 
     def get_http_proxy(self):
@@ -59,7 +59,6 @@ class CoreDefaultsManager(DefaultsManager):
         :returns: String with proxy definition suitable for the Shotgun API or
                   None if not necessary.
         """
-        from . import shotgun
         sg_config_data = shotgun.get_associated_sg_config_data()
         # If http_proxy is not set, fallback on the base class. Note that http_proxy
         # can be set to an empty value, which we want to use in that case.
@@ -78,7 +77,6 @@ class CoreDefaultsManager(DefaultsManager):
                   User or None in case no credentials could be established.
         """
         if not self._mask_script_user:
-            from . import shotgun
             data = shotgun.get_associated_sg_config_data()
             if data.get("api_script") and data.get("api_key"):
                 return {
@@ -86,3 +84,8 @@ class CoreDefaultsManager(DefaultsManager):
                     "api_key": data["api_key"]
                 }
         return super(CoreDefaultsManager, self).get_user_credentials()
+
+
+# For backwards compatibility.
+from .. import util
+util.CoreDefaultsManager = CoreDefaultsManager

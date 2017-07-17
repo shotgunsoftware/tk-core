@@ -23,13 +23,14 @@ from tank.commands.tank_command import get_actions, run_action
 from tank.commands.clone_configuration import clone_pipeline_configuration_html
 from tank.commands.core_upgrade import TankCoreUpdater
 from tank.commands.action_base import Action
-from tank.util import shotgun, CoreDefaultsManager
+from tank.util import shotgun
 from tank.platform import constants as platform_constants
 from tank.authentication import ShotgunAuthenticator
 from tank.authentication import AuthenticationError
 from tank.authentication import ShotgunAuthenticationError
 from tank.authentication import AuthenticationCancelled
 from tank.authentication import IncompleteCredentials
+from tank.authentication import CoreDefaultsManager
 from tank.commands import constants as command_constants
 from tank_vendor import yaml
 from tank.platform import engine

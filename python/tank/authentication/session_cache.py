@@ -28,7 +28,7 @@ from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
 from .. import LogManager
-from . import utils
+from ..util.shotgun import connection
 
 logger = LogManager.get_logger(__name__)
 
@@ -392,7 +392,7 @@ def get_current_host():
     document = _try_load_global_authentication_file(info_path)
     host = document[_CURRENT_HOST]
     if host:
-        host = utils.cleanup_url(host)
+        host = connection.cleanup_host(host)
     logger.debug("Current host is '%s'" % host)
     return host
 
@@ -404,7 +404,7 @@ def set_current_host(host):
     :param host: The new current host.
     """
     if host:
-        host = utils.cleanup_url(host)
+        host = connection.cleanup_host(host)
 
     file_path = _get_global_authentication_file_location()
     _ensure_folder_for_file(file_path)

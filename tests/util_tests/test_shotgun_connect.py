@@ -28,6 +28,7 @@ from tank.authentication.user import ShotgunUser
 from tank.authentication.user_impl import SessionUser
 from tank.descriptor import Descriptor
 from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
+from tank.util.shotgun.connection import cleanup_host
 
 
 
@@ -93,6 +94,51 @@ class TestGetSgConfigData(TankTestBase):
                 "default",
                 "not_a_file.cfg"
             )
+
+    def test_cleanup_host(self):
+
+        # Ensure https is added if no scheme is specified.
+        self.assertEquals(
+            "https://no.scheme.com",
+            cleanup_host("no.scheme.com")
+        )
+
+        # Ensure that port number is also kept.
+        self.assertEquals(
+            "https://no.scheme.com:8080",
+            cleanup_host("no.scheme.com:8080")
+        )
+
+        # Ensure https is not modified if specified.
+        self.assertEquals(
+            "https://no.scheme.com",
+            cleanup_host("https://no.scheme.com")
+        )
+
+        # Ensure http is left as is if specified.
+        self.assertEquals(
+            "http://no.scheme.com",
+            cleanup_host("http://no.scheme.com")
+        )
+
+        # Ensure any scheme is left as is if specified.
+        self.assertEquals(
+            "invalid-scheme://no.scheme.com",
+            cleanup_host("invalid-scheme://no.scheme.com")
+        )
+
+        # Ensures a suffixed slash gets removed.
+        self.assertEquals(
+            "https://no.suffixed.slash.com",
+            cleanup_host("https://no.suffixed.slash.com/")
+        )
+
+        # Ensures anything after the host is dropped.
+        self.assertEquals(
+            "https://no.suffixed.slash.com",
+            cleanup_host("https://no.suffixed.slash.com/path/to/a/resource")
+        )
+
 
 # Class decorators don't exist on Python2.5
 TestGetSgConfigData = patch("tank.util.shotgun.connection.__get_api_core_config_location", TestGetSgConfigData)
