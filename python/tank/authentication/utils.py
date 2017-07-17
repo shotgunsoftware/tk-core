@@ -29,8 +29,13 @@ def cleanup_url(server_url):
     # network location
 
     # Then extract the good parts from the url
-    clean_url = urlparse.ParseResult()
-    clean_url.scheme = parsed_url.scheme or "https"
-    clean_url.netloc = parsed_url.netloc
+    clean_url = urlparse.ParseResult(
+        # We want https when there is no specified scheme.
+        scheme=parsed_url.scheme or "https",
+        # If only a host has been provided, path will be set.
+        # If a scheme was set, then use the netloc
+        netloc=parsed_url.netloc or parsed_url.path,
+        path="", params="", query="", fragment=""
+    )
 
-    return urlparse.unparseurl(clean_url)
+    return urlparse.urlunparse(clean_url)

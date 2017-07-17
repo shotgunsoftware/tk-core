@@ -84,7 +84,9 @@ class LocalFileStorageManager(object):
                            which is the current generation of paths.
         :return: Path as string
         """
-        if generation == cls.CORE_V18:
+        # If SHOTGUN_HOME is set then the intent is to not use any of official locations and instead
+        # use an alternate location, in which case this is as if we're running core 0.18.
+        if generation == cls.CORE_V18 or os.environ.get("SHOTGUN_HOME"):
 
             # If the environment variable is available and set to an actual value.
             shotgun_home_override = os.environ.get("SHOTGUN_HOME")

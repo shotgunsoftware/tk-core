@@ -21,7 +21,7 @@ at any point.
 from .ui import resources_rc # noqa
 from .ui import login_dialog
 from . import session_cache
-from . import util
+from . import utils
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
@@ -228,7 +228,7 @@ class LoginDialog(QtGui.QDialog):
             return
 
         # Cleanup the URL.
-        self.ui.site.setText(util.cleanup_url(site))
+        self.ui.site.setText(utils.cleanup_url(site))
 
         try:
             self._authenticate(self.ui.message, site, login, password)

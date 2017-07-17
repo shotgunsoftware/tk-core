@@ -11,8 +11,8 @@
 import sys
 import os
 import inspect
+import glob
 from optparse import OptionParser
-
 
 
 # Let the user know which Python is picked up to run the tests.
@@ -68,16 +68,40 @@ class TankTestRunner(object):
         sys.path.append(self.test_path)
         self.suite = None
 
-    def setup_suite(self, test_name):
+    def setup_suite(self, test_names):
         # args used to specify specific module.TestCase.test
-        if test_name:
-            self.suite = unittest.loader.TestLoader().loadTestsFromName(test_name)
+        if test_names:
+            test_names_iterator = self._massage_test_names(test_names)
+            self.suite = unittest.loader.TestLoader().loadTestsFromNames(test_names_iterator)
         else:
             self.suite = unittest.loader.TestLoader().discover(self.test_path)
 
-    def run_tests(self, test_name):
-        self.setup_suite(test_name)
+    def run_tests(self, test_names):
+        self.setup_suite(test_names)
         return unittest.TextTestRunner(verbosity=2).run(self.suite)
+
+    def _massage_test_names(self, test_names):
+
+        # First convert all the file paths into module imports
+        test_names = [test_name.replace("/", ".").replace(".py", "") for test_name in test_names]
+
+        for test_name in test_names:
+            # If we have a simple module name, no sub-module, then, run all the tests in that
+            # module.
+            if "." not in test_name:
+                # Grab all the python files.
+                print glob.glob(os.path.join(self.test_path, test_name, "test_*.py"))
+                print self.test_path
+
+                for filename in self._massage_test_names(
+                    # Generate clean module/submodule.py files without the fully qualified path.
+                    # Skip the extra /
+                    os.path.abspath(filename).replace(self.test_path, "")[1:]
+                    for filename in glob.iglob(os.path.join(self.test_path, test_name, "test_*.py"))
+                ):
+                    yield filename
+            else:
+                yield test_name
 
 
 def _initialize_coverage():
@@ -131,7 +155,7 @@ def _initialize_logging(log_to_console):
         tank.LogManager().initialize_custom_handler()
 
 
-def _run_tests(test_root, test_name):
+def _run_tests(test_root, test_names):
     """
     Runs the tests.
 
@@ -146,7 +170,7 @@ def _run_tests(test_root, test_name):
     else:
         tank_test_runner = TankTestRunner()
 
-    return tank_test_runner.run_tests(test_name)
+    return tank_test_runner.run_tests(test_names)
 
 
 def _parse_command_line():
@@ -174,16 +198,16 @@ def _parse_command_line():
 
     (options, args) = parser.parse_args()
 
-    test_name = None
-    if args:
-        test_name = args[0]
+    print args
 
-    return options, test_name
+    test_names = args or []
+
+    return options, test_names
 
 
 if __name__ == "__main__":
 
-    options, test_name = _parse_command_line()
+    options, test_names = _parse_command_line()
 
     # Do not import Toolkit before coverage or it will tank (pun intended) our coverage
     # score. We'll do this test even when we're not running code coverage to make sure
@@ -198,7 +222,7 @@ if __name__ == "__main__":
 
     _initialize_logging(options.log_to_console)
 
-    ret_val = _run_tests(options.test_root, test_name)
+    ret_val = _run_tests(options.test_root, test_names)
 
     if options.coverage:
         _finalize_coverage(cov)
