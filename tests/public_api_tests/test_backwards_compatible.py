@@ -15,7 +15,14 @@ import sgtk
 
 class BackwardsCompatibilityTests(TestCase):
 
-    def test_compatibility(self):
+    def test_class_availability(self):
+        """
+        Ensures the API is backwards compatible.
+        """
+
+        # Each test should be interpreter as
+        #
+        # self.assertEqual(new_location, old_location)
 
         # Utils backwards compatibility
         self.assertEqual(
@@ -25,17 +32,21 @@ class BackwardsCompatibilityTests(TestCase):
 
         # Descriptor backwards compatibility
         self.assertEqual(
-            sgtk.descriptor.InvalidAppStoreCredentialsError,
-            sgtk.descriptor.TankInvalidAppStoreCredentialsError
+            sgtk.descriptor.TankInvalidAppStoreCredentialsError,
+            sgtk.descriptor.InvalidAppStoreCredentialsError
         )
         self.assertEqual(
-            sgtk.descriptor.CheckVersionConstraintsError,
-            sgtk.descriptor.TankCheckVersionConstraintsError
+            sgtk.descriptor.TankCheckVersionConstraintsError,
+            sgtk.descriptor.CheckVersionConstraintsError
         )
 
         # Core api compatibility
         self.assertEqual(
-            sgtk.TankInvalidInterpreterLocationError,
-            sgtk.descriptor.TankInvalidInterpreterLocationError
+            sgtk.descriptor.TankInvalidInterpreterLocationError,
+            sgtk.TankInvalidInterpreterLocationError
         )
 
+        self.assertEqual(
+            sgtk.platform.TankEngineInitError,
+            sgtk.TankEngineInitError
+        )

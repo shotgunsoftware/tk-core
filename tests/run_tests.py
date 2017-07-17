@@ -91,14 +91,10 @@ class TankTestRunner(object):
             # extension.
             test_name = test_name.replace("/", ".").replace(".py", "")
 
-            print test_name
             # If we have a simple module name, no sub-module, then, run all the tests in that
             # module.
             if "." not in test_name:
                 # Grab all the python files.
-                print glob.glob(os.path.join(self.test_path, test_name, "test_*.py"))
-                print self.test_path
-
                 for filename in self._massage_test_names(
                     # Generate clean module/submodule.py files without the fully qualified path.
                     # Skip the extra /
@@ -203,8 +199,6 @@ def _parse_command_line():
                       help="run tests and redirect logging output to the console.")
 
     (options, args) = parser.parse_args()
-
-    print args
 
     test_names = args or []
 
