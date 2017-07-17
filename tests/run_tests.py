@@ -81,11 +81,17 @@ class TankTestRunner(object):
         return unittest.TextTestRunner(verbosity=2).run(self.suite)
 
     def _massage_test_names(self, test_names):
-
-        # First convert all the file paths into module imports
-        test_names = [test_name.replace("/", ".").replace(".py", "") for test_name in test_names]
-
         for test_name in test_names:
+            # If the user used tab completion there will be an extra path separator at
+            # the end, so remove it.
+            if test_name[-1] == os.path.sep:
+                test_name = test_name[:-1]
+
+            # If a test name looks like a file name, turn the slashes into . and remove the
+            # extension.
+            test_name = test_name.replace("/", ".").replace(".py", "")
+
+            print test_name
             # If we have a simple module name, no sub-module, then, run all the tests in that
             # module.
             if "." not in test_name:

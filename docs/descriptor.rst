@@ -366,7 +366,7 @@ Exceptions
     :inherited-members:
     :members:
 
-.. autoclass:: CheckVersionConstraintsError
+.. autoclass:: TankCheckVersionConstraintsError
     :show-inheritance:
     :inherited-members:
     :members:
