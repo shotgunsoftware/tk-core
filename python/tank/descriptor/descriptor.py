@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -15,8 +15,7 @@ from ..util import filesystem
 from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
-
-
+from . import constants
 
 
 def create_descriptor(
@@ -31,7 +30,8 @@ def create_descriptor(
     Factory method. Use this when creating descriptor objects.
 
     :param sg_connection: Shotgun connection to associated site
-    :param descriptor_type: Either ``Descriptor.APP``, ``CORE``, ``CONFIG``, ``ENGINE`` or ``FRAMEWORK``
+    :param descriptor_type: Either ``Descriptor.APP``, ``CORE``, ``CONFIG``, ``INSTALLED_CONFIG``,
+        ``ENGINE`` or ``FRAMEWORK``
     :param dict_or_uri: A std descriptor dictionary dictionary or string
     :param bundle_cache_root_override: Optional override for root path to where
                                        downloaded apps are cached. If not specified,
@@ -63,7 +63,8 @@ def create_descriptor(
     :returns: :class:`Descriptor` object
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
-    from .descriptor_config import ConfigDescriptor
+    from .descriptor_cached_config import CachedConfigDescriptor
+    from .descriptor_installed_config import InstalledConfigDescriptor
     from .descriptor_core import CoreDescriptor
 
     # if bundle root is not set, fall back on default location
@@ -101,11 +102,13 @@ def create_descriptor(
         return FrameworkDescriptor(sg_connection, io_descriptor)
 
     elif descriptor_type == Descriptor.CONFIG:
-        return ConfigDescriptor(io_descriptor)
+        return CachedConfigDescriptor(io_descriptor)
+
+    elif descriptor_type == Descriptor.INSTALLED_CONFIG:
+        return InstalledConfigDescriptor(io_descriptor)
 
     elif descriptor_type == Descriptor.CORE:
         return CoreDescriptor(io_descriptor)
-
     else:
         raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)
 
@@ -132,7 +135,7 @@ class Descriptor(object):
     and helper methods.
     """
 
-    (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = range(5)
+    (APP, FRAMEWORK, ENGINE, CONFIG, CORE, INSTALLED_CONFIG) = range(6)
 
     def __init__(self, io_descriptor):
         """
@@ -167,6 +170,14 @@ class Descriptor(object):
         Used for pretty printing
         """
         return "%s %s" % (self.system_name, self.version)
+
+    def _get_manifest(self):
+        """
+        Returns the info.yml metadata associated with this descriptor.
+
+        :returns: dictionary with the contents of info.yml
+        """
+        return self._io_descriptor.get_manifest(constants.BUNDLE_METADATA_FILE)
 
     ###############################################################################################
     # data accessors
@@ -223,7 +234,7 @@ class Descriptor(object):
         The display name for this item.
         If no display name has been defined, the system name will be returned.
         """
-        meta = self._io_descriptor.get_manifest()
+        meta = self._get_manifest()
         display_name = meta.get("display_name")
         if display_name is None:
             display_name = self.system_name
@@ -255,10 +266,10 @@ class Descriptor(object):
         """
         A short description of the item.
         """
-        meta = self._io_descriptor.get_manifest()
+        meta = self._get_manifest()
         desc = meta.get("description")
         if desc is None:
-            desc = "No description available." 
+            desc = "No description available."
         return desc
 
     @property
@@ -284,10 +295,10 @@ class Descriptor(object):
         A url that points at a support web page associated with this item.
         If not url has been defined, None is returned.
         """
-        meta = self._io_descriptor.get_manifest()
+        meta = self._get_manifest()
         support_url = meta.get("support_url")
         if support_url is None:
-            support_url = "https://support.shotgunsoftware.com" 
+            support_url = "https://support.shotgunsoftware.com"
         return support_url
 
     @property
@@ -295,7 +306,7 @@ class Descriptor(object):
         """
         The documentation url for this item or None if not defined.
         """
-        meta = self._io_descriptor.get_manifest()
+        meta = self._get_manifest()
         doc_url = meta.get("documentation_url")
         # note - doc_url can be none which is fine.
         return doc_url
@@ -316,14 +327,14 @@ class Descriptor(object):
         A short name, suitable for use in configuration files and for folders on disk.
         """
         return self._io_descriptor.get_system_name()
-    
+
     @property
     def version(self):
         """
         The version number string for this item.
         """
         return self._io_descriptor.get_version()
-    
+
     def get_path(self):
         """
         Returns the path to the folder where this item either currently resides
@@ -433,13 +444,29 @@ class Descriptor(object):
     # compatibility accessors to ensure that all systems
     # calling this (previously internal!) parts of toolkit
     # will still work.
-    def get_display_name(self): return self.display_name
-    def get_description(self): return self.description
-    def get_icon_256(self): return self.icon_256
-    def get_support_url(self): return self.support_url
-    def get_doc_url(self): return self.documentation_url
-    def get_deprecation_status(self): return self.deprecation_status
-    def get_system_name(self): return self.system_name
-    def get_version(self): return self.version
-    def get_changelog(self): return self.changelog
+    def get_display_name(self):
+        return self.display_name
 
+    def get_description(self):
+        return self.description
+
+    def get_icon_256(self):
+        return self.icon_256
+
+    def get_support_url(self):
+        return self.support_url
+
+    def get_doc_url(self):
+        return self.documentation_url
+
+    def get_deprecation_status(self):
+        return self.deprecation_status
+
+    def get_system_name(self):
+        return self.system_name
+
+    def get_version(self):
+        return self.version
+
+    def get_changelog(self):
+        return self.changelog
