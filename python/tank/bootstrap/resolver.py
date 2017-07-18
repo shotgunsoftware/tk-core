@@ -305,9 +305,6 @@ class ConfigurationResolver(object):
             # None for the config descriptor. It's up to other filtering
             # operations to remove those if desired.
             #
-            pipeline_config["config_descriptor"] = self._create_config_descriptor(
-                sg_connection, pipeline_config
-            )
 
             path = ShotgunPath.from_shotgun_dict(pipeline_config)
             # If we have a plugin based pipeline.
@@ -315,10 +312,15 @@ class ConfigurationResolver(object):
                 self._match_plugin_id(pipeline_config.get("plugin_ids")) or
                 self._match_plugin_id(pipeline_config.get("sg_plugin_ids"))
             ):
+
                 # If a location was specified to get access to that pipeline, return it. Note that
                 # we are potentially returning pipeline configurations that have been configured for
                 # one platform but not all.
                 if pipeline_config.get("descriptor") or pipeline_config.get("sg_descriptor") or path:
+                    # Create a descriptor only if the pipeline is valid.
+                    pipeline_config["config_descriptor"] = self._create_config_descriptor(
+                        sg_connection, pipeline_config
+                    )
                     yield pipeline_config
                 else:
                     log.warning(
@@ -331,6 +333,10 @@ class ConfigurationResolver(object):
                 # we are potentially returning pipeline configurations that have been configured for
                 # one platform but not all.
                 if path:
+                    # Create a descriptor only if the pipeline is valid.
+                    pipeline_config["config_descriptor"] = self._create_config_descriptor(
+                        sg_connection, pipeline_config
+                    )
                     yield pipeline_config
                 else:
                     log.debug("Pipeline configuration's 'path' fields are not set: %s" % pipeline_config)
@@ -393,6 +399,7 @@ class ConfigurationResolver(object):
                 Descriptor.CONFIG,
                 shotgun_pc_data.get("sg_descriptor"),
                 fallback_roots=self._bundle_cache_fallback_paths,
+                resolve_latest=is_descriptor_version_missing(shotgun_pc_data.get("sg_descriptor"))
             )
         else:
             # If we have neither a uri, nor a path, then we can't get
