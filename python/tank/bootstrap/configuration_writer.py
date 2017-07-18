@@ -284,6 +284,7 @@ class ConfigurationWriter(object):
 
         config_root_path = self._path.current_os
 
+        # Write out missing files.
         for platform in executables:
             sg_config_location = os.path.join(
                 config_root_path,
@@ -291,8 +292,12 @@ class ConfigurationWriter(object):
                 "core",
                 "interpreter_%s.cfg" % platform
             )
-            # clean out any existing files
-            filesystem.safe_delete_file(sg_config_location)
+            # If the interpreter file already existed in the configuration, we won't overwrite it.
+            if os.path.exists(sg_config_location):
+                log.debug(
+                    "Interpreter file %s already exists, leaving as is.", sg_config_location
+                )
+                continue
             # create new file
             with open(sg_config_location, "wt") as fh:
                 fh.write(executables[platform])
@@ -408,7 +413,11 @@ class ConfigurationWriter(object):
 
         log.debug("Wrote %s", dest_config_sg_file)
 
-    def write_pipeline_config_file(self, pipeline_config_id, project_id, plugin_id, bundle_cache_fallback_paths):
+    def write_pipeline_config_file(
+        self,
+        pipeline_config_id, project_id, plugin_id,
+        bundle_cache_fallback_paths, source_descriptor
+    ):
         """
         Writes out the the pipeline configuration file config/core/pipeline_config.yml
 
@@ -422,6 +431,8 @@ class ConfigurationWriter(object):
                           see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
                           non-plugin based toolkit projects, this value is None.
         :param bundle_cache_fallback_paths: List of bundle cache fallback paths.
+
+        :returns: Path to the configuration file that was written out.
         """
         # the pipeline config metadata
         # resolve project name and pipeline config name from shotgun.
@@ -473,7 +484,8 @@ class ConfigurationWriter(object):
             "published_file_entity_type": "PublishedFile",
             "use_bundle_cache": True,
             "bundle_cache_fallback_roots": bundle_cache_fallback_paths,
-            "use_shotgun_path_cache": True
+            "use_shotgun_path_cache": True,
+            "source_descriptor": source_descriptor.get_dict()
         }
 
         # write pipeline_configuration.yml
@@ -488,6 +500,8 @@ class ConfigurationWriter(object):
             yaml.safe_dump(pipeline_config_content, fh)
             fh.write("\n")
             fh.write("# End of file.\n")
+
+        return pipeline_config_path
 
     def update_roots_file(self, config_descriptor):
         """

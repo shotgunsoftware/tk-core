@@ -47,7 +47,7 @@ class BundleDescriptor(Descriptor):
         """
         constraints = {}
 
-        manifest = self._io_descriptor.get_manifest()
+        manifest = self._get_manifest()
 
         constraints["min_sg"] = manifest.get("requires_shotgun_version") or constants.LOWEST_SHOTGUN_VERSION
 
@@ -175,7 +175,7 @@ class BundleDescriptor(Descriptor):
 
         :returns: A list of strings, with an empty list meaning no items required.
         """
-        manifest = self._io_descriptor.get_manifest()
+        manifest = self._get_manifest()
         rc = manifest.get("required_context")
         if rc is None:
             rc = []
@@ -193,7 +193,7 @@ class BundleDescriptor(Descriptor):
         example: ["windows", "linux"]
         example: []
         """
-        manifest = self._io_descriptor.get_manifest()
+        manifest = self._get_manifest()
         sp = manifest.get("supported_platforms")
         if sp is None:
             sp = []
@@ -208,7 +208,7 @@ class BundleDescriptor(Descriptor):
         :returns: Configuration dictionary as defined
                   in the manifest or {} if not defined
         """
-        manifest = self._io_descriptor.get_manifest()
+        manifest = self._get_manifest()
         cfg = manifest.get("configuration")
         # always return a dict
         if cfg is None:
@@ -224,7 +224,7 @@ class BundleDescriptor(Descriptor):
             - ``None`` - Works in all engines.
             - ``["tk-maya", "tk-nuke"]`` - Works in Maya and Nuke.
         """
-        manifest = self._io_descriptor.get_manifest()
+        manifest = self._get_manifest()
         return manifest.get("supported_engines")
 
     @property
@@ -240,7 +240,7 @@ class BundleDescriptor(Descriptor):
 
         :returns: list of dictionaries
         """
-        manifest = self._io_descriptor.get_manifest()
+        manifest = self._get_manifest()
         frameworks = manifest.get("frameworks")
         # always return a list
         if frameworks is None:
@@ -301,7 +301,7 @@ class BundleDescriptor(Descriptor):
             return
 
         # first fetch metadata
-        manifest = self._io_descriptor.get_manifest()
+        manifest = self._get_manifest()
         sg_fields_def = manifest.get("requires_shotgun_fields")
 
         if sg_fields_def:  # can be defined as None from yml file
@@ -442,7 +442,7 @@ class FrameworkDescriptor(BundleDescriptor):
 
         :returns: True if the framework is shared
         """
-        manifest = self._io_descriptor.get_manifest()
+        manifest = self._get_manifest()
         shared = manifest.get("shared")
         # always return a bool
         if shared is None:

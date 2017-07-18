@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
+
 import sys
 
 from tank_test.tank_test_base import setUpModule # noqa
@@ -223,3 +225,33 @@ class TestShotgunPath(TankTestBase):
             self.assertEqual(ShotgunPath.normalize("C:/foo\\bar\\"), r"C:\foo\bar")
         else:
             self.assertEqual(ShotgunPath.normalize("/foo\\bar/"), "/foo/bar")
+
+    def test_current_platform_file(self):
+        """
+        Ensures the get_file_name_from_template subtitutes the OS name correctly.
+        """
+        self.assertEqual(
+            ShotgunPath.get_file_name_from_template(r"C:\%s.yml", "win32"),
+            r"C:\Windows.yml"
+        )
+
+        self.assertEqual(
+            ShotgunPath.get_file_name_from_template("/%s.yml", "linux2"),
+            "/Linux.yml"
+        )
+
+        self.assertEqual(
+            ShotgunPath.get_file_name_from_template("/%s.yml", "linux3"),
+            "/Linux.yml"
+        )
+
+        self.assertEqual(
+            ShotgunPath.get_file_name_from_template("/%s.yml", "darwin"),
+            "/Darwin.yml"
+        )
+
+        with self.assertRaisesRegexp(
+            ValueError,
+            "Cannot resolve file name - unsupported os platform 'potato'"
+        ):
+            ShotgunPath.get_file_name_from_template("/%s.yml", "potato")

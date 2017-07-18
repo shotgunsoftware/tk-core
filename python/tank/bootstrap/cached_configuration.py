@@ -17,7 +17,6 @@ from . import constants
 from .errors import TankBootstrapError
 
 from ..util import filesystem
-from ..util import ShotgunPath
 
 from tank_vendor import yaml
 from .configuration import Configuration
@@ -201,7 +200,8 @@ class CachedConfiguration(Configuration):
                 self._pipeline_config_id,
                 self._project_id,
                 self._plugin_id,
-                self._bundle_cache_fallback_paths
+                self._bundle_cache_fallback_paths,
+                self._descriptor
             )
 
             # make sure roots file reflects current paths

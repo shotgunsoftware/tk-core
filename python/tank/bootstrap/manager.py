@@ -19,7 +19,6 @@ from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
-from ..util.version import is_version_older, is_version_head
 
 log = LogManager.get_logger(__name__)
 
@@ -69,19 +68,20 @@ class ToolkitManager(object):
         else:
             self._sg_user = sg_user
 
-        self._allow_config_overrides = True
-
         self._sg_connection = self._sg_user.create_sg_connection()
 
         # defaults
+        self._pre_engine_start_callback = None
+        self._progress_cb = None
+
+        # These are serializable parameters from the class.
         self._bundle_cache_fallback_paths = []
         self._caching_policy = self.CACHE_SPARSE
         self._pipeline_configuration_identifier = None # name or id
         self._base_config_descriptor = None
-        self._progress_cb = None
         self._do_shotgun_config_lookup = True
         self._plugin_id = None
-        self._pre_engine_start_callback = None
+        self._allow_config_overrides = True
 
         # look for the standard env var SHOTGUN_PIPELINE_CONFIGURATION_ID
         # and in case this is set, use it as a default
@@ -127,6 +127,51 @@ class ToolkitManager(object):
         repr += " Allows config overrides %s\n" % self._allow_config_overrides
         repr += " Base %s >" % self._base_config_descriptor
         return repr
+
+    def extract_settings(self):
+        """
+        Serializes settings that impact resolution of a pipeline configuration into an
+        object and returns it to the user.
+
+        This can be useful when a process is used to enumerate pipeline configurations and another
+        process will be bootstrapping an engine. Calling this method ensures the manager is
+        configured the same across processes.
+
+        Those settings can be restored with :meth:`ToolkitManager.restore_settings`.
+
+        .. note:: Note that the extracted settings should be treated as opaque data and not something
+             that should be manipulated. Their content can be changed at any time.
+
+        :returns: User defined values.
+        :rtype: object
+        """
+        return {
+            "bundle_cache_fallback_paths": self.bundle_cache_fallback_paths,
+            "caching_policy": self.caching_policy,
+            "pipeline_configuration": self.pipeline_configuration,
+            "base_configuration": self.base_configuration,
+            "do_shotgun_config_lookup": self.do_shotgun_config_lookup,
+            "plugin_id": self.plugin_id,
+            "allow_config_overrides": self.allow_config_overrides
+        }
+
+    def restore_settings(self, data):
+        """
+        Restores user defined with :methd:`ToolkitManager.extract_settings`.
+
+        .. note:: Always use :methd:`ToolkitManager.extract_settings` to extract settings when you
+            plan on calling this method. The content of the settings should be treated as opaque
+            data.
+
+        :param object data: Settings obtained from :methd:`ToolkitManager.extract_settings`
+        """
+        self.bundle_cache_fallback_paths = data["bundle_cache_fallback_paths"]
+        self.caching_policy = data["caching_policy"]
+        self.pipeline_configuration = data["pipeline_configuration"]
+        self.base_configuration = data["base_configuration"]
+        self.do_shotgun_config_lookup = data["do_shotgun_config_lookup"]
+        self.plugin_id = data["plugin_id"]
+        self.allow_config_overrides = data["allow_config_overrides"]
 
     def _get_pipeline_configuration(self):
         """
