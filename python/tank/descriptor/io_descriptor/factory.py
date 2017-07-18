@@ -10,7 +10,7 @@
 
 import copy
 
-from ..errors import TankDescriptorError
+from ..errors import TankDescriptorError, TankBundleNotFoundError
 
 from ... import LogManager
 log = LogManager.get_logger(__name__)
@@ -122,7 +122,7 @@ def create_io_descriptor(
             log.debug("Remote connection is not available - falling back on getting latest version from cache...")
             latest_cached_descriptor = descriptor.get_latest_cached_version(constraint_pattern)
             if latest_cached_descriptor is None:
-                raise TankDescriptorError("No cached versions of %r cached locally on disk." % descriptor)
+                raise TankBundleNotFoundError("No cached versions of %r cached locally on disk." % descriptor)
 
             log.debug("Latest cached descriptor is %r" % latest_cached_descriptor)
             descriptor = latest_cached_descriptor
