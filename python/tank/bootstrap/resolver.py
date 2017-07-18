@@ -22,6 +22,8 @@ from ..descriptor import (
     Descriptor, create_descriptor,
     descriptor_uri_to_dict, is_descriptor_version_missing
 )
+from ..descriptor.errors import TankBundleNotFoundError
+
 from .errors import TankBootstrapError
 from .baked_configuration import BakedConfiguration
 from .cached_configuration import CachedConfiguration
@@ -380,19 +382,14 @@ class ConfigurationResolver(object):
                     "%s. Using descriptor field.", shotgun_pc_data["id"]
                 )
 
-            cfg_descriptor = create_descriptor(
+            cfg_descriptor = self._try_create_config_descriptor(
                 sg_connection,
-                Descriptor.CONFIG,
-                shotgun_pc_data.get("descriptor"),
-                fallback_roots=self._bundle_cache_fallback_paths,
-                resolve_latest=is_descriptor_version_missing(shotgun_pc_data.get("descriptor"))
+                shotgun_pc_data.get("descriptor")
             )
         elif shotgun_pc_data.get("sg_descriptor"):
-            cfg_descriptor = create_descriptor(
+            cfg_descriptor = self._try_create_config_descriptor(
                 sg_connection,
-                Descriptor.CONFIG,
-                shotgun_pc_data.get("sg_descriptor"),
-                fallback_roots=self._bundle_cache_fallback_paths,
+                shotgun_pc_data.get("sg_descriptor")
             )
         else:
             # If we have neither a uri, nor a path, then we can't get
@@ -406,6 +403,25 @@ class ConfigurationResolver(object):
             log.debug("Config descriptor created: %r", cfg_descriptor)
 
         return cfg_descriptor
+
+    def _try_create_config_descriptor(self, sg_connection, uri):
+        """
+        Tries to create a config descriptor.
+
+        :returns: A configuration descriptor. If the descriptor is trying to resolve the latest
+            version but there is no remote access, ``None`` will be returned.
+        """
+        try:
+            return create_descriptor(
+                sg_connection,
+                Descriptor.CONFIG,
+                uri,
+                resolve_latest=is_descriptor_version_missing(uri),
+                fallback_roots=self._bundle_cache_fallback_paths
+            )
+        except TankBundleNotFoundError:
+            log.warning("Configuration '%s' not found in any bundle caches.", uri)
+            return None
 
     def _pick_primary_pipeline_config(self, configs, level_name):
         """
