@@ -336,22 +336,29 @@ class TestCustomRoot(TankTestBase):
         # Here we will assume that the unit test framework already has set SHOTGUN_HOME. This
         # makes the code simpler, but also ensures that the sandboxing of the tests is not broken
         # by someone modifying how TankTestBase is initialized.
-        self.assertEqual(
-            LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
-            self.tank_temp
-        )
-        self.assertEqual(
-            LocalFileStorageManager.get_global_root(LocalFileStorageManager.PREFERENCES),
-            os.path.join(self.tank_temp, "preferences")
-        )
-        self.assertEqual(
-            LocalFileStorageManager.get_global_root(LocalFileStorageManager.PERSISTENT),
-            os.path.join(self.tank_temp, "data")
-        )
-        self.assertEqual(
-            LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING),
-            os.path.join(self.tank_temp, "logs")
-        )
+        for version in [LocalFileStorageManager.CORE_V17, LocalFileStorageManager.CORE_V18]:
+            self.assertEqual(
+                LocalFileStorageManager.get_global_root(
+                    LocalFileStorageManager.CACHE, version
+                ),
+                self.tank_temp
+            )
+            self.assertEqual(
+                LocalFileStorageManager.get_global_root(
+                    LocalFileStorageManager.PREFERENCES, version
+                ),
+                os.path.join(self.tank_temp, "preferences")
+            )
+            self.assertEqual(
+                LocalFileStorageManager.get_global_root(
+                    LocalFileStorageManager.PERSISTENT, version
+                ),
+                os.path.join(self.tank_temp, "data")
+            )
+            self.assertEqual(
+                LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING, version),
+                os.path.join(self.tank_temp, "logs")
+            )
 
     def test_env_var_and_tilde(self):
         """

@@ -408,7 +408,6 @@ def set_current_host(host):
 
     file_path = _get_global_authentication_file_location()
     _ensure_folder_for_file(file_path)
-    print file_path
 
     current_host_file = _try_load_global_authentication_file(file_path)
     current_host_file[_CURRENT_HOST] = host.strip()
