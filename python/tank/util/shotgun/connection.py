@@ -127,7 +127,7 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
     except Exception, error:
         raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
 
-    return __parse_config_data(file_data, user, shotgun_cfg_path)
+    return _parse_config_data(file_data, user, shotgun_cfg_path)
 
 def __get_sg_config_data_with_script_user(shotgun_cfg_path, user="default"):
     """
@@ -150,7 +150,7 @@ def __get_sg_config_data_with_script_user(shotgun_cfg_path, user="default"):
         raise TankError("Missing required script user in config '%s'" % shotgun_cfg_path)
 
 
-def __parse_config_data(file_data, user, shotgun_cfg_path):
+def _parse_config_data(file_data, user, shotgun_cfg_path):
     """
     Parses configuration data and overrides it with the studio level hook's result if available.
     :param file_data: Dictionary with all the values from the configuration data.
