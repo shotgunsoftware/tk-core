@@ -81,6 +81,12 @@ class TankTestRunner(object):
         return unittest.TextTestRunner(verbosity=2).run(self.suite)
 
     def _massage_test_names(self, test_names):
+        """
+        Massages the text input by the user in order to convert all input into proper
+        python modules path.
+
+        :param test_names: List of file names and/or module paths.
+        """
         for test_name in test_names:
             # If the user used tab completion there will be an extra path separator at
             # the end, so remove it.
@@ -94,7 +100,7 @@ class TankTestRunner(object):
             # If we have a simple module name, no sub-module, then, run all the tests in that
             # module.
             if "." not in test_name:
-                # Grab all the python files.
+                # Grab all the python files named after test_*.py
                 for filename in self._massage_test_names(
                     # Generate clean module/submodule.py files without the fully qualified path.
                     # Skip the extra /

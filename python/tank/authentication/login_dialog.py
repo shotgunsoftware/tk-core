@@ -130,11 +130,8 @@ class LoginDialog(QtGui.QDialog):
         site = self.ui.site.text()
 
         # Give visual feedback that we are patching the URL before invoking
-        # the desktop services. Desktop Services requires HTTP or HTTPS to be
-        # present.
-        if len(site.split("://")) == 1:
-            site = "https://%s" % site
-            self.ui.site.setText(site)
+        # the desktop services.
+        self.ui.site.setText(connection.cleanup_host(site))
 
         # Launch the browser
         forgot_password = "%s/user/forgot_password" % site
