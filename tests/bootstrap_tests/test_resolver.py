@@ -1065,34 +1065,12 @@ class TestErrorHandling(TestResolverBase):
                 current_login="john.smith"
             )
 
-    @contextlib.contextmanager
-    def _spy_logs(self, level):
+    def test_invalid_descriptors_without_plugin_id_cant_break_enumeration(self):
         """
-        Allows to spy on a log level. This method is meant to be invoked with the `with` statement.
-        It yields a StringIO object that can be used to introspect the logs.
-        """
-        stream = StringIO.StringIO()
-        with contextlib.closing(stream):
-
-            handler = logging.StreamHandler(stream)
-            log = LogManager.get_logger(level)
-            previous_level = log.level
-
-            log.setLevel(logging.DEBUG)
-            log.addHandler(handler)
-            try:
-                yield stream
-            finally:
-                log.removeHandler(handler)
-                log.setLevel(previous_level)
-
-    def test_pipeline_configuration_enumeration_offline(self):
-        """
-        Ensure pipeline configurations that can't be accessed right now will be filtered out.
+        Ensure pipeline configurations that have a broken descriptor do not prevent enumeration.
         """
         self._create_pc(
             "Primary",
-            None,
             # We're creating a descriptor to something we can't possibly have cached locally.
             descriptor="sgtk:descriptor:app_store?name=tk-unknown-config"
         )
@@ -1100,15 +1078,11 @@ class TestErrorHandling(TestResolverBase):
         with patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore.has_remote_access",
             return_value=False
-        ), self._spy_logs("sgtk.descriptor.io_descriptor.factory") as logs:
+        ):
             self.resolver.find_matching_pipeline_configurations(
                 pipeline_config_name=None,
                 current_login="john.smith",
                 sg_connection=self.tk.shotgun
-            )
-            self.assertIn(
-                "Remote connection is not available - falling back on getting latest version from cache...",
-                logs.getvalue()
             )
 
     def test_configuration_not_found_on_disk(self):
