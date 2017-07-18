@@ -10,12 +10,16 @@
 
 from __future__ import with_statement
 
+import cStringIO as StringIO
 import itertools
+import logging
 import os
 import sys
+import contextlib
 from mock import patch
 import sgtk
 from sgtk.util import ShotgunPath
+from sgtk import LogManager
 
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import TankTestBase
@@ -1059,6 +1063,52 @@ class TestErrorHandling(TestResolverBase):
                 fallback_config_descriptor=self.config_1,
                 sg_connection=self.tk.shotgun,
                 current_login="john.smith"
+            )
+
+    @contextlib.contextmanager
+    def _spy_logs(self, level):
+        """
+        Allows to spy on a log level. This method is meant to be invoked with the `with` statement.
+        It yields a StringIO object that can be used to introspect the logs.
+        """
+        stream = StringIO.StringIO()
+        with contextlib.closing(stream):
+
+            handler = logging.StreamHandler(stream)
+            log = LogManager.get_logger(level)
+            previous_level = log.level
+
+            log.setLevel(logging.DEBUG)
+            log.addHandler(handler)
+            try:
+                yield stream
+            finally:
+                log.removeHandler(handler)
+                log.setLevel(previous_level)
+
+    def test_pipeline_configuration_enumeration_offline(self):
+        """
+        Ensure pipeline configurations that can't be accessed right now will be filtered out.
+        """
+        self._create_pc(
+            "Primary",
+            None,
+            # We're creating a descriptor to something we can't possibly have cached locally.
+            descriptor="sgtk:descriptor:app_store?name=tk-unknown-config"
+        )
+
+        with patch(
+            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore.has_remote_access",
+            return_value=False
+        ), self._spy_logs("sgtk.descriptor.io_descriptor.factory") as logs:
+            self.resolver.find_matching_pipeline_configurations(
+                pipeline_config_name=None,
+                current_login="john.smith",
+                sg_connection=self.tk.shotgun
+            )
+            self.assertIn(
+                "Remote connection is not available - falling back on getting latest version from cache...",
+                logs.getvalue()
             )
 
     def test_configuration_not_found_on_disk(self):
