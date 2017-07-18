@@ -80,12 +80,6 @@ class TankMissingManifestError(TankDescriptorError):
     """
 
 
-class TankBundleNotFoundError(TankDescriptorError):
-    """
-    Exception that indicates that a bundle was not found on disk.
-    """
-
-
 # For backwards compatibility with previous versions of core.
 errors.TankInvalidInterpreterLocationError = TankInvalidInterpreterLocationError
 InvalidAppStoreCredentialsError = TankInvalidAppStoreCredentialsError
