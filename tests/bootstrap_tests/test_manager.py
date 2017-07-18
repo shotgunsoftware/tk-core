@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
+import os
 
 import sgtk
 from mock import patch, Mock
@@ -56,6 +57,9 @@ class TestFunctionality(TankTestBase):
 
     @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
     def test_get_entity_from_environment(self, _):
+        """
+        Ensure the ToolkitManager can extract the entities from the environment
+        """
 
         # no env set
         mgr = ToolkitManager()
@@ -70,7 +74,6 @@ class TestFunctionality(TankTestBase):
                 mgr.get_entity_from_environment(),
                 {"type": "Shot", "id": 123}
             )
-
         # site mismatch
         with temp_env_var(
             SHOTGUN_SITE="https://some.other.site",
@@ -91,6 +94,48 @@ class TestFunctionality(TankTestBase):
                 mgr.get_entity_from_environment(),
                 None
             )
+            
+    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    def test_shotgun_bundle_cache(self, _):
+        """
+        Ensures ToolkitManager deals property with bundle cache from the user and from
+        environment variables.
+        """
+
+        # Ensure the list is empty by default.
+        mgr = ToolkitManager()
+        self.assertEqual(mgr._get_bundle_cache_fallback_paths(), [])
+
+        # If the user bundle cache is set, we should see it in the results.
+        mgr.bundle_cache_fallback_paths = ["/a/b/c", "/d/e/f"]
+        self.assertEqual(
+            set(mgr._get_bundle_cache_fallback_paths()), set(["/a/b/c", "/d/e/f"]))
+
+        # Reset the user bundle cache.
+        mgr.bundle_cache_fallback_paths = []
+        self.assertEqual(mgr._get_bundle_cache_fallback_paths(), [])
+
+        # Set the environment variable which allows to inherit paths from another process.
+        with temp_env_var(
+            SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS=os.pathsep.join(["/g/h/i", "/j/k/l", "/a/b/c"])
+        ):
+            # Should see the content from the environment variable.
+            self.assertEqual(
+                set(mgr._get_bundle_cache_fallback_paths()), set(["/g/h/i", "/j/k/l", "/a/b/c"]))
+
+            # Add a few user specified folders.
+            mgr.bundle_cache_fallback_paths = ["/a/b/c", "/d/e/f"]
+
+            self.assertEqual(
+                set(mgr._get_bundle_cache_fallback_paths()),
+                set(["/a/b/c", "/d/e/f", "/g/h/i", "/j/k/l"])
+            )
+
+        # Now that the env var is not set anymore we should see its bundle caches.
+        self.assertEqual(
+            set(mgr._get_bundle_cache_fallback_paths()), set(["/a/b/c", "/d/e/f"])
+        )
+
 
     @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
     def test_serialization(self, _):
