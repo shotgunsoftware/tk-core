@@ -105,7 +105,8 @@ def _finalize_coverage(cov):
     """
     cov.stop()
     cov.report()
-    cov.xml_report(outfile="coverage.xml")
+    cov.html_report(directory="coverage_html_report")
+    print "Note: Full html coverage report can be found in the coverage_html_report folder."
 
     try:
         # seems to be some CI issues with html coverage so

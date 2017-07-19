@@ -38,6 +38,9 @@ Toolkit. It allows for several advanced use cases:
 - A setup can be pre-bundled with for example an application plugin, allowing
   Toolkit to act as a distribution platform.
 
+- The application bundles that are required can be stored anywhere on the local machine or the
+  network via the use of the ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS`` environment variable.
+
 - The Toolkit manager makes it easy to track remote resources (via the ``sgtk.descriptor``
   framework).
 
@@ -106,4 +109,3 @@ If you want to add an sgtk core to a ``requirements.txt`` file, use the followin
              number will currently download the latest commit from the master branch and
              associate it with the highest available version number tag. Such downloads are
              likely to contain changes which have not yet been full tested.
-

@@ -15,11 +15,187 @@ import sgtk
 from tank_test.tank_test_base import TankTestBase, SealedMock
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.errors import TankError
-from tank.descriptor import CheckVersionConstraintsError
+from tank.descriptor import (
+    CheckVersionConstraintsError, TankDescriptorError, create_descriptor, Descriptor
+)
+from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
 
 from mock import Mock, patch
 
 from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
+from tank_vendor import yaml
+
+
+class TestConfigDescriptor(TankTestBase):
+
+    def test_legacy_configs(self):
+        """
+        Ensures pipeline configurations created through legacy means have an
+        InstalledConfigDescriptor.
+        """
+        self.assertIsInstance(self.tk.configuration_descriptor, InstalledConfigDescriptor)
+
+    def test_cant_copy_installed_config(self):
+        """
+        Ensures installed pipeline configurations can't be copied.
+        """
+        with self.assertRaisesRegexp(
+            TankDescriptorError,
+            "cannot be copied"
+        ):
+            self.tk.configuration_descriptor.copy("/a/b/c")
+
+    def test_mutability(self):
+        """
+        Ensures the pipeline configuration is mutable.
+        """
+        self.assertEqual(self.tk.configuration_descriptor.is_immutable(), False)
+
+    def test_installed_config_associated_core_descriptor(self):
+        """
+        Ensures the core descriptor for an installed configuration points inside the pipeline
+        configuration.
+        """
+        self.assertDictEqual(
+            self.tk.configuration_descriptor.associated_core_descriptor,
+            {"path": os.path.join(self.pipeline_config_root, "install", "core"), "type": "path"}
+        )
+
+    def test_cached_config_associated_core_descriptor(self):
+        """
+        Ensures core_api.yml is handled properly.
+        """
+        descriptor_dict = {
+            "path": os.path.join("$TK_TEST_FIXTURES", "descriptor_tests", "cached_configuration"),
+            "type": "path"
+        }
+        # Make sure we see the core descriptor.
+        desc = create_descriptor(self.mockgun, Descriptor.CONFIG, descriptor_dict)
+        self.assertDictEqual(
+            desc.associated_core_descriptor,
+            {"type": "app_store", "version": "v0.18.91", "name": "tk-core"}
+        )
+
+        descriptor_dict = {
+            "path": os.path.join("$TK_TEST_FIXTURES", "descriptor_tests", "cached_configuration_no_core"),
+            "type": "path"
+        }
+        # Make sure we see the core descriptor.
+        desc = create_descriptor(self.mockgun, Descriptor.CONFIG, descriptor_dict)
+        self.assertIsNone(desc.associated_core_descriptor)
+
+    def test_cached_config_manifest(self):
+        """
+        Ensures we can read the manifest file.
+        """
+        descriptor_dict = {
+            "path": os.path.join("$TK_TEST_FIXTURES", "descriptor_tests", "cached_configuration"),
+            "type": "path"
+        }
+        # Make sure we see the core descriptor.
+        desc = create_descriptor(self.mockgun, Descriptor.CONFIG, descriptor_dict)
+
+        self.assertEqual(
+            desc.display_name,
+            "Descriptor Tests Cached Configuration with core."
+        )
+
+        self.assertEqual(
+            desc.description,
+            "This configuration has a core_api.yml file."
+        )
+
+        self.assertEqual(
+            desc.version_constraints["min_sg"],
+            "v6.3.0"
+        )
+
+        self.assertEqual(
+            desc.version_constraints["min_core"],
+            "v0.18.18"
+        )
+
+    def test_installed_config_manifest(self):
+        """
+        Ensures the manifest is read correctly.
+        """
+        # Create a manifest file for the pipeline configuration.
+        with open(os.path.join(self.pipeline_config_root, "config", "info.yml"), "w") as fh:
+            fh.write(
+                yaml.dump({
+                    "display_name": "Unit Test Configuration",
+                    "requires_shotgun_version": "v6.3.0",
+                    "requires_core_version": "HEAD"
+                })
+            )
+
+        self.assertEqual(
+            self.tk.configuration_descriptor.display_name,
+            "Unit Test Configuration"
+        )
+
+        self.assertEqual(
+            self.tk.configuration_descriptor.description,
+            "No description available."
+        )
+
+        self.assertEqual(
+            self.tk.configuration_descriptor.version_constraints["min_sg"],
+            "v6.3.0"
+        )
+
+        self.assertEqual(
+            self.tk.configuration_descriptor.version_constraints["min_core"],
+            "HEAD"
+        )
+
+    def test_empty_manifest(self):
+        """
+        Ensures the manifest is read correctly from the config subfolder.
+        """
+        self.assertEqual(
+            self.tk.configuration_descriptor.display_name,
+            # Named after the pipeline configuration folder since no manifest is present.
+            os.path.split(self.pipeline_config_root)[1]
+        )
+
+        self.assertNotIn(
+            "min_sg",
+            self.tk.configuration_descriptor.version_constraints
+        )
+
+        self.assertNotIn(
+            "min_core",
+            self.tk.configuration_descriptor.version_constraints
+        )
+
+    def test_readme_content(self):
+        """
+        Ensures readme content is read correctly.
+        """
+        with open(os.path.join(self.pipeline_config_root, "config", "README"), "w") as fh:
+            fh.write("1 2\ntesting")
+
+        self.assertListEqual(self.tk.configuration_descriptor.readme_content, ["1 2", "testing"])
+
+    def test_missing_readme_file(self):
+        """
+        Ensures missing readme file works.
+        """
+        self.assertFalse(os.path.exists(os.path.join(self.pipeline_config_root, "config", "README")))
+        self.assertListEqual(self.tk.configuration_descriptor.readme_content, [])
+
+    def test_required_storages(self):
+        """
+        Ensures we can get the required storages.
+        """
+        # Base class already creates a roots.yml file.
+        self.assertListEqual(self.tk.configuration_descriptor.required_storages, ["primary"])
+
+    def test_missing_roots_yml(self):
+        # Base class already creates a roots.yml file, so we remove it.
+        os.unlink(os.path.join(self.pipeline_config_root, "config", "core", "roots.yml"))
+        self.assertListEqual(self.tk.configuration_descriptor.required_storages, [])
 
 
 class TestDescriptorSupport(TankTestBase):

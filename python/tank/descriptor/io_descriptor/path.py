@@ -17,6 +17,7 @@ from ... import LogManager
 
 log = LogManager.get_logger(__name__)
 
+
 class IODescriptorPath(IODescriptorBase):
     """
     Represents a local item on disk. This item is never downloaded
@@ -59,11 +60,9 @@ class IODescriptorPath(IODescriptorBase):
         if "path" in descriptor_dict:
             # first look for 'path' key
             self._path = descriptor_dict["path"]
-            self._multi_os_descriptor = False
         elif platform_key in descriptor_dict:
             # if not defined, look for os specific key
             self._path = descriptor_dict[platform_key]
-            self._multi_os_descriptor = True
         else:
             raise TankDescriptorError(
                 "Invalid descriptor! Could not find a path or a %s entry in the "
