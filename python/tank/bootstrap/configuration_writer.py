@@ -547,6 +547,43 @@ class ConfigurationWriter(object):
             fh.write("\n")
             fh.write("# End of file.\n")
 
+    def is_transaction_pending(self):
+        if os.path.exists(
+            self._get_configuration_transaction_folder()
+        ):
+            if not os.path.exists(self._get_configuration_transaction_filename()):
+                return True
+        else:
+            # for backwards compatibility with older configs.
+            log.debug("No transaction folder was found. Assuming valid.")
+            return False
+
+    def start_transaction(self):
+
+        filesystem.ensure_folder_exists(self._get_configuration_transaction_folder())
+
+        # Remove our coherency token if it exists.
+        if os.path.exists(self._get_configuration_transaction_filename()):
+            filesystem.safe_delete_file(self._get_configuration_transaction_filename())
+
+    def end_transaction(self):
+
+        # Write back the coherency token.
+        filesystem.touch_file(self._get_configuration_transaction_filename())
+
+    def _get_configuration_transaction_folder(self):
+        return os.path.join(
+            self._path.current_os,
+            "cache",
+            "transaction"
+        )
+
+    def _get_configuration_transaction_filename(self):
+        return os.path.join(
+            self._get_configuration_transaction_folder(),
+            "done"
+        )
+
     @filesystem.with_cleared_umask
     def _open_auto_created_yml(self, path):
         """
