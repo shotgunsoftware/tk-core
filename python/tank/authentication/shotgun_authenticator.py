@@ -153,9 +153,11 @@ class ShotgunAuthenticator(object):
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 
         # Create a session user
-        return user.ShotgunUser(
-            user_impl.SessionUser(host, login, session_token, http_proxy, password=password, cookies=cookies, saml_expiration=saml_expiration)
-        )
+        impl = user_impl.SessionUser(host, login, session_token, http_proxy, password=password, cookies=cookies, saml_expiration=saml_expiration)
+        if cookies:
+            return user.ShotgunSamlUser(impl)
+        else:
+            return user.ShotgunUser(impl)
 
     def create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None):
         """

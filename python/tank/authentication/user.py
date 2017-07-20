@@ -8,7 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import os
+import threading
+import time
+
 from . import user_impl
+from .. import LogManager
+
+
+logger = LogManager.get_logger(__name__)
 
 
 class ShotgunUser(object):
@@ -118,6 +126,93 @@ class ShotgunUser(object):
         return self._impl
 
 
+class ShotgunSamlUser(ShotgunUser):
+    """
+    This specialized shotgun user is needed when SSO is used, as it provides
+    mechanisms
+    """
+
+    def __init__(self, impl):
+        """
+        :param impl: Internal user implementation class this class proxies.
+        """
+        super(ShotgunSamlUser, self).__init__(impl)
+        self._timer = None
+
+    def get_claims_expiration(self):
+        """
+        Obtain claims expiration for the user.
+
+        :returns: The expiration in seconds since January 1st 1970 UTC.
+        """
+        # The import must be located here. If it is at global scope, there
+        # is an import error.
+        from .shotgun_shared import saml2_sso
+
+        return saml2_sso.get_saml_claims_expiration(self._impl.get_cookies())
+
+    def _automatic_claims_renewal(self, preemtive_renewal_threshold=0.9):
+        """
+        Handles automatic renewal of the SAML2 claims for the user.
+
+        :params user: an already logged in user.
+        :params preemtive_renewal_threshold: How far into the claims duration we will attempt renewal.
+                                             Defaults to 90%, usually 3 minutes 45 seconds (90% of 5 mins).
+        """
+        from tank.authentication import interactive_authentication
+        from sgtk.authentication import AuthenticationCancelled
+
+        logger.debug("Automatic claims renewal")
+        try:
+            previous_expiration = self.get_claims_expiration()
+            # A call to renew_session when SSO is used will not prompt the user for
+            # their credentials if it is not necessary.
+            interactive_authentication.renew_session(self._impl)
+            new_expiration = self.get_claims_expiration()
+
+            if new_expiration > previous_expiration:
+
+                logger.debug("Automatic claims renewal succeeded.")
+                delta = (new_expiration - time.time()) * preemtive_renewal_threshold
+                # If we are debugging, we will use a shorter expiration time.
+                if "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ:
+                    delta = 5.0
+                logger.debug("Next claims renewal attempt: %f" % delta)
+                self._timer = threading.Timer(delta, self._automatic_claims_renewal, [preemtive_renewal_threshold])
+                self._timer.start()
+            else:
+                logger.warning("Automatic claims renewal failed. No longer attempting to renew claims.")
+        except AuthenticationCancelled:
+            logger.debug("Authentication cancelled, most likely from quitting the application.")
+            pass
+
+    def start_claims_renewal(self, preemtive_renewal_threshold=0.9):
+        """
+        Start claims renewal mechanism.
+        """
+        self._automatic_claims_renewal(preemtive_renewal_threshold)
+
+    def stop_claims_renewal(self):
+        """
+        Stops claims renewal mechanism.
+        """
+        if self._timer:
+            self._timer.cancel()
+        else:
+            logger.debug('Attempting to stop claims renewal when it was not active.')
+
+    def is_claims_renewal_active(self):
+        """
+        Query the current state of the claims renewal mechanism.
+
+        :returns: A bool value on the current active state of the renewal loop.
+        """
+        if self._timer:
+            return self._timer.is_alive()
+        else:
+            return False
+
+
 def serialize_user(user):
     """
     Serializes a user. Meant to be consumed by deserialize.
@@ -138,4 +233,10 @@ def deserialize_user(payload):
 
     :returns: A ShotgunUser derived instance.
     """
-    return ShotgunUser(user_impl.deserialize_user(payload))
+    impl = user_impl.deserialize_user(payload)
+
+    # We use the presence of cookies as an indicator that we are using SSO.
+    if isinstance(impl, user_impl.SessionUser) and impl.get_cookies() is not None:
+        return ShotgunSamlUser(impl)
+    else:
+        return ShotgunUser(impl)
