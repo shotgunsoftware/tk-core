@@ -208,6 +208,19 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
 
 
 def cleanup_host(server_url):
+    """
+    Cleans up a url to that only scheme, host and optional port number remains.
+
+    For example::
+        host.com => https://host.com
+        host.com:8080 => https://host.com:8080
+        https://host.com => https://host.com
+        http://host.com => http://host.com
+        https://host.com/ => https://host.com
+        https://host.com/path => https://host.com
+
+    :returns: The cleaned up URL.
+    """
 
     # First clean up any extra spaces.
     server_url = server_url.strip()
