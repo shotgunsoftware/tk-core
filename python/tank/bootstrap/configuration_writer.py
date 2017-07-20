@@ -548,17 +548,31 @@ class ConfigurationWriter(object):
             fh.write("# End of file.\n")
 
     def is_transaction_pending(self):
+        """
+        Checks if the configuration was previously in the process of being updated but then stopped.
+
+        .. note::
+            Configurations written with previous versions of Toolkit are assumed to completed/
+
+        :returns: True if the configuration was not finished being written on disk, False if it was.
+        """
+
+        # Check if the transaction folder exists...
         if os.path.exists(
             self._get_configuration_transaction_folder()
         ):
-            if not os.path.exists(self._get_configuration_transaction_filename()):
-                return True
+            # ... in which case we'll look for the special file telling us the configuration
+            # is completed.
+            return os.path.exists(self._get_configuration_transaction_filename())
         else:
-            # for backwards compatibility with older configs.
+            # ... if the folder doesn't exist than we don't even have a config at the moment.
             log.debug("No transaction folder was found. Assuming valid.")
             return False
 
     def start_transaction(self):
+        """
+        Wipes the transaction marker from configuration.
+        """
 
         filesystem.ensure_folder_exists(self._get_configuration_transaction_folder())
 
@@ -567,11 +581,17 @@ class ConfigurationWriter(object):
             filesystem.safe_delete_file(self._get_configuration_transaction_filename())
 
     def end_transaction(self):
-
+        """
+        Creates a transaction marker in the configuration indicating is has been completely written
+        to disk.
+        """
         # Write back the coherency token.
         filesystem.touch_file(self._get_configuration_transaction_filename())
 
     def _get_configuration_transaction_folder(self):
+        """
+        :returns: Path to the folder which will be used to track configuration validity.
+        """
         return os.path.join(
             self._path.current_os,
             "cache",
@@ -579,6 +599,9 @@ class ConfigurationWriter(object):
         )
 
     def _get_configuration_transaction_filename(self):
+        """
+        :returns: Path to the file which will be used to track configuration validity.
+        """
         return os.path.join(
             self._get_configuration_transaction_folder(),
             "done"
