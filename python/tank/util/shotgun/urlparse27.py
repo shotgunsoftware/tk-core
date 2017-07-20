@@ -1,4 +1,7 @@
-"""Parse (absolute and relative) URLs.
+"""
+Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006 Python Software Foundation; All Rights Reserved
+
+Parse (absolute and relative) URLs.
 
 urlparse module is based upon the following RFC specifications.
 
