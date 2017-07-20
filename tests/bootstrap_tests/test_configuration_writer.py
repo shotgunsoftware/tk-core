@@ -11,6 +11,7 @@
 from __future__ import with_statement
 
 import contextlib
+import shutil
 import os
 import sys
 
@@ -453,3 +454,30 @@ class TestWritePipelineConfigFile(TankTestBase):
                 "source_descriptor": self.__descriptor.get_dict()
             }
         )
+
+
+class TestTransaction(TankTestBase):
+
+    def test_transactions(self):
+
+        new_config_root = os.path.join(self.tank_temp, self.id())
+
+        writer = ConfigurationWriter(
+            ShotgunPath.from_current_os_path(new_config_root),
+            self.mockgun
+        )
+
+        # Test standard transaction flow.
+        # Non pending -> Pending -> Non pending
+        self.assertEqual(False, writer.is_transaction_pending())
+        writer.start_transaction()
+        self.assertEqual(True, writer.is_transaction_pending())
+        writer.end_transaction()
+        self.assertEqual(False, writer.is_transaction_pending())
+
+        # Remove the transaction folder
+        shutil.rmtree(writer._get_configuration_transaction_folder())
+        # Even if the marker is missing, the API should report no pending transactions since the
+        # transaction folder doesn't even exist, which will happen for configurations written
+        # with a previous version of core.
+        self.assertEqual(False, writer.is_transaction_pending())

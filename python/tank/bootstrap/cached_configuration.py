@@ -110,7 +110,6 @@ class CachedConfiguration(Configuration):
             return self.LOCAL_CFG_MISSING
 
         if self._config_writer.is_transaction_pending():
-            log.warning("It seems the configuration was not written properly on disk.")
             return self.LOCAL_CFG_INVALID
 
         # Pass 2:

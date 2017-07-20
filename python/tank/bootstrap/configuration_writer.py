@@ -563,7 +563,12 @@ class ConfigurationWriter(object):
         ):
             # ... in which case we'll look for the special file telling us the configuration
             # is completed.
-            return os.path.exists(self._get_configuration_transaction_filename())
+            if os.path.exists(self._get_configuration_transaction_filename()):
+                log.debug("Found transactional marker, configuration is complete.")
+                return False
+            else:
+                log.warning("It seems the configuration was not written properly on disk.")
+                return True
         else:
             # ... if the folder doesn't exist than we don't even have a config at the moment.
             log.debug("No transaction folder was found. Assuming valid.")
@@ -571,13 +576,14 @@ class ConfigurationWriter(object):
 
     def start_transaction(self):
         """
-        Wipes the transaction marker from configuration.
+        Wipes the transaction marker from the configuration.
         """
 
         filesystem.ensure_folder_exists(self._get_configuration_transaction_folder())
 
         # Remove our coherency token if it exists.
         if os.path.exists(self._get_configuration_transaction_filename()):
+            log.debug("Removing transactional marker.")
             filesystem.safe_delete_file(self._get_configuration_transaction_filename())
 
     def end_transaction(self):
@@ -586,6 +592,7 @@ class ConfigurationWriter(object):
         to disk.
         """
         # Write back the coherency token.
+        log.debug("Writing the transactional marker.")
         filesystem.touch_file(self._get_configuration_transaction_filename())
 
     def _get_configuration_transaction_folder(self):
