@@ -266,7 +266,6 @@ class LoginDialog(QtGui.QDialog):
             return (self.ui.site.text().encode("utf-8"),
                     self.ui.login.text().encode("utf-8"),
                     self._new_session_token,
-                    None,
                     None)
         else:
             return None

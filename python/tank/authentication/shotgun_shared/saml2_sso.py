@@ -364,8 +364,7 @@ class Saml2Sso(object):
             self._session.host,
             self._session.user_id,
             self._session.session_id,
-            self._session.cookies,
-            self._session.session_expiration
+            self._session.cookies
         )
 
     def get_session_error(self):
