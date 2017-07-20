@@ -16,7 +16,7 @@ from __future__ import with_statement
 
 import os
 import threading
-import urlparse
+from . import urlparse27
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -212,7 +212,7 @@ def cleanup_host(server_url):
     server_url = server_url.strip()
 
     # Then break up the url into chunks
-    parsed_url = urlparse.urlparse(server_url)
+    parsed_url = urlparse27.urlparse(server_url)
 
     # The given url https://192.168.1.250:30/path?a=b is parsed such that
     # scheme => https
@@ -224,7 +224,7 @@ def cleanup_host(server_url):
     # network location
 
     # Then extract the good parts from the url
-    clean_url = urlparse.ParseResult(
+    clean_url = urlparse27.ParseResult(
         # We want https when there is no specified scheme.
         scheme=parsed_url.scheme or "https",
         # If only a host has been provided, path will be set.
@@ -233,7 +233,7 @@ def cleanup_host(server_url):
         path="", params="", query="", fragment=""
     )
 
-    return urlparse.urlunparse(clean_url)
+    return urlparse27.urlunparse(clean_url)
 
 
 def get_associated_sg_base_url():
