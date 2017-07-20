@@ -129,6 +129,7 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
 
     return _parse_config_data(file_data, user, shotgun_cfg_path)
 
+
 def __get_sg_config_data_with_script_user(shotgun_cfg_path, user="default"):
     """
     Returns the Shotgun configuration yml parameters given a config file, just like

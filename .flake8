@@ -40,8 +40,8 @@ exclude =
     # Otherwise you'll have a lot of 'xxx' imported but unused
     python/tank/__init__.py,
     # This file is coming from Python 2.7, this is not our code.
-    python/tank/util/urlparse27.py,
-    python/tank/*/__init__.py
+    python/tank/util/shotgun/urlparse27.py,
+    python/tank/*/__init__.py,
     tests/python
 
 # toolkit exceptions
