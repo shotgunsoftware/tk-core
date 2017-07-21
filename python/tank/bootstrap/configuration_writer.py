@@ -35,6 +35,9 @@ class ConfigurationWriter(object):
     Class used to write and update Toolkit configurations on disk.
     """
 
+    _TRANSACTION_START_FILE = "update_start.txt"
+    _TRANSACTION_END_FILE = "update_end.txt"
+
     def __init__(self, path, sg):
         """
         Constructor.
@@ -44,6 +47,7 @@ class ConfigurationWriter(object):
         """
         self._path = path
         self._sg_connection = sg
+        self._transaction_start = None
 
     @property
     def path(self):
@@ -558,33 +562,49 @@ class ConfigurationWriter(object):
         """
 
         # Check if the transaction folder exists...
-        if os.path.exists(
-            self._get_configuration_transaction_folder()
-        ):
-            # ... in which case we'll look for the special file telling us the configuration
-            # is completed.
-            if os.path.exists(self._get_configuration_transaction_filename()):
-                log.debug("Found transactional marker, configuration is complete.")
-                return False
-            else:
-                log.warning("It seems the configuration was not written properly on disk.")
-                return True
-        else:
-            # ... if the folder doesn't exist than we don't even have a config at the moment.
-            log.debug("No transaction folder was found. Assuming valid.")
+        is_started = os.path.exists(self._get_state_file_name(self._TRANSACTION_START_FILE))
+        is_ended = os.path.exists(self._get_state_file_name(self._TRANSACTION_END_FILE))
+
+        if is_started and not is_ended:
+            log.warning("It seems the configuration was not written properly on disk.")
+            return True
+        if is_started and is_ended:
+            log.debug("Configuration was written properly on disk.")
             return False
+        if not is_started and is_ended:
+            log.error("It seems the configuration is in an unconsistent state.")
+            return True
+
+        log.debug("Configuration doesn't have transaction markers.")
+        return False
 
     def start_transaction(self):
         """
         Wipes the transaction marker from the configuration.
         """
+        log.debug("Starting configuration update transaction.")
+        filesystem.ensure_folder_exists(os.path.join(self._path.current_os, "cache"))
+        self._delete_state_file(self._TRANSACTION_END_FILE)
+        self._write_state_file(self._TRANSACTION_START_FILE)
 
-        filesystem.ensure_folder_exists(self._get_configuration_transaction_folder())
+    def _write_state_file(self, file_name):
+        """
+        Writes a transaction file.
+        """
+        with open(self._get_state_file_name(file_name), "w") as fw:
+            fw.writelines(["File written at %s." % datetime.datetime.now()])
 
-        # Remove our coherency token if it exists.
-        if os.path.exists(self._get_configuration_transaction_filename()):
-            log.debug("Removing transactional marker.")
-            filesystem.safe_delete_file(self._get_configuration_transaction_filename())
+    def _delete_state_file(self, file_name):
+        """
+        Deletes a transaction file.
+        """
+        filesystem.safe_delete_file(self._get_state_file_name(file_name))
+
+    def _get_state_file_name(self, file_name):
+        """
+        Retrieves the path to a transaction file.
+        """
+        return os.path.join(self._path.current_os, "cache", file_name)
 
     def end_transaction(self):
         """
@@ -592,18 +612,8 @@ class ConfigurationWriter(object):
         to disk.
         """
         # Write back the coherency token.
-        log.debug("Writing the transactional marker.")
-        filesystem.touch_file(self._get_configuration_transaction_filename())
-
-    def _get_configuration_transaction_folder(self):
-        """
-        :returns: Path to the folder which will be used to track configuration validity.
-        """
-        return os.path.join(
-            self._path.current_os,
-            "cache",
-            "transaction"
-        )
+        log.debug("Ending configuration update transaction.")
+        self._write_state_file(self._TRANSACTION_END_FILE)
 
     def _get_configuration_transaction_filename(self):
         """

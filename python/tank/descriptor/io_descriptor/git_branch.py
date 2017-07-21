@@ -119,9 +119,6 @@ class IODescriptorGitBranch(IODescriptorGit):
         The git repo will be cloned into the local cache and
         will then be adjusted to point at the relevant commit.
         """
-        import traceback
-        log.info("\n".join(traceback.format_stack()))
-
         if self.exists_local():
             # nothing to do!
             return
