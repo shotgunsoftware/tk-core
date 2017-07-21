@@ -11,7 +11,6 @@
 from __future__ import with_statement
 
 import contextlib
-import shutil
 import os
 import sys
 
@@ -462,7 +461,6 @@ class TestTransaction(TankTestBase):
         """
         Ensures the transaction flags are properly handled for a config.
         """
-
         new_config_root = os.path.join(self.tank_temp, self.id())
 
         writer = ConfigurationWriter(

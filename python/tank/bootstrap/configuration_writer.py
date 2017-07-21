@@ -47,7 +47,6 @@ class ConfigurationWriter(object):
         """
         self._path = path
         self._sg_connection = sg
-        self._transaction_start = None
 
     @property
     def path(self):
@@ -556,7 +555,7 @@ class ConfigurationWriter(object):
         Checks if the configuration was previously in the process of being updated but then stopped.
 
         .. note::
-            Configurations written with previous versions of Toolkit are assumed to completed/
+            Configurations written with previous versions of Toolkit are assumed to completed.
 
         :returns: True if the configuration was not finished being written on disk, False if it was.
         """
