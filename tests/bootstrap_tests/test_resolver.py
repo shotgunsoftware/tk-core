@@ -82,10 +82,8 @@ class TestResolverBase(TankTestBase):
                 windows_path=path,
                 mac_path=path,
                 linux_path=path,
-                # FIXME: Official schema doesn't have the plugin_ids and descriptor fields yet,
-                # we'll work with sg_plugin_ids and sg_descriptor for now.
-                sg_plugin_ids=plugin_ids,
-                sg_descriptor=descriptor
+                plugin_ids=plugin_ids,
+                descriptor=descriptor
             )
         )
 
@@ -493,7 +491,6 @@ class TestResolverPriority(TestResolverBase):
         primaries = filter(lambda x: x["code"] == "Primary", pcs)
         self.assertEqual(len(primaries), 1)
         self.assertEqual(primaries[0]["project"], self._project)
-        self.assertEqual(primaries[0]["sg_plugin_ids"], None)
         self.assertEqual(primaries[0]["plugin_ids"], None)
 
     @patch("os.path.isdir", return_value=True)
@@ -525,13 +522,13 @@ class TestResolverPriority(TestResolverBase):
             return
 
         primaries = [
-            {"code": "Primary", "sg_plugin_ids": "foo.bar", "id": 1},
+            {"code": "Primary", "plugin_ids": "foo.bar", "id": 1},
             {"code": "Primary", "plugin_ids": "foo.bar", "id": 2},
-            {"code": "Primary", "sg_plugin_ids": None, "id": 3},
+            {"code": "Primary", "plugin_ids": None, "id": 3},
 
-            {"code": "Primary", "sg_plugin_ids": "foo.bar", "id": 4},
+            {"code": "Primary", "plugin_ids": "foo.bar", "id": 4},
             {"code": "Primary", "plugin_ids": "foo.bar", "id": 5},
-            {"code": "Primary", "sg_plugin_ids": None, "id": 6}
+            {"code": "Primary", "plugin_ids": None, "id": 6}
         ]
         for mixed_primaries in itertools.permutations(primaries):
             self.assertEqual(self.resolver._pick_primary_pipeline_config(mixed_primaries, "something")["id"], 3)
@@ -636,7 +633,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
                 "windows_path": None,
                 "linux_path": None,
                 "mac_path": None,
-                "sg_descriptor": None
+                "descriptor": None
             }
         )
 
@@ -680,7 +677,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             windows_path=base_path,
             linux_path=base_path,
             mac_path=base_path,
-            sg_descriptor=None,
+            descriptor=None,
         )
 
         import sys
@@ -728,7 +725,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             "PipelineConfiguration",
             pc_id,
             {
-                "sg_plugin_ids": None
+                "plugin_ids": None
             }
         )
 

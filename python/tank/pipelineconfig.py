@@ -102,7 +102,7 @@ class PipelineConfiguration(object):
         self._pc_name = pipeline_config_metadata.get("pc_name")
         self._published_file_entity_type = pipeline_config_metadata.get(
             "published_file_entity_type",
-            "TankPublishedFile"
+            "PublishedFile"
         )
         self._use_shotgun_path_cache = pipeline_config_metadata.get(
             "use_shotgun_path_cache",
