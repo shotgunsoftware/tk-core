@@ -9,8 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import shutil
-import stat
 
 from . import constants
 
@@ -25,6 +23,7 @@ from .configuration_writer import ConfigurationWriter
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
+
 
 class CachedConfiguration(Configuration):
     """
@@ -110,6 +109,9 @@ class CachedConfiguration(Configuration):
         if not os.path.exists(sg_config_file):
             return self.LOCAL_CFG_MISSING
 
+        if self._config_writer.is_transaction_pending():
+            return self.LOCAL_CFG_INVALID
+
         # Pass 2:
         # local config exists. See if it is up to date.
         # get the path to a potential config metadata file
@@ -172,6 +174,8 @@ class CachedConfiguration(Configuration):
         This method fails gracefully and attempts to roll back to a
         stable state on failure.
         """
+
+        self._config_writer.start_transaction()
 
         # make sure a scaffold is in place
         self._config_writer.ensure_project_scaffold()
@@ -247,7 +251,7 @@ class CachedConfiguration(Configuration):
                 log.debug("Previous core restore complete...")
         else:
             # remove backup folders now that the update has completed successfully
-            # note: config_path points at a config folder inside a timestamped 
+            # note: config_path points at a config folder inside a timestamped
             # backup folder. It's this parent folder we want to clean up.
             self._cleanup_backup_folders(os.path.dirname(config_backup_path) if config_backup_path else None,
                                          core_backup_path)
@@ -257,6 +261,8 @@ class CachedConfiguration(Configuration):
 
         # make sure tank command and interpreter files are up to date
         self._config_writer.create_tank_command()
+
+        self._config_writer.end_transaction()
 
     @property
     def has_local_bundle_cache(self):

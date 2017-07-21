@@ -35,6 +35,9 @@ class ConfigurationWriter(object):
     Class used to write and update Toolkit configurations on disk.
     """
 
+    _TRANSACTION_START_FILE = "update_start.txt"
+    _TRANSACTION_END_FILE = "update_end.txt"
+
     def __init__(self, path, sg):
         """
         Constructor.
@@ -546,6 +549,79 @@ class ConfigurationWriter(object):
             yaml.safe_dump(roots_data, fh)
             fh.write("\n")
             fh.write("# End of file.\n")
+
+    def is_transaction_pending(self):
+        """
+        Checks if the configuration was previously in the process of being updated but then stopped.
+
+        .. note::
+            Configurations written with previous versions of Toolkit are assumed to completed.
+
+        :returns: True if the configuration was not finished being written on disk, False if it was.
+        """
+
+        # Check if the transaction folder exists...
+        is_started = os.path.exists(self._get_state_file_name(self._TRANSACTION_START_FILE))
+        is_ended = os.path.exists(self._get_state_file_name(self._TRANSACTION_END_FILE))
+
+        if is_started and not is_ended:
+            log.warning("It seems the configuration was not written properly on disk.")
+            return True
+        if is_started and is_ended:
+            log.debug("Configuration was written properly on disk.")
+            return False
+        if not is_started and is_ended:
+            log.error("It seems the configuration is in an unconsistent state.")
+            return True
+
+        log.debug("Configuration doesn't have transaction markers.")
+        return False
+
+    def start_transaction(self):
+        """
+        Wipes the transaction marker from the configuration.
+        """
+        log.debug("Starting configuration update transaction.")
+        filesystem.ensure_folder_exists(os.path.join(self._path.current_os, "cache"))
+        self._delete_state_file(self._TRANSACTION_END_FILE)
+        self._write_state_file(self._TRANSACTION_START_FILE)
+
+    def _write_state_file(self, file_name):
+        """
+        Writes a transaction file.
+        """
+        with open(self._get_state_file_name(file_name), "w") as fw:
+            fw.writelines(["File written at %s." % datetime.datetime.now()])
+
+    def _delete_state_file(self, file_name):
+        """
+        Deletes a transaction file.
+        """
+        filesystem.safe_delete_file(self._get_state_file_name(file_name))
+
+    def _get_state_file_name(self, file_name):
+        """
+        Retrieves the path to a transaction file.
+        """
+        return os.path.join(self._path.current_os, "cache", file_name)
+
+    def end_transaction(self):
+        """
+        Creates a transaction marker in the configuration indicating is has been completely written
+        to disk.
+        """
+        # Write back the coherency token.
+        log.debug("Ending configuration update transaction.")
+        self._write_state_file(self._TRANSACTION_END_FILE)
+
+    def _get_configuration_transaction_filename(self):
+        """
+        :returns: Path to the file which will be used to track configuration validity.
+        """
+        return os.path.join(
+            self._get_configuration_transaction_folder(),
+            "done"
+        )
 
     @filesystem.with_cleared_umask
     def _open_auto_created_yml(self, path):

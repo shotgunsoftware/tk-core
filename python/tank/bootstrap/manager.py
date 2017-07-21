@@ -608,7 +608,7 @@ class ToolkitManager(object):
 
         :rtype: (str, :class:`sgtk.descriptor.ConfigDescriptor`)
         """
-        config = self._get_configuration(entity, self.progress_callback)
+        config = self._get_updated_configuration(entity, self.progress_callback)
 
         path = config.path.current_os
 
@@ -804,7 +804,7 @@ class ToolkitManager(object):
 
     def _get_configuration(self, entity, progress_callback):
         """
-        Resolves the configuration to use.
+        Resolves the configuration to use without creating it on disk.
 
         :param entity: Shotgun entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
@@ -899,6 +899,22 @@ class ToolkitManager(object):
 
         log.debug("Bootstrapping into configuration %r" % config)
 
+        return config
+
+    def _get_updated_configuration(self, entity, progress_callback):
+        """
+        Resolves the configuration and updates it.
+
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
+                                  Set to ``None`` to use the default callback function.
+
+        :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.
+        """
+
+        config = self._get_configuration(entity, progress_callback)
+
         # see what we have locally
         status = config.status()
 
@@ -949,7 +965,7 @@ class ToolkitManager(object):
         if progress_callback is None:
             progress_callback = self.progress_callback
 
-        config = self._get_configuration(entity, progress_callback)
+        config = self._get_updated_configuration(entity, progress_callback)
 
         # we can now boot up this config.
         self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")
