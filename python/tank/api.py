@@ -704,7 +704,7 @@ class Sgtk(object):
              "project": {"type": "Project", "id": 123, "name": "My Project"}
             }
 
-            {"type": "Task", "id": 789, "name": "Animation",
+            {"type": "Task", "id": 789, "content": "Animation",
              "project": {"type": "Project", "id": 123, "name": "My Project"}
              "entity": {"type": "Shot", "id": 456, "name": "Shot 001"}
              "step": {"type": "Step", "id": 101112, "name": "Anm"}
@@ -721,7 +721,7 @@ class Sgtk(object):
             {"type": "Shot", "id": 456, "code": "Shot 001"}
 
             # missing linked project name and linked step
-            {"type": "Task", "id": 789, "name": "Animation",
+            {"type": "Task", "id": 789, "content": "Animation",
              "project": {"type": "Project", "id": 123}}
              "entity": {"type": "Shot", "id": 456, "name": "Shot 001"}
             }
