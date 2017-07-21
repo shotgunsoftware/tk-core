@@ -120,7 +120,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         will then be adjusted to point at the relevant commit.
         """
         import traceback
-        traceback.print_stack()
+        log.info("\n".join(traceback.format_stack()))
 
         if self.exists_local():
             # nothing to do!
