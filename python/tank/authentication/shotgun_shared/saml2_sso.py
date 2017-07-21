@@ -51,6 +51,18 @@ PREEMPTIVE_RENEWAL_THRESHOLD = 0.9
 SHOTGUN_SSO_RENEWAL_INTERVAL = 5000
 
 
+class Saml2SssoError(Exception):
+    """
+    Top level exception for all saml2_sso level runtime errors
+    """
+
+
+class Saml2SssoMultiSessionNotSupportedError(Saml2SssoError):
+    """
+    Exception that indicates that a required file can't be read from disk.
+    """
+
+
 class Saml2Sso(object):
     """Performs Shotgun SSO login and pre-emptive renewal."""
 
@@ -620,7 +632,7 @@ def _get_shotgun_user_id(cookies):
                 # Should we find multiple cookies with the same prefix, it means
                 # that we are using cookies from a multi-session environment. We
                 # have no way to identify the proper user id in the lot.
-                raise Exception('Multi-session not supported')
+                raise Saml2SssoMultiSessionNotSupportedError('Multi-session not supported')
             user_id = cookie[28:]
     return user_id
 
