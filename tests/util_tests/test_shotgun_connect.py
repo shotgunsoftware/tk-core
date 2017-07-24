@@ -148,6 +148,22 @@ class TestGetSgConfigData(TankTestBase):
             sanitize_url("https://no.suffixed.slash.com/path/to/a/resource")
         )
 
+        # Ensures anything after the host is dropped.
+        self.assertEquals(
+            "http://localhost",
+            sanitize_url("http://localhost")
+        )
+
+        self.assertEquals(
+            "https://localhost",
+            sanitize_url("localhost")
+        )
+
+        self.assertEquals(
+            "https://localhost:8000",
+            sanitize_url("localhost:8000")
+        )
+
 
 class ConnectionSettingsTestCases:
     """
