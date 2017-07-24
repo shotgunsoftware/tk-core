@@ -199,5 +199,3 @@ class DefaultsManagerTest(TankTestBase):
             sgtk.authentication.CoreDefaultsManager,
             sgtk.util.CoreDefaultsManager
         )
-
-
