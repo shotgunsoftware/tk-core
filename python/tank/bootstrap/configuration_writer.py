@@ -406,7 +406,7 @@ class ConfigurationWriter(object):
             # file that can be distributed with the config has the host set, as it
             # could be used on two different Shotgun servers, for example a production
             # server and a staging server that are both hosted locally.
-            metadata["host"] = connection.cleanup_host(self._sg_connection.base_url)
+            metadata["host"] = connection.sanitize_url(self._sg_connection.base_url)
             # write yaml
             yaml.safe_dump(metadata, fh)
             fh.write("\n")

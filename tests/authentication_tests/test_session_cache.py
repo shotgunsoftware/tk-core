@@ -41,7 +41,7 @@ class SessionCacheTests(TankTestBase):
     def test_url_cleanup(self):
 
         # Make sure that if a file has the url saved incorrectly...
-        with patch("sgtk.util.shotgun.connection.cleanup_host", wraps=lambda x: x):
+        with patch("sgtk.util.shotgun.connection.sanitize_url", wraps=lambda x: x):
             session_cache.set_current_host("https://host.cleaned.up.on.read/")
             # ... then sure we indeed disabled cleanup and that the malformed value was written to disk...
             self.assertEquals("https://host.cleaned.up.on.read/", session_cache.get_current_host())

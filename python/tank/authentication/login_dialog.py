@@ -131,7 +131,7 @@ class LoginDialog(QtGui.QDialog):
 
         # Give visual feedback that we are patching the URL before invoking
         # the desktop services.
-        self.ui.site.setText(connection.cleanup_host(site))
+        self.ui.site.setText(connection.sanitize_url(site))
 
         # Launch the browser
         forgot_password = "%s/user/forgot_password" % site
@@ -225,7 +225,7 @@ class LoginDialog(QtGui.QDialog):
             return
 
         # Cleanup the URL.
-        self.ui.site.setText(connection.cleanup_host(site))
+        self.ui.site.setText(connection.sanitize_url(site))
 
         try:
             self._authenticate(self.ui.message, site, login, password)

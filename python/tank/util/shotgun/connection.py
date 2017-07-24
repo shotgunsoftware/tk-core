@@ -202,12 +202,12 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
         # Make sure it is None.
         config_data["app_store_http_proxy"] = None
 
-    config_data["host"] = cleanup_host(config_data["host"])
+    config_data["host"] = sanitize_url(config_data["host"])
 
     return config_data
 
 
-def cleanup_host(server_url):
+def sanitize_url(server_url):
     """
     Cleans up a url to that only scheme, host and optional port number remains.
 

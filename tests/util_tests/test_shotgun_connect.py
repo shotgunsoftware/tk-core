@@ -21,7 +21,7 @@ from tank.authentication.user import ShotgunUser
 from tank.authentication.user_impl import SessionUser
 from tank.descriptor import Descriptor
 from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
-from tank.util.shotgun.connection import cleanup_host
+from tank.util.shotgun.connection import sanitize_url
 
 
 @patch("tank.util.shotgun.connection.__get_api_core_config_location")
@@ -102,50 +102,50 @@ class TestGetSgConfigData(TankTestBase):
             {"host": "https://extra.slash.will.be.removed"}
         )
 
-    def test_cleanup_host(self, get_api_core_config_location_mock):
+    def test_sanitize_url(self, get_api_core_config_location_mock):
         """
         Ensures host is cleaned-up properly.
         """
         # Ensure https is added if no scheme is specified.
         self.assertEquals(
             "https://no.scheme.com",
-            cleanup_host("no.scheme.com")
+            sanitize_url("no.scheme.com")
         )
 
         # Ensure that port number is also kept.
         self.assertEquals(
             "https://no.scheme.com:8080",
-            cleanup_host("no.scheme.com:8080")
+            sanitize_url("no.scheme.com:8080")
         )
 
         # Ensure https is not modified if specified.
         self.assertEquals(
             "https://no.scheme.com",
-            cleanup_host("https://no.scheme.com")
+            sanitize_url("https://no.scheme.com")
         )
 
         # Ensure http is left as is if specified.
         self.assertEquals(
             "http://no.scheme.com",
-            cleanup_host("http://no.scheme.com")
+            sanitize_url("http://no.scheme.com")
         )
 
         # Ensure any scheme is left as is if specified.
         self.assertEquals(
             "invalid-scheme://no.scheme.com",
-            cleanup_host("invalid-scheme://no.scheme.com")
+            sanitize_url("invalid-scheme://no.scheme.com")
         )
 
         # Ensures a suffixed slash gets removed.
         self.assertEquals(
             "https://no.suffixed.slash.com",
-            cleanup_host("https://no.suffixed.slash.com/")
+            sanitize_url("https://no.suffixed.slash.com/")
         )
 
         # Ensures anything after the host is dropped.
         self.assertEquals(
             "https://no.suffixed.slash.com",
-            cleanup_host("https://no.suffixed.slash.com/path/to/a/resource")
+            sanitize_url("https://no.suffixed.slash.com/path/to/a/resource")
         )
 
 
