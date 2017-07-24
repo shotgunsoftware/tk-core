@@ -197,7 +197,7 @@ class IODescriptorGit(IODescriptorBase):
             can_connect = False
         return can_connect
 
-    def _copy(self, target_path):
+    def copy(self, target_path):
         """
         Copy the contents of the descriptor to an external location
 

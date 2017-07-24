@@ -16,7 +16,7 @@ import sys
 from tank import TankError
 from tank.util import LocalFileStorageManager
 
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase, setUpModule
 
 
 class TestLocalFileStorage(TankTestBase):
@@ -36,8 +36,6 @@ class TestLocalFileStorage(TankTestBase):
         # Set it back if there was a value before.
         if self._old_value:
             os.environ[self.SHOTGUN_HOME] = self._old_value
-
-        super(TestLocalFileStorage, self).tearDown()
 
     def test_global(self):
         """

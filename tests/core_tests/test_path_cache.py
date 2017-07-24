@@ -714,7 +714,8 @@ class TestConcurrentShotgunSync(TankTestBase):
             print "Exception from concurrent full sync process: %s" % e
             self._multiprocess_fail = True
 
-    def _test_concurrent_full_sync(self):
+
+    def test_concurrent_full_sync(self):
         """
         test multiple processes doing a full sync of the path cache at the same time
         """
@@ -766,7 +767,7 @@ class TestConcurrentShotgunSync(TankTestBase):
             print "Exception from concurrent sync process: %s" % e
             self._multiprocess_fail = True
 
-    def _test_concurrent(self):
+    def test_concurrent(self):
         """
         Test multi process incremental sync as records are being inserted.
         """

@@ -19,6 +19,7 @@ from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
+from ..util.version import is_version_older, is_version_head
 
 log = LogManager.get_logger(__name__)
 
@@ -68,20 +69,19 @@ class ToolkitManager(object):
         else:
             self._sg_user = sg_user
 
+        self._allow_config_overrides = True
+
         self._sg_connection = self._sg_user.create_sg_connection()
 
         # defaults
-        self._pre_engine_start_callback = None
-        self._progress_cb = None
-
-        # These are serializable parameters from the class.
-        self._user_bundle_cache_fallback_paths = []
+        self._bundle_cache_fallback_paths = []
         self._caching_policy = self.CACHE_SPARSE
         self._pipeline_configuration_identifier = None # name or id
         self._base_config_descriptor = None
+        self._progress_cb = None
         self._do_shotgun_config_lookup = True
         self._plugin_id = None
-        self._allow_config_overrides = True
+        self._pre_engine_start_callback = None
 
         # look for the standard env var SHOTGUN_PIPELINE_CONFIGURATION_ID
         # and in case this is set, use it as a default
@@ -120,107 +120,13 @@ class ToolkitManager(object):
 
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
-        repr += " Bundle cache fallback paths %s\n" % self._get_bundle_cache_fallback_paths()
+        repr += " Cache fallback path %s\n" % self._bundle_cache_fallback_paths
         repr += " Caching policy %s\n" % self._caching_policy
         repr += " Plugin id %s\n" % self._plugin_id
         repr += " Config %s %s\n" % (identifier_type, self._pipeline_configuration_identifier)
         repr += " Allows config overrides %s\n" % self._allow_config_overrides
         repr += " Base %s >" % self._base_config_descriptor
         return repr
-
-    def extract_settings(self):
-        """
-        Serializes settings that impact resolution of a pipeline configuration into an
-        object and returns it to the user.
-
-        This can be useful when a process is used to enumerate pipeline configurations and another
-        process will be bootstrapping an engine. Calling this method ensures the manager is
-        configured the same across processes.
-
-        Those settings can be restored with :meth:`ToolkitManager.restore_settings`.
-
-        .. note:: Note that the extracted settings should be treated as opaque data and not something
-             that should be manipulated. Their content can be changed at any time.
-
-        :returns: User defined values.
-        :rtype: object
-        """
-        return {
-            "bundle_cache_fallback_paths": self.bundle_cache_fallback_paths,
-            "caching_policy": self.caching_policy,
-            "pipeline_configuration": self.pipeline_configuration,
-            "base_configuration": self.base_configuration,
-            "do_shotgun_config_lookup": self.do_shotgun_config_lookup,
-            "plugin_id": self.plugin_id,
-            "allow_config_overrides": self.allow_config_overrides
-        }
-
-    def restore_settings(self, data):
-        """
-        Restores user defined with :methd:`ToolkitManager.extract_settings`.
-
-        .. note:: Always use :methd:`ToolkitManager.extract_settings` to extract settings when you
-            plan on calling this method. The content of the settings should be treated as opaque
-            data.
-
-        :param object data: Settings obtained from :methd:`ToolkitManager.extract_settings`
-        """
-        self.bundle_cache_fallback_paths = data["bundle_cache_fallback_paths"]
-        self.caching_policy = data["caching_policy"]
-        self.pipeline_configuration = data["pipeline_configuration"]
-        self.base_configuration = data["base_configuration"]
-        self.do_shotgun_config_lookup = data["do_shotgun_config_lookup"]
-        self.plugin_id = data["plugin_id"]
-        self.allow_config_overrides = data["allow_config_overrides"]
-
-    def _get_bundle_cache_fallback_paths(self):
-        """
-        Retuns a list containing both the user specified bundle caches and the one specified
-        by the SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS.
-
-        .. note::
-            While the method will preserve the order of the fallback locations by first
-            returning user defined locations and then ones found with the environment variable,
-            the method will remove duplicate locations.
-
-        For example::
-
-            >>> os.environ["SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS"] = "/a/b/c:/d/e/f"
-            >>> mgr = ToolkitManager()
-            >>> mgr.bundle_cache_fallback_paths = ["/g/h/i:/d/e/f"]
-            >>> repr(mgr)
-            <TkManager
-             User boismej
-             Bundle cache fallback paths ["/g/h/i", "/d/e/f", "/a/b/c"]
-             ...
-            >
-
-        :returns: List of bundle cache paths.
-        """
-        if constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR in os.environ:
-            fallback_str = os.environ[constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR]
-            log.debug(
-                "Detected %s environment variable set to '%s'" % (
-                    constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR,
-                    fallback_str
-                )
-            )
-            toolkit_bundle_cache_fallback_paths = fallback_str.split(os.pathsep)
-
-            # Python' sets do not preserve insertion order and Python 2.5 doesn't support
-            # OrderedDicts, which would have been perfect for this, so we will...
-
-            # First build the complete list of paths with possible duplicates.
-            concatenated_lists = self._user_bundle_cache_fallback_paths +\
-                toolkit_bundle_cache_fallback_paths
-
-            # Then build a set of unique paths.
-            unique_items = set(concatenated_lists)
-
-            # Finally iterate on complete list of items.
-            return [x for x in concatenated_lists if x in unique_items]
-        else:
-            return self._user_bundle_cache_fallback_paths
 
     def _get_pipeline_configuration(self):
         """
@@ -357,7 +263,7 @@ class ToolkitManager(object):
 
     base_configuration = property(_get_base_configuration, _set_base_configuration)
 
-    def _get_user_bundle_cache_fallback_paths(self):
+    def _get_bundle_cache_fallback_paths(self):
         """
         Specifies a list of fallback paths where toolkit will go
         look for cached bundles in case a bundle isn't found in
@@ -371,15 +277,15 @@ class ToolkitManager(object):
         Any missing bundles will be downloaded and cached into
         the *primary* bundle cache.
         """
-        return self._user_bundle_cache_fallback_paths
+        return self._bundle_cache_fallback_paths
 
-    def _set_user_bundle_cache_fallback_paths(self, paths):
+    def _set_bundle_cache_fallback_paths(self, paths):
         # setter for bundle_cache_fallback_paths
-        self._user_bundle_cache_fallback_paths = paths
+        self._bundle_cache_fallback_paths = paths
 
     bundle_cache_fallback_paths = property(
-        _get_user_bundle_cache_fallback_paths,
-        _set_user_bundle_cache_fallback_paths
+        _get_bundle_cache_fallback_paths,
+        _set_bundle_cache_fallback_paths
     )
 
     def _get_caching_policy(self):
@@ -608,7 +514,7 @@ class ToolkitManager(object):
 
         :rtype: (str, :class:`sgtk.descriptor.ConfigDescriptor`)
         """
-        config = self._get_updated_configuration(entity, self.progress_callback)
+        config = self._get_configuration(entity, self.progress_callback)
 
         path = config.path.current_os
 
@@ -804,7 +710,7 @@ class ToolkitManager(object):
 
     def _get_configuration(self, entity, progress_callback):
         """
-        Resolves the configuration to use without creating it on disk.
+        Resolves the configuration to use.
 
         :param entity: Shotgun entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
@@ -843,7 +749,7 @@ class ToolkitManager(object):
         resolver = ConfigurationResolver(
             self._plugin_id,
             project_id,
-            self._get_bundle_cache_fallback_paths()
+            self._bundle_cache_fallback_paths
         )
 
         # now request a configuration object from the resolver.
@@ -894,26 +800,10 @@ class ToolkitManager(object):
             # do the full resolve where we connect to shotgun etc.
             config = resolver.resolve_configuration(
                 self._base_config_descriptor,
-                self._sg_connection
+                self._sg_connection,
             )
 
         log.debug("Bootstrapping into configuration %r" % config)
-
-        return config
-
-    def _get_updated_configuration(self, entity, progress_callback):
-        """
-        Resolves the configuration and updates it.
-
-        :param entity: Shotgun entity used to resolve a project context.
-        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
-        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
-                                  Set to ``None`` to use the default callback function.
-
-        :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.
-        """
-
-        config = self._get_configuration(entity, progress_callback)
 
         # see what we have locally
         status = config.status()
@@ -965,7 +855,7 @@ class ToolkitManager(object):
         if progress_callback is None:
             progress_callback = self.progress_callback
 
-        config = self._get_updated_configuration(entity, progress_callback)
+        config = self._get_configuration(entity, progress_callback)
 
         # we can now boot up this config.
         self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")

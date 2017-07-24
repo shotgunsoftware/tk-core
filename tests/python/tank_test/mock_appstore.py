@@ -302,7 +302,7 @@ class TankMockStoreDescriptor(IODescriptorBase):
 
         return self.create(version_to_use)
 
-    def get_manifest(self, _):
+    def get_manifest(self):
         """
         Returns the manifest data
         """

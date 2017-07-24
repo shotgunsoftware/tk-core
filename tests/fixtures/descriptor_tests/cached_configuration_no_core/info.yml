@@ -1,9 +1,0 @@
-# Metadata defining the behavior and requirements for this configuration
-
-# More verbose description of this item
-display_name: "Descriptor Tests Cached Configuration with No Core."
-description: "This configuration is missing a core_api.yml file."
-
-# Required minimum versions for this item to run
-requires_shotgun_version: "v6.3.0"
-requires_core_version: "v0.18.18"

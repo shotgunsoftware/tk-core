@@ -278,11 +278,6 @@ The following exception types are raised from within ``sgtk.platform``:
     :inherited-members:
     :members:
 
-.. autoclass:: TankMissingEngineError
-    :show-inheritance:
-    :inherited-members:
-    :members:
-
 .. autoclass:: TankContextChangeNotSupportedError
     :show-inheritance:
     :inherited-members:

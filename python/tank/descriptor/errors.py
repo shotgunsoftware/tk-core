@@ -13,7 +13,6 @@ All custom exceptions that this module emits are defined here.
 """
 
 from ..errors import TankError
-from .. import errors
 
 
 class TankDescriptorError(TankError):
@@ -37,13 +36,13 @@ class TankAppStoreConnectionError(TankAppStoreError):
     pass
 
 
-class TankInvalidAppStoreCredentialsError(TankAppStoreConnectionError):
+class InvalidAppStoreCredentialsError(TankAppStoreConnectionError):
     """
     Error indicating no credentials for the Toolkit App Store were found in Shotgun.
     """
 
 
-class TankCheckVersionConstraintsError(TankDescriptorError):
+class CheckVersionConstraintsError(TankDescriptorError):
     """
     Error throw when one or more version constraints checks failed.
     """
@@ -66,21 +65,3 @@ class TankCheckVersionConstraintsError(TankDescriptorError):
         List of strings explaining why the constraints check failed.
         """
         return self._reasons
-
-
-class TankInvalidInterpreterLocationError(TankDescriptorError):
-    """
-    Exception that indicates that the interpreter specified in a file was not found.
-    """
-
-
-class TankMissingManifestError(TankDescriptorError):
-    """
-    Exception that indicates that the manifest file is missing.
-    """
-
-
-# For backwards compatibility with previous versions of core.
-errors.TankInvalidInterpreterLocationError = TankInvalidInterpreterLocationError
-InvalidAppStoreCredentialsError = TankInvalidAppStoreCredentialsError
-CheckVersionConstraintsError = TankCheckVersionConstraintsError

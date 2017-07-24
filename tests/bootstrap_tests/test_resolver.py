@@ -10,16 +10,12 @@
 
 from __future__ import with_statement
 
-import cStringIO as StringIO
 import itertools
-import logging
 import os
 import sys
-import contextlib
 from mock import patch
 import sgtk
 from sgtk.util import ShotgunPath
-from sgtk import LogManager
 
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import TankTestBase
@@ -82,8 +78,10 @@ class TestResolverBase(TankTestBase):
                 windows_path=path,
                 mac_path=path,
                 linux_path=path,
-                plugin_ids=plugin_ids,
-                descriptor=descriptor
+                # FIXME: Official schema doesn't have the plugin_ids and descriptor fields yet,
+                # we'll work with sg_plugin_ids and sg_descriptor for now.
+                sg_plugin_ids=plugin_ids,
+                sg_descriptor=descriptor
             )
         )
 
@@ -216,7 +214,7 @@ class TestPluginMatching(TestResolverBase):
         self.assertFalse(resolver._match_plugin_id(None))
         self.assertFalse(resolver._match_plugin_id("foo.maya"))
 
-    @patch("os.path.isdir", return_value=True)
+    @patch("os.path.exists", return_value=True)
     def test_single_matching_id(self, _):
         """
         Picks the sandbox with the right plugin id.
@@ -384,9 +382,7 @@ class TestResolverPriority(TestResolverBase):
 
         :param str expected_path: Expected value for the current platform's path.
         """
-        with patch(
-            "os.path.isdir", return_value=True
-        ):
+        with patch("os.path.exists", return_value=True):
             config = self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=None,
                 fallback_config_descriptor=self.config_1,
@@ -491,9 +487,10 @@ class TestResolverPriority(TestResolverBase):
         primaries = filter(lambda x: x["code"] == "Primary", pcs)
         self.assertEqual(len(primaries), 1)
         self.assertEqual(primaries[0]["project"], self._project)
+        self.assertEqual(primaries[0]["sg_plugin_ids"], None)
         self.assertEqual(primaries[0]["plugin_ids"], None)
 
-    @patch("os.path.isdir", return_value=True)
+    @patch("os.path.exists", return_value=True)
     def test_more_recent_pipeline_is_shadowed(self, _):
         """
         When two pipeline configurations could have be chosen during resolve_shotgun_configuration
@@ -522,13 +519,13 @@ class TestResolverPriority(TestResolverBase):
             return
 
         primaries = [
-            {"code": "Primary", "plugin_ids": "foo.bar", "id": 1},
+            {"code": "Primary", "sg_plugin_ids": "foo.bar", "id": 1},
             {"code": "Primary", "plugin_ids": "foo.bar", "id": 2},
-            {"code": "Primary", "plugin_ids": None, "id": 3},
+            {"code": "Primary", "sg_plugin_ids": None, "id": 3},
 
-            {"code": "Primary", "plugin_ids": "foo.bar", "id": 4},
+            {"code": "Primary", "sg_plugin_ids": "foo.bar", "id": 4},
             {"code": "Primary", "plugin_ids": "foo.bar", "id": 5},
-            {"code": "Primary", "plugin_ids": None, "id": 6}
+            {"code": "Primary", "sg_plugin_ids": None, "id": 6}
         ]
         for mixed_primaries in itertools.permutations(primaries):
             self.assertEqual(self.resolver._pick_primary_pipeline_config(mixed_primaries, "something")["id"], 3)
@@ -562,7 +559,7 @@ class TestResolverPriority(TestResolverBase):
 
 class TestPipelineLocationFieldPriority(TestResolverBase):
 
-    @patch("os.path.isdir", return_value=True)
+    @patch("os.path.exists", return_value=True)
     def test_path_override(self, _):
         """
         If pipeline config paths are defined, these take precedence over the descriptor field.
@@ -633,7 +630,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
                 "windows_path": None,
                 "linux_path": None,
                 "mac_path": None,
-                "descriptor": None
+                "sg_descriptor": None
             }
         )
 
@@ -677,7 +674,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             windows_path=base_path,
             linux_path=base_path,
             mac_path=base_path,
-            descriptor=None,
+            sg_descriptor=None,
         )
 
         import sys
@@ -725,7 +722,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             "PipelineConfiguration",
             pc_id,
             {
-                "plugin_ids": None
+                "sg_plugin_ids": None
             }
         )
 
@@ -748,7 +745,7 @@ class TestResolverSiteConfig(TestResolverBase):
             bundle_cache_fallback_paths=[self.install_root]
         )
 
-    @patch("os.path.isdir", return_value=True)
+    @patch("os.path.exists", return_value=True)
     def test_resolve_installed_from_sg(self, _):
         """
         When a path is set, we have an installed configuration.
@@ -799,11 +796,8 @@ class TestResolvedConfiguration(TankTestBase):
         """
         Makes sure an installed configuration is resolved.
         """
-        config = self._resolver.resolve_shotgun_configuration(
-            self.tk.pipeline_configuration.get_shotgun_id(),
-            "sgtk:descriptor:not?a=descriptor",
-            self.tk.shotgun,
-            "john.smith"
+        config = self._resolver.resolve_configuration(
+            {"type": "installed", "path": self.pipeline_config_root}, self.tk.shotgun
         )
         self.assertIsInstance(
             config,
@@ -846,6 +840,7 @@ class TestResolvedConfiguration(TankTestBase):
             sgtk.bootstrap.resolver.CachedConfiguration
         )
         self.assertEqual(config.has_local_bundle_cache, False)
+
 
 
 class TestResolvedLatestConfiguration(TankTestBase):
@@ -917,9 +912,10 @@ class TestResolvedLatestConfiguration(TankTestBase):
         )
 
 
-class TestResolveWithFilter(TestResolverBase):
 
-    @patch("os.path.isdir", return_value=True)
+
+class TestResolveWithFilter(TestResolverBase):
+    @patch("os.path.exists", return_value=True)
     def test_existing_pc_ic(self, _):
         """
         Resolve an existing pipeline configuration by id.
@@ -937,7 +933,7 @@ class TestResolveWithFilter(TestResolverBase):
 
         self.assertEqual(config._path.current_os, "sg_path")
 
-    @patch("os.path.isdir", return_value=True)
+    @patch("os.path.exists", return_value=True)
     def test_non_existing_pc_ic(self, _):
         """
         Resolve a non-existent pipeline configuration by id should fail.
@@ -950,7 +946,7 @@ class TestResolveWithFilter(TestResolverBase):
                 current_login="john.smith"
             )
 
-    @patch("os.path.isdir", return_value=True)
+    @patch("os.path.exists", return_value=True)
     def test_resolve_by_name(self, _):
         """
         Ensure that specifying for pipeline by name works.
@@ -1050,62 +1046,10 @@ class TestErrorHandling(TestResolverBase):
             }
         )
 
-        with self.assertRaisesRegexp(
-            sgtk.bootstrap.TankBootstrapError,
-            "The Shotgun pipeline configuration with id %s has no source location specified for "
-            "your operating system." % pc_id
-        ):
+        with self.assertRaisesRegexp(sgtk.bootstrap.TankBootstrapError, "The Toolkit configuration path has not"):
             self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=pc_id,
                 fallback_config_descriptor=self.config_1,
                 sg_connection=self.tk.shotgun,
                 current_login="john.smith"
-            )
-
-    def test_invalid_descriptors_without_plugin_id_cant_break_enumeration(self):
-        """
-        Ensure pipeline configurations that have a broken descriptor do not prevent enumeration.
-        """
-        self._create_pc(
-            "Primary",
-            # We're creating a descriptor to something we can't possibly have cached locally.
-            descriptor="sgtk:descriptor:app_store?name=tk-unknown-config"
-        )
-
-        with patch(
-            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore.has_remote_access",
-            return_value=False
-        ):
-            self.resolver.find_matching_pipeline_configurations(
-                pipeline_config_name=None,
-                current_login="john.smith",
-                sg_connection=self.tk.shotgun
-            )
-
-    def test_configuration_not_found_on_disk(self):
-        """
-        Ensure that the resolver detects when an installed configuration is not available for the
-        current platform.
-        """
-        this_path_does_not_exists = "/this/does/not/exists/on/disk"
-        pc_id = self._create_pc(
-            "Primary",
-            None,
-            this_path_does_not_exists
-        )["id"]
-
-        expected_descriptor_dict = ShotgunPath(
-            this_path_does_not_exists, this_path_does_not_exists, this_path_does_not_exists
-        ).as_shotgun_dict()
-        expected_descriptor_dict["type"] = "path"
-
-        with self.assertRaisesRegexp(
-            sgtk.bootstrap.TankBootstrapError,
-            "Installed pipeline configuration '.*' does not exist on disk!"
-        ):
-            self.resolver.resolve_shotgun_configuration(
-                pc_id,
-                [],
-                self.mockgun,
-                "john.smith"
             )
