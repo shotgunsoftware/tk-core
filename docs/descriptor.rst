@@ -371,11 +371,6 @@ Exceptions
     :inherited-members:
     :members:
 
-.. autoclass:: TankInvalidAppStoreCredentialsError
-    :show-inheritance:
-    :inherited-members:
-    :members:
-
 .. autoclass:: TankCheckVersionConstraintsError
     :show-inheritance:
     :inherited-members:
