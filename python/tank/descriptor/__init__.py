@@ -9,16 +9,16 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-
-
 from .descriptor import Descriptor
 from .descriptor_core import CoreDescriptor
 from .descriptor_bundle import AppDescriptor, FrameworkDescriptor, EngineDescriptor
 from .descriptor_config import ConfigDescriptor
 
 from .errors import (
-    TankAppStoreConnectionError, TankAppStoreError, TankDescriptorError, InvalidAppStoreCredentialsError,
-    CheckVersionConstraintsError
+    TankAppStoreConnectionError, TankAppStoreError, TankDescriptorError,
+    InvalidAppStoreCredentialsError, TankInvalidAppStoreCredentialsError,
+    CheckVersionConstraintsError, TankCheckVersionConstraintsError,
+    TankInvalidInterpreterLocationError, TankMissingManifestError
 )
 
 from .descriptor import create_descriptor

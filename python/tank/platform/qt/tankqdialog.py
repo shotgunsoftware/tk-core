@@ -257,11 +257,16 @@ class TankQDialog(TankDialogBase):
     
             def _format_context_property(p, show_type=False):
                 if p is None:
-                    return "Undefined"
+                    formatted = "Undefined"
                 elif show_type:
-                    return "%s %s" % (p.get("type"), p.get("name"))
+                    formatted = "%s %s" % (p.get("type"), p.get("name"))
                 else:
-                    return "%s" % p.get("name")
+                    formatted = "%s" % p.get("name")
+
+                if isinstance(formatted, unicode):
+                    formatted = formatted.encode("utf-8")
+
+                return formatted
         
             tooltip = ""
             tooltip += "<b>Your Current Context</b>"
