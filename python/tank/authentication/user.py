@@ -164,11 +164,11 @@ class ShotgunSamlUser(ShotgunUser):
         """
         # The import must be located here. If it is at global scope, there
         # is an import error.
-        from .shotgun_shared import saml2_sso
+        from .shotgun_shared import get_saml_claims_expiration
 
-        return saml2_sso.get_saml_claims_expiration(self._impl.get_cookies())
+        return get_saml_claims_expiration(self._impl.get_cookies())
 
-    def _automatic_claims_renewal(self, preemtive_renewal_threshold=0.9):
+    def _do_automatic_claims_renewal(self, preemtive_renewal_threshold=0.9):
         """
         Handles automatic renewal of the SAML2 claims for the user.
 
@@ -176,7 +176,7 @@ class ShotgunSamlUser(ShotgunUser):
         :params preemtive_renewal_threshold: How far into the claims duration we will attempt renewal.
                                              Defaults to 90%, usually 3 minutes 45 seconds (90% of 5 mins).
         """
-        logger.debug("Automatic claims renewal")
+        logger.debug("Attempting automatic claims renewal")
         try:
             previous_expiration = self.get_claims_expiration()
             # A call to renew_session when SSO is used will not prompt the user for
@@ -189,16 +189,16 @@ class ShotgunSamlUser(ShotgunUser):
                 logger.debug("Automatic claims renewal succeeded.")
                 delta = (new_expiration - time.time()) * preemtive_renewal_threshold
                 # If we are debugging, we will use a shorter expiration time.
-                # SHOTGUN_SSO_RENEWAL_INTERNAL should be a value in seconds.
-                if "SHOTGUN_SSO_RENEWAL_INTERNAL" in os.environ:
-                    delta = int(os.environ['SHOTGUN_SSO_RENEWAL_INTERNAL'])
+                # SHOTGUN_SSO_RENEWAL_INTERVAL should be a value in seconds.
+                if "SHOTGUN_SSO_RENEWAL_INTERVAL" in os.environ:
+                    delta = int(os.environ["SHOTGUN_SSO_RENEWAL_INTERVAL"])
                 logger.debug("Next claims renewal attempt: %f" % delta)
-                self._timer = threading.Timer(delta, self._automatic_claims_renewal, [preemtive_renewal_threshold])
+                self._timer = threading.Timer(delta, self._do_automatic_claims_renewal, [preemtive_renewal_threshold])
                 self._timer.start()
             else:
-                logger.warning("Automatic claims renewal failed. No longer attempting to renew claims.")
+                logger.warning("No further attempts to auto-renew in the background will be attempted.")
         except AuthenticationCancelled:
-            logger.debug("Authentication cancelled, most likely from quitting the application.")
+            logger.debug("Automatic SSO claim renewal was cancelled while processing.")
             pass
 
     def start_claims_renewal(self, preemtive_renewal_threshold=0.9):
@@ -206,9 +206,9 @@ class ShotgunSamlUser(ShotgunUser):
         Start claims renewal mechanism.
         """
         if self._timer is None or not self.is_claims_renewal_active():
-            self._automatic_claims_renewal(preemtive_renewal_threshold)
+            self._do_automatic_claims_renewal(preemtive_renewal_threshold)
         else:
-            logger.debug('Attempting to start claims renewal when it was already active.')
+            logger.debug("Attempting to start claims renewal when it was already active.")
 
     def stop_claims_renewal(self):
         """
@@ -217,7 +217,7 @@ class ShotgunSamlUser(ShotgunUser):
         if self._timer:
             self._timer.cancel()
         else:
-            logger.debug('Attempting to stop claims renewal when it was not active.')
+            logger.debug("Attempting to stop claims renewal when it was not active.")
 
     def is_claims_renewal_active(self):
         """

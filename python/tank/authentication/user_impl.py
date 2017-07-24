@@ -206,9 +206,6 @@ class SessionUser(ShotgunUserImpl):
         self._session_token = session_token
         self._cookies = cookies
 
-        if self._cookies:
-            logger.debug("Cookie jar: %s" % self._cookies)
-
         self._try_save()
 
     def refresh_credentials(self):

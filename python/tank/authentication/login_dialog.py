@@ -19,7 +19,7 @@ at any point.
 """
 from .ui import login_dialog
 from . import session_cache
-from shotgun_shared import saml2_sso
+from shotgun_shared import Saml2Sso
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
 from tank_vendor.shotgun_api3 import Shotgun, MissingTwoFactorAuthenticationFault
@@ -54,7 +54,7 @@ class LoginDialog(QtGui.QDialog):
         """
         QtGui.QDialog.__init__(self, parent)
 
-        self._saml2_sso = saml2_sso.Saml2Sso("SSO Login")
+        self._saml2_sso = Saml2Sso("SSO Login")
 
         hostname = hostname or ""
         login = login or ""
