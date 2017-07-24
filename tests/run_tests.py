@@ -85,6 +85,10 @@ class TankTestRunner(object):
         Massages the text input by the user in order to convert all input into proper
         python modules path.
 
+        For example::
+            core_tests/test_api.py -> [core_tests.test_api]
+            authentication_tests -> [all test_*.py files]
+
         :param test_names: List of file names and/or module paths.
         """
         for test_name in test_names:
