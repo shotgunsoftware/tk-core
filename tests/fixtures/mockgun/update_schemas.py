@@ -37,12 +37,6 @@ errors = []
 # If the schema has been updated recently and you want to ensure certain fields are present,
 # you can set an array of fields to validate for each entity.
 schema_requirements = {
-    # Both of these fields are text fields.
-    "PipelineConfiguration": ["sg_descriptor", "sg_plugin_ids"],
-    # To enable Tank*, turn them on in the Site Preferences.
-    "TankType": [],
-    "TankDependency": [],
-    "TankPublishedFile": [],
     # This is a builtin entity that is disabled by default.
     "Scene": [],
     # Simply turn this one on. Nothing else to do.

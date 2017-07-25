@@ -39,7 +39,8 @@ exclude =
     python/tank_vendor,
     # Otherwise you'll have a lot of 'xxx' imported but unused
     python/tank/__init__.py,
-    python/tank/*/__init__.py
+    python/tank/*/__init__.py,
+    tests/python
 
 # toolkit exceptions
 #

@@ -34,6 +34,10 @@ test_python_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "pyth
 print "Adding tests/python location to python_path: %s" % test_python_path
 sys.path = [test_python_path] + sys.path
 
+test_python_path = os.path.join(test_python_path, "third_party")
+print "Adding tests/python/third_party location to python_path: %s" % test_python_path
+sys.path = [test_python_path] + sys.path
+
 import unittest2 as unittest
 
 
@@ -101,7 +105,8 @@ def _finalize_coverage(cov):
     """
     cov.stop()
     cov.report()
-    cov.xml_report(outfile="coverage.xml")
+    cov.html_report(directory="coverage_html_report")
+    print "Note: Full html coverage report can be found in the coverage_html_report folder."
 
     try:
         # seems to be some CI issues with html coverage so

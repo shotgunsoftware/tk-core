@@ -69,6 +69,7 @@ class IODescriptorAppStore(IODescriptorBase):
         Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY_TYPE,
         Descriptor.ENGINE: constants.TANK_ENGINE_ENTITY_TYPE,
         Descriptor.CONFIG: constants.TANK_CONFIG_ENTITY_TYPE,
+        Descriptor.INSTALLED_CONFIG: None,
         Descriptor.CORE: None,
     }
 
@@ -77,6 +78,7 @@ class IODescriptorAppStore(IODescriptorBase):
         Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY_TYPE,
         Descriptor.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY_TYPE,
         Descriptor.CONFIG: constants.TANK_CONFIG_VERSION_ENTITY_TYPE,
+        Descriptor.INSTALLED_CONFIG: None,
         Descriptor.CORE: constants.TANK_CORE_VERSION_ENTITY_TYPE,
     }
 
@@ -85,6 +87,7 @@ class IODescriptorAppStore(IODescriptorBase):
         Descriptor.FRAMEWORK: "sg_tank_framework",
         Descriptor.ENGINE: "sg_tank_engine",
         Descriptor.CONFIG: "sg_tank_config",
+        Descriptor.INSTALLED_CONFIG: None,
         Descriptor.CORE: None,
     }
 
@@ -93,6 +96,7 @@ class IODescriptorAppStore(IODescriptorBase):
         Descriptor.FRAMEWORK: "TankAppStore_Framework_Download",
         Descriptor.ENGINE: "TankAppStore_Engine_Download",
         Descriptor.CONFIG: "TankAppStore_Config_Download",
+        Descriptor.INSTALLED_CONFIG: None,
         Descriptor.CORE: "TankAppStore_CoreApi_Download",
     }
 
@@ -503,14 +507,21 @@ class IODescriptorAppStore(IODescriptorBase):
         )
 
         # write a stats record to the tank app store
-        data = {}
-        data["description"] = "%s: %s %s was downloaded" % (self._sg_connection.base_url, self._name, self._version)
-        data["event_type"] = self._DOWNLOAD_STATS_EVENT_TYPE[self._type]
-        data["entity"] = version
-        data["user"] = script_user
-        data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
-        data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
-        sg.create("EventLogEntry", data)
+        try:
+            data = {}
+            data["description"] = "%s: %s %s was downloaded" % (
+                self._sg_connection.base_url,
+                self._name,
+                self._version
+            )
+            data["event_type"] = self._DOWNLOAD_STATS_EVENT_TYPE[self._type]
+            data["entity"] = version
+            data["user"] = script_user
+            data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
+            data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
+            sg.create("EventLogEntry", data)
+        except Exception, e:
+            log.warning("Could not write app store download receipt: %s" % e)
 
     #############################################################################
     # searching for other versions

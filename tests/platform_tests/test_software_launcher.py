@@ -120,26 +120,42 @@ class TestEngineLauncher(TankTestBase):
             self.assertIsInstance(swv, SoftwareVersion)
 
     def test_get_standard_plugin_environment(self):
+        """
+        Ensures get_standard_plugin_environment sets all expected environment variables.
+        """
+        MOCKED_FALLBACKS = ["/a/b/c", "/d/e/f"]
 
         for entity in [self.shot, self.project, self.task]:
 
             ctx = self.tk.context_from_entity(entity["type"], entity["id"])
+            # Monkey patch the pipeline configuration object to provide a set of bundle cache
+            # fallback paths to serialize into environment variables.
+            self.tk.pipeline_configuration.get_bundle_cache_fallback_paths = \
+                lambda: MOCKED_FALLBACKS
             launcher = create_engine_launcher(self.tk, ctx, self.engine_name)
             env = launcher.get_standard_plugin_environment()
-            self.assertEqual(env["SHOTGUN_PIPELINE_CONFIGURATION_ID"], "123")
-            self.assertEqual(env["SHOTGUN_SITE"], "http://unit_test_mock_sg")
-            self.assertEqual(env["SHOTGUN_ENTITY_TYPE"], entity["type"])
-            self.assertEqual(env["SHOTGUN_ENTITY_ID"], str(entity["id"]))
+            expected_env = {
+                "SHOTGUN_PIPELINE_CONFIGURATION_ID": "123",
+                "SHOTGUN_SITE": "http://unit_test_mock_sg",
+                "SHOTGUN_ENTITY_TYPE": entity["type"],
+                "SHOTGUN_ENTITY_ID": str(entity["id"]),
+                "SHOTGUN_ENTITY_ID": str(entity["id"]),
+                "SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS": os.pathsep.join(MOCKED_FALLBACKS)
+            }
+            self.assertDictEqual(expected_env, env)
 
     def test_get_standard_plugin_environment_empty(self):
-
+        """
+        Ensures only site and pc id are set when we have an empty context.
+        """
         ctx = self.tk.context_empty()
         launcher = create_engine_launcher(self.tk, ctx, self.engine_name)
         env = launcher.get_standard_plugin_environment()
-        self.assertEqual(env["SHOTGUN_PIPELINE_CONFIGURATION_ID"], "123")
-        self.assertEqual(env["SHOTGUN_SITE"], "http://unit_test_mock_sg")
-        self.assertTrue("SHOTGUN_ENTITY_TYPE" not in env)
-        self.assertTrue("SHOTGUN_ENTITY_ID" not in env)
+        expected_env = {
+            "SHOTGUN_PIPELINE_CONFIGURATION_ID": "123",
+            "SHOTGUN_SITE": "http://unit_test_mock_sg"
+        }
+        self.assertDictEqual(expected_env, env)
 
     def test_minimum_version(self):
 

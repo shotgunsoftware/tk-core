@@ -172,10 +172,6 @@ class Sgtk(object):
         """
         The configuration descriptor represents the source of the environments associated
         with this pipeline configuration.
-
-        .. note::
-            If this is a Toolkit Classic pipeline configuration, no descriptor will be associated
-            with the pipeline configuration.
         """
         return self.__pipeline_config.get_configuration_descriptor()
 

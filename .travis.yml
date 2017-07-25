@@ -15,8 +15,8 @@ python:
   - "2.7"
 
 install:
-  pip install -r test_requirements.txt
+  pip install -r tests/ci_requirements.txt
 
 # command to run tests
-script: coverage run tests/run_tests.py
+script: PYTHONPATH=tests/python/third_party python tests/python/third_party/coverage run tests/run_tests.py
 after_success: coveralls

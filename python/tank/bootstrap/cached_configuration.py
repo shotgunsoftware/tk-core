@@ -9,15 +9,12 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import shutil
-import stat
 
 from . import constants
 
 from .errors import TankBootstrapError
 
 from ..util import filesystem
-from ..util import ShotgunPath
 
 from tank_vendor import yaml
 from .configuration import Configuration
@@ -26,6 +23,7 @@ from .configuration_writer import ConfigurationWriter
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
+
 
 class CachedConfiguration(Configuration):
     """
@@ -111,6 +109,9 @@ class CachedConfiguration(Configuration):
         if not os.path.exists(sg_config_file):
             return self.LOCAL_CFG_MISSING
 
+        if self._config_writer.is_transaction_pending():
+            return self.LOCAL_CFG_INVALID
+
         # Pass 2:
         # local config exists. See if it is up to date.
         # get the path to a potential config metadata file
@@ -174,6 +175,8 @@ class CachedConfiguration(Configuration):
         stable state on failure.
         """
 
+        self._config_writer.start_transaction()
+
         # make sure a scaffold is in place
         self._config_writer.ensure_project_scaffold()
 
@@ -201,7 +204,8 @@ class CachedConfiguration(Configuration):
                 self._pipeline_config_id,
                 self._project_id,
                 self._plugin_id,
-                self._bundle_cache_fallback_paths
+                self._bundle_cache_fallback_paths,
+                self._descriptor
             )
 
             # make sure roots file reflects current paths
@@ -247,15 +251,18 @@ class CachedConfiguration(Configuration):
                 log.debug("Previous core restore complete...")
         else:
             # remove backup folders now that the update has completed successfully
-            # note: config_path points at a config folder inside a timestamped 
+            # note: config_path points at a config folder inside a timestamped
             # backup folder. It's this parent folder we want to clean up.
             self._cleanup_backup_folders(os.path.dirname(config_backup_path) if config_backup_path else None,
                                          core_backup_path)
+            log.debug("Latest backup cleanup complete.")
 
         # @todo - prime caches (yaml, path cache)
 
         # make sure tank command and interpreter files are up to date
         self._config_writer.create_tank_command()
+
+        self._config_writer.end_transaction()
 
     @property
     def has_local_bundle_cache(self):
@@ -278,5 +285,6 @@ class CachedConfiguration(Configuration):
             if path:
                 try:
                     filesystem.safe_delete_folder(path)
+                    log.debug("Deleted backup folder: %s", path)
                 except Exception, e:
                     log.warning("Failed to clean up temporary backup folder '%s': %s" % (path, e))

@@ -56,10 +56,10 @@ from .log import LogManager
 
 # make sure that all sub-modules are imported at the same as the main module
 from . import authentication
+from . import descriptor
 from . import bootstrap
 from . import commands
 from . import deploy
-from . import descriptor
 from . import folder
 from . import platform
 from . import util
@@ -67,7 +67,7 @@ from . import util
 # core functionality
 from .api import Tank, tank_from_path, tank_from_entity, set_authenticated_user, get_authenticated_user
 from .api import Sgtk, sgtk_from_path, sgtk_from_entity
-from .pipelineconfig_utils import get_python_interpreter_for_config, get_core_python_path_for_config
+from .pipelineconfig_utils import get_python_interpreter_for_config, get_core_python_path_for_config, get_sgtk_module_path
 
 from .context import Context
 
