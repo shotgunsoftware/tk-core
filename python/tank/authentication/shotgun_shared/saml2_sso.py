@@ -116,15 +116,26 @@ class Saml2Sso(object):
         # background color.
         self._view.setStyleSheet("background-color:white;")
 
-        # Ensure that we do not show any warnings about unsupported browser.
-        # There are circumstances where you will be presented some Shotgun
-        # pages (e.g. account linking). In those cases, Shotgun will complain
-        # about the browser used not being supported... Since login flow uses
-        # very simple pages, the warning is not warranted. Given that we do not
-        # know on the Shotgun side that the client is a Qt app, and that we
-        # will only limit the visit to the login flow, it is difficult to
-        # display the warning only conditionnally. It is much simpler to hide
-        # the message on our side.
+        # The context : in some special cases, Shotgun will take you into an alternate
+        # login flow. E.g. when you need to change your password, enter a 2FA value,
+        # link your SSO account with an existing account on the site, etc.
+        #
+        # The issue : when using a non-approved browser, Shotgun will display a
+        # warning stating that your browser is not supported. This is fine should
+        # you be interacting with the whole site. But in our case, we only
+        # navigate the login flow; presenting relatively simple pages. The warning
+        # is not warranted. The browser used is dependent on the version of Qt/PySide
+        # being used and we have little or no control over it.
+        #
+        # The solution : hide the warning by overriding the CSS of the page.
+        # Fixing Shotgun to recognize the user-agent used by the different version
+        # of Qt so that the warning is not displayed would be a tedious task. The
+        # present solution is simpler, with the only drawback being the dependency
+        # on the name of the div for the warning. No error is generated
+        # if that div.browser_not_approved is not present in the page.
+        #
+        # Worst case scenario : should Shotgun modify how the warning is displayed
+        # it would show up in the page.
         css_style = base64.b64encode("div.browser_not_approved { display: none !important; }")
         self._view.settings().setUserStyleSheetUrl("data:text/css;charset=utf-8;base64," + css_style)
 
@@ -659,7 +670,7 @@ def _get_shotgun_user_id(cookies):
                 # Should we find multiple cookies with the same prefix, it means
                 # that we are using cookies from a multi-session environment. We
                 # have no way to identify the proper user id in the lot.
-                message = "The cookies for this user seem to come from two differen shotgun side: '%s' and '%s'"
+                message = "The cookies for this user seem to come from two different shotgun sites: '%s' and '%s'"
                 raise Saml2SssoMultiSessionNotSupportedError(message % (user_domain, cookies[cookie]['domain']))
             user_id = cookie[28:]
             user_domain = cookies[cookie]['domain']
