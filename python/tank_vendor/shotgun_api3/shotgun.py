@@ -2317,6 +2317,15 @@ class Shotgun(object):
         opener = self._build_opener(cookie_handler)
         urllib2.install_opener(opener)
 
+    def retrieve_ws_server_secret(self, ws_server_id):
+        """
+        Creates or retrieves the shared secret for the given server id.
+        """
+        return self._call_rpc(
+            "retrieve_ws_server_secret",
+            {"ws_server_id": ws_server_id}
+        )
+
     def get_attachment_download_url(self, attachment):
         """
         Return the URL for downloading provided Attachment.
