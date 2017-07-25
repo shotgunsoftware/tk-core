@@ -149,7 +149,7 @@ class SessionRenewal(object):
 
                 # @TODO: Refactor the authenticate methods to return a struct-like
                 #        object instead of a 5 elements tuple.
-                hostname, login, session_token, cookies, saml_expiration = credentials_handler.authenticate(
+                hostname, login, session_token, cookies = credentials_handler.authenticate(
                     user.get_host(),
                     user.get_login(),
                     user.get_http_proxy()
@@ -158,7 +158,6 @@ class SessionRenewal(object):
                 logger.debug("Renewal successful!")
                 user.set_session_token(session_token)
                 user.set_cookies(cookies)
-                user.set_saml_expiration(saml_expiration)
             except AuthenticationCancelled:
                 SessionRenewal._auth_state = SessionRenewal.CANCELLED
                 logger.debug("Renewal cancelled")

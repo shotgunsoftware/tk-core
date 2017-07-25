@@ -116,7 +116,7 @@ class ShotgunAuthenticator(object):
 
         :returns: The SessionUser based on the login information provided.
         """
-        host, login, session_token, cookies, saml_expiration = interactive_authentication.authenticate(
+        host, login, session_token, cookies = interactive_authentication.authenticate(
             self._defaults_manager.get_host(),
             self._defaults_manager.get_login(),
             self._defaults_manager.get_http_proxy(),
@@ -125,26 +125,24 @@ class ShotgunAuthenticator(object):
         return self._create_session_user(
             login=login, session_token=session_token,
             host=host, http_proxy=self._defaults_manager.get_http_proxy(),
-            cookies=cookies, saml_expiration=saml_expiration
+            cookies=cookies
         )
 
-    def _create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None, cookies=None, saml_expiration=0):
+    def _create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None, cookies=None):
         """
         Create an AuthenticatedUser given a set of human user credentials.
         Either a password or session token must be supplied. If a password is supplied,
         a session token will be generated for security reasons.
 
         This is an internal version of the method, which makes reference to the
-        cookies and the saml expiration. These are implementation details which
-        we want to hide from the public interface.
+        cookies. This is an implementation details which we want to hide from the public interface.
 
         :param login: Shotgun user login
         :param session_token: Shotgun session token
         :param password: Shotgun password
         :param host: Shotgun host to log in to. If None, the default host will be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
-        :param cookies: String of raw cookies.
-        :param saml_expiration: Int describing the UTC time in second of the expiration of the SAML claims.
+        :param cookies: String of raw cookies for the user when using SSO.
 
         :returns: A :class:`ShotgunUser` instance.
         """
@@ -152,10 +150,15 @@ class ShotgunAuthenticator(object):
         host = host or self._defaults_manager.get_host()
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 
+        # @FIXME: if imported at file scope, we get a ImportError
+        from .shotgun_shared import is_sso_enabled
+
         # Create a session user
-        return user.ShotgunUser(
-            user_impl.SessionUser(host, login, session_token, http_proxy, password=password, cookies=cookies, saml_expiration=saml_expiration)
-        )
+        impl = user_impl.SessionUser(host, login, session_token, http_proxy, password=password, cookies=cookies)
+        if is_sso_enabled(cookies):
+            return user.ShotgunSamlUser(impl)
+        else:
+            return user.ShotgunUser(impl)
 
     def create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None):
         """

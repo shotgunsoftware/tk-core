@@ -163,7 +163,7 @@ class SessionUser(ShotgunUserImpl):
     A user that authenticates to the Shotgun server using a session token.
     """
 
-    def __init__(self, host, login, session_token, http_proxy, password=None, cookies=None, saml_expiration=0):
+    def __init__(self, host, login, session_token, http_proxy, password=None, cookies=None):
         """
         Constructor.
 
@@ -173,8 +173,7 @@ class SessionUser(ShotgunUserImpl):
             the session token will be looked for in the users file.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
         :param password: Password for the user. Defaults to None.
-        :param cookies: String of raw cookies for the user. Defaults to None.
-        :param saml_expiration: Int time in UTC in second when the SAML claims will expire (in SSO mode)
+        :param cookies: String of raw cookies for the user when using SSO. Defaults to None.
 
         :raises IncompleteCredentials: If there is not enough values
             provided to initialize the user, this exception will be thrown.
@@ -206,7 +205,6 @@ class SessionUser(ShotgunUserImpl):
         self._login = login
         self._session_token = session_token
         self._cookies = cookies
-        self._saml_expiration = saml_expiration
 
         self._try_save()
 
@@ -278,27 +276,6 @@ class SessionUser(ShotgunUserImpl):
             sg_auth_user=self,
             connect=False
         )
-
-    def get_saml_expiration(self):
-        """
-        Obtain the time at which the sessions will need to be renewed.
-
-        Renewal of a SSO session may require the user to enter his credentials
-        in a Web Page. We rely on the user's cookies to track any session
-        related information for the Identity Provider.
-
-        :returns: The time in UTC seconds until expiration, 0 if SSO is not in use.
-        """
-        return self._saml_expiration
-
-    def set_saml_expiration(self, saml_expiration):
-        """
-        Sets the time boundary for the current SSO session.
-
-        Passed this boundary, web-based renewal will need to be done, which may
-        or may not require the user to enter their credentials.
-        """
-        self._saml_expiration = saml_expiration
 
     @LogManager.log_timing
     def are_credentials_expired(self):

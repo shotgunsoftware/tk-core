@@ -43,7 +43,7 @@ class ConsoleAuthenticationHandlerBase(object):
         :param hostname: Host to renew a token for.
         :param login: User to renew a token for.
         :param http_proxy: Proxy to use for the request. Can be None.
-        :returns: The (hostname, login, session token, cookies, saml_expiration) tuple.
+        :returns: The (hostname, login, session token, cookies) tuple.
         :raises AuthenticationCancelled: If the user aborts the login process, this exception
                                          is raised.
 
@@ -71,7 +71,7 @@ class ConsoleAuthenticationHandlerBase(object):
                     # the code is invalid or already used, it will be caught by the except clause beneath.
                     return hostname, login, session_cache.generate_session_token(
                         hostname, login, password, http_proxy, auth_token=code
-                    ), None, None
+                    ), None
             except AuthenticationError:
                 # If any combination of credentials are invalid (user + invalid pass or
                 # user + valid pass + invalid 2da code) we'll end up here.
