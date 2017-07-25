@@ -85,7 +85,13 @@ class Configuration(object):
         # the newly swapped in core code
         from .. import api
         from .. import pipelineconfig
-        api.set_authenticated_user(sg_user)
+
+        # It's possible we're bootstrapping into a core that doesn't support the authentication
+        # module, so test for the existence of the set_authenticated_user.
+        if hasattr(api, "set_authenticated_user"):
+            # FIXME: We should honor the script user from the config.
+            api.set_authenticated_user(sg_user)
+
         log.debug("Executing tank_from_path('%s')" % path)
 
         # now bypass some of the very extensive validation going on
