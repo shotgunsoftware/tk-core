@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.software_launcher &mdash; tk-core v0.18.93 documentation</title>
+  <title>tank.platform.software_launcher &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -648,12 +648,18 @@
 <span class="sd">        plugins to utilize. This will compute the following</span>
 <span class="sd">        environment variables:</span>
 
-<span class="sd">        - ``SHOTGUN_SITE``: The current shotgun site url</span>
-<span class="sd">        - ``SHOTGUN_ENTITY_TYPE``: The current context</span>
-<span class="sd">        - ``SHOTGUN_ENTITY_ID``: The current context</span>
-<span class="sd">        - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: The current pipeline config id</span>
+<span class="sd">        - ``SHOTGUN_SITE``: Derived from the Toolkit instance&#39;s site url</span>
+<span class="sd">        - ``SHOTGUN_ENTITY_TYPE``: Derived from the current context</span>
+<span class="sd">        - ``SHOTGUN_ENTITY_ID``: Derived from the current context</span>
+<span class="sd">        - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: Derived from the current pipeline config id</span>
+<span class="sd">        - ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS``: Derived from the curent pipeline configuration&#39;s</span>
+<span class="sd">            list of bundle cache fallback paths.</span>
 
-<span class="sd">        :returns: dictionary of environment variables</span>
+<span class="sd">        These environment variables are set when launching a new process to capture the state of</span>
+<span class="sd">        Toolkit so we can launch in the same environment. It ensures subprocesses have access to the</span>
+<span class="sd">        same bundle caches, which allows to reuse already cached bundles.</span>
+
+<span class="sd">        :returns: Dictionary of environment variables.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Computing standard plugin environment variables...&quot;</span><span class="p">)</span>
         <span class="n">env</span> <span class="o">=</span> <span class="p">{}</span>
@@ -665,14 +671,22 @@
         <span class="c1"># note: get_shotgun_id() returns None for unmanaged configs.</span>
         <span class="n">pipeline_config_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_shotgun_id</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">pipeline_config_id</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="s2">&quot;Setting SHOTGUN_PIPELINE_CONFIGURATION_ID to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">pipeline_config_id</span>
-            <span class="p">)</span>
             <span class="n">env</span><span class="p">[</span><span class="s2">&quot;SHOTGUN_PIPELINE_CONFIGURATION_ID&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pipeline_config_id</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                 <span class="s2">&quot;Pipeline configuration doesn&#39;t have an id. &quot;</span>
                 <span class="s2">&quot;Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_bundle_cache_fallback_paths</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">bundle_cache_fallback_paths</span><span class="p">:</span>
+            <span class="n">env</span><span class="p">[</span><span class="s2">&quot;SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bundle_cache_fallback_paths</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Pipeline configuration doesn&#39;t have bundle cache fallback paths. &quot;</span>
+                <span class="s2">&quot;Not setting SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS.&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># get the most accurate entity, first see if there is a task, then entity then project</span>
@@ -687,7 +701,6 @@
             <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Returning Plugin Environment: </span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">env</span><span class="p">))</span>
-
         <span class="k">return</span> <span class="n">env</span></div>
 
 <div class="viewcode-block" id="SoftwareLauncher.scan_software"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.SoftwareLauncher.scan_software">[docs]</a>    <span class="k">def</span> <span class="nf">scan_software</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -995,7 +1008,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

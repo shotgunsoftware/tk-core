@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.93 documentation</title>
+  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -169,13 +169,13 @@
             
   <h1>Source code for tank.descriptor.descriptor</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2016 Shotgun Software Inc.</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
-<span class="c1"># </span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
-<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
-<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
@@ -185,8 +185,7 @@
 <span class="kn">from</span> <span class="nn">.io_descriptor</span> <span class="kn">import</span> <span class="n">create_io_descriptor</span>
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span>
 <span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">LocalFileStorageManager</span>
-
-
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 
 
 <div class="viewcode-block" id="create_descriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.create_descriptor">[docs]</a><span class="k">def</span> <span class="nf">create_descriptor</span><span class="p">(</span>
@@ -201,7 +200,8 @@
 <span class="sd">    Factory method. Use this when creating descriptor objects.</span>
 
 <span class="sd">    :param sg_connection: Shotgun connection to associated site</span>
-<span class="sd">    :param descriptor_type: Either ``Descriptor.APP``, ``CORE``, ``CONFIG``, ``ENGINE`` or ``FRAMEWORK``</span>
+<span class="sd">    :param descriptor_type: Either ``Descriptor.APP``, ``CORE``, ``CONFIG``, ``INSTALLED_CONFIG``,</span>
+<span class="sd">        ``ENGINE`` or ``FRAMEWORK``</span>
 <span class="sd">    :param dict_or_uri: A std descriptor dictionary dictionary or string</span>
 <span class="sd">    :param bundle_cache_root_override: Optional override for root path to where</span>
 <span class="sd">                                       downloaded apps are cached. If not specified,</span>
@@ -233,7 +233,8 @@
 <span class="sd">    :returns: :class:`Descriptor` object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">.descriptor_bundle</span> <span class="kn">import</span> <span class="n">AppDescriptor</span><span class="p">,</span> <span class="n">EngineDescriptor</span><span class="p">,</span> <span class="n">FrameworkDescriptor</span>
-    <span class="kn">from</span> <span class="nn">.descriptor_config</span> <span class="kn">import</span> <span class="n">ConfigDescriptor</span>
+    <span class="kn">from</span> <span class="nn">.descriptor_cached_config</span> <span class="kn">import</span> <span class="n">CachedConfigDescriptor</span>
+    <span class="kn">from</span> <span class="nn">.descriptor_installed_config</span> <span class="kn">import</span> <span class="n">InstalledConfigDescriptor</span>
     <span class="kn">from</span> <span class="nn">.descriptor_core</span> <span class="kn">import</span> <span class="n">CoreDescriptor</span>
 
     <span class="c1"># if bundle root is not set, fall back on default location</span>
@@ -271,11 +272,13 @@
         <span class="k">return</span> <span class="n">FrameworkDescriptor</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">descriptor_type</span> <span class="o">==</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">CONFIG</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">ConfigDescriptor</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">CachedConfigDescriptor</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">descriptor_type</span> <span class="o">==</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">INSTALLED_CONFIG</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">InstalledConfigDescriptor</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">descriptor_type</span> <span class="o">==</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">CORE</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">CoreDescriptor</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
-
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span><span class="s2">&quot;Unsupported descriptor type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor_type</span><span class="p">)</span></div>
 
@@ -302,7 +305,7 @@
 <span class="sd">    and helper methods.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="p">(</span><span class="n">APP</span><span class="p">,</span> <span class="n">FRAMEWORK</span><span class="p">,</span> <span class="n">ENGINE</span><span class="p">,</span> <span class="n">CONFIG</span><span class="p">,</span> <span class="n">CORE</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">APP</span><span class="p">,</span> <span class="n">FRAMEWORK</span><span class="p">,</span> <span class="n">ENGINE</span><span class="p">,</span> <span class="n">CONFIG</span><span class="p">,</span> <span class="n">CORE</span><span class="p">,</span> <span class="n">INSTALLED_CONFIG</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -337,6 +340,14 @@
 <span class="sd">        Used for pretty printing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_manifest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the info.yml metadata associated with this descriptor.</span>
+
+<span class="sd">        :returns: dictionary with the contents of info.yml</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">BUNDLE_METADATA_FILE</span><span class="p">)</span>
 
     <span class="c1">###############################################################################################</span>
     <span class="c1"># data accessors</span>
@@ -393,7 +404,7 @@
 <span class="sd">        The display name for this item.</span>
 <span class="sd">        If no display name has been defined, the system name will be returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">display_name</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;display_name&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">display_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">display_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system_name</span>
@@ -425,10 +436,10 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A short description of the item.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">desc</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">desc</span> <span class="o">=</span> <span class="s2">&quot;No description available.&quot;</span> 
+            <span class="n">desc</span> <span class="o">=</span> <span class="s2">&quot;No description available.&quot;</span>
         <span class="k">return</span> <span class="n">desc</span>
 
     <span class="nd">@property</span>
@@ -454,10 +465,10 @@
 <span class="sd">        A url that points at a support web page associated with this item.</span>
 <span class="sd">        If not url has been defined, None is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">support_url</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;support_url&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">support_url</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">support_url</span> <span class="o">=</span> <span class="s2">&quot;https://support.shotgunsoftware.com&quot;</span> 
+            <span class="n">support_url</span> <span class="o">=</span> <span class="s2">&quot;https://support.shotgunsoftware.com&quot;</span>
         <span class="k">return</span> <span class="n">support_url</span>
 
     <span class="nd">@property</span>
@@ -465,7 +476,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The documentation url for this item or None if not defined.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">doc_url</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;documentation_url&quot;</span><span class="p">)</span>
         <span class="c1"># note - doc_url can be none which is fine.</span>
         <span class="k">return</span> <span class="n">doc_url</span>
@@ -486,14 +497,14 @@
 <span class="sd">        A short name, suitable for use in configuration files and for folders on disk.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_system_name</span><span class="p">()</span>
-    
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The version number string for this item.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_version</span><span class="p">()</span>
-    
+
     <span class="k">def</span> <span class="nf">get_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the path to the folder where this item either currently resides</span>
@@ -603,16 +614,32 @@
     <span class="c1"># compatibility accessors to ensure that all systems</span>
     <span class="c1"># calling this (previously internal!) parts of toolkit</span>
     <span class="c1"># will still work.</span>
-    <span class="k">def</span> <span class="nf">get_display_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">display_name</span>
-    <span class="k">def</span> <span class="nf">get_description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span>
-    <span class="k">def</span> <span class="nf">get_icon_256</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">icon_256</span>
-    <span class="k">def</span> <span class="nf">get_support_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">support_url</span>
-    <span class="k">def</span> <span class="nf">get_doc_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">documentation_url</span>
-    <span class="k">def</span> <span class="nf">get_deprecation_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">deprecation_status</span>
-    <span class="k">def</span> <span class="nf">get_system_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">system_name</span>
-    <span class="k">def</span> <span class="nf">get_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span>
-    <span class="k">def</span> <span class="nf">get_changelog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">changelog</span>
+    <span class="k">def</span> <span class="nf">get_display_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">display_name</span>
 
+    <span class="k">def</span> <span class="nf">get_description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span>
+
+    <span class="k">def</span> <span class="nf">get_icon_256</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">icon_256</span>
+
+    <span class="k">def</span> <span class="nf">get_support_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">support_url</span>
+
+    <span class="k">def</span> <span class="nf">get_doc_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">documentation_url</span>
+
+    <span class="k">def</span> <span class="nf">get_deprecation_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">deprecation_status</span>
+
+    <span class="k">def</span> <span class="nf">get_system_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">system_name</span>
+
+    <span class="k">def</span> <span class="nf">get_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span>
+
+    <span class="k">def</span> <span class="nf">get_changelog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">changelog</span>
 </pre></div>
 
            </div>
@@ -645,7 +672,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

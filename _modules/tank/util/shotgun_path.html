@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun_path &mdash; tk-core v0.18.93 documentation</title>
+  <title>tank.util.shotgun_path &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -180,6 +180,7 @@
 
 <span class="kn">import</span> <span class="nn">sys</span>
 
+
 <div class="viewcode-block" id="ShotgunPath"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath">[docs]</a><span class="k">class</span> <span class="nc">ShotgunPath</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper class that handles a path on multiple operating systems.</span>
@@ -229,6 +230,30 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A list of the standard path fields used by Shotgun.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="ShotgunPath.get_file_name_from_template"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.get_file_name_from_template">[docs]</a>    <span class="k">def</span> <span class="nf">get_file_name_from_template</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the complete file name for the current platform based on</span>
+<span class="sd">        file name template passed in.</span>
+
+<span class="sd">        :param str template: Template for a file name with a ``%s`` to indicate</span>
+<span class="sd">            where the platform name should be inserted.</span>
+
+<span class="sd">        :returns: Path with the OS name substituted in.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+            <span class="n">os_name</span> <span class="o">=</span> <span class="s2">&quot;Windows&quot;</span>
+        <span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
+            <span class="n">os_name</span> <span class="o">=</span> <span class="s2">&quot;Darwin&quot;</span>
+        <span class="k">elif</span> <span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
+            <span class="n">os_name</span> <span class="o">=</span> <span class="s2">&quot;Linux&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Cannot resolve file name - unsupported &quot;</span>
+                <span class="s2">&quot;os platform &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">platform</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">template</span> <span class="o">%</span> <span class="n">os_name</span></div>
 
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="ShotgunPath.get_shotgun_storage_key"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.get_shotgun_storage_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_shotgun_storage_key</span><span class="p">(</span><span class="n">platform</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">):</span>
@@ -311,7 +336,7 @@
 
         <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
             <span class="n">windows_path</span> <span class="o">=</span> <span class="n">path</span>
-        <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
             <span class="n">linux_path</span> <span class="o">=</span> <span class="n">path</span>
         <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
             <span class="n">macosx_path</span> <span class="o">=</span> <span class="n">path</span>
@@ -453,7 +478,6 @@
 
         <span class="k">return</span> <span class="n">local_path</span>
 
-
     <span class="k">def</span> <span class="nf">_get_macosx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The macosx representation of the path</span>
@@ -502,7 +526,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span>
-        <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">linux</span>
         <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">macosx</span>
@@ -515,7 +539,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">windows</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">linux</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">macosx</span> <span class="o">=</span> <span class="n">value</span>
@@ -617,7 +641,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

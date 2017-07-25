@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.errors &mdash; tk-core v0.18.93 documentation</title>
+  <title>tank.descriptor.errors &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -183,36 +183,37 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">errors</span>
 
 
-<div class="viewcode-block" id="TankDescriptorError"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.TankDescriptorError">[docs]</a><span class="k">class</span> <span class="nc">TankDescriptorError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
+<div class="viewcode-block" id="TankDescriptorError"><a class="viewcode-back" href="../../../descriptor.html#sgtk.TankDescriptorError">[docs]</a><span class="k">class</span> <span class="nc">TankDescriptorError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for all descriptor related errors.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="TankAppStoreError"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.TankAppStoreError">[docs]</a><span class="k">class</span> <span class="nc">TankAppStoreError</span><span class="p">(</span><span class="n">TankDescriptorError</span><span class="p">):</span>
+<div class="viewcode-block" id="TankAppStoreError"><a class="viewcode-back" href="../../../descriptor.html#sgtk.TankAppStoreError">[docs]</a><span class="k">class</span> <span class="nc">TankAppStoreError</span><span class="p">(</span><span class="n">TankDescriptorError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Errors relating to the Toolkit App Store app store.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="TankAppStoreConnectionError"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.TankAppStoreConnectionError">[docs]</a><span class="k">class</span> <span class="nc">TankAppStoreConnectionError</span><span class="p">(</span><span class="n">TankAppStoreError</span><span class="p">):</span>
+<div class="viewcode-block" id="TankAppStoreConnectionError"><a class="viewcode-back" href="../../../descriptor.html#sgtk.TankAppStoreConnectionError">[docs]</a><span class="k">class</span> <span class="nc">TankAppStoreConnectionError</span><span class="p">(</span><span class="n">TankAppStoreError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Errors indicating an error connecting to the Toolkit App Store.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
 
-<span class="k">class</span> <span class="nc">InvalidAppStoreCredentialsError</span><span class="p">(</span><span class="n">TankAppStoreConnectionError</span><span class="p">):</span>
+<div class="viewcode-block" id="TankInvalidAppStoreCredentialsError"><a class="viewcode-back" href="../../../descriptor.html#sgtk.TankInvalidAppStoreCredentialsError">[docs]</a><span class="k">class</span> <span class="nc">TankInvalidAppStoreCredentialsError</span><span class="p">(</span><span class="n">TankAppStoreConnectionError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Error indicating no credentials for the Toolkit App Store were found in Shotgun.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="CheckVersionConstraintsError"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.CheckVersionConstraintsError">[docs]</a><span class="k">class</span> <span class="nc">CheckVersionConstraintsError</span><span class="p">(</span><span class="n">TankDescriptorError</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">TankCheckVersionConstraintsError</span><span class="p">(</span><span class="n">TankDescriptorError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Error throw when one or more version constraints checks failed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -234,7 +235,25 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        List of strings explaining why the constraints check failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reasons</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reasons</span>
+
+
+<div class="viewcode-block" id="TankInvalidInterpreterLocationError"><a class="viewcode-back" href="../../../descriptor.html#sgtk.TankInvalidInterpreterLocationError">[docs]</a><span class="k">class</span> <span class="nc">TankInvalidInterpreterLocationError</span><span class="p">(</span><span class="n">TankDescriptorError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exception that indicates that the interpreter specified in a file was not found.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="TankMissingManifestError"><a class="viewcode-back" href="../../../descriptor.html#sgtk.TankMissingManifestError">[docs]</a><span class="k">class</span> <span class="nc">TankMissingManifestError</span><span class="p">(</span><span class="n">TankDescriptorError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exception that indicates that the manifest file is missing.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<span class="c1"># For backwards compatibility with previous versions of core.</span>
+<span class="n">errors</span><span class="o">.</span><span class="n">TankInvalidInterpreterLocationError</span> <span class="o">=</span> <span class="n">TankInvalidInterpreterLocationError</span>
+<span class="n">InvalidAppStoreCredentialsError</span> <span class="o">=</span> <span class="n">TankInvalidAppStoreCredentialsError</span>
+<span class="n">CheckVersionConstraintsError</span> <span class="o">=</span> <span class="n">TankCheckVersionConstraintsError</span>
 </pre></div>
 
            </div>
@@ -267,7 +286,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

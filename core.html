@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Foundation &mdash; tk-core v0.18.93 documentation</title>
+  <title>Foundation &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Deploy and management" href="bootstrap.html"/> 
 
@@ -97,6 +97,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#authentication">Authentication</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk">Sgtk</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#context">Context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pipeline-configuration-utilities">Pipeline Configuration Utilities</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#executing-tank-commands">Executing Tank commands</a><ul>
@@ -149,7 +150,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -326,55 +327,11 @@ Toolkit services such as filesystem creation, hooks, context
 manipulation and the Toolkit template system.</p>
 <p>Instances of this class should be created via the factory methods
 <a class="reference internal" href="#sgtk.sgtk_from_path" title="sgtk.sgtk_from_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_path()</span></code></a> and <a class="reference internal" href="#sgtk.sgtk_from_entity" title="sgtk.sgtk_from_entity"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_entity()</span></code></a>.</p>
-<dl class="method">
-<dt id="sgtk.Sgtk.get_cache_item">
-<code class="descname">get_cache_item</code><span class="sig-paren">(</span><em>cache_key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.get_cache_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.get_cache_item" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns an item from the cache held within this tk instance.</p>
-<p>Internal Use Only - We provide no guarantees that this method
-will be backwards compatible.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; name of cache key to access</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">cached object or None if no object found</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.Sgtk.set_cache_item">
-<code class="descname">set_cache_item</code><span class="sig-paren">(</span><em>cache_key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.set_cache_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.set_cache_item" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds a value to the tk instance cache. To clear a value,
-set it to None.</p>
-<p>Internal Use Only - We provide no guarantees that this method
-will be backwards compatible.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>cache_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; name of cache key to set</li>
-<li><strong>value</strong> &#8211; Value to set or None to clear it.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="sgtk.Sgtk.configuration_descriptor">
 <code class="descname">configuration_descriptor</code><a class="headerlink" href="#sgtk.Sgtk.configuration_descriptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>The configuration descriptor represents the source of the environments associated
 with this pipeline configuration.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If this is a Toolkit Classic pipeline configuration, no descriptor will be associated
-with the pipeline configuration.</p>
-</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -1350,6 +1307,52 @@ user will be updated with these credentials.</p>
 </table>
 </dd></dl>
 
+</dd></dl>
+
+</div>
+<div class="section" id="pipeline-configuration-utilities">
+<h3>Pipeline Configuration Utilities<a class="headerlink" href="#pipeline-configuration-utilities" title="Permalink to this headline">¶</a></h3>
+<p>It is possible to enquiry about the location of various components of the pipeline configuration and
+the currently running version of the Toolkit Core.</p>
+<dl class="function">
+<dt id="sgtk.get_core_python_path_for_config">
+<code class="descclassname">sgtk.</code><code class="descname">get_core_python_path_for_config</code><span class="sig-paren">(</span><em>pipeline_config_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/pipelineconfig_utils.html#get_core_python_path_for_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.get_core_python_path_for_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the location of the Toolkit library associated with the given pipeline configuration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pipeline_config_path</strong> &#8211; path to a pipeline configuration</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Path to location where the Toolkit Python library associated with the config resides.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.get_sgtk_module_path">
+<code class="descclassname">sgtk.</code><code class="descname">get_sgtk_module_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/pipelineconfig_utils.html#get_sgtk_module_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.get_sgtk_module_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the path to <code class="docutils literal"><span class="pre">sgtk</span></code> module. This path can be used by another process to update its
+<code class="docutils literal"><span class="pre">PYTHONPATH</span></code> and use the same <code class="docutils literal"><span class="pre">sgtk</span></code> module as the process invoking this method.</p>
+<p>For example, if the Toolkit core was installed at
+<code class="docutils literal"><span class="pre">/home/user/.shotgun/bundle_cache/app_store/tk-core/v0.18.94</span></code>, the method would return
+<code class="docutils literal"><span class="pre">/home/user/.shotgun/bundle_cache/app_store/tk-core/v0.18.94/python</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method can be invoked for cores that are part of a pipeline configuration, that
+lives inside the bundle cache or a development copy of the core.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path to the <code class="docutils literal"><span class="pre">sgtk</span></code> module on disk.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -2777,6 +2780,15 @@ files that provide a path to the Python interpreter used to launch the <code cla
 command.</p>
 <p>If you require a <cite>python</cite> executable to launch a script that will use a pipeline configuration, it is
 recommended its associated Python interpreter.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version v0.18.94: </span>You can now access the content of the <code class="docutils literal"><span class="pre">interpreter_*.yml</span></code>
+through the <code class="xref py py-meth docutils literal"><span class="pre">ConfigDescriptor.python_interpreter()</span></code> property.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">current_engine</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">descriptor</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">sgtk</span><span class="o">.</span><span class="n">configuration_descriptor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">python_interpreter</span>
+</pre></div>
+</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2854,8 +2866,8 @@ does not exist.</li>
 
 <dl class="class">
 <dt id="sgtk.TankInvalidInterpreterLocationError">
-<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankInvalidInterpreterLocationError</code><a class="reference internal" href="_modules/tank/errors.html#TankInvalidInterpreterLocationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankInvalidInterpreterLocationError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankInvalidInterpreterLocationError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankInvalidInterpreterLocationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankInvalidInterpreterLocationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankDescriptorError</span></code></p>
 <p>Exception that indicates that the interpreter specified in a file was not found.</p>
 </dd></dl>
 
@@ -2923,7 +2935,7 @@ does not exist.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

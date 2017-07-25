@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.93 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="index.html"/>
         <link rel="next" title="Descriptor API" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -147,7 +147,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1158,6 +1158,24 @@ it easy to perform operations and cast between representations and platforms.</p
 </dd></dl>
 
 <dl class="staticmethod">
+<dt id="sgtk.util.ShotgunPath.get_file_name_from_template">
+<em class="property">static </em><code class="descname">get_file_name_from_template</code><span class="sig-paren">(</span><em>template</em>, <em>platform='linux2'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.get_file_name_from_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.get_file_name_from_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the complete file name for the current platform based on
+file name template passed in.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>template</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Template for a file name with a <code class="docutils literal"><span class="pre">%s</span></code> to indicate
+where the platform name should be inserted.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Path with the OS name substituted in.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
 <dt id="sgtk.util.ShotgunPath.get_shotgun_storage_key">
 <em class="property">static </em><code class="descname">get_shotgun_storage_key</code><span class="sig-paren">(</span><em>platform='linux2'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.get_shotgun_storage_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.get_shotgun_storage_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a <code class="docutils literal"><span class="pre">sys.platform</span></code> constant, resolve a Shotgun storage key</p>
@@ -1687,28 +1705,49 @@ name, the name of the AOV and the name of the render layer.</li>
 </table>
 <p>In addition to the above, the following optional arguments exist:</p>
 <blockquote>
-<div><ul class="simple">
-<li><code class="docutils literal"><span class="pre">task</span></code> - A shotgun entity dictionary with id and type (which should always be Task).
-if no value is specified, the task will be grabbed from the context object.</li>
-<li><code class="docutils literal"><span class="pre">comment</span></code> - A string containing a description of what is being published.</li>
-<li><code class="docutils literal"><span class="pre">thumbnail_path</span></code> - A path to a thumbnail (png or jpeg) which will be uploaded to shotgun
-and associated with the publish.</li>
-<li><code class="docutils literal"><span class="pre">dependency_paths</span></code> - A list of file system paths that should be attempted to be registered
-as dependencies. Files in this listing that do not appear as publishes in shotgun will be ignored.</li>
-<li><code class="docutils literal"><span class="pre">dependency_ids</span></code> - A list of publish ids which should be registered as dependencies.</li>
-<li><code class="docutils literal"><span class="pre">published_file_type</span></code> - A publish type in the form of a string. If the publish type does not
-already exist in Shotgun, it will be created.</li>
-<li><code class="docutils literal"><span class="pre">update_entity_thumbnail</span></code> - Push thumbnail up to the associated entity</li>
-<li><code class="docutils literal"><span class="pre">update_task_thumbnail</span></code> - Push thumbnail up to the associated task</li>
-<li><code class="docutils literal"><span class="pre">created_by</span></code> - Override for the user that will be marked as creating the publish.  This should
+<div><ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">task</span></code> - A shotgun entity dictionary with keys <code class="docutils literal"><span class="pre">id</span></code> and <code class="docutils literal"><span class="pre">type</span></code> (where type should always be <code class="docutils literal"><span class="pre">Task</span></code>).
+This value will be used to populate the task field for the created Shotgun publish record.
+If no value is specified, the task will be determined based on the context parameter.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">comment</span></code> - A string containing a description of what is being published.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">thumbnail_path</span></code> - A path to a thumbnail (png or jpeg) which will be uploaded to shotgun
+and associated with the publish.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">dependency_paths</span></code> - A list of file system paths that should be attempted to be registered
+as dependencies. Files in this listing that do not appear as publishes in shotgun will be ignored.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">dependency_ids</span></code> - A list of publish ids which should be registered as dependencies.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">published_file_type</span></code> - A publish type in the form of a string. If the publish type does not
+already exist in Shotgun, it will be created.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">update_entity_thumbnail</span></code> - Push thumbnail up to the associated entity</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">update_task_thumbnail</span></code> - Push thumbnail up to the associated task</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">created_by</span></code> - Override for the user that will be marked as creating the publish.  This should
 be in the form of shotgun entity, e.g. {&#8220;type&#8221;:&#8221;HumanUser&#8221;, &#8220;id&#8221;:7}. If not set, the user will
-be determined using <a class="reference internal" href="#sgtk.util.get_current_user" title="sgtk.util.get_current_user"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.util.get_current_user()</span></code></a>.</li>
-<li><code class="docutils literal"><span class="pre">created_at</span></code> - Override for the date the publish is created at.  This should be a python
-datetime object</li>
-<li><code class="docutils literal"><span class="pre">version_entity</span></code> - The Shotgun version entity this published file should be linked to</li>
-<li><code class="docutils literal"><span class="pre">sg_fields</span></code> - Some additional Shotgun fields as a dict (e.g. <code class="docutils literal"><span class="pre">{'tag_list':</span> <span class="pre">['foo',</span> <span class="pre">'bar']}</span></code>)</li>
-<li><code class="docutils literal"><span class="pre">dry_run</span></code> - Boolean. If set, do not actually create a database entry. Return the
-dictionary of data that would be supplied to Shotgun to create the PublishedFile entity.</li>
+be determined using <a class="reference internal" href="#sgtk.util.get_current_user" title="sgtk.util.get_current_user"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.util.get_current_user()</span></code></a>.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">created_at</span></code> - Override for the date the publish is created at.  This should be a python
+datetime object</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">version_entity</span></code> - The Shotgun review version that the publish should be linked to. This
+should be a dictionary of keys <code class="docutils literal"><span class="pre">id</span></code> and <code class="docutils literal"><span class="pre">type</span></code> (where type should always be <code class="docutils literal"><span class="pre">Version</span></code>).
+This parameter is useful for workflows where a Shotgun Version has already been created for review
+purposes and you want to associate the publish created by this method.</p>
+<p>Note: For workflows where you have an existing review version and want to create a series of associated
+publishes, you may want to extract a <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> from the Version entity and pass that
+to the <a class="reference internal" href="#sgtk.util.register_publish" title="sgtk.util.register_publish"><code class="xref py py-meth docutils literal"><span class="pre">register_publish()</span></code></a> method in order to ensure consistency in how objects are associated
+in Shotgun.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">sg_fields</span></code> - Some additional Shotgun fields as a dict (e.g. <code class="docutils literal"><span class="pre">{'sg_custom_field':</span> <span class="pre">'hello'}</span></code>)</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">dry_run</span></code> - Boolean. If set, do not actually create a database entry. Return the
+dictionary of data that would be supplied to Shotgun to create the PublishedFile entity.</p>
+</li>
 </ul>
 </div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2100,7 +2139,7 @@ example unsupported url schemes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

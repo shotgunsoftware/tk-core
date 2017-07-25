@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.18.93 documentation</title>
+  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -217,7 +217,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">constraints</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
 
         <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_sg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_version&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">constants</span><span class="o">.</span><span class="n">LOWEST_SHOTGUN_VERSION</span>
 
@@ -345,7 +345,7 @@
 
 <span class="sd">        :returns: A list of strings, with an empty list meaning no items required.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">rc</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;required_context&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">rc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">rc</span> <span class="o">=</span> <span class="p">[]</span>
@@ -363,7 +363,7 @@
 <span class="sd">        example: [&quot;windows&quot;, &quot;linux&quot;]</span>
 <span class="sd">        example: []</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">sp</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;supported_platforms&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">sp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">sp</span> <span class="o">=</span> <span class="p">[]</span>
@@ -378,7 +378,7 @@
 <span class="sd">        :returns: Configuration dictionary as defined</span>
 <span class="sd">                  in the manifest or {} if not defined</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">cfg</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;configuration&quot;</span><span class="p">)</span>
         <span class="c1"># always return a dict</span>
         <span class="k">if</span> <span class="n">cfg</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -394,7 +394,7 @@
 <span class="sd">            - ``None`` - Works in all engines.</span>
 <span class="sd">            - ``[&quot;tk-maya&quot;, &quot;tk-nuke&quot;]`` - Works in Maya and Nuke.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;supported_engines&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -410,7 +410,7 @@
 
 <span class="sd">        :returns: list of dictionaries</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">frameworks</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;frameworks&quot;</span><span class="p">)</span>
         <span class="c1"># always return a list</span>
         <span class="k">if</span> <span class="n">frameworks</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -471,7 +471,7 @@
             <span class="k">return</span>
 
         <span class="c1"># first fetch metadata</span>
-        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">sg_fields_def</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_fields&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">sg_fields_def</span><span class="p">:</span>  <span class="c1"># can be defined as None from yml file</span>
@@ -612,7 +612,7 @@
 
 <span class="sd">        :returns: True if the framework is shared</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">shared</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shared&quot;</span><span class="p">)</span>
         <span class="c1"># always return a bool</span>
         <span class="k">if</span> <span class="n">shared</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -651,7 +651,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

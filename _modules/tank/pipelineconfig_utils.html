@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.pipelineconfig_utils &mdash; tk-core v0.18.93 documentation</title>
+  <title>tank.pipelineconfig_utils &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -169,13 +169,13 @@
             
   <h1>Source code for tank.pipelineconfig_utils</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2013 Shotgun Software Inc.</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
-<span class="c1"># </span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
-<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
-<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
@@ -186,20 +186,15 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">TankError</span><span class="p">,</span>
-    <span class="n">TankNotPipelineConfigurationError</span><span class="p">,</span>
-    <span class="n">TankInvalidInterpreterLocationError</span><span class="p">,</span>
-    <span class="n">TankFileDoesNotExistError</span><span class="p">,</span>
-    <span class="n">TankInvalidCoreLocationError</span>
-<span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">LogManager</span>
+
 <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">yaml_cache</span>
 <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span> <span class="nn">.util.shotgun</span> <span class="kn">import</span> <span class="n">get_deferred_sg_connection</span>
+
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -220,6 +215,7 @@
     <span class="n">api_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">,</span> <span class="s2">&quot;install&quot;</span><span class="p">,</span> <span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="s2">&quot;_core_upgrader.py&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">api_file</span><span class="p">)</span>
 
+
 <span class="k">def</span> <span class="nf">is_pipeline_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns true if the path points to the root of a pipeline configuration</span>
@@ -230,6 +226,7 @@
     <span class="c1"># probe by looking for the existence of a key config file.</span>
     <span class="n">pc_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">STORAGE_ROOTS_FILE</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pc_file</span><span class="p">)</span>
+
 
 <span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -308,10 +305,8 @@
     <span class="k">return</span> <span class="n">shotgun_paths</span>
 
 
-
-
 <span class="c1">####################################################################################################################</span>
-<span class="c1"># Core API resolve utils </span>
+<span class="c1"># Core API resolve utils</span>
 
 <span class="k">def</span> <span class="nf">get_path_to_current_core</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -335,7 +330,27 @@
     <span class="k">return</span> <span class="n">curr_os_core_root</span>
 
 
-<span class="k">def</span> <span class="nf">get_core_python_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_create_installed_config_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates an InstalledConfigurationDescriptor for the pipeline configuration</span>
+<span class="sd">    at the given location.</span>
+
+<span class="sd">    :param str pipeline_config_path: Path to the installed pipeline configuration.</span>
+
+<span class="sd">    :returns: An :class:`sgtk.descriptor.InstalledConfigurationDescriptor` instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Do a local import to avoid circular imports. This happens because descriptor_installed_config</span>
+    <span class="c1"># and pipelineconfig_utils import each other. At some point we will refactor the functionality from</span>
+    <span class="c1"># this file on the ConfigDescriptor objects and these circular includes won&#39;t be necessary anymore.</span>
+    <span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span><span class="p">,</span> <span class="n">create_descriptor</span>
+    <span class="k">return</span> <span class="n">create_descriptor</span><span class="p">(</span>
+        <span class="n">get_deferred_sg_connection</span><span class="p">(),</span>
+        <span class="n">Descriptor</span><span class="o">.</span><span class="n">INSTALLED_CONFIG</span><span class="p">,</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">pipeline_config_path</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_core_python_path_for_config"><a class="viewcode-back" href="../../core.html#sgtk.get_core_python_path_for_config">[docs]</a><span class="k">def</span> <span class="nf">get_core_python_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the location of the Toolkit library associated with the given pipeline configuration.</span>
 
@@ -344,7 +359,10 @@
 <span class="sd">    :returns: Path to location where the Toolkit Python library associated with the config resides.</span>
 <span class="sd">    :rtype: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_get_core_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">),</span> <span class="s2">&quot;install&quot;</span><span class="p">,</span> <span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="s2">&quot;python&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">_create_installed_config_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span><span class="o">.</span><span class="n">associated_core_descriptor</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;python&quot;</span>
+    <span class="p">)</span></div>
 
 
 <span class="k">def</span> <span class="nf">get_core_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
@@ -353,148 +371,52 @@
 
 <span class="sd">    In the case of a localized PC, it just returns the given path.</span>
 <span class="sd">    Otherwise, it resolves the location via the core_xxxx.cfg files.</span>
-<span class="sd">    </span>
+
 <span class="sd">    :param pipeline_config_path: path to a pipeline configuration</span>
 
 <span class="sd">    :returns: Path to the studio location root or pipeline configuration root or None if not resolved</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_get_core_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span>
-    <span class="k">except</span><span class="p">:</span>
+        <span class="c1"># Associated core descriptor gives us the path to the &lt;config-or-studio-root&gt;/install/core</span>
+        <span class="c1"># folder, so we&#39;ll strip out a few folders to get to the &lt;config-or-studio-root&gt;</span>
+        <span class="n">studio_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="c1"># &lt;config-or-studio-root&gt;/install/core</span>
+            <span class="n">_create_installed_config_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span><span class="o">.</span><span class="n">associated_core_descriptor</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">],</span>
+            <span class="c1"># &lt;config-or-studio-root&gt;/install</span>
+            <span class="s2">&quot;..&quot;</span><span class="p">,</span>
+            <span class="c1"># &lt;config-or-studio-root&gt;/</span>
+            <span class="s2">&quot;..&quot;</span>
+        <span class="p">)</span>
+        <span class="n">studio_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">studio_folder</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">studio_folder</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
 
 
-<span class="k">def</span> <span class="nf">_get_core_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+<div class="viewcode-block" id="get_sgtk_module_path"><a class="viewcode-back" href="../../core.html#sgtk.get_sgtk_module_path">[docs]</a><span class="k">def</span> <span class="nf">get_sgtk_module_path</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the core api install location associated with the given pipeline configuration.</span>
-<span class="sd">    In the case of a localized PC, it just returns the given path.</span>
-<span class="sd">    Otherwise, it resolves the location via the core_xxxx.cfg files.</span>
+<span class="sd">    Returns the path to ``sgtk`` module. This path can be used by another process to update its</span>
+<span class="sd">    ``PYTHONPATH`` and use the same ``sgtk`` module as the process invoking this method.</span>
 
-<span class="sd">    :param str pipeline_config_path: path to a pipeline configuration</span>
+<span class="sd">    For example, if the Toolkit core was installed at</span>
+<span class="sd">    ``/home/user/.shotgun/bundle_cache/app_store/tk-core/v0.18.94``, the method would return</span>
+<span class="sd">    ``/home/user/.shotgun/bundle_cache/app_store/tk-core/v0.18.94/python``.</span>
 
-<span class="sd">    :returns: Path to the studio location root or pipeline configuration root or None if not resolved</span>
-<span class="sd">    :rtype: str</span>
+<span class="sd">    .. note:: This method can be invoked for cores that are part of a pipeline configuration, that</span>
+<span class="sd">              lives inside the bundle cache or a development copy of the core.</span>
 
-<span class="sd">    :raises TankFileDoesNotExistError: Raised if the core_xxxx.cfg file is missing for the</span>
-<span class="sd">        pipeline configuration.</span>
-<span class="sd">    :raises TankNotPipelineConfigurationError: Raised if the path is not referencing a pipeline configuration.</span>
-<span class="sd">    :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg</span>
-<span class="sd">        does not exist.</span>
+<span class="sd">    :returns: Path to the ``sgtk`` module on disk.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">is_localized</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-        <span class="c1"># first, try to locate an install local to this pipeline configuration.</span>
-        <span class="c1"># this would find any localized APIs.</span>
-        <span class="n">install_path</span> <span class="o">=</span> <span class="n">pipeline_config_path</span>
+    <span class="n">pipelineconfig_utils_py_location</span> <span class="o">=</span> <span class="vm">__file__</span> <span class="c1"># tk-core/python/tank/pipelineconfig_utils.py</span>
 
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># this pipeline config is associated with a shared API (studio install)</span>
-        <span class="c1"># follow the links defined in the configuration to establish which</span>
-        <span class="c1"># setup it has been associated with.</span>
-        <span class="n">studio_linkback_file</span> <span class="o">=</span> <span class="n">_get_current_platform_core_location_file_name</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span>
+    <span class="c1"># If the path is not absolute, make it so.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">pipelineconfig_utils_py_location</span><span class="p">):</span>
+        <span class="n">pipelineconfig_utils_py_location</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">pipelineconfig_utils_py_location</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">studio_linkback_file</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">TankFileDoesNotExistError</span><span class="p">(</span>
-                <span class="s2">&quot;Configuration at &#39;</span><span class="si">%s</span><span class="s2">&#39; without a localized core is missing a core location file at &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span>
-                <span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">,</span> <span class="n">studio_linkback_file</span><span class="p">)</span>
-            <span class="p">)</span>
+    <span class="n">tank_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">pipelineconfig_utils_py_location</span><span class="p">)</span> <span class="c1"># tk-core/python/tank</span>
+    <span class="n">python_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">tank_folder</span><span class="p">)</span> <span class="c1"># tk-core/python</span>
 
-        <span class="c1"># this file will contain the path to the API which is meant to be used with this PC.</span>
-        <span class="n">install_path</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">studio_linkback_file</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="c1"># remove any whitespace, keep text</span>
-
-        <span class="c1"># expand any env vars that are used in the files. For example, you could have</span>
-        <span class="c1"># an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your</span>
-        <span class="c1"># linkback file may just contain &quot;$STUDIO_TANK_PATH&quot; instead of an explicit path.</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">data</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="s2">&quot;undefined&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-            <span class="n">install_path</span> <span class="o">=</span> <span class="n">data</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TankInvalidCoreLocationError</span><span class="p">(</span>
-                <span class="s2">&quot;Cannot find core location &#39;</span><span class="si">%s</span><span class="s2">&#39; defined in &quot;</span>
-                <span class="s2">&quot;config file &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span>
-                <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">studio_linkback_file</span><span class="p">)</span>
-            <span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">install_path</span>
-
-
-<span class="k">def</span> <span class="nf">_get_current_platform_file_suffix</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Find the suffix for the current platform&#39;s configuration file.</span>
-
-<span class="sd">    :returns: Suffix for the current platform&#39;s configuration file.</span>
-<span class="sd">    :rtype: str</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Now find out the appropriate python interpreter file to search for</span>
-    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;Darwin&quot;</span>
-    <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;Windows&quot;</span>
-    <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;Linux&quot;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Unknown platform: </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">_get_current_platform_interpreter_file_name</span><span class="p">(</span><span class="n">install_root</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Retrieves the path to the interpreter file for a given install root.</span>
-
-<span class="sd">    :param str install_root: This can be the root to a studio install for a core</span>
-<span class="sd">        or a pipeline configuration root.</span>
-
-<span class="sd">    :returns: Path for the current platform&#39;s interpreter file.</span>
-<span class="sd">    :rtype: str</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-        <span class="n">install_root</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">,</span> <span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="s2">&quot;interpreter_</span><span class="si">%s</span><span class="s2">.cfg&quot;</span> <span class="o">%</span> <span class="n">_get_current_platform_file_suffix</span><span class="p">()</span>
-    <span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">_get_current_platform_core_location_file_name</span><span class="p">(</span><span class="n">install_root</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Retrieves the path to the core location file for a given install root.</span>
-
-<span class="sd">    :param str install_root: This can be the root to a studio install for a core</span>
-<span class="sd">        or a pipeline configuration root.</span>
-
-<span class="sd">    :returns: Path for the current platform&#39;s core location file.</span>
-<span class="sd">    :rtype: str</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-        <span class="n">install_root</span><span class="p">,</span> <span class="s2">&quot;install&quot;</span><span class="p">,</span> <span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="s2">&quot;core_</span><span class="si">%s</span><span class="s2">.cfg&quot;</span> <span class="o">%</span> <span class="n">_get_current_platform_file_suffix</span><span class="p">()</span>
-    <span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">_find_interpreter_location</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Looks for a Python interpreter associated with this config.</span>
-
-<span class="sd">    :param str pipeline_config_path: Config root to look for the interpreter.</span>
-
-<span class="sd">    :raises TankInvalidInterpreterLocationError: Raised if the interpreter in the interpreter file doesn&#39;t</span>
-<span class="sd">        exist.</span>
-<span class="sd">    :raises TankFileDoesNotExistError: Raised if the interpreter file can&#39;t be found.</span>
-
-<span class="sd">    :returns: Path to the interpreter or None if the interpreter file was missing.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">interpreter_config_file</span> <span class="o">=</span> <span class="n">_get_current_platform_interpreter_file_name</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">interpreter_config_file</span><span class="p">):</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">interpreter_config_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">path_to_python</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">path_to_python</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path_to_python</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">TankInvalidInterpreterLocationError</span><span class="p">(</span>
-                <span class="s2">&quot;Cannot find interpreter &#39;</span><span class="si">%s</span><span class="s2">&#39; defined in &quot;</span>
-                <span class="s2">&quot;config file &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path_to_python</span><span class="p">,</span> <span class="n">interpreter_config_file</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">path_to_python</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">TankFileDoesNotExistError</span><span class="p">(</span>
-            <span class="s2">&quot;No interpreter file for the current platform found at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">interpreter_config_file</span>
-        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">python_folder</span></div>
 
 
 <div class="viewcode-block" id="get_python_interpreter_for_config"><a class="viewcode-back" href="../../core.html#sgtk.get_python_interpreter_for_config">[docs]</a><span class="k">def</span> <span class="nf">get_python_interpreter_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
@@ -509,6 +431,14 @@
 <span class="sd">    If you require a `python` executable to launch a script that will use a pipeline configuration, it is</span>
 <span class="sd">    recommended its associated Python interpreter.</span>
 
+<span class="sd">    .. deprecated:: v0.18.94</span>
+<span class="sd">        You can now access the content of the ``interpreter_*.yml``</span>
+<span class="sd">        through the :meth:`ConfigDescriptor.python_interpreter` property.</span>
+
+<span class="sd">        &gt;&gt;&gt; engine = sgtk.platform.current_engine()</span>
+<span class="sd">        &gt;&gt;&gt; descriptor = engine.sgtk.configuration_descriptor</span>
+<span class="sd">        &gt;&gt;&gt; print descriptor.python_interpreter</span>
+
 <span class="sd">    :param str pipeline_config_path: Path to the pipeline configuration root.</span>
 
 <span class="sd">    :returns: Path to the Python interpreter for that configuration.</span>
@@ -522,16 +452,7 @@
 <span class="sd">    :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg</span>
 <span class="sd">        does not exist.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_pipeline_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">TankNotPipelineConfigurationError</span><span class="p">(</span>
-            <span class="s2">&quot;The folder at &#39;</span><span class="si">%s</span><span class="s2">&#39; does not contain a pipeline configuration.&quot;</span> <span class="o">%</span> <span class="n">pipeline_config_path</span>
-        <span class="p">)</span>
-    <span class="c1"># Config is localized, we&#39;re supposed to find an interpreter file in it.</span>
-    <span class="k">if</span> <span class="n">is_localized</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_find_interpreter_location</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">studio_path</span> <span class="o">=</span> <span class="n">_get_core_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_find_interpreter_location</span><span class="p">(</span><span class="n">studio_path</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_create_installed_config_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span><span class="o">.</span><span class="n">python_interpreter</span></div>
 
 
 <span class="k">def</span> <span class="nf">resolve_all_os_paths_to_core</span><span class="p">(</span><span class="n">core_path</span><span class="p">):</span>
@@ -591,7 +512,7 @@
 
     <span class="c1"># load the config file</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">location_data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">location_file</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">location_data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">location_file</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot load core config file &#39;</span><span class="si">%s</span><span class="s2">&#39;. Error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_file</span><span class="p">,</span> <span class="n">error</span><span class="p">))</span>
 
@@ -620,8 +541,6 @@
 
     <span class="c1"># sanitize data into a ShotgunPath and return data</span>
     <span class="k">return</span> <span class="n">ShotgunPath</span><span class="p">(</span><span class="n">win_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span>
-
-
 
 
 <span class="c1">####################################################################################################################</span>
@@ -663,7 +582,7 @@
 <span class="sd">    :returns: Always a string, &#39;unknown&#39; if data cannot be found</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">))</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;unknown&quot;</span>
@@ -703,7 +622,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

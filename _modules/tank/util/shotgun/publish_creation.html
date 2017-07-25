@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.18.93 documentation</title>
+  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -340,8 +340,9 @@
 
 <span class="sd">    In addition to the above, the following optional arguments exist:</span>
 
-<span class="sd">        - ``task`` - A shotgun entity dictionary with id and type (which should always be Task).</span>
-<span class="sd">          if no value is specified, the task will be grabbed from the context object.</span>
+<span class="sd">        - ``task`` - A shotgun entity dictionary with keys ``id`` and ``type`` (where type should always be ``Task``).</span>
+<span class="sd">          This value will be used to populate the task field for the created Shotgun publish record.</span>
+<span class="sd">          If no value is specified, the task will be determined based on the context parameter.</span>
 
 <span class="sd">        - ``comment`` - A string containing a description of what is being published.</span>
 
@@ -367,9 +368,17 @@
 <span class="sd">        - ``created_at`` - Override for the date the publish is created at.  This should be a python</span>
 <span class="sd">          datetime object</span>
 
-<span class="sd">        - ``version_entity`` - The Shotgun version entity this published file should be linked to</span>
+<span class="sd">        - ``version_entity`` - The Shotgun review version that the publish should be linked to. This</span>
+<span class="sd">          should be a dictionary of keys ``id`` and ``type`` (where type should always be ``Version``).</span>
+<span class="sd">          This parameter is useful for workflows where a Shotgun Version has already been created for review</span>
+<span class="sd">          purposes and you want to associate the publish created by this method.</span>
 
-<span class="sd">        - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{&#39;tag_list&#39;: [&#39;foo&#39;, &#39;bar&#39;]}``)</span>
+<span class="sd">          Note: For workflows where you have an existing review version and want to create a series of associated</span>
+<span class="sd">          publishes, you may want to extract a :class:`~sgtk.Context` from the Version entity and pass that</span>
+<span class="sd">          to the :meth:`register_publish` method in order to ensure consistency in how objects are associated</span>
+<span class="sd">          in Shotgun.</span>
+
+<span class="sd">        - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{&#39;sg_custom_field&#39;: &#39;hello&#39;}``)</span>
 
 <span class="sd">        - ``dry_run`` - Boolean. If set, do not actually create a database entry. Return the</span>
 <span class="sd">          dictionary of data that would be supplied to Shotgun to create the PublishedFile entity.</span>
@@ -972,7 +981,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

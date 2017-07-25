@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Deploy and management &mdash; tk-core v0.18.93 documentation</title>
+  <title>Deploy and management &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,9 +32,9 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="index.html"/>
         <link rel="next" title="Foundation" href="core.html"/>
-        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.93" href="index.html"/> 
+        <link rel="prev" title="Shotgun pipeline Toolkit Core reference, v0.18.97" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -126,7 +126,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -206,6 +206,8 @@ Toolkit. It allows for several advanced use cases:</p>
 set up or configured in Shotgun. No extensive project setup step is required.</li>
 <li>A setup can be pre-bundled with for example an application plugin, allowing
 Toolkit to act as a distribution platform.</li>
+<li>The application bundles that are required can be stored anywhere on the local machine or the
+network via the use of the <code class="docutils literal"><span class="pre">SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS</span></code> environment variable.</li>
 <li>The Toolkit manager makes it easy to track remote resources (via the <code class="docutils literal"><span class="pre">sgtk.descriptor</span></code>
 framework).</li>
 </ul>
@@ -251,6 +253,52 @@ and pass it in.</td>
 </tr>
 </tbody>
 </table>
+<dl class="method">
+<dt id="sgtk.bootstrap.ToolkitManager.extract_settings">
+<code class="descname">extract_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.extract_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.extract_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serializes settings that impact resolution of a pipeline configuration into an
+object and returns it to the user.</p>
+<p>This can be useful when a process is used to enumerate pipeline configurations and another
+process will be bootstrapping an engine. Calling this method ensures the manager is
+configured the same across processes.</p>
+<p>Those settings can be restored with <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.restore_settings" title="sgtk.bootstrap.ToolkitManager.restore_settings"><code class="xref py py-meth docutils literal"><span class="pre">ToolkitManager.restore_settings()</span></code></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Note that the extracted settings should be treated as opaque data and not something
+that should be manipulated. Their content can be changed at any time.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">User defined values.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)">object</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.bootstrap.ToolkitManager.restore_settings">
+<code class="descname">restore_settings</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.restore_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.restore_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restores user defined with <a href="#id1"><span class="problematic" id="id2">:methd:`ToolkitManager.extract_settings`</span></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Always use <a href="#id3"><span class="problematic" id="id4">:methd:`ToolkitManager.extract_settings`</span></a> to extract settings when you
+plan on calling this method. The content of the settings should be treated as opaque
+data.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) &#8211; Settings obtained from <a href="#id5"><span class="problematic" id="id6">:methd:`ToolkitManager.extract_settings`</span></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="sgtk.bootstrap.ToolkitManager.allow_config_overrides">
 <code class="descname">allow_config_overrides</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.allow_config_overrides" title="Permalink to this definition">¶</a></dt>
@@ -668,7 +716,7 @@ likely to contain changes which have not yet been full tested.</p>
         <a href="core.html" class="btn btn-neutral float-right" title="Foundation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.93" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline Toolkit Core reference, v0.18.97" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -698,7 +746,7 @@ likely to contain changes which have not yet been full tested.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

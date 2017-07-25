@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.93 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -203,7 +203,7 @@
     <span class="n">TankEngineInitError</span><span class="p">,</span>
     <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span>
     <span class="n">TankEngineEventError</span><span class="p">,</span>
-    <span class="n">TankMissingEnvironmentFile</span>
+    <span class="n">TankMissingEngineError</span>
 <span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">log_user_activity_metric</span> <span class="k">as</span> <span class="n">util_log_user_activity_metric</span>
@@ -2572,13 +2572,13 @@
                 <span class="c1"># We will only track apps that we know can handle a context</span>
                 <span class="c1"># change. Any that do not will not be treated as a persistent</span>
                 <span class="c1"># app.</span>
-                <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">context_change_allowed</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">context_change_allowed</span> <span class="ow">and</span> <span class="n">app</span><span class="o">.</span><span class="n">instance_name</span> <span class="o">==</span> <span class="n">app_instance_name</span><span class="p">:</span>
                     <span class="n">app_path</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
 
                     <span class="k">if</span> <span class="n">app_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__application_pool</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">__application_pool</span><span class="p">[</span><span class="n">app_path</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
 
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__application_pool</span><span class="p">[</span><span class="n">app</span><span class="o">.</span><span class="n">descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">()][</span><span class="n">app_instance_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">app</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__application_pool</span><span class="p">[</span><span class="n">app_path</span><span class="p">][</span><span class="n">app_instance_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">app</span>
 
             <span class="c1"># Update the persistent commands pool for use in context changes.</span>
             <span class="k">for</span> <span class="n">command_name</span><span class="p">,</span> <span class="n">command</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
@@ -2851,42 +2851,35 @@
 
 <span class="sd">    :returns: A new sgtk.platform.Engine object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="c1"># first ensure that an engine is not currently running</span>
-        <span class="k">if</span> <span class="n">current_engine</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;An engine (</span><span class="si">%s</span><span class="s2">) is already running! Before you can start a new engine, &quot;</span>
-                            <span class="s2">&quot;please shut down the previous one using the command &quot;</span>
-                            <span class="s2">&quot;tank.platform.current_engine().destroy().&quot;</span> <span class="o">%</span> <span class="n">current_engine</span><span class="p">())</span>
+    <span class="c1"># first ensure that an engine is not currently running</span>
+    <span class="k">if</span> <span class="n">current_engine</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;An engine (</span><span class="si">%s</span><span class="s2">) is already running! Before you can start a new engine, &quot;</span>
+                        <span class="s2">&quot;please shut down the previous one using the command &quot;</span>
+                        <span class="s2">&quot;tank.platform.current_engine().destroy().&quot;</span> <span class="o">%</span> <span class="n">current_engine</span><span class="p">())</span>
 
-        <span class="c1"># begin writing log to disk, associated with the engine</span>
-        <span class="c1"># only do this if a logger hasn&#39;t been previously set up.</span>
-        <span class="k">if</span> <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">base_file_handler</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">initialize_base_file_handler</span><span class="p">(</span><span class="n">engine_name</span><span class="p">)</span>
+    <span class="c1"># begin writing log to disk, associated with the engine</span>
+    <span class="c1"># only do this if a logger hasn&#39;t been previously set up.</span>
+    <span class="k">if</span> <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">base_file_handler</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">initialize_base_file_handler</span><span class="p">(</span><span class="n">engine_name</span><span class="p">)</span>
 
-        <span class="c1"># get environment and engine location</span>
-        <span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">new_context</span><span class="p">)</span>
+    <span class="c1"># get environment and engine location</span>
+    <span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">new_context</span><span class="p">)</span>
 
-        <span class="c1"># make sure it exists locally</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">exists_local</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="n">TankEngineInitError</span><span class="p">(</span><span class="s2">&quot;Cannot start engine! </span><span class="si">%s</span><span class="s2"> does not exist on disk&quot;</span> <span class="o">%</span> <span class="n">engine_descriptor</span><span class="p">)</span>
+    <span class="c1"># make sure it exists locally</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">exists_local</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">TankEngineInitError</span><span class="p">(</span><span class="s2">&quot;Cannot start engine! </span><span class="si">%s</span><span class="s2"> does not exist on disk&quot;</span> <span class="o">%</span> <span class="n">engine_descriptor</span><span class="p">)</span>
 
-        <span class="c1"># get path to engine code</span>
-        <span class="n">engine_path</span> <span class="o">=</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
-        <span class="n">plugin_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">engine_path</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">ENGINE_FILE</span><span class="p">)</span>
-        <span class="n">class_obj</span> <span class="o">=</span> <span class="n">load_plugin</span><span class="p">(</span><span class="n">plugin_file</span><span class="p">,</span> <span class="n">Engine</span><span class="p">)</span>
+    <span class="c1"># get path to engine code</span>
+    <span class="n">engine_path</span> <span class="o">=</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
+    <span class="n">plugin_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">engine_path</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">ENGINE_FILE</span><span class="p">)</span>
+    <span class="n">class_obj</span> <span class="o">=</span> <span class="n">load_plugin</span><span class="p">(</span><span class="n">plugin_file</span><span class="p">,</span> <span class="n">Engine</span><span class="p">)</span>
 
-        <span class="c1"># Notify the context change and start the engine.</span>
-        <span class="k">with</span> <span class="n">_CoreContextChangeHookGuard</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
-            <span class="c1"># Instantiate the engine</span>
-            <span class="n">engine</span> <span class="o">=</span> <span class="n">class_obj</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">new_context</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
-            <span class="c1"># register this engine as the current engine</span>
-            <span class="n">set_current_engine</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
-
-    <span class="k">except</span><span class="p">:</span>
-        <span class="c1"># trap and log the exception and let it bubble in</span>
-        <span class="c1"># unchanged form</span>
-        <span class="n">core_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Exception raised in start_engine.&quot;</span><span class="p">)</span>
-        <span class="k">raise</span>
+    <span class="c1"># Notify the context change and start the engine.</span>
+    <span class="k">with</span> <span class="n">_CoreContextChangeHookGuard</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
+        <span class="c1"># Instantiate the engine</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="n">class_obj</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">new_context</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+        <span class="c1"># register this engine as the current engine</span>
+        <span class="n">set_current_engine</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">engine</span>
 
@@ -2989,8 +2982,8 @@
     <span class="n">env</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_environment</span><span class="p">(</span><span class="s2">&quot;shotgun_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">entity_type</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">context</span><span class="p">)</span>
 
     <span class="c1"># get the location for our engine</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">get_engines</span><span class="p">():</span>
-        <span class="k">raise</span> <span class="n">TankEngineInitError</span><span class="p">(</span><span class="s2">&quot;Cannot find a shotgun engine in </span><span class="si">%s</span><span class="s2">. Please contact support.&quot;</span> <span class="o">%</span> <span class="n">env</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">get_engines</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">TankMissingEngineError</span><span class="p">(</span><span class="s2">&quot;Cannot find a shotgun engine in </span><span class="si">%s</span><span class="s2">. Please contact support.&quot;</span> <span class="o">%</span> <span class="n">env</span><span class="p">)</span>
     
     <span class="n">engine_descriptor</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_engine_descriptor</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span><span class="p">)</span>
 
@@ -3072,8 +3065,8 @@
     <span class="n">env</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_environment</span><span class="p">(</span><span class="n">env_name</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
 
     <span class="c1"># make sure that the environment has an engine instance with that name</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">engine_name</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">get_engines</span><span class="p">():</span>
-        <span class="k">raise</span> <span class="n">TankEngineInitError</span><span class="p">(</span><span class="s2">&quot;Cannot find an engine instance </span><span class="si">%s</span><span class="s2"> in </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">env</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">engine_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">get_engines</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">TankMissingEngineError</span><span class="p">(</span><span class="s2">&quot;Cannot find an engine instance </span><span class="si">%s</span><span class="s2"> in </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">env</span><span class="p">))</span>
 
     <span class="c1"># get the location for our engine</span>
     <span class="n">engine_descriptor</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_engine_descriptor</span><span class="p">(</span><span class="n">engine_name</span><span class="p">)</span>
@@ -3160,7 +3153,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

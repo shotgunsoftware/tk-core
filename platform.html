@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.93 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -186,7 +186,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -3815,6 +3815,13 @@ at the root level of the app, engine or framework. Use a
 </dd></dl>
 
 <dl class="class">
+<dt id="sgtk.platform.TankMissingEngineError">
+<em class="property">class </em><code class="descclassname">sgtk.platform.</code><code class="descname">TankMissingEngineError</code><a class="reference internal" href="_modules/tank/platform/errors.html#TankMissingEngineError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.TankMissingEngineError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.platform.errors.TankEngineInitError</span></code></p>
+<p>Exception that indicates that an engine could not start up.</p>
+</dd></dl>
+
+<dl class="class">
 <dt id="sgtk.platform.TankContextChangeNotSupportedError">
 <em class="property">class </em><code class="descclassname">sgtk.platform.</code><code class="descname">TankContextChangeNotSupportedError</code><a class="reference internal" href="_modules/tank/platform/errors.html#TankContextChangeNotSupportedError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.TankContextChangeNotSupportedError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
@@ -4885,16 +4892,24 @@ launch</li>
 plugins to utilize. This will compute the following
 environment variables:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">SHOTGUN_SITE</span></code>: The current shotgun site url</li>
-<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_TYPE</span></code>: The current context</li>
-<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_ID</span></code>: The current context</li>
-<li><code class="docutils literal"><span class="pre">SHOTGUN_PIPELINE_CONFIGURATION_ID</span></code>: The current pipeline config id</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_SITE</span></code>: Derived from the Toolkit instance&#8217;s site url</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_TYPE</span></code>: Derived from the current context</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_ID</span></code>: Derived from the current context</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_PIPELINE_CONFIGURATION_ID</span></code>: Derived from the current pipeline config id</li>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS</span></code>: Derived from the curent pipeline configuration&#8217;s</dt>
+<dd>list of bundle cache fallback paths.</dd>
+</dl>
+</li>
 </ul>
+<p>These environment variables are set when launching a new process to capture the state of
+Toolkit so we can launch in the same environment. It ensures subprocesses have access to the
+same bundle caches, which allows to reuse already cached bundles.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dictionary of environment variables</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary of environment variables.</td>
 </tr>
 </tbody>
 </table>
@@ -5466,16 +5481,24 @@ launch</li>
 plugins to utilize. This will compute the following
 environment variables:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">SHOTGUN_SITE</span></code>: The current shotgun site url</li>
-<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_TYPE</span></code>: The current context</li>
-<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_ID</span></code>: The current context</li>
-<li><code class="docutils literal"><span class="pre">SHOTGUN_PIPELINE_CONFIGURATION_ID</span></code>: The current pipeline config id</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_SITE</span></code>: Derived from the Toolkit instance&#8217;s site url</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_TYPE</span></code>: Derived from the current context</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_ID</span></code>: Derived from the current context</li>
+<li><code class="docutils literal"><span class="pre">SHOTGUN_PIPELINE_CONFIGURATION_ID</span></code>: Derived from the current pipeline config id</li>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS</span></code>: Derived from the curent pipeline configuration&#8217;s</dt>
+<dd>list of bundle cache fallback paths.</dd>
+</dl>
+</li>
 </ul>
+<p>These environment variables are set when launching a new process to capture the state of
+Toolkit so we can launch in the same environment. It ensures subprocesses have access to the
+same bundle caches, which allows to reuse already cached bundles.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dictionary of environment variables</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary of environment variables.</td>
 </tr>
 </tbody>
 </table>
@@ -5661,7 +5684,7 @@ that need to be passed down to the DCC.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.bootstrap.manager &mdash; tk-core v0.18.93 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -189,7 +189,6 @@
 <span class="kn">from</span> <span class="nn">..pipelineconfig</span> <span class="kn">import</span> <span class="n">PipelineConfiguration</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">..util.version</span> <span class="kn">import</span> <span class="n">is_version_older</span><span class="p">,</span> <span class="n">is_version_head</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -239,19 +238,20 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span> <span class="o">=</span> <span class="n">sg_user</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_allow_config_overrides</span> <span class="o">=</span> <span class="bp">True</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span>
 
         <span class="c1"># defaults</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pre_engine_start_callback</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c1"># These are serializable parameters from the class.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_user_bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_caching_policy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CACHE_SPARSE</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_identifier</span> <span class="o">=</span> <span class="bp">None</span> <span class="c1"># name or id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pre_engine_start_callback</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_allow_config_overrides</span> <span class="o">=</span> <span class="bp">True</span>
 
         <span class="c1"># look for the standard env var SHOTGUN_PIPELINE_CONFIGURATION_ID</span>
         <span class="c1"># and in case this is set, use it as a default</span>
@@ -290,13 +290,107 @@
 
         <span class="nb">repr</span>  <span class="o">=</span> <span class="s2">&quot;&lt;TkManager &quot;</span>
         <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; User </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span>
-        <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Cache fallback path </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span>
+        <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Bundle cache fallback paths </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_bundle_cache_fallback_paths</span><span class="p">()</span>
         <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Caching policy </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caching_policy</span>
         <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Plugin id </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span>
         <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Config </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">identifier_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_identifier</span><span class="p">)</span>
         <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Allows config overrides </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allow_config_overrides</span>
         <span class="nb">repr</span> <span class="o">+=</span> <span class="s2">&quot; Base </span><span class="si">%s</span><span class="s2"> &gt;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span>
         <span class="k">return</span> <span class="nb">repr</span>
+
+<div class="viewcode-block" id="ToolkitManager.extract_settings"><a class="viewcode-back" href="../../../bootstrap.html#sgtk.bootstrap.ToolkitManager.extract_settings">[docs]</a>    <span class="k">def</span> <span class="nf">extract_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serializes settings that impact resolution of a pipeline configuration into an</span>
+<span class="sd">        object and returns it to the user.</span>
+
+<span class="sd">        This can be useful when a process is used to enumerate pipeline configurations and another</span>
+<span class="sd">        process will be bootstrapping an engine. Calling this method ensures the manager is</span>
+<span class="sd">        configured the same across processes.</span>
+
+<span class="sd">        Those settings can be restored with :meth:`ToolkitManager.restore_settings`.</span>
+
+<span class="sd">        .. note:: Note that the extracted settings should be treated as opaque data and not something</span>
+<span class="sd">             that should be manipulated. Their content can be changed at any time.</span>
+
+<span class="sd">        :returns: User defined values.</span>
+<span class="sd">        :rtype: object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;bundle_cache_fallback_paths&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">bundle_cache_fallback_paths</span><span class="p">,</span>
+            <span class="s2">&quot;caching_policy&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">caching_policy</span><span class="p">,</span>
+            <span class="s2">&quot;pipeline_configuration&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="p">,</span>
+            <span class="s2">&quot;base_configuration&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_configuration</span><span class="p">,</span>
+            <span class="s2">&quot;do_shotgun_config_lookup&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_shotgun_config_lookup</span><span class="p">,</span>
+            <span class="s2">&quot;plugin_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_id</span><span class="p">,</span>
+            <span class="s2">&quot;allow_config_overrides&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_config_overrides</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="ToolkitManager.restore_settings"><a class="viewcode-back" href="../../../bootstrap.html#sgtk.bootstrap.ToolkitManager.restore_settings">[docs]</a>    <span class="k">def</span> <span class="nf">restore_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Restores user defined with :methd:`ToolkitManager.extract_settings`.</span>
+
+<span class="sd">        .. note:: Always use :methd:`ToolkitManager.extract_settings` to extract settings when you</span>
+<span class="sd">            plan on calling this method. The content of the settings should be treated as opaque</span>
+<span class="sd">            data.</span>
+
+<span class="sd">        :param object data: Settings obtained from :methd:`ToolkitManager.extract_settings`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;bundle_cache_fallback_paths&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">caching_policy</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;caching_policy&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_configuration</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;pipeline_configuration&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_configuration</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;base_configuration&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_shotgun_config_lookup</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;do_shotgun_config_lookup&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugin_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;plugin_id&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_config_overrides</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;allow_config_overrides&quot;</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_bundle_cache_fallback_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retuns a list containing both the user specified bundle caches and the one specified</span>
+<span class="sd">        by the SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            While the method will preserve the order of the fallback locations by first</span>
+<span class="sd">            returning user defined locations and then ones found with the environment variable,</span>
+<span class="sd">            the method will remove duplicate locations.</span>
+
+<span class="sd">        For example::</span>
+
+<span class="sd">            &gt;&gt;&gt; os.environ[&quot;SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS&quot;] = &quot;/a/b/c:/d/e/f&quot;</span>
+<span class="sd">            &gt;&gt;&gt; mgr = ToolkitManager()</span>
+<span class="sd">            &gt;&gt;&gt; mgr.bundle_cache_fallback_paths = [&quot;/g/h/i:/d/e/f&quot;]</span>
+<span class="sd">            &gt;&gt;&gt; repr(mgr)</span>
+<span class="sd">            &lt;TkManager</span>
+<span class="sd">             User boismej</span>
+<span class="sd">             Bundle cache fallback paths [&quot;/g/h/i&quot;, &quot;/d/e/f&quot;, &quot;/a/b/c&quot;]</span>
+<span class="sd">             ...</span>
+<span class="sd">            &gt;</span>
+
+<span class="sd">        :returns: List of bundle cache paths.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="n">fallback_str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR</span><span class="p">]</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Detected </span><span class="si">%s</span><span class="s2"> environment variable set to &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">constants</span><span class="o">.</span><span class="n">BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR</span><span class="p">,</span>
+                    <span class="n">fallback_str</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">toolkit_bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="n">fallback_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="p">)</span>
+
+            <span class="c1"># Python&#39; sets do not preserve insertion order and Python 2.5 doesn&#39;t support</span>
+            <span class="c1"># OrderedDicts, which would have been perfect for this, so we will...</span>
+
+            <span class="c1"># First build the complete list of paths with possible duplicates.</span>
+            <span class="n">concatenated_lists</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_bundle_cache_fallback_paths</span> <span class="o">+</span>\
+                <span class="n">toolkit_bundle_cache_fallback_paths</span>
+
+            <span class="c1"># Then build a set of unique paths.</span>
+            <span class="n">unique_items</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">concatenated_lists</span><span class="p">)</span>
+
+            <span class="c1"># Finally iterate on complete list of items.</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">concatenated_lists</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">unique_items</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_bundle_cache_fallback_paths</span>
 
     <span class="k">def</span> <span class="nf">_get_pipeline_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -433,7 +527,7 @@
 
     <span class="n">base_configuration</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_base_configuration</span><span class="p">,</span> <span class="n">_set_base_configuration</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_bundle_cache_fallback_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_user_bundle_cache_fallback_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Specifies a list of fallback paths where toolkit will go</span>
 <span class="sd">        look for cached bundles in case a bundle isn&#39;t found in</span>
@@ -447,15 +541,15 @@
 <span class="sd">        Any missing bundles will be downloaded and cached into</span>
 <span class="sd">        the *primary* bundle cache.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_bundle_cache_fallback_paths</span>
 
-    <span class="k">def</span> <span class="nf">_set_bundle_cache_fallback_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_set_user_bundle_cache_fallback_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="p">):</span>
         <span class="c1"># setter for bundle_cache_fallback_paths</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="n">paths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_user_bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="n">paths</span>
 
     <span class="n">bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span>
-        <span class="n">_get_bundle_cache_fallback_paths</span><span class="p">,</span>
-        <span class="n">_set_bundle_cache_fallback_paths</span>
+        <span class="n">_get_user_bundle_cache_fallback_paths</span><span class="p">,</span>
+        <span class="n">_set_user_bundle_cache_fallback_paths</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_caching_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -684,7 +778,7 @@
 
 <span class="sd">        :rtype: (str, :class:`sgtk.descriptor.ConfigDescriptor`)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_configuration</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_updated_configuration</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span><span class="p">)</span>
 
         <span class="n">path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">current_os</span>
 
@@ -880,7 +974,7 @@
 
     <span class="k">def</span> <span class="nf">_get_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Resolves the configuration to use.</span>
+<span class="sd">        Resolves the configuration to use without creating it on disk.</span>
 
 <span class="sd">        :param entity: Shotgun entity used to resolve a project context.</span>
 <span class="sd">        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.</span>
@@ -919,7 +1013,7 @@
         <span class="n">resolver</span> <span class="o">=</span> <span class="n">ConfigurationResolver</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span><span class="p">,</span>
             <span class="n">project_id</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_fallback_paths</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_bundle_cache_fallback_paths</span><span class="p">()</span>
         <span class="p">)</span>
 
         <span class="c1"># now request a configuration object from the resolver.</span>
@@ -970,10 +1064,26 @@
             <span class="c1"># do the full resolve where we connect to shotgun etc.</span>
             <span class="n">config</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">resolve_configuration</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span>
             <span class="p">)</span>
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Bootstrapping into configuration </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">config</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">config</span>
+
+    <span class="k">def</span> <span class="nf">_get_updated_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resolves the configuration and updates it.</span>
+
+<span class="sd">        :param entity: Shotgun entity used to resolve a project context.</span>
+<span class="sd">        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.</span>
+<span class="sd">        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.</span>
+<span class="sd">                                  Set to ``None`` to use the default callback function.</span>
+
+<span class="sd">        :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_configuration</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">)</span>
 
         <span class="c1"># see what we have locally</span>
         <span class="n">status</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">status</span><span class="p">()</span>
@@ -1025,7 +1135,7 @@
         <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">progress_callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span>
 
-        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_configuration</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_updated_configuration</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">)</span>
 
         <span class="c1"># we can now boot up this config.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_STARTING_TOOLKIT_RATE</span><span class="p">,</span> <span class="s2">&quot;Starting up Toolkit...&quot;</span><span class="p">)</span>
@@ -1116,7 +1226,13 @@
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_legacy_start_shotgun_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Shotgun engine started using a legacy shotgun_xxx.yml environment.&quot;</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                        <span class="s2">&quot;Shotgun engine failed to start using the legacy &quot;</span>
+                        <span class="s2">&quot;start_shotgun_engine routine. No more attempts will &quot;</span>
+                        <span class="s2">&quot;be made to initialize the engine. The start_shotgun_engine &quot;</span>
+                        <span class="s2">&quot;exception was the following: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">exc</span>
+                    <span class="p">)</span>
                     <span class="k">raise</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">engine</span> <span class="o">=</span> <span class="n">tank</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
@@ -1347,7 +1463,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor_config &mdash; tk-core v0.18.93 documentation</title>
+  <title>tank.descriptor.descriptor_config &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -169,23 +169,27 @@
             
   <h1>Source code for tank.descriptor.descriptor_config</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2016 Shotgun Software Inc.</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
-<span class="c1"># </span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
-<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
-<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">yaml</span>
 
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankFileDoesNotExistError</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankInvalidInterpreterLocationError</span>
 <span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -195,14 +199,26 @@
 <span class="sd">    Descriptor that describes a Toolkit Configuration</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">associated_core_descriptor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
-<span class="sd">        creating new descriptor objects.</span>
+<span class="sd">        The descriptor dict or url required for this core or ``None`` if not defined.</span>
 
-<span class="sd">        :param io_descriptor: Associated IO descriptor.</span>
+<span class="sd">        :returns: Core descriptor dict or uri or ``None`` if not defined</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ConfigDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;ConfigDescriptor.associated_core_descriptor is not implemented.&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">python_interpreter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves the Python interpreter for the current platform from the interpreter files.</span>
+
+<span class="sd">        :raises TankFileDoesNotExistError: If the interpreter file is missing.</span>
+<span class="sd">        :raises TankInvalidInterpreterLocationError: If the interpreter can&#39;t be found on disk.</span>
+
+<span class="sd">        :returns: Path value stored in the interpreter file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;ConfigDescriptor.python_interpreter is not implemented.&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -216,7 +232,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">constraints</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_manifest</span><span class="p">()</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_sg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_version&quot;</span><span class="p">)</span>
@@ -234,62 +250,74 @@
 
 <span class="sd">        :returns: list of strings</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">ensure_local</span><span class="p">()</span>
         <span class="n">readme_content</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="n">readme_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_config_folder</span><span class="p">(),</span>
             <span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_README_FILE</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">readme_file</span><span class="p">):</span>
-            <span class="n">fh</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">readme_file</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span><span class="p">:</span>
-                <span class="n">readme_content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-            <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">readme_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span><span class="p">:</span>
+                    <span class="n">readme_content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
 
         <span class="k">return</span> <span class="n">readme_content</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">associated_core_descriptor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_config_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The descriptor dict or url required for this core or None if not defined.</span>
+<span class="sd">        Returns the folder in which the configuration files are located.</span>
 
-<span class="sd">        :returns: Core descriptor dict or uri or None if not defined</span>
+<span class="sd">        Derived classes need to implement this method or a ``NotImplementedError`` will be raised.</span>
+
+<span class="sd">        :returns: Path to the configuration files folder.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">core_descriptor_dict</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;ConfigDescriptor._get_config_folder is not implemented.&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">ensure_local</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_get_current_platform_interpreter_file_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">install_root</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves the path to the interpreter file for a given install root.</span>
 
-        <span class="n">core_descriptor_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">(),</span>
-            <span class="s2">&quot;core&quot;</span><span class="p">,</span>
-            <span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_CORE_DESCRIPTOR_FILE</span>
+<span class="sd">        :param str install_root: This can be the root to a studio install for a core</span>
+<span class="sd">            or a pipeline configuration root.</span>
+
+<span class="sd">        :returns: Path for the current platform&#39;s interpreter file.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">get_file_name_from_template</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">install_root</span><span class="p">,</span> <span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="s2">&quot;interpreter_</span><span class="si">%s</span><span class="s2">.cfg&quot;</span><span class="p">)</span>
         <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">core_descriptor_path</span><span class="p">):</span>
-            <span class="c1"># the core_api.yml contains info about the core config:</span>
-            <span class="c1">#</span>
-            <span class="c1"># location:</span>
-            <span class="c1">#    name: tk-core</span>
-            <span class="c1">#    type: app_store</span>
-            <span class="c1">#    version: v0.16.34</span>
+    <span class="k">def</span> <span class="nf">_find_interpreter_location</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds the interpreter file in a given ``config`` folder.</span>
 
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Detected core descriptor file &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">core_descriptor_path</span><span class="p">)</span>
+<span class="sd">        This is a helper method for derived classes.</span>
 
-            <span class="c1"># read the file first</span>
-            <span class="n">fh</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">core_descriptor_path</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
-                <span class="n">core_descriptor_dict</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
-                    <span class="s2">&quot;Cannot read invalid core descriptor file &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">core_descriptor_path</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+<span class="sd">        :param path: Path to a config folder, which traditionally has ``core``</span>
+<span class="sd">            and ``env`` subfolders.</span>
+
+<span class="sd">        :returns: Path to the Python interpreter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Find the interpreter file for the current platform.</span>
+        <span class="n">interpreter_config_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_platform_interpreter_file_name</span><span class="p">(</span>
+            <span class="n">path</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">interpreter_config_file</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">interpreter_config_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">path_to_python</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">path_to_python</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path_to_python</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">TankInvalidInterpreterLocationError</span><span class="p">(</span>
+                    <span class="s2">&quot;Cannot find interpreter &#39;</span><span class="si">%s</span><span class="s2">&#39; defined in &quot;</span>
+                    <span class="s2">&quot;config file &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path_to_python</span><span class="p">,</span> <span class="n">interpreter_config_file</span><span class="p">)</span>
                 <span class="p">)</span>
-            <span class="k">finally</span><span class="p">:</span>
-                <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-        <span class="k">return</span> <span class="n">core_descriptor_dict</span>
-
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">path_to_python</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankFileDoesNotExistError</span><span class="p">(</span>
+                <span class="s2">&quot;No interpreter file for the current platform found at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">interpreter_config_file</span>
+            <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_roots_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -298,23 +326,18 @@
 
 <span class="sd">        :returns: Roots data yaml content, usually a dictionary</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">ensure_local</span><span class="p">()</span>
-
         <span class="c1"># get the roots definition</span>
         <span class="n">root_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_config_folder</span><span class="p">(),</span>
             <span class="s2">&quot;core&quot;</span><span class="p">,</span>
             <span class="n">constants</span><span class="o">.</span><span class="n">STORAGE_ROOTS_FILE</span><span class="p">)</span>
 
         <span class="n">roots_data</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">root_file_path</span><span class="p">):</span>
-            <span class="n">root_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">root_file_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">root_file_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">root_file</span><span class="p">:</span>
                 <span class="c1"># if file is empty, initializae with empty dict...</span>
                 <span class="n">roots_data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">root_file</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
-            <span class="k">finally</span><span class="p">:</span>
-                <span class="n">root_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">roots_data</span>
 
@@ -361,7 +384,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

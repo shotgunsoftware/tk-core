@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.api &mdash; tk-core v0.18.93 documentation</title>
+  <title>tank.api &mdash; tk-core v0.18.97 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.93 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.97 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.93.<br>
+    <b>tk-core</b> v0.18.97.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -309,7 +309,7 @@
         <span class="n">full_action</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;tk-core&quot;</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
         <span class="n">log_user_activity_metric</span><span class="p">(</span><span class="s2">&quot;tk-core&quot;</span><span class="p">,</span> <span class="n">full_action</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="n">log_once</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Sgtk.get_cache_item"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.get_cache_item">[docs]</a>    <span class="k">def</span> <span class="nf">get_cache_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_key</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_cache_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_key</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns an item from the cache held within this tk instance.</span>
 
@@ -319,9 +319,9 @@
 <span class="sd">        :param str cache_key: name of cache key to access</span>
 <span class="sd">        :return: cached object or None if no object found</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cache_key</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cache_key</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Sgtk.set_cache_item"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.set_cache_item">[docs]</a>    <span class="k">def</span> <span class="nf">set_cache_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_cache_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a value to the tk instance cache. To clear a value,</span>
 <span class="sd">        set it to None.</span>
@@ -332,7 +332,7 @@
 <span class="sd">        :param str cache_key: name of cache key to set</span>
 <span class="sd">        :param value: Value to set or None to clear it.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="c1">################################################################################################</span>
     <span class="c1"># properties</span>
@@ -342,10 +342,6 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The configuration descriptor represents the source of the environments associated</span>
 <span class="sd">        with this pipeline configuration.</span>
-
-<span class="sd">        .. note::</span>
-<span class="sd">            If this is a Toolkit Classic pipeline configuration, no descriptor will be associated</span>
-<span class="sd">            with the pipeline configuration.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="o">.</span><span class="n">get_configuration_descriptor</span><span class="p">()</span>
 
@@ -1085,7 +1081,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.93',
+            VERSION:'v0.18.97',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
