@@ -88,28 +88,7 @@ class Configuration(object):
 
         log.debug("Core swapped, authenticated user will be set.")
 
-        # It's possible we're bootstrapping into a core that doesn't support the authentication
-        # module, so test for the existence of the set_authenticated_user.
-        if hasattr(api, "set_authenticated_user"):
-            # Use backwards compatible imports.
-            from tank_vendor.shotgun_authentication import ShotgunAuthenticator
-            from ..util import CoreDefaultsManager
-
-            # Check to see if there is a user associated with the current project.
-            default_user = ShotgunAuthenticator(CoreDefaultsManager()).get_default_user()
-            # If we have a user and it doesn't have a login
-            if default_user and not default_user.login:
-                # it means we're dealing with a script user.
-                authenticated_user = default_user
-            else:
-                authenticated_user = sg_user
-
-            log.debug("%r will be used.", authenticated_user)
-
-            api.set_authenticated_user(authenticated_user)
-        else:
-            log.debug("Using pre-0.16 core, no authenticated user will be set.")
-            # api.set_authenticated_user(sg_user)
+        self._set_authenticated_user(sg_user)
 
         log.debug("Executing tank_from_path('%s')" % path)
 
@@ -131,3 +110,37 @@ class Configuration(object):
         log.debug("Core API code located here: %s" % inspect.getfile(tk.__class__))
 
         return tk
+
+    def _set_authenticated_user(self, user):
+        """
+        Sets the authenticated user.
+
+        :param user: User that was used for bootstrapping.
+        """
+
+        # perform a local import here to make sure we are getting
+        # the newly swapped in core code
+        from .. import api
+
+        # It's possible we're bootstrapping into a core that doesn't support the authentication
+        # module, so test for the existence of the set_authenticated_user.
+        if hasattr(api, "set_authenticated_user"):
+            # Use backwards compatible imports.
+            from tank_vendor.shotgun_authentication import ShotgunAuthenticator
+            from ..util import CoreDefaultsManager
+
+            # Check to see if there is a user associated with the current project.
+            default_user = ShotgunAuthenticator(CoreDefaultsManager()).get_default_user()
+            # If we have a user and it doesn't have a login
+            if default_user and not default_user.login:
+                # it means we're dealing with a script user.
+                authenticated_user = default_user
+            else:
+                authenticated_user = user
+
+            log.debug("%r will be used.", authenticated_user)
+
+            api.set_authenticated_user(authenticated_user)
+        else:
+            log.debug("Using pre-0.16 core, no authenticated user will be set.")
+            # api.set_authenticated_user(sg_user)
