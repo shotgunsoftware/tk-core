@@ -136,6 +136,11 @@ class Configuration(object):
                 # it means we're dealing with a script user.
                 authenticated_user = default_user
             else:
+                # If there is no script user, always use the user passed in instead of the one
+                # detected by the CoreDefaultsManager. This is because how core detects users has
+                # changed over time and sometimes this causes confusion and we might end up with no
+                # users returned by CoreDefaultsManager. By always using the user used to bootstrap,
+                # we ensure we will remain logged with the same credentials.
                 authenticated_user = user
 
             log.debug("%r will be used.", authenticated_user)
