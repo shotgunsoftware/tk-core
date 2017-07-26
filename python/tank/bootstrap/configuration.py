@@ -125,6 +125,7 @@ class Configuration(object):
         # It's possible we're bootstrapping into a core that doesn't support the authentication
         # module, so test for the existence of the set_authenticated_user.
         if hasattr(api, "set_authenticated_user"):
+            log.debug("Project core supports the authentication module.")
             # Use backwards compatible imports.
             from tank_vendor.shotgun_authentication import ShotgunAuthenticator
             from ..util import CoreDefaultsManager
@@ -133,6 +134,7 @@ class Configuration(object):
             default_user = ShotgunAuthenticator(CoreDefaultsManager()).get_default_user()
             # If we have a user and it doesn't have a login
             if default_user and not default_user.login:
+                log.debug("Script user found for this project.")
                 # it means we're dealing with a script user.
                 authenticated_user = default_user
             else:
@@ -141,6 +143,7 @@ class Configuration(object):
                 # changed over time and sometimes this causes confusion and we might end up with no
                 # users returned by CoreDefaultsManager. By always using the user used to bootstrap,
                 # we ensure we will remain logged with the same credentials.
+                log.debug("No script user found for this project.")
                 authenticated_user = user
 
             log.debug("%r will be used.", authenticated_user)
