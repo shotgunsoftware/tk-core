@@ -1176,7 +1176,7 @@ class ToolkitManager(object):
                 try:
                     descriptor.download_local()
                 except Exception, e:
-                    log.debug("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
+                    log.error("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
                     log.exception(e)
             else:
                 message = "Checking %s (%s of %s)." % (descriptor, idx + 1, len(descriptors))
