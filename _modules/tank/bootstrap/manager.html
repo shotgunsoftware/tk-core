@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.bootstrap.manager &mdash; tk-core v0.18.97 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.100 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.97 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.100 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.97.<br>
+    <b>tk-core</b> v0.18.100.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1342,7 +1342,12 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">exists_local</span><span class="p">():</span>
                 <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Downloading </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2"> of </span><span class="si">%s</span><span class="s2">)...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">descriptors</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
-                <span class="n">descriptor</span><span class="o">.</span><span class="n">download_local</span><span class="p">()</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">descriptor</span><span class="o">.</span><span class="n">download_local</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Downloading </span><span class="si">%r</span><span class="s2"> failed to complete successfully. This bundle will be skipped.&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Checking </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2"> of </span><span class="si">%s</span><span class="s2">).&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">descriptors</span><span class="p">))</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> exists locally at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">())</span>
@@ -1463,7 +1468,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.97',
+            VERSION:'v0.18.100',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
