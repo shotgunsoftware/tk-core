@@ -115,6 +115,9 @@ class Configuration(object):
         """
         Sets the authenticated user.
 
+        If the project that is being bootstrapped into is configured to use a script user inside
+        shotgun.yml, the passed in user will be ignored.
+
         :param user: User that was used for bootstrapping.
         """
 
@@ -132,19 +135,30 @@ class Configuration(object):
 
             # Check to see if there is a user associated with the current project.
             default_user = ShotgunAuthenticator(CoreDefaultsManager()).get_default_user()
-            # If we have a user and it doesn't have a login
-            if default_user and not default_user.login:
-                log.debug("Script user found for this project.")
-                # it means we're dealing with a script user.
-                authenticated_user = default_user
+
+            # Assume we'll use the same user as was used for bootstrapping to authenticate.
+            authenticated_user = user
+            # If we have a user...
+            if default_user:
+                # ... and it doesn't have a login
+                if not default_user.login:
+                    log.debug("Script user found for this project.")
+                    # it means we're dealing with a script user and we'll use that, so override
+                    # the authenticated user.
+                    authenticated_user = default_user
+                else:
+                    # We found a user, but we'll ignore it.
+                    log.debug(
+                        "%r found for this project, "
+                        "but ignoring it in favor of bootstrap's user.", default_user
+                    )
             else:
                 # If there is no script user, always use the user passed in instead of the one
                 # detected by the CoreDefaultsManager. This is because how core detects users has
                 # changed over time and sometimes this causes confusion and we might end up with no
                 # users returned by CoreDefaultsManager. By always using the user used to bootstrap,
                 # we ensure we will remain logged with the same credentials.
-                log.debug("No script user found for this project.")
-                authenticated_user = user
+                log.debug("No user was found using the core associated with the project.")
 
             log.debug("%r will be used.", authenticated_user)
 
