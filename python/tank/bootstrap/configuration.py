@@ -78,6 +78,8 @@ class Configuration(object):
         path = self._path.current_os
         core_path = get_core_python_path_for_config(path)
 
+        from ..authentication import serialize_user
+
         # swap the core out
         CoreImportHandler.swap_core(core_path)
 
@@ -88,7 +90,7 @@ class Configuration(object):
 
         log.debug("Core swapped, authenticated user will be set.")
 
-        self._set_authenticated_user(sg_user)
+        self._set_authenticated_user(sg_user, serialize_user)
 
         log.debug("Executing tank_from_path('%s')" % path)
 
@@ -111,7 +113,7 @@ class Configuration(object):
 
         return tk
 
-    def _set_authenticated_user(self, user):
+    def _set_authenticated_user(self, user, serialize_user_func):
         """
         Sets the authenticated user.
 
@@ -129,6 +131,15 @@ class Configuration(object):
         # module, so test for the existence of the set_authenticated_user.
         if hasattr(api, "set_authenticated_user"):
             log.debug("Project core supports the authentication module.")
+
+            # Serialize and deserialize the user to get an instance of the current version of the
+            # API.
+            from ..authentication import deserialize_user
+            try:
+                user = deserialize_user(serialize_user_func(user))
+            except Exception:
+                log.exception("Couldn't reinstantiate the user object with the new API.")
+
             # Use backwards compatible imports.
             from tank_vendor.shotgun_authentication import ShotgunAuthenticator
             from ..util import CoreDefaultsManager
@@ -165,4 +176,3 @@ class Configuration(object):
             api.set_authenticated_user(authenticated_user)
         else:
             log.debug("Using pre-0.16 core, no authenticated user will be set.")
-            # api.set_authenticated_user(sg_user)
