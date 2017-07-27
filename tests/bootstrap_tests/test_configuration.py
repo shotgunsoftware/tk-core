@@ -62,6 +62,8 @@ class TestConfiguration(TankTestBase):
             current_user = sg_auth.create_session_user("current_user", "1234")
             configuration._set_authenticated_user(current_user, serialize_mock)
 
+            serialize_mock.assert_called_with(current_user)
+
             self.assertEqual(sgtk.get_authenticated_user().login, current_user.login)
             self.assertEqual(id(sgtk.get_authenticated_user()), id(current_user))
 
