@@ -78,19 +78,20 @@ class Configuration(object):
         path = self._path.current_os
         core_path = get_core_python_path_for_config(path)
 
+        # Get the user before the core swapping.
         from ..authentication import serialize_user
 
         # swap the core out
         CoreImportHandler.swap_core(core_path)
 
+        log.debug("Core swapped, authenticated user will be set.")
+
+        self._set_authenticated_user(sg_user, serialize_user)
+
         # perform a local import here to make sure we are getting
         # the newly swapped in core code
         from .. import api
         from .. import pipelineconfig
-
-        log.debug("Core swapped, authenticated user will be set.")
-
-        self._set_authenticated_user(sg_user, serialize_user)
 
         log.debug("Executing tank_from_path('%s')" % path)
 
@@ -121,6 +122,7 @@ class Configuration(object):
         shotgun.yml, the passed in user will be ignored.
 
         :param user: User that was used for bootstrapping.
+        :param serialize_user_func: Method used to serialize the user.
         """
 
         # perform a local import here to make sure we are getting
