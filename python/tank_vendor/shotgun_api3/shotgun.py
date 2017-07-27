@@ -2791,7 +2791,7 @@ class Shotgun(object):
         if self.config.session_token:
             return self.config.session_token
 
-        session_token = self._create_session_token
+        session_token = self._create_session_token()
 
         self.config.session_token = session_token
 
