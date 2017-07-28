@@ -86,7 +86,7 @@ class Configuration(object):
 
         log.debug("Core swapped, authenticated user will be set.")
 
-        self._set_authenticated_user(sg_user, serialize_user)
+        self._set_authenticated_user(sg_user, serialize_user(sg_user))
 
         # perform a local import here to make sure we are getting
         # the newly swapped in core code
@@ -114,15 +114,18 @@ class Configuration(object):
 
         return tk
 
-    def _set_authenticated_user(self, user, serialize_user_func):
+    def _set_authenticated_user(self, user, serialized_user):
         """
         Sets the authenticated user.
 
         If the project that is being bootstrapped into is configured to use a script user inside
         shotgun.yml, the passed in user will be ignored.
 
+        If the new core API can't deserialize the user, the error will be logged and passed in
+        user will be used instead.
+
         :param user: User that was used for bootstrapping.
-        :param serialize_user_func: Method used to serialize the user.
+        :param serialized_user: Serialized version of the user.
         """
 
         # perform a local import here to make sure we are getting
@@ -133,14 +136,6 @@ class Configuration(object):
         # module, so test for the existence of the set_authenticated_user.
         if hasattr(api, "set_authenticated_user"):
             log.debug("Project core supports the authentication module.")
-
-            # Serialize and deserialize the user to get an instance of the current version of the
-            # API.
-            from ..authentication import deserialize_user
-            try:
-                user = deserialize_user(serialize_user_func(user))
-            except Exception:
-                log.exception("Couldn't reinstantiate the user object with the new API.")
 
             # Use backwards compatible imports.
             from tank_vendor.shotgun_authentication import ShotgunAuthenticator
@@ -174,6 +169,14 @@ class Configuration(object):
                 log.debug("No user was found using the core associated with the project.")
 
             log.debug("%r will be used.", authenticated_user)
+
+            # If we're logging in with the human user, try to reinstantiate it with the new core API.
+            if authenticated_user == user:
+                from ..authentication import deserialize_user
+                try:
+                    authenticated_user = deserialize_user(serialized_user)
+                except Exception:
+                    log.exception("Couldn't deserialize the user object with the new API.")
 
             api.set_authenticated_user(authenticated_user)
         else:

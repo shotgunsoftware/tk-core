@@ -10,7 +10,7 @@
 
 from __future__ import with_statement
 
-from mock import MagicMock, patch
+from mock import patch
 
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import TankTestBase
@@ -52,7 +52,10 @@ class TestConfiguration(TankTestBase):
             return_value=default_user
         ):
             current_user = self._create_session_user("current_user")
-            configuration._set_authenticated_user(current_user, sgtk.authentication.serialize_user)
+            configuration._set_authenticated_user(
+                current_user,
+                sgtk.authentication.serialize_user(current_user)
+            )
 
             self.assertEqual(sgtk.get_authenticated_user().login, current_user.login)
             self.assertNotEqual(id(sgtk.get_authenticated_user()), id(current_user))
@@ -70,16 +73,18 @@ class TestConfiguration(TankTestBase):
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=default_user
         ):
-            serialize_mock = MagicMock()
-            serialize_mock.side_effect = Exception("This will be raised.")
+            # Python 2.6 doesn't support multi-expression with statement, so nest the calls instead.
+            with patch(
+                "tank.authentication.deserialize_user",
+                wraps=sgtk.authentication.user.deserialize_user
+            ) as deserialize_wrapper:
+                current_user = self._create_session_user("current_user")
+                configuration._set_authenticated_user(current_user, "invalid")
 
-            current_user = self._create_session_user("current_user")
-            configuration._set_authenticated_user(current_user, serialize_mock)
+                deserialize_wrapper.assert_called_once_with("invalid")
 
-            serialize_mock.assert_called_with(current_user)
-
-            self.assertEqual(sgtk.get_authenticated_user().login, current_user.login)
-            self.assertEqual(id(sgtk.get_authenticated_user()), id(current_user))
+                self.assertEqual(sgtk.get_authenticated_user().login, current_user.login)
+                self.assertEqual(id(sgtk.get_authenticated_user()), id(current_user))
 
     def test_script_based_authentication(self):
         """
@@ -95,6 +100,9 @@ class TestConfiguration(TankTestBase):
             return_value=script_user
         ):
             current_user = self._create_session_user("current_user")
-            configuration._set_authenticated_user(current_user, sgtk.authentication.serialize_user)
+            configuration._set_authenticated_user(
+                current_user,
+                sgtk.authentication.serialize_user(current_user)
+            )
 
             self.assertEqual(id(sgtk.get_authenticated_user()), id(script_user))
