@@ -29,6 +29,7 @@ from tank_vendor import yaml
 from .errors import AuthenticationError
 from .. import LogManager
 from ..util.shotgun import connection
+from ..util import LocalFileStorageManager
 
 logger = LogManager.get_logger(__name__)
 
@@ -64,8 +65,6 @@ def _get_global_authentication_file_location():
 
     :returns: Path to the login information.
     """
-    # avoid cylic imports
-    from ..util import LocalFileStorageManager
 
     # try current generation path first
     path = os.path.join(
@@ -98,9 +97,6 @@ def _get_site_authentication_file_location(base_url):
     :param base_url: The site we want the login information for.
     :returns: Path to the login information.
     """
-    # avoid cylic imports
-    from ..util import LocalFileStorageManager
-
     path = os.path.join(
         LocalFileStorageManager.get_site_root(
             base_url,
