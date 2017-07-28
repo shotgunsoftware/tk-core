@@ -1172,7 +1172,12 @@ class ToolkitManager(object):
             if not descriptor.exists_local():
                 message = "Downloading %s (%s of %s)..." % (descriptor, idx + 1, len(descriptors))
                 self._report_progress(progress_callback, progress_value, message)
-                descriptor.download_local()
+
+                try:
+                    descriptor.download_local()
+                except Exception, e:
+                    log.error("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
+                    log.exception(e)
             else:
                 message = "Checking %s (%s of %s)." % (descriptor, idx + 1, len(descriptors))
                 log.debug("%s exists locally at '%s'.", descriptor, descriptor.get_path())
