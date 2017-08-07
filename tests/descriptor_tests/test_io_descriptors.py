@@ -102,7 +102,7 @@ class TestIODescriptors(TankTestBase):
                 "code": release.version,
                 "sg_status_list": "alpha",
                 "description": "",
-                "tags": [[], [{ "name": "master"}], [{ "name": "topic"}]][i % 3],
+                "tags": [[], [{ "name": "master"}], [{"name": "topic"}]][i % 3],
                 "sg_detailed_release_notes": "",
                 "sg_documentation": "",
                 "sg_branch": [None, "master", "topic"][i % 3],
