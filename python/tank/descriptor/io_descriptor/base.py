@@ -233,10 +233,8 @@ class IODescriptorBase(object):
         num_tokens = len(version_split)
         # Special case for the first token for which the wildcard is "vx" and not
         # "x"
-        has_v_prefix = False
         version_regexp = version_split[0]
         if version_split[0] == "vx":
-            has_v_prefix = True
             version_split[0] = "x"
         # Build a base version string that versions will have to match. The base
         # version contains all tokens until we find a "x".
@@ -272,18 +270,21 @@ class IODescriptorBase(object):
         if not base_version:
             # Match anything, this happens if the pattern was vx.x.x
             # Sort in reverse order, for the "v" case, hoping a valid "v" version
-            # will be in the latest ones
+            # will be in the latest ones. Please note that this is different from
+            # the no pattern case: we do have have a pattern here, but matching
+            # anything.
             version_numbers.sort(key=LooseVersion, reverse=True)
-            if has_v_prefix:
-                # Only match versions starting with "v"
-                for version_number in version_numbers:
-                    if version_number.startswith("v"):
-                        return version_number
-                # No match
-                log.debug("Didn't find a matching version for pattern %s" % pattern)
-                return None
-            else:
-                return version_numbers[0]
+            # Because we enforce patterns to always start with "v", we only match
+            # versions starting with "v". We check as well that we have at least
+            # the number of tokens specified in the pattern. So vx.x.x-x will not
+            # match v1.2.3 but will match v1.2.3-foo.
+            for version_number in version_numbers:
+                if (version_number.startswith("v") and
+                    len(re.split("(\.|-)", version_number)) >= num_tokens):
+                    return version_number
+            # No match
+            log.debug("Didn't find a matching version for pattern %s" % pattern)
+            return None
 
         # Find the matching versions
         possible_versions = []

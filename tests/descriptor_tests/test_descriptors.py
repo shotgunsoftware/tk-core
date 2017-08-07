@@ -510,6 +510,8 @@ class TestDescriptorSupport(TankTestBase):
             "v2.0.3-rc.1",
             "v2.0.3-rc.2",
             "v2.1.0",
+            # This release does not have a leading "v" so should be ignored
+             "100.1.3",
         ]
         self.assertEqual(
             desc._io_descriptor._find_latest_tag_by_pattern(releases, "v1.x.x"),
@@ -524,7 +526,7 @@ class TestDescriptorSupport(TankTestBase):
             "v2.1.0"
         )
         self.assertEqual(
-            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.x.x.x"),
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.x.x-x"),
             "v2.0.3-rc.2"
         )
         self.assertEqual(
@@ -533,6 +535,9 @@ class TestDescriptorSupport(TankTestBase):
         )
         self.assertIsNone(
             desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.x.x.x.x.x.x.x"),
+        )
+        self.assertIsNone(
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "vx.x.x.x.x.x.x"),
         )
         # Test topic releases where a ticket number is used as a topic.
         topic_releases = [
