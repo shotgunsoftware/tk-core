@@ -511,7 +511,7 @@ class TestDescriptorSupport(TankTestBase):
             "v2.0.3-rc.2",
             "v2.1.0",
             # This release does not have a leading "v" so should be ignored
-             "100.1.3",
+            "100.1.3",
         ]
         self.assertEqual(
             desc._io_descriptor._find_latest_tag_by_pattern(releases, "v1.x.x"),
