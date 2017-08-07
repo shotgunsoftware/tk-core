@@ -51,7 +51,8 @@ class TestAppStoreLabels(TankTestBase):
         self.addCleanup(self._get_app_store_key_from_shotgun_mock.stop)
         # Ensure QA mode is not set, otherwise the mocked find param checks in tests
         # below will fail
-        del os.environ[APP_STORE_QA_MODE_ENV_VAR]
+        if APP_STORE_QA_MODE_ENV_VAR in os.environ:
+            del os.environ[APP_STORE_QA_MODE_ENV_VAR]
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find_one")
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
