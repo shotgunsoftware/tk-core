@@ -102,7 +102,7 @@ class TestIODescriptors(TankTestBase):
                 "code": release.version,
                 "sg_status_list": "alpha",
                 "description": "",
-                "tag_list": [None, ["master"], ["topic"]][i%3],
+                "tags": [None, ["master"], ["topic"]][i%3],
                 "sg_detailed_release_notes": "",
                 "sg_documentation": "",
                 "sg_branch": [None, "master", "topic"][i%3],
@@ -124,7 +124,7 @@ class TestIODescriptors(TankTestBase):
                 p,
             )
             if releases[-1]._io_descriptor._IODescriptorAppStore__match_label(
-                metadata["sg_version_data"]["tag_list"]
+                metadata["sg_version_data"]["tags"]
                 ):
                 break
             else:
@@ -135,30 +135,43 @@ class TestIODescriptors(TankTestBase):
                 ignored
             ))
 
-        # Check various release constraint patterns, for releases with a label
-        latest = releases[-1].find_latest_cached_version("vx.x.x")
+        # Our releases list contains sequences of vx.x.x, vx.x.x-master, vx.x.x-topic
+        # entries.
+        latest_with_topic_label = releases[-1]
+        latest_with_master_label = releases[-2]
+        latest_with_no_label = releases[-3]
+
+        # Check various release constraint patterns, for releases with or without
+        # a label. If we start from a release with a label, we should only pick
+        # releases with the same label.
+
+        # topic label
+        latest = latest_with_topic_label.find_latest_cached_version("vx.x.x")
         self.assertEqual(
             latest.version,
-            releases[-1].version
+            latest_with_topic_label.version
         )
         # Check the label is preserved in the descriptor
         self.assertTrue("&label=topic" in latest.get_uri())
-        latest = releases[-2].find_latest_cached_version("vx.x.x")
+
+        # master label
+        latest = latest_with_master_label.find_latest_cached_version("vx.x.x")
         self.assertEqual(
             latest.version,
-            releases[-2].version
+            latest_with_master_label.version
         )
         # Check the label is preserved in the descriptor
         self.assertTrue("&label=master" in latest.get_uri())
-        # With no tag we see all versions, so latest version for the version with
+
+        # With no label we see all versions, so latest version for the version with
         # no tag will be the latest topic release
-        latest = releases[-3].find_latest_cached_version("vx.x.x")
+        latest = latest_with_no_label.find_latest_cached_version("vx.x.x")
         self.assertEqual(
             latest.version,
-            releases[-1].version
+            latest_with_topic_label.version
         )
-        # Even if we picked a "topic" release, it shouldn't have a label set in its
-        # descriptor, otherwise we will not see all versions anymore when the next
+        # Even if we picked a "topic" release, it shouldn't have a label set in
+        # its descriptor, otherwise we will not see all versions anymore the next
         # time we will be updating to latest.
         self.assertFalse("label" in latest.get_uri())
 

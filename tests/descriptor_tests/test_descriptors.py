@@ -477,10 +477,15 @@ class TestDescriptorSupport(TankTestBase):
             "v1.0.10",
         ]
         # Ensure un-supported patterns raise errors
+
+        # Patterns must start with a "v"
         self.assertRaises(
             TankDescriptorError,
             desc._io_descriptor._find_latest_tag_by_pattern, releases, "x.x.x",
         )
+
+        # Patterns must at least have major, minor, patch tokens, either as digits
+        # or "x" wildcard.
         self.assertRaises(
             TankDescriptorError,
             desc._io_descriptor._find_latest_tag_by_pattern, releases, "v1.x",
@@ -489,10 +494,13 @@ class TestDescriptorSupport(TankTestBase):
             TankDescriptorError,
             desc._io_descriptor._find_latest_tag_by_pattern, releases, "vx.x-x",
         )
+
+        # Patterns can't have a fixed value after an "x".
         self.assertRaises(
             TankDescriptorError,
             desc._io_descriptor._find_latest_tag_by_pattern, releases, "vx.x.x-rc",
         )
+
         # Test releases with various number of tokens
         releases = [
             "v1.0",
