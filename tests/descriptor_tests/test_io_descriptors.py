@@ -102,10 +102,10 @@ class TestIODescriptors(TankTestBase):
                 "code": release.version,
                 "sg_status_list": "alpha",
                 "description": "",
-                "tags": [None, ["master"], ["topic"]][i%3],
+                "tags": [None, ["master"], ["topic"]][i % 3],
                 "sg_detailed_release_notes": "",
                 "sg_documentation": "",
-                "sg_branch": [None, "master", "topic"][i%3],
+                "sg_branch": [None, "master", "topic"][i % 3],
             }
             # Need to access the private method directly, otherwise we get the error:
             # AttributeError: 'IODescriptorAppStore' object has no attribute '_TestIODescriptors__refresh_metadata'
