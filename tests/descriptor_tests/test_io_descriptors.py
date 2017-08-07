@@ -102,7 +102,7 @@ class TestIODescriptors(TankTestBase):
                 "code": release.version,
                 "sg_status_list": "alpha",
                 "description": "",
-                "tags": [None, ["master"], ["topic"]][i % 3],
+                "tags": [[], [{ "name": "master"}], [{ "name": "topic"}]][i % 3],
                 "sg_detailed_release_notes": "",
                 "sg_documentation": "",
                 "sg_branch": [None, "master", "topic"][i % 3],
@@ -115,17 +115,25 @@ class TestIODescriptors(TankTestBase):
                 sg_data_for_version
             )
 
+        # Our releases list contains sequences of vx.x.x, vx.x.x-master, vx.x.x-topic
+        # entries.
+        latest_with_topic_label = releases[-1]
+        latest_with_master_label = releases[-2]
+        latest_with_no_label = releases[-3]
+
         # Check internal methods, this is mostly useful to get some debug information
         # if something goes wrong in other tests below.
-        all_versions = releases[-1]._io_descriptor._get_locally_cached_versions()
+        all_versions = latest_with_topic_label._io_descriptor._get_locally_cached_versions()
+        # Ensure we get a list of cached versions
+        self.assertEqual(len(all_versions), len(releases))
         ignored = []
         for v, p in all_versions.iteritems():
-            metadata = releases[-1]._io_descriptor._IODescriptorAppStore__load_cached_app_store_metadata(
+            metadata = latest_with_topic_label._io_descriptor._IODescriptorAppStore__load_cached_app_store_metadata(
                 p,
             )
-            if releases[-1]._io_descriptor._IODescriptorAppStore__match_label(
-                metadata["sg_version_data"]["tags"]
-                ):
+            tag_names = [x["name"] for x in metadata["sg_version_data"]["tags"]]
+            if latest_with_topic_label._io_descriptor._IODescriptorAppStore__match_label(
+                tag_names):
                 break
             else:
                 ignored.append(metadata["sg_version_data"])
@@ -134,12 +142,6 @@ class TestIODescriptors(TankTestBase):
                 releases[-1]._io_descriptor._label,
                 ignored
             ))
-
-        # Our releases list contains sequences of vx.x.x, vx.x.x-master, vx.x.x-topic
-        # entries.
-        latest_with_topic_label = releases[-1]
-        latest_with_master_label = releases[-2]
-        latest_with_no_label = releases[-3]
 
         # Check various release constraint patterns, for releases with or without
         # a label. If we start from a release with a label, we should only pick

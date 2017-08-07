@@ -13,7 +13,7 @@ Unit tests tank updates.
 """
 
 from __future__ import with_statement
-
+import os
 
 from mock import patch
 
@@ -23,6 +23,7 @@ import sgtk
 from sgtk.descriptor import Descriptor
 from sgtk.descriptor.io_descriptor.base import IODescriptorBase
 from sgtk.descriptor.descriptor import create_descriptor
+from sgtk.descriptor.constants import APP_STORE_QA_MODE_ENV_VAR
 
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
@@ -48,6 +49,9 @@ class TestAppStoreLabels(TankTestBase):
         )
         self._get_app_store_key_from_shotgun_mock.start()
         self.addCleanup(self._get_app_store_key_from_shotgun_mock.stop)
+        # Ensure QA mode is not set, otherwise the mocked find param checks in tests
+        # below will fail
+        del os.environ[APP_STORE_QA_MODE_ENV_VAR]
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find_one")
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
@@ -117,7 +121,7 @@ class TestAppStoreLabels(TankTestBase):
                 {
                     'fields': [
                         'id', 'code', 'sg_status_list', 'description', 'tags', 'sg_detailed_release_notes',
-                        'sg_documentation', 'sg_payload'
+                        'sg_documentation', 'sg_branch', 'sg_payload'
                     ],
                     'limit': None,
                     'order': [{'direction': 'desc', 'field_name': 'created_at'}],
