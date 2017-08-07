@@ -119,6 +119,26 @@ class TestStartEngine(TestEngineBase):
         self.assertEqual(engine.context, self.context)
 
 
+class TestLegacyStartShotgunEngine(TestEngineBase):
+    """
+    Tests how the tk-shotgun engine is started via the start_shotgun_engine routine.
+    """
+
+    def test_empty_environment(self):
+        """
+        In the case of an empty shotgun environment file, a TankError
+        should be raised rather than some unhandled exception where we
+        try to use the None as a dict.
+        """
+        self.assertRaises(
+            TankError,
+            tank.platform.engine.start_shotgun_engine,
+            self.tk,
+            "empty", # This corresponds to shotgun_empty.yml in the fixture.
+            self.context,
+        )
+
+
 class TestExecuteInMainThread(TestEngineBase):
     """
     Tests the execute_in_main_thread and async_execute_in_main_thread methods.

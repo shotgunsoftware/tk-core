@@ -170,8 +170,9 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
     In addition to the above, the following optional arguments exist:
 
-        - ``task`` - A shotgun entity dictionary with id and type (which should always be Task).
-          if no value is specified, the task will be grabbed from the context object.
+        - ``task`` - A shotgun entity dictionary with keys ``id`` and ``type`` (where type should always be ``Task``).
+          This value will be used to populate the task field for the created Shotgun publish record.
+          If no value is specified, the task will be determined based on the context parameter.
 
         - ``comment`` - A string containing a description of what is being published.
 
@@ -197,9 +198,17 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         - ``created_at`` - Override for the date the publish is created at.  This should be a python
           datetime object
 
-        - ``version_entity`` - The Shotgun version entity this published file should be linked to
+        - ``version_entity`` - The Shotgun review version that the publish should be linked to. This
+          should be a dictionary of keys ``id`` and ``type`` (where type should always be ``Version``).
+          This parameter is useful for workflows where a Shotgun Version has already been created for review
+          purposes and you want to associate the publish created by this method.
 
-        - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{'tag_list': ['foo', 'bar']}``)
+          Note: For workflows where you have an existing review version and want to create a series of associated
+          publishes, you may want to extract a :class:`~sgtk.Context` from the Version entity and pass that
+          to the :meth:`register_publish` method in order to ensure consistency in how objects are associated
+          in Shotgun.
+
+        - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{'sg_custom_field': 'hello'}``)
 
         - ``dry_run`` - Boolean. If set, do not actually create a database entry. Return the
           dictionary of data that would be supplied to Shotgun to create the PublishedFile entity.

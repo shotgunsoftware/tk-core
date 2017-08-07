@@ -17,7 +17,7 @@ import datetime
 from . import constants
 
 from .errors import TankBootstrapError
-from ..descriptor import Descriptor, create_descriptor
+from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
 
 from ..util import filesystem
 from ..util import ShotgunPath
@@ -34,6 +34,9 @@ class ConfigurationWriter(object):
     """
     Class used to write and update Toolkit configurations on disk.
     """
+
+    _TRANSACTION_START_FILE = "update_start.txt"
+    _TRANSACTION_END_FILE = "update_end.txt"
 
     def __init__(self, path, sg):
         """
@@ -98,8 +101,8 @@ class ConfigurationWriter(object):
         else:
             # we have an exact core descriptor. Get a descriptor for it
             log.debug("Config has a specific core defined in core/core_api.yml: %s" % core_uri_or_dict)
-            # when core is specified, it is always a specific version
-            use_latest = False
+            # when core is specified, check if it defines a specific version or not
+            use_latest = is_descriptor_version_missing(core_uri_or_dict)
 
         core_descriptor = create_descriptor(
             self._sg_connection,
@@ -284,6 +287,7 @@ class ConfigurationWriter(object):
 
         config_root_path = self._path.current_os
 
+        # Write out missing files.
         for platform in executables:
             sg_config_location = os.path.join(
                 config_root_path,
@@ -291,8 +295,12 @@ class ConfigurationWriter(object):
                 "core",
                 "interpreter_%s.cfg" % platform
             )
-            # clean out any existing files
-            filesystem.safe_delete_file(sg_config_location)
+            # If the interpreter file already existed in the configuration, we won't overwrite it.
+            if os.path.exists(sg_config_location):
+                log.debug(
+                    "Interpreter file %s already exists, leaving as is.", sg_config_location
+                )
+                continue
             # create new file
             with open(sg_config_location, "wt") as fh:
                 fh.write(executables[platform])
@@ -408,7 +416,11 @@ class ConfigurationWriter(object):
 
         log.debug("Wrote %s", dest_config_sg_file)
 
-    def write_pipeline_config_file(self, pipeline_config_id, project_id, plugin_id, bundle_cache_fallback_paths):
+    def write_pipeline_config_file(
+        self,
+        pipeline_config_id, project_id, plugin_id,
+        bundle_cache_fallback_paths, source_descriptor
+    ):
         """
         Writes out the the pipeline configuration file config/core/pipeline_config.yml
 
@@ -422,6 +434,8 @@ class ConfigurationWriter(object):
                           see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
                           non-plugin based toolkit projects, this value is None.
         :param bundle_cache_fallback_paths: List of bundle cache fallback paths.
+
+        :returns: Path to the configuration file that was written out.
         """
         # the pipeline config metadata
         # resolve project name and pipeline config name from shotgun.
@@ -473,7 +487,8 @@ class ConfigurationWriter(object):
             "published_file_entity_type": "PublishedFile",
             "use_bundle_cache": True,
             "bundle_cache_fallback_roots": bundle_cache_fallback_paths,
-            "use_shotgun_path_cache": True
+            "use_shotgun_path_cache": True,
+            "source_descriptor": source_descriptor.get_dict()
         }
 
         # write pipeline_configuration.yml
@@ -488,6 +503,8 @@ class ConfigurationWriter(object):
             yaml.safe_dump(pipeline_config_content, fh)
             fh.write("\n")
             fh.write("# End of file.\n")
+
+        return pipeline_config_path
 
     def update_roots_file(self, config_descriptor):
         """
@@ -532,6 +549,79 @@ class ConfigurationWriter(object):
             yaml.safe_dump(roots_data, fh)
             fh.write("\n")
             fh.write("# End of file.\n")
+
+    def is_transaction_pending(self):
+        """
+        Checks if the configuration was previously in the process of being updated but then stopped.
+
+        .. note::
+            Configurations written with previous versions of Toolkit are assumed to completed.
+
+        :returns: True if the configuration was not finished being written on disk, False if it was.
+        """
+
+        # Check if the transaction folder exists...
+        is_started = os.path.exists(self._get_state_file_name(self._TRANSACTION_START_FILE))
+        is_ended = os.path.exists(self._get_state_file_name(self._TRANSACTION_END_FILE))
+
+        if is_started and not is_ended:
+            log.warning("It seems the configuration was not written properly on disk.")
+            return True
+        if is_started and is_ended:
+            log.debug("Configuration was written properly on disk.")
+            return False
+        if not is_started and is_ended:
+            log.error("It seems the configuration is in an unconsistent state.")
+            return True
+
+        log.debug("Configuration doesn't have transaction markers.")
+        return False
+
+    def start_transaction(self):
+        """
+        Wipes the transaction marker from the configuration.
+        """
+        log.debug("Starting configuration update transaction.")
+        filesystem.ensure_folder_exists(os.path.join(self._path.current_os, "cache"))
+        self._delete_state_file(self._TRANSACTION_END_FILE)
+        self._write_state_file(self._TRANSACTION_START_FILE)
+
+    def _write_state_file(self, file_name):
+        """
+        Writes a transaction file.
+        """
+        with open(self._get_state_file_name(file_name), "w") as fw:
+            fw.writelines(["File written at %s." % datetime.datetime.now()])
+
+    def _delete_state_file(self, file_name):
+        """
+        Deletes a transaction file.
+        """
+        filesystem.safe_delete_file(self._get_state_file_name(file_name))
+
+    def _get_state_file_name(self, file_name):
+        """
+        Retrieves the path to a transaction file.
+        """
+        return os.path.join(self._path.current_os, "cache", file_name)
+
+    def end_transaction(self):
+        """
+        Creates a transaction marker in the configuration indicating is has been completely written
+        to disk.
+        """
+        # Write back the coherency token.
+        log.debug("Ending configuration update transaction.")
+        self._write_state_file(self._TRANSACTION_END_FILE)
+
+    def _get_configuration_transaction_filename(self):
+        """
+        :returns: Path to the file which will be used to track configuration validity.
+        """
+        return os.path.join(
+            self._get_configuration_transaction_folder(),
+            "done"
+        )
 
     @filesystem.with_cleared_umask
     def _open_auto_created_yml(self, path):

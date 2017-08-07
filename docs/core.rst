@@ -60,7 +60,10 @@ Sgtk
                       log_metric,
                       execute_core_hook,
                       execute_hook,
-                      execute_core_hook_method
+                      execute_core_hook_method,
+                      get_cache_item,
+                      set_cache_item
+
 
 Context
 =========================================
@@ -68,6 +71,15 @@ Context
 .. autoclass:: Context
     :members:
     :exclude-members: tank
+
+Pipeline Configuration Utilities
+================================
+
+It is possible to enquiry about the location of various components of the pipeline configuration and
+the currently running version of the Toolkit Core.
+
+.. autofunction:: get_core_python_path_for_config
+.. autofunction:: get_sgtk_module_path
 
 Executing Tank commands
 ---------------------------------------------------------

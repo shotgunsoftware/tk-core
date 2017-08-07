@@ -478,12 +478,18 @@ class SoftwareLauncher(object):
         plugins to utilize. This will compute the following
         environment variables:
 
-        - ``SHOTGUN_SITE``: The current shotgun site url
-        - ``SHOTGUN_ENTITY_TYPE``: The current context
-        - ``SHOTGUN_ENTITY_ID``: The current context
-        - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: The current pipeline config id
+        - ``SHOTGUN_SITE``: Derived from the Toolkit instance's site url
+        - ``SHOTGUN_ENTITY_TYPE``: Derived from the current context
+        - ``SHOTGUN_ENTITY_ID``: Derived from the current context
+        - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: Derived from the current pipeline config id
+        - ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS``: Derived from the curent pipeline configuration's
+            list of bundle cache fallback paths.
 
-        :returns: dictionary of environment variables
+        These environment variables are set when launching a new process to capture the state of
+        Toolkit so we can launch in the same environment. It ensures subprocesses have access to the
+        same bundle caches, which allows to reuse already cached bundles.
+
+        :returns: Dictionary of environment variables.
         """
         self.logger.debug("Computing standard plugin environment variables...")
         env = {}
@@ -495,14 +501,22 @@ class SoftwareLauncher(object):
         # note: get_shotgun_id() returns None for unmanaged configs.
         pipeline_config_id = self.sgtk.pipeline_configuration.get_shotgun_id()
         if pipeline_config_id:
-            self.logger.debug(
-                "Setting SHOTGUN_PIPELINE_CONFIGURATION_ID to %s", pipeline_config_id
-            )
             env["SHOTGUN_PIPELINE_CONFIGURATION_ID"] = str(pipeline_config_id)
         else:
             self.logger.debug(
                 "Pipeline configuration doesn't have an id. "
                 "Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID."
+            )
+
+        bundle_cache_fallback_paths = os.pathsep.join(
+            self.sgtk.pipeline_configuration.get_bundle_cache_fallback_paths()
+        )
+        if bundle_cache_fallback_paths:
+            env["SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS"] = bundle_cache_fallback_paths
+        else:
+            self.logger.debug(
+                "Pipeline configuration doesn't have bundle cache fallback paths. "
+                "Not setting SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS."
             )
 
         # get the most accurate entity, first see if there is a task, then entity then project
@@ -517,7 +531,6 @@ class SoftwareLauncher(object):
             )
 
         self.logger.debug("Returning Plugin Environment: \n%s" % pprint.pformat(env))
-
         return env
 
     def scan_software(self):

@@ -115,7 +115,7 @@ class TestIODescriptors(TankTestBase):
                 sg_data_for_version
             )
 
-        # Check internal methods, this is mostly useful get some debug information
+        # Check internal methods, this is mostly useful to get some debug information
         # if something goes wrong in other tests below.
         all_versions = releases[-1]._io_descriptor._get_locally_cached_versions()
         ignored = []
@@ -161,6 +161,59 @@ class TestIODescriptors(TankTestBase):
         # descriptor, otherwise we will not see all versions anymore when the next
         # time we will be updating to latest.
         self.assertFalse("label" in latest.get_uri())
+
+    def test_version_resolve(self):
+        """
+        Tests the is_descriptor_version_missing method
+        """
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing(
+                {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"}
+            ),
+            False
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing(
+                {"type": "app_store", "name": "tk-bundle"}
+            ),
+            True
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing(
+                "sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle"
+            ),
+            False
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing(
+                "sgtk:descriptor:app_store?name=tk-bundle"
+            ),
+            True
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "dev", "path": "/tmp"}),
+            False
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "path", "path": "/tmp"}),
+            False
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "manual", "name": "foo"}),
+            True
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "shotgun", "name": "foo"}),
+            True
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "git", "path": "foo"}),
+            True
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "git_branch", "path": "foo"}),
+            True
+        )
 
     def test_latest_cached(self):
         """
