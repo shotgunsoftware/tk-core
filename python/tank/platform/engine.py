@@ -1648,9 +1648,22 @@ class Engine(TankBundle):
 
         # apply style sheet
         self._apply_external_stylesheet(bundle, widget)
-        
+
+        # Set a style sheet file watcher which can be used for interactive styling.
+        # File watchers can cause problems in production when accessing shared
+        # storage, so we only set it if explicitly asked to do so.
+        if os.getenv("SGTK_QSS_FILE_WATCHER", False) == "1":
+            try:
+                self._add_external_stylesheet_watcher(bundle, widget)
+            except Exception, e:
+                # We don't want the watcher to cause any problem, so we catch
+                # errors but issue a warning so the developer knows that interactive
+                # styling is off.
+                self.log_warning("Unable to set qss file watcher: %s" % e)
+
         # create the dialog:
         dialog = self._create_dialog(title, bundle, widget, parent)
+
         return (dialog, widget)
     
     def _on_dialog_closed(self, dlg):
@@ -1922,6 +1935,61 @@ class Engine(TankBundle):
     # while. The method was found to be used in some existing Engine subclasses
     # so we need this.
     _apply_external_styleshet = _apply_external_stylesheet
+
+    def _add_external_stylesheet_watcher(self, bundle, widget):
+        """
+        Set a file watcher which will reload and re-apply the stylesheet file to
+        the given widget if the file is modified.
+
+        This can be useful when developping apps to perform interactive styling,
+        but shouldn't be used in production because of the problems it can cause.
+
+        :param bundle: App/Engine/Framework instance to load style sheet from.
+        :param widget: A QWidget to apply the stylesheet to.
+        """
+        from .qt import QtCore
+        qss_file = os.path.join(bundle.disk_location, constants.BUNDLE_STYLESHEET_FILE)
+        # We don't keep any reference to the watcher to let it be deleted with
+        # the widget it is parented under.
+        # Please note that QWidgets/QFileSystemWatcher don't seem to be actually
+        # deleted, so if multiple dialogs are created, e.g. from tk-desktop, users
+        # could end up having a *lot* of file watchers running. Another good reason
+        # to *not* run these watchers in production, but only when developing apps.
+        watcher = QtCore.QFileSystemWatcher([qss_file], parent=widget)
+        watcher.fileChanged.connect(
+            lambda : self._on_external_stylesheet_changed(watcher, bundle, widget)
+        )
+        # We use log_info here instead of log_debug because the style sheet watcher
+        # is meant to be used only when doing development and knowing that the
+        # style sheet file watcher is activated is useful when the file is tweaked
+        # but no visible changes happen. It can be useful as well to know that watchers
+        # were activated by mistake in production.
+        self.log_info("Watching qss file %s for %s..." % (qss_file, repr(widget)))
+
+    def _on_external_stylesheet_changed(self, watcher, bundle, widget):
+        """
+        Called when the style sheet file has been modified and a watcher was set.
+        Reload and re-apply the style sheet file to the given widget.
+
+        :param bundle: App/Engine/Framework instance to load style sheet from.
+        :param widget: A QWidget to apply the stylesheet to.
+        """
+        # We use log_info here instead of log_debug because the style sheet watcher
+        # is meant to be used only when doing development and knowing that the
+        # style sheet file was reloaded but without any visible effect is useful
+        # when tweaking it.
+        self.log_info("Reloading style sheet...")
+        # Unset styling
+        widget.setStyleSheet("")
+        # And reload it
+        self._apply_external_styleshet(bundle, widget)
+        widget.update()
+        # Some code editors rename files on save, so the watcher will
+        # stop watching the file. Check if the file is being watched, re-attach it if not.
+        qss_file = os.path.join(bundle.disk_location, constants.BUNDLE_STYLESHEET_FILE)
+        if qss_file not in watcher.files():
+            watcher.addPath(qss_file)
+
 
     def _define_qt_base(self):
         """
