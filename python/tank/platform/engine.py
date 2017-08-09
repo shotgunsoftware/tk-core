@@ -1974,7 +1974,7 @@ class Engine(TankBundle):
         # to *not* run these watchers in production, but only when developing apps.
         watcher = QtCore.QFileSystemWatcher([qss_file], parent=widget)
         watcher.fileChanged.connect(
-            lambda x : self._on_external_stylesheet_changed(x, watcher, widget)
+            lambda x: self._on_external_stylesheet_changed(x, watcher, widget)
         )
         # We use log_info here instead of log_debug because the style sheet watcher
         # is meant to be used only when doing development and knowing that the
