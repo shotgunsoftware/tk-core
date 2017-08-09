@@ -1896,6 +1896,10 @@ class Engine(TankBundle):
         at window creation in order to allow newly created dialogs to apply app specific
         styles easily.
         
+        If the `SGTK_QSS_FILE_WATCHER` env variable is set to "1", the style sheet
+        will be reloaded and re-applied if changed. This can be useful when developing
+        apps to do some interactive styling but shouldn't be used in production.
+
         :param bundle: app/engine/framework instance to load style sheet from
         :param widget: widget to apply stylesheet to 
         """
@@ -1917,7 +1921,7 @@ class Engine(TankBundle):
         # storage, so we only set it if explicitly asked to do so.
         if os.getenv("SGTK_QSS_FILE_WATCHER", False) == "1":
             try:
-                self._add_external_stylesheet_watcher(bundle, widget)
+                self._add_stylesheet_file_watcher(qss_file, widget)
             except Exception, e:
                 # We don't want the watcher to cause any problem, so we catch
                 # errors but issue a warning so the developer knows that interactive
@@ -1940,8 +1944,6 @@ class Engine(TankBundle):
         """
         f = open(qss_file, "rt")
         try:
-            # Read css file
-            self.log_debug("Detected std style sheet file '%s' - applying to widget %s" % (qss_file, widget))
             qss_data = f.read()
             # resolve tokens
             qss_data = self._resolve_sg_stylesheet_tokens(qss_data)
@@ -1952,7 +1954,7 @@ class Engine(TankBundle):
         finally:
             f.close()
 
-    def _add_external_stylesheet_watcher(self, bundle, widget):
+    def _add_stylesheet_file_watcher(self, qss_file, widget):
         """
         Set a file watcher which will reload and re-apply the stylesheet file to
         the given widget if the file is modified.
@@ -1960,11 +1962,10 @@ class Engine(TankBundle):
         This can be useful when developping apps to perform interactive styling,
         but shouldn't be used in production because of the problems it can cause.
 
-        :param bundle: App/Engine/Framework instance to load style sheet from.
+        :param qss_file: Full path to the style sheet file.
         :param widget: A QWidget to apply the stylesheet to.
         """
         from .qt import QtCore
-        qss_file = os.path.join(bundle.disk_location, constants.BUNDLE_STYLESHEET_FILE)
         # We don't keep any reference to the watcher to let it be deleted with
         # the widget it is parented under.
         # Please note that QWidgets/QFileSystemWatcher don't seem to be actually
@@ -1987,7 +1988,9 @@ class Engine(TankBundle):
         Called when the style sheet file has been modified and a watcher was set.
         Reload and re-apply the style sheet file to the given widget.
 
-        :param bundle: App/Engine/Framework instance to load style sheet from.
+        :param qss_file: Full path to the style sheet file.
+        :param watcher: The :class:`QtCore.QFileSystemWatcher` which triggered the
+                        callback.
         :param widget: A QWidget to apply the stylesheet to.
         """
         # We use log_info here instead of log_debug because the style sheet watcher
@@ -2000,7 +2003,8 @@ class Engine(TankBundle):
         # And reload it
         self._apply_stylesheet_file(qss_file, widget)
         # Some code editors rename files on save, so the watcher will
-        # stop watching the file. Check if the file is being watched, re-attach it if not.
+        # stop watching the file. Check if the file is being watched, re-attach
+        # it if not.
         if qss_file not in watcher.files():
             watcher.addPath(qss_file)
 
