@@ -1896,7 +1896,7 @@ class Engine(TankBundle):
         at window creation in order to allow newly created dialogs to apply app specific
         styles easily.
         
-        If the `SGTK_QSS_FILE_WATCHER` env variable is set to "1", the style sheet
+        If the `SHOTGUN_QSS_FILE_WATCHER` env variable is set to "1", the style sheet
         will be reloaded and re-applied if changed. This can be useful when developing
         apps to do some interactive styling but shouldn't be used in production.
 
@@ -1919,7 +1919,7 @@ class Engine(TankBundle):
         # Set a style sheet file watcher which can be used for interactive styling.
         # File watchers can cause problems in production when accessing shared
         # storage, so we only set it if explicitly asked to do so.
-        if os.getenv("SGTK_QSS_FILE_WATCHER", False) == "1":
+        if os.getenv("SHOTGUN_QSS_FILE_WATCHER", False) == "1":
             try:
                 self._add_stylesheet_file_watcher(qss_file, widget)
             except Exception, e:
