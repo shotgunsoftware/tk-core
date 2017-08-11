@@ -15,7 +15,6 @@ Unit tests tank pipeline configs.
 from __future__ import with_statement
 
 import os
-import logging
 import tempfile
 import shutil
 import stat
@@ -27,8 +26,7 @@ from tank.errors import TankError
 from mock import patch
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
-from tank.platform.environment import InstalledEnvironment
-from tank_test.mock_appstore import TankMockStoreDescriptor, patch_app_store
+
 
 class TestPipelineConfig(TankTestBase):
     """
@@ -54,7 +52,7 @@ class TestPipelineConfig(TankTestBase):
         self.assertRaisesRegexp(
             TankError,
             "Only one pipeline config",
-            push_cmd.execute, {"target_id":666}
+            push_cmd.execute, {"target_id": 666}
         )
         # Clone the current pipeline config
         clone_cmd = self.tk.get_command("clone_configuration")
@@ -73,28 +71,29 @@ class TestPipelineConfig(TankTestBase):
         self.assertRaisesRegexp(
             TankError,
             "The target pipeline config id must be different from the current one",
-            push_cmd.execute, {"target_id":pc.get_shotgun_id()}
+            push_cmd.execute, {"target_id": pc.get_shotgun_id()}
         )
         # Check we can't push with an invalid target id
         self.assertRaisesRegexp(
             TankError,
             "Id 6666 is not a valid pipeline config id",
-            push_cmd.execute, {"target_id":6666}
+            push_cmd.execute, {"target_id": 6666}
         )
 
         # Push the current pipeline config to the cloned one
         push_cmd.execute({"target_id": cloned_pc_id})
         # Use the pushed configuration to check it is valid
-        pushed_sgtk = sgtk.sgtk_from_path(temp_pc_dir)
+        sgtk.sgtk_from_path(temp_pc_dir)
 
         # Do it again
         push_cmd.execute({"target_id": cloned_pc_id})
         # Use the pushed configuration to check it is valid
-        pushed_sgtk = sgtk.sgtk_from_path(temp_pc_dir)
+        sgtk.sgtk_from_path(temp_pc_dir)
 
         # Disable rename being used when backuping the target pipeline configuration
         # by raising an OSError
         unmocked_os_rename = os.rename
+
         def mocked_rename(src, dst):
             if src == temp_pc_config_dir:
                 raise OSError("os.rename is disabled")
@@ -103,7 +102,7 @@ class TestPipelineConfig(TankTestBase):
         with patch("os.rename", side_effect=mocked_rename):
             # And push again
             push_cmd.execute({"target_id": cloned_pc_id})
-            pushed_sgtk = sgtk.sgtk_from_path(temp_pc_dir)
+            sgtk.sgtk_from_path(temp_pc_dir)
             # Now create an error by adding a file which can't be read in the
             # target pc folder
             rogue_file = os.path.join(temp_pc_config_dir, "rogue.one")
@@ -115,17 +114,17 @@ class TestPipelineConfig(TankTestBase):
                 # will succeed. We use filesystem.safe_delete_folder to remove
                 # the folder which handle our test case, so no errors...
                 push_cmd.execute({"target_id": cloned_pc_id})
-                pushed_sgtk = sgtk.sgtk_from_path(temp_pc_dir)
+                sgtk.sgtk_from_path(temp_pc_dir)
             else:
                 # Pushing should raise an error on Linux/Osx
                 self.assertRaisesRegexp(
                     TankError,
                     "Permission denied|Access is denied",
-                    push_cmd.execute, {"target_id":cloned_pc_id}
+                    push_cmd.execute, {"target_id": cloned_pc_id}
                 )
                 # But the target config should still be valid
-                pushed_sgtk = sgtk.sgtk_from_path(temp_pc_dir)
-                os.chmod(rogue_file, stat.S_IREAD|stat.S_IWRITE)
+                sgtk.sgtk_from_path(temp_pc_dir)
+                os.chmod(rogue_file, stat.S_IREAD | stat.S_IWRITE)
                 os.remove(rogue_file)
 
         # Test pushing with symlinks, unless on Windows where symlinks are not
@@ -134,13 +133,13 @@ class TestPipelineConfig(TankTestBase):
             self.assertRaisesRegexp(
                 TankError,
                 "Symbolic links are not supported",
-                push_cmd.execute, {"target_id":cloned_pc_id, "use_symlink": True}
+                push_cmd.execute, {"target_id": cloned_pc_id, "use_symlink": True}
             )
         else:
             push_cmd.execute({"target_id": cloned_pc_id, "use_symlink": True})
-            pushed_sgtk = sgtk.sgtk_from_path(temp_pc_dir)
+            sgtk.sgtk_from_path(temp_pc_dir)
         # Let's check things are still alright one last time
         push_cmd.execute({"target_id": cloned_pc_id})
-        pushed_sgtk = sgtk.sgtk_from_path(temp_pc_dir)
+        sgtk.sgtk_from_path(temp_pc_dir)
         # Clean up
         shutil.rmtree(temp_dir, ignore_errors=True)
