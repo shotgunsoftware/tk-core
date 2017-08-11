@@ -26,6 +26,7 @@ from tank.errors import TankError
 from mock import patch
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.mock_appstore import patch_app_store
 
 
 class TestPipelineConfig(TankTestBase):
