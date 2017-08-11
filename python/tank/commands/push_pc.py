@@ -338,8 +338,9 @@ class PushPCAction(Action):
                     # If it fails, fall back to copying files and deleting them
                     # only after everything was copied over.
                     # We basically replicates what shutil.move does, but we use
-                    # shutil.copytree and shutil.rmtree to ensure we only delete
-                    # data after everything was copied over in the backup folder.
+                    # shutil.copytree and filesystem.safe_delete_folder to ensure
+                    # we only delete data after everything was copied over in the
+                    # backup folder.
                     try:
                         os.rename(target_path, target_backup_path)
                         created_backup_path = target_backup_path
