@@ -116,5 +116,3 @@ class TestFileSystem(TankTestBase):
 
         # Clean up
         fs.safe_delete_folder(test_folder)
-
-

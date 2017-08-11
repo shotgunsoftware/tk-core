@@ -407,6 +407,7 @@ def safe_delete_folder(path):
     else:
         log.warning("Could not delete: %s. Folder does not exist" % path)
 
+
 def get_unused_path(base_path):
     """
     Return an unused file path from the given base path by appending if needed
@@ -445,5 +446,3 @@ def get_unused_path(base_path):
         if not os.path.exists(path):
             break
     return path
-
-

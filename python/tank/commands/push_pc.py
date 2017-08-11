@@ -45,11 +45,12 @@ class PushPCAction(Action):
         Action.__init__(
             self,
             "push_configuration",
-            Action.TK_INSTANCE,
-            ("Pushes any configuration changes made here to another configuration. "
-            "This is typically used when you have cloned your production configuration "
-            "into a staging sandbox, updated the apps in this sandbox and want to push "
-            "those updates back to your production configuration."),
+            Action.TK_INSTANCE,(
+                "Pushes any configuration changes made here to another configuration. "
+                "This is typically used when you have cloned your production configuration "
+                "into a staging sandbox, updated the apps in this sandbox and want to push "
+                "those updates back to your production configuration."
+            ),
             "Configuration"
         )
         # This method can be executed via the API
@@ -177,7 +178,6 @@ class PushPCAction(Action):
                 "configurations in order to push. Please start by cloning a pipeline "
                 "configuration inside of Shotgun."
             )
-
 
     def _run(self, log, target_id, use_symlink=False):
         """
