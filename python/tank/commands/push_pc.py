@@ -193,7 +193,7 @@ class PushPCAction(Action):
         # Windows.
         if use_symlink and not getattr(os, "symlink", None):
             raise TankError(
-                "Symbolic links are supported on this platform"
+                "Symbolic links are not supported on this platform"
             )
 
         if target_id == self.tk.pipeline_configuration.get_shotgun_id():
@@ -342,14 +342,15 @@ class PushPCAction(Action):
                     # data after everything was copied over in the backup folder.
                     try:
                         os.rename(target_path, target_backup_path)
+                        created_backup_path = target_backup_path
                     except OSError, e:
                         log.debug("Falling back on copying folder...:%s" % e)
                         # Didn't work fall back to copying files
                         shutil.copytree(target_path, target_backup_path)
-                        shutil.rmtree(target_path)
-                    else:
-                        # Only happens if either os.rename or copytree/rmtree worked.
+                        # Delete below could fail, but we do have a backup, so flag
+                        # it now.
                         created_backup_path = target_backup_path
+                        filesystem.safe_delete_folder(target_path)
             except Exception, e:
                 raise TankError(
                     "Could not move target folder from '%s' to '%s'. "
