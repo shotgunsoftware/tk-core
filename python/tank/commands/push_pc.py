@@ -45,7 +45,7 @@ class PushPCAction(Action):
         Action.__init__(
             self,
             "push_configuration",
-            Action.TK_INSTANCE,(
+            Action.TK_INSTANCE, (
                 "Pushes any configuration changes made here to another configuration. "
                 "This is typically used when you have cloned your production configuration "
                 "into a staging sandbox, updated the apps in this sandbox and want to push "
