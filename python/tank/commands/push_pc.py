@@ -172,7 +172,7 @@ class PushPCAction(Action):
 
         # We should have at least one pipeline config (the current one)
         # We need a second one to push to, obviously...
-        if len(self._pipeline_configs) == 1:
+        if len(self._pipeline_configs) < 2:
             raise TankError(
                 "Only one pipeline configuration for this project! Need at least two "
                 "configurations in order to push. Please start by cloning a pipeline "
