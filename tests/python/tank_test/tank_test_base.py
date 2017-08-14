@@ -306,6 +306,16 @@ class TankTestBase(unittest.TestCase):
         os.makedirs(self.project_root)
         os.makedirs(self.pipeline_config_root)
 
+        # copy tank util scripts
+        shutil.copy(
+            os.path.join(self.tank_source_path, "setup", "root_binaries", "tank"),
+            os.path.join(self.pipeline_config_root, "tank")
+        )
+        shutil.copy(
+            os.path.join(self.tank_source_path, "setup", "root_binaries", "tank.bat"),
+            os.path.join(self.pipeline_config_root, "tank.bat")
+        )
+
         # project level config directories
         self.project_config = os.path.join(self.pipeline_config_root, "config")
 
