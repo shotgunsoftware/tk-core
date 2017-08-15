@@ -84,6 +84,8 @@ class ValidateConfigAction(Action):
     
         # validate environments
         for env_name in parameters["envs"]:
+            log.info("")
+            log.info("Processing environment %s.yml" % env_name)
             env = self.tk.pipeline_configuration.get_environment(env_name)
             _process_environment(log, self.tk, env)
     
@@ -255,8 +257,6 @@ def _process_environment(log, tk, env):
     :param tk: A toolkit api instance.
     :param env: An environment instance.
     """
-
-    log.info("Processing environment %s" % env)
 
     for e in env.get_engines():
         s = env.get_engine_settings(e)
