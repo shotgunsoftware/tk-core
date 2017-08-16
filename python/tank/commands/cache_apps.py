@@ -69,7 +69,11 @@ class CacheAppsAction(Action):
             log.info("")
             log.info("Environment %s" % env_name)
             log.info("------------------------------------------")
+
             env = self.tk.pipeline_configuration.get_environment(env_name)
+
+            log.info("Environment path: %s" % (env.disk_location))
+            log.info("")
 
             for eng in env.get_engines():
                 desc = env.get_engine_descriptor(eng)
