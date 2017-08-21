@@ -62,8 +62,8 @@ class ConsoleAuthenticationHandlerBase(object):
                 try:
                     # Try to generate a session token and return the user info.
                     return hostname, login, session_cache.generate_session_token(
-                        hostname, login, password, http_proxy, None, None
-                    )
+                        hostname, login, password, http_proxy, None
+                    ), None
                 except MissingTwoFactorAuthenticationFault:
                     # session_token was None, we need 2fa.
                     code = self._get_2fa_code()
