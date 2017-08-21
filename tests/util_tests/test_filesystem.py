@@ -86,3 +86,33 @@ class TestFileSystem(TankTestBase):
 
         # check that the folder is deleted successfully
         self.assertFalse(os.path.exists(dst_folder))
+
+    def test_unused_path(self):
+        """
+        Test the get_unused_path helper
+        """
+        test_folder = os.path.join(self.tank_temp, "unused_tests")
+
+        # Basic test with a simple name
+        path = os.path.join(test_folder, "foo")
+        self.assertEqual(fs.get_unused_path(path), path)
+        # Create the target path and check it is detected
+        fs.ensure_folder_exists(path)
+        self.assertEqual(fs.get_unused_path(path), "%s_1" % path)
+
+        # Test we insert the number in the right place if we have some "." in the
+        # base path.
+        path = os.path.join(test_folder, "foo.0020.exr")
+        self.assertEqual(fs.get_unused_path(path), path)
+        fs.touch_file(path)
+        self.assertEqual(fs.get_unused_path(path), os.path.join(test_folder, "foo_1.0020.exr"))
+
+        # Test multiple iterations
+        fs.touch_file(os.path.join(test_folder, "foo_1.0020.exr"))
+        fs.touch_file(os.path.join(test_folder, "foo_2.0020.exr"))
+        fs.touch_file(os.path.join(test_folder, "foo_3.0020.exr"))
+        fs.touch_file(os.path.join(test_folder, "foo_4.0020.exr"))
+        self.assertEqual(fs.get_unused_path(path), os.path.join(test_folder, "foo_5.0020.exr"))
+
+        # Clean up
+        fs.safe_delete_folder(test_folder)

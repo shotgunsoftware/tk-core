@@ -265,6 +265,9 @@ def move_folder(src, dst, folder_permissions=0775):
     First copies all content into target. Then deletes
     all content from sources. Skips files that won't delete.
 
+    .. note::
+        The source folder itself is not deleted, it is just emptied, if possible.
+
     :param src: Source path to copy from
     :param dst: Destination to copy to
     :param folder_permissions: permissions to use for new folders
@@ -403,3 +406,43 @@ def safe_delete_folder(path):
             log.warning("Could not delete %s: %s" % (path, e))
     else:
         log.warning("Could not delete: %s. Folder does not exist" % path)
+
+
+def get_unused_path(base_path):
+    """
+    Return an unused file path from the given base path by appending if needed
+    a number at the end of the basename of the path, right before the first ".",
+    if any.
+    
+    For example, "/tmp/foo_1.bar.blah" would be returned for "/tmp/foo.bar.blah"
+    if it already exists.
+
+    If the given path does not exist, the original path is returned.
+
+    .. note::
+        The returned path is not _reserved_, so it is possible that other processes
+        could create the returned path before it is used by the caller.
+
+    :param str base_path: Target path.
+    :returns: A string.
+    """
+    if not os.path.exists(base_path):
+        # Bail out quickly if everything is fine with the path
+        return base_path
+
+    # Split the base path and find an unused path
+    folder, basename = os.path.split(base_path)
+    # Split the basename at the first ".", if any. Make sure we always have at least
+    # two entries.
+    base_parts = basename.split(".", 1) + [""]
+    numbering = 0
+    while True:
+        numbering += 1
+        name = "%s_%d%s" % (
+            base_parts[0], numbering, ".%s" % base_parts[1] if base_parts[1] else ""
+        )
+        path = os.path.join(folder, name)
+        log.debug("Checking if %s exists..." % path)
+        if not os.path.exists(path):
+            break
+    return path
