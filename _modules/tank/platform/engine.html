@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.101 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.103 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.101 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.103 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.101.<br>
+    <b>tk-core</b> v0.18.103.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1818,9 +1818,10 @@
 
         <span class="c1"># apply style sheet</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_apply_external_stylesheet</span><span class="p">(</span><span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span>
-        
+
         <span class="c1"># create the dialog:</span>
         <span class="n">dialog</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_dialog</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="p">(</span><span class="n">dialog</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span></div>
     
 <div class="viewcode-block" id="Engine._on_dialog_closed"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._on_dialog_closed">[docs]</a>    <span class="k">def</span> <span class="nf">_on_dialog_closed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dlg</span><span class="p">):</span>
@@ -2065,33 +2066,118 @@
 <span class="sd">        at window creation in order to allow newly created dialogs to apply app specific</span>
 <span class="sd">        styles easily.</span>
 <span class="sd">        </span>
+<span class="sd">        If the `SHOTGUN_QSS_FILE_WATCHER` env variable is set to &quot;1&quot;, the style sheet</span>
+<span class="sd">        will be reloaded and re-applied if changed. This can be useful when developing</span>
+<span class="sd">        apps to do some interactive styling but shouldn&#39;t be used in production.</span>
+
 <span class="sd">        :param bundle: app/engine/framework instance to load style sheet from</span>
 <span class="sd">        :param widget: widget to apply stylesheet to </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">qss_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bundle</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">BUNDLE_STYLESHEET_FILE</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">qss_file</span><span class="p">):</span>
+            <span class="c1"># Bail out if the file does not exist.</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span>
+            <span class="s2">&quot;Detected std style sheet file &#39;</span><span class="si">%s</span><span class="s2">&#39; - applying to widget </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">qss_file</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_apply_stylesheet_file</span><span class="p">(</span><span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># catch-all and issue a warning and continue.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_warning</span><span class="p">(</span><span class="s2">&quot;Could not apply stylesheet &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qss_file</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+
+        <span class="c1"># Set a style sheet file watcher which can be used for interactive styling.</span>
+        <span class="c1"># File watchers can cause problems in production when accessing shared</span>
+        <span class="c1"># storage, so we only set it if explicitly asked to do so.</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;SHOTGUN_QSS_FILE_WATCHER&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="c1"># Read css file</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Detected std style sheet file &#39;</span><span class="si">%s</span><span class="s2">&#39; - applying to widget </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">))</span>
-                <span class="n">qss_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-                <span class="c1"># resolve tokens</span>
-                <span class="n">qss_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_sg_stylesheet_tokens</span><span class="p">(</span><span class="n">qss_data</span><span class="p">)</span>
-                <span class="c1"># apply to widget (and all its children)</span>
-                <span class="n">widget</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="n">qss_data</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_add_stylesheet_file_watcher</span><span class="p">(</span><span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-                <span class="c1"># catch-all and issue a warning and continue.</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log_warning</span><span class="p">(</span><span class="s2">&quot;Could not apply stylesheet &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qss_file</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
-            <span class="k">finally</span><span class="p">:</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-            <span class="c1"># The file didn&#39;t exist, so nothing to do.</span>
-            <span class="k">pass</span>
+                <span class="c1"># We don&#39;t want the watcher to cause any problem, so we catch</span>
+                <span class="c1"># errors but issue a warning so the developer knows that interactive</span>
+                <span class="c1"># styling is off.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log_warning</span><span class="p">(</span><span class="s2">&quot;Unable to set qss file watcher: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+
 
     <span class="c1"># Here we add backward compatibility for a typo that existed in core for a</span>
     <span class="c1"># while. The method was found to be used in some existing Engine subclasses</span>
     <span class="c1"># so we need this.</span>
     <span class="n">_apply_external_styleshet</span> <span class="o">=</span> <span class="n">_apply_external_stylesheet</span>
+
+    <span class="k">def</span> <span class="nf">_apply_stylesheet_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load and apply the given style sheet file to the given widget and all its</span>
+<span class="sd">        children.</span>
+
+<span class="sd">        :param str qss_file: Full path to the style sheet file.</span>
+<span class="sd">        :param widget: The QWidget to apply the style sheet to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">qss_file</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">qss_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="c1"># resolve tokens</span>
+            <span class="n">qss_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_sg_stylesheet_tokens</span><span class="p">(</span><span class="n">qss_data</span><span class="p">)</span>
+            <span class="c1"># apply to widget (and all its children)</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="n">qss_data</span><span class="p">)</span>
+            <span class="c1"># Post of widget repaint</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_add_stylesheet_file_watcher</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set a file watcher which will reload and re-apply the stylesheet file to</span>
+<span class="sd">        the given widget if the file is modified.</span>
+
+<span class="sd">        This can be useful when developping apps to perform interactive styling,</span>
+<span class="sd">        but shouldn&#39;t be used in production because of the problems it can cause.</span>
+
+<span class="sd">        :param qss_file: Full path to the style sheet file.</span>
+<span class="sd">        :param widget: A QWidget to apply the stylesheet to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtCore</span>
+        <span class="c1"># We don&#39;t keep any reference to the watcher to let it be deleted with</span>
+        <span class="c1"># the widget it is parented under.</span>
+        <span class="c1"># Please note that QWidgets/QFileSystemWatcher don&#39;t seem to be actually</span>
+        <span class="c1"># deleted, so if multiple dialogs are created, e.g. from tk-desktop, users</span>
+        <span class="c1"># could end up having a *lot* of file watchers running. Another good reason</span>
+        <span class="c1"># to *not* run these watchers in production, but only when developing apps.</span>
+        <span class="n">watcher</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QFileSystemWatcher</span><span class="p">([</span><span class="n">qss_file</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="n">widget</span><span class="p">)</span>
+        <span class="n">watcher</span><span class="o">.</span><span class="n">fileChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_external_stylesheet_changed</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">watcher</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c1"># We use log_info here instead of log_debug because the style sheet watcher</span>
+        <span class="c1"># is meant to be used only when doing development and knowing that the</span>
+        <span class="c1"># style sheet file watcher is activated is useful when the file is tweaked</span>
+        <span class="c1"># but no visible changes happen. It can be useful as well to know that watchers</span>
+        <span class="c1"># were activated by mistake in production.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_info</span><span class="p">(</span><span class="s2">&quot;Watching qss file </span><span class="si">%s</span><span class="s2"> for </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_on_external_stylesheet_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qss_file</span><span class="p">,</span> <span class="n">watcher</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when the style sheet file has been modified and a watcher was set.</span>
+<span class="sd">        Reload and re-apply the style sheet file to the given widget.</span>
+
+<span class="sd">        :param qss_file: Full path to the style sheet file.</span>
+<span class="sd">        :param watcher: The :class:`QtCore.QFileSystemWatcher` which triggered the</span>
+<span class="sd">                        callback.</span>
+<span class="sd">        :param widget: A QWidget to apply the stylesheet to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># We use log_info here instead of log_debug because the style sheet watcher</span>
+        <span class="c1"># is meant to be used only when doing development and knowing that the</span>
+        <span class="c1"># style sheet file was reloaded but without any visible effect is useful</span>
+        <span class="c1"># when tweaking it.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_info</span><span class="p">(</span><span class="s2">&quot;Reloading style sheet </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">qss_file</span><span class="p">)</span>
+        <span class="c1"># Unset styling</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="c1"># And reload it</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_stylesheet_file</span><span class="p">(</span><span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span>
+        <span class="c1"># Some code editors rename files on save, so the watcher will</span>
+        <span class="c1"># stop watching the file. Check if the file is being watched, re-attach</span>
+        <span class="c1"># it if not.</span>
+        <span class="k">if</span> <span class="n">qss_file</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">watcher</span><span class="o">.</span><span class="n">files</span><span class="p">():</span>
+            <span class="n">watcher</span><span class="o">.</span><span class="n">addPath</span><span class="p">(</span><span class="n">qss_file</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="Engine._define_qt_base"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._define_qt_base">[docs]</a>    <span class="k">def</span> <span class="nf">_define_qt_base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -3153,7 +3239,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.101',
+            VERSION:'v0.18.103',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
