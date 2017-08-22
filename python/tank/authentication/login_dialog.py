@@ -257,6 +257,8 @@ class LoginDialog(QtGui.QDialog):
             # If the offscreen session renewal failed, show the GUI as a failsafe
             if res == QtGui.QDialog.Accepted:
                 return self._saml2_sso.get_session_data()
+            else:
+                return None
 
         res = self.exec_()
 
