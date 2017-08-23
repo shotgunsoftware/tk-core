@@ -1,3 +1,5 @@
+# coding: latin-1
+#
 # Copyright (c) 2016 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -7,6 +9,7 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+
 
 from mock import patch
 
@@ -27,10 +30,10 @@ from tank.authentication import ShotgunAuthenticator
 
 import os
 import json
-import tank
 import time
 import threading
 import urllib2
+
 
 class TestToolkitMetric(TankTestBase):
     """Cases testing tank.util.metrics.ToolkitMetric class"""
@@ -107,8 +110,6 @@ class TestEventMetric(TankTestBase):
         metric.add_event_property("StringProp", "Thjis is a test string")
         metric.add_event_property("DictProp", { "Key1":"value1", "Key2":"Value2"})
         metric.add_event_property("ListProp", [1,2,3,4,5] )
-
-        print "metric.data: " + str(metric.data)
 
     def test_add_system_info_properties(self):
         """ Simply assert that the method is exception free """
@@ -309,15 +310,12 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         return metrics
 
-    def test_end_to_end(self):
+    def _helper_test_end_to_end(self, metric):
         """
-        Test a complete cycle of creating, submitting and receiving a server response.
-        The test allows deeper testing of the difficult inner working.
-        A
+        Helper method for the test_end_to_end_* tests. Allows a deeper and
+        more complete test cycle of creating, submitting and receiving
+        a mocked-server response.
         """
-
-        METRIC_EVENT_GROUP = "App"
-        METRIC_EVENT_NAME = "Test Log Metric with recent-enough server"
 
         # Setup test fixture, engine and context with newer server caps
         #
@@ -329,15 +327,10 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         self._setup_shotgun(server_capsMock())
 
-        # Make at least one metric related call
-        metric = EventMetric(event_group=METRIC_EVENT_GROUP, event_name=METRIC_EVENT_NAME)
-        metric.add_event_property("IntProp", 2 )
-        metric.add_event_property("BoolProp", True)
-        metric.add_event_property("StringProp", "Thjis is a test string")
-        metric.add_event_property("DictProp", { "Key1":"value1", "Key2":"Value2"})
-        metric.add_event_property("ListProp", [1,2,3,4,5])
-        metric.add_system_info_properties()
-        metric.add_user_info_properties()
+        # Save a few values for comparing on the other side
+        METRIC_EVENT_NAME = metric.data["event_name"]
+
+        # Make at least one metric related call!
         log_event_metric(metric)
 
         TIMEOUT_SECONDS = 4 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL \
@@ -370,12 +363,63 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                         if ("event_name" in metric) and (METRIC_EVENT_NAME == metric['event_name']):
                             # Nothing else FOR NOW to test, we can report success by bypassing
                             # timeout failure down below.
-                            return
+
+                            # Tests all of the received metric properties that went through two conversions
+                            return metric
 
         if( found_urllib2_request_call ):
             self.fail("Timed out waiting for expected metric.")
         else:
             self.fail("Timed out waiting for a mocked urlopen request call.")
+
+    def test_end_to_end_basic(self):
+        """
+        Test a complete cycle using non proplemtic metric object.
+
+        """
+        metric = EventMetric(event_group="App", event_name="Test test_end_to_end")
+        metric.add_event_property("IntProp", 2 )
+        metric.add_event_property("BoolProp", True)
+        metric.add_event_property("StringProp", "Thjis is a test string")
+        metric.add_event_property("DictProp", { "Key1":"value1", "Key2":"Value2"})
+        metric.add_event_property("ListProp", [1,2,3,4,5])
+        metric.add_system_info_properties()
+        metric.add_user_info_properties()
+
+        server_received_metric = self._helper_test_end_to_end(metric)
+        print str(server_received_metric)
+        # Test the metric that was encoded and transmitted to the mock server
+        self.assertTrue("event_group" in server_received_metric )
+        self.assertTrue("event_name" in server_received_metric)
+        self.assertTrue("event_property" in server_received_metric)
+        self.assertTrue("IntProp" in server_received_metric["event_property"])
+        self.assertTrue("BoolProp" in server_received_metric["event_property"])
+        self.assertTrue("StringProp" in server_received_metric["event_property"])
+        self.assertTrue("DictProp" in server_received_metric["event_property"])
+        self.assertTrue("ListProp" in server_received_metric["event_property"])
+
+        self.assertTrue(isinstance(server_received_metric["event_group"], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_name"], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_property"], dict))
+        self.assertTrue(isinstance(server_received_metric["event_property"]["IntProp"], int))
+        self.assertTrue(isinstance(server_received_metric["event_property"]["IntProp"],int))
+        self.assertTrue(isinstance(server_received_metric["event_property"]["BoolProp"], bool))
+        self.assertTrue(isinstance(server_received_metric["event_property"]["StringProp"], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_property"]["DictProp"], dict))
+        self.assertTrue(isinstance(server_received_metric["event_property"]["ListProp"], list))
+
+    # Not currently supporting usage of non-ascii7 charcaters, request would need to be escaped"
+    def _test_end_to_end_with_non_ascii7_chars(self):
+        """
+        Test a complete cycle of creating, submitting and receiving a server
+        response using non-ascii-7 characaters in the request.
+        """
+
+        metric = EventMetric(event_group="App", event_name="Test test_end_to_end")
+        metric.add_event_property("Name with accents", "Éric Hébert")
+        metric.add_event_property("String with tricky characters", "''\"\\//%%$$?&?$^^,¨¨`")
+
+        self._helper_test_end_to_end(metric)
 
     def test_not_logging_older_tookit(self):
         """
