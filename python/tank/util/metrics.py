@@ -74,7 +74,7 @@ class MetricsQueueSingleton(object):
         If ``log_once`` is set to ``True``, this will only log the metric if it
         is the first attempt to log it.
 
-        :param ToolkitMetric metric: The metric to log.
+        :param EventMetric metric: The metric to log.
         :param bool log_once: ``True`` if this metric should be ignored if it
             has already been logged. ``False`` otherwise. Defaults to ``False``.
         """
@@ -215,14 +215,17 @@ class MetricsDispatchWorkerThread(Thread):
     the worker thread will exit early.
     """
 
-    API_ENDPOINT = "api3/log_metrics/"
-    """SG API endpoint for logging metrics."""
+    API_ENDPOINT = "api3/track_metrics/"
+    """ Updated august-2017, SG API endpoint for logging metrics."""
 
     DISPATCH_INTERVAL = 5
     """Worker will wait this long between metrics dispatch attempts."""
 
     DISPATCH_BATCH_SIZE = 10
-    """Worker will dispatch this many metrics at a time, or all if <= 0."""
+    """
+    Worker will dispatch this many metrics at a time, or all if <= 0.
+    NOTE: that current SG server code reject batches larger than 10.
+    """
 
     def __init__(self, engine):
         """
@@ -253,7 +256,7 @@ class MetricsDispatchWorkerThread(Thread):
         metrics_ok = (
             hasattr(sg_connection, "server_caps") and
             sg_connection.server_caps.version and
-            sg_connection.server_caps.version >= (6, 3, 11)
+            sg_connection.server_caps.version >= (7, 4, 0)
         )
         if not metrics_ok:
             # metrics not supported
@@ -345,79 +348,85 @@ class ToolkitMetric(object):
         return self._data
 
 
-class UserActivityMetric(ToolkitMetric):
-    """Convenience class for a user activity metric."""
+class EventMetric(ToolkitMetric):
+    """Convenience class for creating a metric event."""
 
-    def __init__(self, module, action):
-        """Initialize the metric with the module and action information.
-        
-        :param str module: Name of the module in which action was performed.
+    def __init__(self, event_group, event_name, event_properties=None):
+        """
+        Initialize a metric event using the specified parameters.
+
+        :param str event_group: The group or category this metric falls into (see `tank.util.log_user_activity_metric()`.
+
+
+            of the module in which action was performed.
         :param str action: The action that was performed.
         
         """
-        super(UserActivityMetric, self).__init__({
-            "type": "user_activity",
-            "module": module,
-            "action": action,
+
+        #if not isinstance(event_group, str):
+        #    raise TypeError("The `event_group` parameter must be None or a str")
+
+        #if not isinstance(event_name, str):
+        #    raise TypeError("The `event_name` parameter must be None or a str")
+
+        # TODO: go for silent cast to 'str' or raise TypeError ?
+        super(EventMetric, self).__init__({
+            "event_group": str(event_group),
+            "event_name": str(event_name)
         })
+
+        # Initializing the event property dictionnary with a default event_type
+        # somehow duplicating what's being done in Shogun (The server)
+        self._data["event_property"] = {"event_type" : "event"}
+
+        if event_properties:
+            if not type(event_properties) is dict:
+                raise TypeError("The `event_properties` parameter must be None or a Dict")
+
+            for key in event_properties.keys():
+                value = event_properties[key]
+                self.add_event_property(key, value)
+
+    def add_event_property(self, name, value):
+        # TODO: add check or warning about possibly conflicting
+        # event properties used in Amplitude?
+        # (e.g.: 'city', 'ip_address', 'device_manufacturer', 'device_type' just to name a few )
+        self._data["event_property"][name] = value
 
     def __repr__(self):
         """Official str representation of the user activity metric."""
-        return "%s.%s" % (self._data["module"], self._data["action"])
-
-
-class UserAttributeMetric(ToolkitMetric):
-    """Convenience class for a user attribute metric."""
-
-    def __init__(self, attr_name, attr_value):
-        """Initialize the metric with the attribute name and value.
-        
-        :param str attr_name: Name of the attribute.
-        :param str attr_value: The value of the attribute.
-
-        """
-        super(UserAttributeMetric, self).__init__({
-            "type": "user_attribute",
-            "attr_name": attr_name,
-            "attr_value": attr_value,
-        })
-
-    def __repr__(self):
-        """Official str representation of the user attribute metric."""
-        return "%s.%s" % (self._data["attr_name"], self._data["attr_value"])
+        return "%s:%s" % (self._data["event_group"], self._data["event_name"])
 
 
 ###############################################################################
 # metrics logging convenience functions
 
-def log_metric(metric, log_once=False):
-    """Log a Toolkit metric.
-    
-    :param ToolkitMetric metric: The metric to log.
+def log_event_metric(metric_event, log_once=False):
+    """ Log a Toolkit metric event now using the Amplitude service.
+
+    This method adds the metric event to a dispatch queue, it doesn't get
+    posted on the web right away.
+
+    A dispatcher processes the queue every N seconds, it packs queued metrics
+    into a single payload and then submit the payload to a Shotgun site.
+
+    :param MetricEvent metric: A metric event to add the the queue.
+
     :param bool log_once: ``True`` if this metric should be ignored if it has
         already been logged. Defaults to ``False``.
 
-    This method simply adds the metric to the dispatch queue.
     """
-    MetricsQueueSingleton().log(metric, log_once=log_once)
+    MetricsQueueSingleton().log(metric_event, log_once=log_once)
+
+def log_metric(metric, log_once=False):
+    """ Depricated method, use the `log_metric_event` method."""
+    pass
 
 def log_user_activity_metric(module, action, log_once=False):
-    """Convenience method for logging a user activity metric.
-
-    :param str module: The module the activity occured in.
-    :param str action: The action the user performed.
-    :param bool log_once: ``True`` if this metric should be ignored if it has
-        already been logged. Defaults to ``False``.
-    """
-    log_metric(UserActivityMetric(module, action), log_once=log_once)
+    """ Depricated method, use the `log_metric_event` method."""
+    pass
 
 def log_user_attribute_metric(attr_name, attr_value, log_once=False):
-    """Convenience method for logging a user attribute metric.
-
-    :param str attr_name: The name of the attribute.
-    :param str attr_value: The value of the attribute to log.
-    :param bool log_once: ``True`` if this metric should be ignored if it has
-        already been logged. Defaults to ``False``.
-    """
-    log_metric(UserAttributeMetric(attr_name, attr_value), log_once=log_once)
+    """ Depricated method, use the `log_metric_event` method."""
+    pass
 
