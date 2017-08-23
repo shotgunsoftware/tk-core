@@ -204,6 +204,7 @@ class MetricsDispatcher(object):
         """A list of workers threads dispatching metrics from the queue."""
         return self._workers
 
+
 class MetricsDispatchWorkerThread(Thread):
     """Worker thread for dispatching metrics to sg logging endpoint.
 
@@ -216,7 +217,6 @@ class MetricsDispatchWorkerThread(Thread):
     """
 
     API_ENDPOINT = "api3/track_metrics/"
-    """ Updated august-2017, SG API endpoint for logging metrics."""
 
     DISPATCH_INTERVAL = 5
     """Worker will wait this long between metrics dispatch attempts."""
@@ -271,7 +271,7 @@ class MetricsDispatchWorkerThread(Thread):
                     self.DISPATCH_BATCH_SIZE)
                 if metrics:
                     self._dispatch(metrics)
-            except Exception, e:
+            except Exception:
                 pass
             finally:
                 # wait, checking for halt event before more processing
@@ -312,8 +312,8 @@ class MetricsDispatchWorkerThread(Thread):
         header = {'Content-Type': 'application/json'}
         try:
             request = urllib2.Request(url, payload_json, header)
-            response = urllib2.urlopen(request)
-        except urllib2.HTTPError, e:
+            urllib2.urlopen(request)
+        except urllib2.HTTPError:
             # fire and forget, so if there's an error, ignore it.
             pass
 
@@ -350,7 +350,7 @@ class ToolkitMetric(object):
 
 class EventMetric(ToolkitMetric):
     """
-    Convenience class for creating a metric event.
+    Convenience class for creating a metric event to be logged on Shotgun site.
 
     Use this helper class to create a suitable metric structure that you can
     then pass to the `tank.utils.metrics.log_metric_event` method.
@@ -359,7 +359,7 @@ class EventMetric(ToolkitMetric):
     event name to the constructor:
 
     Optionally, you can add your own specific metrics by using the
-    `add_event_property` method. The later simply takes a key-value
+    `add_event_property` method. The latter simply takes a key-value
     pair and properly structure the entry into the metric structure.
 
     metric.add_event_property("MyAppVersion", "10.13.1")
@@ -392,7 +392,7 @@ class EventMetric(ToolkitMetric):
     def __init__(self, event_group, event_name):
         """
         Initialize a metric event using the specified parameters. Use this helper class
-        to create a suitable metric structure to be
+        to create a suitable metric structure to be used with the
 
         :param str event_group: A group or category this metric event falls into.
             Below are a few Typical values:
@@ -437,7 +437,7 @@ class EventMetric(ToolkitMetric):
 
         # Initializing the event property dictionary with a default event_type
         # somehow duplicating what's being done in Shogun (The server)
-        self._data["event_property"] = {"event_type" : "event"}
+        self._data["event_property"] = {"event_type": "event"}
 
     def add_event_property(self, name, value):
         # TODO: add check or warning about possibly conflicting event properties used in Amplitude?
@@ -497,15 +497,17 @@ def log_event_metric(metric_event, log_once=False):
     """
     MetricsQueueSingleton().log(metric_event, log_once=log_once)
 
+
 def log_metric(metric, log_once=False):
     """ Depricated method, use the `log_metric_event` method."""
     pass
+
 
 def log_user_activity_metric(module, action, log_once=False):
     """ Depricated method, use the `log_metric_event` method."""
     pass
 
+
 def log_user_attribute_metric(attr_name, attr_value, log_once=False):
     """ Depricated method, use the `log_metric_event` method."""
     pass
-

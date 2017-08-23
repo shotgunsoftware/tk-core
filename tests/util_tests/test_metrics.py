@@ -15,7 +15,6 @@ from mock import patch
 
 from tank.util.metrics import (
     MetricsQueueSingleton,
-    MetricsDispatcher,
     MetricsDispatchWorkerThread,
     ToolkitMetric,
     EventMetric,
@@ -57,14 +56,13 @@ class TestEventMetric(TankTestBase):
     def test_data_property(self):
         """Object has a data dictionary that matches args."""
 
-        obj = EventMetric(event_group="App",event_name="Test Data Property")
+        obj = EventMetric(event_group="App", event_name="Test Data Property")
         self.assertTrue(hasattr(obj, 'data'))
         self.assertIsInstance(obj.data, dict)
         metric = obj.data
         self.assertTrue("event_group" in metric)
         self.assertTrue("event_name" in metric)
         self.assertTrue("event_property" in metric)
-
 
     def test_init_with_invalid_parameters(self):
         """ Simply assert that the constructor is exception free and is able
@@ -78,15 +76,15 @@ class TestEventMetric(TankTestBase):
             EventMetric([], []),
         except Exception, e:
             self.fail(
-                "Creating an instance of 'EventMetric' failed unexpectedly: %s",(e)
+                "Creating an instance of 'EventMetric' failed unexpectedly: %s", (e)
             )
 
     def test_init_with_valid_parameters(self):
         """ Simply assert that the constructor is exception free."""
         try:
 
-            m1 = EventMetric(event_group="App",
-                             event_name="Test Log Metric without additional properties")
+            EventMetric(event_group="App",
+                        event_name="Test Log Metric without additional properties")
 
             m2 = EventMetric(event_group="App",
                              event_name="Test Log Metric with additional properties")
@@ -97,7 +95,7 @@ class TestEventMetric(TankTestBase):
 
         except Exception, e:
             self.fail(
-                "Creating an instance of 'EventMetric' failed unexpectedly: %s",(e)
+                "Creating an instance of 'EventMetric' failed unexpectedly: %s" % (e)
             )
 
     def test_add_event_property(self):
@@ -105,16 +103,16 @@ class TestEventMetric(TankTestBase):
             to deal with various types. """
 
         metric = EventMetric(event_group="App", event_name="Test add_event_property")
-        metric.add_event_property("IntProp", 2 )
+        metric.add_event_property("IntProp", 2)
         metric.add_event_property("BoolProp", True)
         metric.add_event_property("StringProp", "Thjis is a test string")
-        metric.add_event_property("DictProp", { "Key1":"value1", "Key2":"Value2"})
-        metric.add_event_property("ListProp", [1,2,3,4,5] )
+        metric.add_event_property("DictProp", {"Key1": "value1", "Key2": "Value2"})
+        metric.add_event_property("ListProp", [1, 2, 3, 4, 5])
 
     def test_add_system_info_properties(self):
         """ Simply assert that the method is exception free """
 
-        metric = EventMetric(event_group="App",event_name="Test add_system_info_properties")
+        metric = EventMetric(event_group="App", event_name="Test add_system_info_properties")
         metric.add_system_info_properties()
 
         # TODO: Add test veryfying that additional sytem info properties were indeed added
@@ -127,6 +125,7 @@ class TestEventMetric(TankTestBase):
 
         # TODO: Add test veryfying that additional user info properties were indeed added
 
+
 def _mocked_urlopen_for_test_updated_metric_endpoint(*args, **kwargs):
     class MockResponse:
         def __init__(self, json_data, status_code):
@@ -137,17 +136,11 @@ def _mocked_urlopen_for_test_updated_metric_endpoint(*args, **kwargs):
             return self.json_data
 
     print "**** : _mocked_urlopen_for_test_updated_metric_endpoint: '%s', data:'%s'" % (args[0]._Request__original, args[0].data)
-
-    #if "track_metrics" in args[0]._Request__original:
-
     return MockResponse({"key2": "value2"}, 200)
-
-    #return MockResponse(None, 2002)
 
 
 class TestMetricsDispatchWorkerThread(TankTestBase):
 
-    INTERVAL_DEBUG_MULTIPLIER = 1
     METRIC_ENDPOINT = "api3/track_metrics/"
     SLEEP_INTERVAL = 0.25
 
@@ -235,7 +228,6 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         super(TestMetricsDispatchWorkerThread, self).setUp()
 
         # Storing the value as it might have be changed in tests
-        print "MetricsDispatchWorkerThread.DISPATCH_INTERVAL: " + str(MetricsDispatchWorkerThread.DISPATCH_INTERVAL)
         self._saved_dispatch_interval = MetricsDispatchWorkerThread.DISPATCH_INTERVAL
 
         self._urlopen_mock = None
@@ -253,13 +245,12 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._destroy_engine()
 
         # Restore value as it might have been changed in tests
-        print "self._saved_dispatch_interval: " + str(self._saved_dispatch_interval)
         MetricsDispatchWorkerThread.DISPATCH_INTERVAL = self._saved_dispatch_interval
 
         # important to call base class so it can clean up memory
         super(TestMetricsDispatchWorkerThread, self).tearDown()
 
-    def _get_urllib2_request_calls(self,return_only_calls_after_reset=False):
+    def _get_urllib2_request_calls(self, return_only_calls_after_reset=False):
         """
         Helper test method that traverses `mock_calls` and return a list of `urllib2.Request` specific calls
 
@@ -290,7 +281,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         return mocked_request_calls
 
-    def _get_metrics(self,return_only_calls_after_reset=False):
+    def _get_metrics(self, return_only_calls_after_reset=False):
         """
 
         Helper test method that traverses `mock_calls` and return a list of individual metrics.
@@ -333,8 +324,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Make at least one metric related call!
         log_event_metric(metric)
 
-        TIMEOUT_SECONDS = 4 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL \
-                          * TestMetricsDispatchWorkerThread.INTERVAL_DEBUG_MULTIPLIER
+        TIMEOUT_SECONDS = 4 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL
         timeout = time.time() + TIMEOUT_SECONDS
 
         # Simple flag just to differenciate one of two conditions:
@@ -367,7 +357,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                             # Tests all of the received metric properties that went through two conversions
                             return metric
 
-        if( found_urllib2_request_call ):
+        if(found_urllib2_request_call):
             self.fail("Timed out waiting for expected metric.")
         else:
             self.fail("Timed out waiting for a mocked urlopen request call.")
@@ -378,18 +368,18 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         """
         metric = EventMetric(event_group="App", event_name="Test test_end_to_end")
-        metric.add_event_property("IntProp", 2 )
+        metric.add_event_property("IntProp", 2)
         metric.add_event_property("BoolProp", True)
-        metric.add_event_property("StringProp", "Thjis is a test string")
-        metric.add_event_property("DictProp", { "Key1":"value1", "Key2":"Value2"})
-        metric.add_event_property("ListProp", [1,2,3,4,5])
+        metric.add_event_property("StringProp", "This is a test string")
+        metric.add_event_property("DictProp", {"Key1": "value1", "Key2": "Value2"})
+        metric.add_event_property("ListProp", [1, 2, 3, 4, 5])
         metric.add_system_info_properties()
         metric.add_user_info_properties()
 
         server_received_metric = self._helper_test_end_to_end(metric)
-        print str(server_received_metric)
+
         # Test the metric that was encoded and transmitted to the mock server
-        self.assertTrue("event_group" in server_received_metric )
+        self.assertTrue("event_group" in server_received_metric)
         self.assertTrue("event_name" in server_received_metric)
         self.assertTrue("event_property" in server_received_metric)
         self.assertTrue("IntProp" in server_received_metric["event_property"])
@@ -402,7 +392,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue(isinstance(server_received_metric["event_name"], unicode))
         self.assertTrue(isinstance(server_received_metric["event_property"], dict))
         self.assertTrue(isinstance(server_received_metric["event_property"]["IntProp"], int))
-        self.assertTrue(isinstance(server_received_metric["event_property"]["IntProp"],int))
+        self.assertTrue(isinstance(server_received_metric["event_property"]["IntProp"], int))
         self.assertTrue(isinstance(server_received_metric["event_property"]["BoolProp"], bool))
         self.assertTrue(isinstance(server_received_metric["event_property"]["StringProp"], unicode))
         self.assertTrue(isinstance(server_received_metric["event_property"]["DictProp"], dict))
@@ -414,7 +404,6 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         Test a complete cycle of creating, submitting and receiving a server
         response using non-ascii-7 characaters in the request.
         """
-
         metric = EventMetric(event_group="App", event_name="Test test_end_to_end")
         metric.add_event_property("Name with accents", "Éric Hébert")
         metric.add_event_property("String with tricky characters", "''\"\\//%%$$?&?$^^,¨¨`")
@@ -445,21 +434,19 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         # Because we are testing for the absence of a Request
         # we do have to wait longer for the test to be valid.
-        TIMEOUT_SECONDS = 4 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL \
-                          * TestMetricsDispatchWorkerThread.INTERVAL_DEBUG_MULTIPLIER
+        TIMEOUT_SECONDS = 4 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL
         timeout = time.time() + TIMEOUT_SECONDS
 
         while time.time() < timeout:
             time.sleep(TestMetricsDispatchWorkerThread.SLEEP_INTERVAL)
 
             for metric in self._get_metrics():
-                self.fail("Was not expecting any request mock calls since code in metrics.py "\
+                self.fail("Was not expecting any request mock calls since code in metrics.py "
                           "should have been filtered out based on server caps. version.")
 
         #
         # If we get here, this is SUCCESS as we didn't receive urllib2.Request calls
         #
-
 
     def test_misc_constants(self):
 
@@ -472,7 +459,6 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Do provide a reason ( here and in modified metrics.py code
         # why either value might be changed
         #
-        a = MetricsDispatchWorkerThread.DISPATCH_INTERVAL
         self.assertEquals(5, MetricsDispatchWorkerThread.DISPATCH_INTERVAL)
         # NOTE: that current SG server code reject batches larger than 10.
         self.assertEqual(10, MetricsDispatchWorkerThread.DISPATCH_BATCH_SIZE)
@@ -491,12 +477,15 @@ class TestMetricsQueueSingleton(TankTestBase):
 
 
 class TestMetricsDepricatedFunctions(TankTestBase):
-    """Cases testing tank.util.metrics of depricated functions
+    """ Cases testing tank.util.metrics of depricated functions
 
         Test that the `log_metric`, `log_user_activity_metric` and
         `log_user_attribute_metric` methods are depricated by creating a
         mock of the `MetricsQueueSingleton.log` method and then
         verifiying whether or not it was called.
+
+        Also test that method still exist for retro-compatibility although
+        there're basically empty no-op methods.
     """
 
     def setUp(self):
@@ -518,38 +507,37 @@ class TestMetricsDepricatedFunctions(TankTestBase):
     def test_log_event_metric(self):
         # Self testing that the mock setup is correct
         # by trying out a non-depricated method.
-        log_event_metric( EventMetric(event_group="App", event_name="Test Depricated"))
-        self.assertTrue(self._mocked_method.called, "Was expecting a call to the " \
-                                                    "`MetricsQueueSingleton.log`" \
-                                                    "method from the non-depricated "\
+        log_event_metric(EventMetric(event_group="App", event_name="Test Depricated"))
+        self.assertTrue(self._mocked_method.called, "Was expecting a call to the "
+                                                    "`MetricsQueueSingleton.log`"
+                                                    "method from the non-depricated "
                                                     "`log_event_metric` method.")
 
     def test_log_metric(self):
         # It is ok to provide an empty metric dictionary since we just want to
         # check that the `MetricsQueueSingleton.log` is called or not.
-        #self._mocked_method.reset_mock()
-        log_metric( {} )
-        self.assertFalse(self._mocked_method.called, "Was not expecting a call to the "\
-                                                     "`MetricsQueueSingleton.log` " \
+        log_metric({})
+        self.assertFalse(self._mocked_method.called, "Was not expecting a call to the "
+                                                     "`MetricsQueueSingleton.log` "
                                                      "method from the depricated "
                                                      "`log_metric` method.")
+
     def test_log_user_attribute_metric(self):
 
-        #self._mocked_method.reset_mock()
         log_user_attribute_metric(attr_name="Some attr. name", attr_value="Some attr. value")
-        self.assertFalse(self._mocked_method.called, "Was not expecting a call to the "\
-                                                     "`MetricsQueueSingleton.log` " \
+        self.assertFalse(self._mocked_method.called, "Was not expecting a call to the "
+                                                     "`MetricsQueueSingleton.log` "
                                                      "method from the depricated "
                                                      "`log_user_attribute_metric` method.")
 
     def test_log_user_activity_metric(self):
 
-        #self._mocked_method.reset_mock()
         log_user_activity_metric(module="Some some name", action="Some action")
-        self.assertFalse(self._mocked_method.called, "Was not expecting a call to the "\
-                                                     "`MetricsQueueSingleton.log` " \
+        self.assertFalse(self._mocked_method.called, "Was not expecting a call to the "
+                                                     "`MetricsQueueSingleton.log` "
                                                      "method from the depricated "
                                                      "`log_user_activity_metric` method.")
+
 
 class TestMetricsFunctions(TankTestBase):
     """Cases testing tank.util.metrics functions"""
@@ -576,17 +564,14 @@ class TestMetricsFunctions(TankTestBase):
 
     def test_log_event_metric_with_good_metrics(self):
 
-        m1 = EventMetric(event_group="App",
-                event_name="Test Log Metric without additional properties")
-
-        m2 = EventMetric(event_group="App",
-                event_name="Test Log Metric with additional properties")
-        m2.add_event_property("IntProp", 2 )
+        m1 = EventMetric(event_group="App", event_name="Test Log Metric without additional properties")
+        m2 = EventMetric(event_group="App", event_name="Test Log Metric with additional properties")
+        m2.add_event_property("IntProp", 2)
         m2.add_event_property("BoolProp", True)
-        m2.add_event_property("StringProp", "Thjis is a test string")
-        m2.add_event_property("DictProp", { "Key1":"value1", "Key2":"Value2"})
+        m2.add_event_property("StringProp", "This is a test string")
+        m2.add_event_property("DictProp", {"Key1": "value1", "Key2": "Value2"})
 
-        good_metrics = [ m1, m2 ]
+        good_metrics = [m1, m2]
 
         # make sure no exceptions on good metrics
         for metric in good_metrics:
@@ -608,9 +593,3 @@ class TestMetricsFunctions(TankTestBase):
         metric = EventMetric(event_group="App", event_name=[])
         with self.assertRaises(TypeError):
             log_event_metric(metric=metric, event_name=None)
-
-
-
-
-
-
