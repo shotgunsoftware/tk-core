@@ -54,10 +54,7 @@ class TestEventMetric(TankTestBase):
     def test_data_property(self):
         """Object has a data dictionary that matches args."""
 
-        obj = EventMetric(
-            event_group="App",
-            event_name="Test Data Property"
-        )
+        obj = EventMetric(event_group="App",event_name="Test Data Property")
         self.assertTrue(hasattr(obj, 'data'))
         self.assertIsInstance(obj.data, dict)
         metric = obj.data
@@ -65,6 +62,69 @@ class TestEventMetric(TankTestBase):
         self.assertTrue("event_name" in metric)
         self.assertTrue("event_property" in metric)
 
+
+    def test_init_with_invalid_parameters(self):
+        """ Simply assert that the constructor is exception free and is able
+            to deal with invalid parameters. """
+
+        try:
+            EventMetric(None, "No event group"),
+            EventMetric("No event name", None),
+            EventMetric(None, None),
+            EventMetric({}, {}),
+            EventMetric([], []),
+        except Exception, e:
+            self.fail(
+                "Creating an instance of 'EventMetric' failed unexpectedly: %s",(e)
+            )
+
+    def test_init_with_valid_parameters(self):
+        """ Simply assert that the constructor is exception free."""
+        try:
+
+            m1 = EventMetric(event_group="App",
+                             event_name="Test Log Metric without additional properties")
+
+            m2 = EventMetric(event_group="App",
+                             event_name="Test Log Metric with additional properties")
+            m2.add_event_property("IntProp", 2)
+            m2.add_event_property("BoolProp", True)
+            m2.add_event_property("StringProp", "Thjis is a test string")
+            m2.add_event_property("DictProp", {"Key1": "value1", "Key2": "Value2"})
+
+        except Exception, e:
+            self.fail(
+                "Creating an instance of 'EventMetric' failed unexpectedly: %s",(e)
+            )
+
+    def test_add_event_property(self):
+        """ Simply assert that the method is exception free and is able
+            to deal with various types. """
+
+        metric = EventMetric(event_group="App", event_name="Test add_event_property")
+        metric.add_event_property("IntProp", 2 )
+        metric.add_event_property("BoolProp", True)
+        metric.add_event_property("StringProp", "Thjis is a test string")
+        metric.add_event_property("DictProp", { "Key1":"value1", "Key2":"Value2"})
+        metric.add_event_property("ListProp", [1,2,3,4,5] )
+
+        print "metric.data: " + str(metric.data)
+
+    def test_add_system_info_properties(self):
+        """ Simply assert that the method is exception free """
+
+        metric = EventMetric(event_group="App",event_name="Test add_system_info_properties")
+        metric.add_system_info_properties()
+
+        # TODO: Add test veryfying that additional sytem info properties were indeed added
+
+    def test_add_user_info_properties(self):
+        """ Simply assert that the method is exception free """
+
+        metric = EventMetric(event_group="App", event_name="Test add_user_info_properties")
+        metric.add_user_info_properties()
+
+        # TODO: Add test veryfying that additional user info properties were indeed added
 
 def _mocked_urlopen_for_test_updated_metric_endpoint(*args, **kwargs):
     class MockResponse:
@@ -142,7 +202,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Clear cached appstore connection
         tank.set_authenticated_user(None)
 
-        # Prevents from connecting to Shotgun.
+        # Prevents an actual connection to a Shotgun site.
         self._server_caps_mock = patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
         self._server_caps_mock.start()
         self.addCleanup(self._server_caps_mock.stop)
@@ -167,8 +227,8 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._create_engine()
 
         # Patch & Mock the `urlopen` method
-        self._patched_method = patch('urllib2.urlopen', side_effect=_mocked_urlopen_for_test_updated_metric_endpoint)
-        self._mocked_method = self._patched_method.start()
+        self._urlopen_mock = patch('urllib2.urlopen', side_effect=_mocked_urlopen_for_test_updated_metric_endpoint)
+        self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
         super(TestMetricsDispatchWorkerThread, self).setUp()
@@ -177,16 +237,16 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         print "MetricsDispatchWorkerThread.DISPATCH_INTERVAL: " + str(MetricsDispatchWorkerThread.DISPATCH_INTERVAL)
         self._saved_dispatch_interval = MetricsDispatchWorkerThread.DISPATCH_INTERVAL
 
-        self._patched_method = None
+        self._urlopen_mock = None
         self._mocked_method = None
 
     def tearDown(self):
 
         # Unpatch the `urlopen` method
         if self._mocked_method:
-            # If `_mocked_method` we did started `_patched_method
-            self._patched_method.stop()
-            self._patched_method = None
+            # If `_mocked_method` we did started `_urlopen_mock
+            self._urlopen_mock.stop()
+            self._urlopen_mock = None
             self._mocked_method = None
 
         self._destroy_engine()
@@ -249,8 +309,11 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         return metrics
 
-    def test_metric_endpoint_updated(self):
+    def test_end_to_end(self):
         """
+        Test a complete cycle of creating, submitting and receiving a server response.
+        The test allows deeper testing of the difficult inner working.
+        A
         """
 
         METRIC_EVENT_GROUP = "App"
@@ -268,6 +331,13 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         # Make at least one metric related call
         metric = EventMetric(event_group=METRIC_EVENT_GROUP, event_name=METRIC_EVENT_NAME)
+        metric.add_event_property("IntProp", 2 )
+        metric.add_event_property("BoolProp", True)
+        metric.add_event_property("StringProp", "Thjis is a test string")
+        metric.add_event_property("DictProp", { "Key1":"value1", "Key2":"Value2"})
+        metric.add_event_property("ListProp", [1,2,3,4,5])
+        metric.add_system_info_properties()
+        metric.add_user_info_properties()
         log_event_metric(metric)
 
         TIMEOUT_SECONDS = 4 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL \
@@ -389,15 +459,13 @@ class TestMetricsDepricatedFunctions(TankTestBase):
         super(TestMetricsDepricatedFunctions, self).setUp()
 
         # Setting up the mocked method
-        self._patched_method = patch("tank.util.metrics.MetricsQueueSingleton.log")
-        self._mocked_method = self._patched_method.start()
+        self._metrics_queue_singleton_log_mock = patch("tank.util.metrics.MetricsQueueSingleton.log")
+        self._mocked_method = self._metrics_queue_singleton_log_mock.start()
 
     def tearDown(self):
-        if self._patched_method:
-            self._patched_method.stop()
-            self._patched_method = None
-
         if self._mocked_method:
+            self._metrics_queue_singleton_log_mock.stop()
+            self._metrics_queue_singleton_log_mock = None
             self._mocked_method.reset_mock()
             self._mocked_method = None
 

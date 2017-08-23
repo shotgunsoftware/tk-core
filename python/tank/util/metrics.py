@@ -349,25 +349,85 @@ class ToolkitMetric(object):
 
 
 class EventMetric(ToolkitMetric):
-    """Convenience class for creating a metric event."""
+    """
+    Convenience class for creating a metric event.
 
-    def __init__(self, event_group, event_name, event_properties=None):
+    Use this helper class to create a suitable metric structure that you can
+    then pass to the `tank.utils.metrics.log_metric_event` method.
+
+    The simplest usage of this class is simply to provide an event group and
+    event name to the constructor:
+
+    Optionally, you can add your own specific metrics by using the
+    `add_event_property` method. The later simply takes a key-value
+    pair and properly structure the entry into the metric structure.
+
+    metric.add_event_property("MyAppVersion", "10.13.1")
+    metric.add_event_property("ViewedPageCount", 99 )
+
+    Optionally, you can add system information by calling the
+    `add_system_info_properties` method. The method takes care of gathering
+    relevant information and properly formatting it for submission to a
+    Shotgun site.
+
+    Also optionally, you can add user information by calling the
+    `add_user_info_properties`. The method takes care of gathering relevant
+    information regarding location, country, used language and properly
+    formatting it for submission to a Shotgun site.
+
+    Below is a complete typical usage:
+
+    ```
+    metric = EventMetric(event_group="App", event_name="Logged In")
+    metric.add_event_property("MyAppVersion", "10.13.1")
+    metric.add_event_property("ViewedPageCount", 99 )
+    metric.add_system_info_properties()
+    metric.add_user_info_properties()
+    log_event_metric(metric)
+    ```
+
+    TODO: How about event type which is defined in the 'Shotgun Event Taxonomy' document as event property???
+    """
+
+    def __init__(self, event_group, event_name):
         """
-        Initialize a metric event using the specified parameters.
+        Initialize a metric event using the specified parameters. Use this helper class
+        to create a suitable metric structure to be
 
-        :param str event_group: The group or category this metric falls into (see `tank.util.log_user_activity_metric()`.
+        :param str event_group: A group or category this metric event falls into.
+            Below are a few Typical values:
+                Trial Signup
+                User Signup
+                App
+                Onboarding
+                Account Settings
+                Projects
+                Entities
+                Tasks
+                People
+                Media
+                Notes
+                Subscribe
 
 
-            of the module in which action was performed.
-        :param str action: The action that was performed.
-        
+        :param: str event_name: A short description of the performed action.
+            The complete list can be found in the 'Shotgun Event Taxonomy' document.
+            Below are a few examples:
+                'Viewed Login Page'
+                'Logged In'
+                'Created Project'
+                'Toggled Project Favorite'
+                'Edited Task Status'
+                'Read Inbox Item'
         """
 
-        #if not isinstance(event_group, str):
-        #    raise TypeError("The `event_group` parameter must be None or a str")
+        if event_group:
+            if not isinstance(event_group, str):
+                raise TypeError("The `event_group` parameter must be None or a str")
 
-        #if not isinstance(event_name, str):
-        #    raise TypeError("The `event_name` parameter must be None or a str")
+        if event_name:
+            if not isinstance(event_name, str):
+                raise TypeError("The `event_name` parameter must be None or a str")
 
         # TODO: go for silent cast to 'str' or raise TypeError ?
         super(EventMetric, self).__init__({
@@ -375,23 +435,43 @@ class EventMetric(ToolkitMetric):
             "event_name": str(event_name)
         })
 
-        # Initializing the event property dictionnary with a default event_type
+        # Initializing the event property dictionary with a default event_type
         # somehow duplicating what's being done in Shogun (The server)
         self._data["event_property"] = {"event_type" : "event"}
 
-        if event_properties:
-            if not type(event_properties) is dict:
-                raise TypeError("The `event_properties` parameter must be None or a Dict")
-
-            for key in event_properties.keys():
-                value = event_properties[key]
-                self.add_event_property(key, value)
-
     def add_event_property(self, name, value):
-        # TODO: add check or warning about possibly conflicting
-        # event properties used in Amplitude?
-        # (e.g.: 'city', 'ip_address', 'device_manufacturer', 'device_type' just to name a few )
+        # TODO: add check or warning about possibly conflicting event properties used in Amplitude?
+        # TODO: (e.g.: 'city', 'ip_address', 'device_manufacturer', 'device_type' just to name a few )
         self._data["event_property"][name] = value
+
+    def add_user_info_properties(self):
+        """
+        Helper method adding a number of user information metrics such as:
+        - Approx. location
+        - City
+        - Country
+        - Language
+
+        The method takes care of gathering relevant information and properly
+        formatting them for submission to a Shotgun site
+        """
+
+        # TODO: find a descent library and implement method
+        pass
+
+    def add_system_info_properties(self):
+        """
+        Helper method adding a number of system information metrics such as:
+        - OS type
+        - OS version
+        - System architechture
+        - Manufacturer etc.
+
+        The method takes care of gathering relevant information and properly
+        formatting them for submission to a Shotgun site
+        """
+        # TODO: find a descent library and implement method
+        pass
 
     def __repr__(self):
         """Official str representation of the user activity metric."""
@@ -404,13 +484,12 @@ class EventMetric(ToolkitMetric):
 def log_event_metric(metric_event, log_once=False):
     """ Log a Toolkit metric event now using the Amplitude service.
 
-    This method adds the metric event to a dispatch queue, it doesn't get
-    posted on the web right away.
+    This method adds the metric event to a dispatch queue meaning that the
+    metric doesn't get posted on the web right away. The can add a few
+    metrics together in a single payload. The dispatcher processes the
+    queue every 5-15 seconds (subject to change).
 
-    A dispatcher processes the queue every N seconds, it packs queued metrics
-    into a single payload and then submit the payload to a Shotgun site.
-
-    :param MetricEvent metric: A metric event to add the the queue.
+    :param EventMetric metric: A metric event structure to add the the queue.
 
     :param bool log_once: ``True`` if this metric should be ignored if it has
         already been logged. Defaults to ``False``.
