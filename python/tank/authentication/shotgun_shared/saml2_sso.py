@@ -173,6 +173,9 @@ class Saml2Sso(object):
         self._sso_renew_watchdog_timer.setSingleShot(True)
         self._sso_renew_watchdog_timer.timeout.connect(self.on_renew_sso_session_timeout)
 
+        # We need a way to trace the current status of our login process.
+        self._login_status = 0
+
         # For debugging purposes
         # @TODO: Find a better way than to use the log level
         if log.level == logging.DEBUG or "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ:
@@ -364,7 +367,7 @@ class Saml2Sso(object):
 
         if session.error:
             # If there are any errors, we exit by force-closing the dialog.
-            log.error("==- on_http_response_finished: %s - %s" % (url, error))
+            log.error("==- on_http_response_finished: %s - %s - %s" % (url, error, session.error))
             self._dialog.reject()
 
     def is_handling_event(self):
@@ -529,8 +532,9 @@ class Saml2Sso(object):
             loop = QtCore.QEventLoop(self._dialog)
             self._dialog.finished.connect(loop.exit)
             self.on_renew_sso_session()
-            res = loop.exec_()
-            return res
+            status = loop.exec_()
+            self._login_status = self._login_status or status
+            return self._login_status
 
         else:
             self._view.show()
@@ -542,7 +546,9 @@ class Saml2Sso(object):
             )
 
             self._dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-            return self._dialog.exec_()
+            status = self._dialog.exec_()
+            self._login_status = self._login_status or status
+            return self._login_status
 
     def on_sso_login_cancel(self, event):
         """
@@ -570,10 +576,14 @@ class Saml2Sso(object):
                 # Let's clear the cookies, and force the use of the GUI.
                 self._session.cookies = ""
                 # Let's have another go, without any cookies this time !
-                self.on_sso_login_attempt()
+                # This will force the GUI to be shown to the user.
+                log.debug("==- Unable to login/renew claims automaticall, presenting GUI to user")
+                status = self.on_sso_login_attempt()
+                self._login_status = self._login_status or status
             else:
                 # end_session = result == QtGui.QDialog.Rejected
                 # self.resolve_event(end_session=end_session)
+                log.debug("==- Resolving event")
                 self.resolve_event()
         else:
             # Should we get a rejected dialog, then we have had a timeout.
