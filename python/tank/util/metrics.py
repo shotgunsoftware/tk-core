@@ -359,23 +359,63 @@ class EventMetric(ToolkitMetric):
     event name to the constructor:
 
     Optionally, you can add your own specific metrics by using the
-    `add_event_property` method. The latter simply takes a key-value
-    pair and properly structure the entry into the metric structure.
+    `properties` parameter. The latter simply takes a standard
+    dictionary.
 
-    metric.add_event_property("MyAppVersion", "10.13.1")
-    metric.add_event_property("ViewedPageCount", 99 )
-
-    Below is a complete typical usage:
+    The class also define numerous standard definition.
+    We highly recommand usage of them. Below is a complete typical usage:
 
     ```
-    metric = EventMetric(event_group="App", event_name="Logged In")
-    metric.add_event_property("MyAppVersion", "10.13.1")
-    metric.add_event_property("ViewedPageCount", 99 )
+    metric = EventMetric(EventMetric.GROUP_APP,
+        "User Logged In",
+        properties={
+            EventMetric.KEY_ENGINE: "tk-maya",
+            EventMetric.KEY_ENGINE_VERSION: "v0.2.2",
+            EventMetric.KEY_HOST_APP: "Maya",
+            EventMetric.KEY_HOST_APP_VERSION: "2017",
+            EventMetric.KEY_APP: "tk-multi-publish2",
+            EventMetric.KEY_APP_VERSION: "v0.2.3",
+            "CustomBoolMetric": True,
+            "RenderJobsSumitted": 173,
+        }
+    )
     log_event_metric(metric)
     ```
 
     TODO: How about event type which is defined in the 'Shotgun Event Taxonomy' document as event property???
     """
+
+    """
+    Use groups to distinguish logical parts of your application.
+    Event groups help with prioritizing key components of your application
+    to instrument and can assist with event naming.
+    """
+
+    GROUP_TRIAL_SIGNUP = "Trial Signup"
+    GROUP_USER_SIGNUP = "User Signup"
+    GROUP_APP = "App"
+    GROUP_ONBOARDING = "Onboarding"
+    GROUP_ACCOUNT_SETTINGS = "Account Settings"
+    GROUP_PROJECTS = "Projects"
+    GROUP_ENTITIES = "Entities"
+    GROUP_TASKS = "Tasks"
+    GROUP_PEOPLE = "People"
+    GROUP_MEDIA = "Merdia"
+    GROUP_NOTES = "Notes"
+    GROUP_BILLING = "Billing"
+    GROUP_TOOLKIT = "Toolkit"
+
+    # Event property keys
+    KEY_ACTION_TITLE = "Action Title"
+    KEY_APP = "App"
+    KEY_APP_VERSION = "App Version"
+    KEY_COMMAND = "Command"
+    KEY_ENGINE = "Engine"
+    KEY_ENGINE_VERSION = "Engine Version"
+    KEY_ENTITY_TYPE = "Entity Type"
+    KEY_HOST_APP = "Host App"
+    KEY_HOST_APP_VERSION = "Host App Version"
+    KEY_PUBLISH_TYPE = "Publish Type"
 
     def __init__(self, group, name, properties=None):
         """

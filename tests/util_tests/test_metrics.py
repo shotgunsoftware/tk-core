@@ -124,6 +124,39 @@ class TestEventMetric(TankTestBase):
             }
         )
 
+    def test_group_definition_exists(self):
+        """
+        Simply test that standard group definitions havent't been deleted or renamed.
+        """
+        self.assertTrue(hasattr(EventMetric, "GROUP_TRIAL_SIGNUP"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_APP"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_ONBOARDING"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_ACCOUNT_SETTINGS"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_PROJECTS"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_ENTITIES"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_TASKS"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_PEOPLE"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_MEDIA"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_NOTES"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_BILLING"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_TOOLKIT"))
+
+    def test_key_definition_exist(self):
+        """
+        Simply test that standard key definitions havent't been deleted or renamed.
+        """
+        self.assertTrue(hasattr(EventMetric, "KEY_ACTION_TITLE"))
+        self.assertTrue(hasattr(EventMetric, "KEY_APP"))
+        self.assertTrue(hasattr(EventMetric, "KEY_APP_VERSION"))
+        self.assertTrue(hasattr(EventMetric, "KEY_COMMAND"))
+        self.assertTrue(hasattr(EventMetric, "KEY_ENGINE"))
+        self.assertTrue(hasattr(EventMetric, "KEY_ENGINE_VERSION"))
+        self.assertTrue(hasattr(EventMetric, "KEY_ENTITY_TYPE"))
+        self.assertTrue(hasattr(EventMetric, "KEY_HOST_APP"))
+        self.assertTrue(hasattr(EventMetric, "KEY_HOST_APP_VERSION"))
+        self.assertTrue(hasattr(EventMetric, "KEY_PUBLISH_TYPE"))
+
+
 class TestMetricsDispatchWorkerThread(TankTestBase):
 
     METRIC_ENDPOINT = "api3/track_metrics/"
@@ -352,11 +385,15 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         Test a complete cycle using non proplemtic metric object.
 
         """
-        metric = EventMetric("App", "Test test_end_to_end",
+        metric = EventMetric(EventMetric.GROUP_TOOLKIT,
+            "Testing basic end to end functionality",
             properties={
+                EventMetric.KEY_HOST_APP: "Maya",
+                EventMetric.KEY_HOST_APP_VERSION: "2017",
+                EventMetric.KEY_APP: "tk-multi-publish2",
+                EventMetric.KEY_APP_VERSION: "v0.2.3",
                 "IntProp": 2,
                 "BoolProp": True,
-                "StringProp": "This is a test string",
                 "DictProp": {"Key1": "value1", "Key2": "Value2"},
                 "ListProp": [1, 2, 3, 4, 5]
             }
@@ -367,19 +404,29 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("event_group" in server_received_metric)
         self.assertTrue("event_name" in server_received_metric)
         self.assertTrue("event_property" in server_received_metric)
+
+        self.assertTrue(EventMetric.KEY_HOST_APP in server_received_metric["event_property"])
+        self.assertTrue(EventMetric.KEY_HOST_APP_VERSION in server_received_metric["event_property"])
+        self.assertTrue(EventMetric.KEY_APP in server_received_metric["event_property"])
+        self.assertTrue(EventMetric.KEY_APP_VERSION in server_received_metric["event_property"])
+
         self.assertTrue("IntProp" in server_received_metric["event_property"])
         self.assertTrue("BoolProp" in server_received_metric["event_property"])
-        self.assertTrue("StringProp" in server_received_metric["event_property"])
         self.assertTrue("DictProp" in server_received_metric["event_property"])
         self.assertTrue("ListProp" in server_received_metric["event_property"])
 
         self.assertTrue(isinstance(server_received_metric["event_group"], unicode))
         self.assertTrue(isinstance(server_received_metric["event_name"], unicode))
         self.assertTrue(isinstance(server_received_metric["event_property"], dict))
+
+        self.assertTrue(isinstance(server_received_metric["event_property"][EventMetric.KEY_HOST_APP], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_property"][EventMetric.KEY_HOST_APP_VERSION], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_property"][EventMetric.KEY_APP], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_property"][EventMetric.KEY_APP_VERSION], unicode))
+
         self.assertTrue(isinstance(server_received_metric["event_property"]["IntProp"], int))
         self.assertTrue(isinstance(server_received_metric["event_property"]["IntProp"], int))
         self.assertTrue(isinstance(server_received_metric["event_property"]["BoolProp"], bool))
-        self.assertTrue(isinstance(server_received_metric["event_property"]["StringProp"], unicode))
         self.assertTrue(isinstance(server_received_metric["event_property"]["DictProp"], dict))
         self.assertTrue(isinstance(server_received_metric["event_property"]["ListProp"], list))
 
