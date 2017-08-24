@@ -454,7 +454,6 @@ class EventMetric(object):
         metrics together in a single payload. The dispatcher processes the
         queue every 5-15 seconds (subject to change).
         """
-        metric = cls(group, name, properties)
         MetricsQueueSingleton().log(cls(group, name, properties), log_once=log_once)
 
 
