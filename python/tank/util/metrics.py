@@ -473,6 +473,9 @@ def log_event_metric(metric_event, log_once=False):
         already been logged. Defaults to ``False``.
 
     """
+    if not isinstance(metric_event, EventMetric):
+        raise TypeError("The `metric_event` parameter must be an instance of the `EventMetric`class")
+
     MetricsQueueSingleton().log(metric_event, log_once=log_once)
 
 

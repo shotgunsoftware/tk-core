@@ -576,6 +576,7 @@ class TestMetricsFunctions(TankTestBase):
     def test_log_event_metric_with_invalid_params(self):
 
         # Expecting an exception from a non EventMetric parameter
+
         with self.assertRaises(TypeError):
             log_event_metric(None)
 
@@ -584,3 +585,7 @@ class TestMetricsFunctions(TankTestBase):
 
         with self.assertRaises(TypeError):
             log_event_metric({})
+
+        with self.assertRaises(TypeError):
+            log_event_metric("String Parameter")
+
