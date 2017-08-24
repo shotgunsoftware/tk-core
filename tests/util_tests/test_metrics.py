@@ -110,18 +110,12 @@ class TestEventMetric(TankTestBase):
         """
         Simply test that standard group definitions havent't been deleted or renamed.
         """
-        self.assertTrue(hasattr(EventMetric, "GROUP_TRIAL_SIGNUP"))
         self.assertTrue(hasattr(EventMetric, "GROUP_APP"))
-        self.assertTrue(hasattr(EventMetric, "GROUP_ONBOARDING"))
-        self.assertTrue(hasattr(EventMetric, "GROUP_ACCOUNT_SETTINGS"))
-        self.assertTrue(hasattr(EventMetric, "GROUP_PROJECTS"))
-        self.assertTrue(hasattr(EventMetric, "GROUP_ENTITIES"))
         self.assertTrue(hasattr(EventMetric, "GROUP_TASKS"))
-        self.assertTrue(hasattr(EventMetric, "GROUP_PEOPLE"))
         self.assertTrue(hasattr(EventMetric, "GROUP_MEDIA"))
-        self.assertTrue(hasattr(EventMetric, "GROUP_NOTES"))
-        self.assertTrue(hasattr(EventMetric, "GROUP_BILLING"))
         self.assertTrue(hasattr(EventMetric, "GROUP_TOOLKIT"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_NAVIGATION"))
+        self.assertTrue(hasattr(EventMetric, "GROUP_PROJECTS"))
 
     def test_key_definition_exist(self):
         """

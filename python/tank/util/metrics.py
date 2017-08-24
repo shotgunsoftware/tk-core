@@ -364,24 +364,14 @@ class EventMetric(object):
     """
 
     """
-    Use groups to distinguish logical parts of your application.
-    Event groups help with prioritizing key components of your application
-    to instrument and can assist with event naming.
-    """
 
-    GROUP_TRIAL_SIGNUP = "Trial Signup"
-    GROUP_USER_SIGNUP = "User Signup"
+    # Event groups
     GROUP_APP = "App"
-    GROUP_ONBOARDING = "Onboarding"
-    GROUP_ACCOUNT_SETTINGS = "Account Settings"
-    GROUP_PROJECTS = "Projects"
-    GROUP_ENTITIES = "Entities"
     GROUP_TASKS = "Tasks"
-    GROUP_PEOPLE = "People"
-    GROUP_MEDIA = "Merdia"
-    GROUP_NOTES = "Notes"
-    GROUP_BILLING = "Billing"
+    GROUP_MEDIA = "Media"
     GROUP_TOOLKIT = "Toolkit"
+    GROUP_NAVIGATION = "Navigation"
+    GROUP_PROJECTS = "Projects"
 
     # Event property keys
     KEY_ACTION_TITLE = "Action Title"
