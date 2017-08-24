@@ -16,7 +16,6 @@ from mock import patch
 from tank.util.metrics import (
     MetricsQueueSingleton,
     MetricsDispatchWorkerThread,
-    ToolkitMetric,
     EventMetric,
     log_metric,
     log_event_metric,
@@ -32,22 +31,6 @@ import json
 import time
 import threading
 import urllib2
-
-
-class TestToolkitMetric(TankTestBase):
-    """Cases testing tank.util.metrics.ToolkitMetric class"""
-
-    def test_data_property(self):
-        """Object has a data dictionary that matches args."""
-
-        in_data = {
-            "type": "user_activity",
-            "module": "Tank Metrics Unit Test",
-            "action": "ToolkitMetric.data property test",
-        }
-        obj = ToolkitMetric(in_data)
-        self.assertTrue(hasattr(obj, 'data'))
-        self.assertIsInstance(obj.data, type(in_data))
 
 
 class TestEventMetric(TankTestBase):

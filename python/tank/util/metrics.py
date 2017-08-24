@@ -327,28 +327,7 @@ class MetricsDispatchWorkerThread(Thread):
 ###############################################################################
 # ToolkitMetric classes and subclasses
 
-class ToolkitMetric(object):
-    """Simple class representing tk metric data."""
-
-    def __init__(self, data):
-        """Initialize the object with a dictionary of metric data.
-        
-        :param dict data: A dictionary of metric data.
-        
-        """
-        self._data = data
-
-    def __str__(self):
-        """Readable str representation of the metric."""
-        return "%s: %s" % (self.__class__, self._data)
-
-    @property
-    def data(self):
-        """The underlying data this metric represents."""
-        return self._data
-
-
-class EventMetric(ToolkitMetric):
+class EventMetric(object):
     """
     Convenience class for creating a metric event to be logged on a Shotgun site.
 
@@ -443,11 +422,11 @@ class EventMetric(ToolkitMetric):
         We also add an empty event property dictionary that will be populated
         with either or both specified properties or add system info properties.
         """
-        super(EventMetric, self).__init__({
+        self._data = {
             "event_group": str(group),
             "event_name": str(name),
             "event_property": {}
-        })
+        }
 
         if properties:
             if not type(properties) is dict:
@@ -494,6 +473,15 @@ class EventMetric(ToolkitMetric):
     def __repr__(self):
         """Official str representation of the user activity metric."""
         return "%s:%s" % (self._data["event_group"], self._data["event_name"])
+
+    def __str__(self):
+        """Readable str representation of the metric."""
+        return "%s: %s" % (self.__class__, self._data)
+
+    @property
+    def data(self):
+        """The underlying data this metric represents."""
+        return self._data
 
 
 ###############################################################################
