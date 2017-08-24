@@ -117,20 +117,6 @@ class TestEventMetric(TankTestBase):
 
         # TODO: Add test veryfying that additional sytem info properties were indeed added
 
-
-def _mocked_urlopen_for_test_updated_metric_endpoint(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-
-        def json(self):
-            return self.json_data
-
-    print "**** : _mocked_urlopen_for_test_updated_metric_endpoint: '%s', data:'%s'" % (args[0]._Request__original, args[0].data)
-    return MockResponse({"key2": "value2"}, 200)
-
-
 class TestMetricsDispatchWorkerThread(TankTestBase):
 
     METRIC_ENDPOINT = "api3/track_metrics/"
@@ -213,7 +199,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._create_engine()
 
         # Patch & Mock the `urlopen` method
-        self._urlopen_mock = patch('urllib2.urlopen', side_effect=_mocked_urlopen_for_test_updated_metric_endpoint)
+        self._urlopen_mock = patch('urllib2.urlopen')
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
@@ -405,7 +391,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         """
         Test that logging metrics is not possible from an older version
         of toolkit as it can't even pass metric version check and therefore
-        won't even produce urllib2.Request mock calls
+        won't call urllib2.urlopen mock calls
         """
 
         # Define a local server caps mock locally since it only
