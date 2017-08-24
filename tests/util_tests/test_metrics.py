@@ -113,7 +113,6 @@ class TestEventMetric(TankTestBase):
         """ Simply assert that the method is exception free """
 
         metric = EventMetric(event_group="App", event_name="Test add_system_info_properties")
-        metric.add_system_info_properties()
 
         # TODO: Add test veryfying that additional sytem info properties were indeed added
 
@@ -351,7 +350,6 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         metric.add_event_property("StringProp", "This is a test string")
         metric.add_event_property("DictProp", {"Key1": "value1", "Key2": "Value2"})
         metric.add_event_property("ListProp", [1, 2, 3, 4, 5])
-        metric.add_system_info_properties()
 
         server_received_metric = self._helper_test_end_to_end(metric)
 

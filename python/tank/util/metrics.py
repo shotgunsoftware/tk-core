@@ -365,18 +365,12 @@ class EventMetric(ToolkitMetric):
     metric.add_event_property("MyAppVersion", "10.13.1")
     metric.add_event_property("ViewedPageCount", 99 )
 
-    Optionally, you can add system information by calling the
-    `add_system_info_properties` method. The method takes care of gathering
-    relevant information and properly formatting it for submission to a
-    Shotgun site.
-
     Below is a complete typical usage:
 
     ```
     metric = EventMetric(event_group="App", event_name="Logged In")
     metric.add_event_property("MyAppVersion", "10.13.1")
     metric.add_event_property("ViewedPageCount", 99 )
-    metric.add_system_info_properties()
     log_event_metric(metric)
     ```
 
@@ -433,12 +427,14 @@ class EventMetric(ToolkitMetric):
         # somehow duplicating what's being done in Shogun (The server)
         self._data["event_property"] = {"event_type": "event"}
 
+        self._add_system_info_properties()
+
     def add_event_property(self, name, value):
         # TODO: add check or warning about possibly conflicting event properties used in Amplitude?
         # TODO: (e.g.: 'city', 'ip_address', 'device_manufacturer', 'device_type' just to name a few )
         self._data["event_property"][name] = value
 
-    def add_system_info_properties(self):
+    def _add_system_info_properties(self):
         """
         Helper method adding a number of system information metrics such as:
         - OS type
