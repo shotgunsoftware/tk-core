@@ -359,10 +359,6 @@ class EventMetric(object):
         }
     )
     ```
-
-    TODO: How about event type which is defined in the 'Shotgun Event Taxonomy' document as event property???
-    """
-
     """
 
     # Event groups
