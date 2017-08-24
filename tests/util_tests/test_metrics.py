@@ -56,7 +56,7 @@ class TestEventMetric(TankTestBase):
     def test_data_property(self):
         """Object has a data dictionary that matches args."""
 
-        obj = EventMetric(event_group="App", event_name="Test Data Property")
+        obj = EventMetric("App", "Testing Data Property")
         self.assertTrue(hasattr(obj, 'data'))
         self.assertIsInstance(obj.data, dict)
         metric = obj.data
@@ -65,12 +65,19 @@ class TestEventMetric(TankTestBase):
         self.assertTrue("event_property" in metric)
 
     def test_init_with_invalid_parameters(self):
-        """ Simply assert that the constructor is exception free and is able
-            to deal with invalid parameters. """
+        """ Simply assert that the constructor is exception free and is
+            able to deal with invalid parameters and various type of extra
+            properties.
+
+            Also tests the '_add_system_info_properties' method which
+            gets called in constructor
+            """
 
         try:
-            EventMetric(None, "No event group"),
+            EventMetric(None, "Testing No event group"),
             EventMetric("No event name", None),
+            EventMetric("No event name", None, None),
+            EventMetric("No event name", None, {}),
             EventMetric(None, None),
             EventMetric({}, {}),
             EventMetric([], []),
@@ -80,41 +87,42 @@ class TestEventMetric(TankTestBase):
             )
 
     def test_init_with_valid_parameters(self):
-        """ Simply assert that the constructor is exception free."""
+        """ Simply assert that the constructor is exception free.
+
+            Also tests the '_add_system_info_properties' method which
+            gets called in constructor
+            """
         try:
 
-            EventMetric(event_group="App",
-                        event_name="Test Log Metric without additional properties")
+            EventMetric("App", "Test Log Metric without additional properties")
 
-            m2 = EventMetric(event_group="App",
-                             event_name="Test Log Metric with additional properties")
-            m2.add_event_property("IntProp", 2)
-            m2.add_event_property("BoolProp", True)
-            m2.add_event_property("StringProp", "Thjis is a test string")
-            m2.add_event_property("DictProp", {"Key1": "value1", "Key2": "Value2"})
+            EventMetric("App", "Test Log Metric with additional properties",
+                properties={
+                    "IntProp": 2,
+                    "BoolProp": True,
+                    "StringProp": "This is a test string",
+                    "DictProp": {"Key1": "value1", "Key2": "Value2"}
+                }
+            )
 
         except Exception, e:
             self.fail(
                 "Creating an instance of 'EventMetric' failed unexpectedly: %s" % (e)
             )
 
-    def test_add_event_property(self):
-        """ Simply assert that the method is exception free and is able
-            to deal with various types. """
+    def test_usage_of_extra_properties(self):
+        """ Simply assert usage of the properties parameter is exception free. """
+        EventMetric("App", "Test add_event_property", None)
 
-        metric = EventMetric(event_group="App", event_name="Test add_event_property")
-        metric.add_event_property("IntProp", 2)
-        metric.add_event_property("BoolProp", True)
-        metric.add_event_property("StringProp", "Thjis is a test string")
-        metric.add_event_property("DictProp", {"Key1": "value1", "Key2": "Value2"})
-        metric.add_event_property("ListProp", [1, 2, 3, 4, 5])
-
-    def test_add_system_info_properties(self):
-        """ Simply assert that the method is exception free """
-
-        metric = EventMetric(event_group="App", event_name="Test add_system_info_properties")
-
-        # TODO: Add test veryfying that additional sytem info properties were indeed added
+        EventMetric("App", "Test add_event_property",
+            properties={
+                "IntProp": 2,
+                "BoolProp": True,
+                "StringProp": "This is a test string",
+                "DictProp": {"Key1": "value1", "Key2": "Value2"},
+                "ListProp": [1, 2, 3, 4, 5]
+            }
+        )
 
 class TestMetricsDispatchWorkerThread(TankTestBase):
 
@@ -344,13 +352,15 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         Test a complete cycle using non proplemtic metric object.
 
         """
-        metric = EventMetric(event_group="App", event_name="Test test_end_to_end")
-        metric.add_event_property("IntProp", 2)
-        metric.add_event_property("BoolProp", True)
-        metric.add_event_property("StringProp", "This is a test string")
-        metric.add_event_property("DictProp", {"Key1": "value1", "Key2": "Value2"})
-        metric.add_event_property("ListProp", [1, 2, 3, 4, 5])
-
+        metric = EventMetric("App", "Test test_end_to_end",
+            properties={
+                "IntProp": 2,
+                "BoolProp": True,
+                "StringProp": "This is a test string",
+                "DictProp": {"Key1": "value1", "Key2": "Value2"},
+                "ListProp": [1, 2, 3, 4, 5]
+            }
+        )
         server_received_metric = self._helper_test_end_to_end(metric)
 
         # Test the metric that was encoded and transmitted to the mock server
@@ -374,15 +384,17 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue(isinstance(server_received_metric["event_property"]["ListProp"], list))
 
     # Not currently supporting usage of non-ascii7 charcaters, request would need to be escaped"
-    def _test_end_to_end_with_non_ascii7_chars(self):
+    def test_end_to_end_with_non_ascii7_chars(self):
         """
         Test a complete cycle of creating, submitting and receiving a server
         response using non-ascii-7 characaters in the request.
         """
-        metric = EventMetric(event_group="App", event_name="Test test_end_to_end")
-        metric.add_event_property("Name with accents", "Éric Hébert")
-        metric.add_event_property("String with tricky characters", "''\"\\//%%$$?&?$^^,¨¨`")
-
+        metric = EventMetric("App", "Test test_end_to_end",
+            properties={
+                "Name with accents": "Éric Hébert",
+                "String with tricky characters": "''\"\\//%%$$?&?$^^,¨¨`"
+            }
+        )
         self._helper_test_end_to_end(metric)
 
     def test_not_logging_older_tookit(self):
@@ -398,7 +410,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             def __init__(self):
                 self.version = (6, 3, 11)
 
-        metric = EventMetric(event_group="App", event_name="Test Log Metric with old server")
+        metric = EventMetric("App", "Test Log Metric with old server")
         log_event_metric(metric)
 
         # Setup test fixture, engine and context with newer server caps
@@ -482,7 +494,7 @@ class TestMetricsDepricatedFunctions(TankTestBase):
     def test_log_event_metric(self):
         # Self testing that the mock setup is correct
         # by trying out a non-depricated method.
-        log_event_metric(EventMetric(event_group="App", event_name="Test Depricated"))
+        log_event_metric(EventMetric("App", "Testing Own Test Mock"))
         self.assertTrue(self._mocked_method.called, "Was expecting a call to the "
                                                     "`MetricsQueueSingleton.log`"
                                                     "method from the non-depricated "
@@ -539,12 +551,15 @@ class TestMetricsFunctions(TankTestBase):
 
     def test_log_event_metric_with_good_metrics(self):
 
-        m1 = EventMetric(event_group="App", event_name="Test Log Metric without additional properties")
-        m2 = EventMetric(event_group="App", event_name="Test Log Metric with additional properties")
-        m2.add_event_property("IntProp", 2)
-        m2.add_event_property("BoolProp", True)
-        m2.add_event_property("StringProp", "This is a test string")
-        m2.add_event_property("DictProp", {"Key1": "value1", "Key2": "Value2"})
+        m1 = EventMetric("App", "Testing Log Metric without additional properties")
+        m2 = EventMetric("App", "Testing Log Metric with additional properties",
+            properties={
+                "IntProp": 2,
+                "BoolProp": True,
+                "StringProp": "This is a test string",
+                "DictProp": {"Key1": "value1", "Key2": "Value2"}
+            }
+        )
 
         good_metrics = [m1, m2]
 
@@ -560,11 +575,12 @@ class TestMetricsFunctions(TankTestBase):
 
     def test_log_event_metric_with_invalid_params(self):
 
-        # Expecting an exception from non-string parameters
-        metric = EventMetric(event_group=[], event_name=None)
+        # Expecting an exception from a non EventMetric parameter
         with self.assertRaises(TypeError):
-            log_event_metric(metric=metric, event_name=None)
+            log_event_metric(None)
 
-        metric = EventMetric(event_group="App", event_name=[])
         with self.assertRaises(TypeError):
-            log_event_metric(metric=metric, event_name=None)
+            log_event_metric([], event_name=None)
+
+        with self.assertRaises(TypeError):
+            log_event_metric({})

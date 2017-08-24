@@ -350,7 +350,7 @@ class ToolkitMetric(object):
 
 class EventMetric(ToolkitMetric):
     """
-    Convenience class for creating a metric event to be logged on Shotgun site.
+    Convenience class for creating a metric event to be logged on a Shotgun site.
 
     Use this helper class to create a suitable metric structure that you can
     then pass to the `tank.utils.metrics.log_metric_event` method.
@@ -377,28 +377,16 @@ class EventMetric(ToolkitMetric):
     TODO: How about event type which is defined in the 'Shotgun Event Taxonomy' document as event property???
     """
 
-    def __init__(self, event_group, event_name):
+    def __init__(self, group, name, properties=None):
         """
         Initialize a metric event using the specified parameters. Use this helper class
         to create a suitable metric structure to be used with the
 
-        :param str event_group: A group or category this metric event falls into.
-            Below are a few Typical values:
-                Trial Signup
-                User Signup
-                App
-                Onboarding
-                Account Settings
-                Projects
-                Entities
-                Tasks
-                People
-                Media
-                Notes
-                Subscribe
-
-
-        :param: str event_name: A short description of the performed action.
+        :param str group: A group or category this metric event falls into.
+        Although any values can be used, we encourage usage of the GROUP_*
+        definitions above.
+=
+        :param: str name: A short descriptive event name or performed action.
             The complete list can be found in the 'Shotgun Event Taxonomy' document.
             Below are a few examples:
                 'Viewed Login Page'
@@ -407,31 +395,43 @@ class EventMetric(ToolkitMetric):
                 'Toggled Project Favorite'
                 'Edited Task Status'
                 'Read Inbox Item'
+
+        :param: dict properties: An optional dictionary of extra properties to be attached to the metric event.
         """
 
-        if event_group:
-            if not isinstance(event_group, str):
-                raise TypeError("The `event_group` parameter must be None or a str")
-
-        if event_name:
-            if not isinstance(event_name, str):
-                raise TypeError("The `event_name` parameter must be None or a str")
-
-        # TODO: go for silent cast to 'str' or raise TypeError ?
+        """
+        We also add an empty event property dictionary that will be populated
+        with either or both specified properties or add system info properties.
+        """
         super(EventMetric, self).__init__({
-            "event_group": str(event_group),
-            "event_name": str(event_name)
+            "event_group": str(group),
+            "event_name": str(name),
+            "event_property": {}
         })
 
-        # Initializing the event property dictionary with a default event_type
-        # somehow duplicating what's being done in Shogun (The server)
-        self._data["event_property"] = {"event_type": "event"}
+        if properties:
+            if not type(properties) is dict:
+                raise TypeError("The `properties` parameter must be None or a dictionary")
+
+            # Deliberately looping through items rather than simply
+            # assigning the dictionnary so we can pre-inpect and sanitize
+            # if necessary.
+            for key in properties.keys():
+                value = properties[key]
+                self._add_event_property(key, value)
+
 
         self._add_system_info_properties()
 
-    def add_event_property(self, name, value):
-        # TODO: add check or warning about possibly conflicting event properties used in Amplitude?
-        # TODO: (e.g.: 'city', 'ip_address', 'device_manufacturer', 'device_type' just to name a few )
+    def _add_event_property(self, name, value):
+        """
+        Helper method allowing some verification and sanitization of the
+        specified properties.
+
+        :param str name:
+        :param object value:
+        """
+        # TODO: escape non-ascii7 strings here or in Dispatcher ?
         self._data["event_property"][name] = value
 
     def _add_system_info_properties(self):
@@ -445,7 +445,10 @@ class EventMetric(ToolkitMetric):
         The method takes care of gathering relevant information and properly
         formatting them for submission to a Shotgun site
         """
+
         # TODO: find a descent library and implement method
+        # TODO: Can't really send Amplitude-usable system information metrics
+        #       as we can only send 'event_properties'
         pass
 
     def __repr__(self):
