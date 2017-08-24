@@ -345,7 +345,7 @@ class EventMetric(object):
     We highly recommand usage of them. Below is a complete typical usage:
 
     ```
-    metric = EventMetric(EventMetric.GROUP_APP,
+    metric = EventMetric.log(EventMetric.GROUP_APP,
         "User Logged In",
         properties={
             EventMetric.KEY_ENGINE: "tk-maya",
@@ -358,7 +358,6 @@ class EventMetric(object):
             "RenderJobsSumitted": 173,
         }
     )
-    log_event_metric(metric)
     ```
 
     TODO: How about event type which is defined in the 'Shotgun Event Taxonomy' document as event property???
@@ -404,7 +403,7 @@ class EventMetric(object):
         :param str group: A group or category this metric event falls into.
         Although any values can be used, we encourage usage of the GROUP_*
         definitions above.
-=
+
         :param: str name: A short descriptive event name or performed action.
             The complete list can be found in the 'Shotgun Event Taxonomy' document.
             Below are a few examples:
@@ -425,50 +424,8 @@ class EventMetric(object):
         self._data = {
             "event_group": str(group),
             "event_name": str(name),
-            "event_property": {}
+            "event_property": properties
         }
-
-        if properties:
-            if not type(properties) is dict:
-                raise TypeError("The `properties` parameter must be None or a dictionary")
-
-            # Deliberately looping through items rather than simply
-            # assigning the dictionnary so we can pre-inpect and sanitize
-            # if necessary.
-            for key in properties.keys():
-                value = properties[key]
-                self._add_event_property(key, value)
-
-
-        self._add_system_info_properties()
-
-    def _add_event_property(self, name, value):
-        """
-        Helper method allowing some verification and sanitization of the
-        specified properties.
-
-        :param str name:
-        :param object value:
-        """
-        # TODO: escape non-ascii7 strings here or in Dispatcher ?
-        self._data["event_property"][name] = value
-
-    def _add_system_info_properties(self):
-        """
-        Helper method adding a number of system information metrics such as:
-        - OS type
-        - OS version
-        - System architechture
-        - Manufacturer etc.
-
-        The method takes care of gathering relevant information and properly
-        formatting them for submission to a Shotgun site
-        """
-
-        # TODO: find a descent library and implement method
-        # TODO: Can't really send Amplitude-usable system information metrics
-        #       as we can only send 'event_properties'
-        pass
 
     def __repr__(self):
         """Official str representation of the user activity metric."""
@@ -483,29 +440,42 @@ class EventMetric(object):
         """The underlying data this metric represents."""
         return self._data
 
+    @classmethod
+    def log(cls, group, name, properties=None, log_once=False):
+        """ Log a Toolkit metric event now using the Amplitude service.
+
+        :param str group: A group or category this metric event falls into.
+        Although any values can be used, we encourage usage of the GROUP_*
+        definitions above.
+
+        :param: str name: A short descriptive event name or performed action.
+            The complete list can be found in the 'Shotgun Event Taxonomy' document.
+            Below are a few examples:
+                'Viewed Login Page'
+                'Logged In'
+                'Created Project'
+                'Toggled Project Favorite'
+                'Edited Task Status'
+                'Read Inbox Item'
+
+        :param: dict properties: An optional dictionary of extra properties to be attached to the metric event.
+
+        :param bool log_once: ``True`` if this metric should be ignored if it has
+            already been logged. Defaults to ``False``.
+
+        This method adds the metric event to a dispatch queue meaning that the
+        metric doesn't get posted on the web right away. The can add a few
+        metrics together in a single payload. The dispatcher processes the
+        queue every 5-15 seconds (subject to change).
+        """
+        metric = cls(group, name, properties)
+        MetricsQueueSingleton().log(cls(group, name, properties), log_once=log_once)
+
 
 ###############################################################################
-# metrics logging convenience functions
-
-def log_event_metric(metric_event, log_once=False):
-    """ Log a Toolkit metric event now using the Amplitude service.
-
-    This method adds the metric event to a dispatch queue meaning that the
-    metric doesn't get posted on the web right away. The can add a few
-    metrics together in a single payload. The dispatcher processes the
-    queue every 5-15 seconds (subject to change).
-
-    :param EventMetric metric: A metric event structure to add the the queue.
-
-    :param bool log_once: ``True`` if this metric should be ignored if it has
-        already been logged. Defaults to ``False``.
-
-    """
-    if not isinstance(metric_event, EventMetric):
-        raise TypeError("The `metric_event` parameter must be an instance of the `EventMetric`class")
-
-    MetricsQueueSingleton().log(metric_event, log_once=log_once)
-
+#
+# metrics logging convenience functions (All depricated)
+#
 
 def log_metric(metric, log_once=False):
     """ Depricated method, use the `log_metric_event` method."""

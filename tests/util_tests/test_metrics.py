@@ -18,7 +18,6 @@ from tank.util.metrics import (
     MetricsDispatchWorkerThread,
     EventMetric,
     log_metric,
-    log_event_metric,
     log_user_activity_metric,
     log_user_attribute_metric,
 )
@@ -302,7 +301,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         return metrics
 
-    def _helper_test_end_to_end(self, metric):
+    def _helper_test_end_to_end(self, group, name, properties):
         """
         Helper method for the test_end_to_end_* tests. Allows a deeper and
         more complete test cycle of creating, submitting and receiving
@@ -320,10 +319,10 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._setup_shotgun(server_capsMock())
 
         # Save a few values for comparing on the other side
-        METRIC_EVENT_NAME = metric.data["event_name"]
+        METRIC_EVENT_NAME = name
 
         # Make at least one metric related call!
-        log_event_metric(metric)
+        EventMetric.log(group, name, properties)
 
         TIMEOUT_SECONDS = 4 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL
         timeout = time.time() + TIMEOUT_SECONDS
@@ -366,9 +365,9 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
     def test_end_to_end_basic(self):
         """
         Test a complete cycle using non proplemtic metric object.
-
         """
-        metric = EventMetric(EventMetric.GROUP_TOOLKIT,
+        server_received_metric = self._helper_test_end_to_end(
+            EventMetric.GROUP_TOOLKIT,
             "Testing basic end to end functionality",
             properties={
                 EventMetric.KEY_HOST_APP: "Maya",
@@ -381,7 +380,6 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 "ListProp": [1, 2, 3, 4, 5]
             }
         )
-        server_received_metric = self._helper_test_end_to_end(metric)
 
         # Test the metric that was encoded and transmitted to the mock server
         self.assertTrue("event_group" in server_received_metric)
@@ -414,18 +412,19 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue(isinstance(server_received_metric["event_property"]["ListProp"], list))
 
     # Not currently supporting usage of non-ascii7 charcaters, request would need to be escaped"
-    def test_end_to_end_with_non_ascii7_chars(self):
+    def _test_end_to_end_with_non_ascii7_chars(self):
         """
         Test a complete cycle of creating, submitting and receiving a server
         response using non-ascii-7 characaters in the request.
         """
-        metric = EventMetric("App", "Test test_end_to_end",
+        self._helper_test_end_to_end(
+            "App",
+            "Test test_end_to_end",
             properties={
                 "Name with accents": "Éric Hébert",
                 "String with tricky characters": "''\"\\//%%$$?&?$^^,¨¨`"
             }
         )
-        self._helper_test_end_to_end(metric)
 
     def test_not_logging_older_tookit(self):
         """
@@ -440,14 +439,11 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             def __init__(self):
                 self.version = (6, 3, 11)
 
-        metric = EventMetric("App", "Test Log Metric with old server")
-        log_event_metric(metric)
-
         # Setup test fixture, engine and context with newer server caps
         self._setup_shotgun(server_capsMock())
 
         # Make at least one metric related call
-        log_event_metric(metric)
+        EventMetric.log("App", "Test Log Metric with old server")
 
         # Because we are testing for the absence of a Request
         # we do have to wait longer for the test to be valid.
@@ -524,7 +520,7 @@ class TestMetricsDepricatedFunctions(TankTestBase):
     def test_log_event_metric(self):
         # Self testing that the mock setup is correct
         # by trying out a non-depricated method.
-        log_event_metric(EventMetric("App", "Testing Own Test Mock"))
+        EventMetric.log("App", "Testing Own Test Mock")
         self.assertTrue(self._mocked_method.called, "Was expecting a call to the "
                                                     "`MetricsQueueSingleton.log`"
                                                     "method from the non-depricated "
@@ -561,61 +557,31 @@ class TestMetricsFunctions(TankTestBase):
 
     def test_log_event_metric_with_bad_metrics(self):
 
-        bad_metrics = [
-            EventMetric(None, "No event group"),
-            EventMetric("No event name", None),
-            EventMetric(None, None),
-            EventMetric({}, {}),
-            EventMetric([], []),
-        ]
-
         # make sure no exceptions on bad metrics
-        for metric in bad_metrics:
-            try:
-                log_event_metric(metric)
-            except Exception, e:
-                self.fail(
-                    "log_metric() failed unexpectedly on bad metric (%s): %s",
-                    (metric, e)
-                )
+        try:
+            EventMetric.log(None, "No event group"),
+            EventMetric.log("No event name", None),
+            EventMetric.log("No event name", "Using should causes test to fail"),
+            EventMetric.log(None, None),
+            EventMetric.log({}, {}),
+            EventMetric.log([], []),
+        except Exception, e:
+            self.fail("log_metric() failed unexpectedly on bad metric: %s", (e))
 
     def test_log_event_metric_with_good_metrics(self):
 
-        m1 = EventMetric("App", "Testing Log Metric without additional properties")
-        m2 = EventMetric("App", "Testing Log Metric with additional properties",
-            properties={
-                "IntProp": 2,
-                "BoolProp": True,
-                "StringProp": "This is a test string",
-                "DictProp": {"Key1": "value1", "Key2": "Value2"}
-            }
-        )
-
-        good_metrics = [m1, m2]
-
         # make sure no exceptions on good metrics
-        for metric in good_metrics:
-            try:
-                log_event_metric(metric)
-            except Exception, e:
-                self.fail(
-                    "log_metric() failed unexpectedly on good metric (%s): %s",
-                    (metric, e)
-                )
+        try:
+            EventMetric.log("App", "Testing Log Metric without additional properties")
+            EventMetric.log("App", "Testing Log Metric with additional properties",
+                properties={
+                     "IntProp": 2,
+                     "BoolProp": True,
+                     "StringProp": "This is a test string",
+                     "DictProp": {"Key1": "value1", "Key2": "Value2"}
+                 }
+            )
 
-    def test_log_event_metric_with_invalid_params(self):
-
-        # Expecting an exception from a non EventMetric parameter
-
-        with self.assertRaises(TypeError):
-            log_event_metric(None)
-
-        with self.assertRaises(TypeError):
-            log_event_metric([], event_name=None)
-
-        with self.assertRaises(TypeError):
-            log_event_metric({})
-
-        with self.assertRaises(TypeError):
-            log_event_metric("String Parameter")
+        except Exception, e:
+            self.fail("EventMetric.log() failed unexpectedly on good metric: %s", (e))
 
