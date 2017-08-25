@@ -199,7 +199,6 @@ class Saml2Sso(object):
     def __del__(self):
         """Destructor."""
         log.debug("==- __del__")
-        print "DESTRUCTOR"
 
     @property
     def _session(self):
