@@ -713,6 +713,7 @@ class Context(object):
             "step": self.step,
             "task": self.task,
             "additional_entities": self.additional_entities,
+            "source_entity": self.source_entity,
             "_pc_path": self.tank.pipeline_configuration.get_path()
         }
 
