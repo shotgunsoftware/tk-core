@@ -1083,7 +1083,7 @@ def from_entity(tk, entity_type, entity_id):
 
     # We have a special case when it comes to PublishedFile entities. We
     # look at what it's linked to and build a context based on that.
-    if entity_type in ["PublishedFile", "TankPublishedFile"]:
+    if entity_type in ["PublishedFile", "TankPublishedFile", "Version"]:
         sg_entity = tk.shotgun.find_one(
             entity_type, 
             [["id", "is", entity_id]], 
@@ -1185,7 +1185,7 @@ def from_entity_dictionary(tk, entity_dictionary):
     # the context. Note that the source_entity has already been recorded
     # above based on a copy of the entity dictionary, so we can safely
     # reassign entity_type, entity_id, and entity_dictionary as needed.
-    if entity_type in ["PublishedFile", "TankPublishedFile"]:
+    if entity_type in ["PublishedFile", "TankPublishedFile", "Version"]:
         if entity_dictionary.get("task"):
             # construct a task context
             entity_type = "Task",
