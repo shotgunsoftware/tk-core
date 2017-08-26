@@ -1169,6 +1169,16 @@ def from_entity_dictionary(tk, entity_dictionary):
     entity_type = entity_dictionary["type"]
     entity_id = entity_dictionary["id"]
 
+    # The special case logic for PublishedFile entities can result in
+    # us attempting to build a Context from what it's linked to, rather
+    # than the PublishedFile itself. That logic might result in the
+    # entity_type and entity_id variables being reassigned. Later in
+    # this method, there's the possibility that we're going to have to
+    # call through to from_entity, at which time we want to do so with
+    # the original entity type and id that was passed in by the caller.
+    original_entity_type = entity_type
+    original_entity_id = entity_id
+
     # We have a special case for PublishedFile entities. We need to
     # construct the context based on what the entity is linked to, while
     # the PublishedFile itself will be recorded as the source_entity of
@@ -1269,7 +1279,7 @@ def from_entity_dictionary(tk, entity_dictionary):
     if fallback_to_ctx_from_entity:
         # entity dict doesn't contain enough information to build a 
         # safe, valid context so fall back on 'from_entity':
-        return from_entity(tk, entity_type, entity_id)
+        return from_entity(tk, original_entity_type, original_entity_id)
 
     if task:
         # one final check if we have a task:
