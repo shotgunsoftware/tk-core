@@ -33,6 +33,7 @@ log = LogManager.get_logger(__name__)
 # Error messages for events. . Also defined in slmodule/slutils.mu
 # @FIXME: Should import these from slmodule
 HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To Shotgun site."
+HTTP_AUTHENTICATE_REQUIRED = "Valid credentials are required."
 HTTP_AUTHENTICATE_SSO_NOT_UPPORTED = "SSO not supported or enabled on that site."
 HTTP_CANT_AUTHENTICATE_SSO_TIMEOUT = "Time out attempting to authenticate to SSO service."
 HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS = "You have not been granted access to the Shotgun site."
@@ -358,6 +359,15 @@ class Saml2Sso(object):
                 # This means that the SSO login worked, but that the user does
                 # have access to the site.
                 session.error = HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS
+            elif error is QtNetwork.QNetworkReply.NetworkError.AuthenticationRequiredError:
+                # This means that the user entered incorrect credentials.
+                if url.startswith(session.host):
+                    session.error = HTTP_AUTHENTICATE_REQUIRED
+                else:
+                    # If we are not on our site, we are on the Identity Provider (IdP) portal site.
+                    # We let it deal with the error.
+                    # Reset the error to None to disregard the error.
+                    session.error = None
             else:
                 session.error = reply.attribute(QtNetwork.QNetworkRequest.HttpReasonPhraseAttribute)
         elif url.startswith(session.host + URL_LOGIN_PATH):

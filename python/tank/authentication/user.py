@@ -199,7 +199,7 @@ class ShotgunSamlUser(ShotgunUser):
                 logger.warning("No further attempts to auto-renew in the background will be attempted.")
         except AuthenticationCancelled:
             logger.debug("Automatic SSO claim renewal was cancelled while processing.")
-            pass
+            raise
 
     def start_claims_renewal(self, preemtive_renewal_threshold=0.9):
         """
