@@ -248,7 +248,7 @@ class Context(object):
         ctx_copy.__task = copy.deepcopy(self.__task, memo)
         ctx_copy.__user = copy.deepcopy(self.__user, memo)        
         ctx_copy.__additional_entities = copy.deepcopy(self.__additional_entities, memo)
-        ctx_copy.__source_entity = copy.deepcopy(self.__source_entity)
+        ctx_copy.__source_entity = copy.deepcopy(self.__source_entity, memo)
         
         # except:
         # ctx_copy._entity_fields_cache
@@ -1060,6 +1060,23 @@ def from_entity(tk, entity_type, entity_id):
     :param tk:           Sgtk API handle
     :param entity_type:  The shotgun entity type to produce a context for
     :param entity_id:    The shotgun entity id to produce a context for
+
+    :returns: :class:`Context`
+    """
+    return _from_entity(tk, entity_type, entity_id, source_entity=None)
+
+def _from_entity(tk, entity_type, entity_id, source_entity=None):
+    """
+    Constructs a context from a shotgun entity.
+
+    For more information, see :meth:`Sgtk.context_from_entity`.
+
+    :param tk: Sgtk API handle
+    :param str entity_type: The shotgun entity type to produce a context for
+    :param int entity_id: The shotgun entity id to produce a context for
+    :param dict source_entity: The entity dictionary to add to the context
+        as its source_entity.
+
     :returns: :class:`Context`
     """
     
@@ -1078,45 +1095,35 @@ def from_entity(tk, entity_type, entity_id):
         "user": None,
         "task": None,
         "additional_entities": [],
-        "source_entity": None,
+        "source_entity": source_entity,
     }
-
-    # We have a special case when it comes to PublishedFile entities. We
-    # look at what it's linked to and build a context based on that.
-    if entity_type in ["PublishedFile", "TankPublishedFile", "Version"]:
-        sg_entity = tk.shotgun.find_one(
-            entity_type, 
-            [["id", "is", entity_id]], 
-            ["project", "entity", "task"],
-        )
-        
-        if sg_entity is None:
-            raise TankError("Entity %s with id %s not found in Shotgun!" % (entity_type, entity_id))
-
-        # Record the source entity.
-        context["source_entity"] = sg_entity
-        
-        if sg_entity.get("task"):
-            # base the context on the task for the published file
-            entity_type = "Task"
-            entity_id = sg_entity["task"]["id"]
-        elif sg_entity.get("entity"):
-            # base the context on the entity that the published is linked with
-            entity_type = sg_entity["entity"]["type"]
-            entity_id = sg_entity["entity"]["id"]
-        elif sg_entity.get("project"):
-            # base the context on the project that the published is linked with
-            entity_type = "Project",
-            entity_id = sg_entity["project"]["id"]
-    else:
-        # Any other entity type we just record as the source entity
-        # and move on with constructing the context.
-        context["source_entity"] = dict(type=entity_type, id=entity_id)
 
     if entity_type == "Task":
         # For tasks get data from shotgun query
         task_context = _task_from_sg(tk, entity_id)
         context.update(task_context)
+
+    elif entity_type in ["PublishedFile", "TankPublishedFile", "Version"]:
+        
+        sg_entity = tk.shotgun.find_one(entity_type, 
+                                        [["id", "is", entity_id]], 
+                                        ["project", "entity", "task"])
+        
+        if sg_entity is None:
+            raise TankError("Entity %s with id %s not found in Shotgun!" % (entity_type, entity_id))
+        
+        if sg_entity.get("task"):
+            # base the context on the task for the published file
+            return _from_entity(tk, "Task", sg_entity["task"]["id"], sg_entity)
+        
+        elif sg_entity.get("entity"):
+            # base the context on the entity that the published is linked with
+            return _from_entity(tk, sg_entity["entity"]["type"], sg_entity["entity"]["id"], sg_entity)
+        
+        elif sg_entity.get("project"):
+            # base the context on the project that the published is linked with
+            return _from_entity(tk, "Project", sg_entity["project"]["id"], sg_entity)
+    
     else:
         # Get data from path cache
         entity_context = _context_data_from_cache(tk, entity_type, entity_id)
@@ -1133,9 +1140,27 @@ def from_entity(tk, entity_type, entity_id):
             # that only produces double entries.
             context["entity"] = None
 
+    # If there isn't an explicit source_entity, we set it to be
+    # the same as the entity property.
+    context["source_entity"] = context["source_entity"] or context["entity"]
+
     return Context(**context)
 
 def from_entity_dictionary(tk, entity_dictionary):
+    """
+    Constructs a context from a shotgun entity dictionary.
+
+    For more information, see :meth:`Sgtk.context_from_entity_dictionary`.
+
+    :param tk: :class:`Sgtk`
+    :param dict entity_dictionary: The entity dictionary to create the context from
+        containing at least: {"type":entity_type, "id":entity_id}
+
+    :returns: :class:`Context`
+    """
+    return _from_entity_dictionary(tk, entity_dictionary, source_entity=None)
+
+def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
     """
     Constructs a context from a shotgun entity dictionary.
 
@@ -1163,49 +1188,11 @@ def from_entity_dictionary(tk, entity_dictionary):
         "user": None,
         "task": None,
         "additional_entities": [],
-        "source_entity": copy.deepcopy(entity_dictionary),
+        "source_entity": copy.deepcopy(source_entity or entity_dictionary),
     }
 
     entity_type = entity_dictionary["type"]
     entity_id = entity_dictionary["id"]
-
-    # The special case logic for PublishedFile entities can result in
-    # us attempting to build a Context from what it's linked to, rather
-    # than the PublishedFile itself. That logic might result in the
-    # entity_type and entity_id variables being reassigned. Later in
-    # this method, there's the possibility that we're going to have to
-    # call through to from_entity, at which time we want to do so with
-    # the original entity type and id that was passed in by the caller.
-    original_entity_type = entity_type
-    original_entity_id = entity_id
-
-    # We have a special case for PublishedFile entities. We need to
-    # construct the context based on what the entity is linked to, while
-    # the PublishedFile itself will be recorded as the source_entity of
-    # the context. Note that the source_entity has already been recorded
-    # above based on a copy of the entity dictionary, so we can safely
-    # reassign entity_type, entity_id, and entity_dictionary as needed.
-    if entity_type in ["PublishedFile", "TankPublishedFile", "Version"]:
-        if entity_dictionary.get("task"):
-            # construct a task context
-            entity_type = "Task",
-            entity_id = entity_dictionary["task"]["id"]
-            entity_dictionary = entity_dictionary["task"]
-        elif entity_dictionary.get("entity"):
-            # construct an entity context
-            entity_type = entity_dictionary["entity"]["type"]
-            entity_id = entity_dictionary["entity"]["id"]
-            entity_dictionary = entity_dictionary["entity"]
-        elif entity_dictionary.get("project"):
-            # construct project context
-            entity_type = "Project"
-            entity_id = entity_dictionary["project"]["id"]
-            entity_dictionary = entity_dictionary["project"]
-        else:
-            # fall back on from_entity:
-            # entity dict doesn't contain enough information to build a 
-            # safe, valid context so fall back on 'from_entity':
-            return from_entity(tk, entity_type, entity_id)
 
     # try to determine the various entities from the entity dictionary:
     project = None
@@ -1213,7 +1200,6 @@ def from_entity_dictionary(tk, entity_dictionary):
     step = None
     task = None
     fallback_to_ctx_from_entity = False
-
     if entity_type == "Project":
         # find entities for a project context
         project = entity_dictionary
@@ -1226,6 +1212,32 @@ def from_entity_dictionary(tk, entity_dictionary):
             project = task["project"]
             entity = task["entity"]
             step = task["step"]
+    elif entity_type in ["PublishedFile", "TankPublishedFile", "Version"]:
+        # special case handling for published files:
+        if entity_dictionary.get("task"):
+            # construct a task context
+            return _from_entity_dictionary(
+                tk,
+                entity_dictionary["task"],
+                source_entity=context["source_entity"],
+            )
+        elif entity_dictionary.get("entity"):
+            # construct an entity context
+            return _from_entity_dictionary(
+                tk,
+                entity_dictionary["entity"],
+                source_entity=context["source_entity"],
+            )
+        elif entity_dictionary.get("project"):
+            # construct project context
+            return _from_entity_dictionary(
+                tk,
+                entity_dictionary["project"],
+                source_entity=context["source_entity"],
+            )
+        else:
+            # fall back on from_entity:
+            fallback_to_ctx_from_entity = True
     else:
         # find entities for an entity context
         entity = entity_dictionary
@@ -1279,7 +1291,12 @@ def from_entity_dictionary(tk, entity_dictionary):
     if fallback_to_ctx_from_entity:
         # entity dict doesn't contain enough information to build a 
         # safe, valid context so fall back on 'from_entity':
-        return from_entity(tk, original_entity_type, original_entity_id)
+        return _from_entity(
+            tk,
+            entity_type,
+            entity_id,
+            source_entity=context["source_entity"],
+        )
 
     if task:
         # one final check if we have a task:
