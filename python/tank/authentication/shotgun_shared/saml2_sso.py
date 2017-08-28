@@ -364,8 +364,9 @@ class Saml2Sso(object):
                 if url.startswith(session.host):
                     session.error = HTTP_AUTHENTICATE_REQUIRED
                 else:
-                    # If we are on the IdP portal site, we let it deal with the error.
-                    # So we just behave as if there had been no error.
+                    # If we are not on our site, we are on the Identity Provider (IdP) portal site.
+                    # We let it deal with the error.
+                    # Reset the error to None to disregard the error.
                     session.error = None
             else:
                 session.error = reply.attribute(QtNetwork.QNetworkRequest.HttpReasonPhraseAttribute)
