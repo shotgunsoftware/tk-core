@@ -36,8 +36,7 @@ from .errors import (
     TankMissingEngineError
 )
 
-from ..util import log_user_activity_metric as util_log_user_activity_metric
-from ..util import log_user_attribute_metric as util_log_user_attribute_metric
+from ..util.metrics import EventMetric
 from ..util.metrics import MetricsDispatcher
 from ..log import LogManager
 
@@ -97,6 +96,8 @@ class Engine(TankBundle):
         self.__fonts_loaded = False
 
         self._metrics_dispatcher = None
+
+        self._host_version_info = None
 
         # Initialize these early on so that methods implemented in the derived class and trying
         # to access the invoker don't trip on undefined variables.
@@ -259,19 +260,32 @@ class Engine(TankBundle):
         # emit an engine started event
         tk.execute_core_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
 
-        self.log_debug("Init complete: %s" % self)
-        self.log_metric("Init")
-
-        # log the core and engine versions being used by the current user
-        util_log_user_attribute_metric("tk-core version", tk.version)
-        util_log_user_attribute_metric("%s version" % (self.name,), self.version)
-
         # if the engine supports logging metrics, begin dispatching logged metrics
         if self.metrics_dispatch_allowed:
             self._metrics_dispatcher = MetricsDispatcher(self)
             self.log_debug("Starting metrics dispatcher...")
             self._metrics_dispatcher.start()
             self.log_debug("Metrics dispatcher started.")
+
+        # log the core and engine versions being used by the current user
+        self.log_debug("Init complete: %s" % self)
+        EventMetric.log(EventMetric.GROUP_TOOLKIT,
+            EventMetric.KEY_ENGINE + " Init",
+            properties={
+                "tk-core version": tk.version,
+                "%s version" % (self.name): self.version,
+            }
+        )
+
+        # FIXME: reformulate
+        # With the app engine init part done, we can now also log
+        # metrics for the app engine
+        EventMetric.log(EventMetric.GROUP_APP,
+            EventMetric.KEY_APP + " Init",
+            properties={
+                self.host_app_name + " version": self.host_app_version_string
+            }
+        )
 
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
@@ -467,7 +481,7 @@ class Engine(TankBundle):
             self.__global_progress_widget.close()
             self.__global_progress_widget = None
 
-    def log_metric(self, action, log_once=False):
+    def _log_metric(self, action, log_once=False):
         """Log an engine metric.
 
         :param action: Action string to log, e.g. 'Init'
@@ -489,7 +503,7 @@ class Engine(TankBundle):
         full_action = "%s %s" % (self.name, action)
         util_log_user_activity_metric(self.name, full_action, log_once=log_once)
 
-    def log_user_attribute_metric(self, attr_name, attr_value, log_once=False):
+    def _log_user_attribute_metric(self, attr_name, attr_value, log_once=False):
         """Convenience class. Logs a user attribute metric.
 
         :param attr_name: The name of the attribute to set for the user.
@@ -660,6 +674,21 @@ class Engine(TankBundle):
         :returns:   A list of TankQDialog objects.
         """
         return self.__created_qt_dialogs
+
+    @property
+    def host_app_name(self):
+        # FIXME: Reformulate warning message
+        # TODO: Find how to get the engine child class name.
+        #       The self.__class__.name would return something not very useful
+        #       '<property object at 0x1054b4c58>
+        self.logger.warning("Do implement the '%s' subclass 'host_app_name' property." % (repr(self)))
+        return "<unspecified_app_name>"
+
+    @property
+    def host_app_version_string(self):
+        # FIXME: Reformulate warning message
+        self.logger.warning("Do implement the '%s' subclass 'host_app_version_string' property." % (repr(self)))
+        return "<unspecified_app_version>"
 
     ##########################################################################################
     # init and destroy
