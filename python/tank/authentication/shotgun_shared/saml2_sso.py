@@ -23,6 +23,8 @@ import os
 import time
 import urllib
 
+from tank_vendor.shotgun_api3 import Shotgun
+
 from .authentication_session_data import AuthenticationSessionData
 from ..ui.qt_abstraction import QtCore, QtNetwork, QtGui, QtWebKit
 from ... import LogManager
@@ -714,7 +716,37 @@ def _get_cookie_from_prefix(encoded_cookies, cookie_prefix):
     return value
 
 
-def is_sso_enabled(encoded_cookies):
+def is_sso_enabled_on_site(url):
+    """
+    Check to see if the web site uses sso.
+
+    We want this method to fail as quickly as possible if there are any
+    issues. Failure is not considered critical, thus known exceptions are
+    silently ignored. At the moment this method is only used to make the
+    GUI show/hide some of the input fields.
+
+    :returns: a boolean indicating if SSO has been enabled or not.
+    """
+    try:
+        # Temporary shotgun instance, used only for the purpose of checking
+        # the site infos.
+        #
+        # The constructor of Shotgun requires either a username/login or
+        # key/scriptname pair or a session_token. The token is only used in
+        # calls which need to be authenticated. The 'info' call does not
+        # require authentication.
+        info = Shotgun(url, session_token="dummy", connect=False).info()
+        log.debug("User authentication method for %s: %s" % (url, info["user_authentication_method"]))
+        if "user_authentication_method" in info:
+            return info["user_authentication_method"] == "saml2"
+    except Exception, e:
+        # Silently ignore exceptions
+        log.debug("Unable to connect with %s, got exception '%s' assuming SSO is not enabled" % (url, e))
+
+    return False
+
+
+def cookies_include_sso_infos(encoded_cookies):
     """
     Indicate if SSO is being used from the Shotgun cookies.
 

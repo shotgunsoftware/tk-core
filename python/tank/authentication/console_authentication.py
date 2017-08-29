@@ -20,7 +20,7 @@ at any point.
 """
 from . import session_cache
 from .. import LogManager
-from .errors import AuthenticationError, AuthenticationCancelled
+from .errors import AuthenticationError, AuthenticationCancelled, ConsoleCannotUseUsernameAndPasswordWhenSSOEnabled
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 
 from getpass import getpass
@@ -158,6 +158,13 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
         :returns: The (hostname, login, plain text password) tuple.
         """
         print "%s, your current session has expired." % login
+
+        # Import at top-level causes an import error on DefaultsManager
+        from shotgun_shared import is_sso_enabled_on_site
+
+        if is_sso_enabled_on_site(hostname):
+            raise ConsoleCannotUseUsernameAndPasswordWhenSSOEnabled(hostname)
+
         print "Please enter your password to renew your session for %s" % hostname
         return hostname, login, self._get_password()
 
@@ -188,6 +195,13 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         else:
             print "Please enter your login credentials."
             hostname = self._get_keyboard_input("Host", hostname)
+
+        # Import at top-level causes an import error on DefaultsManager
+        from shotgun_shared import is_sso_enabled_on_site
+
+        if is_sso_enabled_on_site(hostname):
+            raise ConsoleCannotUseUsernameAndPasswordWhenSSOEnabled(hostname)
+
         login = self._get_keyboard_input("Login", login)
         password = self._get_password()
         return hostname, login, password

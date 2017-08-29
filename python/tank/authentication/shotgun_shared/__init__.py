@@ -15,4 +15,4 @@ This module contains files which are shared between RV and Toolkit.
 from .saml2_sso import Saml2SssoError, Saml2SssoMultiSessionNotSupportedError, Saml2Sso # noqa
 
 # Functions
-from .saml2_sso import is_sso_enabled, get_saml_claims_expiration, get_saml_user_name, get_session_id, get_csrf_token, get_csrf_key # noqa
+from .saml2_sso import is_sso_enabled_on_site, cookies_include_sso_infos, get_saml_claims_expiration, get_saml_user_name, get_session_id, get_csrf_token, get_csrf_key # noqa

@@ -41,6 +41,21 @@ class IncompleteCredentials(ShotgunAuthenticationError):
         )
 
 
+class ConsoleCannotUseUsernameAndPasswordWhenSSOEnabled(ShotgunAuthenticationError):
+    """
+    Thrown when attempting to use Username/Password pair to login onto
+    a SSO-enabled site.
+    """
+
+    def __init__(self, url):
+        """
+        :param str url: Url of the site where login was attempted.
+        """
+        ShotgunAuthenticationError.__init__(
+            self, "Authentication using username/password is not allowed on the console for a SSO-enabled Shotgun site: %s" % url
+        )
+
+
 class AuthenticationCancelled(ShotgunAuthenticationError):
     """
     Thrown when the user cancels authentication or session renewal.
