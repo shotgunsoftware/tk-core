@@ -1103,7 +1103,7 @@ def _from_entity(tk, entity_type, entity_id, source_entity=None):
         task_context = _task_from_sg(tk, entity_id)
         context.update(task_context)
 
-    elif entity_type in ["PublishedFile", "TankPublishedFile", "Version"]:
+    elif entity_type in ["PublishedFile", "TankPublishedFile"]:
         
         sg_entity = tk.shotgun.find_one(entity_type, 
                                         [["id", "is", entity_id]], 
@@ -1212,7 +1212,7 @@ def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
             project = task["project"]
             entity = task["entity"]
             step = task["step"]
-    elif entity_type in ["PublishedFile", "TankPublishedFile", "Version"]:
+    elif entity_type in ["PublishedFile", "TankPublishedFile"]:
         # special case handling for published files:
         if entity_dictionary.get("task"):
             # construct a task context
