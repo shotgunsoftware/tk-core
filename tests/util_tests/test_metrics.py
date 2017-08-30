@@ -44,7 +44,7 @@ class TestEventMetric(TankTestBase):
         metric = obj.data
         self.assertTrue("event_group" in metric)
         self.assertTrue("event_name" in metric)
-        self.assertTrue("event_property" in metric)
+        self.assertTrue("event_properties" in metric)
 
     def test_init_with_invalid_parameters(self):
         """ Simply assert that the constructor is exception free and is
@@ -94,9 +94,9 @@ class TestEventMetric(TankTestBase):
 
     def test_usage_of_extra_properties(self):
         """ Simply assert usage of the properties parameter is exception free. """
-        EventMetric("App", "Test add_event_property", None)
+        EventMetric("App", "Test add_event_properties", None)
 
-        EventMetric("App", "Test add_event_property",
+        EventMetric("App", "Test add_event_properties",
             properties={
                 "IntProp": 2,
                 "BoolProp": True,
@@ -378,32 +378,32 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Test the metric that was encoded and transmitted to the mock server
         self.assertTrue("event_group" in server_received_metric)
         self.assertTrue("event_name" in server_received_metric)
-        self.assertTrue("event_property" in server_received_metric)
+        self.assertTrue("event_properties" in server_received_metric)
 
-        self.assertTrue(EventMetric.KEY_HOST_APP in server_received_metric["event_property"])
-        self.assertTrue(EventMetric.KEY_HOST_APP_VERSION in server_received_metric["event_property"])
-        self.assertTrue(EventMetric.KEY_APP in server_received_metric["event_property"])
-        self.assertTrue(EventMetric.KEY_APP_VERSION in server_received_metric["event_property"])
+        self.assertTrue(EventMetric.KEY_HOST_APP in server_received_metric["event_properties"])
+        self.assertTrue(EventMetric.KEY_HOST_APP_VERSION in server_received_metric["event_properties"])
+        self.assertTrue(EventMetric.KEY_APP in server_received_metric["event_properties"])
+        self.assertTrue(EventMetric.KEY_APP_VERSION in server_received_metric["event_properties"])
 
-        self.assertTrue("IntProp" in server_received_metric["event_property"])
-        self.assertTrue("BoolProp" in server_received_metric["event_property"])
-        self.assertTrue("DictProp" in server_received_metric["event_property"])
-        self.assertTrue("ListProp" in server_received_metric["event_property"])
+        self.assertTrue("IntProp" in server_received_metric["event_properties"])
+        self.assertTrue("BoolProp" in server_received_metric["event_properties"])
+        self.assertTrue("DictProp" in server_received_metric["event_properties"])
+        self.assertTrue("ListProp" in server_received_metric["event_properties"])
 
         self.assertTrue(isinstance(server_received_metric["event_group"], unicode))
         self.assertTrue(isinstance(server_received_metric["event_name"], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_property"], dict))
+        self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
-        self.assertTrue(isinstance(server_received_metric["event_property"][EventMetric.KEY_HOST_APP], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_property"][EventMetric.KEY_HOST_APP_VERSION], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_property"][EventMetric.KEY_APP], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_property"][EventMetric.KEY_APP_VERSION], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP_VERSION], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION], unicode))
 
-        self.assertTrue(isinstance(server_received_metric["event_property"]["IntProp"], int))
-        self.assertTrue(isinstance(server_received_metric["event_property"]["IntProp"], int))
-        self.assertTrue(isinstance(server_received_metric["event_property"]["BoolProp"], bool))
-        self.assertTrue(isinstance(server_received_metric["event_property"]["DictProp"], dict))
-        self.assertTrue(isinstance(server_received_metric["event_property"]["ListProp"], list))
+        self.assertTrue(isinstance(server_received_metric["event_properties"]["IntProp"], int))
+        self.assertTrue(isinstance(server_received_metric["event_properties"]["IntProp"], int))
+        self.assertTrue(isinstance(server_received_metric["event_properties"]["BoolProp"], bool))
+        self.assertTrue(isinstance(server_received_metric["event_properties"]["DictProp"], dict))
+        self.assertTrue(isinstance(server_received_metric["event_properties"]["ListProp"], list))
 
     # Not currently supporting usage of non-ascii7 charcaters, request would need to be escaped"
     def _test_end_to_end_with_non_ascii7_chars(self):

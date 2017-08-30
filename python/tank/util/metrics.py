@@ -410,7 +410,7 @@ class EventMetric(object):
         self._data = {
             "event_group": str(group),
             "event_name": str(name),
-            "event_property": properties
+            "event_properties": properties
         }
 
     def __repr__(self):
