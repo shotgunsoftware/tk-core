@@ -11,13 +11,16 @@
 """Hook that gets executed every time Toolkit logs user metrics."""
 
 from tank import Hook
+from tank.log import LogManager
+
+log = LogManager.get_logger(__name__)
  
 
 class LogMetrics(Hook):
-    
+
     def execute(self, metrics):
         """Called when Toolkit logs user metrics.
-        
+
         :param list metrics: list of dictionaries with logged data.
 
         The metrics dictionaries will take one of two forms:
@@ -47,4 +50,8 @@ class LogMetrics(Hook):
         related to accessing shared resources across multiple threads.
 
         """
+        #TODO: Depricate this method and add a new one??
+        # log.warning("The 'LogMetrics' class is depricated, use the , NICOLAS: hook LogMetrics: execute:  metrics = '%s'" % (metrics))
         pass
+
+

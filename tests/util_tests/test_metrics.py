@@ -579,3 +579,16 @@ class TestMetricsFunctions(TankTestBase):
         except Exception, e:
             self.fail("EventMetric.log() failed unexpectedly on good metric: %s", (e))
 
+
+class TestHookLogMetrics(TankTestBase):
+    """
+    Tests general usage of the `tk-core/hook/log_metrics.py` hook
+    """
+
+    def test_log_metrics_hook_general_usage(self):
+        """
+        Tests general usage of the `tk-core/hook/log_metrics.py` hook
+
+        TODO: Implement!
+        """
+        pass
