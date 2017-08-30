@@ -25,10 +25,14 @@ from threading import Event, Thread, Lock
 import urllib2
  
 from . import constants
+from ..log import LogManager
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
+
+
+log = LogManager.get_logger(__name__)
 
 
 ###############################################################################
@@ -454,6 +458,7 @@ class EventMetric(object):
         metrics together in a single payload. The dispatcher processes the
         queue every 5-15 seconds (subject to change).
         """
+        log.debug("EventMetric.log('%s', '%s')" % (str(cls(group, name, properties)), str(log_once)))
         MetricsQueueSingleton().log(cls(group, name, properties), log_once=log_once)
 
 
@@ -462,16 +467,26 @@ class EventMetric(object):
 # metrics logging convenience functions (All depricated)
 #
 
+def _warn_depricated(depricated_method_name, new_method_name="EventMetric.log"):
+    log.warning("The '%s' method is depricated, use the '%s' method instead." % (
+        depricated_method_name,
+        new_method_name
+    ))
+
+
 def log_metric(metric, log_once=False):
     """ Depricated method, use the `log_metric_event` method."""
-    pass
+    _warn_depricated("util.metric.log_metric")
+    log.debug("log_metric('%s', '%s')" % (str(metric), str(log_once)))
 
 
 def log_user_activity_metric(module, action, log_once=False):
     """ Depricated method, use the `log_metric_event` method."""
-    pass
+    _warn_depricated("util.metric.log_user_activity_metric")
+    log.debug("log_user_activity_metric('%s', '%s', '%s')" % (str(module), str(action), str(log_once)))
 
 
 def log_user_attribute_metric(attr_name, attr_value, log_once=False):
     """ Depricated method, use the `log_metric_event` method."""
-    pass
+    _warn_depricated("util.metric.log_user_attribute_metric")
+    log.debug("log_user_attribute_metric('%s', '%s', '%s')" % (str(attr_name), str(attr_value), str(log_once)))
