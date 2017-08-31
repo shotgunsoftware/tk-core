@@ -23,6 +23,8 @@ import traceback
 import inspect
 import weakref
 import threading
+from distutils.version import LooseVersion
+import platform
 
 from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
@@ -52,6 +54,42 @@ from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
+
+
+class HostInfo(LooseVersion):
+    """
+    Store information about the application hosting the engine.
+    """
+    def __init__(self, name, version):
+        self._name = name
+        if not version:
+            # LooseVersion will have problems if we pass an empty string, so
+            # check that here...
+            raise ValueError("A non empty version string is required")
+        LooseVersion.__init__(self, version)
+
+    def __str__(self):
+        return "%s %s" % (self._name, self.version_string)
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def version_string(self):
+        return LooseVersion.__str__(self)
+
+    @property
+    def major(self):
+        return self.version[0]
+
+    @property
+    def minor(self):
+        return self.version[1] if len(self.version) > 1 else None
+
+    @property
+    def patch(self):
+        return self.version[2] if len(self.version) > 2 else None
 
 class Engine(TankBundle):
     """
@@ -689,6 +727,30 @@ class Engine(TankBundle):
         # FIXME: Reformulate warning message
         self.logger.warning("Do implement the '%s' subclass 'host_app_version_string' property." % (repr(self)))
         return "<unspecified_app_version>"
+
+    @property
+    def host_info(self):
+        """
+        Returns information about the application hosting this engine.
+        
+        This should be re-implemented in deriving classes to handle the logic 
+        specific to the application the engine is designed for.
+        
+        This base implementation returns information about the Python interpreter.
+
+        :returns: A :class:`HostInfo` instance.
+        """
+        return HostInfo(
+            "Python",
+            platform.python_version(),
+        )
+
+    @property
+    def host_info_string(self):
+        """
+        :returns: The host information as a string.
+        """
+        return str(self.host_info)
 
     ##########################################################################################
     # init and destroy
