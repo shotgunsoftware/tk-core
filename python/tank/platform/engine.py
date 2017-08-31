@@ -511,44 +511,18 @@ class Engine(TankBundle):
             self.__global_progress_widget = None
 
     def _log_metric(self, action, log_once=False):
-        """Log an engine metric.
-
-        :param action: Action string to log, e.g. 'Init'
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-
-        Logs a user activity metric as performed within an engine. This is
-        a convenience method that auto-populates the module portion of
-        ``tank.util.log_user_activity_metric()``
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
-
         """
-
-        # the action contains the engine and app name, e.g.
-        # module: tk-maya
-        # action: tk-maya - Init
-        full_action = "%s %s" % (self.name, action)
-        util_log_user_activity_metric(self.name, full_action, log_once=log_once)
+        This method is deprecated and shouldn't be used anymore.
+        """
+        self.log_warning("_log_metric is deprecated and shouldn't be used anymore.")
 
     def _log_user_attribute_metric(self, attr_name, attr_value, log_once=False):
-        """Convenience class. Logs a user attribute metric.
-
-        :param attr_name: The name of the attribute to set for the user.
-        :param attr_value: The value of the attribute to set for the user.
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-
-        This is a convenience wrapper around
-        `tank.util.log_user_activity_metric()` that prevents engine subclasses
-        from having to import from `tank.util`.
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
-
         """
-        util_log_user_attribute_metric(attr_name, attr_value, log_once=log_once)
+        This method is deprecated and shouldn't be used anymore.
+        """
+        self.log_warning(
+            "_log_user_attribute_metric is deprecated and shouldn't be used anymore."
+        )
 
     def get_child_logger(self, name):
         """
