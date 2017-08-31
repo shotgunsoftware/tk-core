@@ -20,6 +20,7 @@ at any point.
 from .ui import login_dialog
 from . import session_cache
 from shotgun_shared import Saml2Sso
+from shotgun_shared import is_sso_enabled_on_site
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
@@ -125,7 +126,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
 
         url = self.ui.site.text().encode("utf-8")
-        if self._check_sso_enabled(url):
+        if is_sso_enabled_on_site(url):
             self._toggle_sso()
 
     def _strip_whitespaces(self):
