@@ -442,17 +442,9 @@ class TestFromEntity(TestContext):
             entity=self.shot,
             task=self.task,
         )
-
-        self.version = dict(
-            id=3,
-            type="Version",
-            project=self.project,
-            entity=self.shot,
-        )
         
         self.add_to_sg_mock_db(self.task)
         self.add_to_sg_mock_db(self.publishedfile)
-        self.add_to_sg_mock_db(self.version)
 
     @patch("tank.util.login.get_current_user")
     def test_from_linked_entity_types(self, get_current_user):
@@ -475,18 +467,6 @@ class TestFromEntity(TestContext):
             check_name=False,
         )
 
-        result = context.from_entity(self.tk, self.version["type"], self.version["id"])
-        self.check_entity(self.project, result.project, check_name=False)
-        self.check_entity(self.shot, result.entity, check_name=False)
-        self.check_entity(
-            result.source_entity,
-            dict(
-                type=self.version["type"],
-                id=self.version["id"],
-            ),
-            check_name=False,
-        )
-
         result = context.from_entity_dictionary(self.tk, self.publishedfile)
         self.check_entity(self.project, result.project, check_name=False)
         self.check_entity(self.shot, result.entity, check_name=False)
@@ -496,18 +476,6 @@ class TestFromEntity(TestContext):
             dict(
                 type=self.publishedfile["type"],
                 id=self.publishedfile["id"],
-            ),
-            check_name=False,
-        )
-
-        result = context.from_entity_dictionary(self.tk, self.version)
-        self.check_entity(self.project, result.project, check_name=False)
-        self.check_entity(self.shot, result.entity, check_name=False)
-        self.check_entity(
-            result.source_entity,
-            dict(
-                type=self.version["type"],
-                id=self.version["id"],
             ),
             check_name=False,
         )
@@ -531,7 +499,6 @@ class TestFromEntity(TestContext):
         
         self.check_entity(self.step, result.step)
         self.assertEquals(3, len(result.step))
-
     
     @patch("tank.util.login.get_current_user")
     def test_step_higher_entity(self, get_current_user):
