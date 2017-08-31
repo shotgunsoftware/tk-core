@@ -465,29 +465,29 @@ class EventMetric(object):
 
 ###############################################################################
 #
-# metrics logging convenience functions (All depricated)
+# metrics logging convenience functions (All deprecated)
 #
 
-def _warn_depricated(depricated_method_name, new_method_name="EventMetric.log"):
-    log.warning("The '%s' method is depricated, use the '%s' method instead." % (
-        depricated_method_name,
+def _warn_deprecated(deprecated_method_name, new_method_name="EventMetric.log"):
+    log.warning("The '%s' method is deprecated, use the '%s' method instead." % (
+        deprecated_method_name,
         new_method_name
     ))
 
 
 def log_metric(metric, log_once=False):
-    """ Depricated method, use the `log_metric_event` method."""
-    _warn_depricated("util.metric.log_metric")
+    """ Deprecated method, use the `log_metric_event` method."""
+    _warn_deprecated("util.metric.log_metric")
     log.debug("log_metric('%s', '%s')" % (str(metric), str(log_once)))
 
 
 def log_user_activity_metric(module, action, log_once=False):
-    """ Depricated method, use the `log_metric_event` method."""
-    _warn_depricated("util.metric.log_user_activity_metric")
+    """ Deprecated method, use the `log_metric_event` method."""
+    _warn_deprecated("util.metric.log_user_activity_metric")
     log.debug("log_user_activity_metric('%s', '%s', '%s')" % (str(module), str(action), str(log_once)))
 
 
 def log_user_attribute_metric(attr_name, attr_value, log_once=False):
-    """ Depricated method, use the `log_metric_event` method."""
-    _warn_depricated("util.metric.log_user_attribute_metric")
+    """ Deprecated method, use the `log_metric_event` method."""
+    _warn_deprecated("util.metric.log_user_attribute_metric")
     log.debug("log_user_attribute_metric('%s', '%s', '%s')" % (str(attr_name), str(attr_value), str(log_once)))

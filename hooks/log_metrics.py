@@ -51,7 +51,7 @@ class LogMetrics(Hook):
 
         """
         #TODO: Depricate this method and add a new one??
-        # log.warning("The 'LogMetrics' class is depricated, use the , NICOLAS: hook LogMetrics: execute:  metrics = '%s'" % (metrics))
+        # log.warning("The 'LogMetrics' class is deprecated, use the , NICOLAS: hook LogMetrics: execute:  metrics = '%s'" % (metrics))
         pass
 
 

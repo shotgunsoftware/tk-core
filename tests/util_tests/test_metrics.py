@@ -483,11 +483,11 @@ class TestMetricsQueueSingleton(TankTestBase):
         self.assertTrue(obj1 == obj2 == obj3)
 
 
-class TestMetricsDepricatedFunctions(TankTestBase):
-    """ Cases testing tank.util.metrics of depricated functions
+class TestMetricsDeprecatedFunctions(TankTestBase):
+    """ Cases testing tank.util.metrics of deprecated functions
 
         Test that the `log_metric`, `log_user_activity_metric` and
-        `log_user_attribute_metric` methods are depricated by creating a
+        `log_user_attribute_metric` methods are deprecated by creating a
         mock of the `MetricsQueueSingleton.log` method and then
         verifiying whether or not it was called.
 
@@ -496,7 +496,7 @@ class TestMetricsDepricatedFunctions(TankTestBase):
     """
 
     def setUp(self):
-        super(TestMetricsDepricatedFunctions, self).setUp()
+        super(TestMetricsDeprecatedFunctions, self).setUp()
 
         # Setting up the mocked method
         self._metrics_queue_singleton_log_mock = patch("tank.util.metrics.MetricsQueueSingleton.log")
@@ -509,15 +509,15 @@ class TestMetricsDepricatedFunctions(TankTestBase):
             self._mocked_method.reset_mock()
             self._mocked_method = None
 
-        super(TestMetricsDepricatedFunctions, self).tearDown()
+        super(TestMetricsDeprecatedFunctions, self).tearDown()
 
     def test_log_event_metric(self):
         # Self testing that the mock setup is correct
-        # by trying out a non-depricated method.
+        # by trying out a non-deprecated method.
         EventMetric.log("App", "Testing Own Test Mock")
         self.assertTrue(self._mocked_method.called, "Was expecting a call to the "
                                                     "`MetricsQueueSingleton.log`"
-                                                    "method from the non-depricated "
+                                                    "method from the non-deprecated "
                                                     "`log_event_metric` method.")
 
     def test_log_metric(self):
@@ -526,7 +526,7 @@ class TestMetricsDepricatedFunctions(TankTestBase):
         log_metric({})
         self.assertFalse(self._mocked_method.called, "Was not expecting a call to the "
                                                      "`MetricsQueueSingleton.log` "
-                                                     "method from the depricated "
+                                                     "method from the deprecated "
                                                      "`log_metric` method.")
 
     def test_log_user_attribute_metric(self):
@@ -534,7 +534,7 @@ class TestMetricsDepricatedFunctions(TankTestBase):
         log_user_attribute_metric(attr_name="Some attr. name", attr_value="Some attr. value")
         self.assertFalse(self._mocked_method.called, "Was not expecting a call to the "
                                                      "`MetricsQueueSingleton.log` "
-                                                     "method from the depricated "
+                                                     "method from the deprecated "
                                                      "`log_user_attribute_metric` method.")
 
     def test_log_user_activity_metric(self):
@@ -542,7 +542,7 @@ class TestMetricsDepricatedFunctions(TankTestBase):
         log_user_activity_metric(module="Some some name", action="Some action")
         self.assertFalse(self._mocked_method.called, "Was not expecting a call to the "
                                                      "`MetricsQueueSingleton.log` "
-                                                     "method from the depricated "
+                                                     "method from the deprecated "
                                                      "`log_user_activity_metric` method.")
 
 
