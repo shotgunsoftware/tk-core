@@ -519,6 +519,7 @@ class Engine(TankBundle):
             "_log_user_attribute_metric is deprecated and shouldn't be used anymore."
         )
 
+    @property
     def _metric_properties(self):
         """
         :returns: A dictionary with properties to use when emitting a metric
@@ -1097,10 +1098,14 @@ class Engine(TankBundle):
         def callback_wrapper(*args, **kwargs):
 
             if properties.get("app"):
+                metric_properties = self._metric_properties
+                metric_properties.update(properties["app"]._metric_properties)
+                metric_properties[EventMetric.KEY_COMMAND] = name
                 metric = EventMetric.log(
+                    EventMetric.GROUP_TOOLKIT,
+                    "Launched Command",
+                    metric_properties,
                 )
-                # track which app command is being launched
-                #properties["app"].log_metric("'%s'" % name, log_version=True)
 
             # run the actual payload callback
             return callback(*args, **kwargs)

@@ -20,7 +20,7 @@ from ..util.loader import load_plugin
 from . import constants
 
 from .bundle import TankBundle
-from ..util import log_user_activity_metric, log_user_attribute_metric
+from ..util.metrics import EventMetric
 
 class Application(TankBundle):
     """
@@ -295,6 +295,13 @@ class Application(TankBundle):
             # log the app version as a user attribute
             log_user_attribute_metric(
                 "%s version" % (self.name,), self.version, log_once=log_once)
+
+    @property
+    def _metric_properties(self):
+        return {
+            EventMetric.KEY_APP : self.name,
+            EventMetric.KEY_APP_VERSION: self.version
+        }
 
 def get_application(engine, app_folder, descriptor, settings, instance_name, env):
     """
