@@ -308,12 +308,7 @@ class Engine(TankBundle):
         EventMetric.log(
             EventMetric.GROUP_TOOLKIT,
             "Launched Software",
-            properties={
-                EventMetric.KEY_ENGINE: self.name,
-                EventMetric.KEY_ENGINE_VERSION: self.version,
-                EventMetric.KEY_HOST_APP: self.host_info.name,
-                EventMetric.KEY_HOST_APP_VERSION: self.host_info.version_string,
-            }
+            properties= self._metric_properties,
         )
 
     def __repr__(self):
@@ -523,6 +518,18 @@ class Engine(TankBundle):
         self.log_warning(
             "_log_user_attribute_metric is deprecated and shouldn't be used anymore."
         )
+
+    def _metric_properties(self):
+        """
+        :returns: A dictionary with properties to use when emitting a metric
+                  event for this engine.
+        """
+        return {
+            EventMetric.KEY_ENGINE: self.name,
+            EventMetric.KEY_ENGINE_VERSION: self.version,
+            EventMetric.KEY_HOST_APP: self.host_info.name,
+            EventMetric.KEY_HOST_APP_VERSION: self.host_info.version_string,
+        }
 
     def get_child_logger(self, name):
         """
@@ -1090,8 +1097,10 @@ class Engine(TankBundle):
         def callback_wrapper(*args, **kwargs):
 
             if properties.get("app"):
+                metric = EventMetric.log(
+                )
                 # track which app command is being launched
-                properties["app"].log_metric("'%s'" % name, log_version=True)
+                #properties["app"].log_metric("'%s'" % name, log_version=True)
 
             # run the actual payload callback
             return callback(*args, **kwargs)
