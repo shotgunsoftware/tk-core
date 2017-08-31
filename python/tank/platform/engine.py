@@ -505,18 +505,18 @@ class Engine(TankBundle):
             self.__global_progress_widget.close()
             self.__global_progress_widget = None
 
-    def _log_metric(self, action, log_once=False):
+    def log_metric(self, action, log_once=False):
         """
         This method is deprecated and shouldn't be used anymore.
         """
-        self.log_warning("_log_metric is deprecated and shouldn't be used anymore.")
+        self.log_warning("log_metric is deprecated and shouldn't be used anymore.")
 
-    def _log_user_attribute_metric(self, attr_name, attr_value, log_once=False):
+    def log_user_attribute_metric(self, attr_name, attr_value, log_once=False):
         """
         This method is deprecated and shouldn't be used anymore.
         """
         self.log_warning(
-            "_log_user_attribute_metric is deprecated and shouldn't be used anymore."
+            "log_user_attribute_metric is deprecated and shouldn't be used anymore."
         )
 
     @property
