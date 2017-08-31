@@ -22,11 +22,11 @@ from .errors import TankError, TankMultipleMatchingTemplatesError
 from .path_cache import PathCache
 from .template import read_templates
 from . import constants
-from .util import log_user_activity_metric
 from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
 from . import LogManager
+from .util.metrics import warn_deprecated as warn_deprecated_metric
 
 log = LogManager.get_logger(__name__)
 
@@ -123,21 +123,10 @@ class Sgtk(object):
 
     def log_metric(self, action, log_once=False):
         """
-        Log a core metric.
-
-        :param action: Action string to log, e.g. 'Init'
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-
-        Logs a user activity metric as performed within core. This is
-        a convenience method that auto-populates the module portion of
-        `tank.util.log_user_activity_metric()`
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
+        This method is now deprecated and shouldn't be used anymore.
+        Use the `tank.util.metrics.EventMetrics.log` method instead.
         """
-        full_action = "%s %s" % ("tk-core", action)
-        log_user_activity_metric("tk-core", full_action, log_once=log_once)
+        warn_deprecated_metric("tank.api.log_metric")
 
     def get_cache_item(self, cache_key):
         """

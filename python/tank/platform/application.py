@@ -21,6 +21,7 @@ from . import constants
 
 from .bundle import TankBundle
 from ..util.metrics import EventMetric
+from ..util.metrics import warn_deprecated as warn_deprecated_metric
 
 class Application(TankBundle):
     """
@@ -266,35 +267,11 @@ class Application(TankBundle):
     # internal API
 
     def log_metric(self, action, log_version=False, log_once=False):
-        """Logs an app metric.
-
-        :param action: Action string to log, e.g. 'Execute Action'
-        :param log_version: If True, also log a user attribute metric for the
-            version of the app. Default is `False`.
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-
-        Logs a user activity metric as performed within an app. This is a
-        convenience method that auto-populates the module portion of
-        `tank.util.log_user_activity_metric()`.
-
-        If the optional `log_version` flag is set to True, this method will
-        also log a user attribute metric for the current version of the app.
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
-
         """
-        # the action contains the engine and app name, e.g.
-        # module: tk-multi-loader2
-        # action: (tk-maya) tk-multi-loader2 - Load...
-        full_action = "(%s) %s %s" % (self.engine.name, self.name, action)
-        log_user_activity_metric(self.name, full_action, log_once=log_once)
-
-        if log_version:
-            # log the app version as a user attribute
-            log_user_attribute_metric(
-                "%s version" % (self.name,), self.version, log_once=log_once)
+        This method is now deprecated and shouldn't be used anymore.
+        Use the `tank.util.metrics.EventMetrics.log` method instead.
+        """
+        warn_deprecated_metric("platform.application.Application.log_metric")
 
     @property
     def _metric_properties(self):
