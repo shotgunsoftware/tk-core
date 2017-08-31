@@ -151,11 +151,11 @@ class ShotgunAuthenticator(object):
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 
         # @FIXME: if imported at file scope, we get a ImportError
-        from .shotgun_shared import cookies_include_sso_infos
+        from .shotgun_shared import has_sso_info_in_cookies
 
         # Create a session user
         impl = user_impl.SessionUser(host, login, session_token, http_proxy, password=password, cookies=cookies)
-        if cookies_include_sso_infos(cookies):
+        if has_sso_info_in_cookies(cookies):
             return user.ShotgunSamlUser(impl)
         else:
             return user.ShotgunUser(impl)

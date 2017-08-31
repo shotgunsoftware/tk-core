@@ -746,7 +746,7 @@ def is_sso_enabled_on_site(url):
     return False
 
 
-def cookies_include_sso_infos(encoded_cookies):
+def has_sso_info_in_cookies(encoded_cookies):
     """
     Indicate if SSO is being used from the Shotgun cookies.
 

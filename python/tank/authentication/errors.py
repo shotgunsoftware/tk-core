@@ -41,7 +41,7 @@ class IncompleteCredentials(ShotgunAuthenticationError):
         )
 
 
-class ConsoleCannotUseUsernameAndPasswordWhenSSOEnabled(ShotgunAuthenticationError):
+class ConsoleLoginWithSSONotSupportedError(ShotgunAuthenticationError):
     """
     Thrown when attempting to use Username/Password pair to login onto
     a SSO-enabled site.

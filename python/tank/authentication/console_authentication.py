@@ -20,7 +20,7 @@ at any point.
 """
 from . import session_cache
 from .. import LogManager
-from .errors import AuthenticationError, AuthenticationCancelled, ConsoleCannotUseUsernameAndPasswordWhenSSOEnabled
+from .errors import AuthenticationError, AuthenticationCancelled, ConsoleLoginWithSSONotSupportedError
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 
 from getpass import getpass
@@ -163,7 +163,7 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
         from shotgun_shared import is_sso_enabled_on_site
 
         if is_sso_enabled_on_site(hostname):
-            raise ConsoleCannotUseUsernameAndPasswordWhenSSOEnabled(hostname)
+            raise ConsoleLoginWithSSONotSupportedError(hostname)
 
         print "Please enter your password to renew your session for %s" % hostname
         return hostname, login, self._get_password()
@@ -200,7 +200,7 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         from shotgun_shared import is_sso_enabled_on_site
 
         if is_sso_enabled_on_site(hostname):
-            raise ConsoleCannotUseUsernameAndPasswordWhenSSOEnabled(hostname)
+            raise ConsoleLoginWithSSONotSupportedError(hostname)
 
         login = self._get_keyboard_input("Login", login)
         password = self._get_password()
