@@ -73,7 +73,8 @@ class MetricsQueueSingleton(object):
         return cls.__instance
 
     def log(self, metric, log_once=False):
-        """Add the metric to the queue for dispatching.
+        """
+        Add the metric to the queue for dispatching.
 
         If ``log_once`` is set to ``True``, this will only log the metric if it
         is the first attempt to log it.

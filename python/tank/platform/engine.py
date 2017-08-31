@@ -135,8 +135,6 @@ class Engine(TankBundle):
 
         self._metrics_dispatcher = None
 
-        self._host_version_info = None
-
         # Initialize these early on so that methods implemented in the derived class and trying
         # to access the invoker don't trip on undefined variables.
         self._invoker = None
@@ -305,23 +303,16 @@ class Engine(TankBundle):
             self._metrics_dispatcher.start()
             self.log_debug("Metrics dispatcher started.")
 
-        # log the core and engine versions being used by the current user
         self.log_debug("Init complete: %s" % self)
-        EventMetric.log(EventMetric.GROUP_TOOLKIT,
-            EventMetric.KEY_ENGINE + " Init",
+        # Emit an event for the software being launched
+        EventMetric.log(
+            EventMetric.GROUP_TOOLKIT,
+            "Launched Software",
             properties={
-                "tk-core version": tk.version,
-                "%s version" % (self.name): self.version,
-            }
-        )
-
-        # FIXME: reformulate
-        # With the app engine init part done, we can now also log
-        # metrics for the app engine
-        EventMetric.log(EventMetric.GROUP_APP,
-            EventMetric.KEY_APP + " Init",
-            properties={
-                self.host_app_name + " version": self.host_app_version_string
+                EventMetric.KEY_ENGINE: self.name,
+                EventMetric.KEY_ENGINE_VERSION: self.version,
+                EventMetric.KEY_HOST_APP: self.host_info.name,
+                EventMetric.KEY_HOST_APP_VERSION: self.host_info.version_string,
             }
         )
 
@@ -713,20 +704,6 @@ class Engine(TankBundle):
         """
         return self.__created_qt_dialogs
 
-    @property
-    def host_app_name(self):
-        # FIXME: Reformulate warning message
-        # TODO: Find how to get the engine child class name.
-        #       The self.__class__.name would return something not very useful
-        #       '<property object at 0x1054b4c58>
-        self.logger.warning("Do implement the '%s' subclass 'host_app_name' property." % (repr(self)))
-        return "<unspecified_app_name>"
-
-    @property
-    def host_app_version_string(self):
-        # FIXME: Reformulate warning message
-        self.logger.warning("Do implement the '%s' subclass 'host_app_version_string' property." % (repr(self)))
-        return "<unspecified_app_version>"
 
     @property
     def host_info(self):
