@@ -1098,9 +1098,10 @@ class Engine(TankBundle):
         def callback_wrapper(*args, **kwargs):
 
             if properties.get("app"):
+                command_name = properties.get("short_name") or name
                 metric_properties = self._metric_properties
                 metric_properties.update(properties["app"]._metric_properties)
-                metric_properties[EventMetric.KEY_COMMAND] = name
+                metric_properties[EventMetric.KEY_COMMAND] = command_name
                 metric = EventMetric.log(
                     EventMetric.GROUP_TOOLKIT,
                     "Launched Command",
