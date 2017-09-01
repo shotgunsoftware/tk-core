@@ -61,6 +61,15 @@ class HostInfo(LooseVersion):
     Store information about the application hosting the engine.
     """
     def __init__(self, name, version):
+        """
+        Instantiate a HostInfo.
+
+        The version string can't be empty and should have a form suitable for
+        :class:`distutils.version.LooseVersion`
+
+        :param str name: The host application name, e.g. Maya.
+        :param str version: The host application version string, e.g. 10.2.3
+        """
         self._name = name
         if not version:
             # LooseVersion will have problems if we pass an empty string, so
@@ -69,26 +78,44 @@ class HostInfo(LooseVersion):
         LooseVersion.__init__(self, version)
 
     def __str__(self):
+        """
+        :returns: A string with the host name and version.
+        """
         return "%s %s" % (self._name, self.version_string)
 
     @property
     def name(self):
+        """
+        :returns: A string, the host application name.
+        """
         return self._name
 
     @property
     def version_string(self):
+        """
+        :returns: A string, the host application version.
+        """
         return LooseVersion.__str__(self)
 
     @property
     def major(self):
+        """
+        :returns: A string, the host application major version.
+        """
         return self.version[0]
 
     @property
     def minor(self):
+        """
+        :returns: A string or None, the host application minor version, if any.
+        """
         return self.version[1] if len(self.version) > 1 else None
 
     @property
     def patch(self):
+        """
+        :returns: A string or None, the host application patch version, if any.
+        """
         return self.version[2] if len(self.version) > 2 else None
 
 class Engine(TankBundle):
@@ -695,13 +722,11 @@ class Engine(TankBundle):
         This should be re-implemented in deriving classes to handle the logic 
         specific to the application the engine is designed for.
         
-        This base implementation returns information about the Python interpreter.
-
         :returns: A :class:`HostInfo` instance.
         """
         return HostInfo(
-            "Python",
-            platform.python_version(),
+            "unknown",
+            "unknown",
         )
 
     @property
