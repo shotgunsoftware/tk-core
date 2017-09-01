@@ -132,10 +132,10 @@ class TestAppFrameworks(TestApplication):
             else:
                 self.assertEqual(framework._get_parent(), app)
             for framework2 in framework.frameworks.itervalues():
-            if framework2.is_shared:
-                self.assertEqual(framework2._get_parent(), self.engine)
-            else:
-                self.assertEqual(framework2._get_parent(), app)
+                if framework2.is_shared:
+                    self.assertEqual(framework2._get_parent(), self.engine)
+                else:
+                    self.assertEqual(framework2._get_parent(), app)
 
 class TestGetApplication(TestApplication):
     """
