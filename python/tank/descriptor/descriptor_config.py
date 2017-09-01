@@ -11,6 +11,7 @@
 from __future__ import with_statement
 
 import os
+from ..util.process import subprocess_check_output, SubprocessCalledProcessError
 
 from tank_vendor import yaml
 
@@ -137,11 +138,23 @@ class ConfigDescriptor(Descriptor):
             with open(interpreter_config_file, "r") as f:
                 path_to_python = f.read().strip()
 
-            if not path_to_python or not os.path.exists(path_to_python):
+            if not path_to_python:
                 raise TankInvalidInterpreterLocationError(
                     "Cannot find interpreter '%s' defined in "
                     "config file '%s'." % (path_to_python, interpreter_config_file)
                 )
+
+            if not os.path.exists(path_to_python):
+                try:
+                    # Python interpreter could be a bash function
+                    subprocess_check_output("type {0}".format(path_to_python), shell=True)
+                except SubprocessCalledProcessError:
+                    raise TankInvalidInterpreterLocationError(
+                        "Cannot find interpreter '%s' defined in "
+                        "config file '%s'." % (path_to_python, interpreter_config_file)
+                    )
+                else:
+                    return path_to_python
             else:
                 return path_to_python
         else:
