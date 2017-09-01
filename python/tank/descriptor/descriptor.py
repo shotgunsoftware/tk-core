@@ -304,11 +304,13 @@ class Descriptor(object):
     @property
     def documentation_url(self):
         """
-        The documentation url for this item or None if not defined.
+        The documentation url for this item. If no documentation url has been defined,
+        a url to the toolkit user guide is returned.
         """
         meta = self._get_manifest()
         doc_url = meta.get("documentation_url")
-        # note - doc_url can be none which is fine.
+        if doc_url is None:
+            doc_url = "https://support.shotgunsoftware.com/hc/en-us/articles/115000068574-User-Guide"
         return doc_url
 
     @property
