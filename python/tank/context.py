@@ -302,8 +302,13 @@ class Context(object):
         are situations where a context is interpreted from an input entity,
         such as when a PublishedFile entity is used to determine a context. In
         that case, the original PublishedFile becomes the source_entity, and
-        project, entity, task, and step are determined why what the
-        PublishedFile entity is linked to.
+        project, entity, task, and step are determined by what the
+        PublishedFile entity is linked to. A specific example of where this is
+        useful is in a pick_environment core hook. In that hook, an environment
+        is determined based on a provided Context object. In the case where we want
+        to provide a specific environment for a Context built from a PublishedFile
+        entity, the context's source_entity can be used to know for certain that it
+        was constructured from a PublishedFile.
 
         :returns: A Shotgun entity dictionary.
         :rtype: dict or None
@@ -1063,7 +1068,7 @@ def from_entity(tk, entity_type, entity_id):
 
     :returns: :class:`Context`
     """
-    return _from_entity(tk, entity_type, entity_id, source_entity=None)
+    return _from_entity(tk, entity_type, entity_id)
 
 def _from_entity(tk, entity_type, entity_id, source_entity=None):
     """
