@@ -1176,7 +1176,7 @@ def from_entity_dictionary(tk, entity_dictionary):
 
     :returns: :class:`Context`
     """
-    return _from_entity_dictionary(tk, entity_dictionary, source_entity=None)
+    return _from_entity_dictionary(tk, entity_dictionary)
 
 def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
     """
