@@ -22,6 +22,7 @@ from tank.util.metrics import (
     log_user_attribute_metric,
 )
 
+import tank
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import TankTestBase
 from tank.authentication import ShotgunAuthenticator
