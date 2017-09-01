@@ -540,7 +540,7 @@ class TestProperties(TestApplication):
         test engine properties
         """
         app = self.engine.apps["test_app"]
-        expected_doc_url =  "https://support.shotgunsoftware.com/hc/en-us/articles/115000068574-User-Guide"
+        expected_doc_url = "https://support.shotgunsoftware.com/hc/en-us/articles/115000068574-User-Guide"
         self.assertEqual(app.name, "test_app")
         self.assertEqual(app.display_name, "Test App")
         self.assertEqual(app.version, "Undefined")
