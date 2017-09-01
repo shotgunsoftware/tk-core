@@ -276,7 +276,7 @@ class Application(TankBundle):
     @property
     def _metric_properties(self):
         return {
-            EventMetric.KEY_APP : self.name,
+            EventMetric.KEY_APP: self.name,
             EventMetric.KEY_APP_VERSION: self.version
         }
 

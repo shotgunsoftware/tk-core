@@ -24,7 +24,6 @@ import inspect
 import weakref
 import threading
 from distutils.version import LooseVersion
-import platform
 
 from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
@@ -335,7 +334,7 @@ class Engine(TankBundle):
         EventMetric.log(
             EventMetric.GROUP_TOOLKIT,
             "Launched Software",
-            properties= self._metric_properties,
+            properties=self._metric_properties,
         )
 
     def __repr__(self):
