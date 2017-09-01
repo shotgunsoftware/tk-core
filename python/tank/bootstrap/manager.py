@@ -1228,11 +1228,10 @@ class ToolkitManager(object):
 
         # Perform an absolute import to ensure we get the new swapped core.
         # This is required to make sure we log into the logging queue of this swapped core.
-        from tank import util
-        if not hasattr(util, "log_user_activity_metric"):
+        try:
+            from tank.util.metrics import EventMetric
+        except:
             return
-
-        module = "tk-core"
 
         bootstrap_type = self._plugin_id if self._plugin_id else "classic"
         context_name = "project" if entity else "site"
@@ -1241,7 +1240,13 @@ class ToolkitManager(object):
 
         log.debug("Logging user activity metric: module '%s', action '%s'" % (module, action))
 
-        util.log_user_activity_metric(module, action)
+        EventMetric.log(EventMetric.GROUP_TOOLKIT, "Bootstrapping",
+            properties={
+                "bootstrap_type": bootstrap_type,
+                "engine_name": engine_name,
+                "context_name": context_name
+            }
+        )
 
     @staticmethod
     def get_core_python_path():
