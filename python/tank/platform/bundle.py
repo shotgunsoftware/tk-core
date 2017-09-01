@@ -54,7 +54,20 @@ class TankBundle(object):
 
         # emit an engine started event
         tk.execute_core_hook(constants.TANK_BUNDLE_INIT_HOOK_NAME, bundle=self)
-        
+
+    ##########################################################################################
+    # internal API
+
+    def log_metric(self, **kwargs):
+        """
+        This method is now deprecated and shouldn't be used anymore.
+        Use the `util.metrics.EventMetrics.log` method instead.
+        """
+        self.log.warning("The '%s' method is deprecated, use the '' method instead." % (
+            "bundle.log_metric",
+            "util.metrics.EventMetrics.log"
+        ))
+
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
     

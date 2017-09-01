@@ -21,7 +21,6 @@ from . import constants
 from ..errors import TankError
 from .bundle import TankBundle
 from . import validation
-from ..util.metrics import warn_deprecated as warn_deprecated_metric
 
 class Framework(TankBundle):
     """
@@ -199,13 +198,6 @@ class Framework(TankBundle):
 
     ##########################################################################################
     # internal API
-
-    def log_metric(self, action, log_once=False):
-        """
-        This method is now deprecated and shouldn't be used anymore.
-        Use the `tank.util.metrics.EventMetrics.log` method instead.
-        """
-        warn_deprecated_metric("tank.api.log_metric")
 
     def _get_parent(self):
         """

@@ -21,7 +21,6 @@ from . import constants
 
 from .bundle import TankBundle
 from ..util.metrics import EventMetric
-from ..util.metrics import warn_deprecated as warn_deprecated_metric
 
 class Application(TankBundle):
     """
@@ -265,13 +264,6 @@ class Application(TankBundle):
 
     ##########################################################################################
     # internal API
-
-    def log_metric(self, action, log_version=False, log_once=False):
-        """
-        This method is now deprecated and shouldn't be used anymore.
-        Use the `tank.util.metrics.EventMetrics.log` method instead.
-        """
-        warn_deprecated_metric("platform.application.Application.log_metric")
 
     @property
     def _metric_properties(self):
