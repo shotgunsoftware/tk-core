@@ -16,7 +16,7 @@ Defines the base class for all Tank Frameworks.
 import os
 
 from ..util.loader import load_plugin
-from . import constants 
+from . import constants
 
 from ..errors import TankError
 from .bundle import TankBundle
@@ -47,9 +47,8 @@ class Framework(TankBundle):
 
         # init base class
         TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env, logger)
-        
 
-    def __repr__(self):        
+    def __repr__(self):
         return "<Sgtk Framework 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
 
     def _destroy_framework(self):
@@ -208,6 +207,26 @@ class Framework(TankBundle):
         """
         warn_deprecated_metric("tank.api.log_metric")
 
+    def _get_parent(self):
+        """
+        Retrieve the parent application or engine for this framework.
+        :returns: Either a :class:`Engine` or a :class:`Application`.
+        """
+        if self.is_shared:
+            return self.engine
+        # Loop over all apps for the engine, check if we are 
+        for app in self.engine.apps.itervalues():
+            if app._TankBundle__module_uid == self._TankBundle__module_uid:
+                return app
+        # Fall back on the engine
+        return self.engine
+
+    def _get_metrics_context(self):
+        """
+        :returns: A dictionary with properties to use when emitting a metric
+                  event for this framework in the current engine.
+        """
+        return self._get_parent()._get_metrics_context()
 
 ###################################################################################################
 #

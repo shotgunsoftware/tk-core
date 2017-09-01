@@ -275,10 +275,23 @@ class Application(TankBundle):
 
     @property
     def _metric_properties(self):
+        """
+        :returns: A dictionary with metric properties specific to this application.
+        """
+        # Always create a new dictionary so the caller can safely modify it.
         return {
             EventMetric.KEY_APP: self.name,
             EventMetric.KEY_APP_VERSION: self.version
         }
+
+    def _get_metrics_context(self):
+        """
+        :returns: A dictionary with properties to use when emitting a metric
+                  event for this application in the current engine.
+        """
+        properties = self.engine._get_metrics_context()
+        properties.update(self._metric_properties)
+        return properties
 
 def get_application(engine, app_folder, descriptor, settings, instance_name, env):
     """

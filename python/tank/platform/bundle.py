@@ -920,6 +920,14 @@ class TankBundle(object):
 
         return engine_name
 
+    def _get_metrics_context(self):
+        """
+        Should be re-implemented in deriving classes and return a dictionary with
+        the properties needed to log a metric event for this bundle.
+
+        :raises: NotImplementedError
+        """
+        raise NotImplementedError
 
 def _post_process_settings_r(tk, key, value, schema):
     """

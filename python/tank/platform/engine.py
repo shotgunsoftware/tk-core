@@ -334,7 +334,7 @@ class Engine(TankBundle):
         EventMetric.log(
             EventMetric.GROUP_TOOLKIT,
             "Launched Software",
-            properties=self._metric_properties,
+            properties=self._get_metrics_context(),
         )
 
     def __repr__(self):
@@ -548,15 +548,22 @@ class Engine(TankBundle):
     @property
     def _metric_properties(self):
         """
-        :returns: A dictionary with properties to use when emitting a metric
-                  event for this engine.
+        :returns: A dictionary with metric properties specific to this engine.
         """
+        # Always create a new dictionary so the caller can safely modify it.
         return {
             EventMetric.KEY_ENGINE: self.name,
             EventMetric.KEY_ENGINE_VERSION: self.version,
             EventMetric.KEY_HOST_APP: self.host_info.name,
             EventMetric.KEY_HOST_APP_VERSION: self.host_info.version_string,
         }
+
+    def _get_metrics_context(self):
+        """
+        :returns: A dictionary with properties to use when emitting a metric
+                  event for this engine.
+        """
+        return self._metric_properties
 
     def get_child_logger(self, name):
         """
@@ -1123,8 +1130,7 @@ class Engine(TankBundle):
 
             if properties.get("app"):
                 command_name = properties.get("short_name") or name
-                metric_properties = self._metric_properties
-                metric_properties.update(properties["app"]._metric_properties)
+                metric_properties = properties["app"]._get_metrics_context()
                 metric_properties[EventMetric.KEY_COMMAND] = command_name
                 metric = EventMetric.log(
                     EventMetric.GROUP_TOOLKIT,

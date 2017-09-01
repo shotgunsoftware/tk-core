@@ -25,3 +25,4 @@ requires_shotgun_version:
 
 # the frameworks required to run this app
 frameworks:
+    - {"name": "test_framework", "version": "v1.x.x", "minimum_version": "v1.0.0"}
