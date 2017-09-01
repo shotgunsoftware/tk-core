@@ -19,8 +19,7 @@ at any point.
 """
 from .ui import login_dialog
 from . import session_cache
-from shotgun_shared import Saml2Sso
-from shotgun_shared import is_sso_enabled_on_site
+from shotgun_shared import Saml2Sso, is_sso_enabled_on_site
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault

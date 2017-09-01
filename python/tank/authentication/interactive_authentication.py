@@ -148,7 +148,7 @@ class SessionRenewal(object):
                     logger.debug("Not authenticated, requesting user input.")
 
                 # @TODO: Refactor the authenticate methods to return a struct-like
-                #        object instead of a 5 elements tuple.
+                #        object instead of a 4 elements tuple.
                 hostname, login, session_token, cookies = credentials_handler.authenticate(
                     user.get_host(),
                     user.get_login(),
