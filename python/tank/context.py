@@ -1068,22 +1068,35 @@ def from_entity(tk, entity_type, entity_id):
 
     :returns: :class:`Context`
     """
-    return _from_entity(tk, entity_type, entity_id)
+    return _from_entity_type_and_id(tk, dict(type=entity_type, id=entity_id))
 
-def _from_entity(tk, entity_type, entity_id, source_entity=None):
+def _from_entity_type_and_id(tk, entity, source_entity=None):
     """
-    Constructs a context from a shotgun entity.
+    Constructs a context from the entity type and id as stored in the given
+    entity. Any other data necessary to construct the context beyond the type
+    and id keys will be queried from Shotgun. To get a context from a fully
+    populated entity dictionary, see the from_entity_dictionary function.
 
     For more information, see :meth:`Sgtk.context_from_entity`.
 
     :param tk: Sgtk API handle
-    :param str entity_type: The shotgun entity type to produce a context for
-    :param int entity_id: The shotgun entity id to produce a context for
+    :param dict entity: The entity to construct the context from, containing
+        a minimum of type and id keys.
     :param dict source_entity: The entity dictionary to add to the context
-        as its source_entity.
+        as its source_entity. The source entity can be different from the entity,
+        which is useful in the situation where a context is being built from
+        what the source entity is linked to, but its desirable to maintain
+        a reference back to the original entity. A specific example of when
+        this is used is for PublishedFile entities, where the Context object
+        represents the location in the pipeline of what the PublishedFile is
+        linked to. In that situation, we store the original PublishedFile entity
+        as the source entity, which can then be used in a pick_environment hook
+        to return a specific environment for PublishedFiles.
 
     :returns: :class:`Context`
     """
+    entity_type = entity.get("type")
+    entity_id = entity.get("id")
     
     if entity_type is None:
         raise TankError("Cannot create a context from an entity type 'None'!")
@@ -1119,15 +1132,15 @@ def _from_entity(tk, entity_type, entity_id, source_entity=None):
         
         if sg_entity.get("task"):
             # base the context on the task for the published file
-            return _from_entity(tk, "Task", sg_entity["task"]["id"], sg_entity)
+            return _from_entity_type_and_id(tk, sg_entity["task"], sg_entity)
         
         elif sg_entity.get("entity"):
             # base the context on the entity that the published is linked with
-            return _from_entity(tk, sg_entity["entity"]["type"], sg_entity["entity"]["id"], sg_entity)
+            return _from_entity_type_and_id(tk, sg_entity["entity"], sg_entity)
         
         elif sg_entity.get("project"):
             # base the context on the project that the published is linked with
-            return _from_entity(tk, "Project", sg_entity["project"]["id"], sg_entity)
+            return _from_entity_type_and_id(tk, sg_entity["project"], sg_entity)
     
     else:
         # Get data from path cache
@@ -1167,13 +1180,24 @@ def from_entity_dictionary(tk, entity_dictionary):
 
 def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
     """
-    Constructs a context from a shotgun entity dictionary.
+    Constructs a context from a Shotgun entity dictionary.
 
     For more information, see :meth:`Sgtk.context_from_entity_dictionary`.
 
     :param tk: :class:`Sgtk`
     :param entity_dictionary: The entity dictionary to create the context from
                               containing at least: {"type":entity_type, "id":entity_id}
+    :param dict source_entity: The entity dictionary to add to the context
+        as its source_entity. The source entity can be different from the entity,
+        which is useful in the situation where a context is being built from
+        what the source entity is linked to, but its desirable to maintain
+        a reference back to the original entity. A specific example of when
+        this is used is for PublishedFile entities, where the Context object
+        represents the location in the pipeline of what the PublishedFile is
+        linked to. In that situation, we store the original PublishedFile entity
+        as the source entity, which can then be used in a pick_environment hook
+        to return a specific environment for PublishedFiles.
+
     :returns: :class:`Context`
     """
     # perform validation of the entity dictionary:
@@ -1296,10 +1320,9 @@ def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
     if fallback_to_ctx_from_entity:
         # entity dict doesn't contain enough information to build a 
         # safe, valid context so fall back on 'from_entity':
-        return _from_entity(
+        return _from_entity_type_and_id(
             tk,
-            entity_type,
-            entity_id,
+            entity_dictionary,
             source_entity=context["source_entity"],
         )
 
