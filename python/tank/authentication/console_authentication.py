@@ -57,6 +57,13 @@ class ConsoleAuthenticationHandlerBase(object):
                 # Insert a \n on the current line so the print is displayed on a new time.
                 print
                 raise AuthenticationCancelled()
+            except ConsoleLoginWithSSONotSupportedError, e:
+                # SSO login requires a Web-like environment at this time.
+                # Should the user attempts to connect to a site that uses SSO,
+                # we simply prompt them again for another URL.
+                print "%s" % e
+                print
+                continue
 
             try:
                 try:
