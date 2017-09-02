@@ -2495,6 +2495,15 @@ class Shotgun(object):
         opener = self._build_opener(cookie_handler)
         urllib2.install_opener(opener)
 
+    def retrieve_ws_server_secret(self, ws_server_id):
+        """
+        Creates or retrieves the shared secret for the given server id.
+        """
+        return self._call_rpc(
+            "retrieve_ws_server_secret",
+            {"ws_server_id": ws_server_id}
+        )
+
     def get_attachment_download_url(self, attachment):
         """
         Return the URL for downloading provided Attachment.
@@ -2940,7 +2949,7 @@ class Shotgun(object):
                 {
                     "root_path": root_path,
                     "seed_entity_field": seed_entity_field,
-                    "search_criteria": {"entity": entity }
+                    "search_criteria": {"entity": entity}
                 }
         )
 
@@ -2960,13 +2969,26 @@ class Shotgun(object):
         if self.config.session_token:
             return self.config.session_token
 
+        session_token = self._create_session_token()
+
+        self.config.session_token = session_token
+
+        return session_token
+
+    def _create_session_token(self):
         rv = self._call_rpc("get_session_token", None)
         session_token = (rv or {}).get("session_id")
         if not session_token:
             raise RuntimeError("Could not extract session_id from %s", rv)
-        self.config.session_token = session_token
-
         return session_token
+
+    def reauthenticate(self):
+        if self.config.session_token:
+            session_token = self._create_session_token()
+            return Shotgun(self.base_url, session_token=session_token)
+        else:
+            # FIXME: handle other cases here.
+            pass
 
     def _build_opener(self, handler):
         """
