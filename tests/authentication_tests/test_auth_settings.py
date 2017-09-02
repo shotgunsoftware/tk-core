@@ -18,9 +18,10 @@ from mock import patch, Mock, PropertyMock
 from tank_test.tank_test_base import TankTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 
-from tank.util import CoreDefaultsManager
+from tank.authentication import CoreDefaultsManager
 from tank.authentication import DefaultsManager
 from tank.util.user_settings import UserSettings
+import sgtk
 
 
 class DefaultsManagerTest(TankTestBase):
@@ -189,3 +190,12 @@ class DefaultsManagerTest(TankTestBase):
 
         dm = CoreDefaultsManager()
         self.assertIs(dm.get_http_proxy(), "")
+
+    def test_backwards_compatible(self):
+        """
+        Ensures the API is backwards compatible as we've moved CoreDefaulsManager to a new location.
+        """
+        self.assertEqual(
+            sgtk.authentication.CoreDefaultsManager,
+            sgtk.util.CoreDefaultsManager
+        )

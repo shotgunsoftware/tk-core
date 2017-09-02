@@ -18,9 +18,10 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from .ui import resources_rc
+from .ui import resources_rc # noqa
 from .ui import login_dialog
 from . import session_cache
+from ..util.shotgun import connection
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
@@ -129,11 +130,8 @@ class LoginDialog(QtGui.QDialog):
         site = self.ui.site.text()
 
         # Give visual feedback that we are patching the URL before invoking
-        # the desktop services. Desktop Services requires HTTP or HTTPS to be
-        # present.
-        if len(site.split("://")) == 1:
-            site = "https://%s" % site
-            self.ui.site.setText(site)
+        # the desktop services.
+        self.ui.site.setText(connection.sanitize_url(site))
 
         # Launch the browser
         forgot_password = "%s/user/forgot_password" % site
@@ -226,10 +224,8 @@ class LoginDialog(QtGui.QDialog):
             self._set_error_message(self.ui.message, "Please enter your password.")
             return
 
-        # if not protocol specified assume https
-        if len(site.split("://")) == 1:
-            site = "https://%s" % site
-            self.ui.site.setText(site)
+        # Cleanup the URL.
+        self.ui.site.setText(connection.sanitize_url(site))
 
         try:
             self._authenticate(self.ui.message, site, login, password)
