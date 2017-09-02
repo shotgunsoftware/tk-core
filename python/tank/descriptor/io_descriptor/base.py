@@ -13,6 +13,7 @@ import re
 import cgi
 import urllib
 import urlparse
+from distutils.version import LooseVersion
 
 from .. import constants
 from ... import LogManager
@@ -190,13 +191,14 @@ class IODescriptorBase(object):
 
         If pattern is None, the highest version number is returned.
 
-        :param version_numbers: List of version number strings, e.g. ``['v1.2.3', 'v1.2.5']``
+        :param version_numbers: List of version number strings, e.g. ``['v1.2.3', 'v1.2.5', v1.2.5-rc.1]``
         :param pattern: Version pattern string, e.g. 'v1.x.x'. Patterns are on the following forms:
 
             - v1.2.3 (can return this v1.2.3 but also any forked version under, eg. v1.2.3.2)
             - v1.2.x (examples: v1.2.4, or a forked version v1.2.4.2)
             - v1.x.x (examples: v1.3.2, a forked version v1.3.2.2)
             - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
+            - v1.2.3-alpha (will always return an 'alpha' version for v1.2.3, eg. v1.2.3-alpha.2)
             - None (latest version is returned)
 
         :returns: The most appropriate tag in the given list of tags or None if no tag matches
@@ -210,93 +212,95 @@ class IODescriptorBase(object):
             # iterate over versions in list and find latest
             latest_version = None
             for version_number in version_numbers:
+                # Please note that 'is_version_newer' has some code to deal with
+                # "master" and "head" versions
                 if is_version_newer(version_number, latest_version):
                     latest_version = version_number
             return latest_version
 
-        # now put all version number strings which match the form
-        # vX.Y.Z(.*) into a nested dictionary where it is keyed recursively
-        # by each digit (ie. major, minor, increment, then any additional
-        # digit optionally used by forked versions)
-        #
-        versions = {}
-        for version_num in version_numbers:
-            try:
-                version_split = map(int, version_num[1:].split("."))
-            except Exception:
-                # this git tag is not on the expected form vX.Y.Z where X Y and Z are ints. skip.
-                continue
+        # Validate the pattern: we expect at least v<digit or x>.<digit or x>.<digit or x>
+        # - we can then have more .<digit or x>
+        # - we can then have a -<topic name>, optionally followed by multiple .<alphanumeric or _>
+        if not re.match("^v(\d+|x)(\.(\d+|x)){2,}(-\w+(\.\w+)*)?$", pattern):
+            raise TankDescriptorError(
+                "Cannot parse version expression '%s', it must follow a vx.x.x[-topic] pattern "
+                "where 'x' can either be a digit or the letter 'x', and 'topic' is an "
+                "optional arbitrary string." % pattern
+            )
+        # Split the pattern either with "." or "-", keep the separator in the result
+        # with the grouping in the regexp
+        version_split = re.split("(\.|-)", pattern)
+        num_tokens = len(version_split)
+        # Special case for the first token for which the wildcard is "vx" and not
+        # "x"
+        version_regexp = version_split[0]
+        if version_split[0] == "vx":
+            version_split[0] = "x"
+        # Build a base version string that versions will have to match. The base
+        # version contains all tokens until we find a "x".
+        # Separators are kept by the split being done above, so actual tokens are
+        # every other entry and we need to only consider even entries, hence the '2'
+        # step
+        for i in range(0, num_tokens, 2):
+            token = version_split[i]
+            if token == "x":
+                # If we found a "x", check that all following tokens are "x" as
+                # well, having something like v4.x.2 is illegal
+                # Tokens are every other entry, so next token is at current index+2
+                # and we only consider even entries from it, hence the '2' step.
+                for token2 in version_split[i+2:num_tokens:2]:
+                    if token2 != "x":
+                        raise TankDescriptorError(
+                            "Incorrect version pattern '%s'. "
+                            "There should be no digit after a 'x', found %s." % (
+                                pattern, token2,
+                            )
+                        )
+                # Build our base version string. Please note we will have a "." or a "-"
+                # at the end.
+                # Please note that we don't have to worry about leading "v" here: if
+                # the pattern starts with "vx" the base version will be an empty
+                # string
+                base_version = "".join(version_split[:i])
+                break
+        else:
+            # No "x" in our pattern
+            base_version = "".join(version_split)
 
-            if len(version_split) < 3:
-                # git tag has no minor or increment number. skip.
-                continue
+        if not base_version:
+            # Match anything, this happens if the pattern was vx.x.x
+            # Sort in reverse order, for the "v" case, hoping a valid "v" version
+            # will be in the latest ones. Please note that this is different from
+            # the no pattern case: we do have have a pattern here, but matching
+            # anything.
+            version_numbers.sort(key=LooseVersion, reverse=True)
+            # Because we enforce patterns to always start with "v", we only match
+            # versions starting with "v". We check as well that we have at least
+            # the number of tokens specified in the pattern. So vx.x.x-x will not
+            # match v1.2.3 but will match v1.2.3-foo.
+            for version_number in version_numbers:
+                if (version_number.startswith("v") and
+                    len(re.split("(\.|-)", version_number)) >= num_tokens):
+                    return version_number
+            # No match
+            log.debug("Didn't find a matching version for pattern %s" % pattern)
+            return None
 
-            # fill our versions dictionary
-            #
-            # For example, the following versions:
-            # v1.2.1, v1.2.2, v1.2.3.1, v1.4.3, v1.4.2.1, v1.4.2.2, v1.4.1,
-            #
-            # Would generate the following:
-            # {1:
-            #   {2: {1: {},
-            #        2: {},
-            #        3: {1: {}
-            #       }
-            #   },
-            #   4: {1: {},
-            #       2: {1: {}, 2: {}},
-            #       3: {}
-            #       }
-            #   }
-            # }
-            #
-            current = versions
-            for number in version_split:
-                if number not in current:
-                    current[number] = {}
-                current = current[number]
-
-        # now search for the latest version matching our pattern
-        if not re.match("^v([0-9]+|x)(.([0-9]+|x)){2,}$", pattern):
-            raise TankDescriptorError("Cannot parse version expression '%s'!" % pattern)
-
-        # split our pattern, beware each part is a string (even integers)
-        version_split = re.findall("([0-9]+|x)", pattern)
-        if 'x' in version_split:
-            # check that we don't have an incorrect pattern using x
-            # then a digit, eg. v4.x.2
-            if re.match("^v[0-9\.]+[x\.]+[0-9\.]+$", pattern):
-                raise TankDescriptorError(
-                    "Incorrect version pattern '%s'. "
-                    "There should be no digit after a 'x'." % pattern
-                )
-
-        current = versions
-        version_to_use = None
-        # process each digit in the pattern
-        for version_digit in version_split:
-            if version_digit == 'x':
-                # replace the 'x' by the latest at this level
-                version_digit = max(current.keys(), key=int)
-            version_digit = int(version_digit)
-            if version_digit not in current:
-                # no matches
-                return None
-            current = current[version_digit]
-            if version_to_use is None:
-                version_to_use = "v%d" % version_digit
-            else:
-                version_to_use = version_to_use + ".%d" % version_digit
-
-        # at this point we have a matching version (eg. v4.x.x => v4.0.2) but
-        # there may be forked versions under this 4.0.2, so continue to recurse into
-        # the versions dictionary to find the latest forked version
-        while len(current):
-            version_digit = max(current.keys())
-            current = current[version_digit]
-            version_to_use = version_to_use + ".%d" % version_digit
-
-        return version_to_use
+        # Find the matching versions
+        possible_versions = []
+        for version_number in version_numbers:
+            # Match the exact same version or the base_version.<more tokens>
+            if version_number == base_version or version_number.startswith(base_version):
+                # if some vx.x.x wildcards were specified, we need to make sure we
+                # consider only versions with at least the number of specified tokens
+                if len(re.split("(\.|-)", version_number)) >= num_tokens:
+                    possible_versions.append(LooseVersion(version_number))
+        if not possible_versions:
+            log.debug("Didn't find a matching version for pattern %s" % pattern)
+            return None
+        possible_versions.sort()
+        # Return a string, not a LooseVersion
+        return str(possible_versions[-1])
 
     def _get_locally_cached_versions(self):
         """

@@ -461,6 +461,123 @@ class TestDescriptorSupport(TankTestBase):
                                 ["v1.2.3", "v1.2.233", "v1.3.1"],
                                 "v1.x.2")
 
+    def test_pattern_version_logic(self):
+        """
+        Test pattern and descriptor version logic
+        """
+        desc = self.tk.pipeline_configuration.get_app_descriptor({
+            "type": "git",
+            "path": "git@github.com:dummy/tk-multi-dummy.git",
+            "version": "v0.0.0"
+        })
+        # Test regular releases
+        releases = [
+            "v1.0.1",
+            "v1.0.2",
+            "v1.0.10",
+        ]
+        # Ensure un-supported patterns raise errors
+
+        # Patterns must start with a "v"
+        self.assertRaises(
+            TankDescriptorError,
+            desc._io_descriptor._find_latest_tag_by_pattern, releases, "x.x.x",
+        )
+
+        # Patterns must at least have major, minor, patch tokens, either as digits
+        # or "x" wildcard.
+        self.assertRaises(
+            TankDescriptorError,
+            desc._io_descriptor._find_latest_tag_by_pattern, releases, "v1.x",
+        )
+        self.assertRaises(
+            TankDescriptorError,
+            desc._io_descriptor._find_latest_tag_by_pattern, releases, "vx.x-x",
+        )
+
+        # Patterns can't have a fixed value after an "x".
+        self.assertRaises(
+            TankDescriptorError,
+            desc._io_descriptor._find_latest_tag_by_pattern, releases, "vx.x.x-rc",
+        )
+
+        # Test releases with various number of tokens
+        releases = [
+            "v1.0",
+            "v1.0.2",
+            "v1.0.10",
+            "v2.0.3",
+            "v2.0.3-rc.1",
+            "v2.0.3-rc.2",
+            "v2.1.0",
+            # This release does not have a leading "v" so should be ignored
+            "100.1.3",
+        ]
+        self.assertEqual(
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v1.x.x"),
+            "v1.0.10"
+        )
+        self.assertEqual(
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.x.x"),
+            "v2.1.0"
+        )
+        self.assertEqual(
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "vx.x.x"),
+            "v2.1.0"
+        )
+        self.assertEqual(
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.x.x-x"),
+            "v2.0.3-rc.2"
+        )
+        self.assertEqual(
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.0.3-rc.x"),
+            "v2.0.3-rc.2"
+        )
+        self.assertIsNone(
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.x.x.x.x.x.x.x"),
+        )
+        self.assertIsNone(
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "vx.x.x.x.x.x.x"),
+        )
+        # Test topic releases where a ticket number is used as a topic.
+        topic_releases = [
+            "v1.0.2-123546_my_topic",
+            "v1.0.2-123546_my_topic.1",
+            "v1.0.2-123546_my_topic.1.1",
+            "v1.0.2-123546_my_topic.1.2",
+            "v1.0.2-123546_my_topic.2",
+        ]
+        self.assertEqual(
+            desc._io_descriptor._find_latest_tag_by_pattern(topic_releases, "vx.x.x-x"),
+            "v1.0.2-123546_my_topic.2"
+        )
+        self.assertEqual(
+            desc._io_descriptor._find_latest_tag_by_pattern(topic_releases, "v1.0.2-123546_my_topic.x.x"),
+            "v1.0.2-123546_my_topic.1.2"
+        )
+        # Tests releases where an external software release is used as topic
+        releases = [
+            "v1.0.1-maya2015",
+            "v1.0.1-maya2015.rc.2",
+            "v1.0.1-maya2015.rc.10",
+            "v2.0.0-maya2015",
+            "v1.0.1-maya2017",
+            "v1.0.1-maya2017.rc.2",
+            "v1.0.1-maya2017.rc.10",
+            "v2.0.0-maya2017",
+        ]
+        self.assertEqual(
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v1.0.1-maya2015"),
+            "v1.0.1-maya2015.rc.10"
+        )
+        self.assertEqual(
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v1.0.1-maya2015.rc"),
+            "v1.0.1-maya2015.rc.10"
+        )
+        self.assertEqual(
+            desc._io_descriptor._find_latest_tag_by_pattern(releases, "v2.0.0-maya2017"),
+            "v2.0.0-maya2017"
+        )
 
 class TestConstraintValidation(TankTestBase):
     """

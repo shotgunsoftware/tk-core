@@ -22,6 +22,161 @@ class TestIODescriptors(TankTestBase):
     Testing the Shotgun deploy main API methods
     """
 
+    def test_branch_descriptor_cache(self):
+        """
+        Tests branch descriptors through caching
+        """
+        sg = self.tk.shotgun
+        root = os.path.join(self.project_root, "cache_root")
+        releases = []
+        # Create a succession of releases, for each release number:
+        # - A release with no branch information
+        # - A release with an explicit "master" branch information
+        # - A release with for a "topic" branch
+        for release in ["v1.1.1", "v1.1.2", "v2.1.1", "v2.1.2"]:
+            # Create release with no branch information
+            releases.append(
+                sgtk.descriptor.create_descriptor(
+                    sg,
+                    sgtk.descriptor.Descriptor.APP, {
+                        "type": "app_store",
+                        "version": release,
+                        "name": "tk-bundle"
+                    },
+                    bundle_cache_root_override=root,
+                )
+            )
+            # check the uri, we shouldn't have any label param in it
+            # sgtk:descriptor:app_store?version=v2.1.2&name=tk-bundle
+            self.assertFalse("label" in releases[-1].get_uri())
+            # Create a master release, where master is explicit
+            releases.append(
+                sgtk.descriptor.create_descriptor(
+                    sg,
+                    sgtk.descriptor.Descriptor.APP, {
+                        "type": "app_store",
+                        "version": "%s-master" % release,
+                        "label": "master",
+                        "name": "tk-bundle"
+                    },
+                    bundle_cache_root_override=root,
+                )
+            )
+            self.assertTrue("&label=master" in releases[-1].get_uri())
+            # Create a branch release
+            releases.append(
+                sgtk.descriptor.create_descriptor(
+                    sg,
+                    sgtk.descriptor.Descriptor.APP, {
+                        "type": "app_store",
+                        "version": "%s-topic" % release,
+                        "label": "topic",
+                        "name": "tk-bundle"
+                    },
+                    bundle_cache_root_override=root,
+                )
+            )
+            # check the uri, we should have label=topic in it
+            # e.g. sgtk:descriptor:app_store?version=v2.1.2.topic&name=tk-bundle&label=topic
+            self.assertTrue("&label=topic" in releases[-1].get_uri())
+
+        sg_bundle_data = {
+            "id": 666,
+            "sg_system_name": "tk-bundle",
+            "sg_status_list": "ip",
+            "sg_deprecation_message": "",
+        }
+        # Create dummy app payload
+        for i, release in enumerate(releases):
+            app_path = os.path.join(root, "app_store", "tk-bundle", release.version)
+            path = os.path.join(app_path, "info.yml")
+            if not os.path.exists(app_path):
+                os.makedirs(app_path)
+            fh = open(path, "wt")
+            fh.write("test data\n")
+            fh.close()
+
+            # Generate cached meta data
+            sg_data_for_version = {
+                "id": i,
+                "code": release.version,
+                "sg_status_list": "alpha",
+                "description": "",
+                "tags": [[], [{ "name": "master"}], [{"name": "topic"}]][i % 3],
+                "sg_detailed_release_notes": "",
+                "sg_documentation": "",
+                "sg_branch": [None, "master", "topic"][i % 3],
+            }
+            # Need to access the private method directly, otherwise we get the error:
+            # AttributeError: 'IODescriptorAppStore' object has no attribute '_TestIODescriptors__refresh_metadata'
+            release._io_descriptor._IODescriptorAppStore__refresh_metadata(
+                release.get_path(),
+                sg_bundle_data,
+                sg_data_for_version
+            )
+
+        # Our releases list contains sequences of vx.x.x, vx.x.x-master, vx.x.x-topic
+        # entries.
+        latest_with_topic_label = releases[-1]
+        latest_with_master_label = releases[-2]
+        latest_with_no_label = releases[-3]
+
+        # Check internal methods, this is mostly useful to get some debug information
+        # if something goes wrong in other tests below.
+        all_versions = latest_with_topic_label._io_descriptor._get_locally_cached_versions()
+        # Ensure we get a list of cached versions
+        self.assertEqual(len(all_versions), len(releases))
+        ignored = []
+        for v, p in all_versions.iteritems():
+            metadata = latest_with_topic_label._io_descriptor._IODescriptorAppStore__load_cached_app_store_metadata(
+                p,
+            )
+            tag_names = [x["name"] for x in metadata["sg_version_data"]["tags"]]
+            if latest_with_topic_label._io_descriptor._IODescriptorAppStore__match_label(
+                tag_names):
+                break
+            else:
+                ignored.append(metadata["sg_version_data"])
+        else:
+            raise ValueError("Couldn't find label %s from %s" % (
+                releases[-1]._io_descriptor._label,
+                ignored
+            ))
+
+        # Check various release constraint patterns, for releases with or without
+        # a label. If we start from a release with a label, we should only pick
+        # releases with the same label.
+
+        # topic label
+        latest = latest_with_topic_label.find_latest_cached_version("vx.x.x")
+        self.assertEqual(
+            latest.version,
+            latest_with_topic_label.version
+        )
+        # Check the label is preserved in the descriptor
+        self.assertTrue("&label=topic" in latest.get_uri())
+
+        # master label
+        latest = latest_with_master_label.find_latest_cached_version("vx.x.x")
+        self.assertEqual(
+            latest.version,
+            latest_with_master_label.version
+        )
+        # Check the label is preserved in the descriptor
+        self.assertTrue("&label=master" in latest.get_uri())
+
+        # With no label we see all versions, so latest version for the version with
+        # no tag will be the latest topic release
+        latest = latest_with_no_label.find_latest_cached_version("vx.x.x")
+        self.assertEqual(
+            latest.version,
+            latest_with_topic_label.version
+        )
+        # Even if we picked a "topic" release, it shouldn't have a label set in
+        # its descriptor, otherwise we will not see all versions anymore the next
+        # time we will be updating to latest.
+        self.assertFalse("label" in latest.get_uri())
+
     def test_version_resolve(self):
         """
         Tests the is_descriptor_version_missing method
@@ -140,6 +295,7 @@ class TestIODescriptors(TankTestBase):
         self.assertEqual(d.find_latest_cached_version("v1.1.x"), d)
         self.assertEqual(d.find_latest_cached_version("v1.2.x"), d2)
         self.assertEqual(d.find_latest_cached_version("v1.x.x"), d3)
+        self.assertEqual(d.find_latest_cached_version("vx.x.x"), d3)
         self.assertEqual(d.find_latest_cached_version("v2.x.x"), None)
 
     def test_cache_locations(self):
