@@ -644,7 +644,6 @@ class Engine(TankBundle):
         """
         return self.__created_qt_dialogs
 
-
     @property
     def host_info(self):
         """

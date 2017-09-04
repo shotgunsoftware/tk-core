@@ -388,29 +388,15 @@ class EventMetric(object):
 
     def __init__(self, group, name, properties=None):
         """
-        Initialize a metric event using the specified parameters. Use this helper class
-        to create a suitable metric structure to be used with the
+        Initialize a metric event with the given name for the given group.
 
         :param str group: A group or category this metric event falls into.
-        Although any values can be used, we encourage usage of the GROUP_*
-        definitions above.
-
-        :param: str name: A short descriptive event name or performed action.
-            The complete list can be found in the 'Shotgun Event Taxonomy' document.
-            Below are a few examples:
-                'Viewed Login Page'
-                'Logged In'
-                'Created Project'
-                'Toggled Project Favorite'
-                'Edited Task Status'
-                'Read Inbox Item'
-
-        :param: dict properties: An optional dictionary of extra properties to be attached to the metric event.
-        """
-
-        """
-        We also add an empty event property dictionary that will be populated
-        with either or both specified properties or add system info properties.
+                          Although any values can be used, we encourage usage of the GROUP_*
+                          definitions above.
+        :param str name: A short descriptive event name or performed action, 
+                         e.g. 'Launched Command', 'Opened Workfile', etc..
+        :param dict properties: An optional dictionary of extra properties to be 
+                                attached to the metric event.
         """
         self._data = {
             "event_group": str(group),
@@ -433,34 +419,32 @@ class EventMetric(object):
 
     @classmethod
     def log(cls, group, name, properties=None, log_once=False):
-        """ Log a Toolkit metric event now using the Amplitude service.
+        """
+        Queue a Toolkit metric event with the given name for the given group on
+        the :class:`MetricsQueueSingleton` dispatch queue.
+
+        This method simply adds the metric event to the dispatch queue meaning that 
+        the metric has to be treated by a dispatcher to be posted.
 
         :param str group: A group or category this metric event falls into.
-        Although any values can be used, we encourage usage of the GROUP_*
-        definitions above.
-
-        :param: str name: A short descriptive event name or performed action.
-            The complete list can be found in the 'Shotgun Event Taxonomy' document.
-            Below are a few examples:
-                'Viewed Login Page'
-                'Logged In'
-                'Created Project'
-                'Toggled Project Favorite'
-                'Edited Task Status'
-                'Read Inbox Item'
-
-        :param: dict properties: An optional dictionary of extra properties to be attached to the metric event.
-
+                          Although any values can be used, we encourage usage of the GROUP_*
+                          definitions above.
+        :param str name: A short descriptive event name or performed action, 
+                         e.g. 'Launched Command', 'Opened Workfile', etc..
+        :param dict properties: An optional dictionary of extra properties to be 
+                                attached to the metric event.
         :param bool log_once: ``True`` if this metric should be ignored if it has
-            already been logged. Defaults to ``False``.
+                              already been logged. Defaults to ``False``.
 
-        This method adds the metric event to a dispatch queue meaning that the
-        metric doesn't get posted on the web right away. The can add a few
-        metrics together in a single payload. The dispatcher processes the
-        queue every 5-15 seconds (subject to change).
         """
-        log.debug("EventMetric.log('%s', '%s')" % (str(cls(group, name, properties)), str(log_once)))
-        MetricsQueueSingleton().log(cls(group, name, properties), log_once=log_once)
+        log.debug("EventMetric.log('%s', '%s')" % (
+            str(cls(group, name, properties)),
+            str(log_once)
+        ))
+        MetricsQueueSingleton().log(
+            cls(group, name, properties),
+            log_once=log_once
+        )
 
 
 ###############################################################################
