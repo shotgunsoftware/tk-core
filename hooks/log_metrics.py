@@ -22,5 +22,3 @@ class LogMetrics(Hook):
         This hook is deprecated and shouldn't be used anymore.
         """
         pass
-
-
