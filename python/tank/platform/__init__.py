@@ -18,7 +18,7 @@ from .software_launcher import create_engine_launcher
 
 # base classes to derive from
 from .application import Application
-from .engine import Engine, HostInfo
+from .engine import Engine
 from .software_launcher import SoftwareLauncher, SoftwareVersion, LaunchInformation
 from .framework import Framework
 from .util import (

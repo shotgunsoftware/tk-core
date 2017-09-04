@@ -20,6 +20,3 @@ configuration:
 
 # the Shotgun fields that this engine needs in order to operate correctly
 requires_shotgun_fields:
-
-frameworks:
-    - {"name": "test_framework2", "version": "v1.x.x", "minimum_version": "v1.0.0"}

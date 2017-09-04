@@ -7,11 +7,6 @@ frameworks:
             type: dev
             path: '{PIPELINE_CONFIG}/config/bundles/test_framework'
             version: v1.0.0
-    test_framework2_v1.x.x:
-        location:
-            type: dev
-            path: '{PIPELINE_CONFIG}/config/bundles/test_framework2'
-            version: v1.0.0
 
 engines:
   # this is a comment after the engines section

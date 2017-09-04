@@ -200,33 +200,15 @@ class Framework(TankBundle):
     ##########################################################################################
     # internal API
 
-    def log_metric(self, action, log_once=False):
-        """
-        This method is now deprecated and shouldn't be used anymore.
-        Use the `tank.util.metrics.EventMetrics.log` method instead.
-        """
-        warn_deprecated_metric("tank.api.log_metric")
-
-    def _get_parent(self):
-        """
-        Retrieve the parent application or engine for this framework.
-        :returns: Either a :class:`Engine` or a :class:`Application`.
-        """
-        if self.is_shared:
-            return self.engine
-        # Loop over all apps for the engine, check if we are 
-        for app in self.engine.apps.itervalues():
-            if app._TankBundle__module_uid == self._TankBundle__module_uid:
-                return app
-        # Fall back on the engine
-        return self.engine
-
     def _get_metrics_context(self):
         """
         :returns: A dictionary with properties to use when emitting a metric
                   event for this framework in the current engine.
         """
-        return self._get_parent()._get_metrics_context()
+        # Please note that before we used to log some framework information as well
+        # Now we just add the engine information.
+        properties = self.engine._get_metrics_context()
+        return properties
 
 ###################################################################################################
 #

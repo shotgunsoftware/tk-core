@@ -23,7 +23,6 @@ import traceback
 import inspect
 import weakref
 import threading
-from distutils.version import LooseVersion
 
 from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
@@ -54,68 +53,6 @@ from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
 
-
-class HostInfo(LooseVersion):
-    """
-    Store information about the application hosting the engine.
-    """
-    def __init__(self, name, version):
-        """
-        Instantiate a HostInfo.
-
-        The version string can't be empty and should have a form suitable for
-        :class:`distutils.version.LooseVersion`
-
-        :param str name: The host application name, e.g. Maya.
-        :param str version: The host application version string, e.g. 10.2.3
-        """
-        self._name = name
-        if not version:
-            # LooseVersion will have problems if we pass an empty string, so
-            # check that here...
-            raise ValueError("A non empty version string is required")
-        LooseVersion.__init__(self, version)
-
-    def __str__(self):
-        """
-        :returns: A string with the host name and version.
-        """
-        return "%s %s" % (self._name, self.version_string)
-
-    @property
-    def name(self):
-        """
-        :returns: A string, the host application name.
-        """
-        return self._name
-
-    @property
-    def version_string(self):
-        """
-        :returns: A string, the host application version.
-        """
-        return LooseVersion.__str__(self)
-
-    @property
-    def major(self):
-        """
-        :returns: A string, the host application major version.
-        """
-        return self.version[0]
-
-    @property
-    def minor(self):
-        """
-        :returns: A string or None, the host application minor version, if any.
-        """
-        return self.version[1] if len(self.version) > 1 else None
-
-    @property
-    def patch(self):
-        """
-        :returns: A string or None, the host application patch version, if any.
-        """
-        return self.version[2] if len(self.version) > 2 else None
 
 class Engine(TankBundle):
     """
@@ -331,11 +268,7 @@ class Engine(TankBundle):
 
         self.log_debug("Init complete: %s" % self)
         # Emit an event for the software being launched
-        EventMetric.log(
-            EventMetric.GROUP_TOOLKIT,
-            "Launched Software",
-            properties=self._get_metrics_context(),
-        )
+        self.log_metric("Launched Software")
 
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
@@ -531,19 +464,11 @@ class Engine(TankBundle):
             self.__global_progress_widget.close()
             self.__global_progress_widget = None
 
-    def log_metric(self, action, log_once=False):
-        """
-        This method is deprecated and shouldn't be used anymore.
-        """
-        self.log_warning("log_metric is deprecated and shouldn't be used anymore.")
-
     def log_user_attribute_metric(self, attr_name, attr_value, log_once=False):
         """
         This method is deprecated and shouldn't be used anymore.
         """
-        self.log_warning(
-            "log_user_attribute_metric is deprecated and shouldn't be used anymore."
-        )
+        pass
 
     @property
     def _metric_properties(self):
@@ -554,8 +479,8 @@ class Engine(TankBundle):
         return {
             EventMetric.KEY_ENGINE: self.name,
             EventMetric.KEY_ENGINE_VERSION: self.version,
-            EventMetric.KEY_HOST_APP: self.host_info.name,
-            EventMetric.KEY_HOST_APP_VERSION: self.host_info.version_string,
+            EventMetric.KEY_HOST_APP: self.host_info[0],
+            EventMetric.KEY_HOST_APP_VERSION: self.host_info[1],
         }
 
     def _get_metrics_context(self):
@@ -728,9 +653,9 @@ class Engine(TankBundle):
         This should be re-implemented in deriving classes to handle the logic 
         specific to the application the engine is designed for.
         
-        :returns: A :class:`HostInfo` instance.
+        :returns: A (host application name, release string) tuple.
         """
-        return HostInfo(
+        return (
             "unknown",
             "unknown",
         )
@@ -740,7 +665,8 @@ class Engine(TankBundle):
         """
         :returns: The host information as a string.
         """
-        return str(self.host_info)
+        info = self.host_info
+        return "%s %s" % (info[0], info[1])
 
     ##########################################################################################
     # init and destroy
@@ -1129,13 +1055,11 @@ class Engine(TankBundle):
         def callback_wrapper(*args, **kwargs):
 
             if properties.get("app"):
+                # Track which app command is being launched
                 command_name = properties.get("short_name") or name
-                metric_properties = properties["app"]._get_metrics_context()
-                metric_properties[EventMetric.KEY_COMMAND] = command_name
-                metric = EventMetric.log(
-                    EventMetric.GROUP_TOOLKIT,
+                properties["app"].log_metric(
                     "Launched Command",
-                    metric_properties,
+                    command_name=command_name,
                 )
 
             # run the actual payload callback

@@ -119,23 +119,6 @@ class TestAppFrameworks(TestApplication):
                 else:
                     del fw["minimum_version"]
 
-    def test_get_parent(self):
-        """
-        Test we are able to retrieve the right parent for frameworks
-        """
-        for framework in self.engine.frameworks.itervalues():
-            self.assertEqual(framework._get_parent(), self.engine)
-        app = self.engine.apps["test_app"]
-        for framework in app.frameworks.itervalues():
-            if framework.is_shared:
-                self.assertEqual(framework._get_parent(), self.engine)
-            else:
-                self.assertEqual(framework._get_parent(), app)
-            for framework2 in framework.frameworks.itervalues():
-                if framework2.is_shared:
-                    self.assertEqual(framework2._get_parent(), self.engine)
-                else:
-                    self.assertEqual(framework2._get_parent(), app)
 
 class TestGetApplication(TestApplication):
     """
