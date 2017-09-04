@@ -26,7 +26,6 @@ from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
 from . import LogManager
-from .util.metrics import warn_deprecated as warn_deprecated_metric
 
 log = LogManager.get_logger(__name__)
 
@@ -126,7 +125,7 @@ class Sgtk(object):
         This method is now deprecated and shouldn't be used anymore.
         Use the `tank.util.metrics.EventMetrics.log` method instead.
         """
-        warn_deprecated_metric("tank.api.log_metric")
+        log.warning("The 'api.log_metric' method is deprecated.")
 
     def get_cache_item(self, cache_key):
         """

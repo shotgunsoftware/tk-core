@@ -21,7 +21,6 @@ from . import constants
 from ..errors import TankError
 from .bundle import TankBundle
 from . import validation
-from ..util.metrics import warn_deprecated as warn_deprecated_metric
 
 class Framework(TankBundle):
     """

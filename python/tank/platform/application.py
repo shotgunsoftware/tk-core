@@ -21,7 +21,6 @@ from . import constants
 
 from .bundle import TankBundle
 from ..util.metrics import EventMetric
-from ..util.metrics import warn_deprecated as warn_deprecated_metric
 
 class Application(TankBundle):
     """
