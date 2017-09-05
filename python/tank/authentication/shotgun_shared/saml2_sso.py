@@ -54,31 +54,31 @@ PREEMPTIVE_RENEWAL_THRESHOLD = 0.9
 SHOTGUN_SSO_RENEWAL_INTERVAL = 5000
 
 
-class Saml2SssoError(Exception):
+class Saml2SsoError(Exception):
     """
     Top level exception for all saml2_sso level runtime errors
     """
 
 
-class Saml2SssoMultiSessionNotSupportedError(Saml2SssoError):
+class Saml2SsoMultiSessionNotSupportedError(Saml2SsoError):
     """
     Exception that indicates the cookies contains sets of tokens from mutliple users.
     """
 
 
-class Saml2SssoMissingQtModule(Saml2SssoError):
+class Saml2SsoMissingQtModule(Saml2SsoError):
     """
     Exception that indicates that a required Qt component is missing.
     """
 
 
-class Saml2SssoMissingQtNetwork(Saml2SssoMissingQtModule):
+class Saml2SsoMissingQtNetwork(Saml2SsoMissingQtModule):
     """
     Exception that indicates that the QtNetwork component is missing.
     """
 
 
-class Saml2SssoMissingQtWebKit(Saml2SssoMissingQtModule):
+class Saml2SsoMissingQtWebKit(Saml2SsoMissingQtModule):
     """
     Exception that indicates that the QtWebKit component is missing.
     """
@@ -92,10 +92,10 @@ class Saml2Sso(object):
         log.debug("==- __init__")
 
         if QtNetwork is None:
-            raise Saml2SssoMissingQtNetwork("The QtNetwork module is unavailable")
+            raise Saml2SsoMissingQtNetwork("The QtNetwork module is unavailable")
 
         if QtWebKit is None:
-            raise Saml2SssoMissingQtWebKit("The QtWebKit module is unavailable")
+            raise Saml2SsoMissingQtWebKit("The QtWebKit module is unavailable")
 
         self._event_data = None
         self._sessions_stack = []
@@ -693,7 +693,7 @@ def _get_shotgun_user_id(cookies):
                 # that we are using cookies from a multi-session environment. We
                 # have no way to identify the proper user id in the lot.
                 message = "The cookies for this user seem to come from two different shotgun sites: '%s' and '%s'"
-                raise Saml2SssoMultiSessionNotSupportedError(message % (user_domain, cookies[cookie]['domain']))
+                raise Saml2SsoMultiSessionNotSupportedError(message % (user_domain, cookies[cookie]['domain']))
             user_id = cookie[28:]
             user_domain = cookies[cookie]['domain']
     return user_id
