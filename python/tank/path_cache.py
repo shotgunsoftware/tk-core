@@ -736,8 +736,8 @@ class PathCache(object):
                 "the following ids: %s" % folder_ids
             )
         else:
-            entity_filter = []
-            log.debug("Getting all FilesystemLocation entries.")
+            entity_filter = ['project', 'is', self._get_project_link()]
+            log.debug("Getting all the projects FilesystemLocation entries.")
 
         sg_data = self._tk.shotgun.find(
             SHOTGUN_ENTITY,
