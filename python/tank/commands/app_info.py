@@ -88,11 +88,13 @@ class AppInfoAction(Action):
         
     def _env_breakdown(self, log, env_name):
 
-        env = self.tk.pipeline_configuration.get_environment(env_name)
         log.info("")
         log.info("")
         log.info("=" * 70)
-        log.info("Environment: %s" % env.name)
+        log.info("Environment: %s" % env_name)
+
+        env = self.tk.pipeline_configuration.get_environment(env_name)
+
         log.info("Location:    %s" % env.disk_location)
         log.info("Description: %s" % env.description)
         
