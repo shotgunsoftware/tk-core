@@ -737,7 +737,7 @@ class PathCache(object):
             )
         else:
             entity_filter = ['project', 'is', self._get_project_link()]
-            log.debug("Getting all the projects FilesystemLocation entries.")
+            log.debug("Getting all the project's FilesystemLocation entries.")
 
         sg_data = self._tk.shotgun.find(
             SHOTGUN_ENTITY,
