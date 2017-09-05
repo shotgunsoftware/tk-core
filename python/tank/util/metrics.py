@@ -46,6 +46,12 @@ class MetricsQueueSingleton(object):
 
     """
 
+    MAXIMUM_QUEUE_SIZE = 20
+    """
+    Maximum queue size (arbitrary value) until oldest queued item is remove.
+    This is to prevent memory leak in case the engine isn't started.
+    """
+
     # keeps track of the single instance of the class
     __instance = None
 
@@ -66,7 +72,7 @@ class MetricsQueueSingleton(object):
             metrics_queue._lock = Lock()
 
             # The underlying collections.deque instance
-            metrics_queue._queue = deque()
+            metrics_queue._queue = deque(maxlen=MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE)
 
             cls.__instance = metrics_queue
 

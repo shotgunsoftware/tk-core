@@ -472,6 +472,40 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # NOTE: that current SG server code reject batches larger than 10.
         self.assertEqual(10, MetricsDispatchWorkerThread.DISPATCH_BATCH_SIZE)
 
+    def test_maximum_queue_size(self):
+        """
+        Test that the dispatcher has a maximum queue size to prevent memory leak
+        if the worker thread is not started. This test requires overriding what's
+        being done in class setUp and deliberatly stopping the dispatcher worker tread.
+
+        """
+
+        # Stop the dispatcher worker thread
+
+        self._destroy_engine()
+
+        TEST_SIZE = 10*MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE
+        for i in range(TEST_SIZE):
+            EventMetric.log("App", "Testing maximum queue size %d" % (i),
+                            properties={
+                                "Metric id":i
+                            }
+            )
+
+        queue = MetricsQueueSingleton()._queue
+        self.assertTrue(len(queue) <= MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE)
+
+        # Test that the first item is indeed N items past the originally queued ones
+        # Where N is TEST_SIZE minus size of queue
+        oldest_metric = queue.popleft()
+        metric_index = oldest_metric.data["event_properties"]["Metric id"]
+        self.assertEqual(metric_index, TEST_SIZE - MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE)
+
+        # Finally, test that the newest item
+        newest_metric = queue.pop()
+        metric_index = newest_metric.data["event_properties"]["Metric id"]
+        self.assertEqual(metric_index, TEST_SIZE-1)
+
 
 class TestMetricsQueueSingleton(TankTestBase):
     """Cases testing tank.util.metrics.MetricsQueueSingleton class."""
