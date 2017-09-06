@@ -479,8 +479,8 @@ class Engine(TankBundle):
         return {
             EventMetric.KEY_ENGINE: self.name,
             EventMetric.KEY_ENGINE_VERSION: self.version,
-            EventMetric.KEY_HOST_APP: self.host_info[0],
-            EventMetric.KEY_HOST_APP_VERSION: self.host_info[1],
+            EventMetric.KEY_HOST_APP: self.host_info.get("name", "unknown"),
+            EventMetric.KEY_HOST_APP_VERSION: self.host_info.get("version", "unknown"),
         }
 
     def _get_metrics_context(self):
@@ -652,12 +652,16 @@ class Engine(TankBundle):
         This should be re-implemented in deriving classes to handle the logic 
         specific to the application the engine is designed for.
         
-        :returns: A (host application name, release string) tuple.
+        A dictionary with at least a "name" and a "version" key should be returned
+        by derived implementations, with respectively the host application name 
+        and its release string as values, e.g. { "name": "Maya", "version": "2017.3"}.
+        
+        :returns: A {"name": "unknown", "version" : "unknown"} dictionary.
         """
-        return (
-            "unknown",
-            "unknown",
-        )
+        return {
+            "name": "unknown",
+            "version": "unknown",
+        }
 
     @property
     def host_info_string(self):
@@ -665,7 +669,10 @@ class Engine(TankBundle):
         :returns: The host information as a string.
         """
         info = self.host_info
-        return "%s %s" % (info[0], info[1])
+        return "%s %s" % (
+            info.get("name", "unknown"),
+            info.get("version", "unknown")
+        )
 
     ##########################################################################################
     # init and destroy
