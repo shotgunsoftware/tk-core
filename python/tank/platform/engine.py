@@ -267,8 +267,8 @@ class Engine(TankBundle):
             self.log_debug("Metrics dispatcher started.")
 
         self.log_debug("Init complete: %s" % self)
-        # Emit an event for the software being launched
-        self.log_metric("Launched Software")
+        # Emit an event for the engine being launched
+        self.log_metric("Launched Engine")
 
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
