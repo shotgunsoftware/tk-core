@@ -125,7 +125,7 @@ class Sgtk(object):
         This method is now deprecated and shouldn't be used anymore.
         Use the `tank.util.metrics.EventMetrics.log` method instead.
         """
-        log.warning("The 'api.log_metric' method is deprecated.")
+        pass
 
     def get_cache_item(self, cache_key):
         """

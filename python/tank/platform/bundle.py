@@ -60,15 +60,28 @@ class TankBundle(object):
     ##########################################################################################
     # internal API
 
-    def log_metric(self, **kwargs):
+    def log_metric(self, action, log_version=False, log_once=False, command_name=None):
         """
-        This method is now deprecated and shouldn't be used anymore.
-        Use the `util.metrics.EventMetrics.log` method instead.
+        Log metrics for this bundle and the given action.
+
+        :param str action: Action string to log, e.g. 'Opened Workfile'.
+        :param log_version: Deprecated and ignored, but kept for backward compatibility.
+        :param bool log_once: ``True`` if this metric should be ignored if it
+            has already been logged. Defaults to ``False``.
+        :param str command_name: A Toolkit command name to add to the metric properties.
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
         """
-        self.log.warning("The '%s' method is deprecated, use the '' method instead." % (
-            "bundle.log_metric",
-            "util.metrics.EventMetrics.log"
-        ))
+        properties = self._get_metrics_context()
+        if command_name:
+            properties[EventMetric.KEY_COMMAND] = command_name
+        EventMetric.log(
+            EventMetric.GROUP_TOOLKIT,
+            action,
+            properties=properties,
+            log_once=log_once,
+        )
 
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
@@ -943,29 +956,6 @@ class TankBundle(object):
         :raises: NotImplementedError
         """
         raise NotImplementedError
-
-    def log_metric(self, action, log_version=False, log_once=False, command_name=None):
-        """
-        Log metrics for this bundle and the given action.
-
-        :param str action: Action string to log, e.g. 'Opened Workfile'.
-        :param log_version: Deprecated and ignored, but kept for backward compatibility.
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-        :param str command_name: A Toolkit command name to add to the metric properties.
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
-        """
-        properties = self._get_metrics_context()
-        if command_name:
-            properties[EventMetric.KEY_COMMAND] = command_name
-        EventMetric.log(
-            EventMetric.GROUP_TOOLKIT,
-            action,
-            properties=properties,
-            log_once=log_once,
-        )
 
 def _post_process_settings_r(tk, key, value, schema):
     """
