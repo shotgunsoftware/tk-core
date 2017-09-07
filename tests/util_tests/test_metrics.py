@@ -291,8 +291,8 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             data = json.loads(mocked_request.get_data())
             # Now that we have request data
             # Traverse the metrics to find the one we've logged above
-            if 'metrics' in data:
-                for metric in data['metrics']:
+            if "metrics" in data:
+                for metric in data["metrics"]:
                     metrics.append(metric)
 
         return metrics
@@ -336,7 +336,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 data = json.loads(mocked_request.get_data())
                 # Now that we have request data
                 # Traverse the metrics to find the one we've logged above
-                if 'metrics' in data:
+                if "metrics" in data:
                     # At this point we found Request calls with 'metrics' data
                     # Although we've not found our particular metric
                     # We can already verify that the logged metric was made using the right URL
@@ -345,8 +345,8 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                                     "Not using the latest metric '%s' endpoint" % (
                                         TestMetricsDispatchWorkerThread.METRIC_ENDPOINT))
 
-                    for metric in data['metrics']:
-                        if ("event_name" in metric) and (METRIC_EVENT_NAME == metric['event_name']):
+                    for metric in data["metrics"]:
+                        if ("event_name" in metric) and (METRIC_EVENT_NAME == metric["event_name"]):
                             # Nothing else FOR NOW to test, we can report success by bypassing
                             # timeout failure down below.
 
@@ -360,7 +360,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
     def test_end_to_end_basic(self):
         """
-        Test a complete cycle using non proplemtic metric object.
+        Test a complete cycle using non problematic metric object.
         """
         server_received_metric = self._helper_test_end_to_end(
             EventMetric.GROUP_TOOLKIT,
@@ -484,12 +484,12 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         self._destroy_engine()
 
-        TEST_SIZE = 10*MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE
+        TEST_SIZE = 10 * MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE
         for i in range(TEST_SIZE):
-            EventMetric.log("App", "Testing maximum queue size %d" % (i),
-                            properties={
-                                "Metric id":i
-                            }
+            EventMetric.log(
+                "App",
+                "Testing maximum queue size %d" % (i),
+                properties={"Metric id": i}
             )
 
         queue = MetricsQueueSingleton()._queue
@@ -504,7 +504,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Finally, test that the newest item
         newest_metric = queue.pop()
         metric_index = newest_metric.data["event_properties"]["Metric id"]
-        self.assertEqual(metric_index, TEST_SIZE-1)
+        self.assertEqual(metric_index, TEST_SIZE - 1)
 
 
 class TestMetricsQueueSingleton(TankTestBase):
@@ -628,3 +628,138 @@ class TestHookLogMetrics(TankTestBase):
         TODO: Implement!
         """
         pass
+
+class TestBundleMetrics(TankTestBase):
+    """
+    Class for testing metrics at Bundle level.
+    """
+
+    def setUp(self):
+        super(TestBundleMetrics, self).setUp()
+        self.setup_fixtures()
+        
+        # setup shot
+        seq = {"type":"Sequence", "code": "seq_name", "id":3 }
+        seq_path = os.path.join(self.project_root, "sequences", "seq_name")
+        self.add_production_path(seq_path, seq)
+        
+        shot = {"type":"Shot", "code": "shot_name", "id":2, "sg_sequence": seq, "project": self.project}
+        shot_path = os.path.join(seq_path, "shot_name")
+        self.add_production_path(shot_path, shot)
+        
+        step = {"type":"Step", "code": "step_name", "id":4 }
+        self.shot_step_path = os.path.join(shot_path, "step_name")
+        self.add_production_path(self.shot_step_path, step)
+
+        self.test_resource = os.path.join(self.pipeline_config_root, "config", "foo", "bar.png")
+        os.makedirs(os.path.dirname(self.test_resource))
+        fh = open(self.test_resource, "wt")
+        fh.write("test")
+        fh.close()
+        
+        # Make sure we have an empty queue
+        metrics_queue = MetricsQueueSingleton()
+        metrics_queue.get_metrics()
+        context = self.tk.context_from_path(self.shot_step_path)
+        self.engine = tank.platform.start_engine("test_engine", self.tk, context)
+
+        
+    def tearDown(self):
+        # engine is held as global, so must be destroyed.
+        cur_engine = tank.platform.current_engine()
+        if cur_engine:
+            cur_engine.destroy()
+        os.remove(self.test_resource)
+
+        # important to call base class so it can clean up memory
+        super(TestBundleMetrics, self).tearDown()
+
+    @patch("tank.util.metrics.MetricsDispatcher.start")
+    def test_bundle_metrics(self, mocked_start):
+        """
+        Test metrics logged by bundles.
+        """
+        engine = self.engine
+        metrics_queue = MetricsQueueSingleton()
+        # Make sure we don't have a dispatcher running
+        if engine._metrics_dispatcher:
+            self.assertFalse(engine._metrics_dispatcher.workers)
+        metrics = metrics_queue.get_metrics()
+        self.assertEqual(len(metrics), 1)
+        # We should have a "Launched Software" metric, check it is right
+        data = metrics[0].data
+        self.assertEqual(data["event_group"], EventMetric.GROUP_TOOLKIT)
+        self.assertEqual(data["event_name"], "Launched Software")
+        self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP], "unknown")
+        self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown")
+        self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE], engine.name)
+        self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version)
+        self.assertFalse(EventMetric.KEY_APP in data["event_properties"])
+        self.assertFalse(EventMetric.KEY_APP_VERSION in data["event_properties"])
+        self.assertFalse(EventMetric.KEY_COMMAND in data["event_properties"])
+        # Log a metric and check it
+        engine.log_metric("Engine test")
+        metrics = metrics_queue.get_metrics()
+        self.assertEqual(len(metrics), 1)
+        data = metrics[0].data
+        self.assertEqual(data["event_group"], EventMetric.GROUP_TOOLKIT)
+        self.assertEqual(data["event_name"], "Engine test")
+        self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP], "unknown")
+        self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown")
+        self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE], engine.name)
+        self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version)
+        self.assertFalse(EventMetric.KEY_APP in data["event_properties"])
+        self.assertFalse(EventMetric.KEY_APP_VERSION in data["event_properties"])
+        self.assertFalse(EventMetric.KEY_COMMAND in data["event_properties"])
+        # Make sure we have at least one app with a framework, this is checked
+        # after the loops
+        able_to_test_a_framework = False
+        # Check metrics logged from apps
+        for app in engine.apps.itervalues():
+            app.log_metric("App test")
+            metrics = metrics_queue.get_metrics()
+            self.assertEqual(len(metrics), 1)
+            data = metrics[0].data
+            self.assertEqual(data["event_group"], EventMetric.GROUP_TOOLKIT)
+            self.assertEqual(data["event_name"], "App test")
+            self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP], "unknown")
+            self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown")
+            self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE], engine.name)
+            self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version)
+            self.assertEqual(data["event_properties"][EventMetric.KEY_APP], app.name)
+            self.assertEqual(data["event_properties"][EventMetric.KEY_APP_VERSION], app.version)
+            self.assertFalse(EventMetric.KEY_COMMAND in data["event_properties"])
+            app.log_metric("App test", command_name="Blah")
+            metrics = metrics_queue.get_metrics()
+            self.assertEqual(len(metrics), 1)
+            data = metrics[0].data
+            self.assertEqual(data["event_group"], EventMetric.GROUP_TOOLKIT)
+            self.assertEqual(data["event_name"], "App test")
+            self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP], "unknown")
+            self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown")
+            self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE], engine.name)
+            self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version)
+            self.assertEqual(data["event_properties"][EventMetric.KEY_APP], app.name)
+            self.assertEqual(data["event_properties"][EventMetric.KEY_APP_VERSION], app.version)
+            self.assertEqual(data["event_properties"][EventMetric.KEY_COMMAND], "Blah")
+            for fw in app.frameworks.itervalues():
+                able_to_test_a_framework = True
+                fw.log_metric("Framework test")
+                metrics = metrics_queue.get_metrics()
+                self.assertEqual(len(metrics), 1)
+                data = metrics[0].data
+                self.assertEqual(data["event_group"], EventMetric.GROUP_TOOLKIT)
+                self.assertEqual(data["event_name"], "Framework test")
+                self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP], "unknown")
+                self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown")
+                self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE], engine.name)
+                self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version)
+                # The app is unknwown within a framework so shouldn't be part of
+                # properties
+                self.assertFalse(EventMetric.KEY_APP in data["event_properties"])
+                self.assertFalse(EventMetric.KEY_APP_VERSION in data["event_properties"])
+                self.assertFalse(EventMetric.KEY_COMMAND in data["event_properties"])
+        # Executing a command should log a metric
+        raise ValueError(engine.commands.keys())
+        # Make sure we tested at least one app with a framework
+        self.assertTrue(able_to_test_a_framework)
