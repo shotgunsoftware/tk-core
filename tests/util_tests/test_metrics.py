@@ -648,7 +648,7 @@ class TestBundleMetrics(TankTestBase):
         shot_path = os.path.join(seq_path, "shot_name")
         self.add_production_path(shot_path, shot)
         
-        step = {"type":"Step", "code": "step_name", "id":4}
+        step = {"type":"Step", "code": "step_name", "id": 4}
         self.shot_step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.shot_step_path, step)
 
@@ -759,7 +759,5 @@ class TestBundleMetrics(TankTestBase):
                 self.assertFalse(EventMetric.KEY_APP in data["event_properties"])
                 self.assertFalse(EventMetric.KEY_APP_VERSION in data["event_properties"])
                 self.assertFalse(EventMetric.KEY_COMMAND in data["event_properties"])
-        # Executing a command should log a metric
-        raise ValueError(engine.commands.keys())
         # Make sure we tested at least one app with a framework
         self.assertTrue(able_to_test_a_framework)
