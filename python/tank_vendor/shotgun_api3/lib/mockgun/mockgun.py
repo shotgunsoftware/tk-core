@@ -220,6 +220,8 @@ class Shotgun(object):
     ###################################################################################################
     # public API methods
 
+    def get_session_token(self):
+        return "bogus_session_token"
 
     def schema_read(self):
         return self._schema

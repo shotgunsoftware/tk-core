@@ -25,10 +25,14 @@ from threading import Event, Thread, Lock
 import urllib2
  
 from . import constants
+from ..log import LogManager
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
+
+
+log = LogManager.get_logger(__name__)
 
 
 ###############################################################################
@@ -40,6 +44,12 @@ class MetricsQueueSingleton(object):
     This is a singleton class, so any instantiation will return the same object
     instance within the current process.
 
+    """
+
+    MAXIMUM_QUEUE_SIZE = 20
+    """
+    Maximum queue size (arbitrary value) until oldest queued item is remove.
+    This is to prevent memory leak in case the engine isn't started.
     """
 
     # keeps track of the single instance of the class
@@ -62,19 +72,20 @@ class MetricsQueueSingleton(object):
             metrics_queue._lock = Lock()
 
             # The underlying collections.deque instance
-            metrics_queue._queue = deque()
+            metrics_queue._queue = deque(maxlen=MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE)
 
             cls.__instance = metrics_queue
 
         return cls.__instance
 
     def log(self, metric, log_once=False):
-        """Add the metric to the queue for dispatching.
+        """
+        Add the metric to the queue for dispatching.
 
         If ``log_once`` is set to ``True``, this will only log the metric if it
         is the first attempt to log it.
 
-        :param ToolkitMetric metric: The metric to log.
+        :param EventMetric metric: The metric to log.
         :param bool log_once: ``True`` if this metric should be ignored if it
             has already been logged. ``False`` otherwise. Defaults to ``False``.
         """
@@ -204,6 +215,7 @@ class MetricsDispatcher(object):
         """A list of workers threads dispatching metrics from the queue."""
         return self._workers
 
+
 class MetricsDispatchWorkerThread(Thread):
     """Worker thread for dispatching metrics to sg logging endpoint.
 
@@ -215,14 +227,16 @@ class MetricsDispatchWorkerThread(Thread):
     the worker thread will exit early.
     """
 
-    API_ENDPOINT = "api3/log_metrics/"
-    """SG API endpoint for logging metrics."""
+    API_ENDPOINT = "api3/track_metrics/"
 
     DISPATCH_INTERVAL = 5
     """Worker will wait this long between metrics dispatch attempts."""
 
     DISPATCH_BATCH_SIZE = 10
-    """Worker will dispatch this many metrics at a time, or all if <= 0."""
+    """
+    Worker will dispatch this many metrics at a time, or all if <= 0.
+    NOTE: that current SG server code reject batches larger than 10.
+    """
 
     def __init__(self, engine):
         """
@@ -253,7 +267,7 @@ class MetricsDispatchWorkerThread(Thread):
         metrics_ok = (
             hasattr(sg_connection, "server_caps") and
             sg_connection.server_caps.version and
-            sg_connection.server_caps.version >= (6, 3, 11)
+            sg_connection.server_caps.version >= (7, 4, 0)
         )
         if not metrics_ok:
             # metrics not supported
@@ -268,7 +282,7 @@ class MetricsDispatchWorkerThread(Thread):
                     self.DISPATCH_BATCH_SIZE)
                 if metrics:
                     self._dispatch(metrics)
-            except Exception, e:
+            except Exception:
                 pass
             finally:
                 # wait, checking for halt event before more processing
@@ -309,14 +323,17 @@ class MetricsDispatchWorkerThread(Thread):
         header = {'Content-Type': 'application/json'}
         try:
             request = urllib2.Request(url, payload_json, header)
-            response = urllib2.urlopen(request)
-        except urllib2.HTTPError, e:
+            urllib2.urlopen(request)
+        except urllib2.HTTPError:
             # fire and forget, so if there's an error, ignore it.
             pass
 
         # execute the log_metrics core hook
-        self._engine.tank.execute_core_hook(
+        self._engine.tank.execute_core_hook_method(
             constants.TANK_LOG_METRICS_HOOK_NAME,
+            # 'execute' was used with previous metrics system which has
+            # different properties for events, so we need to use a new method
+            "execute2",
             metrics=[m.data for m in metrics]
         )
 
@@ -324,16 +341,81 @@ class MetricsDispatchWorkerThread(Thread):
 ###############################################################################
 # ToolkitMetric classes and subclasses
 
-class ToolkitMetric(object):
-    """Simple class representing tk metric data."""
+class EventMetric(object):
+    """
+    Convenience class for creating a metric event to be logged on a Shotgun site.
 
-    def __init__(self, data):
-        """Initialize the object with a dictionary of metric data.
-        
-        :param dict data: A dictionary of metric data.
-        
+    Use this helper class to create a suitable metric structure that you can
+    then pass to the `tank.utils.metrics.log_metric_event` method.
+
+    The simplest usage of this class is simply to provide an event group and
+    event name to the constructor:
+
+    Optionally, you can add your own specific metrics by using the
+    `properties` parameter. The latter simply takes a standard
+    dictionary.
+
+    The class also define numerous standard definition.
+    We highly recommand usage of them. Below is a complete typical usage:
+
+    ```
+    metric = EventMetric.log(EventMetric.GROUP_APP,
+        "User Logged In",
+        properties={
+            EventMetric.KEY_ENGINE: "tk-maya",
+            EventMetric.KEY_ENGINE_VERSION: "v0.2.2",
+            EventMetric.KEY_HOST_APP: "Maya",
+            EventMetric.KEY_HOST_APP_VERSION: "2017",
+            EventMetric.KEY_APP: "tk-multi-publish2",
+            EventMetric.KEY_APP_VERSION: "v0.2.3",
+            "CustomBoolMetric": True,
+            "RenderJobsSumitted": 173,
+        }
+    )
+    ```
+    """
+
+    # Event groups
+    GROUP_APP = "App"
+    GROUP_TASKS = "Tasks"
+    GROUP_MEDIA = "Media"
+    GROUP_TOOLKIT = "Toolkit"
+    GROUP_NAVIGATION = "Navigation"
+    GROUP_PROJECTS = "Projects"
+
+    # Event property keys
+    KEY_ACTION_TITLE = "Action Title"
+    KEY_APP = "App"
+    KEY_APP_VERSION = "App Version"
+    KEY_COMMAND = "Command"
+    KEY_ENGINE = "Engine"
+    KEY_ENGINE_VERSION = "Engine Version"
+    KEY_ENTITY_TYPE = "Entity Type"
+    KEY_HOST_APP = "Host App"
+    KEY_HOST_APP_VERSION = "Host App Version"
+    KEY_PUBLISH_TYPE = "Publish Type"
+
+    def __init__(self, group, name, properties=None):
         """
-        self._data = data
+        Initialize a metric event with the given name for the given group.
+
+        :param str group: A group or category this metric event falls into.
+                          Although any values can be used, we encourage usage of the GROUP_*
+                          definitions above.
+        :param str name: A short descriptive event name or performed action, 
+                         e.g. 'Launched Command', 'Opened Workfile', etc..
+        :param dict properties: An optional dictionary of extra properties to be 
+                                attached to the metric event.
+        """
+        self._data = {
+            "event_group": str(group),
+            "event_name": str(name),
+            "event_properties": properties
+        }
+
+    def __repr__(self):
+        """Official str representation of the user activity metric."""
+        return "%s:%s" % (self._data["event_group"], self._data["event_name"])
 
     def __str__(self):
         """Readable str representation of the metric."""
@@ -344,80 +426,59 @@ class ToolkitMetric(object):
         """The underlying data this metric represents."""
         return self._data
 
-
-class UserActivityMetric(ToolkitMetric):
-    """Convenience class for a user activity metric."""
-
-    def __init__(self, module, action):
-        """Initialize the metric with the module and action information.
-        
-        :param str module: Name of the module in which action was performed.
-        :param str action: The action that was performed.
-        
+    @classmethod
+    def log(cls, group, name, properties=None, log_once=False):
         """
-        super(UserActivityMetric, self).__init__({
-            "type": "user_activity",
-            "module": module,
-            "action": action,
-        })
+        Queue a Toolkit metric event with the given name for the given group on
+        the :class:`MetricsQueueSingleton` dispatch queue.
 
-    def __repr__(self):
-        """Official str representation of the user activity metric."""
-        return "%s.%s" % (self._data["module"], self._data["action"])
+        This method simply adds the metric event to the dispatch queue meaning that 
+        the metric has to be treated by a dispatcher to be posted.
 
-
-class UserAttributeMetric(ToolkitMetric):
-    """Convenience class for a user attribute metric."""
-
-    def __init__(self, attr_name, attr_value):
-        """Initialize the metric with the attribute name and value.
-        
-        :param str attr_name: Name of the attribute.
-        :param str attr_value: The value of the attribute.
+        :param str group: A group or category this metric event falls into.
+                          Although any values can be used, we encourage usage of the GROUP_*
+                          definitions above.
+        :param str name: A short descriptive event name or performed action, 
+                         e.g. 'Launched Command', 'Opened Workfile', etc..
+        :param dict properties: An optional dictionary of extra properties to be 
+                                attached to the metric event.
+        :param bool log_once: ``True`` if this metric should be ignored if it has
+                              already been logged. Defaults to ``False``.
 
         """
-        super(UserAttributeMetric, self).__init__({
-            "type": "user_attribute",
-            "attr_name": attr_name,
-            "attr_value": attr_value,
-        })
-
-    def __repr__(self):
-        """Official str representation of the user attribute metric."""
-        return "%s.%s" % (self._data["attr_name"], self._data["attr_value"])
+        log.debug("EventMetric.log('%s', '%s')" % (
+            str(cls(group, name, properties)),
+            str(log_once)
+        ))
+        MetricsQueueSingleton().log(
+            cls(group, name, properties),
+            log_once=log_once
+        )
 
 
 ###############################################################################
-# metrics logging convenience functions
+#
+# metrics logging convenience functions (All deprecated)
+#
 
 def log_metric(metric, log_once=False):
-    """Log a Toolkit metric.
-    
-    :param ToolkitMetric metric: The metric to log.
-    :param bool log_once: ``True`` if this metric should be ignored if it has
-        already been logged. Defaults to ``False``.
-
-    This method simply adds the metric to the dispatch queue.
+    """ 
+    This method is deprecated and shouldn't be used anymore.
+    Please use the `log_metric_event` method.
     """
-    MetricsQueueSingleton().log(metric, log_once=log_once)
+    pass
 
 def log_user_activity_metric(module, action, log_once=False):
-    """Convenience method for logging a user activity metric.
-
-    :param str module: The module the activity occured in.
-    :param str action: The action the user performed.
-    :param bool log_once: ``True`` if this metric should be ignored if it has
-        already been logged. Defaults to ``False``.
+    """ 
+    This method is deprecated and shouldn't be used anymore.
+    Please use the `log_metric_event` method.
     """
-    log_metric(UserActivityMetric(module, action), log_once=log_once)
+    pass
+
 
 def log_user_attribute_metric(attr_name, attr_value, log_once=False):
-    """Convenience method for logging a user attribute metric.
-
-    :param str attr_name: The name of the attribute.
-    :param str attr_value: The value of the attribute to log.
-    :param bool log_once: ``True`` if this metric should be ignored if it has
-        already been logged. Defaults to ``False``.
+    """ 
+    This method is deprecated and shouldn't be used anymore.
+    Please use the `log_metric_event` method.
     """
-    log_metric(UserAttributeMetric(attr_name, attr_value), log_once=log_once)
-
+    pass
