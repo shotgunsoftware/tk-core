@@ -50,12 +50,11 @@ class LogMetrics(Hook):
         """
         pass
 
-
     def execute2(self, metrics):
         """
         Called when Toolkit logs metrics.
         
-        :param list metrics: list of :attr:`~tank.util.EventMetric.data` dictionaries 
+        :param list metrics: list of :attr:`~tank.util.EventMetric.data` dictionaries
         with logged data.
 
 

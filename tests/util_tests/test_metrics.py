@@ -629,6 +629,7 @@ class TestHookLogMetrics(TankTestBase):
         """
         pass
 
+
 class TestBundleMetrics(TankTestBase):
     """
     Class for testing metrics at Bundle level.
@@ -639,15 +640,15 @@ class TestBundleMetrics(TankTestBase):
         self.setup_fixtures()
         
         # setup shot
-        seq = {"type":"Sequence", "code": "seq_name", "id":3 }
+        seq = {"type": "Sequence", "code": "seq_name", "id": 3}
         seq_path = os.path.join(self.project_root, "sequences", "seq_name")
         self.add_production_path(seq_path, seq)
         
-        shot = {"type":"Shot", "code": "shot_name", "id":2, "sg_sequence": seq, "project": self.project}
+        shot = {"type": "Shot", "code": "shot_name", "id": 2, "sg_sequence": seq, "project": self.project}
         shot_path = os.path.join(seq_path, "shot_name")
         self.add_production_path(shot_path, shot)
         
-        step = {"type":"Step", "code": "step_name", "id":4 }
+        step = {"type":"Step", "code": "step_name", "id":4}
         self.shot_step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.shot_step_path, step)
 
@@ -663,7 +664,6 @@ class TestBundleMetrics(TankTestBase):
         context = self.tk.context_from_path(self.shot_step_path)
         self.engine = tank.platform.start_engine("test_engine", self.tk, context)
 
-        
     def tearDown(self):
         # engine is held as global, so must be destroyed.
         cur_engine = tank.platform.current_engine()
