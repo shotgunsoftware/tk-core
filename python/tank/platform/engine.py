@@ -470,10 +470,23 @@ class Engine(TankBundle):
         """
         pass
 
-    @property
-    def _metric_properties(self):
+    def _get_metrics_properties(self):
         """
-        :returns: A dictionary with metric properties specific to this engine.
+        Return a dictionary with properties to use when emitting a metric event for
+        this engine.
+
+        The dictionary contains informations about this engine: its name and version,
+        and informations about the application hosting the engine: its name and
+        version. 
+        
+        E.g.::
+        {
+            'Host App': 'Maya',
+            'Host App Version': '2017',
+            'Engine': 'tk-maya',
+            'Engine Version': 'v0.4.1',
+        }
+
         """
         # Always create a new dictionary so the caller can safely modify it.
         return {
@@ -482,13 +495,6 @@ class Engine(TankBundle):
             EventMetric.KEY_HOST_APP: self.host_info.get("name", "unknown"),
             EventMetric.KEY_HOST_APP_VERSION: self.host_info.get("version", "unknown"),
         }
-
-    def _get_metrics_context(self):
-        """
-        :returns: A dictionary with properties to use when emitting a metric
-                  event for this engine.
-        """
-        return self._metric_properties
 
     def get_child_logger(self, name):
         """

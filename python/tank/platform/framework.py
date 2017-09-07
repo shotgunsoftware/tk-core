@@ -199,14 +199,17 @@ class Framework(TankBundle):
     ##########################################################################################
     # internal API
 
-    def _get_metrics_context(self):
+    def _get_metrics_properties(self):
         """
-        :returns: A dictionary with properties to use when emitting a metric
-                  event for this framework in the current engine.
+        Return a dictionary with properties to use when emitting a metric event 
+        for this framework in the current engine.
+
+        Frameworks don't have any particular properties and just return the result
+        of :meth:`Engine._get_metrics_properties`.
         """
         # Please note that before we used to log some framework information as well
         # Now we just add the engine information.
-        properties = self.engine._get_metrics_context()
+        properties = self.engine._get_metrics_properties()
         return properties
 
 ###################################################################################################

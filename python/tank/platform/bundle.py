@@ -73,9 +73,10 @@ class TankBundle(object):
         Internal Use Only - We provide no guarantees that this method
         will be backwards compatible.
         """
-        properties = self._get_metrics_context()
+        properties = self._get_metrics_properties()
         if command_name:
             properties[EventMetric.KEY_COMMAND] = command_name
+
         EventMetric.log(
             EventMetric.GROUP_TOOLKIT,
             action,
@@ -948,7 +949,7 @@ class TankBundle(object):
 
         return engine_name
 
-    def _get_metrics_context(self):
+    def _get_metrics_properties(self):
         """
         Should be re-implemented in deriving classes and return a dictionary with
         the properties needed to log a metric event for this bundle.
