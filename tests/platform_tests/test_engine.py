@@ -111,10 +111,11 @@ class TestStartEngine(TestEngineBase):
         Test engine properties
         """
         engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        expected_doc_url = "https://support.shotgunsoftware.com/hc/en-us/articles/115000068574-User-Guide"
         self.assertEqual(engine.name, "test_engine")
         self.assertEqual(engine.display_name, "test_engine")
         self.assertEqual(engine.version, "Undefined")
-        self.assertEqual(engine.documentation_url, None)
+        self.assertEqual(engine.documentation_url, expected_doc_url)
         self.assertEqual(engine.instance_name, "test_engine")
         self.assertEqual(engine.context, self.context)
 

@@ -130,8 +130,9 @@ class ConfigurationResolver(object):
             )
 
             # create an object to represent our configuration install
+            config_path = ShotgunPath.from_current_os_path(cfg_descriptor.get_path())
             return BakedConfiguration(
-                cfg_descriptor.get_path(),
+                config_path,
                 sg_connection,
                 self._project_id,
                 self._plugin_id,

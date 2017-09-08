@@ -226,7 +226,12 @@ class PushPCAction(Action):
         # check that there are no dev descriptors
         dev_desc = None
         for env_name in self.tk.pipeline_configuration.get_environments():
-            env = self.tk.pipeline_configuration.get_environment(env_name)
+            try:
+                env = self.tk.pipeline_configuration.get_environment(env_name)
+            except Exception as e:
+                raise TankError("Failed to load environment %s,"
+                                " run 'tank validate' for more details, got error: %s" % (env_name, e))
+
             for eng in env.get_engines():
                 desc = env.get_engine_descriptor(eng)
                 if desc.is_dev():

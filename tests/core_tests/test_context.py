@@ -434,8 +434,51 @@ class TestFromEntity(TestContext):
                      "project": self.project,
                      "entity": self.shot,
                      "step": self.step}
+
+        self.publishedfile = dict(
+            id=2,
+            type="PublishedFile",
+            project=self.project,
+            entity=self.shot,
+            task=self.task,
+        )
         
         self.add_to_sg_mock_db(self.task)
+        self.add_to_sg_mock_db(self.publishedfile)
+
+    @patch("tank.util.login.get_current_user")
+    def test_from_linked_entity_types(self, get_current_user):
+        get_current_user.return_value = self.current_user
+
+        # PublishedFile and Version entities are special cased in the context
+        # factories. We need to make sure they create a context object that is
+        # built from what those entities are linked to, but with the original
+        # entity kept as the source_entity of the context.
+        result = context.from_entity(self.tk, self.publishedfile["type"], self.publishedfile["id"])
+        self.check_entity(self.project, result.project, check_name=False)
+        self.check_entity(self.shot, result.entity, check_name=False)
+        self.check_entity(self.task, result.task, check_name=False)
+        self.check_entity(
+            result.source_entity,
+            dict(
+                type=self.publishedfile["type"],
+                id=self.publishedfile["id"],
+            ),
+            check_name=False,
+        )
+
+        result = context.from_entity_dictionary(self.tk, self.publishedfile)
+        self.check_entity(self.project, result.project, check_name=False)
+        self.check_entity(self.shot, result.entity, check_name=False)
+        self.check_entity(self.task, result.task, check_name=False)
+        self.check_entity(
+            result.source_entity,
+            dict(
+                type=self.publishedfile["type"],
+                id=self.publishedfile["id"],
+            ),
+            check_name=False,
+        )
 
     @patch("tank.util.login.get_current_user")
     def test_entity_from_cache(self, get_current_user):
@@ -456,7 +499,6 @@ class TestFromEntity(TestContext):
         
         self.check_entity(self.step, result.step)
         self.assertEquals(3, len(result.step))
-
     
     @patch("tank.util.login.get_current_user")
     def test_step_higher_entity(self, get_current_user):
@@ -621,11 +663,12 @@ class TestFromEntity(TestContext):
         self.assertEquals(self.task["content"], result.task["name"])
         self.assertEquals(3, len(result.task))
 
-    def check_entity(self, first_entity, second_entity):
+    def check_entity(self, first_entity, second_entity, check_name=True):
         "Checks two entity dictionaries have the same values for keys type, id and name."
         self.assertEquals(first_entity["type"], second_entity["type"])
         self.assertEquals(first_entity["id"],   second_entity["id"])
-        self.assertEquals(first_entity["name"], second_entity["name"])
+        if check_name:
+            self.assertEquals(first_entity["name"], second_entity["name"])
 
 
 class TestAsTemplateFields(TestContext):
