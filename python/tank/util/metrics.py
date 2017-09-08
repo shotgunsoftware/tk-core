@@ -72,7 +72,7 @@ class MetricsQueueSingleton(object):
             metrics_queue._lock = Lock()
 
             # The underlying collections.deque instance
-            metrics_queue._queue = deque(maxlen=MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE)
+            metrics_queue._queue = deque(maxlen=cls.MAXIMUM_QUEUE_SIZE)
 
             cls.__instance = metrics_queue
 
@@ -331,8 +331,6 @@ class MetricsDispatchWorkerThread(Thread):
         # execute the log_metrics core hook
         self._engine.tank.execute_core_hook_method(
             constants.TANK_LOG_METRICS_HOOK_NAME,
-            # 'execute' was used with previous metrics system which has
-            # different properties for events, so we need to use a new method
             "log_metrics",
             metrics=[m.data for m in metrics]
         )
@@ -346,7 +344,7 @@ class EventMetric(object):
     Convenience class for creating a metric event to be logged on a Shotgun site.
 
     Use this helper class to create a suitable metric structure that you can
-    then pass to the `tank.utils.metrics.log_metric_event` method.
+    then pass to the `tank.utils.metrics.EventMetric.log` method.
 
     The simplest usage of this class is simply to provide an event group and
     event name to the constructor:
@@ -464,14 +462,14 @@ class EventMetric(object):
 def log_metric(metric, log_once=False):
     """ 
     This method is deprecated and shouldn't be used anymore.
-    Please use the `log_metric_event` method.
+    Please use the `EventMetric.log` method.
     """
     pass
 
 def log_user_activity_metric(module, action, log_once=False):
     """ 
     This method is deprecated and shouldn't be used anymore.
-    Please use the `log_metric_event` method.
+    Please use the `EventMetric.log` method.
     """
     pass
 
@@ -479,6 +477,6 @@ def log_user_activity_metric(module, action, log_once=False):
 def log_user_attribute_metric(attr_name, attr_value, log_once=False):
     """ 
     This method is deprecated and shouldn't be used anymore.
-    Please use the `log_metric_event` method.
+    Please use the `EventMetric.log` method.
     """
     pass

@@ -669,17 +669,6 @@ class Engine(TankBundle):
             "version": "unknown",
         }
 
-    @property
-    def host_info_string(self):
-        """
-        :returns: The host information as a string.
-        """
-        info = self.host_info
-        return "%s %s" % (
-            info.get("name", "unknown"),
-            info.get("version", "unknown")
-        )
-
     ##########################################################################################
     # init and destroy
     

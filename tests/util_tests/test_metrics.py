@@ -648,7 +648,7 @@ class TestBundleMetrics(TankTestBase):
         shot_path = os.path.join(seq_path, "shot_name")
         self.add_production_path(shot_path, shot)
         
-        step = {"type":"Step", "code": "step_name", "id": 4}
+        step = {"type": "Step", "code": "step_name", "id": 4}
         self.shot_step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.shot_step_path, step)
 

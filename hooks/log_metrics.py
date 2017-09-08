@@ -20,7 +20,7 @@ class LogMetrics(Hook):
         .. warning::
             This method is deprecated is not executed anymore.
 
-            Please check :meth:`LogMetrics.execute2`.
+            Please check :meth:`LogMetrics.log_metrics`.
 
         Called when Toolkit logs user metrics.
         
