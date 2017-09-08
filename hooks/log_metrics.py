@@ -50,7 +50,7 @@ class LogMetrics(Hook):
         """
         pass
 
-    def execute2(self, metrics):
+    def log_metrics(self, metrics):
         """
         Called when Toolkit logs metrics.
         
