@@ -139,6 +139,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
     METRIC_ENDPOINT = "api3/track_metrics/"
     SLEEP_INTERVAL = 0.25
+    batch_size_too_large_failure_count = 0
 
     def _create_context(self):
         """
@@ -233,7 +234,6 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         # Unpatch the `urlopen` method
         if self._mocked_method:
-            # If `_mocked_method` we did started `_urlopen_mock
             self._urlopen_mock.stop()
             self._urlopen_mock = None
             self._mocked_method = None
@@ -506,6 +506,87 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         metric_index = newest_metric.data["event_properties"]["Metric id"]
         self.assertEqual(metric_index, TEST_SIZE - 1)
 
+    @classmethod
+    def _mocked_urlopen_for_test_maximum_batch_size(*args, **kwargs):
+        """
+        Helper method checking that batch size are limited to N elements.
+        :param args:
+        :param kwargs:
+        """
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+
+            def json(self):
+                return self.json_data
+
+        test_instance = args[0]
+        data = metrics = args[1].data
+        payload = json.loads(data)
+        metrics = payload["metrics"]
+        batch_size = len(metrics)
+
+        EXPECTED_MAXIMUM_SIZE = 10
+        if batch_size > EXPECTED_MAXIMUM_SIZE:
+            test_instance.batch_size_too_large_failure_count = test_instance.batch_size_too_large_failure_count + 1
+
+    def test_maximum_batch_size(self):
+        """
+        Test that the dispatcher worker thread is not sending all queued metrics at once
+        but rather sent in batches that can be handled by the server.
+        """
+
+
+        # Setup test fixture, engine and context with newer server caps
+        #
+        # Define a local server caps mock locally since it only
+        # applies to this particular test
+        class server_capsMock:
+            def __init__(self):
+                self.version = (7, 4, 0)
+
+        self._setup_shotgun(server_capsMock())
+
+        # The '_setup_shotgun' helper method is setting up an 'urlopen' mock.
+        # For this test, we need to override that to something more specific.
+        self._urlopen_mock.stop()
+        self._urlopen_mock = None
+        self._urlopen_mock = patch('urllib2.urlopen', side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size)
+        self._mocked_method = self._urlopen_mock.start()
+
+        # Setup:
+        # We add 10 time the maximum number of events in the queue.
+        # Because we're testing multi-threaded code, by the time
+        TEST_SIZE = 7 + (10 * MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE)
+        for i in range(TEST_SIZE):
+            EventMetric.log(
+                "App",
+                "Testing maximum queue size %d" % (i),
+                properties={"Metric id": i}
+            )
+
+        # Because we are testing for the absence of a Request
+        # we do have to wait longer for the test to be valid.
+
+        queue = MetricsQueueSingleton()._queue
+        TIMEOUT_SECONDS = 400 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL
+
+        # Wait for events to show up in queue
+        timeout = time.time() + TIMEOUT_SECONDS
+        length = len(queue)
+        while (length == 0) and (time.time() < timeout):
+            time.sleep(TestMetricsDispatchWorkerThread.SLEEP_INTERVAL)
+            length = len(queue)
+
+        # Wait for the queue to be emptied
+        length = len(queue)
+        timeout = time.time() + TIMEOUT_SECONDS
+        while (length > 0) and (time.time() < timeout):
+            time.sleep(TestMetricsDispatchWorkerThread.SLEEP_INTERVAL)
+            length = len(queue)
+
+        self.assertEquals(self.batch_size_too_large_failure_count, 0)
 
 class TestMetricsQueueSingleton(TankTestBase):
     """Cases testing tank.util.metrics.MetricsQueueSingleton class."""

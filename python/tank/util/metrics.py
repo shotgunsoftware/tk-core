@@ -46,7 +46,7 @@ class MetricsQueueSingleton(object):
 
     """
 
-    MAXIMUM_QUEUE_SIZE = 20
+    MAXIMUM_QUEUE_SIZE = 100
     """
     Maximum queue size (arbitrary value) until oldest queued item is remove.
     This is to prevent memory leak in case the engine isn't started.
