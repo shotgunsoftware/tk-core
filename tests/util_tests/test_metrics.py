@@ -140,6 +140,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
     METRIC_ENDPOINT = "api3/track_metrics/"
     SLEEP_INTERVAL = 0.25
     batch_size_too_large_failure_count = 0
+    mock_calls_timestamp = []
 
     def _create_context(self):
         """
@@ -510,18 +511,12 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
     def _mocked_urlopen_for_test_maximum_batch_size(*args, **kwargs):
         """
         Helper method checking that batch size are limited to N elements.
-        :param args:
         :param kwargs:
         """
-        class MockResponse:
-            def __init__(self, json_data, status_code):
-                self.json_data = json_data
-                self.status_code = status_code
-
-            def json(self):
-                return self.json_data
-
         test_instance = args[0]
+        millis = int(round(time.time() * 1000))
+        test_instance.mock_calls_timestamp.append(millis)
+
         data = metrics = args[1].data
         payload = json.loads(data)
         metrics = payload["metrics"]
@@ -536,7 +531,6 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         Test that the dispatcher worker thread is not sending all queued metrics at once
         but rather sent in batches that can be handled by the server.
         """
-
 
         # Setup test fixture, engine and context with newer server caps
         #
@@ -555,9 +549,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._urlopen_mock = patch('urllib2.urlopen', side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size)
         self._mocked_method = self._urlopen_mock.start()
 
-        # Setup:
         # We add 10 time the maximum number of events in the queue.
-        # Because we're testing multi-threaded code, by the time
         TEST_SIZE = 7 + (10 * MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE)
         for i in range(TEST_SIZE):
             EventMetric.log(
@@ -566,13 +558,10 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 properties={"Metric id": i}
             )
 
-        # Because we are testing for the absence of a Request
-        # we do have to wait longer for the test to be valid.
-
         queue = MetricsQueueSingleton()._queue
-        TIMEOUT_SECONDS = 400 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL
+        TIMEOUT_SECONDS = 40 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL
 
-        # Wait for events to show up in queue
+        # Wait for firsts events to show up in queue
         timeout = time.time() + TIMEOUT_SECONDS
         length = len(queue)
         while (length == 0) and (time.time() < timeout):
@@ -587,6 +576,74 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             length = len(queue)
 
         self.assertEquals(self.batch_size_too_large_failure_count, 0)
+
+    def test_batch_interval(self):
+        """
+        Test that the dispatcher attempts emptying the queue on each cycle
+        rather than sending a single batch per cycle. The older code was s
+        sending a single batch of metrics per cycle of 5 seconds, each batch
+        being 10 metrics, the dispatcher could then handle only 2 metrics per
+        second. A higher rate would cause metrics to accumulate in the
+        dispatcher queue.
+
+        Because we're dealing with another thread, there are timing issues and
+        context switch which are difficult to account for. Because  we're using
+        a very small dispatcher cycle time for some cycle we might actually go
+        beyond the normal cycle period. For that reason we won't inspect
+        individual cycle but the average cycle time over 10 or more cycles.
+        """
+
+        # Setup test fixture, engine and context with newer server caps
+        #
+        # Define a local server caps mock locally since it only
+        # applies to this particular test
+        class server_capsMock:
+            def __init__(self):
+                self.version = (7, 4, 0)
+
+        self._setup_shotgun(server_capsMock())
+
+        # The '_setup_shotgun' helper method is setting up an 'urlopen' mock.
+        # For this test, we need to override that to something more specific.
+        self._urlopen_mock.stop()
+        self._urlopen_mock = None
+        self._urlopen_mock = patch('urllib2.urlopen', side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size)
+        self._mocked_method = self._urlopen_mock.start()
+
+        # We add 10 time the maximum number of events in the queue + some extra.
+        TEST_SIZE = 7 + (10 * MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE)
+        for i in range(TEST_SIZE):
+            EventMetric.log(
+                "App",
+                "Testing maximum queue size %d" % (i),
+                properties={"Metric id": i}
+            )
+
+        queue = MetricsQueueSingleton()._queue
+        TIMEOUT_SECONDS = 40 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL
+
+        # Wait for firsts events to show up in queue
+        timeout = time.time() + TIMEOUT_SECONDS
+        length = len(queue)
+        while (length == 0) and (time.time() < timeout):
+            time.sleep(TestMetricsDispatchWorkerThread.SLEEP_INTERVAL)
+            length = len(queue)
+
+        # Wait for the queue to be emptied
+        length = len(queue)
+        timeout = time.time() + TIMEOUT_SECONDS
+        while (length > 0) and (time.time() < timeout):
+            time.sleep(TestMetricsDispatchWorkerThread.SLEEP_INTERVAL)
+            length = len(queue)
+
+        # Checking overall cycle average time NOT individual cycle time
+        max_interval = MetricsDispatchWorkerThread.DISPATCH_INTERVAL * 1000
+        count = len(self.mock_calls_timestamp)
+        first_timestamp_ms = self.mock_calls_timestamp[0]
+        last_timestamp_ms = self.mock_calls_timestamp[count-1]
+        avg_time_ms = (last_timestamp_ms - first_timestamp_ms) / count
+        self.assertTrue(avg_time_ms < max_interval)
+
 
 class TestMetricsQueueSingleton(TankTestBase):
     """Cases testing tank.util.metrics.MetricsQueueSingleton class."""

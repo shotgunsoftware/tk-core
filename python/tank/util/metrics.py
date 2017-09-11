@@ -232,6 +232,12 @@ class MetricsDispatchWorkerThread(Thread):
     DISPATCH_INTERVAL = 5
     """Worker will wait this long between metrics dispatch attempts."""
 
+    DISPATCH_SHORT_INTERVAL = 0.1
+    """
+    Delay in seconds between the posting of consecutive batches within a 
+    dispatcher cycle.
+    """
+
     DISPATCH_BATCH_SIZE = 10
     """
     Worker will dispatch this many metrics at a time, or all if <= 0.
@@ -278,10 +284,19 @@ class MetricsDispatchWorkerThread(Thread):
 
             # get the next available metric and dispatch it
             try:
-                metrics = MetricsQueueSingleton().get_metrics(
-                    self.DISPATCH_BATCH_SIZE)
-                if metrics:
-                    self._dispatch(metrics)
+                # For each dispatch cycle, we empty the queue to prevent
+                # metric events from accumulating in the queue.
+                # Because the server has a limit, we dispatch
+                # 'DISPATCH_BATCH_SIZE' items at a time.
+                while True:
+                    metrics = MetricsQueueSingleton().get_metrics(
+                        self.DISPATCH_BATCH_SIZE)
+                    if metrics:
+                        self._dispatch(metrics)
+                        self._halt_event.wait(self.DISPATCH_SHORT_INTERVAL)
+                    else:
+                        break
+
             except Exception:
                 pass
             finally:
