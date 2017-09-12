@@ -346,9 +346,9 @@ def create_sg_connection(user="default"):
         # Credentials were passed in, so let's run the legacy authentication
         # mechanism for script user.
         api_handle = shotgun_api3.Shotgun(
-            config_data["host"],
-            script_name=config_data["api_script"],
-            api_key=config_data["api_key"],
+            os.path.expandvars(config_data["host"]),
+            script_name=os.path.expandvars(config_data["api_script"]),
+            api_key=os.path.expandvars(config_data["api_key"]),
             http_proxy=config_data.get("http_proxy"),
             connect=False
         )
