@@ -13,7 +13,7 @@ Provides defaults for authentication based on a core's configuration. Namely, it
 will provide a default host and an optional http proxy. If a script user has
 been configured with the core, its credentials will also be provided.
 """
-
+import os
 from ..authentication import DefaultsManager
 
 
@@ -48,7 +48,7 @@ class CoreDefaultsManager(DefaultsManager):
         :returns: The host value from the configuration
         """
         from . import shotgun
-        return shotgun.get_associated_sg_config_data().get("host")
+        return os.path.expandvars(shotgun.get_associated_sg_config_data().get("host"))
 
     def get_http_proxy(self):
         """

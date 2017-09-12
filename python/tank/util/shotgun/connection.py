@@ -188,6 +188,9 @@ def __parse_config_data(file_data, user, shotgun_cfg_path):
     if not config_data.get("host"):
         _raise_missing_key("host")
 
+    # Manage environment variable case
+    config_data["host"] = os.path.expandvars(config_data["host"])
+
     # The script authentication credentials need to be complete in order to work. They can be completely
     # omitted or fully specified, but not halfway configured.
     if config_data.get("api_script") and not config_data.get("api_key"):
