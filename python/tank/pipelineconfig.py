@@ -104,7 +104,7 @@ class PipelineConfiguration(object):
         # Enable the use of env variables for project and pipeline configuration settings
         for field in ['_project_name', '_project_id', '_pc_id', '_pc_name']:
             value = getattr(self, field)
-            if value and isinstance(value, str) and  value.startswith('$'):
+            if value and isinstance(value, str) and value.startswith('$'):
                 if field.endswith('id') and value:
                     setattr(self, field, int(os.path.expandvars(value)))
                 else:
