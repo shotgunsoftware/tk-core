@@ -336,9 +336,13 @@ class ConfigurationWriter(object):
             fh.write("# This file reflects the paths in the pipeline\n")
             fh.write("# configuration defined for this project.\n")
             fh.write("\n")
-            fh.write("Windows: '%s'\n" % self._path.windows)
-            fh.write("Darwin: '%s'\n" % self._path.macosx)
-            fh.write("Linux: '%s'\n" % self._path.linux)
+
+            locations = {}
+            locations["Windows"] = self._path.windows
+            locations["Darwin"] = self._path.macosx
+            locations["Linux"] = self._path.linux
+
+            yaml.safe_dump(locations, fh, default_flow_style=False)
             fh.write("\n")
             fh.write("# End of file.\n")
 
