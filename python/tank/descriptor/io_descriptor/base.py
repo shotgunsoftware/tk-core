@@ -518,10 +518,14 @@ class IODescriptorBase(object):
         uri = constants.DESCRIPTOR_URI_SEPARATOR.join(uri_chunks)
 
         qs_chunks = []
-        for (param, value) in descriptor_dict.iteritems():
+        # Sort keys so that the uri is the same across invocations.
+        for param in sorted(descriptor_dict):
             if param == "type":
                 continue
-            qs_chunks.append("%s=%s" % (param, urllib.quote(str(value))))
+            qs_chunks.append("%s=%s" % (
+                param,
+                urllib.quote(str(descriptor_dict[param])))
+            )
         qs = "&".join(qs_chunks)
 
         return "%s?%s" % (uri, qs)
