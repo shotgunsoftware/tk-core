@@ -52,7 +52,7 @@ class ConsoleLoginWithSSONotSupportedError(ShotgunAuthenticationError):
         :param str url: Url of the site where login was attempted.
         """
         ShotgunAuthenticationError.__init__(
-            self, "Authentication using username/password is not allowed on the console for an SSO-enabled site."
+            self, "Authentication using username/password is not allowed on the console for %s, an SSO-enabled site." % url
         )
 
 

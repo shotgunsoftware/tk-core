@@ -18,6 +18,8 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+import sys
+
 from . import session_cache
 from .. import LogManager
 from .errors import AuthenticationError, AuthenticationCancelled, ConsoleLoginWithSSONotSupportedError
@@ -58,12 +60,13 @@ class ConsoleAuthenticationHandlerBase(object):
                 print
                 raise AuthenticationCancelled()
             except ConsoleLoginWithSSONotSupportedError, e:
-                # SSO login requires a Web-like environment at this time.
-                # Should the user attempts to connect to a site that uses SSO,
-                # we simply prompt them again for another URL.
+                # SSO login requires a QtApplication environment at this time.
                 print "%s" % e
                 print
-                continue
+                # @TODO: Temporary measure for the Beta program, until we settle
+                #        on a proper way to deal with authentication.
+                #        (c.f. discussion W JF Boismenu regarding Tank and DCCs)
+                sys.exit(-1)
 
             try:
                 try:
@@ -197,17 +200,19 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         :param login: Default value for the login.
         :returns: A tuple of (login, password) strings.
         """
-        if self._fixed_host:
-            print "Please enter your login credentials for %s" % hostname
-        else:
-            print "Please enter your login credentials."
-            hostname = self._get_keyboard_input("Host", hostname)
-
         # Import at top-level causes an import error on DefaultsManager
         from shotgun_shared import is_sso_enabled_on_site
 
-        if is_sso_enabled_on_site(hostname):
-            raise ConsoleLoginWithSSONotSupportedError(hostname)
+        if self._fixed_host:
+            if is_sso_enabled_on_site(hostname):
+                raise ConsoleLoginWithSSONotSupportedError(hostname)
+            print "Please enter your login credentials for %s" % hostname
+
+        else:
+            print "Please enter your login credentials."
+            hostname = self._get_keyboard_input("Host", hostname)
+            if is_sso_enabled_on_site(hostname):
+                raise ConsoleLoginWithSSONotSupportedError(hostname)
 
         login = self._get_keyboard_input("Login", login)
         password = self._get_password()
