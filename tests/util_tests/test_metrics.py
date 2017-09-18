@@ -827,7 +827,7 @@ class TestBundleMetrics(TankTestBase):
         # We should have a "Launched Software" metric, check it is right
         data = metrics[0].data
         self.assertEqual(data["event_group"], EventMetric.GROUP_TOOLKIT)
-        self.assertEqual(data["event_name"], "Launched Engine")
+        self.assertEqual(data["event_name"], "Launched Software")
         self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP], "unknown")
         self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown")
         self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE], engine.name)
