@@ -29,6 +29,7 @@
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+
 import base64
 import cookielib    # used for attachment upload
 import cStringIO    # used for attachment upload
@@ -91,7 +92,7 @@ except ImportError, e:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.0.34"
+__version__ = "3.0.33"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -245,24 +246,6 @@ class ServerCapabilities(object):
             'version': (7, 0, 12),
             'label': 'user_following parameter'
         }, True)
-
-    def ensure_paging_info_without_counts_support(self):
-        """
-        Ensures server has support for optimized pagination, added in v7.4.0.
-        """
-        return self._ensure_support({
-            'version': (7, 4, 0),
-            'label': 'optimized pagination'
-        }, False)
-
-    def ensure_return_image_urls_support(self):
-        """
-        Ensures server has support for returning thumbnail URLs without additional round-trips, added in v3.3.0.
-        """
-        return self._ensure_support({
-            'version': (3, 3, 0),
-            'label': 'return thumbnail URLs'
-        }, False)
 
     def __str__(self):
         return "ServerCapabilities: host %s, version %s, is_dev %s"\
@@ -799,7 +782,7 @@ class Shotgun(object):
             returns all entities that match.
         :param int page: Optional page of results to return. Use this together with the ``limit``
             parameter to control how your query results are paged. Defaults to ``0`` which returns
-            all entities that match.
+            the first page of results.
         :param bool retired_only: Optional boolean when ``True`` will return only entities that have
             been retried. Defaults to ``False`` which returns only entities which have not been
             retired. There is no option to return both retired and non-retired entities in the
@@ -850,16 +833,6 @@ class Shotgun(object):
                                                  include_archived_projects,
                                                  additional_filter_presets)
 
-        if self.server_caps.ensure_return_image_urls_support():
-            params['api_return_image_urls'] = True
-
-        if self.server_caps.ensure_paging_info_without_counts_support():
-            paging_info_param = "return_paging_info_without_counts"
-        else:
-            paging_info_param = "return_paging_info"
-
-        params[paging_info_param] = False
-
         if limit and limit <= self.config.records_per_page:
             params["paging"]["entities_per_page"] = limit
             # If page isn't set and the limit doesn't require pagination,
@@ -867,40 +840,30 @@ class Shotgun(object):
             if page == 0:
                 page = 1
 
+        if self.server_caps.version and self.server_caps.version >= (3, 3, 0):
+            params['api_return_image_urls'] = True
+
         # if page is specified, then only return the page of records requested
         if page != 0:
+            # No paging_info needed, so optimize it out.
+            params["return_paging_info"] = False
             params["paging"]["current_page"] = page
             records = self._call_rpc("read", params).get("entities", [])
             return self._parse_records(records)
 
-        params[paging_info_param] = True
         records = []
+        result = self._call_rpc("read", params)
+        while result.get("entities"):
+            records.extend(result.get("entities"))
 
-        if self.server_caps.ensure_paging_info_without_counts_support():
-            has_next_page = True
-            while has_next_page:
-                result = self._call_rpc("read", params)
-                records.extend(result.get("entities"))
-                
-                if limit and len(records) >= limit:
-                    records = records[:limit]
-                    break
+            if limit and len(records) >= limit:
+                records = records[:limit]
+                break
+            if len(records) == result["paging_info"]["entity_count"]:
+                break
 
-                has_next_page = result["paging_info"]["has_next_page"]
-                params['paging']['current_page'] += 1
-        else:
+            params['paging']['current_page'] += 1
             result = self._call_rpc("read", params)
-            while result.get("entities"):
-                records.extend(result.get("entities"))
-
-                if limit and len(records) >= limit:
-                    records = records[:limit]
-                    break
-                if len(records) == result["paging_info"]["entity_count"]:
-                    break
-
-                params['paging']['current_page'] += 1
-                result = self._call_rpc("read", params)
 
         return self._parse_records(records)
 
@@ -919,6 +882,7 @@ class Shotgun(object):
         params["return_fields"] = fields or ["id"]
         params["filters"] = filters
         params["return_only"] = (retired_only and 'retired') or "active"
+        params["return_paging_info"] = True
         params["paging"] = { "entities_per_page": self.config.records_per_page,
                              "current_page": 1 }
 
