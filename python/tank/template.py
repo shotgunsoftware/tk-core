@@ -665,6 +665,14 @@ def read_templates(pipeline_configuration):
     :returns: Dictionary of form {template name: template object}
     """    
     per_platform_roots = pipeline_configuration.get_all_platform_data_roots()
+
+    if not per_platform_roots:
+        # no per-platform roots defined in the configuration. this essentially
+        # means that templates can not be resolved. so return an empty list.
+        # this allows a templates.yml file to exist in a configuration before
+        # any roots have been defined.
+        return []
+
     data = pipeline_configuration.get_templates_config()            
     
     # get dictionaries from the templates config file:
