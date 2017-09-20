@@ -86,12 +86,21 @@ def _initialize_coverage(test_root):
     """
     import coverage
 
-    coveragerc_location = os.path.abspath(
-        os.path.join(
-            test_root, # <root>/tests
-            "..", # <root>
-            ".coveragerc") # <root>/.coveragerc
-    )
+    if test_root:
+        coveragerc_location = os.path.abspath(
+            os.path.join(
+                test_root, # <root>/tests
+                "..", # <root>
+                ".coveragerc") # <root>/.coveragerc
+        )
+    else:
+        run_tests_py_location = __file__
+        coveragerc_location = os.path.abspath(
+            os.path.join(
+                os.path.dirname(run_tests_py_location), # <root>/tests
+                "..", # <root>
+                ".coveragerc") # <root>/.coveragerc
+        )
     cov = coverage.coverage(config_file=coveragerc_location)
     cov.start()
     return cov
