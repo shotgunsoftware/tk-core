@@ -701,8 +701,6 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             self.mockgun
         )
 
-        print pcs
-
         self.assertEqual(len(pcs), 1)
         self.assertEqual(pcs[0]["id"], pc_id)
         self.assertEqual(pcs[0]["config_descriptor"], None)
@@ -725,7 +723,6 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         self.assertEqual(pcs[0]["id"], pc_id)
 
 
-        print "gooooo"
         # Not clear the plugin fields and the pipeline should not be reported by
         # find_matching_pipeline_configurations.
         self.mockgun.update(
@@ -738,8 +735,6 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
 
         pcs = self.resolver.find_matching_pipeline_configurations(None, "john.smith", self.mockgun)
         self.assertListEqual(pcs, [])
-
-        print "gooooo"
 
 class TestResolverSiteConfig(TestResolverBase):
     """
