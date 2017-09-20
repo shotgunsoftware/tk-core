@@ -330,8 +330,8 @@ class ConfigurationResolver(object):
 
                 except TankBootstrapInvalidPipelineConfigurationError:
                     log.warning(
-                        "Pipeline configuration does not define a location "
-                        "where it can be accessed: %s" % pipeline_config
+                        "Pipeline configuration does not define an "
+                        "access location: %s" % pipeline_config
                     )
 
     def _create_config_descriptor(self, sg_connection, shotgun_pc_data):

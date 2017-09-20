@@ -63,6 +63,8 @@ class IODescriptorShotgunEntity(IODescriptorBase):
     The latest version is defined as the current record available in Shotgun.
     """
 
+    (_MODE_ID_BASED, _MODE_NAME_BASED) = range(2)
+
     def __init__(self, descriptor_dict, sg_connection):
         """
         Constructor
@@ -73,36 +75,42 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         """
         super(IODescriptorShotgunEntity, self).__init__(descriptor_dict)
 
+        # ensure project id is an int if specified
+        self._project_link = None
+        self._project_id = None
+        self._entity_id = None
+
         if "id" in descriptor_dict:
+            self._mode = self._MODE_ID_BASED
             self._validate_descriptor(
                 descriptor_dict,
                 required=["type", "entity_type", "id", "version", "field"],
             )
+            self._entity_id = descriptor_dict.get("id")
+
         else:
+            self._mode = self._MODE_NAME_BASED
             self._validate_descriptor(
                 descriptor_dict,
                 required=["type", "entity_type", "name", "version", "field"],
                 optional=["project_id"]
             )
 
+            self._name = descriptor_dict.get("name")
+
+            if "project_id" in descriptor_dict:
+                # convert to int
+                try:
+                    project_id_int = int(descriptor_dict["project_id"])
+                except ValueError:
+                    raise TankDescriptorError("Invalid project id in descriptor %s" % descriptor_dict)
+
+                self._project_link = {"type": "Project", "id": project_id_int}
+                self._project_id = project_id_int
+
         self._sg_connection = sg_connection
         self._entity_type = descriptor_dict.get("entity_type")
-        self._name = descriptor_dict.get("name")
         self._field = descriptor_dict.get("field")
-
-        # ensure project id is an int if specified
-        self._project_link = None
-        self._project_id = None
-
-        if "project_id" in descriptor_dict:
-            # convert to int
-            try:
-                project_id_int = int(descriptor_dict["project_id"])
-            except ValueError:
-                raise TankDescriptorError("Invalid project id in descriptor %s" % descriptor_dict)
-
-            self._project_link = {"type": "Project", "id": project_id_int}
-            self._project_id = project_id_int
 
         # ensure version is an int if specified
         try:
@@ -121,9 +129,16 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         #
         # format for these paths will be
         #
+        # for the syntax when name and project is specified:
         # bundle_cache/sg/SITE_NAME/EntityType.AttachmentField/[ProjectId_]NameField/AttachmentId
         #
         # bundle_cache/sg/wintermute/PipelineConfiguration.sg_config/p509_Primary/v25283
+        #
+        #
+        # for the syntax when id is specified:
+        # bundle_cache/sg/SITE_NAME/EntityType.AttachmentField/entity_id/AttachmentId
+        #
+        # bundle_cache/sg/wintermute/PipelineConfiguration.sg_config/12345/v25283
         #
         # note: readability is promoted here - if in the future we discover issues with MAXPATH,
         #       we turn the wintermute/PipelineConfiguration.sg_config/p509_Primary part into
@@ -135,8 +150,11 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         # make it as short as possible for hosted sites
         base_url = base_url.replace(".shotgunstudio.com", "")
 
-        # the name field and project id
-        name_field = self._name if self._project_id is None else "p%d_%s" % (self._project_id, self._name)
+        if self._mode == self._MODE_NAME_BASED:
+            # the name field and project id
+            name_field = self._name if self._project_id is None else "p%d_%s" % (self._project_id, self._name)
+        elif self._mode == self._MODE_ID_BASED:
+            name_field = str(self._entity_id)
 
         return os.path.join(
             bundle_cache_root,
@@ -152,10 +170,16 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         Returns a short name, suitable for use in configuration files
         and for folders on disk, e.g. 'tk-maya'
         """
-        if self._project_id:
-            name = "p%s_%s" % (self._project_id, self._name)
-        else:
-            name = self._name
+        if self._mode == self._MODE_NAME_BASED:
+            if self._project_id:
+                name = "p%s_%s" % (self._project_id, self._name)
+            else:
+                name = self._name
+
+        elif self._mode == self._MODE_ID_BASED:
+            # e.g. 'PipelineConfiguration_1234'
+            name = "%s_%s" % (self._entity_type, self._entity_id)
+
         return filesystem.create_valid_filename(name)
 
     def get_version(self):
@@ -207,21 +231,26 @@ class IODescriptorShotgunEntity(IODescriptorBase):
 
         log.debug("Finding latest version of %s..." % self)
 
-        # in the case of a pipeline configuration, simply fetch the current pipeline configuration attachment
-        # and build a descriptor based on that
-        spec_name_fields = {
-            "Project": "name",
-            "Task": "content",
-            "HumanUser": "name"
-        }
-        name_field = spec_name_fields.get(self._entity_type, "code")
+        if self._mode == self._MODE_NAME_BASED:
+            spec_name_fields = {
+                "Project": "name",
+                "Task": "content",
+                "HumanUser": "name"
+            }
+            name_field = spec_name_fields.get(self._entity_type, "code")
 
-        filters = [[name_field, "is", self._name]]
+            filters = [[name_field, "is", self._name]]
 
-        if self._project_link:
-            filters.append(["project", "is", self._project_link])
+            if self._project_link:
+                filters.append(["project", "is", self._project_link])
+
+        elif self._mode == self._MODE_ID_BASED:
+            filters = [["id", "is", self._entity_id]]
 
         data = self._sg_connection.find_one(self._entity_type, filters, [self._field])
+
+        if data is None:
+            raise TankDescriptorError("Cannot resolve find descriptor %s in Shotgun!" % self)
 
         # attachment field is on the following form in the case a file has been
         # uploaded:
@@ -232,29 +261,34 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         #  'id': 139,
         #  'link_type': 'upload'}
 
-        if data is None:
-            raise TankDescriptorError(
-                "Cannot find a pipeline configuration named '%s'!" % self._name
-            )
-
         if data[self._field].get("link_type") != "upload":
             raise TankDescriptorError(
                 "Latest version of %s is not an uploaded file: %s" % (self, data)
             )
 
-        attachment_id = data[self._field]["id"]
+        attachment_id = data[self._field].get("id")
 
         # make a descriptor dict
-        descriptor_dict = {
-            "type": "shotgun",
-            "entity_type": self._entity_type,
-            "field": self._field,
-            "name": self._name,
-            "version": attachment_id
-        }
+        if self._mode == self._MODE_NAME_BASED:
+            descriptor_dict = {
+                "type": "shotgun",
+                "entity_type": self._entity_type,
+                "field": self._field,
+                "name": self._name,
+                "version": attachment_id
+            }
 
-        if self._project_link:
-            descriptor_dict["project_id"] = self._project_id
+            if self._project_link:
+                descriptor_dict["project_id"] = self._project_id
+
+        elif self._mode == self._MODE_ID_BASED:
+            descriptor_dict = {
+                "type": "shotgun",
+                "entity_type": self._entity_type,
+                "field": self._field,
+                "id": self._entity_id,
+                "version": attachment_id
+            }
 
         # and return a descriptor instance
         desc = IODescriptorShotgunEntity(descriptor_dict, self._sg_connection)
@@ -288,16 +322,26 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             return None
 
         # make a descriptor dict
-        descriptor_dict = {
-            "type": "shotgun",
-            "entity_type": self._entity_type,
-            "field": self._field,
-            "name": self._name,
-            "version": max(all_versions)
-        }
+        if self._mode == self._MODE_NAME_BASED:
+            descriptor_dict = {
+                "type": "shotgun",
+                "entity_type": self._entity_type,
+                "field": self._field,
+                "name": self._name,
+                "version": max(all_versions)
+            }
 
-        if self._project_link:
-            descriptor_dict["project_id"] = self._project_id
+            if self._project_link:
+                descriptor_dict["project_id"] = self._project_id
+
+        elif self._mode == self._MODE_ID_BASED:
+            descriptor_dict = {
+                "type": "shotgun",
+                "entity_type": self._entity_type,
+                "field": self._field,
+                "id": self._entity_id,
+                "version": max(all_versions)
+            }
 
         # and return a descriptor instance
         desc = IODescriptorShotgunEntity(descriptor_dict, self._sg_connection)
