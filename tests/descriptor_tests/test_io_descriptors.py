@@ -22,6 +22,59 @@ class TestIODescriptors(TankTestBase):
     Testing the Shotgun deploy main API methods
     """
 
+    def test_version_resolve(self):
+        """
+        Tests the is_descriptor_version_missing method
+        """
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing(
+                {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"}
+            ),
+            False
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing(
+                {"type": "app_store", "name": "tk-bundle"}
+            ),
+            True
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing(
+                "sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle"
+            ),
+            False
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing(
+                "sgtk:descriptor:app_store?name=tk-bundle"
+            ),
+            True
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "dev", "path": "/tmp"}),
+            False
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "path", "path": "/tmp"}),
+            False
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "manual", "name": "foo"}),
+            True
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "shotgun", "name": "foo"}),
+            True
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "git", "path": "foo"}),
+            True
+        )
+        self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "git_branch", "path": "foo"}),
+            True
+        )
+
     def test_latest_cached(self):
         """
         Tests the find_latest_cached_version method

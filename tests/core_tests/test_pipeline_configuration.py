@@ -42,7 +42,7 @@ class TestPipelineConfig(TankTestBase):
         """
         self.assertEqual(
             self.tk.pipeline_configuration.get_published_file_entity_type(),
-            "TankPublishedFile"
+            "PublishedFile"
         )
 
     def test_fixture_pipeline_reloaded(self):

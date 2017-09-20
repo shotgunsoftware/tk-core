@@ -54,13 +54,14 @@ class PipelineConfiguration(object):
         is handled on the OS level.
 
         :param str pipeline_configuration_path: Path to the pipeline configuration on disk.
-        :param descriptor: Descriptor that was used to create this pipeline configuration if one
-            was used. Defaults to ``None``.
+        :param descriptor: Descriptor that was used to create this pipeline configuration. 
+            Defaults to ``None`` for backwards compatibility with Bootstrapper that only
+            pass down one argument. Also this argument was passed down by cores from
+            v0.18.72 to 0.18.94. The descriptor is now read from the disk inside
+            pipeline_configuration.yml.
         :type descriptor: :class:`sgtk.descriptor.ConfigDescriptor`
         """
         self._pc_root = pipeline_configuration_path
-
-        self._descriptor = descriptor
 
         # validate that the current code version matches or is compatible with
         # the code that is locally stored in this config!!!!
@@ -101,7 +102,7 @@ class PipelineConfiguration(object):
         self._pc_name = pipeline_config_metadata.get("pc_name")
         self._published_file_entity_type = pipeline_config_metadata.get(
             "published_file_entity_type",
-            "TankPublishedFile"
+            "PublishedFile"
         )
         self._use_shotgun_path_cache = pipeline_config_metadata.get(
             "use_shotgun_path_cache",
@@ -121,6 +122,69 @@ class PipelineConfiguration(object):
             self._bundle_cache_fallback_paths = pipeline_config_metadata.get("bundle_cache_fallback_roots")
         else:
             self._bundle_cache_fallback_paths = []
+
+        # There are four ways this initializer can be invoked.
+        #
+        # 1) Classic: We're instantiated from sgtk_from_path with a single path.
+        # 2) Bootstrap: path is set, descriptor is unset and no descriptor inside
+        #    pipeline_configuration.yml
+        # 3) Bootstrap: path is set, descriptor is set and no descriptor inside
+        #    pipeline_configuration.yml
+        # 4) Bootstrap, path is set, descriptor is set and descriptor inside
+        #    pipeline_configuration.yml
+        #
+        # The correct way to handle all of this is to go from a descriptor string or dictionary and
+        # instantiate the correct descriptor type.
+        #
+        # Note that since the boostapper can't tell if the pipeline configuration is going to use
+        # the file to read the descriptor or not, it is always going to pass down the descriptor in
+        # the arguments. We can however ignore that argument in favor of the descriptor on disk.
+
+        descriptor_dict = pipeline_config_metadata.get("source_descriptor")
+        # We'll first assume the pipeline configuration is not installed.
+        is_installed = False
+
+        # If there is a descriptor in the file (4), we know we're not installed and we're done!
+        if descriptor_dict:
+            # The bootstrapper wrote the descriptor in the pipeline_configuration.yml file, nothing
+            # more needs to be done.
+            pass
+        # If there's nothing in the file, but we're being passed down something by the bootstrapper,
+        # we should use it! (3)
+        elif descriptor:
+            # Up to 0.18.94, we could be passed in a descriptor pointing to what we now consider to
+            # be an Descriptor.INSTALLED_CONFIG, but the API back then didn't make the distinction
+            # and called it a Descriptor.CONFIG.
+
+            # We will test to see if the path referred to by the descriptor is the same as the
+            # current os path. If it is the same then the descriptor is an installed descriptor. If
+            # it isn't then it must be pointing to something inside the bundle cache, which means it
+            # isn't installed.
+            if self._pc_root == descriptor.get_path():
+                is_installed = True
+
+            descriptor_dict = descriptor.get_dict()
+        # Now we only have a path set. (1&2). We can't assume anything, but since all pipeline
+        # configurations, cached or installed, have the same layout on disk, we'll assume that we're
+        # in an installed one. Also, since installed configurations are a bit more lenient about
+        # things like info.yml, its a great fit since there are definitely installed configurations
+        # in the wild without an info.yml in their config folder.
+        else:
+            is_installed = True
+            descriptor_dict = {
+                "type": "path",
+                "path": self._pc_root
+            }
+
+        descriptor = create_descriptor(
+            shotgun.get_deferred_sg_connection(),
+            Descriptor.INSTALLED_CONFIG if is_installed else Descriptor.CONFIG,
+            descriptor_dict,
+            self._bundle_cache_root_override,
+            self._bundle_cache_fallback_paths
+        )
+
+        self._descriptor = descriptor
 
         #
         # Now handle the case of a baked and immutable configuration.
@@ -780,10 +844,8 @@ class PipelineConfiguration(object):
 
     def get_configuration_descriptor(self):
         """
-        Returns the descriptor that was used to create this pipeline configuration.
-
-        .. note:: In Toolkit Classic, this value will always be ``None`` since pipeline configurations
-            are not based off a descriptor.
+        Returns the :class:`~sgtk.descriptor.ConfigDescriptor` associated with
+        the pipeline configuration.
         """
         return self._descriptor
 
@@ -885,7 +947,7 @@ class PipelineConfiguration(object):
         )
 
         try:
-            data = yaml_cache.g_yaml_cache.get(templates_file, deepcopy_data=False)
+            data = yaml_cache.g_yaml_cache.get(templates_file, deepcopy_data=False) or {}
             data = template_includes.process_includes(templates_file, data)
         except TankUnreadableFileError:
             data = dict()

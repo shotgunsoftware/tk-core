@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
@@ -19,7 +19,7 @@ BUNDLE_METADATA_FILE = "info.yml"
 # if major changes happen to the way cloud based configs are handled
 # by the system, for example requiring any existing deployed cloud
 # configs to be re-deployed, this version number should be incremented.
-BOOTSTRAP_LOGIC_GENERATION = 5
+BOOTSTRAP_LOGIC_GENERATION = 7
 
 # config file with information about which core to use
 CONFIG_CORE_DESCRIPTOR_FILE = "core_api.yml"
@@ -62,10 +62,6 @@ DESKTOP_PYTHON_LINUX = "/opt/Shotgun/Python/bin/python"
 BAKED_DESCRIPTOR_TYPE = "baked"
 BAKED_DESCRIPTOR_FOLDER_NAME = "baked"
 
-# Name fo the special installed descriptor that is used for Toolkit Classic
-# based pipeline configurations.
-INSTALLED_DESCRIPTOR_TYPE = "installed"
-
 # environment variable that can be used to override the
 # configuration loaded when a bootstrap/plugin is starting up.
 CONFIG_OVERRIDE_ENV_VAR = "TK_BOOTSTRAP_CONFIG_OVERRIDE"
@@ -73,6 +69,9 @@ CONFIG_OVERRIDE_ENV_VAR = "TK_BOOTSTRAP_CONFIG_OVERRIDE"
 # environment variable that is used to indicate a specific
 # pipeline configuration to be used.
 PIPELINE_CONFIG_ID_ENV_VAR = "SHOTGUN_PIPELINE_CONFIGURATION_ID"
+
+# environment variable that is used to indicate which bundle caches to be used.
+BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR = "SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS"
 
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"

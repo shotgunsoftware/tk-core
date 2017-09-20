@@ -8,4 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .factory import create_io_descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri
+from .factory import (
+    create_io_descriptor,
+    descriptor_uri_to_dict,
+    descriptor_dict_to_uri,
+    is_descriptor_version_missing
+)

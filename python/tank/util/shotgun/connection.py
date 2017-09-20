@@ -122,7 +122,7 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
     """
     # load the config file
     try:
-        file_data = yaml_cache.g_yaml_cache.get(shotgun_cfg_path, deepcopy_data=False)
+        file_data = yaml_cache.g_yaml_cache.get(shotgun_cfg_path, deepcopy_data=False) or {}
     except Exception, error:
         raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
 

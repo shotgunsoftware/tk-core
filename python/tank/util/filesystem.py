@@ -1,5 +1,4 @@
-# Copyright (c) 2016 Shotgun Software Inc.
-#
+﻿# Copyright (c) 2016 Shotgun Software Inc.
 # CONFIDENTIAL AND PROPRIETARY
 #
 # This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
@@ -266,6 +265,9 @@ def move_folder(src, dst, folder_permissions=0775):
     First copies all content into target. Then deletes
     all content from sources. Skips files that won't delete.
 
+    .. note::
+        The source folder itself is not deleted, it is just emptied, if possible.
+
     :param src: Source path to copy from
     :param dst: Destination to copy to
     :param folder_permissions: permissions to use for new folders
@@ -343,3 +345,104 @@ def create_valid_filename(value):
         # so that we return a string
         u_src = value.decode("utf-8")
         return exp.sub("_", u_src).encode("utf-8")
+
+def get_permissions(path):
+    """
+    Retrieve the file system permissions for the file or folder in the
+    given path.
+
+    :param filename: Path to the file to be queried for permissions
+    :returns: permissions bits of the file 
+    :raises: OSError - if there was a problem retrieving permissions for the path
+    """
+    return stat.S_IMODE(os.stat(path)[stat.ST_MODE])
+
+def safe_delete_folder(path):
+    """
+    Deletes a folder and all of its contents recursively, even if it has read-only
+    items. 
+
+    .. note::
+        Problems deleting any items will be reported as warnings in the log 
+        output but otherwise ignored and skipped; meaning the function will continue
+        deleting as much as it can.
+
+    :param path: File system path to location to the folder to be deleted
+    """
+
+    def _on_rm_error(func, path, exc_info):
+        """
+        Error function called whenever shutil.rmtree fails to remove a file system
+        item. Exceptions raised by this function will not be caught.
+        
+        :param func: The function which raised the exception; it will be: 
+                     os.path.islink(), os.listdir(), os.remove() or os.rmdir().
+        :param path: The path name passed to function.
+        :param exc_info: The exception information return by sys.exc_info().
+        """
+        if func == os.unlink or func == os.remove or func == os.rmdir:
+            try:
+                attr = get_permissions(path)
+                if not (attr & stat.S_IWRITE):
+                    os.chmod(path, stat.S_IWRITE | attr)
+                    try:
+                        func(path)
+                    except Exception, e:
+                        log.warning("Could not delete %s: %s. Skipping" % (path, e))
+                else:
+                    log.warning("Could not delete %s: Skipping" % path)
+            except Exception, e:
+                log.warning("Could not delete %s: %s. Skipping" % (path, e))
+        else:
+            log.warning("Could not delete %s. Skipping." % path)
+
+    if os.path.exists(path):
+        try:
+            # On Windows, Python's shutil can't delete read-only files, so if we were trying to delete one,
+            # remove the flag.
+            # Inspired by http://stackoverflow.com/a/4829285/1074536
+            shutil.rmtree(path, onerror=_on_rm_error)
+        except Exception, e:
+            log.warning("Could not delete %s: %s" % (path, e))
+    else:
+        log.warning("Could not delete: %s. Folder does not exist" % path)
+
+
+def get_unused_path(base_path):
+    """
+    Return an unused file path from the given base path by appending if needed
+    a number at the end of the basename of the path, right before the first ".",
+    if any.
+    
+    For example, "/tmp/foo_1.bar.blah" would be returned for "/tmp/foo.bar.blah"
+    if it already exists.
+
+    If the given path does not exist, the original path is returned.
+
+    .. note::
+        The returned path is not _reserved_, so it is possible that other processes
+        could create the returned path before it is used by the caller.
+
+    :param str base_path: Target path.
+    :returns: A string.
+    """
+    if not os.path.exists(base_path):
+        # Bail out quickly if everything is fine with the path
+        return base_path
+
+    # Split the base path and find an unused path
+    folder, basename = os.path.split(base_path)
+    # Split the basename at the first ".", if any. Make sure we always have at least
+    # two entries.
+    base_parts = basename.split(".", 1) + [""]
+    numbering = 0
+    while True:
+        numbering += 1
+        name = "%s_%d%s" % (
+            base_parts[0], numbering, ".%s" % base_parts[1] if base_parts[1] else ""
+        )
+        path = os.path.join(folder, name)
+        log.debug("Checking if %s exists..." % path)
+        if not os.path.exists(path):
+            break
+    return path

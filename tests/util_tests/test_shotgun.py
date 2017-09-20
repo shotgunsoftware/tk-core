@@ -45,7 +45,7 @@ class TestShotgunFindPublish(TankTestBase):
         project_name = os.path.basename(self.project_root)
 
         # older publish to test we get the latest
-        self.pub_1 = {"type": "TankPublishedFile",
+        self.pub_1 = {"type": "PublishedFile",
                     "id": 1,
                     "code": "hello",
                     "path_cache": "%s/foo/bar" % project_name,
@@ -53,14 +53,14 @@ class TestShotgunFindPublish(TankTestBase):
                     "path_cache_storage": self.primary_storage}
 
         # publish matching older publish
-        self.pub_2 = {"type": "TankPublishedFile",
+        self.pub_2 = {"type": "PublishedFile",
                     "id": 2,
                     "code": "more recent",
                     "path_cache": "%s/foo/bar" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 1),
                     "path_cache_storage": self.primary_storage}
         
-        self.pub_3 = {"type": "TankPublishedFile",
+        self.pub_3 = {"type": "PublishedFile",
                     "id": 3,
                     "code": "world",
                     "path_cache": "%s/foo/baz" % project_name,
@@ -68,15 +68,14 @@ class TestShotgunFindPublish(TankTestBase):
                     "path_cache_storage": self.primary_storage}
 
         # sequence publish
-        self.pub_4 = {"type": "TankPublishedFile",
+        self.pub_4 = {"type": "PublishedFile",
                     "id": 4,
                     "code": "sequence_file",
                     "path_cache": "%s/foo/seq_%%03d.ext" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 2),
                     "path_cache_storage": self.primary_storage}
 
-
-        self.pub_5 = {"type": "TankPublishedFile",
+        self.pub_5 = {"type": "PublishedFile",
                     "id": 5,
                     "code": "other storage",
                     "path_cache": "%s/foo/bar" % project_name,
@@ -85,8 +84,6 @@ class TestShotgunFindPublish(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
-        
-        
 
     def test_find(self):        
         paths = [os.path.join(self.project_root, "foo", "bar")]
@@ -96,7 +93,7 @@ class TestShotgunFindPublish(TankTestBase):
         # make sure we got the latest matching publish
         sg_data = d.get(paths[0])
         self.assertEqual(sg_data["id"], self.pub_2["id"])
-        self.assertEqual(sg_data["type"], "TankPublishedFile")
+        self.assertEqual(sg_data["type"], "PublishedFile")
         # make sure we are only getting the ID back.
         self.assertEqual(sg_data.keys(), ["type", "id"])
 
@@ -236,7 +233,7 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
         
         project_name = os.path.basename(self.project_root)
         # older publish to test we get the latest
-        self.pub_1 = {"type": "TankPublishedFile",
+        self.pub_1 = {"type": "PublishedFile",
                     "id": 1,
                     "code": "hello",
                     "path_cache": "%s/foo/bar" % project_name,
@@ -244,14 +241,14 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
                     "path_cache_storage": self.primary_storage}
 
         # publish matching older publish
-        self.pub_2 = {"type": "TankPublishedFile",
+        self.pub_2 = {"type": "PublishedFile",
                     "id": 2,
                     "code": "more recent",
                     "path_cache": "%s/foo/bar" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 1),
                     "path_cache_storage": self.primary_storage}
         
-        self.pub_3 = {"type": "TankPublishedFile",
+        self.pub_3 = {"type": "PublishedFile",
                     "id": 3,
                     "code": "world",
                     "path_cache": "%s/foo/baz" % project_name,
@@ -259,15 +256,14 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
                     "path_cache_storage": self.primary_storage}
 
         # sequence publish
-        self.pub_4 = {"type": "TankPublishedFile",
+        self.pub_4 = {"type": "PublishedFile",
                     "id": 4,
                     "code": "sequence_file",
                     "path_cache": "%s/foo/seq_%%03d.ext" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 2),
                     "path_cache_storage": self.primary_storage}
 
-
-        self.pub_5 = {"type": "TankPublishedFile",
+        self.pub_5 = {"type": "PublishedFile",
                     "id": 5,
                     "code": "other storage",
                     "path_cache": "%s/foo/bar" % project_name,
@@ -276,7 +272,6 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
-        
 
     def test_find(self):        
         paths = [os.path.join(self.project_root, "foo", "bar")]
@@ -286,7 +281,7 @@ class TestShotgunFindPublishTankStorage(TankTestBase):
         # make sure we got the latest matching publish
         sg_data = d.get(paths[0])
         self.assertEqual(sg_data["id"], self.pub_2["id"])
-        self.assertEqual(sg_data["type"], "TankPublishedFile")
+        self.assertEqual(sg_data["type"], "PublishedFile")
         # make sure we are only getting the ID back.
         self.assertEqual(sg_data.keys(), ["type", "id"])
 

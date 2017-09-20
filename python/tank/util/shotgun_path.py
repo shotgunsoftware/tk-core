@@ -10,6 +10,7 @@
 
 import sys
 
+
 class ShotgunPath(object):
     """
     Helper class that handles a path on multiple operating systems.
@@ -59,6 +60,30 @@ class ShotgunPath(object):
     """
     A list of the standard path fields used by Shotgun.
     """
+
+    @staticmethod
+    def get_file_name_from_template(template, platform=sys.platform):
+        """
+        Returns the complete file name for the current platform based on
+        file name template passed in.
+
+        :param str template: Template for a file name with a ``%s`` to indicate
+            where the platform name should be inserted.
+
+        :returns: Path with the OS name substituted in.
+        """
+        if platform == "win32":
+            os_name = "Windows"
+        elif platform == "darwin":
+            os_name = "Darwin"
+        elif platform.startswith("linux"):
+            os_name = "Linux"
+        else:
+            raise ValueError(
+                "Cannot resolve file name - unsupported "
+                "os platform '%s'" % platform
+            )
+        return template % os_name
 
     @staticmethod
     def get_shotgun_storage_key(platform=sys.platform):
@@ -141,7 +166,7 @@ class ShotgunPath(object):
 
         if sys.platform == "win32":
             windows_path = path
-        elif sys.platform == "linux2":
+        elif sys.platform.startswith("linux"):
             linux_path = path
         elif sys.platform == "darwin":
             macosx_path = path
@@ -283,7 +308,6 @@ class ShotgunPath(object):
 
         return local_path
 
-
     def _get_macosx(self):
         """
         The macosx representation of the path
@@ -332,7 +356,7 @@ class ShotgunPath(object):
         """
         if sys.platform == "win32":
             return self.windows
-        elif sys.platform == "linux2":
+        elif sys.platform.startswith("linux"):
             return self.linux
         elif sys.platform == "darwin":
             return self.macosx
@@ -345,7 +369,7 @@ class ShotgunPath(object):
         """
         if sys.platform == "win32":
             self.windows = value
-        elif sys.platform == "linux2":
+        elif sys.platform.startswith("linux"):
             self.linux = value
         elif sys.platform == "darwin":
             self.macosx = value

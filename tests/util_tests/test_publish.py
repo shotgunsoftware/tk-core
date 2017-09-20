@@ -62,13 +62,8 @@ class TestShotgunRegisterPublish(TankTestBase):
             "windows_path": r"\\server\share",
         }
 
-        self.tank_type_1 = {"type": "TankType",
-            "id": 1,
-            "code": "Maya Scene"
-        }
-
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.storage, self.storage_2, self.storage_3, self.tank_type_1])
+        self.add_to_sg_mock_db([self.storage, self.storage_2, self.storage_3])
 
         self.shot = {"type": "Shot",
                     "name": "shot_name",

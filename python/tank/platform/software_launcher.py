@@ -37,10 +37,10 @@ core_logger = LogManager.get_logger(__name__)
 
 def create_engine_launcher(tk, context, engine_name, versions=None, products=None):
     """
-    Factory method that creates a :class:`SoftwareLauncher` subclass 
+    Factory method that creates a :class:`SoftwareLauncher` subclass
     instance implemented by a toolkit engine in the environment config
-    that can be used by a custom script or toolkit app. The engine 
-    subclass manages the business logic for DCC executable path 
+    that can be used by a custom script or toolkit app. The engine
+    subclass manages the business logic for DCC executable path
     discovery and the environmental requirements for launching the DCC.
     Toolkit is automatically started up during the DCC's launch phase.
     A very simple example of how this works is demonstrated here::
@@ -51,7 +51,11 @@ def create_engine_launcher(tk, context, engine_name, versions=None, products=Non
         >>> context = tk.context_from_path("/studio/project_root/sequences/AAA/ABC/Light/work")
         >>> launcher = sgtk.platform.create_engine_launcher(tk, context, "tk-maya")
         >>> software_versions = launcher.scan_software()
-        >>> launch_info = launcher.prepare_launch(software_versions[0].path, args, "/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma")
+        >>> launch_info = launcher.prepare_launch(
+        ...     software_versions[0].path,
+        ...     args,
+        ...     "/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma"
+        ... )
         >>> subprocess.Popen([launch_info.path + " " + launch_info.args], env=launch_info.environment)
 
     where ``software_versions`` is a list of :class:`SoftwareVersion`
@@ -70,7 +74,7 @@ def create_engine_launcher(tk, context, engine_name, versions=None, products=Non
     :param list products: A list of product strings for filtering software
         versions. See the :class:`SoftwareLauncher` for more info.
 
-    :rtype: :class:`SoftwareLauncher` instance or ``None`` if the 
+    :rtype: :class:`SoftwareLauncher` instance or ``None`` if the
             engine can be found on disk, but no ``startup.py`` file exists.
     :raises: :class:`TankError` if the specified engine cannot be found
              on disk.
@@ -176,6 +180,7 @@ class SoftwareLauncher(object):
 
         # product and version string lists to limit the scope of sw discovery
         self._products = products or []
+        self._lower_case_products = [product.lower() for product in self._products]
         self._versions = versions or []
 
     ##########################################################################################
@@ -473,12 +478,18 @@ class SoftwareLauncher(object):
         plugins to utilize. This will compute the following
         environment variables:
 
-        - ``SHOTGUN_SITE``: The current shotgun site url
-        - ``SHOTGUN_ENTITY_TYPE``: The current context
-        - ``SHOTGUN_ENTITY_ID``: The current context
-        - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: The current pipeline config id
+        - ``SHOTGUN_SITE``: Derived from the Toolkit instance's site url
+        - ``SHOTGUN_ENTITY_TYPE``: Derived from the current context
+        - ``SHOTGUN_ENTITY_ID``: Derived from the current context
+        - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: Derived from the current pipeline config id
+        - ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS``: Derived from the curent pipeline configuration's
+            list of bundle cache fallback paths.
 
-        :returns: dictionary of environment variables
+        These environment variables are set when launching a new process to capture the state of
+        Toolkit so we can launch in the same environment. It ensures subprocesses have access to the
+        same bundle caches, which allows to reuse already cached bundles.
+
+        :returns: Dictionary of environment variables.
         """
         self.logger.debug("Computing standard plugin environment variables...")
         env = {}
@@ -492,7 +503,21 @@ class SoftwareLauncher(object):
         if pipeline_config_id:
             env["SHOTGUN_PIPELINE_CONFIGURATION_ID"] = str(pipeline_config_id)
         else:
-            self.logger.debug("Unmanaged config. Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID.")
+            self.logger.debug(
+                "Pipeline configuration doesn't have an id. "
+                "Not setting SHOTGUN_PIPELINE_CONFIGURATION_ID."
+            )
+
+        bundle_cache_fallback_paths = os.pathsep.join(
+            self.sgtk.pipeline_configuration.get_bundle_cache_fallback_paths()
+        )
+        if bundle_cache_fallback_paths:
+            env["SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS"] = bundle_cache_fallback_paths
+        else:
+            self.logger.debug(
+                "Pipeline configuration doesn't have bundle cache fallback paths. "
+                "Not setting SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS."
+            )
 
         # get the most accurate entity, first see if there is a task, then entity then project
         entity_dict = self.context.task or self.context.entity or self.context.project
@@ -506,7 +531,6 @@ class SoftwareLauncher(object):
             )
 
         self.logger.debug("Returning Plugin Environment: \n%s" % pprint.pformat(env))
-
         return env
 
     def scan_software(self):
@@ -614,6 +638,9 @@ class SoftwareLauncher(object):
         ``products`` constraint. If there are no constraints on the products,
         the method will return ``True``.
 
+        .. note::
+            Product name comparison is case-insensitive.
+
         :param str product: A string representing the product name to check
             against.
 
@@ -626,7 +653,7 @@ class SoftwareLauncher(object):
             return True
 
         # check products list
-        return product in self.products
+        return product.lower() in self._lower_case_products
 
 
 class SoftwareVersion(object):
@@ -729,7 +756,7 @@ class LaunchInformation(object):
     Stores blueprints for how to launch a specific DCC which includes
     required environment variables, the executable path, and command
     line arguments to pass when launching the DCC. For example, given
-    a LaunchInformation instance ``launch_info``, open a DCC using 
+    a LaunchInformation instance ``launch_info``, open a DCC using
     ``subprocess``::
 
         >>> launch_cmd = "%s %s" % (launch_info.path, launch_info.args)

@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -16,20 +16,15 @@ across storages, configurations etc.
 from __future__ import with_statement
 
 import os
-import sys
-
-from .errors import (
-    TankError,
-    TankNotPipelineConfigurationError,
-    TankInvalidInterpreterLocationError,
-    TankFileDoesNotExistError,
-    TankInvalidCoreLocationError
-)
 
 from . import constants
 from . import LogManager
+
 from .util import yaml_cache
 from .util import ShotgunPath
+from .util.shotgun import get_deferred_sg_connection
+
+from .errors import TankError
 
 log = LogManager.get_logger(__name__)
 
@@ -50,6 +45,7 @@ def is_localized(pipeline_config_path):
     api_file = os.path.join(pipeline_config_path, "install", "core", "_core_upgrader.py")
     return os.path.exists(api_file)
 
+
 def is_pipeline_config(pipeline_config_path):
     """
     Returns true if the path points to the root of a pipeline configuration
@@ -60,6 +56,7 @@ def is_pipeline_config(pipeline_config_path):
     # probe by looking for the existence of a key config file.
     pc_file = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
     return os.path.exists(pc_file)
+
 
 def get_metadata(pipeline_config_path):
     """
@@ -138,10 +135,8 @@ def get_roots_metadata(pipeline_config_path):
     return shotgun_paths
 
 
-
-
 ####################################################################################################################
-# Core API resolve utils 
+# Core API resolve utils
 
 def get_path_to_current_core():
     """
@@ -165,6 +160,26 @@ def get_path_to_current_core():
     return curr_os_core_root
 
 
+def _create_installed_config_descriptor(pipeline_config_path):
+    """
+    Creates an InstalledConfigurationDescriptor for the pipeline configuration
+    at the given location.
+
+    :param str pipeline_config_path: Path to the installed pipeline configuration.
+
+    :returns: An :class:`sgtk.descriptor.InstalledConfigurationDescriptor` instance.
+    """
+    # Do a local import to avoid circular imports. This happens because descriptor_installed_config
+    # and pipelineconfig_utils import each other. At some point we will refactor the functionality from
+    # this file on the ConfigDescriptor objects and these circular includes won't be necessary anymore.
+    from .descriptor import Descriptor, create_descriptor
+    return create_descriptor(
+        get_deferred_sg_connection(),
+        Descriptor.INSTALLED_CONFIG,
+        dict(path=pipeline_config_path, type="path")
+    )
+
+
 def get_core_python_path_for_config(pipeline_config_path):
     """
     Returns the location of the Toolkit library associated with the given pipeline configuration.
@@ -174,7 +189,10 @@ def get_core_python_path_for_config(pipeline_config_path):
     :returns: Path to location where the Toolkit Python library associated with the config resides.
     :rtype: str
     """
-    return os.path.join(_get_core_path_for_config(pipeline_config_path), "install", "core", "python")
+    return os.path.join(
+        _create_installed_config_descriptor(pipeline_config_path).associated_core_descriptor["path"],
+        "python"
+    )
 
 
 def get_core_path_for_config(pipeline_config_path):
@@ -183,148 +201,52 @@ def get_core_path_for_config(pipeline_config_path):
 
     In the case of a localized PC, it just returns the given path.
     Otherwise, it resolves the location via the core_xxxx.cfg files.
-    
+
     :param pipeline_config_path: path to a pipeline configuration
 
     :returns: Path to the studio location root or pipeline configuration root or None if not resolved
     """
     try:
-        return _get_core_path_for_config(pipeline_config_path)
-    except:
+        # Associated core descriptor gives us the path to the <config-or-studio-root>/install/core
+        # folder, so we'll strip out a few folders to get to the <config-or-studio-root>
+        studio_folder = os.path.join(
+            # <config-or-studio-root>/install/core
+            _create_installed_config_descriptor(pipeline_config_path).associated_core_descriptor["path"],
+            # <config-or-studio-root>/install
+            "..",
+            # <config-or-studio-root>/
+            ".."
+        )
+        studio_folder = os.path.normpath(studio_folder)
+        return studio_folder
+    except Exception:
         return None
 
 
-def _get_core_path_for_config(pipeline_config_path):
+def get_sgtk_module_path():
     """
-    Returns the core api install location associated with the given pipeline configuration.
-    In the case of a localized PC, it just returns the given path.
-    Otherwise, it resolves the location via the core_xxxx.cfg files.
+    Returns the path to ``sgtk`` module. This path can be used by another process to update its
+    ``PYTHONPATH`` and use the same ``sgtk`` module as the process invoking this method.
 
-    :param str pipeline_config_path: path to a pipeline configuration
+    For example, if the Toolkit core was installed at
+    ``/home/user/.shotgun/bundle_cache/app_store/tk-core/v0.18.94``, the method would return
+    ``/home/user/.shotgun/bundle_cache/app_store/tk-core/v0.18.94/python``.
 
-    :returns: Path to the studio location root or pipeline configuration root or None if not resolved
-    :rtype: str
+    .. note:: This method can be invoked for cores that are part of a pipeline configuration, that
+              lives inside the bundle cache or a development copy of the core.
 
-    :raises TankFileDoesNotExistError: Raised if the core_xxxx.cfg file is missing for the
-        pipeline configuration.
-    :raises TankNotPipelineConfigurationError: Raised if the path is not referencing a pipeline configuration.
-    :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg
-        does not exist.
+    :returns: Path to the ``sgtk`` module on disk.
     """
-    if is_localized(pipeline_config_path):
-        # first, try to locate an install local to this pipeline configuration.
-        # this would find any localized APIs.
-        install_path = pipeline_config_path
+    pipelineconfig_utils_py_location = __file__ # tk-core/python/tank/pipelineconfig_utils.py
 
-    else:
-        # this pipeline config is associated with a shared API (studio install)
-        # follow the links defined in the configuration to establish which
-        # setup it has been associated with.
-        studio_linkback_file = _get_current_platform_core_location_file_name(pipeline_config_path)
+    # If the path is not absolute, make it so.
+    if not os.path.isabs(pipelineconfig_utils_py_location):
+        pipelineconfig_utils_py_location = os.path.join(os.getcwd(), pipelineconfig_utils_py_location)
 
-        if not os.path.exists(studio_linkback_file):
-            raise TankFileDoesNotExistError(
-                "Configuration at '%s' without a localized core is missing a core location file at '%s'" %
-                (pipeline_config_path, studio_linkback_file)
-            )
+    tank_folder = os.path.dirname(pipelineconfig_utils_py_location) # tk-core/python/tank
+    python_folder = os.path.dirname(tank_folder) # tk-core/python
 
-        # this file will contain the path to the API which is meant to be used with this PC.
-        install_path = None
-        with open(studio_linkback_file, "rt") as fh:
-            data = fh.read().strip() # remove any whitespace, keep text
-
-        # expand any env vars that are used in the files. For example, you could have
-        # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your
-        # linkback file may just contain "$STUDIO_TANK_PATH" instead of an explicit path.
-        data = os.path.expanduser(os.path.expandvars(data))
-        if data not in ["None", "undefined"] and os.path.exists(data):
-            install_path = data
-        else:
-            raise TankInvalidCoreLocationError(
-                "Cannot find core location '%s' defined in "
-                "config file '%s'." %
-                (data, studio_linkback_file)
-            )
-
-    return install_path
-
-
-def _get_current_platform_file_suffix():
-    """
-    Find the suffix for the current platform's configuration file.
-
-    :returns: Suffix for the current platform's configuration file.
-    :rtype: str
-    """
-    # Now find out the appropriate python interpreter file to search for
-    if sys.platform == "darwin":
-        return "Darwin"
-    elif sys.platform == "win32":
-        return "Windows"
-    elif sys.platform.startswith("linux"):
-        return "Linux"
-    else:
-        raise TankError("Unknown platform: %s." % sys.platform)
-
-
-def _get_current_platform_interpreter_file_name(install_root):
-    """
-    Retrieves the path to the interpreter file for a given install root.
-
-    :param str install_root: This can be the root to a studio install for a core
-        or a pipeline configuration root.
-
-    :returns: Path for the current platform's interpreter file.
-    :rtype: str
-    """
-    return os.path.join(
-        install_root, "config", "core", "interpreter_%s.cfg" % _get_current_platform_file_suffix()
-    )
-
-
-def _get_current_platform_core_location_file_name(install_root):
-    """
-    Retrieves the path to the core location file for a given install root.
-
-    :param str install_root: This can be the root to a studio install for a core
-        or a pipeline configuration root.
-
-    :returns: Path for the current platform's core location file.
-    :rtype: str
-    """
-    return os.path.join(
-        install_root, "install", "core", "core_%s.cfg" % _get_current_platform_file_suffix()
-    )
-
-
-def _find_interpreter_location(pipeline_config_path):
-    """
-    Looks for a Python interpreter associated with this config.
-
-    :param str pipeline_config_path: Config root to look for the interpreter.
-
-    :raises TankInvalidInterpreterLocationError: Raised if the interpreter in the interpreter file doesn't
-        exist.
-    :raises TankFileDoesNotExistError: Raised if the interpreter file can't be found.
-
-    :returns: Path to the interpreter or None if the interpreter file was missing.
-    """
-    interpreter_config_file = _get_current_platform_interpreter_file_name(pipeline_config_path)
-    if os.path.exists(interpreter_config_file):
-        with open(interpreter_config_file, "r") as f:
-            path_to_python = f.read().strip()
-
-        if not path_to_python or not os.path.exists(path_to_python):
-            raise TankInvalidInterpreterLocationError(
-                "Cannot find interpreter '%s' defined in "
-                "config file '%s'." % (path_to_python, interpreter_config_file)
-            )
-        else:
-            return path_to_python
-    else:
-        raise TankFileDoesNotExistError(
-            "No interpreter file for the current platform found at '%s'." % interpreter_config_file
-        )
+    return python_folder
 
 
 def get_python_interpreter_for_config(pipeline_config_path):
@@ -339,6 +261,14 @@ def get_python_interpreter_for_config(pipeline_config_path):
     If you require a `python` executable to launch a script that will use a pipeline configuration, it is
     recommended its associated Python interpreter.
 
+    .. deprecated:: v0.18.94
+        You can now access the content of the ``interpreter_*.yml``
+        through the :meth:`ConfigDescriptor.python_interpreter` property.
+
+        >>> engine = sgtk.platform.current_engine()
+        >>> descriptor = engine.sgtk.configuration_descriptor
+        >>> print descriptor.python_interpreter
+
     :param str pipeline_config_path: Path to the pipeline configuration root.
 
     :returns: Path to the Python interpreter for that configuration.
@@ -352,16 +282,7 @@ def get_python_interpreter_for_config(pipeline_config_path):
     :raises TankInvalidCoreLocationError: Raised if the core location specified in core_xxxx.cfg
         does not exist.
     """
-    if not is_pipeline_config(pipeline_config_path):
-        raise TankNotPipelineConfigurationError(
-            "The folder at '%s' does not contain a pipeline configuration." % pipeline_config_path
-        )
-    # Config is localized, we're supposed to find an interpreter file in it.
-    if is_localized(pipeline_config_path):
-        return _find_interpreter_location(pipeline_config_path)
-    else:
-        studio_path = _get_core_path_for_config(pipeline_config_path)
-        return _find_interpreter_location(studio_path)
+    return _create_installed_config_descriptor(pipeline_config_path).python_interpreter
 
 
 def resolve_all_os_paths_to_core(core_path):
@@ -421,7 +342,7 @@ def _get_install_locations(path):
 
     # load the config file
     try:
-        location_data = yaml_cache.g_yaml_cache.get(location_file, deepcopy_data=False)
+        location_data = yaml_cache.g_yaml_cache.get(location_file, deepcopy_data=False) or {}
     except Exception, error:
         raise TankError("Cannot load core config file '%s'. Error: %s" % (location_file, error))
 
@@ -450,8 +371,6 @@ def _get_install_locations(path):
 
     # sanitize data into a ShotgunPath and return data
     return ShotgunPath(win_path, linux_path, macosx_path)
-
-
 
 
 ####################################################################################################################
@@ -493,7 +412,7 @@ def _get_version_from_manifest(info_yml_path):
     :returns: Always a string, 'unknown' if data cannot be found
     """
     try:
-        data = yaml_cache.g_yaml_cache.get(info_yml_path, deepcopy_data=False)
+        data = yaml_cache.g_yaml_cache.get(info_yml_path, deepcopy_data=False) or {}
         data = str(data.get("version", "unknown"))
     except Exception:
         data = "unknown"

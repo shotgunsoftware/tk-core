@@ -19,7 +19,6 @@ from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
-from ..util.version import is_version_older
 
 log = LogManager.get_logger(__name__)
 
@@ -69,19 +68,20 @@ class ToolkitManager(object):
         else:
             self._sg_user = sg_user
 
-        self._allow_config_overrides = True
-
         self._sg_connection = self._sg_user.create_sg_connection()
 
         # defaults
-        self._bundle_cache_fallback_paths = []
+        self._pre_engine_start_callback = None
+        self._progress_cb = None
+
+        # These are serializable parameters from the class.
+        self._user_bundle_cache_fallback_paths = []
         self._caching_policy = self.CACHE_SPARSE
         self._pipeline_configuration_identifier = None # name or id
         self._base_config_descriptor = None
-        self._progress_cb = None
         self._do_shotgun_config_lookup = True
         self._plugin_id = None
-        self._pre_engine_start_callback = None
+        self._allow_config_overrides = True
 
         # look for the standard env var SHOTGUN_PIPELINE_CONFIGURATION_ID
         # and in case this is set, use it as a default
@@ -120,7 +120,7 @@ class ToolkitManager(object):
 
         repr  = "<TkManager "
         repr += " User %s\n" % self._sg_user
-        repr += " Cache fallback path %s\n" % self._bundle_cache_fallback_paths
+        repr += " Bundle cache fallback paths %s\n" % self._get_bundle_cache_fallback_paths()
         repr += " Caching policy %s\n" % self._caching_policy
         repr += " Plugin id %s\n" % self._plugin_id
         repr += " Config %s %s\n" % (identifier_type, self._pipeline_configuration_identifier)
@@ -128,14 +128,109 @@ class ToolkitManager(object):
         repr += " Base %s >" % self._base_config_descriptor
         return repr
 
+    def extract_settings(self):
+        """
+        Serializes settings that impact resolution of a pipeline configuration into an
+        object and returns it to the user.
+
+        This can be useful when a process is used to enumerate pipeline configurations and another
+        process will be bootstrapping an engine. Calling this method ensures the manager is
+        configured the same across processes.
+
+        Those settings can be restored with :meth:`ToolkitManager.restore_settings`.
+
+        .. note:: Note that the extracted settings should be treated as opaque data and not something
+             that should be manipulated. Their content can be changed at any time.
+
+        :returns: User defined values.
+        :rtype: object
+        """
+        return {
+            "bundle_cache_fallback_paths": self.bundle_cache_fallback_paths,
+            "caching_policy": self.caching_policy,
+            "pipeline_configuration": self.pipeline_configuration,
+            "base_configuration": self.base_configuration,
+            "do_shotgun_config_lookup": self.do_shotgun_config_lookup,
+            "plugin_id": self.plugin_id,
+            "allow_config_overrides": self.allow_config_overrides
+        }
+
+    def restore_settings(self, data):
+        """
+        Restores user defined with :methd:`ToolkitManager.extract_settings`.
+
+        .. note:: Always use :methd:`ToolkitManager.extract_settings` to extract settings when you
+            plan on calling this method. The content of the settings should be treated as opaque
+            data.
+
+        :param object data: Settings obtained from :methd:`ToolkitManager.extract_settings`
+        """
+        self.bundle_cache_fallback_paths = data["bundle_cache_fallback_paths"]
+        self.caching_policy = data["caching_policy"]
+        self.pipeline_configuration = data["pipeline_configuration"]
+        self.base_configuration = data["base_configuration"]
+        self.do_shotgun_config_lookup = data["do_shotgun_config_lookup"]
+        self.plugin_id = data["plugin_id"]
+        self.allow_config_overrides = data["allow_config_overrides"]
+
+    def _get_bundle_cache_fallback_paths(self):
+        """
+        Retuns a list containing both the user specified bundle caches and the one specified
+        by the SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS.
+
+        .. note::
+            While the method will preserve the order of the fallback locations by first
+            returning user defined locations and then ones found with the environment variable,
+            the method will remove duplicate locations.
+
+        For example::
+
+            >>> os.environ["SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS"] = "/a/b/c:/d/e/f"
+            >>> mgr = ToolkitManager()
+            >>> mgr.bundle_cache_fallback_paths = ["/g/h/i:/d/e/f"]
+            >>> repr(mgr)
+            <TkManager
+             User boismej
+             Bundle cache fallback paths ["/g/h/i", "/d/e/f", "/a/b/c"]
+             ...
+            >
+
+        :returns: List of bundle cache paths.
+        """
+        if constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR in os.environ:
+            fallback_str = os.environ[constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR]
+            log.debug(
+                "Detected %s environment variable set to '%s'" % (
+                    constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR,
+                    fallback_str
+                )
+            )
+            toolkit_bundle_cache_fallback_paths = fallback_str.split(os.pathsep)
+
+            # Python' sets do not preserve insertion order and Python 2.5 doesn't support
+            # OrderedDicts, which would have been perfect for this, so we will...
+
+            # First build the complete list of paths with possible duplicates.
+            concatenated_lists = self._user_bundle_cache_fallback_paths +\
+                toolkit_bundle_cache_fallback_paths
+
+            # Then build a set of unique paths.
+            unique_items = set(concatenated_lists)
+
+            # Finally iterate on complete list of items.
+            return [x for x in concatenated_lists if x in unique_items]
+        else:
+            return self._user_bundle_cache_fallback_paths
+
     def _get_pipeline_configuration(self):
         """
-        The pipeline configuration that is should be operated on.
+        The pipeline configuration that should be operated on.
 
         By default, this value is set to ``None``, indicating to the Manager
-        that it should attempt to find the most suitable Shotgun pipeline configuration
-        given the project and plugin id. In this case, it will look for all pipeline
-        configurations associated with the project who are associated with the current
+        that it should attempt to automatically find the most suitable pipeline
+        configuration entry in Shotgun given the project and plugin id.
+        In this case, it will look at all pipeline configurations stored in Shotgun
+        associated with the project who are associated with the current
         user. If no user-tagged pipeline configuration exists, it will look for
         the primary configuration, and in case this is not found, it will fall back on the
         :meth:`base_configuration`. If you don't want this check to be carried out in
@@ -263,7 +358,7 @@ class ToolkitManager(object):
 
     base_configuration = property(_get_base_configuration, _set_base_configuration)
 
-    def _get_bundle_cache_fallback_paths(self):
+    def _get_user_bundle_cache_fallback_paths(self):
         """
         Specifies a list of fallback paths where toolkit will go
         look for cached bundles in case a bundle isn't found in
@@ -277,15 +372,15 @@ class ToolkitManager(object):
         Any missing bundles will be downloaded and cached into
         the *primary* bundle cache.
         """
-        return self._bundle_cache_fallback_paths
+        return self._user_bundle_cache_fallback_paths
 
-    def _set_bundle_cache_fallback_paths(self, paths):
+    def _set_user_bundle_cache_fallback_paths(self, paths):
         # setter for bundle_cache_fallback_paths
-        self._bundle_cache_fallback_paths = paths
+        self._user_bundle_cache_fallback_paths = paths
 
     bundle_cache_fallback_paths = property(
-        _get_bundle_cache_fallback_paths,
-        _set_bundle_cache_fallback_paths
+        _get_user_bundle_cache_fallback_paths,
+        _set_user_bundle_cache_fallback_paths
     )
 
     def _get_caching_policy(self):
@@ -514,7 +609,7 @@ class ToolkitManager(object):
 
         :rtype: (str, :class:`sgtk.descriptor.ConfigDescriptor`)
         """
-        config = self._get_configuration(entity, self.progress_callback)
+        config = self._get_updated_configuration(entity, self.progress_callback)
 
         path = config.path.current_os
 
@@ -710,7 +805,7 @@ class ToolkitManager(object):
 
     def _get_configuration(self, entity, progress_callback):
         """
-        Resolves the configuration to use.
+        Resolves the configuration to use without creating it on disk.
 
         :param entity: Shotgun entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
@@ -749,7 +844,7 @@ class ToolkitManager(object):
         resolver = ConfigurationResolver(
             self._plugin_id,
             project_id,
-            self._bundle_cache_fallback_paths
+            self._get_bundle_cache_fallback_paths()
         )
 
         # now request a configuration object from the resolver.
@@ -800,10 +895,26 @@ class ToolkitManager(object):
             # do the full resolve where we connect to shotgun etc.
             config = resolver.resolve_configuration(
                 self._base_config_descriptor,
-                self._sg_connection,
+                self._sg_connection
             )
 
         log.debug("Bootstrapping into configuration %r" % config)
+
+        return config
+
+    def _get_updated_configuration(self, entity, progress_callback):
+        """
+        Resolves the configuration and updates it.
+
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
+                                  Set to ``None`` to use the default callback function.
+
+        :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.
+        """
+
+        config = self._get_configuration(entity, progress_callback)
 
         # see what we have locally
         status = config.status()
@@ -855,7 +966,7 @@ class ToolkitManager(object):
         if progress_callback is None:
             progress_callback = self.progress_callback
 
-        config = self._get_configuration(entity, progress_callback)
+        config = self._get_updated_configuration(entity, progress_callback)
 
         # we can now boot up this config.
         self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")
@@ -921,31 +1032,40 @@ class ToolkitManager(object):
 
         # perform absolute import to ensure we get the new swapped core.
         import tank
+        is_shotgun_engine = engine_name == constants.SHOTGUN_ENGINE_NAME
 
-        # handle legacy cases
-        if engine_name == constants.SHOTGUN_ENGINE_NAME and is_version_older(tk.version, "v0.18.77"):
-
-            # bootstrapping into a shotgun engine with an older core
-            # we perform this special check to make sure that we correctly pick up
-            # the shotgun_xxx.yml environment files, even for older cores.
-            # new cores handles all this inside the tank.platform.start_shotgun_engine
-            # business logic.
-            log.debug(
-                "Target core version is %s. Starting shotgun engine via legacy pathway." % tk.version
-            )
-
-            if entity is None:
-                raise TankBootstrapError(
-                    "Legacy shotgun environments do not support bootstrapping into a site context."
+        # If this is the shotgun engine we are starting, then we will attempt a typical
+        # engine start first, which will work if the engine is configured in the standard
+        # environment files in the config. If it fails, though, then we can try the
+        # legacy approach, which will try to use shotgun_xxx.yml environments if they
+        # exist in the config. If both fail, we reraise the legacy method exception
+        # and log the first one that came from the start_engine attempt.
+        if is_shotgun_engine:
+            try:
+                log.debug(
+                    "Attempting to start the shotgun engine using the standard "
+                    "start_engine routine..."
                 )
-
-            # start engine via legacy pathway
-            # note the local import due to core swapping.
-            from tank.platform import engine
-            engine = engine.start_shotgun_engine(tk, entity["type"], ctx)
-
+                engine = tank.platform.start_engine(engine_name, tk, ctx)
+            except Exception, exc:
+                log.debug(
+                    "Shotgun engine failed to start using start_engine. An "
+                    "attempt will now be made to start it using an legacy "
+                    "shotgun_xxx.yml environment. The start_engine exception "
+                    "was the following: %r" % exc
+                )
+                try:
+                    engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
+                    log.debug("Shotgun engine started using a legacy shotgun_xxx.yml environment.")
+                except Exception, exc:
+                    log.debug(
+                        "Shotgun engine failed to start using the legacy "
+                        "start_shotgun_engine routine. No more attempts will "
+                        "be made to initialize the engine. The start_shotgun_engine "
+                        "exception was the following: %r" % exc
+                    )
+                    raise
         else:
-            # no legacy cases
             engine = tank.platform.start_engine(engine_name, tk, ctx)
 
         log.debug("Launched engine %r" % engine)
@@ -953,6 +1073,35 @@ class ToolkitManager(object):
         self._report_progress(progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
 
         return engine
+
+    def _legacy_start_shotgun_engine(self, tk, engine_name, entity, ctx):
+        """
+        Starts the tk-shotgun engine by way of the legacy "start_shotgun_engine"
+        method provided by tank.platform.engine.
+
+        :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance.
+        :param engine_name: Name of the engine to start up.
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        """
+        # bootstrapping into a shotgun engine with an older core
+        # we perform this special check to make sure that we correctly pick up
+        # the shotgun_xxx.yml environment files, even for older cores.
+        # new cores handles all this inside the tank.platform.start_shotgun_engine
+        # business logic.
+        log.debug(
+            "Target core version is %s. Starting shotgun engine via legacy pathway." % tk.version
+        )
+
+        if entity is None:
+            raise TankBootstrapError(
+                "Legacy shotgun environments do not support bootstrapping into a site context."
+            )
+
+        # start engine via legacy pathway
+        # note the local import due to core swapping.
+        from tank.platform import engine
+        return engine.start_shotgun_engine(tk, entity["type"], ctx)
 
     def _report_progress(self, progress_callback, progress_value, message):
         """
@@ -1024,7 +1173,12 @@ class ToolkitManager(object):
             if not descriptor.exists_local():
                 message = "Downloading %s (%s of %s)..." % (descriptor, idx + 1, len(descriptors))
                 self._report_progress(progress_callback, progress_value, message)
-                descriptor.download_local()
+
+                try:
+                    descriptor.download_local()
+                except Exception, e:
+                    log.error("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
+                    log.exception(e)
             else:
                 message = "Checking %s (%s of %s)." % (descriptor, idx + 1, len(descriptors))
                 log.debug("%s exists locally at '%s'.", descriptor, descriptor.get_path())

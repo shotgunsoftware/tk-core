@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Shotgun Software Inc.
+﻿# Copyright (c) 2016 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -15,7 +15,6 @@ from . import constants
 from .errors import TankBootstrapError
 
 from ..util import filesystem
-from ..util import ShotgunPath
 
 from tank_vendor import yaml
 from .configuration import Configuration
@@ -110,6 +109,9 @@ class CachedConfiguration(Configuration):
         if not os.path.exists(sg_config_file):
             return self.LOCAL_CFG_MISSING
 
+        if self._config_writer.is_transaction_pending():
+            return self.LOCAL_CFG_INVALID
+
         # Pass 2:
         # local config exists. See if it is up to date.
         # get the path to a potential config metadata file
@@ -134,7 +136,11 @@ class CachedConfiguration(Configuration):
         if deploy_generation != constants.BOOTSTRAP_LOGIC_GENERATION:
             # different format or logic of the deploy itself.
             # trigger a redeploy
-            log.debug("Config was installed with an old generation of the logic.")
+            log.debug(
+                "Config was installed with a different generation of the logic. "
+                "Was expecting %s but got %s.",
+                constants.BOOTSTRAP_LOGIC_GENERATION, deploy_generation
+            )
             return self.LOCAL_CFG_DIFFERENT
 
         if descriptor_dict != self._descriptor.get_dict():
@@ -152,7 +158,7 @@ class CachedConfiguration(Configuration):
             # in this case - that the config that is cached locally is
             # not the same as the source descriptor it is based on.
             log.debug("Your configuration contains dev or path descriptors. "
-                     "Triggering full config rebuild.")
+                      "Triggering full config rebuild.")
 
             return self.LOCAL_CFG_DIFFERENT
 
@@ -168,6 +174,9 @@ class CachedConfiguration(Configuration):
         This method fails gracefully and attempts to roll back to a
         stable state on failure.
         """
+
+        self._config_writer.start_transaction()
+
         # make sure a scaffold is in place
         self._config_writer.ensure_project_scaffold()
 
@@ -195,7 +204,8 @@ class CachedConfiguration(Configuration):
                 self._pipeline_config_id,
                 self._project_id,
                 self._plugin_id,
-                self._bundle_cache_fallback_paths
+                self._bundle_cache_fallback_paths,
+                self._descriptor
             )
 
             # make sure roots file reflects current paths
@@ -239,42 +249,20 @@ class CachedConfiguration(Configuration):
                     os.path.join(self._path.current_os, "install", "core")
                 )
                 log.debug("Previous core restore complete...")
+        else:
+            # remove backup folders now that the update has completed successfully
+            # note: config_path points at a config folder inside a timestamped
+            # backup folder. It's this parent folder we want to clean up.
+            self._cleanup_backup_folders(os.path.dirname(config_backup_path) if config_backup_path else None,
+                                         core_backup_path)
+            log.debug("Latest backup cleanup complete.")
 
         # @todo - prime caches (yaml, path cache)
 
         # make sure tank command and interpreter files are up to date
         self._config_writer.create_tank_command()
 
-        if self._pipeline_config_id:
-            # make sure there is a pipeline config entry in Shotgun
-            # and that this is up to date. We may not have permission
-            # to write to this configuration, so take a conservative
-            # approach where we first check if the record exists and is
-            # up to date and only if it differs we attempt to update it.
-            log.debug(
-                "Checking that shotgun pipeline config entry "
-                "id %s exists and is up to date..." % self._pipeline_config_id
-            )
-
-            pc_data = self._sg_connection.find_one(
-                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
-                [["id", "is", self._pipeline_config_id]],
-                ShotgunPath.SHOTGUN_PATH_FIELDS
-            )
-
-            log.debug("Shotgun data returned: %s" % pc_data)
-
-            shotgun_path = ShotgunPath.from_shotgun_dict(pc_data)
-
-            if shotgun_path != self._path:
-
-                log.debug("Attempting to update pipeline configuration with new paths...")
-
-                self._sg_connection.update(
-                    constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
-                    self._pipeline_config_id,
-                    self.path.as_shotgun_dict()
-                )
+        self._config_writer.end_transaction()
 
     @property
     def has_local_bundle_cache(self):
@@ -284,3 +272,19 @@ class CachedConfiguration(Configuration):
         """
         # CachedConfiguration always depend on the global bundle cache.
         return False
+
+    def _cleanup_backup_folders(self, config_backup_folder_path, core_backup_folder_path):
+        """
+        Cleans up backup folders generated by a call to the update_configuration method
+
+        :param config_backup_folder_path: Path to the configuration backup folder to be deleted
+                                          or None.
+        :param core_backup_folder_path:   Path to the core backup folder to be deleted or None.
+        """
+        for path in [config_backup_folder_path, core_backup_folder_path]:
+            if path:
+                try:
+                    filesystem.safe_delete_folder(path)
+                    log.debug("Deleted backup folder: %s", path)
+                except Exception, e:
+                    log.warning("Failed to clean up temporary backup folder '%s': %s" % (path, e))

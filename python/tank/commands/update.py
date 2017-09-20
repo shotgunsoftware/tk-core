@@ -262,15 +262,25 @@ def check_for_updates(log,
         env_filenames = []
         for filename in os.listdir(env_path):
             if filename.endswith(".yml"):
-                if env_name is None or ("%s.yml" % env_name) == filename: 
+                if env_name is None or ("%s.yml" % env_name) == filename:
                     # matching the env filter (or no filter set)
                     log.info("> found %s" % filename) 
                     env_filenames.append(os.path.join(env_path, filename))
         
         # now process them one after the other
-        for env_filename in env_filenames: 
+        for env_filename in env_filenames:
+            log.info("")
+            log.info("")
+            log.info("======================================================================")
+            log.info("Environment %s..." % env_name)
+            log.info("======================================================================")
+            log.info("")
+
             env_obj = WritableEnvironment(env_filename, pc)
             env_obj.set_yaml_preserve_mode(preserve_yaml)
+
+            log.info("Environment path: %s" % (env_obj.disk_location))
+            log.info("")
             
             processed_items += _process_environment(tk, 
                                                     log, 
@@ -288,8 +298,18 @@ def check_for_updates(log,
             env_names_to_process = [env_name]
     
         for env_name in env_names_to_process:
+            log.info("")
+            log.info("")
+            log.info("======================================================================")
+            log.info("Environment %s..." % env_name)
+            log.info("======================================================================")
+
+
             env_obj = pc.get_environment(env_name, writable=True)
             env_obj.set_yaml_preserve_mode(preserve_yaml)
+
+            log.info("Environment path: %s" % (env_obj.disk_location))
+            log.info("")
             
             processed_items += _process_environment(tk, 
                                                     log, 
@@ -356,13 +376,6 @@ def _process_environment(tk,
     :returns: list of updated items
     """
     items = []
-        
-    log.info("")
-    log.info("")
-    log.info("======================================================================")
-    log.info("Environment %s..." % environment_obj.name)
-    log.info("======================================================================")
-    log.info("")
     
     if engine_instance_name is None:
         # process all engines

@@ -55,7 +55,7 @@ IF NOT EXIST "%PARENT_CONFIG_FILE%" GOTO NO_PARENT_CONFIG
 rem -- get contents of file
 rem -- 'usebackq' is used to allow quoting of the path which could potentially contain spaces
 rem -- 'tokens=*' is used to ensure each line of the file doesn't get split on whitespace
-for /f "usebackq tokens=*" %%G in ("%PARENT_CONFIG_FILE%") do (SET PARENT_LOCATION=%%G)
+for /f "usebackq tokens=*" %%G in ("%PARENT_CONFIG_FILE%") do (call :set_parent_location %%G)
 IF NOT EXIST "%PARENT_LOCATION%" GOTO NO_PARENT_LOCATION
 
 rem -- all good, execute tank script in parent location
@@ -64,6 +64,12 @@ call "%PARENT_LOCATION%\tank.bat" %* --pc="%SELF_PATH%"
 rem -- pass along the return code
 exit /b %ERRORLEVEL%
 
+rem --------------------------------------------------------------------------------------------
+rem -- set parent location of config
+rem -- we do this so we can expand environment variables inside PARENT_CONFIG_FILE
+:set_parent_location
+set PARENT_LOCATION=%1
+exit /b 0
 
 rem --------------------------------------------------------------------------------------------
 rem -- check the shotgun actions cache

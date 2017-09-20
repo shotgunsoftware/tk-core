@@ -43,12 +43,6 @@ class TankHookMethodDoesNotExistError(TankError):
     """
 
 
-class TankInvalidInterpreterLocationError(TankError):
-    """
-    Exception that indicates that the interpreter specified in a file was not found.
-    """
-
-
 class TankInvalidCoreLocationError(TankError):
     """
     Exception that indicates the core location file contained an invalid path.

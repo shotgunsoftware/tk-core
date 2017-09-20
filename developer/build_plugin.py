@@ -33,7 +33,8 @@ sys.path.append(python_folder)
 from tank import LogManager
 from tank.util import filesystem
 from tank.errors import TankError
-from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri, create_descriptor
+from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri
+from tank.descriptor import create_descriptor, is_descriptor_version_missing
 from tank.bootstrap.baked_configuration import BakedConfiguration
 from tank.bootstrap import constants as bootstrap_constants
 from tank_vendor import yaml
@@ -147,19 +148,19 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
 
         # if the descriptor in the config contains a version number
         # we will go into a fixed update mode.
-        if "version" in base_config_uri_dict:
+        if is_descriptor_version_missing(base_config_uri_dict):
+            logger.info(
+                "Your configuration definition does not contain a version number. "
+                "This means that the plugin will attempt to auto update at startup."
+            )
+            using_latest_config = True
+        else:
             logger.info(
                 "Your configuration definition contains a version number. "
                 "This means that the plugin will be frozen and no automatic updates "
                 "will be performed at startup."
             )
             using_latest_config = False
-        else:
-            logger.info(
-                "Your configuration definition does not contain a version number. "
-                "This means that the plugin will attempt to auto update at startup."
-            )
-            using_latest_config = True
 
         cfg_descriptor = create_descriptor(
             sg_connection,
@@ -421,6 +422,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
             sg_connection,
             Descriptor.CORE,
             bootstrap_core_uri,
+            resolve_latest=is_descriptor_version_missing(bootstrap_core_uri),
             bundle_cache_root_override=bundle_cache_root
         )
 

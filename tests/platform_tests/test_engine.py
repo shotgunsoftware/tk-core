@@ -111,12 +111,33 @@ class TestStartEngine(TestEngineBase):
         Test engine properties
         """
         engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        expected_doc_url = "https://support.shotgunsoftware.com/hc/en-us/articles/115000068574-User-Guide"
         self.assertEqual(engine.name, "test_engine")
         self.assertEqual(engine.display_name, "test_engine")
         self.assertEqual(engine.version, "Undefined")
-        self.assertEqual(engine.documentation_url, None)
+        self.assertEqual(engine.documentation_url, expected_doc_url)
         self.assertEqual(engine.instance_name, "test_engine")
         self.assertEqual(engine.context, self.context)
+
+
+class TestLegacyStartShotgunEngine(TestEngineBase):
+    """
+    Tests how the tk-shotgun engine is started via the start_shotgun_engine routine.
+    """
+
+    def test_empty_environment(self):
+        """
+        In the case of an empty shotgun environment file, a TankError
+        should be raised rather than some unhandled exception where we
+        try to use the None as a dict.
+        """
+        self.assertRaises(
+            TankError,
+            tank.platform.engine.start_shotgun_engine,
+            self.tk,
+            "empty", # This corresponds to shotgun_empty.yml in the fixture.
+            self.context,
+        )
 
 
 class TestExecuteInMainThread(TestEngineBase):

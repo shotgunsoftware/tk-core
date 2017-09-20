@@ -11,12 +11,13 @@
 from __future__ import with_statement
 
 import os
+import sys
 import datetime
 
 from . import constants
 
 from .errors import TankBootstrapError
-from ..descriptor import Descriptor, create_descriptor
+from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
 
 from ..util import filesystem
 from ..util import ShotgunPath
@@ -33,6 +34,9 @@ class ConfigurationWriter(object):
     """
     Class used to write and update Toolkit configurations on disk.
     """
+
+    _TRANSACTION_START_FILE = "update_start.txt"
+    _TRANSACTION_END_FILE = "update_end.txt"
 
     def __init__(self, path, sg):
         """
@@ -97,8 +101,8 @@ class ConfigurationWriter(object):
         else:
             # we have an exact core descriptor. Get a descriptor for it
             log.debug("Config has a specific core defined in core/core_api.yml: %s" % core_uri_or_dict)
-            # when core is specified, it is always a specific version
-            use_latest = False
+            # when core is specified, check if it defines a specific version or not
+            use_latest = is_descriptor_version_missing(core_uri_or_dict)
 
         core_descriptor = create_descriptor(
             self._sg_connection,
@@ -213,29 +217,77 @@ class ConfigurationWriter(object):
             return (config_backup_path, core_backup_path)
 
     @filesystem.with_cleared_umask
-    def create_tank_command(self, win_python=None, mac_python=None, linux_python=None):
+    def create_tank_command(self, executable=sys.executable, prefix=sys.prefix):
         """
         Create a tank command for this configuration.
 
         The tank command binaries will be copied from the current core distribution
-        The interpreter_xxx.cfg files will be created based on the given interpreter settings.
-        Uses sg desktop python if no interpreter paths are provided.
+        The interpreter_xxx.cfg files will be created based on the ``sys.executable``.
 
-        :param win_python: Optional path to a python interpreter
-        :param mac_python: Optional path to a python interpreter
-        :param linux_python: Optional path to a python interpreter
+        :param current_interpreter: Path to the current interpreter. Defaults to sys.executable.
         """
         log.debug("Installing tank command...")
 
-        # first set up the interpreter_xxx files needed for the tank command
-        # default to the shotgun desktop python
-        executables = {}
-        executables["Linux"] = linux_python or constants.DESKTOP_PYTHON_LINUX
-        executables["Darwin"] = mac_python or constants.DESKTOP_PYTHON_MAC
-        executables["Windows"] = win_python or constants.DESKTOP_PYTHON_WIN
+        # First set up the interpreter_xxx files needed for the tank command
+        # default to the shotgun desktop python. We want those defaults, even with descriptor
+        # based pipeline configurations, because from a descriptor based pipeline configuration
+        # we might want call setup_project, which will copy the interpreter files. So as a
+        # convenience we'll pre-fill those files with an interpreter we know is available on all
+        # platforms.
+        executables = dict(
+            Linux=constants.DESKTOP_PYTHON_LINUX,
+            Darwin=constants.DESKTOP_PYTHON_MAC,
+            Windows=constants.DESKTOP_PYTHON_WIN
+        )
+
+        # FIXME: This is a really bad hack. We're looking to see if we are running inside the
+        # Shogun Desktop and if we are then we're using the Python that is package with it.
+        #
+        # The reason we are doing this is because we need the interpreter files
+        # written out during bootstrapping to be using the ones from the Shotgun Desktop.
+        #
+        # We could have introduced a way on the ToolkitManager to specify the interpreter
+        # to use for the current platform for descriptor based configuration, but we're trying
+        # to kill the interpreter files in the first place mid-term, so introducing an API
+        # that allows the caller to specify which one to use feels backwards in the first place.
+        #
+        # This feels like the lesser of two evils, even tough as I type this I've thrown
+        # up a bit in my mouth.
+
+        # Figures out which is the current Python interpreter.
+        # If we're in the Shotgun Desktop
+        if os.path.split(executable)[1].lower().startswith("shotgun"):
+            log.debug("Shotgun Desktop process detected.")
+            # We'll use the builtin Python.
+            if sys.platform == "darwin":
+                current_interpreter = os.path.join(prefix, "bin", "python")
+            elif sys.platform == "win32":
+                current_interpreter = os.path.join(prefix, "python.exe")
+            else:
+                current_interpreter = os.path.join(prefix, "bin", "python")
+        elif os.path.split(executable)[1].lower().startswith("python"):
+            # If we're in a Python executable, we should use that.
+            current_interpreter = executable
+        else:
+            current_interpreter = None
+
+        # Sets the interpreter in the current OS, we'll leave the defaults for the other platforms.
+        if current_interpreter:
+            if sys.platform == "darwin":
+                executables["Darwin"] = current_interpreter
+            elif sys.platform == "win32":
+                executables["Windows"] = current_interpreter
+            else:
+                executables["Linux"] = current_interpreter
+
+        if current_interpreter:
+            log.debug("Current OS interpreter will be %s.", current_interpreter)
+        else:
+            log.debug("Current OS interpreter will be the default Shotgun Desktop location.")
 
         config_root_path = self._path.current_os
 
+        # Write out missing files.
         for platform in executables:
             sg_config_location = os.path.join(
                 config_root_path,
@@ -243,8 +295,12 @@ class ConfigurationWriter(object):
                 "core",
                 "interpreter_%s.cfg" % platform
             )
-            # clean out any existing files
-            filesystem.safe_delete_file(sg_config_location)
+            # If the interpreter file already existed in the configuration, we won't overwrite it.
+            if os.path.exists(sg_config_location):
+                log.debug(
+                    "Interpreter file %s already exists, leaving as is.", sg_config_location
+                )
+                continue
             # create new file
             with open(sg_config_location, "wt") as fh:
                 fh.write(executables[platform])
@@ -360,7 +416,11 @@ class ConfigurationWriter(object):
 
         log.debug("Wrote %s", dest_config_sg_file)
 
-    def write_pipeline_config_file(self, pipeline_config_id, project_id, plugin_id, bundle_cache_fallback_paths):
+    def write_pipeline_config_file(
+        self,
+        pipeline_config_id, project_id, plugin_id,
+        bundle_cache_fallback_paths, source_descriptor
+    ):
         """
         Writes out the the pipeline configuration file config/core/pipeline_config.yml
 
@@ -374,6 +434,8 @@ class ConfigurationWriter(object):
                           see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
                           non-plugin based toolkit projects, this value is None.
         :param bundle_cache_fallback_paths: List of bundle cache fallback paths.
+
+        :returns: Path to the configuration file that was written out.
         """
         # the pipeline config metadata
         # resolve project name and pipeline config name from shotgun.
@@ -425,7 +487,8 @@ class ConfigurationWriter(object):
             "published_file_entity_type": "PublishedFile",
             "use_bundle_cache": True,
             "bundle_cache_fallback_roots": bundle_cache_fallback_paths,
-            "use_shotgun_path_cache": True
+            "use_shotgun_path_cache": True,
+            "source_descriptor": source_descriptor.get_dict()
         }
 
         # write pipeline_configuration.yml
@@ -440,6 +503,8 @@ class ConfigurationWriter(object):
             yaml.safe_dump(pipeline_config_content, fh)
             fh.write("\n")
             fh.write("# End of file.\n")
+
+        return pipeline_config_path
 
     def update_roots_file(self, config_descriptor):
         """
@@ -484,6 +549,79 @@ class ConfigurationWriter(object):
             yaml.safe_dump(roots_data, fh)
             fh.write("\n")
             fh.write("# End of file.\n")
+
+    def is_transaction_pending(self):
+        """
+        Checks if the configuration was previously in the process of being updated but then stopped.
+
+        .. note::
+            Configurations written with previous versions of Toolkit are assumed to completed.
+
+        :returns: True if the configuration was not finished being written on disk, False if it was.
+        """
+
+        # Check if the transaction folder exists...
+        is_started = os.path.exists(self._get_state_file_name(self._TRANSACTION_START_FILE))
+        is_ended = os.path.exists(self._get_state_file_name(self._TRANSACTION_END_FILE))
+
+        if is_started and not is_ended:
+            log.warning("It seems the configuration was not written properly on disk.")
+            return True
+        if is_started and is_ended:
+            log.debug("Configuration was written properly on disk.")
+            return False
+        if not is_started and is_ended:
+            log.error("It seems the configuration is in an unconsistent state.")
+            return True
+
+        log.debug("Configuration doesn't have transaction markers.")
+        return False
+
+    def start_transaction(self):
+        """
+        Wipes the transaction marker from the configuration.
+        """
+        log.debug("Starting configuration update transaction.")
+        filesystem.ensure_folder_exists(os.path.join(self._path.current_os, "cache"))
+        self._delete_state_file(self._TRANSACTION_END_FILE)
+        self._write_state_file(self._TRANSACTION_START_FILE)
+
+    def _write_state_file(self, file_name):
+        """
+        Writes a transaction file.
+        """
+        with open(self._get_state_file_name(file_name), "w") as fw:
+            fw.writelines(["File written at %s." % datetime.datetime.now()])
+
+    def _delete_state_file(self, file_name):
+        """
+        Deletes a transaction file.
+        """
+        filesystem.safe_delete_file(self._get_state_file_name(file_name))
+
+    def _get_state_file_name(self, file_name):
+        """
+        Retrieves the path to a transaction file.
+        """
+        return os.path.join(self._path.current_os, "cache", file_name)
+
+    def end_transaction(self):
+        """
+        Creates a transaction marker in the configuration indicating is has been completely written
+        to disk.
+        """
+        # Write back the coherency token.
+        log.debug("Ending configuration update transaction.")
+        self._write_state_file(self._TRANSACTION_END_FILE)
+
+    def _get_configuration_transaction_filename(self):
+        """
+        :returns: Path to the file which will be used to track configuration validity.
+        """
+        return os.path.join(
+            self._get_configuration_transaction_folder(),
+            "done"
+        )
 
     @filesystem.with_cleared_umask
     def _open_auto_created_yml(self, path):

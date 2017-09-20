@@ -835,7 +835,8 @@ class PathCache(object):
             - code
         """
 
-        log.debug("Processing Toolkit_Folders_Create event for folder entity %s", pprint.pformat(fsl_entity))
+        # commenting out as it is generating a flood of debug logs
+        # log.debug("Processing Toolkit_Folders_Create event for folder entity %s", pprint.pformat(fsl_entity))
 
         # get entity data from our entry
         entity = {"id": fsl_entity[SG_ENTITY_ID_FIELD],

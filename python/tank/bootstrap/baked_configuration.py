@@ -145,7 +145,8 @@ class BakedConfiguration(Configuration):
             pipeline_config_id=None,
             project_id=None,
             plugin_id=plugin_id,
-            bundle_cache_fallback_paths=[]
+            bundle_cache_fallback_paths=[],
+            source_descriptor=config_descriptor
         )
 
     @property
