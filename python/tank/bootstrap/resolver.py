@@ -22,7 +22,7 @@ from ..descriptor import (
     Descriptor, create_descriptor,
     descriptor_uri_to_dict, is_descriptor_version_missing
 )
-from .errors import TankBootstrapError
+from .errors import TankBootstrapError, TankBootstrapInvalidPipelineConfigurationError
 from .baked_configuration import BakedConfiguration
 from .cached_configuration import CachedConfiguration
 from .installed_configuration import InstalledConfiguration
@@ -232,14 +232,21 @@ class ConfigurationResolver(object):
 
     def _get_pipeline_configurations_for_project(self, pipeline_config_name, current_login, sg_connection):
         """
-        Retrieves pipeline configurations from Shotgun that are compatible with the project.
+        Retrieves pipeline configurations from Shotgun that are compatible with the given project.
 
         :param str pipeline_config_name: Name of the pipeline configuration requested for. If ``None``,
             all pipeline configurations from the project will be matched.
         :param str current_login: Only retains non-primary configs from the specified user.
         :param ``shotgun_api3.Shotgun`` sg_connection: Connection to the Shotgun site.
 
-        :returns: A list of pipeline configuration entity dictionaries.
+        :returns: A list of pipeline configuration entity dictionaries with an
+                  extra key 'config_descriptor' added representing a resolved descriptor
+                  instance pointng at the associated configuration to be used for this
+                  pipeline configuration. Please note that this method returns all
+                  pipeline configs matching the given project, meaning that sometimes
+                  the 'config_descriptor' key may be None, for example in the case where
+                  a pipeline configuration is defined for the project for windows and you
+                  are currently running on a mac.
         :rtype: list
         """
         # get the pipeline configs for the current project which are
@@ -302,49 +309,30 @@ class ConfigurationResolver(object):
             "The following pipeline configurations were found: %s" % pprint.pformat(pipeline_configs)
         )
 
+        # loop over all pipeline configs
         for pipeline_config in pipeline_configs:
-            # We'll need to provide a descriptor object for the config if
-            # possible. Note that it's possible that we'll be returning a
-            # None for the config descriptor. It's up to other filtering
-            # operations to remove those if desired.
-            #
 
-            path = ShotgunPath.from_shotgun_dict(pipeline_config)
-            # If we have a plugin based pipeline.
-            if (
-                self._match_plugin_id(pipeline_config.get("plugin_ids")) or
-                self._match_plugin_id(pipeline_config.get("sg_plugin_ids"))
-            ):
+            # see if the pipeline configuration we are looking at is relevant. Either of:
+            # - Be a match against the resolver's associated plugin id
+            # - Be a classic config associated with the resolver's associated project
 
-                # If a location was specified to get access to that pipeline, return it. Note that
-                # we are potentially returning pipeline configurations that have been configured for
-                # one platform but not all.
-                descriptor = self._create_config_descriptor(
-                        sg_connection, pipeline_config
-                    )
+            if self._matches_current_plugin_id(pipeline_config) or \
+                    self._is_classic_pc_for_current_project(pipeline_config):
 
-                if descriptor is None:
-                    log.warning(
-                        "Pipeline configuration does not have a 'path', "
-                        "'descriptor' or 'uploaded_config' field set: %s" % pipeline_config
-                    )
-                else:
-                    pipeline_config["config_descriptor"] = descriptor
-                    yield pipeline_config
-
-            elif self._is_classic_pc(pipeline_config):
-                # We have a classic pipeline, those only supported the path fields.
-                # If a location was specified to get access to that pipeline, return it. Note that
-                # we are potentially returning pipeline configurations that have been configured for
-                # one platform but not all.
-                if path:
-                    # Create a descriptor only if the pipeline is valid.
+                # extract the location information and place in special 'config_descriptor'
+                # field. Note that this may be None if for example the pipeline configuration
+                # is defined for another operating system.
+                try:
                     pipeline_config["config_descriptor"] = self._create_config_descriptor(
                         sg_connection, pipeline_config
                     )
                     yield pipeline_config
-                else:
-                    log.debug("Pipeline configuration's 'path' fields are not set: %s" % pipeline_config)
+
+                except TankBootstrapInvalidPipelineConfigurationError:
+                    log.warning(
+                        "Pipeline configuration does not define a location "
+                        "where it can be accessed: %s" % pipeline_config
+                    )
 
     def _create_config_descriptor(self, sg_connection, shotgun_pc_data):
         """
@@ -354,7 +342,14 @@ class ConfigurationResolver(object):
         :param dict shotgun_pc_data: Pipeline configuration dictionary with keys ``descriptor``,
             ``sg_descriptor`` and ``*_path`.
 
-        :returns: A :class:`sgtk.descriptor.ConfigDescriptorBase` instance.
+        :returns: A :class:`sgtk.descriptor.ConfigDescriptorBase` instance or None if the
+            pipeline configuration is valid but defines a configuration which cannot be
+            reached from the current runtime environment. The typical example when this
+            happens is if a pipeline configuration defines a path for some operating
+            systems only.
+
+        :raises TankBootstrapInvalidPipelineConfigurationError: If the given pipeline configuration
+            does not define a configuration to use.
         """
         # As in resolve_shotgun_configuration, the order of precedence
         # is as follows:
@@ -368,6 +363,13 @@ class ConfigurationResolver(object):
         path = ShotgunPath.from_shotgun_dict(shotgun_pc_data)
         sg_descriptor_uri = shotgun_pc_data.get("descriptor") or shotgun_pc_data.get("sg_descriptor")
         sg_uploaded_config = shotgun_pc_data.get("uploaded_config") or shotgun_pc_data.get("sg_uploaded_config")
+
+        # classic configs are defined by having their plugin_ids field set to None
+        # classic configs only support the path fields
+        plugin_ids = shotgun_pc_data.get("plugin_ids") or shotgun_pc_data.get("sg_plugin_ids")
+        is_classic_config = plugin_ids is None
+
+        cfg_descriptor = None
 
         if path:
 
@@ -392,7 +394,7 @@ class ConfigurationResolver(object):
                     fallback_roots=self._bundle_cache_fallback_paths,
                 )
 
-        elif sg_descriptor_uri:
+        elif sg_descriptor_uri and not is_classic_config:
 
             if sg_uploaded_config:
                 log.debug(
@@ -414,7 +416,7 @@ class ConfigurationResolver(object):
                 resolve_latest=is_descriptor_version_missing(sg_descriptor_uri)
             )
 
-        elif sg_uploaded_config:
+        elif sg_uploaded_config and not is_classic_config:
 
             if shotgun_pc_data.get("sg_uploaded_config"):
                 log.debug(
@@ -447,15 +449,25 @@ class ConfigurationResolver(object):
             )
 
         else:
-            # If we have neither a uri, nor a path, then we can't get
-            # a descriptor for this config.
-            log.debug("No uri or path found for config: %s", shotgun_pc_data)
-            cfg_descriptor = None
+            # If we have neither a uri, nor a path, raise exception
+            # to indicate that config is not valid.
+            if is_classic_config:
+                msg = ("Pipeline Configuration %s does not have "
+                       "a path field specified." % shotgun_pc_data["id"])
+            else:
+                msg = ("Pipeline Configuration %s does not have "
+                       "a path, uri or upload field specified." % shotgun_pc_data["id"])
+
+            raise TankBootstrapInvalidPipelineConfigurationError(msg)
 
         if cfg_descriptor is None:
-            log.debug("Unable to create descriptor for config: %s", shotgun_pc_data)
+            log.debug("Unable to resolve descriptor for config: \n%s", pprint.pformat(shotgun_pc_data))
         else:
-            log.debug("Config descriptor created: %r", cfg_descriptor)
+            log.debug(
+                "Config descriptor resolved. \nConfig: %s \nDescriptor: %r",
+                pprint.pformat(shotgun_pc_data),
+                cfg_descriptor
+            )
 
         return cfg_descriptor
 
@@ -731,6 +743,7 @@ class ConfigurationResolver(object):
                 sg_connection, pipeline_config
             )
 
+
         # now resolve the descriptor to use based on the pipeline config record
         # default to the fallback descriptor
         # If no pipeline configuration was found in Shotgun, we will use the fallback descriptor.
@@ -770,29 +783,28 @@ class ConfigurationResolver(object):
 
             return self._create_configuration_from_descriptor(config_descriptor, sg_connection, pc_id)
 
-    def _is_classic_pc(self, pc):
+    def _is_classic_pc_for_current_project(self, shotgun_pc_data):
         """
         Checks if a pipeline configuration is a classic pipeline configuration, for the requested
         project.
 
-        :param dict pc: Pipeline Configuration entity with fields ``plugin_ids``, ``sg_plugin_ids``,
-            ``project`` and ``project.id``.
-
+        :param dict shotgun_pc_data: Pipeline Configuration entity with
+            fields ``plugin_ids``, ``sg_plugin_ids``, ``project`` and ``project.id``.
         :returns: True if the pipeline is a classic pipeline configuration, False otherwise.
         """
-        if pc.get("plugin_ids") or pc.get("sg_plugin_ids"):
+        if shotgun_pc_data.get("plugin_ids") or shotgun_pc_data.get("sg_plugin_ids"):
             return False
         if self._project_id is None:
-            return pc["project"] is None
-        elif pc["project"] is None:
+            return shotgun_pc_data["project"] is None
+        elif shotgun_pc_data["project"] is None:
             return False
         else:
-            return pc["project"]["id"] == self._project_id
+            return shotgun_pc_data["project"]["id"] == self._project_id
 
-    def _match_plugin_id(self, value):
+    def _matches_current_plugin_id(self, shotgun_pc_data):
         """
-        Given a plugin id pattern, determine if the current
-        plugin id matches.
+        Checks if a pipeline configuration matches the plugin id associated with
+        the resolver.
 
         Patterns can be comma separated and glob style patterns.
         Examples:
@@ -800,19 +812,24 @@ class ConfigurationResolver(object):
             - basic.nuke, basic.maya
             - basic.*, rv_review
 
-        :param value: pattern string to check or None
+        :param dict shotgun_pc_data: Pipeline Configuration entity with
+            fields ``plugin_ids``, ``sg_plugin_ids``.
         :return: True if matching false if not
         """
-        if value is None or self._plugin_id is None:
+
+        # resolve plugins ids in so we first look at the new field and then at the legacy one.
+        plugin_ids = shotgun_pc_data.get("plugin_ids") or shotgun_pc_data.get("sg_plugin_ids")
+
+        if plugin_ids is None or self._plugin_id is None:
             return False
 
         # first split by comma and strip whitespace
-        patterns = [chunk.strip() for chunk in value.split(",")]
+        patterns = [chunk.strip() for chunk in plugin_ids.split(",")]
 
         # glob match each item
         for pattern in patterns:
             if fnmatch.fnmatch(self._plugin_id, pattern):
-                log.debug("Our plugin id '%s' matches pattern '%s'" % (self._plugin_id, value))
+                log.debug("Our plugin id '%s' matches pattern '%s'" % (self._plugin_id, plugin_ids))
                 return True
 
         return False

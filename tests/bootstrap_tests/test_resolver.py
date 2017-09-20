@@ -178,43 +178,46 @@ class TestPluginMatching(TestResolverBase):
             bundle_cache_fallback_paths=[self.install_root]
         )
 
+        def _match_plugin_helper(plugin_ids):
+            return resolver._matches_current_plugin_id({"plugin_ids": plugin_ids})
+
         # test full match
         resolver._plugin_id = "foo.maya"
-        self.assertTrue(resolver._match_plugin_id("*"))
+        self.assertTrue(_match_plugin_helper("*"))
 
         # test no match
         resolver._plugin_id = "foo.maya"
-        self.assertFalse(resolver._match_plugin_id(""))
-        self.assertFalse(resolver._match_plugin_id("None"))
-        self.assertFalse(resolver._match_plugin_id(" "))
-        self.assertFalse(resolver._match_plugin_id(",,,,"))
-        self.assertFalse(resolver._match_plugin_id("."))
+        self.assertFalse(_match_plugin_helper(""))
+        self.assertFalse(_match_plugin_helper("None"))
+        self.assertFalse(_match_plugin_helper(" "))
+        self.assertFalse(_match_plugin_helper(",,,,"))
+        self.assertFalse(_match_plugin_helper("."))
 
         # test comma separation
         resolver._plugin_id = "foo.maya"
-        self.assertFalse(resolver._match_plugin_id("foo.hou, foo.may, foo.nuk"))
-        self.assertTrue(resolver._match_plugin_id("foo.hou, foo.maya, foo.nuk"))
+        self.assertFalse(_match_plugin_helper("foo.hou, foo.may, foo.nuk"))
+        self.assertTrue(_match_plugin_helper("foo.hou, foo.maya, foo.nuk"))
 
         # test comma separation
         resolver._plugin_id = "foo"
-        self.assertFalse(resolver._match_plugin_id("foo.*"))
-        self.assertTrue(resolver._match_plugin_id("foo*"))
+        self.assertFalse(_match_plugin_helper("foo.*"))
+        self.assertTrue(_match_plugin_helper("foo*"))
 
         resolver._plugin_id = "foo.maya"
-        self.assertTrue(resolver._match_plugin_id("foo.*"))
-        self.assertTrue(resolver._match_plugin_id("foo*"))
+        self.assertTrue(_match_plugin_helper("foo.*"))
+        self.assertTrue(_match_plugin_helper("foo*"))
 
         resolver._plugin_id = "foo.maya"
-        self.assertTrue(resolver._match_plugin_id("foo.maya"))
-        self.assertFalse(resolver._match_plugin_id("foo.nuke"))
+        self.assertTrue(_match_plugin_helper("foo.maya"))
+        self.assertFalse(_match_plugin_helper("foo.nuke"))
 
         # If the value is None then we always get back False.
-        self.assertFalse(resolver._match_plugin_id(None))
+        self.assertFalse(_match_plugin_helper(None))
 
         # Always False return, even when _plugin_id is None and the value is None.
         resolver._plugin_id = None
-        self.assertFalse(resolver._match_plugin_id(None))
-        self.assertFalse(resolver._match_plugin_id("foo.maya"))
+        self.assertFalse(_match_plugin_helper(None))
+        self.assertFalse(_match_plugin_helper("foo.maya"))
 
     @patch("os.path.isdir", return_value=True)
     def test_single_matching_id(self, _):
@@ -680,7 +683,6 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             descriptor=None,
         )
 
-        import sys
         base_paths[field_lookup[sys.platform]] = None
 
         # Now remove every locators.
@@ -698,6 +700,9 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             "john.smith",
             self.mockgun
         )
+
+        print pcs
+
         self.assertEqual(len(pcs), 1)
         self.assertEqual(pcs[0]["id"], pc_id)
         self.assertEqual(pcs[0]["config_descriptor"], None)
@@ -719,6 +724,8 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         self.assertEqual(len(pcs), 1)
         self.assertEqual(pcs[0]["id"], pc_id)
 
+
+        print "gooooo"
         # Not clear the plugin fields and the pipeline should not be reported by
         # find_matching_pipeline_configurations.
         self.mockgun.update(
@@ -732,6 +739,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         pcs = self.resolver.find_matching_pipeline_configurations(None, "john.smith", self.mockgun)
         self.assertListEqual(pcs, [])
 
+        print "gooooo"
 
 class TestResolverSiteConfig(TestResolverBase):
     """
