@@ -188,6 +188,9 @@ def __parse_config_data(file_data, user, shotgun_cfg_path):
     if not config_data.get("host"):
         _raise_missing_key("host")
 
+    # Manage environment variable case
+    config_data["host"] = os.path.expandvars(config_data["host"])
+
     # The script authentication credentials need to be complete in order to work. They can be completely
     # omitted or fully specified, but not halfway configured.
     if config_data.get("api_script") and not config_data.get("api_key"):
@@ -343,9 +346,9 @@ def create_sg_connection(user="default"):
         # Credentials were passed in, so let's run the legacy authentication
         # mechanism for script user.
         api_handle = shotgun_api3.Shotgun(
-            config_data["host"],
-            script_name=config_data["api_script"],
-            api_key=config_data["api_key"],
+            os.path.expandvars(config_data["host"]),
+            script_name=os.path.expandvars(config_data["api_script"]),
+            api_key=os.path.expandvars(config_data["api_key"]),
             http_proxy=config_data.get("http_proxy"),
             connect=False
         )

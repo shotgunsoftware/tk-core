@@ -513,6 +513,9 @@ class Shotgun(object):
             self.__ca_certs = os.environ.get('SHOTGUN_API_CACERTS')
 
         self.base_url = (base_url or "").lower()
+        if self.base_url.startswith("$"):
+            raise ValueError("You must define the environment variable %s for your Shotgun site" %
+                base_url)
         self.config.scheme, self.config.server, api_base, _, _ = \
             urlparse.urlsplit(self.base_url)
         if self.config.scheme not in ("http", "https"):
