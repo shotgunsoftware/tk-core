@@ -10,9 +10,7 @@
 
 import sys
 import os
-import inspect
 from optparse import OptionParser
-
 
 
 # Let the user know which Python is picked up to run the tests.
@@ -80,17 +78,17 @@ class TankTestRunner(object):
         return unittest.TextTestRunner(verbosity=2).run(self.suite)
 
 
-def _initialize_coverage():
+def _initialize_coverage(test_root):
     """
     Starts covering the code inside the tank module.
 
-    :returns: The coverate instance.
+    :returns: The coverage instance.
     """
     import coverage
-    run_tests_py_location = inspect.getsourcefile(_initialize_coverage)
+
     coveragerc_location = os.path.abspath(
         os.path.join(
-            os.path.dirname(run_tests_py_location), # <root>/tests
+            test_root, # <root>/tests
             "..", # <root>
             ".coveragerc") # <root>/.coveragerc
     )
@@ -105,8 +103,6 @@ def _finalize_coverage(cov):
     """
     cov.stop()
     cov.report()
-    cov.html_report(directory="coverage_html_report")
-    print "Note: Full html coverage report can be found in the coverage_html_report folder."
 
     try:
         # seems to be some CI issues with html coverage so
@@ -194,7 +190,7 @@ if __name__ == "__main__":
         )
 
     if options.coverage:
-        cov = _initialize_coverage()
+        cov = _initialize_coverage(options.test_root)
 
     _initialize_logging(options.log_to_console)
 
