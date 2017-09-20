@@ -20,7 +20,8 @@ import threading
 import random
 import time
 
-from tank_test.tank_test_base import TankTestBase, setUpModule, skip_if_pyside_missing
+from tank_test.tank_test_base import TankTestBase, skip_if_pyside_missing
+from tank_test.tank_test_base import setUpModule # noqa
 
 import contextlib
 import tank
@@ -44,16 +45,16 @@ class TestEngineBase(TankTestBase):
         self.setup_fixtures()
 
         # setup shot
-        seq = {"type":"Sequence", "name":"seq_name", "id":3}
+        seq = {"type": "Sequence", "name": "seq_name", "id": 3}
         seq_path = os.path.join(self.project_root, "sequences/Seq")
         self.add_production_path(seq_path, seq)
-        shot = {"type":"Shot",
+        shot = {"type": "Shot",
                 "name": "shot_name",
-                "id":2,
+                "id": 2,
                 "project": self.project}
         shot_path = os.path.join(seq_path, "shot_code")
         self.add_production_path(shot_path, shot)
-        step = {"type":"Step", "name":"step_name", "id":4}
+        step = {"type": "Step", "name": "step_name", "id": 4}
         self.shot_step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.shot_step_path, step)
 
@@ -255,7 +256,7 @@ class TestExecuteInMainThread(TestEngineBase):
 
         threads = []
         for ti in range(num_test_threads):
-            t = threading.Thread(target=lambda:threaded_work(ti))
+            t = threading.Thread(target=lambda: threaded_work(ti))
             t.start()
             threads.append(t)
 
@@ -552,3 +553,15 @@ class TestRegisteredCommands(TestEngineBase):
 
         # Validate the original 'test_command' first registered has been deleted.
         self.assertIsNone(engine.commands.get("test_command"))
+
+
+class TestCompatibility(TankTestBase):
+
+    def test_backwards_compatible(self):
+        """
+        Ensures the API is backwards compatible as we've moved TankEngineInitErrorto a new location.
+        """
+        self.assertEqual(
+            sgtk.platform.TankEngineInitError,
+            sgtk.TankEngineInitError
+        )

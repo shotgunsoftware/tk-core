@@ -10,9 +10,15 @@
 
 from __future__ import with_statement
 
-from tank_test.tank_test_base import *
+import os
+from mock import patch
+
+from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import setUpModule # noqa
 
 from tank.authentication import session_cache
+from tank.util import LocalFileStorageManager
+from tank_vendor import yaml
 
 
 class SessionCacheTests(TankTestBase):
@@ -31,6 +37,33 @@ class SessionCacheTests(TankTestBase):
         other_host = "https://other_host.shotgunstudio.com"
         session_cache.set_current_host(other_host)
         self.assertEqual(session_cache.get_current_host(), other_host)
+
+    def test_url_cleanup(self):
+
+        # Make sure that if a file has the url saved incorrectly...
+        with patch("sgtk.util.shotgun.connection.sanitize_url", wraps=lambda x: x):
+            session_cache.set_current_host("https://host.cleaned.up.on.read/")
+            # ... then sure we indeed disabled cleanup and that the malformed value was written to disk...
+            self.assertEquals("https://host.cleaned.up.on.read/", session_cache.get_current_host())
+
+        # ... and finaly that the value is filtered when being read back from disk.
+        self.assertEquals("https://host.cleaned.up.on.read", session_cache.get_current_host())
+
+        # Make sure we're cleaning up the hostname when saving it.
+        session_cache.set_current_host("https://host.cleaned.up.on.write/")
+
+        with open(
+            os.path.join(
+                LocalFileStorageManager.get_global_root(
+                    LocalFileStorageManager.CACHE
+                ),
+                "authentication.yml"
+            ),
+            "r"
+        ) as fh:
+            # Let's read the file directly to see if the data was cleaned up.
+            data = yaml.load(fh)
+            self.assertEqual(data, {"current_host": "https://host.cleaned.up.on.write"})
 
     def test_current_user(self):
         """
@@ -178,4 +211,3 @@ class SessionCacheTests(TankTestBase):
         self.assertIsNone(
             session_cache.get_session_data(lowercase_host, user),
         )
-

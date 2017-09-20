@@ -1,36 +1,30 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
-import os
-import sys
-import datetime
 import threading
-import urlparse
 import unittest2 as unittest
-import logging
 
-from mock import patch, call
+from mock import patch
 
 import tank
-from tank import context, errors
-from tank_test.tank_test_base import TankTestBase, setUpModule
-from tank.template import TemplatePath
-from tank.templatekey import SequenceKey
+from tank import errors
+from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 from tank.authentication.user import ShotgunUser
 from tank.authentication.user_impl import SessionUser
 from tank.descriptor import Descriptor
 from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
+from tank.util.shotgun.connection import sanitize_url
 
 
-
+@patch("tank.util.shotgun.connection.__get_api_core_config_location")
 class TestGetSgConfigData(TankTestBase):
 
     def _prepare_common_mocks(self, get_api_core_config_location_mock):
@@ -94,8 +88,100 @@ class TestGetSgConfigData(TankTestBase):
                 "not_a_file.cfg"
             )
 
-# Class decorators don't exist on Python2.5
-TestGetSgConfigData = patch("tank.util.shotgun.connection.__get_api_core_config_location", TestGetSgConfigData)
+    def test_parse_config_data_cleans_host(self, get_api_core_config_location_mock):
+        """
+        Ensures shotgun.yml exposes a cleaned-up version of the host.
+        """
+        self._prepare_common_mocks(get_api_core_config_location_mock)
+        self.assertDictEqual(
+            tank.util.shotgun.connection._parse_config_data(
+                {"host": "https://extra.slash.will.be.removed/"},
+                "default",
+                "not_a_file.cfg"
+            ),
+            {"host": "https://extra.slash.will.be.removed"}
+        )
+
+    def test_sanitize_url(self, get_api_core_config_location_mock):
+        """
+        Ensures host is cleaned-up properly.
+        """
+        # Ensure https is added if no scheme is specified.
+        self.assertEquals(
+            "https://no.scheme.com",
+            sanitize_url("no.scheme.com")
+        )
+
+        # Ensure https is not modified if specified.
+        self.assertEquals(
+            "https://no.scheme.com",
+            sanitize_url("https://no.scheme.com")
+        )
+
+        # Ensure http is left as is if specified.
+        self.assertEquals(
+            "http://no.scheme.com",
+            sanitize_url("http://no.scheme.com")
+        )
+
+        # Ensure any scheme is left as is if specified.
+        self.assertEquals(
+            "invalid-scheme://no.scheme.com",
+            sanitize_url("invalid-scheme://no.scheme.com")
+        )
+
+        # Ensures a suffixed slash gets removed.
+        self.assertEquals(
+            "https://no.suffixed.slash.com",
+            sanitize_url("https://no.suffixed.slash.com/")
+        )
+
+        # Ensures anything after the host is dropped.
+        self.assertEquals(
+            "https://no.suffixed.slash.com",
+            sanitize_url("https://no.suffixed.slash.com/path/to/a/resource")
+        )
+
+        # Ensures anything after the host is dropped.
+        self.assertEquals(
+            "http://localhost",
+            sanitize_url("http://localhost")
+        )
+
+        self.assertEquals(
+            "https://localhost",
+            sanitize_url("localhost")
+        )
+
+        self.assertEquals(
+            "https://127.0.0.1",
+            sanitize_url("127.0.0.1")
+        )
+
+        # WARNING!!!!!!
+
+        # Python 2.6.x has difficulty parsing a URL that doesn't start with a scheme when there is
+        # already a port number. Python 2.7 doesn't have this issue. Ignore this bug for now since
+        # it is very unlikely Shotgun will be running off a custom port.
+
+        # Ensure that port number is also kept.
+
+        # self.assertEquals(
+        #     "https://no.scheme.com:8080",
+        #     sanitize_url("no.scheme.com:8080")
+        # )
+
+        # self.assertEquals(
+        #     "https://localhost:8000",
+        #     sanitize_url("localhost:8000")
+        # )
+
+        # self.assertEquals(
+        #     "https://127.0.0.1:8000",
+        #     sanitize_url("127.0.0.1:8000")
+        # )
+
+        # END OF WARNING!!!!!!
 
 
 class ConnectionSettingsTestCases:
@@ -138,7 +224,8 @@ class ConnectionSettingsTestCases:
 
             # Mocks app store script user credentials retrieval
             self._get_app_store_key_from_shotgun_mock = patch(
-                "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore._IODescriptorAppStore__get_app_store_key_from_shotgun",
+                "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore."
+                "_IODescriptorAppStore__get_app_store_key_from_shotgun",
                 return_value=("abc", "123")
             )
             self._get_app_store_key_from_shotgun_mock.start()
@@ -306,5 +393,3 @@ class AuthConnectionSettings(ConnectionSettingsTestCases.Impl):
                 source_store_proxy=source_store_proxy,
                 expected_store_proxy=expected_store_proxy
             )
-
-
