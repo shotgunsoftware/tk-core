@@ -365,12 +365,12 @@ class ConfigurationResolver(object):
         # 4. uploaded_config
         # 5. sg_uploaded_config
 
-
         path = ShotgunPath.from_shotgun_dict(shotgun_pc_data)
         sg_descriptor_uri = shotgun_pc_data.get("descriptor") or shotgun_pc_data.get("sg_descriptor")
         sg_uploaded_config = shotgun_pc_data.get("uploaded_config") or shotgun_pc_data.get("sg_uploaded_config")
 
         if path:
+
             if sg_descriptor_uri or sg_uploaded_config:
                 log.debug(
                     "Multiple configuration fields defined for pipeline configuration %s. "
@@ -416,7 +416,13 @@ class ConfigurationResolver(object):
 
         elif sg_uploaded_config:
 
-            if sg_uploaded_config == pc.get("uploaded_config"):
+            if shotgun_pc_data.get("sg_uploaded_config"):
+                log.debug(
+                    "Both sg_uploaded_config and uploaded_config fields are set on pipeline configuration "
+                    "%s. Using uploaded_config field.", shotgun_pc_data["id"]
+                )
+
+            if sg_uploaded_config == shotgun_pc_data.get("uploaded_config"):
                 uploaded_config_field_name = "uploaded_config"
             else:
                 uploaded_config_field_name = "sg_uploaded_config"
@@ -424,9 +430,9 @@ class ConfigurationResolver(object):
             sg_descriptor_uri = dict(
                 type="shotgun",
                 entity_type="PipelineConfiguration",
-                name=pc["code"],
+                name=shotgun_pc_data["code"],
                 version=sg_uploaded_config["id"],  # Attachment id changes for each upload, so
-                # this is a good way to detect changes in the zip file.
+                                                   # this is a good way to detect changes in the zip file.
                 field=uploaded_config_field_name,
             )
 
