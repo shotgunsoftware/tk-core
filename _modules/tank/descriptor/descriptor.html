@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.103 documentation</title>
+  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.106 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.103 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.106 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.103.<br>
+    <b>tk-core</b> v0.18.106.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -474,11 +474,13 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">documentation_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The documentation url for this item or None if not defined.</span>
+<span class="sd">        The documentation url for this item. If no documentation url has been defined,</span>
+<span class="sd">        a url to the toolkit user guide is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">doc_url</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;documentation_url&quot;</span><span class="p">)</span>
-        <span class="c1"># note - doc_url can be none which is fine.</span>
+        <span class="k">if</span> <span class="n">doc_url</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">doc_url</span> <span class="o">=</span> <span class="s2">&quot;https://support.shotgunsoftware.com/hc/en-us/articles/115000068574-User-Guide&quot;</span>
         <span class="k">return</span> <span class="n">doc_url</span>
 
     <span class="nd">@property</span>
@@ -672,7 +674,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.103',
+            VERSION:'v0.18.106',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

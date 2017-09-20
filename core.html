@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Foundation &mdash; tk-core v0.18.103 documentation</title>
+  <title>Foundation &mdash; tk-core v0.18.106 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.103 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.106 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Deploy and management" href="bootstrap.html"/> 
 
@@ -150,7 +150,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.103.<br>
+    <b>tk-core</b> v0.18.106.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -902,7 +902,7 @@ folder creation pass should be executed for a particular engine.</li>
 <h3>Context<a class="headerlink" href="#context" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.Context">
-<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">Context</code><span class="sig-paren">(</span><em>tk</em>, <em>project=None</em>, <em>entity=None</em>, <em>step=None</em>, <em>task=None</em>, <em>user=None</em>, <em>additional_entities=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Context" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">Context</code><span class="sig-paren">(</span><em>tk</em>, <em>project=None</em>, <em>entity=None</em>, <em>step=None</em>, <em>task=None</em>, <em>user=None</em>, <em>additional_entities=None</em>, <em>source_entity=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Context" title="Permalink to this definition">¶</a></dt>
 <dd><p>A context instance is used to collect a set of key fields describing the
 current Context. We sometimes refer to the context as the current work area.
 Typically this would be the current shot or asset that someone is working on.</p>
@@ -970,6 +970,33 @@ and <a class="reference internal" href="#sgtk.Sgtk.context_from_path" title="sgt
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A std shotgun link dictionary with keys id, type and name, or None if not defined</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Context.source_entity">
+<code class="descname">source_entity</code><a class="headerlink" href="#sgtk.Context.source_entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Shotgun entity that was used to construct this Context.</p>
+<p>This is not necessarily the same as the context&#8217;s &#8220;entity&#8221;, as there
+are situations where a context is interpreted from an input entity,
+such as when a PublishedFile entity is used to determine a context. In
+that case, the original PublishedFile becomes the source_entity, and
+project, entity, task, and step are determined by what the
+PublishedFile entity is linked to. A specific example of where this is
+useful is in a pick_environment core hook. In that hook, an environment
+is determined based on a provided Context object. In the case where we want
+to provide a specific environment for a Context built from a PublishedFile
+entity, the context&#8217;s source_entity can be used to know for certain that it
+was constructured from a PublishedFile.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A Shotgun entity dictionary.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict or None</td>
 </tr>
 </tbody>
 </table>
@@ -2935,7 +2962,7 @@ does not exist.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.103',
+            VERSION:'v0.18.106',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

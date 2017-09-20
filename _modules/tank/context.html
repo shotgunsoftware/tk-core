@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.context &mdash; tk-core v0.18.103 documentation</title>
+  <title>tank.context &mdash; tk-core v0.18.106 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.103 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.106 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.103.<br>
+    <b>tk-core</b> v0.18.106.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -230,7 +230,10 @@
 <span class="sd">    currently operating user.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">additional_entities</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">additional_entities</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="bp">None</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Context objects are not constructed by hand but are fabricated by the</span>
 <span class="sd">        methods :meth:`Sgtk.context_from_entity`, :meth:`Sgtk.context_from_entity_dictionary`</span>
@@ -243,6 +246,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__task</span> <span class="o">=</span> <span class="n">task</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__user</span> <span class="o">=</span> <span class="n">user</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__additional_entities</span> <span class="o">=</span> <span class="n">additional_entities</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__source_entity</span> <span class="o">=</span> <span class="n">source_entity</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_entity_fields_cache</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -255,6 +259,7 @@
         <span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  User: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__user</span><span class="p">))</span>
         <span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  Shotgun URL: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun_url</span><span class="p">)</span>
         <span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  Additional Entities: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__additional_entities</span><span class="p">))</span>
+        <span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  Source Entity: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__source_entity</span><span class="p">))</span>
         
         <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk Context: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
 
@@ -369,6 +374,16 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">additional_entities</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">additional_entities</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">False</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_entity</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">source_entity</span><span class="p">:</span>
+            <span class="c1"># If the source entities do not match types and ids, then we&#39;re not equal.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">source_entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">source_entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_entity</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">source_entity</span><span class="p">:</span>
+            <span class="c1"># If one has a source entity and the other does not, we&#39;re not equal.</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
         <span class="c1"># finally compare the user - this may result in a Shotgun look-up </span>
         <span class="c1"># so do this last!</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_entity_dicts_eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">user</span><span class="p">):</span>
@@ -403,6 +418,7 @@
         <span class="n">ctx_copy</span><span class="o">.</span><span class="n">__task</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__task</span><span class="p">,</span> <span class="n">memo</span><span class="p">)</span>
         <span class="n">ctx_copy</span><span class="o">.</span><span class="n">__user</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__user</span><span class="p">,</span> <span class="n">memo</span><span class="p">)</span>        
         <span class="n">ctx_copy</span><span class="o">.</span><span class="n">__additional_entities</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__additional_entities</span><span class="p">,</span> <span class="n">memo</span><span class="p">)</span>
+        <span class="n">ctx_copy</span><span class="o">.</span><span class="n">__source_entity</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__source_entity</span><span class="p">,</span> <span class="n">memo</span><span class="p">)</span>
         
         <span class="c1"># except:</span>
         <span class="c1"># ctx_copy._entity_fields_cache</span>
@@ -446,6 +462,28 @@
 <span class="sd">        :returns: A std shotgun link dictionary with keys id, type and name, or None if not defined</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__entity</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">source_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The Shotgun entity that was used to construct this Context.</span>
+
+<span class="sd">        This is not necessarily the same as the context&#39;s &quot;entity&quot;, as there</span>
+<span class="sd">        are situations where a context is interpreted from an input entity,</span>
+<span class="sd">        such as when a PublishedFile entity is used to determine a context. In</span>
+<span class="sd">        that case, the original PublishedFile becomes the source_entity, and</span>
+<span class="sd">        project, entity, task, and step are determined by what the</span>
+<span class="sd">        PublishedFile entity is linked to. A specific example of where this is</span>
+<span class="sd">        useful is in a pick_environment core hook. In that hook, an environment</span>
+<span class="sd">        is determined based on a provided Context object. In the case where we want</span>
+<span class="sd">        to provide a specific environment for a Context built from a PublishedFile</span>
+<span class="sd">        entity, the context&#39;s source_entity can be used to know for certain that it</span>
+<span class="sd">        was constructured from a PublishedFile.</span>
+
+<span class="sd">        :returns: A Shotgun entity dictionary.</span>
+<span class="sd">        :rtype: dict or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__source_entity</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -850,6 +888,7 @@
             <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span>
             <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="p">,</span>
             <span class="s2">&quot;additional_entities&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">additional_entities</span><span class="p">,</span>
+            <span class="s2">&quot;source_entity&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_entity</span><span class="p">,</span>
             <span class="s2">&quot;_pc_path&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
         <span class="p">}</span>
 
@@ -1196,8 +1235,38 @@
 <span class="sd">    :param tk:           Sgtk API handle</span>
 <span class="sd">    :param entity_type:  The shotgun entity type to produce a context for</span>
 <span class="sd">    :param entity_id:    The shotgun entity id to produce a context for</span>
+
 <span class="sd">    :returns: :class:`Context`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_from_entity_type_and_id</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">entity_type</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">entity_id</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">_from_entity_type_and_id</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Constructs a context from the entity type and id as stored in the given</span>
+<span class="sd">    entity. Any other data necessary to construct the context beyond the type</span>
+<span class="sd">    and id keys will be queried from Shotgun. To get a context from a fully</span>
+<span class="sd">    populated entity dictionary, see the from_entity_dictionary function.</span>
+
+<span class="sd">    For more information, see :meth:`Sgtk.context_from_entity`.</span>
+
+<span class="sd">    :param tk: Sgtk API handle</span>
+<span class="sd">    :param dict entity: The entity to construct the context from, containing</span>
+<span class="sd">        a minimum of type and id keys.</span>
+<span class="sd">    :param dict source_entity: The entity dictionary to add to the context</span>
+<span class="sd">        as its source_entity. The source entity can be different from the entity,</span>
+<span class="sd">        which is useful in the situation where a context is being built from</span>
+<span class="sd">        what the source entity is linked to, but its desirable to maintain</span>
+<span class="sd">        a reference back to the original entity. A specific example of when</span>
+<span class="sd">        this is used is for PublishedFile entities, where the Context object</span>
+<span class="sd">        represents the location in the pipeline of what the PublishedFile is</span>
+<span class="sd">        linked to. In that situation, we store the original PublishedFile entity</span>
+<span class="sd">        as the source entity, which can then be used in a pick_environment hook</span>
+<span class="sd">        to return a specific environment for PublishedFiles.</span>
+
+<span class="sd">    :returns: :class:`Context`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">entity_type</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+    <span class="n">entity_id</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
     
     <span class="k">if</span> <span class="n">entity_type</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot create a context from an entity type &#39;None&#39;!&quot;</span><span class="p">)</span>
@@ -1213,7 +1282,8 @@
         <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
         <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
         <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;additional_entities&quot;</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="s2">&quot;additional_entities&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;source_entity&quot;</span><span class="p">:</span> <span class="n">source_entity</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="k">if</span> <span class="n">entity_type</span> <span class="o">==</span> <span class="s2">&quot;Task&quot;</span><span class="p">:</span>
@@ -1232,15 +1302,15 @@
         
         <span class="k">if</span> <span class="n">sg_entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task&quot;</span><span class="p">):</span>
             <span class="c1"># base the context on the task for the published file</span>
-            <span class="k">return</span> <span class="n">from_entity</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="n">sg_entity</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">_from_entity_type_and_id</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">sg_entity</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">],</span> <span class="n">sg_entity</span><span class="p">)</span>
         
         <span class="k">elif</span> <span class="n">sg_entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entity&quot;</span><span class="p">):</span>
             <span class="c1"># base the context on the entity that the published is linked with</span>
-            <span class="k">return</span> <span class="n">from_entity</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">sg_entity</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="n">sg_entity</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">_from_entity_type_and_id</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">sg_entity</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">],</span> <span class="n">sg_entity</span><span class="p">)</span>
         
         <span class="k">elif</span> <span class="n">sg_entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;project&quot;</span><span class="p">):</span>
             <span class="c1"># base the context on the project that the published is linked with</span>
-            <span class="k">return</span> <span class="n">from_entity</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="n">sg_entity</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">_from_entity_type_and_id</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">sg_entity</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">],</span> <span class="n">sg_entity</span><span class="p">)</span>
     
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Get data from path cache</span>
@@ -1258,6 +1328,10 @@
             <span class="c1"># that only produces double entries.</span>
             <span class="n">context</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
 
+    <span class="c1"># If there isn&#39;t an explicit source_entity, we set it to be</span>
+    <span class="c1"># the same as the entity property.</span>
+    <span class="n">context</span><span class="p">[</span><span class="s2">&quot;source_entity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;source_entity&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span>
+
     <span class="k">return</span> <span class="n">Context</span><span class="p">(</span><span class="o">**</span><span class="n">context</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">):</span>
@@ -1267,8 +1341,33 @@
 <span class="sd">    For more information, see :meth:`Sgtk.context_from_entity_dictionary`.</span>
 
 <span class="sd">    :param tk: :class:`Sgtk`</span>
+<span class="sd">    :param dict entity_dictionary: The entity dictionary to create the context from</span>
+<span class="sd">        containing at least: {&quot;type&quot;:entity_type, &quot;id&quot;:entity_id}</span>
+
+<span class="sd">    :returns: :class:`Context`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Constructs a context from a Shotgun entity dictionary.</span>
+
+<span class="sd">    For more information, see :meth:`Sgtk.context_from_entity_dictionary`.</span>
+
+<span class="sd">    :param tk: :class:`Sgtk`</span>
 <span class="sd">    :param entity_dictionary: The entity dictionary to create the context from</span>
 <span class="sd">                              containing at least: {&quot;type&quot;:entity_type, &quot;id&quot;:entity_id}</span>
+<span class="sd">    :param dict source_entity: The entity dictionary to add to the context</span>
+<span class="sd">        as its source_entity. The source entity can be different from the entity,</span>
+<span class="sd">        which is useful in the situation where a context is being built from</span>
+<span class="sd">        what the source entity is linked to, but its desirable to maintain</span>
+<span class="sd">        a reference back to the original entity. A specific example of when</span>
+<span class="sd">        this is used is for PublishedFile entities, where the Context object</span>
+<span class="sd">        represents the location in the pipeline of what the PublishedFile is</span>
+<span class="sd">        linked to. In that situation, we store the original PublishedFile entity</span>
+<span class="sd">        as the source entity, which can then be used in a pick_environment hook</span>
+<span class="sd">        to return a specific environment for PublishedFiles.</span>
+
 <span class="sd">    :returns: :class:`Context`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># perform validation of the entity dictionary:</span>
@@ -1287,7 +1386,8 @@
         <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
         <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
         <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;additional_entities&quot;</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="s2">&quot;additional_entities&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;source_entity&quot;</span><span class="p">:</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">source_entity</span> <span class="ow">or</span> <span class="n">entity_dictionary</span><span class="p">),</span>
     <span class="p">}</span>
 
     <span class="n">entity_type</span> <span class="o">=</span> <span class="n">entity_dictionary</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
@@ -1315,13 +1415,25 @@
         <span class="c1"># special case handling for published files:</span>
         <span class="k">if</span> <span class="n">entity_dictionary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task&quot;</span><span class="p">):</span>
             <span class="c1"># construct a task context</span>
-            <span class="k">return</span> <span class="n">from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">_from_entity_dictionary</span><span class="p">(</span>
+                <span class="n">tk</span><span class="p">,</span>
+                <span class="n">entity_dictionary</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">],</span>
+                <span class="n">source_entity</span><span class="o">=</span><span class="n">context</span><span class="p">[</span><span class="s2">&quot;source_entity&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="n">entity_dictionary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entity&quot;</span><span class="p">):</span>
             <span class="c1"># construct an entity context</span>
-            <span class="k">return</span> <span class="n">from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">_from_entity_dictionary</span><span class="p">(</span>
+                <span class="n">tk</span><span class="p">,</span>
+                <span class="n">entity_dictionary</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">],</span>
+                <span class="n">source_entity</span><span class="o">=</span><span class="n">context</span><span class="p">[</span><span class="s2">&quot;source_entity&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="n">entity_dictionary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;project&quot;</span><span class="p">):</span>
             <span class="c1"># construct project context</span>
-            <span class="k">return</span> <span class="n">from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">_from_entity_dictionary</span><span class="p">(</span>
+                <span class="n">tk</span><span class="p">,</span>
+                <span class="n">entity_dictionary</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">],</span>
+                <span class="n">source_entity</span><span class="o">=</span><span class="n">context</span><span class="p">[</span><span class="s2">&quot;source_entity&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># fall back on from_entity:</span>
             <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="bp">True</span>
@@ -1378,7 +1490,11 @@
     <span class="k">if</span> <span class="n">fallback_to_ctx_from_entity</span><span class="p">:</span>
         <span class="c1"># entity dict doesn&#39;t contain enough information to build a </span>
         <span class="c1"># safe, valid context so fall back on &#39;from_entity&#39;:</span>
-        <span class="k">return</span> <span class="n">from_entity</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_from_entity_type_and_id</span><span class="p">(</span>
+            <span class="n">tk</span><span class="p">,</span>
+            <span class="n">entity_dictionary</span><span class="p">,</span>
+            <span class="n">source_entity</span><span class="o">=</span><span class="n">context</span><span class="p">[</span><span class="s2">&quot;source_entity&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">task</span><span class="p">:</span>
         <span class="c1"># one final check if we have a task:</span>
@@ -1918,7 +2034,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.103',
+            VERSION:'v0.18.106',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
