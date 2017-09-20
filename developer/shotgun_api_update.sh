@@ -84,7 +84,7 @@ git clone --depth 1 --branch $1 $SRC_REPO $DEST_REPO
 echo "Copying Shotgun API to the required location..."
 
 # Copy the files to the destination
-cp -R $DEST_REPO/shotgun_api3 $DEST
+cp -R $DEST_REPO/shotgun_api3 $DEST/..
 
 # Put files in the staging area.
 echo "adding new files to git..."
