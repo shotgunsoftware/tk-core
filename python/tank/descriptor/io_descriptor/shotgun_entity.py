@@ -85,8 +85,19 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             self._validate_descriptor(
                 descriptor_dict,
                 required=["type", "entity_type", "id", "version", "field"],
+                optional=[]
             )
-            self._entity_id = descriptor_dict.get("id")
+
+            # convert to int
+            try:
+                self._entity_id = int(descriptor_dict["id"])
+            except ValueError:
+                raise TankDescriptorError("Invalid id in descriptor %s" % descriptor_dict)
+
+            if "name" in descriptor_dict:
+                raise TankDescriptorError(
+                    "Shotgun descriptor cannot contain both name and id tokens: %s" % descriptor_dict
+                )
 
         else:
             self._mode = self._MODE_NAME_BASED

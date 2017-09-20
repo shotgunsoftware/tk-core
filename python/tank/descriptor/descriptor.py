@@ -339,8 +339,13 @@ class Descriptor(object):
 
     def get_path(self):
         """
-        Returns the path to the folder where this item either currently resides
-        or would reside in case it existed locally.
+        Returns the path to a location where this item is cached.
+
+        When locating the item, any bundle cache fallback paths
+        will first be searched in the order they have been defined,
+        and lastly the main bundle cached will be checked.
+
+        If the item is not locally cached, None is returned.
         """
         return self._io_descriptor.get_path()
 
