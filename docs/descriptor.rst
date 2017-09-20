@@ -84,10 +84,10 @@ The descriptor API knows how to access and locally cache each of the types above
 You can control the location where the API caches items and supply additional lookup
 locations if you want to pre-bake your own collection of caches.
 
-App store
-============
+The Shotgun App store
+=====================
 
-The Toolkit app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
+The Shotgun app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
 tested and approved by Shotgun. App store descriptors should include a name and version token and
 are on the following form::
 
@@ -117,33 +117,8 @@ v2017 of a DCC, the plugin can be set up to track against the latest released ve
 ``sgtk:descriptor:app_store?name=tk-config-dcc&label=v2017``. In this case, when the descriptor is checking
 for the latest available version in the app store, only versions labelled with v2017 will be taken into account.
 
-
-Shotgun
-============
-
-Represents a Shotgun entity to which a payload has been attached.
-This can be an attachment field on any entity. Typically it will be
-a pipeline configuration. In that configuration, the descriptor represents
-a 'cloud based configuration'. It could also be a custom entity or non-project
-entity in the case you want to store a descriptor (app, engine or config)
-that can be easily accessed from any project::
-
-    {
-        type: shotgun,
-        entity_type: PipelineConfiguration,  # entity type
-        name: primary,                       # name of the record in shotgun (e.g. 'code' field)
-        project_id: 123,                     # optional project id. If omitted, name is assumed to be unique.
-        field: sg_config,                    # attachment field where payload can be found
-        version: 456                         # attachment id of particular attachment
-    }
-
-    sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&name=primary&project_id=123&field=sg_config&version=456
-
-When the attachment field is updated, the attachment id (e.g. version field in the descriptor) changes, resulting in
-a new descriptor. This can be used to determine the latest version for a Shotgun attachment descriptor.
-
-Git and Git branch
-=======================
+Tracking against tags in git
+=============================
 
 The ``git`` descriptor type is used to track git tags and typically used when you are tracking released
 versions of something. You can use any syntax that git supports, with a path key containing the path
@@ -174,6 +149,10 @@ the repository and comparing the version numbers in order to determine the highe
 For this comparison, :py:class:`~distutils.version.LooseVersion` is used and we recommend
 that version numbers follow the semantic versioning standard that can be found at http://semver.org.
 
+
+Tracking against commits in a git branch
+========================================
+
 The ``git_branch`` descriptor type is typically used during development and allows you to track
 a commit in a particular branch::
 
@@ -203,7 +182,6 @@ descriptor is defined as the most recent commit for a given branch.
              setups, we strongly recommend using an ssh style git url
              (e.g. ``git@github.com:shotgunsoftware/tk-core.git``) in order to eliminate git
              trying to prompt for a password in the background.
-
 
 .. note:: On Windows, it is recommended that you use forward slashes.
 
@@ -280,6 +258,42 @@ a specific version number and Toolkit will associate this version number with th
 
     {"type": "dev", "path": "/path/to/app", "version": "v0.2.1"}
 
+
+
+Shotgun
+============
+
+Represents a Shotgun entity to which a payload has been attached.
+This can be an attachment field on any entity. This is an advanced
+descriptor type, effectively allowing you to utilize Shotgun itself
+as a storage mechanism for descriptor based payloads.
+
+Two formats are supported, one explicit based on a shotgun entity id and
+one implicit which uses the name in shotgun to resolve a record::
+
+    {
+        type: shotgun,
+        entity_type: PipelineConfiguration,  # entity type
+        id: 111,                             # shotgun entity id
+        field: sg_config,                    # attachment field where payload can be found
+        version: 222                         # attachment id of particular attachment
+    }
+
+    sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&id=111&field=sg_config&version=222
+
+    {
+        type: shotgun,
+        entity_type: PipelineConfiguration,  # entity type
+        name: primary,                       # name of the record in shotgun (e.g. 'code' field)
+        project_id: 123,                     # optional project id. If omitted, name is assumed to be unique.
+        field: sg_config,                    # attachment field where payload can be found
+        version: 456                         # attachment id of particular attachment
+    }
+
+    sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&name=primary&project_id=123&field=sg_config&version=456
+
+When the attachment field is updated, the attachment id (e.g. version field in the descriptor) changes, resulting in
+a new descriptor. This can be used to determine the latest version for a Shotgun attachment descriptor.
 
 
 Manual
