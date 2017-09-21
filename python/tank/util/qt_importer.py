@@ -12,6 +12,8 @@
 Qt version abstraction layer.
 """
 
+import os
+
 from ..log import LogManager
 logger = LogManager.get_logger(__name__)
 
@@ -146,10 +148,16 @@ class QtImporter(object):
         # List of all Qt 5 modules.
         sub_modules = [
             "QtGui", "QtHelp", "QtNetwork", "QtPrintSupport", "QtQml", "QtQuick", "QtQuickWidgets",
-            "QtScript", "QtSvg", "QtTest", "QtUiTools", "QtWebChannel", "QtWebEngineWidgets",
+            "QtScript", "QtSvg", "QtTest", "QtUiTools", "QtWebChannel",
             "QtWebKit", "QtWebKitWidgets", "QtWidgets", "QtWebSockets", "QtXml", "QtXmlPatterns",
             "QtScriptSql", "QtScriptTools", "QtOpenGL", "QtMultimedia"
         ]
+
+        # We have the potential for a deadlock in Maya 2018 on Windows if this
+        # is imported. We set the env var from the tk-maya engine when we
+        # detect that we are in this situation.
+        if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" not in os.environ:
+            sub_modules.append("QtWebEngineWidgets")
 
         modules_dict = {
             "QtCore": QtCore
