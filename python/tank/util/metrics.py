@@ -25,14 +25,10 @@ from threading import Event, Thread, Lock
 import urllib2
  
 from . import constants
-from ..log import LogManager
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
-
-
-log = LogManager.get_logger(__name__)
 
 
 ###############################################################################
@@ -459,10 +455,6 @@ class EventMetric(object):
                               already been logged. Defaults to ``False``.
 
         """
-        log.debug("EventMetric.log('%s', '%s')" % (
-            str(cls(group, name, properties)),
-            str(log_once)
-        ))
         MetricsQueueSingleton().log(
             cls(group, name, properties),
             log_once=log_once
