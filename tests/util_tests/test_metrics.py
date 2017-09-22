@@ -685,6 +685,19 @@ class TestMetricsDeprecatedFunctions(TankTestBase):
 
         super(TestMetricsDeprecatedFunctions, self).tearDown()
 
+    def test_legacy_util_import_statement(self):
+        """
+        Test the presence of the import log_user_*_metric statements
+        in util.__init__ to preserve retro compatibility and prevent
+        exception in legacy engine code.
+        """
+        from tank.util import log_user_activity_metric
+        from tank.util import log_user_attribute_metric
+
+        # Bogus test call to the two legacy metric methods
+        log_user_activity_metric("Test Module", "Test Action")
+        log_user_attribute_metric("Attribute", "Value")
+
     def test_log_event_metric(self):
         # Self testing that the mock setup is correct
         # by trying out a non-deprecated method.
@@ -808,6 +821,7 @@ class TestBundleMetrics(TankTestBase):
         # Make sure we don't have a dispatcher running
         if engine._metrics_dispatcher:
             self.assertFalse(engine._metrics_dispatcher.workers)
+
         # Log a metric and check it
         engine.log_metric("Engine test")
         metrics = metrics_queue.get_metrics()
