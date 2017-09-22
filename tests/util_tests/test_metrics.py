@@ -822,19 +822,6 @@ class TestBundleMetrics(TankTestBase):
         # Make sure we don't have a dispatcher running
         if engine._metrics_dispatcher:
             self.assertFalse(engine._metrics_dispatcher.workers)
-        metrics = metrics_queue.get_metrics()
-        self.assertEqual(len(metrics), 1)
-        # We should have a "Launched Software" metric, check it is right
-        data = metrics[0].data
-        self.assertEqual(data["event_group"], EventMetric.GROUP_TOOLKIT)
-        self.assertEqual(data["event_name"], "Launched Software")
-        self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP], "unknown")
-        self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown")
-        self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE], engine.name)
-        self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version)
-        self.assertFalse(EventMetric.KEY_APP in data["event_properties"])
-        self.assertFalse(EventMetric.KEY_APP_VERSION in data["event_properties"])
-        self.assertFalse(EventMetric.KEY_COMMAND in data["event_properties"])
         # Log a metric and check it
         engine.log_metric("Engine test")
         metrics = metrics_queue.get_metrics()
