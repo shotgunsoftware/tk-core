@@ -18,7 +18,7 @@ class LogMetrics(Hook):
     def execute(self, metrics):
         """
         .. warning::
-            This method is deprecated is not executed anymore.
+            This method is deprecated and is not executed anymore.
 
             Please check :meth:`LogMetrics.log_metrics`.
 
