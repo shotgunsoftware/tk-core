@@ -17,7 +17,7 @@ from __future__ import with_statement
 
 from mock import patch
 
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import TankTestBase, setUpModule, temp_env_var
 
 import sgtk
 from sgtk.descriptor import Descriptor
@@ -27,7 +27,6 @@ from sgtk.descriptor.descriptor import create_descriptor
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
 from distutils.version import LooseVersion
-
 
 
 class TestAppStoreLabels(TankTestBase):
@@ -46,6 +45,7 @@ class TestAppStoreLabels(TankTestBase):
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore._IODescriptorAppStore__create_sg_app_store_connection",
             return_value=(self.mockgun, None)
         )
+
         self._get_app_store_key_from_shotgun_mock.start()
         self.addCleanup(self._get_app_store_key_from_shotgun_mock.stop)
 
@@ -188,6 +188,7 @@ class TestAppStoreLabels(TankTestBase):
             Descriptor.FRAMEWORK,
             {"name": "tk-framework-main", "version": "v1.0.0", "type": "app_store"}
         )
+
         self.assertEqual(desc.get_uri(), "sgtk:descriptor:app_store?name=tk-framework-main&version=v1.0.0")
         desc2 = desc.find_latest_version()
         self.assertEqual(desc2.get_uri(), "sgtk:descriptor:app_store?name=tk-framework-main&version=v3.0.1")
@@ -238,4 +239,105 @@ class TestAppStoreLabels(TankTestBase):
         self.assertEqual(
             desc2.get_uri(),
             "sgtk:descriptor:app_store?label=2018.3.45&name=tk-framework-main&version=v3.0.1"
+        )
+
+        descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
+            {"name": "tk-config-basic", "version": "v1.0.0", "type": "app_store"},
+            self.mockgun,
+            sgtk.descriptor.Descriptor.CONFIG
+        )
+
+    def test_concurrent_downloads_to_shared_bundle_cache(self):
+        """
+        Tests concurrent app store downloads to a shared bundle cache path.
+        """
+        import os
+        import multiprocessing
+        import time
+
+        metadata = {
+            'sg_version_data':
+            {
+                'sg_payload':
+                {
+                    'name': 'attachment-17922.zip',
+                    'content_type': 'application/zip',
+                    'type': 'Attachment',
+                    'id': 17922,
+                    'link_type': 'upload',
+                 }
+            },
+            'sg_bundle_data': {},
+        }
+
+        def _get_attachment_data(attachment_id):
+            """
+            :param attachment_id: The attachment id of the file to be downloaded.
+            :return: Binary data of zip file associated with the attachment id.
+            """
+            file_name = os.path.join(
+                self.fixtures_root,
+                "descriptor_tests",
+                "bundles",
+                "attachment-%d.zip" %(attachment_id)
+            )
+            with open(file_name, "rb") as f:
+                content = f.read()
+            return content
+
+        def _download_bundle(target):
+            """
+            :param target: The path to which the bundle is to be downloaded.
+            """
+            try:
+                with temp_env_var(SHOTGUN_BUNDLE_CACHE_PATH=target):
+                    desc = create_descriptor(
+                        None,
+                        Descriptor.FRAMEWORK,
+                        {"name": "tk-test-bundle", "version": "v1.0.0", "type": "app_store"}
+                    )
+                    io_descriptor_app_store = 'tank.descriptor.io_descriptor.appstore.IODescriptorAppStore'
+                    with patch(
+                        "%s._IODescriptorAppStore__refresh_metadata" % (io_descriptor_app_store),
+                        return_value=metadata
+                    ):
+                        with patch(
+                            'tank_vendor.shotgun_api3.lib.mockgun.Shotgun.download_attachment',
+                            side_effect=_get_attachment_data
+                        ):
+                            desc.download_local()
+            except Exception as e:
+                raise e
+
+        processes = []
+        errors = []
+
+        # the shared bundle cache path to which app store data is to be downloaded.
+        shared_dir = os.path.join(self.tank_temp, "shared_bundle_cache" )
+        try:
+            # spawn 10 processes that begin downloading data to the shared path.
+            for x in range(10):
+                process = multiprocessing.Process(target=_download_bundle, args=(shared_dir,))
+                process.start()
+                processes.append(process)
+        except Exception as e:
+            errors.append(e)
+
+        # wait until all processes have finished
+        all_processes_finished = False
+        while not all_processes_finished:
+            time.sleep(0.1)
+            all_processes_finished = all(not(process.is_alive()) for process in processes)
+
+        # bit-wise OR the exit codes of all processes.
+        all_processes_exit_code = reduce(
+            lambda x, y: x | y,
+            [process.exitcode for process in processes]
+        )
+
+        # Make sure none of the child processes had non-zero exit codes.
+        self.assertEqual(
+            all_processes_exit_code,
+            0,
+            "Failed to write concurrently to shared bundle cache: %s" %",".join(errors)
         )

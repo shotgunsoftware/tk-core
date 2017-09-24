@@ -17,7 +17,6 @@ from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
 from . import constants
 
-
 def create_descriptor(
         sg_connection,
         descriptor_type,
@@ -67,8 +66,12 @@ def create_descriptor(
     from .descriptor_installed_config import InstalledConfigDescriptor
     from .descriptor_core import CoreDescriptor
 
-    # if bundle root is not set, fall back on default location
-    if bundle_cache_root_override is None:
+    # use the environment variable if set - if not, fall back on the override or default locations
+    if os.environ.get(constants.BUNDLE_CACHE_PATH_ENV_VAR):
+        bundle_cache_root_override = os.path.expandvars(
+            os.path.expanduser(os.environ.get(constants.BUNDLE_CACHE_PATH_ENV_VAR))
+        )
+    elif bundle_cache_root_override is None:
         bundle_cache_root_override = _get_default_bundle_cache_root()
         filesystem.ensure_folder_exists(bundle_cache_root_override)
     else:

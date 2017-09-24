@@ -414,6 +414,9 @@ class Shotgun(object):
     def upload_thumbnail(self, entity_type, entity_id, path, **kwargs):
         pass
 
+    def download_attachment(self, attachment=False, file_path=None, attachment_id=None):
+        pass
+
     ###################################################################################################
     # internal methods and members
 
@@ -780,7 +783,3 @@ class Shotgun(object):
     def _validate_entity_exists(self, entity_type, entity_id):
         if entity_id not in self._db[entity_type]:
             raise ShotgunError("No entity of type %s exists with id %s" % (entity_type, entity_id))
-
-
-
-
