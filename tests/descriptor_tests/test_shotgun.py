@@ -29,84 +29,72 @@ class TestShotgunIODescriptor(TankTestBase):
 
         self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
 
-    def test_construction(self):
-        """
-        Test validation and construction of shotgun descriptor
-        """
+    def _create_desc(self, location):
+        """Helper method"""
+        return sgtk.descriptor.create_descriptor(
+            self.tk.shotgun,
+            sgtk.descriptor.Descriptor.APP,
+            location
+        )
 
-        def _create_desc(location):
-            return sgtk.descriptor.create_descriptor(
-                self.tk.shotgun,
-                sgtk.descriptor.Descriptor.APP,
+    def test_construction_validation(self):
+        """
+        Test validation of shotgun descriptor
+        """
+        def _test_raises_error(location):
+            self.assertRaises(
+                sgtk.descriptor.TankDescriptorError,
+                self._create_desc,
                 location
             )
 
-        self.assertRaises(
-            sgtk.descriptor.TankDescriptorError,
-            _create_desc,
-            {"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field"}
-        )
-
-        self.assertRaises(
-            sgtk.descriptor.TankDescriptorError,
-            _create_desc,
-            {"type": "shotgun", "version": 123, "field": "sg_field", "id": 123}
-        )
-
-        self.assertRaises(
-            sgtk.descriptor.TankDescriptorError,
-            _create_desc,
-            {"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field"}
-        )
-
-        self.assertRaises(
-            sgtk.descriptor.TankDescriptorError,
-            _create_desc,
-            {"type": "shotgun", "entity_type": "Shot", "field": "sg_field", "id": 123}
-        )
+        # test all required parameters are provided
+        _test_raises_error({"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field"})
+        _test_raises_error({"type": "shotgun", "version": 123, "field": "sg_field", "id": 123})
+        _test_raises_error({"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field"})
+        _test_raises_error({"type": "shotgun", "entity_type": "Shot", "field": "sg_field", "id": 123})
 
         # test entity id not nan
-        self.assertRaises(
-            sgtk.descriptor.TankDescriptorError,
-            _create_desc,
-            {"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field", "id": "nan"}
-        )
+        _test_raises_error({"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field", "id": "nan"})
 
         # test version id not int
-        self.assertRaises(
-            sgtk.descriptor.TankDescriptorError,
-            _create_desc,
+        _test_raises_error(
             {"type": "shotgun", "version": "nan", "entity_type": "Shot", "field": "sg_field", "id": "123"}
         )
 
         # cannot specify both id and name
-        self.assertRaises(
-            sgtk.descriptor.TankDescriptorError,
-            _create_desc,
+        _test_raises_error(
             {"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field", "id": 123, "name": "aaa123"}
         )
 
         # test project id not int
-        self.assertRaises(
-            sgtk.descriptor.TankDescriptorError,
-            _create_desc,
+        _test_raises_error(
             {"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field", "project_id": "foo", "name": "aaa123"}
         )
 
-        id_desc = _create_desc({
+    def test_construction_by_id(self):
+        """
+        Test construction of shotgun descriptor by name
+        """
+        # test construction by name
+        id_desc = self._create_desc({
             "type": "shotgun",
             "version": 123,
             "entity_type": "Shot",
             "field": "sg_field",
             "id": 1234
             })
-
         self.assertEquals(id_desc.system_name, "Shot_1234")
         self.assertEquals(id_desc.version, "v123")
         self.assertEquals(id_desc.is_dev(), False)
         self.assertEquals(id_desc.is_immutable(), True)
 
-        name_desc = _create_desc({
+    def test_construction_by_name(self):
+        """
+        Test construction of shotgun descriptor by name
+        """
+        # test construction by id
+        name_desc = self._create_desc({
             "type": "shotgun",
             "version": "123",
             "entity_type": "Shot",
@@ -117,7 +105,7 @@ class TestShotgunIODescriptor(TankTestBase):
         self.assertEquals(name_desc.system_name, "aaa111")
         self.assertEquals(name_desc.version, "v123")
 
-        name_proj_desc = _create_desc({
+        name_proj_desc = self._create_desc({
             "type": "shotgun",
             "version": 123,
             "entity_type": "Shot",
@@ -165,7 +153,7 @@ class TestShotgunIODescriptor(TankTestBase):
         self.assertEquals(desc.get_path(), expected_path)
 
     @patch("sgtk.util.shotgun.download_and_unpack_attachment")
-    def test_resolve_project(self, _call_rpc_mock):
+    def test_resolve_name_and_project(self, _call_rpc_mock):
         """
         Test downloading descriptor based on name
         """
@@ -202,9 +190,266 @@ class TestShotgunIODescriptor(TankTestBase):
         desc.ensure_local()
         self.assertEquals(desc.get_path(), expected_path)
 
-    def test_get_latest(self):
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_get_latest_by_id(self, find_mock):
         """
-        Test resolcing la
-        :return:
+        Tests resolving the latest descriptor based on id
         """
-        pass
+        def our_find_mock(*args, **kwargs):
+            self.assertEquals(
+                args,
+                ('Shot', [['id', 'is', 456]])
+            )
+            self.assertEquals(
+                kwargs,
+                {'retired_only': False, 'fields': ['sg_field'], 'filter_operator': None, 'order': None}
+            )
+
+            return [{
+                "type": "Shot",
+                "id": 456,
+                "sg_field": {
+                    'name': 'v1.2.3.zip',
+                    'url': 'https://sg-media-usor-01.s3.amazonaws.com/foo/bar',
+                    'content_type': 'application/zip',
+                    'type': 'Attachment',
+                    'id': 139,
+                    'link_type': 'upload'
+                }
+            }]
+
+        find_mock.side_effect = our_find_mock
+
+        desc = sgtk.descriptor.create_descriptor(
+            self.tk.shotgun,
+            sgtk.descriptor.Descriptor.APP,
+            {
+                "type": "shotgun",
+                "version": 0,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": 456,
+            },
+            bundle_cache_root_override=self.bundle_cache
+        )
+
+        self.assertEquals(desc.version, "v0")
+        latest_desc = desc.find_latest_version()
+        self.assertEquals(latest_desc.version, "v139")
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_get_latest_by_name(self, find_mock):
+        """
+        Tests resolving the latest descriptor based on name
+        """
+        def our_find_mock(*args, **kwargs):
+            self.assertEquals(
+                args,
+                ('Shot', [['code', 'is', 'Primary']])
+            )
+            self.assertEquals(
+                kwargs,
+                {'retired_only': False, 'fields': ['sg_field'], 'filter_operator': None, 'order': None}
+            )
+
+            return [{
+                "type": "Shot",
+                "id": 456,
+                "sg_field": {
+                    'name': 'v1.2.3.zip',
+                    'url': 'https://sg-media-usor-01.s3.amazonaws.com/foo/bar',
+                    'content_type': 'application/zip',
+                    'type': 'Attachment',
+                    'id': 139,
+                    'link_type': 'upload'
+                }
+            }]
+
+        find_mock.side_effect = our_find_mock
+
+        desc = sgtk.descriptor.create_descriptor(
+            self.tk.shotgun,
+            sgtk.descriptor.Descriptor.APP,
+            {
+                "type": "shotgun",
+                "version": 0,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "name": "Primary",
+            },
+            bundle_cache_root_override=self.bundle_cache
+        )
+
+        self.assertEquals(desc.version, "v0")
+        latest_desc = desc.find_latest_version()
+        self.assertEquals(latest_desc.version, "v139")
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_get_latest_by_name_and_proj(self, find_mock):
+        """
+        Tests resolving the latest descriptor based on name and project
+        """
+        def our_find_mock(*args, **kwargs):
+            self.assertEquals(
+                args,
+                ('Shot', [['code', 'is', 'Primary'], ['project', 'is', {'type': 'Project', 'id': 1334}]])
+            )
+            self.assertEquals(
+                kwargs,
+                {'retired_only': False, 'fields': ['sg_field'], 'filter_operator': None, 'order': None}
+            )
+
+            return [{
+                "type": "Shot",
+                "id": 456,
+                "sg_field": {
+                    'name': 'v1.2.3.zip',
+                    'url': 'https://sg-media-usor-01.s3.amazonaws.com/foo/bar',
+                    'content_type': 'application/zip',
+                    'type': 'Attachment',
+                    'id': 139,
+                    'link_type': 'upload'
+                }
+            }]
+
+        find_mock.side_effect = our_find_mock
+
+        desc = sgtk.descriptor.create_descriptor(
+            self.tk.shotgun,
+            sgtk.descriptor.Descriptor.APP,
+            {
+                "type": "shotgun",
+                "version": 0,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "name": "Primary",
+                "project_id": 1334,
+            },
+            bundle_cache_root_override=self.bundle_cache
+        )
+
+        self.assertEquals(desc.version, "v0")
+        latest_desc = desc.find_latest_version()
+        self.assertEquals(latest_desc.version, "v139")
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_find_invalid_attachment(self, find_mock):
+        """
+        Tests resolving an attachment which doesn't have an uploaded attachment
+        """
+        def our_find_mock(*args, **kwargs):
+            return [{
+                "type": "Shot",
+                "id": 456,
+                "sg_field": {
+                    'name': 'v1.2.3.zip',
+                    'url': 'https://sg-media-usor-01.s3.amazonaws.com/foo/bar',
+                    'content_type': 'application/zip',
+                    'type': 'Attachment',
+                    'id': 139,
+                    'link_type': 'url'
+                }
+            }]
+
+        find_mock.side_effect = our_find_mock
+
+        desc = sgtk.descriptor.create_descriptor(
+            self.tk.shotgun,
+            sgtk.descriptor.Descriptor.APP,
+            {
+                "type": "shotgun",
+                "version": 0,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": 456,
+            },
+            bundle_cache_root_override=self.bundle_cache
+        )
+
+        self.assertEquals(desc.version, "v0")
+        self.assertRaises(sgtk.descriptor.TankDescriptorError, desc.find_latest_version)
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_missing_record(self, find_mock):
+        """
+        Tests behavior when a shotgun record is missing
+        """
+        def our_find_mock(*args, **kwargs):
+            # nothing in shotgun
+            return []
+
+        find_mock.side_effect = our_find_mock
+
+        desc = sgtk.descriptor.create_descriptor(
+            self.tk.shotgun,
+            sgtk.descriptor.Descriptor.APP,
+            {
+                "type": "shotgun",
+                "version": 0,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": 456,
+            },
+            bundle_cache_root_override=self.bundle_cache
+        )
+
+        self.assertEquals(desc.version, "v0")
+        self.assertRaises(
+            sgtk.descriptor.TankDescriptorError,
+            desc.find_latest_version
+        )
+
+    def test_get_latest_cached_by_name(self):
+        """
+        Tests resolving locally cached items by name
+        """
+        root_path = os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "Shot.sg_field", "p123_aaa111")
+        os.makedirs(os.path.join(root_path, "v123"))
+        os.makedirs(os.path.join(root_path, "v99"))
+        os.makedirs(os.path.join(root_path, "invalid_stuff"))
+        os.makedirs(os.path.join(root_path, "v2454"))
+
+        desc = sgtk.descriptor.create_descriptor(
+            self.tk.shotgun,
+            sgtk.descriptor.Descriptor.APP,
+            {
+                "type": "shotgun",
+                "version": 0,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "name": "aaa111",
+                "project_id": 123
+            },
+            bundle_cache_root_override=self.bundle_cache
+        )
+
+        self.assertEquals(desc.version, "v0")
+        latest_cached = desc.find_latest_cached_version()
+        self.assertEquals(latest_cached.version, "v2454")
+
+    def test_get_latest_cached_by_id(self):
+        """
+        Tests resolving locally cached items by id
+        """
+        root_path = os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "Shot.sg_field", "567")
+        os.makedirs(os.path.join(root_path, "v123"))
+        os.makedirs(os.path.join(root_path, "v99"))
+        os.makedirs(os.path.join(root_path, "invalid_stuff"))
+        os.makedirs(os.path.join(root_path, "v2454"))
+
+        desc = sgtk.descriptor.create_descriptor(
+            self.tk.shotgun,
+            sgtk.descriptor.Descriptor.APP,
+            {
+                "type": "shotgun",
+                "version": 0,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": 567
+            },
+            bundle_cache_root_override=self.bundle_cache
+        )
+
+        self.assertEquals(desc.version, "v0")
+        latest_cached = desc.find_latest_cached_version()
+        self.assertEquals(latest_cached.version, "v2454")

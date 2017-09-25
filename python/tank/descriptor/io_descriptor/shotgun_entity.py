@@ -261,7 +261,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         data = self._sg_connection.find_one(self._entity_type, filters, [self._field])
 
         if data is None:
-            raise TankDescriptorError("Cannot resolve find descriptor %s in Shotgun!" % self)
+            raise TankDescriptorError("Cannot resolve descriptor %s in Shotgun!" % self)
 
         # attachment field is on the following form in the case a file has been
         # uploaded:
@@ -329,7 +329,18 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         all_versions = self._get_locally_cached_versions().keys()
         log.debug("Found %d versions" % len(all_versions))
 
-        if len(all_versions) == 0:
+        # convert string of versions to ints
+        all_versions_int = []
+        for version_str in all_versions:
+            # remove any prefix v
+            if version_str[0] == "v":
+                version_str = version_str[1:]
+            try:
+                all_versions_int.append(int(version_str))
+            except ValueError:
+                log.warning("%r: Ignoring invalid cached version number" % version_str)
+
+        if len(all_versions_int) == 0:
             return None
 
         # make a descriptor dict
@@ -339,7 +350,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
                 "entity_type": self._entity_type,
                 "field": self._field,
                 "name": self._name,
-                "version": max(all_versions)
+                "version": max(all_versions_int)
             }
 
             if self._project_link:
@@ -351,7 +362,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
                 "entity_type": self._entity_type,
                 "field": self._field,
                 "id": self._entity_id,
-                "version": max(all_versions)
+                "version": max(all_versions_int)
             }
 
         # and return a descriptor instance

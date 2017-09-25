@@ -346,6 +346,8 @@ class Descriptor(object):
         and lastly the main bundle cached will be checked.
 
         If the item is not locally cached, None is returned.
+
+        :returns: Path string or None if not cached.
         """
         return self._io_descriptor.get_path()
 
