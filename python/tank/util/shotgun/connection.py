@@ -207,6 +207,24 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
     return config_data
 
 
+def _sanitize_url(server_url):
+
+    # Then break up the url into chunks
+    tokens_parsed = urlparse.urlparse(server_url)
+
+    # Then extract the good parts from the url
+    clean_url_tokens = urlparse.ParseResult(
+        # We want https when there is no specified scheme.
+        scheme=tokens_parsed.scheme or "https",
+        # If only a host has been provided, path will be set.
+        # If a scheme was set, then use the netloc
+        netloc=tokens_parsed.netloc or tokens_parsed.path,
+        path="", params="", query="", fragment=""
+    )
+
+    return urlparse.urlunparse(clean_url_tokens)
+
+
 def sanitize_url(server_url):
     """
     Cleans up a url to that only scheme, host and optional port number remains.
@@ -222,12 +240,6 @@ def sanitize_url(server_url):
     :returns: The cleaned up URL.
     """
 
-    # First clean up any extra spaces.
-    server_url = server_url.strip()
-
-    # Then break up the url into chunks
-    parsed_url = urlparse.urlparse(server_url)
-
     # FIXME: Python 2.6.x has difficulty parsing a URL that doesn't start with a scheme when there
     # is already a port number. Python 2.7 doesn't have this issue. Ignore this bug for now since it
     # is very unlikely Shotgun will be running off a custom port.
@@ -241,17 +253,15 @@ def sanitize_url(server_url):
     # As such, when sanitizing a url, we want to keep only the scheme and
     # network location
 
-    # Then extract the good parts from the url
-    clean_url = urlparse.ParseResult(
-        # We want https when there is no specified scheme.
-        scheme=parsed_url.scheme or "https",
-        # If only a host has been provided, path will be set.
-        # If a scheme was set, then use the netloc
-        netloc=parsed_url.netloc or parsed_url.path,
-        path="", params="", query="", fragment=""
-    )
-
-    return urlparse.urlunparse(clean_url)
+    first_pass = _sanitize_url(server_url.strip())
+    # We have to do two passes here. The reason is that if you use a slash in your URL but provide
+    # no scheme, the urlparse/unparse calls will recreate the URL as is. Fortunately, when the
+    # scheme is missing we're adding in https://. At that point the url is not ambiguous anymore for
+    # urlparse/urlparse and it can split the url correctly into 
+    # - https (scheme)
+    # - test.shogunstudio.com (network location)
+    # - /... (path)
+    return _sanitize_url(first_pass)
 
 
 def get_associated_sg_base_url():
