@@ -10,9 +10,8 @@
 
 import sys
 import os
-import inspect
+import glob
 from optparse import OptionParser
-
 
 
 # Let the user know which Python is picked up to run the tests.
@@ -68,32 +67,77 @@ class TankTestRunner(object):
         sys.path.append(self.test_path)
         self.suite = None
 
-    def setup_suite(self, test_name):
+    def setup_suite(self, test_names):
         # args used to specify specific module.TestCase.test
-        if test_name:
-            self.suite = unittest.loader.TestLoader().loadTestsFromName(test_name)
+        if test_names:
+            test_names_iterator = self._massage_test_names(test_names)
+            self.suite = unittest.loader.TestLoader().loadTestsFromNames(test_names_iterator)
         else:
             self.suite = unittest.loader.TestLoader().discover(self.test_path)
 
-    def run_tests(self, test_name):
-        self.setup_suite(test_name)
+    def run_tests(self, test_names):
+        self.setup_suite(test_names)
         return unittest.TextTestRunner(verbosity=2).run(self.suite)
 
+    def _massage_test_names(self, test_names):
+        """
+        Massages the text input by the user in order to convert all input into proper
+        python modules path.
 
-def _initialize_coverage():
+        For example::
+            core_tests/test_api.py -> [core_tests.test_api]
+            authentication_tests -> [all test_*.py files]
+
+        :param test_names: List of file names and/or module paths.
+        """
+        for test_name in test_names:
+            # If the user used tab completion there will be an extra path separator at
+            # the end, so remove it.
+            if test_name[-1] == os.path.sep:
+                test_name = test_name[:-1]
+
+            # If a test name looks like a file name, turn the slashes into . and remove the
+            # extension.
+            test_name = test_name.replace("/", ".").replace(".py", "")
+
+            # If we have a simple module name, no sub-module, then, run all the tests in that
+            # module.
+            if "." not in test_name:
+                # Grab all the python files named after test_*.py
+                for filename in self._massage_test_names(
+                    # Generate clean module/submodule.py files without the fully qualified path.
+                    # Skip the extra /
+                    os.path.abspath(filename).replace(self.test_path, "")[1:]
+                    for filename in glob.iglob(os.path.join(self.test_path, test_name, "test_*.py"))
+                ):
+                    yield filename
+            else:
+                yield test_name
+
+
+def _initialize_coverage(test_root):
     """
     Starts covering the code inside the tank module.
 
-    :returns: The coverate instance.
+    :returns: The coverage instance.
     """
     import coverage
-    run_tests_py_location = inspect.getsourcefile(_initialize_coverage)
-    coveragerc_location = os.path.abspath(
-        os.path.join(
-            os.path.dirname(run_tests_py_location), # <root>/tests
-            "..", # <root>
-            ".coveragerc") # <root>/.coveragerc
-    )
+
+    if test_root:
+        coveragerc_location = os.path.abspath(
+            os.path.join(
+                test_root, # <root>/tests
+                "..", # <root>
+                ".coveragerc") # <root>/.coveragerc
+        )
+    else:
+        run_tests_py_location = __file__
+        coveragerc_location = os.path.abspath(
+            os.path.join(
+                os.path.dirname(run_tests_py_location), # <root>/tests
+                "..", # <root>
+                ".coveragerc") # <root>/.coveragerc
+        )
     cov = coverage.coverage(config_file=coveragerc_location)
     cov.start()
     return cov
@@ -105,8 +149,6 @@ def _finalize_coverage(cov):
     """
     cov.stop()
     cov.report()
-    cov.html_report(directory="coverage_html_report")
-    print "Note: Full html coverage report can be found in the coverage_html_report folder."
 
     try:
         # seems to be some CI issues with html coverage so
@@ -131,7 +173,7 @@ def _initialize_logging(log_to_console):
         tank.LogManager().initialize_custom_handler()
 
 
-def _run_tests(test_root, test_name):
+def _run_tests(test_root, test_names):
     """
     Runs the tests.
 
@@ -146,7 +188,7 @@ def _run_tests(test_root, test_name):
     else:
         tank_test_runner = TankTestRunner()
 
-    return tank_test_runner.run_tests(test_name)
+    return tank_test_runner.run_tests(test_names)
 
 
 def _parse_command_line():
@@ -174,16 +216,14 @@ def _parse_command_line():
 
     (options, args) = parser.parse_args()
 
-    test_name = None
-    if args:
-        test_name = args[0]
+    test_names = args or []
 
-    return options, test_name
+    return options, test_names
 
 
 if __name__ == "__main__":
 
-    options, test_name = _parse_command_line()
+    options, test_names = _parse_command_line()
 
     # Do not import Toolkit before coverage or it will tank (pun intended) our coverage
     # score. We'll do this test even when we're not running code coverage to make sure
@@ -194,11 +234,11 @@ if __name__ == "__main__":
         )
 
     if options.coverage:
-        cov = _initialize_coverage()
+        cov = _initialize_coverage(options.test_root)
 
     _initialize_logging(options.log_to_console)
 
-    ret_val = _run_tests(options.test_root, test_name)
+    ret_val = _run_tests(options.test_root, test_names)
 
     if options.coverage:
         _finalize_coverage(cov)
