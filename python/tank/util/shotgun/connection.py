@@ -207,7 +207,26 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
     return config_data
 
 
-def _sanitize_url(server_url):
+def __sanitize_url(server_url):
+    """
+    Parses a URL and makes sure it has a scheme and no extra / and path.
+
+    ..note:: Calling this method only once might yield incorrect result. Always call
+        the sanitize_url function instead.
+
+    :param str server_url: URL to clean up.
+
+    :returns: The cleaned up URL.
+    """
+
+    # The given url https://192.168.1.250:30/path?a=b is parsed such that
+    # scheme => https
+    # netloc => 192.168.1.250:30
+    # path = /path
+    # query = a=b
+
+    # As such, when sanitizing a url, we want to keep only the scheme and
+    # network location
 
     # Then break up the url into chunks
     tokens_parsed = urlparse.urlparse(server_url)
@@ -243,17 +262,7 @@ def sanitize_url(server_url):
     # FIXME: Python 2.6.x has difficulty parsing a URL that doesn't start with a scheme when there
     # is already a port number. Python 2.7 doesn't have this issue. Ignore this bug for now since it
     # is very unlikely Shotgun will be running off a custom port.
-
-    # The given url https://192.168.1.250:30/path?a=b is parsed such that
-    # scheme => https
-    # netloc => 192.168.1.250:30
-    # path = /path
-    # query = a=b
-
-    # As such, when sanitizing a url, we want to keep only the scheme and
-    # network location
-
-    first_pass = _sanitize_url(server_url.strip())
+    first_pass = __sanitize_url(server_url.strip())
     # We have to do two passes here. The reason is that if you use a slash in your URL but provide
     # no scheme, the urlparse/unparse calls will recreate the URL as is. Fortunately, when the
     # scheme is missing we're adding in https://. At that point the url is not ambiguous anymore for
@@ -261,7 +270,7 @@ def sanitize_url(server_url):
     # - https (scheme)
     # - test.shogunstudio.com (network location)
     # - /... (path)
-    return _sanitize_url(first_pass)
+    return __sanitize_url(first_pass)
 
 
 def get_associated_sg_base_url():
