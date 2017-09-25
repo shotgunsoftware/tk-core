@@ -257,7 +257,7 @@ def sanitize_url(server_url):
     # We have to do two passes here. The reason is that if you use a slash in your URL but provide
     # no scheme, the urlparse/unparse calls will recreate the URL as is. Fortunately, when the
     # scheme is missing we're adding in https://. At that point the url is not ambiguous anymore for
-    # urlparse/urlparse and it can split the url correctly into 
+    # urlparse/urlparse and it can split the url correctly into
     # - https (scheme)
     # - test.shogunstudio.com (network location)
     # - /... (path)
