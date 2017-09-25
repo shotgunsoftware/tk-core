@@ -8,7 +8,7 @@ Required packages
 * mock
 * coverage (only if coverage option is used)
 
-These are all packaged under tests/python/third_party.
+These are all packaged under `tests/python/third_party`.
 
 Running the test suite
 -----------------------
@@ -18,6 +18,10 @@ To run specific test(s), specify module, or module.class or module.class.test:
 
     $ run_tests.sh test_tank_content.TestValidate.test_valid_path
 
+To run all the tests from a specific file, you can specify both the module or file path:
+
+    $ run_tests.sh tank_module_test.test_module
+    $ run_tests.sh tank_module_test/test_module.py
 
 To run tests without using run_tests script:
 
@@ -54,7 +58,6 @@ This method copies the config files, test apps and engines from the data directo
 
 ###TankTestBase.add_production_path
 This method adds a fake entity to the mocked shotgun, creates the entities path in test project and registers that entity with that path in the test project's path cache.
-
 
 Setting up a test
 -----------------

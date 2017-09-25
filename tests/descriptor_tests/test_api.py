@@ -12,10 +12,12 @@ import os
 import tempfile
 import uuid
 import sgtk
+import tank
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import setUpModule # noqa
 
-
+import tank
 
 class TestApi(TankTestBase):
     """
@@ -31,7 +33,6 @@ class TestApi(TankTestBase):
         fh = open(os.path.join(path, "info.yml"), "wt")
         fh.write("# unit test placeholder file\n\n")
         fh.close()
-
 
     def test_factory(self):
         """
@@ -104,7 +105,7 @@ class TestApi(TankTestBase):
             {"type": "app_store", "name": "tk-testbundlefactory"},
             resolve_latest=True
         )
-        self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?version=v0.1.6&name=tk-testbundlefactory")
+        self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?name=tk-testbundlefactory&version=v0.1.6")
 
         # if we add a new local version, this will be picked up as latest
         app_root_path = os.path.join(
@@ -121,7 +122,7 @@ class TestApi(TankTestBase):
             {"type": "app_store", "name": "tk-testbundlefactory"},
             resolve_latest=True
         )
-        self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?version=v0.2.3&name=tk-testbundlefactory")
+        self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?name=tk-testbundlefactory&version=v0.2.3")
 
         # we can do a direct lookup even when the version flag is set
         # but it will result in a latest version translation
@@ -131,8 +132,7 @@ class TestApi(TankTestBase):
             {"type": "app_store", "version": "v9999.1.6", "name": "tk-testbundlefactory"},
             resolve_latest=True
         )
-        self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?version=v0.2.3&name=tk-testbundlefactory")
-
+        self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?name=tk-testbundlefactory&version=v0.2.3")
 
     def test_alt_cache_root(self):
         """
@@ -164,7 +164,6 @@ class TestApi(TankTestBase):
         self._touch_info_yaml(app_root_path)
         self.assertEqual(d.get_path(), app_root_path)
 
-
     def _test_uri(self, uri, location_dict):
 
         computed_dict = sgtk.descriptor.descriptor_uri_to_dict(uri)
@@ -176,7 +175,7 @@ class TestApi(TankTestBase):
         """
         Test dict/uri syntax and conversion
         """
-        uri = "sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle"
+        uri = "sgtk:descriptor:app_store?name=tk-bundle&version=v0.1.2"
         dict = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
         self._test_uri(uri, dict)
 
@@ -184,7 +183,7 @@ class TestApi(TankTestBase):
         dict = {"type": "path", "path": "/foo/bar"}
         self._test_uri(uri, dict)
 
-        uri = "sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle"
+        uri = "sgtk:descriptor:app_store?name=tk-bundle&version=v0.1.2"
         dict = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
         self._test_uri(uri, dict)
 
@@ -196,5 +195,21 @@ class TestApi(TankTestBase):
         dict = {"type": "git", "version": "v0.1.2", "path": "git@github.com:shotgunsoftware/tk-core.git"}
         self._test_uri(uri, dict)
 
-
-
+    def test_backwards_compatible(self):
+        """
+        Ensures the API is backwards compatible as we've moved and renamed some exception classes.
+        """
+        # Descriptor backwards compatibility
+        self.assertEqual(
+            sgtk.descriptor.TankInvalidAppStoreCredentialsError,
+            sgtk.descriptor.InvalidAppStoreCredentialsError
+        )
+        self.assertEqual(
+            sgtk.descriptor.TankCheckVersionConstraintsError,
+            sgtk.descriptor.CheckVersionConstraintsError
+        )
+        # Core api compatibility
+        self.assertEqual(
+            sgtk.descriptor.TankInvalidInterpreterLocationError,
+            sgtk.TankInvalidInterpreterLocationError
+        )
