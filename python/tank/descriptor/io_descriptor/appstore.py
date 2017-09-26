@@ -416,15 +416,6 @@ class IODescriptorAppStore(IODescriptorBase):
             return True
         return False
 
-    def _get_metadata_folder(self, path):
-        """
-        Returns the corresponding metadata folder given a path
-        """
-        # Do not set this as a hidden folder (with a . in front) in case somebody does a
-        # rm -rf * or a manual deletion of the files. This will ensure this is treated just like
-        # any other file.
-        return os.path.join(path, "appstore-metadata")
-
     def download_local(self):
         """
         Retrieves this version to local repo.

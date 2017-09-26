@@ -240,7 +240,7 @@ class TestIODescriptors(TankTestBase):
             """
             Returns content of the file represented by `file_path`.
             :param attachment_id: The attachment id of the file to be downloaded.
-            :return: Binary data of zip file associated with the attachment id.
+            :return: Binary data of zip file associated with the file_path.
             """
             with open(file_path, "rb") as f:
                 content = f.read()
