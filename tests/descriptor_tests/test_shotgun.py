@@ -12,7 +12,7 @@ import os
 
 import sgtk
 from mock import patch
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
 
 class TestShotgunIODescriptor(TankTestBase):
