@@ -346,19 +346,28 @@ class Environment(object):
                             "key for app %s.%s" % (self._env_path, engine_name, app_name))
         return descriptor_dict
 
-    def find_location_for_engine(self, engine_name):
+    def find_location_for_engine(self, engine_name, absolute_location=False):
         """
         Returns the filename and a list of dictionary keys where an engine instance resides.
         The dictionary key list (tokens) can be nested, for example [engines, tk-maya] or just flat [tk-maya-ref]
 
-        :param engine_name: The name of the engine to find
-        :returns:           (list of tokens, file path)
+        :param str engine_name: The name of the engine to find
+        :param bool absolute_location: Whether to resolve to the yml file and
+            tokens that point to the concrete location descriptor of the bundle.
+
+        :returns: (list of tokens, file path)
         """
         # get the raw data:
         root_yml_data = self.__load_environment_data()
         
         # find the location for the engine:
-        tokens, path = self.__find_location_for_bundle(self._env_path, root_yml_data, "engines", engine_name)
+        tokens, path = self.__find_location_for_bundle(
+            self._env_path,
+            root_yml_data,
+            "engines",
+            engine_name,
+            absolute_location=absolute_location,
+        )
     
         if not path:
             raise TankError("Failed to find the location of the '%s' engine in the '%s' environment!"
@@ -393,7 +402,7 @@ class Environment(object):
         fw_location = environment_includes.find_framework_location(starting_point, framework_name, self.__context)
         return True if fw_location else False
 
-    def find_location_for_framework(self, framework_name):
+    def find_location_for_framework(self, framework_name, absolute_location=False):
         """
         Returns the filename and a list of dictionary keys where a framework instance resides.
         The dictionary key list (tokens) can be nested, for example [frameworks, tk-framework-widget_v0.2.x]
@@ -407,13 +416,22 @@ class Environment(object):
         The second stage is to check for a framework (or frameworks block) that has been
         specified using the @include syntax.
 
-        :param framework_name:  The name of the framework to find the location of
-        :returns:               (list of tokens, file path)
+        :param framework_name: The name of the framework to find the location of
+        :param bool absolute_location: Whether to resolve to the yml file and
+            tokens that point to the concrete location descriptor of the bundle.
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
         """
         # first, try to find the place on disk of the framework definition that will be used at
         # run-time.  This handles the special case where multiple 'frameworks' blocks from
         # different levels of included files have been concatenated together.
-        fw_location = environment_includes.find_framework_location(self._env_path, framework_name, self.__context)
+        fw_location = environment_includes.find_framework_location(
+            self._env_path,
+            framework_name,
+            self.__context,
+        )
+
         if not fw_location:
             # assume the framework is in the environment - this also handles the @include syntax
             # not handled by the previous search method!
@@ -423,7 +441,13 @@ class Environment(object):
         root_yml_data = self.__load_data(fw_location)
 
         # find the location for the framework:
-        tokens, path = self.__find_location_for_bundle(fw_location, root_yml_data, "frameworks", framework_name)
+        tokens, path = self.__find_location_for_bundle(
+            fw_location,
+            root_yml_data,
+            "frameworks",
+            framework_name,
+            absolute_location=absolute_location,
+        )
 
         if not path:
             raise TankError("Failed to find the location of the '%s' framework in the '%s' environment!"
@@ -431,15 +455,19 @@ class Environment(object):
 
         return tokens, path
 
-    def find_location_for_app(self, engine_name, app_name):
+    def find_location_for_app(self, engine_name, app_name, absolute_location=False):
         """
         Returns the filename and the dictionary key where an app instance resides.
         The dictionary key list (tokens) can be nested, for example [engines, tk-maya, apps, tk-multi-about]
         or just flat [tk-mylti-about-def]
 
-        :param engine_name: The name of the engine to look for the app in
-        :param app_name:    The name of the app to find
-        :returns:           (list of tokens, file path)
+        :param str engine_name: The name of the engine to look for the app in
+        :param str app_name: The name of the app to find
+        :param bool absolute_location: Whether to resolve to the yml file and
+            tokens that point to the concrete location descriptor of the bundle.
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
         """
         # first, find the location of the engine:
         (engine_tokens, engine_yml_file) = self.find_location_for_engine(engine_name)
@@ -454,7 +482,14 @@ class Environment(object):
             engine_data = engine_data.get(x)
 
         # find the location for the app within the engine data:
-        tokens, path = self.__find_location_for_bundle(engine_yml_file, engine_data, "apps", app_name, engine_tokens)
+        tokens, path = self.__find_location_for_bundle(
+            engine_yml_file,
+            engine_data,
+            "apps",
+            app_name,
+            engine_tokens,
+            absolute_location=absolute_location,
+        )
         
         if not path:
             raise TankError("Failed to find the location of the '%s' app under the '%s' engine in the '%s' environment!"
@@ -462,7 +497,10 @@ class Environment(object):
         
         return tokens, path
 
-    def __find_location_for_bundle(self, yml_file, parent_yml_data, section_name, bundle_name, parent_tokens=None):
+    def __find_location_for_bundle(
+        self, yml_file, parent_yml_data, section_name, bundle_name,
+        parent_tokens=None, absolute_location=False
+    ):
         """
         Return the location for the specified bundle within the specified section of the parent yml data block.
 
@@ -471,36 +509,67 @@ class Environment(object):
         :param section_name:        The name of the section that contains the bundle
         :param bundle_name:         The name of the bundle to find
         :param bundle_tokens:       A list of tokens representing the path to the parent data block
+        :param absolute_location:   Whether to ensure that the file path and tokens returned
+                                    references where the given bundle's location descriptor is
+                                    defined in full. This should be used when determining where
+                                    the bundles descriptor is defined in the config, but is not
+                                    necessarily the correct approach when looking for higher-level
+                                    configuration, such as getting
+
         :returns:                   (list of tokens, file path)
         """
         bundle_tokens = list(parent_tokens or [])
         bundle_yml_file = yml_file
 
-        # check to see if the whole bundle section is a reference or not:
+        # Check to see if the whole bundle section is a reference.
         bundle_section = parent_yml_data[section_name]
         bundle_data = None
-        if isinstance(bundle_section, basestring) and bundle_section.startswith("@"):
+
+        is_included = lambda a: isinstance(a, basestring) and a.startswith("@")
+
+        if is_included(bundle_section):
             # whole section is a reference!
             bundle_section_token = bundle_section[1:]
-            bundle_yml_file = environment_includes.find_reference(bundle_yml_file, self.__context, bundle_section_token)
+            bundle_yml_file, bundle_section_token = environment_includes.find_reference(
+                bundle_yml_file,
+                self.__context,
+                bundle_section_token,
+                absolute_location,
+            )
             bundle_yml_data = self.__load_data(bundle_yml_file)
             bundle_data = bundle_yml_data[bundle_section_token]
             bundle_tokens = [bundle_section_token]
         else:
-            # found the right section:
-            bundle_tokens.append(section_name)
             bundle_data = bundle_section.get(bundle_name)
+            bundle_tokens.append(section_name)
 
         if not bundle_data:
             # failed to find the data for the specified bundle!
             return ([], None)
 
-        if isinstance(bundle_data, basestring) and bundle_data.startswith("@"):
-            # this is a reference!
-            # now we are at the top of the token stack again because we switched files
+        if is_included(bundle_data):
+            # This is a reference, so we need to flatten it out.
             bundle_token = bundle_data[1:]
+            bundle_yml_file, bundle_token = environment_includes.find_reference(
+                bundle_yml_file,
+                self.__context,
+                bundle_token,
+                absolute_location,
+            )
             bundle_tokens = [bundle_token]
-            bundle_yml_file = environment_includes.find_reference(bundle_yml_file, self.__context, bundle_token)
+        elif absolute_location:
+            # The bundle data isn't included, but we need to make sure that
+            # the location is concrete if we've been asked to ensure that.
+            location = bundle_data.get(constants.ENVIRONMENT_LOCATION_KEY)
+
+            if is_included(location):
+                bundle_yml_file, bundle_token = environment_includes.find_reference(
+                    bundle_yml_file,
+                    self.__context,
+                    location[1:], # Trim the @ at the head.
+                    absolute_location,
+                )
+                bundle_tokens = [bundle_token]
         else:
             # bundle is defined in the current file
             bundle_tokens.append(bundle_name)
@@ -749,7 +818,10 @@ class WritableEnvironment(InstalledEnvironment):
         if engine_name not in self._env_data["engines"]:
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
 
-        (tokens, yml_file) = self.find_location_for_engine(engine_name)
+        (tokens, yml_file) = self.find_location_for_engine(
+            engine_name,
+            absolute_location=True,
+        )
 
         # now update the yml file where the engine is defined
         yml_data = self.__load_writable_yaml(yml_file)
@@ -760,8 +832,22 @@ class WritableEnvironment(InstalledEnvironment):
         for x in tokens:
             engine_data = engine_data.get(x)
 
-        if new_location:
+        # This is ghetto, but is required given the current design of
+        # this environment API and how the updates work. We might be in
+        # a situation where we're updating a descriptor, but in a bare
+        # data structure in the yml that isn't under a "location" key.
+        # This is possible and probably in configs structured like
+        # tk-config-basic and tk-config-default2, where we have locations
+        # centralized in an include file, and those are then referenced
+        # into location settings for bundled in other yml files. In that
+        # situation we need to drop the new location into the bundle
+        # settings as is, so as not to create a new location key where
+        # it isn't correct to have one.
+        if new_location and constants.ENVIRONMENT_LOCATION_KEY in engine_data:
             engine_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        elif new_location:
+            engine_data = new_location
+
 
         self._update_settings_recursive(engine_data, new_data)
         self.__write_data(yml_file, yml_data)
@@ -780,7 +866,11 @@ class WritableEnvironment(InstalledEnvironment):
         if app_name not in self._env_data["engines"][engine_name]["apps"]:
             raise TankError("App %s.%s does not exist in environment %s" % (engine_name, app_name, self._env_path) )
 
-        (tokens, yml_file) = self.find_location_for_app(engine_name, app_name)
+        (tokens, yml_file) = self.find_location_for_app(
+            engine_name,
+            app_name,
+            absolute_location=True,
+        )
 
         # now update the yml file where the engine is defined
         yml_data = self.__load_writable_yaml(yml_file)
@@ -791,8 +881,21 @@ class WritableEnvironment(InstalledEnvironment):
         for x in tokens:
             app_data = app_data.get(x)
 
-        # finally update the file
-        app_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        # This is ghetto, but is required given the current design of
+        # this environment API and how the updates work. We might be in
+        # a situation where we're updating a descriptor, but in a bare
+        # data structure in the yml that isn't under a "location" key.
+        # This is possible and probably in configs structured like
+        # tk-config-basic and tk-config-default2, where we have locations
+        # centralized in an include file, and those are then referenced
+        # into location settings for bundled in other yml files. In that
+        # situation we need to drop the new location into the bundle
+        # settings as is, so as not to create a new location key where
+        # it isn't correct to have one.
+        if new_location and constants.ENVIRONMENT_LOCATION_KEY in app_data:
+            app_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        elif new_location:
+            app_data = new_location
 
         self._update_settings_recursive(app_data, new_data)
         self.__write_data(yml_file, yml_data)
@@ -808,7 +911,10 @@ class WritableEnvironment(InstalledEnvironment):
         if framework_name not in self._env_data["frameworks"]:
             raise TankError("Framework %s does not exist in environment %s" % (framework_name, self._env_path) )
 
-        (tokens, yml_file) = self.find_location_for_framework(framework_name)
+        (tokens, yml_file) = self.find_location_for_framework(
+            framework_name,
+            absolute_location=True,
+        )
 
         # now update the yml file where the engine is defined
         yml_data = self.__load_writable_yaml(yml_file)
@@ -819,8 +925,21 @@ class WritableEnvironment(InstalledEnvironment):
         for x in tokens:
             framework_data = framework_data.get(x)
 
-        if new_location:
+        # This is ghetto, but is required given the current design of
+        # this environment API and how the updates work. We might be in
+        # a situation where we're updating a descriptor, but in a bare
+        # data structure in the yml that isn't under a "location" key.
+        # This is possible and probably in configs structured like
+        # tk-config-basic and tk-config-default2, where we have locations
+        # centralized in an include file, and those are then referenced
+        # into location settings for bundled in other yml files. In that
+        # situation we need to drop the new location into the bundle
+        # settings as is, so as not to create a new location key where
+        # it isn't correct to have one.
+        if new_location and constants.ENVIRONMENT_LOCATION_KEY in framework_data:
             framework_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        elif new_location:
+            framework_data = new_location
 
         self._update_settings_recursive(framework_data, new_data)
         self.__write_data(yml_file, yml_data)

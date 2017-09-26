@@ -268,28 +268,89 @@ def find_framework_location(file_name, framework_name, context):
     # return the location of the framework if we can
     return root_fw_lookup.get(framework_name) or None
     
-def find_reference(file_name, context, token):
+def find_reference(file_name, context, token, absolute_location=False):
     """
-    Non-recursive. Looks at all include files and searches
-    for @token. Returns the file in which it is found.
+    Non-recursive unless the absolute_location argument is True. Looks at all
+    include files and searches for @token. Returns the file in which
+    it is found when absolute_location is False, and returns a tuple containing
+    the file path and the token where the data can be found.
+
+    :param str file_name: The yml file to find the reference in.
+    :param context: The context object to use when resolving includes.
+    :param str token: The token to search for.
+    :param bool absolute_location: Whether to recurse up the environment stack
+        until absolute data is found. If this is True, a tuple containing
+        the file path and token where the absolute can be found.
+
+    :returns: Tuple containing the file path where the data was found
+        and the token within the file where the data resides.
+    :rtype: tuple
     """
-    
     # load the data in 
     data = g_yaml_cache.get(file_name) or {}
     
     # first build our big fat lookup dict
     include_files = _resolve_includes(file_name, data, context)
-    
     found_file = None
-    
+    found_token = token
+
     for include_file in include_files:
-                
         # path exists, so try to read it
         included_data = g_yaml_cache.get(include_file) or {}
         
         if token in included_data:
-            found_file = include_file
-        
-    return found_file
+            # If we've been asked to ensure an absolute location, we need
+            # to do some extra work, which might involve recursing up the
+            # config stack until we get to a location descriptor dictionary.
+            if absolute_location:
+                token_data = included_data[token]
+                include_token = None
+
+                # If the value of the token is an include, then we can
+                # recurse up, directly referencing the include name as
+                # the new token.
+                if isinstance(token_data, basestring) and token_data.startswith("@"):
+                    include_token = token_data
+                else:
+                    # In the case where the data isn't itself an include,
+                    # we also need to make sure that the location descriptor
+                    # is itself not an include. If it is, then we still have
+                    # to recurse up the stack until we find the absolute
+                    # location descriptor. In that case, the location value
+                    # becomes the token we're looking for.
+                    if constants.ENVIRONMENT_LOCATION_KEY in included_data[token]:
+                        # Check to see if there's a location descriptor. If there
+                        # is then we need to check to see if that's an include.
+                        location = included_data[token][constants.ENVIRONMENT_LOCATION_KEY]
+                        if location and isinstance(location, basestring) and location.startswith("@"):
+                            include_token = location
+
+                # If we have an include we need to resolve, we take the current
+                # file where we found the include, and the included name becomes
+                # the new token we're looking for.
+                if include_token is not None:
+                    found_file, found_token = find_reference(
+                        include_file,
+                        context,
+                        include_token[1:],
+                        absolute_location=True,
+                    )
+                else:
+                    # We're at the top and we have the concrete location
+                    # descriptor. We can return the include file and token
+                    # where the data was found.
+                    found_file = include_file
+                    found_token = token
+            else:
+                # We've not been asked to resolve the absolute location, so we
+                # don't do any additional work.
+                found_file = include_file
+
+    return (found_file, found_token)
     
+
+
+
+
+
 
