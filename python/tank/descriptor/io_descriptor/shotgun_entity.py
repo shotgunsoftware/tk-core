@@ -159,12 +159,20 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         # cache into the primary location
         target = self._get_primary_cache_path()
 
+        # ensure that the parent directory of the target is present.
+        filesystem.ensure_folder_exists(os.path.dirname(target))
+
+        # get the temporary download location
+        temporary_path = self._get_temporary_cache_path()
+
         try:
-            shotgun.download_and_unpack_attachment(self._sg_connection, self._version, target)
+            shotgun.download_and_unpack_attachment(self._sg_connection, self._version, temporary_path)
         except ShotgunAttachmentDownloadError, e:
             raise TankDescriptorError(
                 "Failed to download %s from %s. Error: %s" % (self, self._sg_connection.base_url, e)
             )
+
+        self.attempt_move(temporary_path, target)
 
     def get_latest_version(self, constraint_pattern=None):
         """

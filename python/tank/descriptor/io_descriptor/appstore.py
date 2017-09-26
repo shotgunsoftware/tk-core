@@ -55,9 +55,6 @@ class IODescriptorAppStore(IODescriptorBase):
     {type: app_store, name: NAME, version: VERSION}
 
     """
-
-    _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "download_complete"
-
     # cache app store connections for performance
     _app_store_connections = {}
 
@@ -406,8 +403,7 @@ class IODescriptorAppStore(IODescriptorBase):
 
     def _exists_local(self, path):
         """
-        Checks is the bundle exists on disk and ensures that it has been completely
-        downloaded if possible.
+        Checks if the bundle exists on disk.
 
         :param str path: Path to the bundle to test.
 
@@ -416,36 +412,9 @@ class IODescriptorAppStore(IODescriptorBase):
         if not super(IODescriptorAppStore, self)._exists_local(path):
             return False
 
-        # Now that we are guaranteed there is a folder on disk, we'll attempt to do some integrity
-        # checking.
-
-        # The metadata folder is a folder that lives inside the bundle.
-        metadata_folder = self._get_metadata_folder(path)
-
-        # If the metadata folder does not exist, this is a bundle that was downloaded with an older
-        # core. We will have to assume that it has been unzipped correctly.
-        if not os.path.isdir(metadata_folder):
-            log.debug(
-                "Pre-core-0.18.80 AppStore download found at '%s'. Assuming it is complete.", metadata_folder
-            )
+        if os.path.exists(path):
             return True
-
-        # Great, we're in the presence of a bundle that was downloaded with integrity check logic.
-
-        # The completed file flag is a file that gets written out after the bundle has been
-        # completely unzipped.
-        completed_file_flag = os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
-
-        # If the complete file flag is missing, it means the download operation failed, so we'll
-        # consider it as inexistent.
-        if os.path.exists(completed_file_flag):
-            return True
-        else:
-            log.debug(
-                "Note: Missing download complete ticket file '%s'. "
-                "This suggests a partial download" % completed_file_flag
-            )
-            return False
+        return False
 
     def _get_metadata_folder(self, path):
         """
@@ -468,12 +437,9 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # cache into the primary location
         target = self._get_primary_cache_path()
-        # create folder
-        filesystem.ensure_folder_exists(target)
 
-        # create settings folder
-        metadata_folder = self._get_metadata_folder(target)
-        filesystem.ensure_folder_exists(metadata_folder)
+        # create the parent folder
+        filesystem.ensure_folder_exists(os.path.dirname(target))
 
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
@@ -493,18 +459,19 @@ class IODescriptorAppStore(IODescriptorBase):
         #  'link_type': 'upload'}
         attachment_id = version[constants.TANK_CODE_PAYLOAD_FIELD]["id"]
 
+        # get the temporary directory
+        temporary_path = self._get_temporary_cache_path()
+
         # download and unzip
         try:
-            shotgun.download_and_unpack_attachment(sg, attachment_id, target)
+            shotgun.download_and_unpack_attachment(sg, attachment_id, temporary_path)
         except ShotgunAttachmentDownloadError, e:
             raise TankAppStoreError(
                 "Failed to download %s. Error: %s" % (self, e)
             )
 
-        # write end receipt
-        filesystem.touch_file(
-            os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
-        )
+        # attempt to move this directory to the target
+        self.attempt_move(temporary_path, target)
 
         # write a stats record to the tank app store
         try:

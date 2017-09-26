@@ -146,19 +146,23 @@ class IODescriptorGitTag(IODescriptorGit):
             # nothing to do!
             return
 
-        # cache into the primary location
-        target = self._get_primary_cache_path()
+        # cache into a temporary location
+        temporary_path = self._get_temporary_cache_path()
 
+        # move into primary location
+        target = self._get_primary_cache_path()
         try:
             # clone the repo, checkout the given tag
             commands = ["checkout -q \"%s\"" % self._version]
-            self._clone_then_execute_git_commands(target, commands)
-
+            self._clone_then_execute_git_commands(temporary_path, commands)
         except Exception, e:
             raise TankDescriptorError(
                 "Could not download %s, "
                 "tag %s: %s" % (self._path, self._version, e)
             )
+
+        # move the temporary path to the target directory.
+        self.attempt_move(temporary_path, target)
 
     def get_latest_version(self, constraint_pattern=None):
         """

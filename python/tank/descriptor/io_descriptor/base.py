@@ -11,8 +11,10 @@
 import os
 import re
 import cgi
+import shutil
 import urllib
 import urlparse
+import uuid
 
 from .. import constants
 from ... import LogManager
@@ -51,6 +53,7 @@ class IODescriptorBase(object):
         self._descriptor_dict = descriptor_dict
         self.__manifest_data = None
         self._is_copiable = True
+        self._download_identifier = uuid.uuid4().hex
 
     def set_cache_roots(self, primary_root, fallback_roots):
         """
@@ -627,6 +630,12 @@ class IODescriptorBase(object):
         paths.append(self._get_primary_cache_path())
         return paths
 
+    def _get_temporary_cache_path(self):
+        """
+        Returns the temporary download cache path for this descriptor.
+        """
+        return os.path.join(self._bundle_cache_root, "tmp", self._download_identifier)
+
     def get_path(self):
         """
         Returns the path to the folder where this item resides. If no
@@ -692,6 +701,26 @@ class IODescriptorBase(object):
         filesystem.ensure_folder_exists(new_cache_path, permissions=0777)
         filesystem.copy_folder(source_cache_path, new_cache_path, skip_list=[])
         return True
+
+    def attempt_move(self, src, dst):
+        """
+        Attempts to move a file/folder from source to destination.
+        :param src: The source file/folder.
+        :param dst: The destination file/folder.
+        """
+        # Proceed with the move only if the destination is not an existing folder.
+        # If the destination is a folder and exists, the move operation causes the source
+        # to be nested inside the destination folder, which is not the desirable behavior.
+        try:
+            if not os.path.isdir(dst):
+                shutil.move(src, dst)
+        except OSError as e:
+            # We choose to ignore any failed move attempts, as this might stem from
+            # concurrent processes moving a source to the same destination.
+            pass
+        except Exception as e:
+            # Raise any other exceptions that occur while moving the source to destination.
+            raise Exception("An error occurred while moving %s to %s. Error: %s" %(src, dst, e))
 
     ###############################################################################################
     # implemented by deriving classes

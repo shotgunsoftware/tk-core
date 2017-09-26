@@ -10,11 +10,18 @@
 
 from __future__ import with_statement
 import os
+from mock import patch
+import multiprocessing
+import tempfile
+import time
+import uuid
+import zipfile
 
 from tank_test.tank_test_base import TankTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
 
 import sgtk
+import tank
 
 
 class TestIODescriptors(TankTestBase):
@@ -224,18 +231,190 @@ class TestIODescriptors(TankTestBase):
         self.assertEqual(d.get_path(), bundle_path)
         self.assertEqual(d.find_latest_cached_version(), d)
 
-        # create metadata folder
-        metadata_dir = os.path.join(bundle_path, "appstore-metadata")
-        os.makedirs(metadata_dir)
+    def test_concurrent_downloads_to_shared_bundle_cache(self):
+        """
+        Tests if concurrent downloads to a shared bundle cache can be handled
+        for shotgun-related descriptors.
+        """
+        def _get_attachment_data(file_path):
+            """
+            Returns content of the file represented by `file_path`.
+            :param attachment_id: The attachment id of the file to be downloaded.
+            :return: Binary data of zip file associated with the attachment id.
+            """
+            with open(file_path, "rb") as f:
+                content = f.read()
+            return content
 
-        # because download receipt is missing, nothing is detected
-        self.assertEqual(d.get_path(), None)
-        self.assertEqual(d.find_latest_cached_version(), None)
+        def _download_and_unpack_attachment(sg, attachment_id, target, retries=5):
+            """
+            Mock implementation of the tank.util.shotgun.download_and_unpack_attachment() that
+            reads a pre-generated zip file and unpacks it to the target.
 
-        # add download receipt and re-check
-        path = os.path.join(metadata_dir, "download_complete")
-        with open(path, "wt") as fh:
-            fh.write("test data\n")
+            :param sg: Mocked Shotgun API instance
+            :param attachment_id: Attachment ID to download
+            :param target: Folder to unpack zip to. if not created, the method will
+                           try to create it.
+            :param retries: Number of times to retry before giving up
+            """
+            attempt = 0
+            done = False
 
-        self.assertEqual(d.get_path(), bundle_path)
-        self.assertEqual(d.find_latest_cached_version(), d)
+            while not done and attempt < retries:
+
+                zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
+                try:
+                    bundle_content = _get_attachment_data(attachment_zip_path)
+                    with open(zip_tmp, "wb") as fh:
+                        fh.write(bundle_content)
+
+                    tank.util.filesystem.ensure_folder_exists(target)
+                    tank.util.zip.unzip_file(zip_tmp, target)
+                except Exception as e:
+                    print("Attempt %s: Attachment download failed: %s" % (attempt, e))
+                    attempt += 1
+                    # sleep 500ms before we retry
+                    time.sleep(0.5)
+                else:
+                    done = True
+                finally:
+                    # remove zip file
+                    tank.util.filesystem.safe_delete_file(zip_tmp)
+            if not done:
+                # we were not successful
+                raise Exception("Failed to download after %s retries." % (retries))
+
+        def _generate_zip_file(size=10):
+            """
+            Generates a zip file containing a single file of `size` Megabytes.
+            :return: The path of the zip file
+            """
+            text_file_path = os.path.join(tempfile.gettempdir(), "%s_tank_content" % uuid.uuid4().hex)
+            # write 10 MB of data into the text file
+            with open(text_file_path, "wb") as f:
+                f.seek((1024 * 1024 * size) - 1)
+                f.write("\0")
+
+            zip_file_path = os.path.join(tempfile.gettempdir(), "%s_tank_source.zip" % uuid.uuid4().hex)
+            with zipfile.ZipFile(zip_file_path, "w") as zf:
+                zf.write(text_file_path, arcname="large_binary_file")
+            return zip_file_path
+
+        def _create_desc(location, resolve_latest=False, desc_type=sgtk.descriptor.Descriptor.CONFIG):
+            """
+            Helper method around create_descriptor
+            """
+            return sgtk.descriptor.create_descriptor(
+                self.tk.shotgun,
+                desc_type,
+                location,
+                resolve_latest=resolve_latest)
+
+        def _download_app_store_bundle(target):
+            """
+            Creates an app store descriptor and attempts to download it locally.
+            :param target: The path to which the bundle is to be downloaded.
+            """
+            try:
+                with temp_env_var(SHOTGUN_BUNDLE_CACHE_PATH=target):
+                    desc = sgtk.descriptor.create_descriptor(
+                        None,
+                        sgtk.descriptor.Descriptor.FRAMEWORK,
+                        {"name": "tk-test-bundle", "version": "v1.0.0", "type": "app_store"}
+                    )
+                    io_descriptor_app_store = "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
+                    with patch(
+                        "%s._IODescriptorAppStore__create_sg_app_store_connection" % io_descriptor_app_store,
+                        return_value=(self.mockgun, None)
+                    ):
+                        with patch(
+                            "%s._IODescriptorAppStore__refresh_metadata" % io_descriptor_app_store,
+                            return_value=metadata
+                        ):
+                            with patch(
+                                "tank.util.shotgun.download_and_unpack_attachment",
+                                side_effect=_download_and_unpack_attachment):
+
+                                desc.download_local()
+            except Exception as e:
+                raise e
+
+        def _download_shotgun_bundle(target):
+            """
+            Creates a shotgun descriptor and attempts to download it locally.
+            :param target: The path to which the bundle is to be downloaded
+            """
+            try:
+                with temp_env_var(SHOTGUN_BUNDLE_CACHE_PATH=target):
+                    location = {
+                        "type": "shotgun",
+                        "entity_type": "PipelineConfiguration",
+                        "name": "primary",
+                        "project_id": 123,
+                        "field": "sg_config",
+                        "version": 456
+                    }
+                    desc = _create_desc(location)
+                    with patch(
+                        "tank.util.shotgun.download_and_unpack_attachment",
+                        side_effect=_download_and_unpack_attachment):
+                        desc.download_local()
+            except Exception as e:
+                raise e
+
+        processes = []
+        errors = []
+        attachment_zip_path = _generate_zip_file()
+        metadata = {
+            'sg_version_data':
+                {
+                    'sg_payload':
+                        {
+                            'name': 'attachment-17922.zip',
+                            'content_type': 'application/zip',
+                            'type': 'Attachment',
+                            'id': 17922,
+                            'link_type': 'upload',
+                        }
+                },
+            'sg_bundle_data': {},
+        }
+
+        # the shared bundle cache path to which app store data is to be downloaded.
+        shared_dir = os.path.join(self.tank_temp, "shared_bundle_cache")
+        try:
+            # spawn 10 processes that begin downloading data to the shared path.
+            for x in range(10):
+                process = multiprocessing.Process(target=_download_app_store_bundle, args=(shared_dir,))
+                process.start()
+                processes.append(process)
+        except Exception as e:
+            errors.append(e)
+
+        try:
+            # spawn 10 processes that begin downloading data to the shared path.
+            for x in range(10):
+                process = multiprocessing.Process(target=_download_shotgun_bundle, args=(shared_dir,))
+                process.start()
+                processes.append(process)
+        except Exception as e:
+            errors.append(e)
+
+        # wait until all processes have finished
+        all_processes_finished = False
+        while not all_processes_finished:
+            time.sleep(0.1)
+            all_processes_finished = all(not (process.is_alive()) for process in processes)
+
+        # bit-wise OR the exit codes of all processes.
+        all_processes_exit_code = reduce(
+            lambda x, y: x | y,
+            [process.exitcode for process in processes]
+        )
+
+        # Make sure none of the child processes had non-zero exit statuses.
+        self.assertEqual(
+            all_processes_exit_code,
+            0,
+            "Failed to write concurrently to shared bundle cache: %s" % ",".join(errors)
+        )
