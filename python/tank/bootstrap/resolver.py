@@ -67,7 +67,7 @@ class ConfigurationResolver(object):
         Constructor
 
         :param plugin_id: The plugin id of the system that is being bootstrapped.
-        :param project_id: Project id to create a config object for, None for the site config.
+        :param project_id: Project id to create a config object for, ``None`` for the site config.
         :param bundle_cache_fallback_paths: Optional list of additional paths where apps are cached.
         """
         self._project_id = project_id
@@ -177,7 +177,7 @@ class ConfigurationResolver(object):
 
         :param cfg_descriptor: ConfigDescriptor for which we want to create a Configuration object.
         :param sg_connection: Connection to Shotgun.
-        :param pc_id: Id of the pipeline configuration in Shotgun. Can be None.
+        :param pc_id: Id of the pipeline configuration in Shotgun. Can be ``None``.
         """
 
         log.debug("Creating Configuration instance from %r." % cfg_descriptor)
@@ -242,11 +242,11 @@ class ConfigurationResolver(object):
 
         :returns: A list of pipeline configuration entity dictionaries with an
                   extra key 'config_descriptor' added representing a resolved descriptor
-                  instance pointng at the associated configuration to be used for this
+                  instance pointing at the associated configuration to be used for this
                   pipeline configuration. Please note that this method returns all
                   pipeline configs matching the given project, meaning that sometimes
-                  the 'config_descriptor' key may be None, for example in the case where
-                  a pipeline configuration is defined for the project for windows and you
+                  the 'config_descriptor' key may be ``None``, for example in the case where
+                  a pipeline configuration is defined for the project for Windows and you
                   are currently running on a mac.
         :rtype: list
         """
@@ -343,7 +343,7 @@ class ConfigurationResolver(object):
         :param dict shotgun_pc_data: Pipeline configuration dictionary with keys ``descriptor``,
             ``sg_descriptor`` and ``*_path`.
 
-        :returns: A :class:`sgtk.descriptor.ConfigDescriptorBase` instance or None if the
+        :returns: A :class:`sgtk.descriptor.ConfigDescriptorBase` instance or ``None`` if the
             pipeline configuration is valid but defines a configuration which cannot be
             reached from the current runtime environment. The typical example when this
             happens is if a pipeline configuration defines a path for some operating

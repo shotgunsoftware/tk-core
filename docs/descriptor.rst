@@ -263,37 +263,66 @@ a specific version number and Toolkit will associate this version number with th
 Pointing at a file attachment in Shotgun
 ============================================
 
-Represents a Shotgun entity to which a payload has been attached.
-This can be an attachment field on any entity. This is an advanced
-descriptor type, effectively allowing you to utilize Shotgun itself
-as a storage mechanism for descriptor based payloads.
+The Shotgun descriptor allows you to upload an attachment directly
+to Shotgun and then reference it with a descriptor.
+
+This allows for workflows where you can distribute configurations, custom apps
+or other items to your distributed users - regardless of network or file access.
+All they need is a connection to Shotgun.
+
+A practical application of this is Toolkit's cloud based configurations;
+by uploading a zipped up Toolkit configuration to the ``PipelineConfiguration.uploaded_config``
+field (or a custom field named ``PipelineConfiguration.sg_uploaded_config`` if you have an older
+Shotgun site which does not have the field included by default). The :class:`~sgtk.bootstrap.ToolkitManager`
+boostrapping interface will automatically look for an uploaded zip file in this field,
+and if it exists, start your Toolkit session using this configuration. This allows for a workflow
+where a configuration can be distributed to remote users easily.
+
+The Shotgun descriptor is the low level mechanism that is used to implement the cloud
+configurations described above. The descriptor points at a particular attachment
+field in Shotgun and expects a zip file to be uploaded to the field.
 
 Two formats are supported, one explicit based on a shotgun entity id and
-one implicit which uses the name in shotgun to resolve a record::
+one implicit which uses the name in shotgun to resolve a record. With the
+id based syntax you specify the Shotgun entity type and field name you want
+to look for and the entity id to inspect. For example, if your attachment field is called
+``PipelineConfiguration.sg_uploaded_config`` and you want to access the uploaded payload for
+the Pipeline Configuration entity with id 111, use the following descriptor::
 
     {
         type: shotgun,
         entity_type: PipelineConfiguration,  # entity type
         id: 111,                             # shotgun entity id
-        field: sg_config,                    # attachment field where payload can be found
+        field: sg_uploaded_config,           # attachment field where payload can be found
         version: 222                         # attachment id of particular attachment
     }
 
     sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&id=111&field=sg_config&version=222
 
+
+The version token above refers to the version of the attachment. Every time a new
+attachment is uploaded to Shotgun, it gets assigned a unique id and the version
+number in the descriptor allows you to point at a particular version of an uploaded
+attachment. It is also used to handle the underlying logic to understand what the
+latest version of an attachment is.
+
+In some workflows, typically where you follow name based naming conventions, the
+following syntax can be useful::
+
     {
         type: shotgun,
         entity_type: PipelineConfiguration,  # entity type
-        name: primary,                       # name of the record in shotgun (e.g. 'code' field)
+        name: Primary,                       # name of the record in shotgun (e.g. 'code' field)
         project_id: 123,                     # optional project id. If omitted, name is assumed to be unique.
-        field: sg_config,                    # attachment field where payload can be found
+        field: sg_uploaded_config,           # attachment field where payload can be found
         version: 456                         # attachment id of particular attachment
     }
 
     sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&name=primary&project_id=123&field=sg_config&version=456
 
-When the attachment field is updated, the attachment id (e.g. version field in the descriptor) changes, resulting in
-a new descriptor. This can be used to determine the latest version for a Shotgun attachment descriptor.
+Here, instead of specifying the entity id you can specify a ``name`` and an optional ``project_id`` field. The name
+field will be translated into an appropriate Shotgun name field, typically the ``code`` field.
+
 
 
 Manual Descriptors

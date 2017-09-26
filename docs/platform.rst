@@ -76,7 +76,7 @@ The typical things an engine needs to handle are:
 
 - Logging methods are typically overridden to write to the application log.
 
-- UI methods are typically overridden to ensure seamless integration of windows launched by Toolkit apps
+- UI methods are typically overridden to ensure seamless integration of Windows launched by Toolkit apps
   and the underlying host application window management setup. Engines are launched via the
   :meth:`stgk.platform.start_engine()` command. This command will read the configuration files,
   launch the engines, load all apps etc. The goal with the engine is that once it has launched,
@@ -565,7 +565,7 @@ Use this when your app requires an external file that is part of the configurati
 Typically, this settings type is used when you want to allow for a user to associate
 files with a configuration. These files can be icons or other resource files that
 should be part of the configuration. These paths should always be defined without an initial
-slash and using slashes as its path separator. Sgtk will translate it into a valid windows path::
+slash and using slashes as its path separator. Sgtk will translate it into a valid Windows path::
 
 
     output_icon:

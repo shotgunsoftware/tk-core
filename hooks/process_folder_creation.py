@@ -85,8 +85,8 @@ class ProcessFolderCreation(Hook):
         -------------
         This represents a request that a symbolic link is created. Note that symbolic links are not 
         supported in the same way on all operating systems. The default hook therefore does not
-        implement symbolic link support on windows system. If you want to add symbolic link support
-        on windows, simply copy this hook to your project configuraton and make the necessary 
+        implement symbolic link support on Windows systems. If you want to add symbolic link support
+        on windows, simply copy this hook to your project configuration and make the necessary
         modifications.
         
         * "action": "symlink"
