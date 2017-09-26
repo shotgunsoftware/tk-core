@@ -26,4 +26,3 @@ class TankBootstrapInvalidPipelineConfigurationError(TankBootstrapError):
     Raised when an invalid pipeline configuration record is detected.
     """
     pass
-

@@ -17,7 +17,7 @@ from __future__ import with_statement
 
 from mock import patch
 
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 
 import sgtk
 from sgtk.descriptor import Descriptor
