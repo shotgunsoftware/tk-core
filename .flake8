@@ -47,11 +47,13 @@ exclude =
 # E501 line too long (112 > 79 characters)
 # W291 trailing whitespace
 # W293 blank line contains whitespace
+# W391 blank line at end of file
 # E221 multiple spaces before operator
 # E261 two whitespaces before end of line comment.
 # E402 module level import not top of file
 # N802 Variables should be lower case. (clashes with Qt naming conventions)
 # N806 Variables should be lower case. (clashes with Qt naming conventions)
 # E999 SyntaxError: invalid syntax (hack for hound CI which runs python 3.x)
-ignore = E501, W291, W293, E221, E261, E402, N802, N806, E999
+
+ignore = E501, W291, W293, W391, E221, E261, E402, N802, N806, E999
 
