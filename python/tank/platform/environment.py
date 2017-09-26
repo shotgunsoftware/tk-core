@@ -570,6 +570,8 @@ class Environment(object):
                     absolute_location,
                 )
                 bundle_tokens = [bundle_token]
+            else:
+                bundle_tokens.append(bundle_name)
         else:
             # bundle is defined in the current file
             bundle_tokens.append(bundle_name)
@@ -847,7 +849,6 @@ class WritableEnvironment(InstalledEnvironment):
             engine_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
         elif new_location:
             engine_data = new_location
-
 
         self._update_settings_recursive(engine_data, new_data)
         self.__write_data(yml_file, yml_data)
