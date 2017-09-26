@@ -20,6 +20,7 @@ import urllib2
 import urlparse
 import time
 import tempfile
+import zipfile
 
 from ..errors import ShotgunAttachmentDownloadError
 from ...errors import TankError
@@ -157,8 +158,9 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
     # engines can often be 30-50MiB - as a quick fix, just retry the download if it fails
     attempt = 0
     done = False
+    invalid_zip_file = False
 
-    while not done and attempt < retries:
+    while not invalid_zip_file and not done and attempt < retries:
 
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
         try:
@@ -182,7 +184,10 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
 
             log.debug("Unpacking %s bytes to %s..." % (file_size, target))
             filesystem.ensure_folder_exists(target)
-            unzip_file(zip_tmp, target)
+            try:
+                unzip_file(zip_tmp, target)
+            except zipfile.BadZipfile:
+                invalid_zip_file = True
 
         except Exception, e:
             log.warning(
@@ -197,8 +202,11 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
             # remove zip file
             filesystem.safe_delete_file(zip_tmp)
 
-    if not done:
-        # we were not successful
+    if invalid_zip_file:
+        # the attachment in shotgun could not be unpacked
+        raise ShotgunAttachmentDownloadError("Shotgun attachment with id %s is not a zip file!" % attachment_id)
+    elif not done:
+        # we couldn't download for some reason
         raise ShotgunAttachmentDownloadError(
             "Failed to download from '%s' after %s retries. See error log for details." % (sg.base_url, retries)
         )

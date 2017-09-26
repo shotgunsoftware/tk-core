@@ -191,11 +191,11 @@ descriptor is defined as the most recent commit for a given branch.
           resolve and normal operation.
 
 
-Path and Dev
-=======================
+Pointing to a path on disk
+==========================
 
 Pointing Toolkit to an app that resides in the local file system is often very useful for managing your own bundles
-or doing development on an app or engine before releasing onto production. To allow for these scenarios, Sgtk
+or doing development on an app or engine before releasing onto production. To allow for these scenarios, Toolkit
 provides the ``dev`` and ``path`` descriptors. Here are some examples::
 
     # locally managed bundle that is used for development
@@ -260,8 +260,8 @@ a specific version number and Toolkit will associate this version number with th
 
 
 
-Shotgun
-============
+Pointing at a file attachment in Shotgun
+============================================
 
 Represents a Shotgun entity to which a payload has been attached.
 This can be an attachment field on any entity. This is an advanced
@@ -296,7 +296,7 @@ When the attachment field is updated, the attachment id (e.g. version field in t
 a new descriptor. This can be used to determine the latest version for a Shotgun attachment descriptor.
 
 
-Manual
+Manual Descriptors
 =======================
 
 Toolkit also provides a ``manual`` mode to make it easy to manage production installations of apps

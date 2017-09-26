@@ -194,6 +194,23 @@ class CachedConfiguration(Configuration):
 
         # copy the configuration into place
         try:
+
+            # first do a quick validation check that the descriptor payload looks like a config
+            # ensure that there is an env and a core folder in the config
+            self._descriptor.ensure_local()
+            path_to_descriptor_payload = self._descriptor.get_path()
+            if not os.path.exists(os.path.join(path_to_descriptor_payload, "env")):
+                raise TankBootstrapError(
+                    "Configuration %s is invalid: Missing an env folder" %
+                    self._descriptor.get_uri()
+                )
+            if not os.path.exists(os.path.join(path_to_descriptor_payload, "core")):
+                raise TankBootstrapError(
+                    "Configuration %s is invalid: Missing a core folder" %
+                    self._descriptor.get_uri()
+                )
+
+            # now copy the descriptor payload across into the target install location
             self._descriptor.copy(os.path.join(self._path.current_os, "config"))
 
             # write out config files

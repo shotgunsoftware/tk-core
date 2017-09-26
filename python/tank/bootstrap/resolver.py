@@ -195,6 +195,7 @@ class ConfigurationResolver(object):
             # The configuration path here points to the actual pipeline configuration that contains
             # config, cache and install folders.
             return InstalledConfiguration(config_path, cfg_descriptor)
+
         else:
             # first get the cache root
             cache_root = LocalFileStorageManager.get_configuration_root(
@@ -328,10 +329,10 @@ class ConfigurationResolver(object):
                     )
                     yield pipeline_config
 
-                except TankBootstrapInvalidPipelineConfigurationError:
+                except TankBootstrapInvalidPipelineConfigurationError, e:
                     log.warning(
-                        "Pipeline configuration does not define an "
-                        "access location: %s" % pipeline_config
+                        "Pipeline configuration %s does not define a valid "
+                        "access location. Details: %s" % (pipeline_config, e)
                     )
 
     def _create_config_descriptor(self, sg_connection, shotgun_pc_data):
@@ -418,7 +419,7 @@ class ConfigurationResolver(object):
 
         elif sg_uploaded_config and not is_classic_config:
 
-            if shotgun_pc_data.get("sg_uploaded_config"):
+            if shotgun_pc_data.get("uploaded_config") and shotgun_pc_data.get("sg_uploaded_config"):
                 log.debug(
                     "Both sg_uploaded_config and uploaded_config fields are set on pipeline configuration "
                     "%s. Using uploaded_config field.", shotgun_pc_data["id"]
@@ -428,6 +429,13 @@ class ConfigurationResolver(object):
                 uploaded_config_field_name = "uploaded_config"
             else:
                 uploaded_config_field_name = "sg_uploaded_config"
+
+            # make sure that it is an uploaded attachment and not a url or local file link
+            if shotgun_pc_data[uploaded_config_field_name].get("link_type") != "upload":
+                raise TankBootstrapInvalidPipelineConfigurationError(
+                    "Cannot resolve uploaded config for pipeline configuration %s: "
+                    "Only uploaded attachments are currently supported" % shotgun_pc_data["id"]
+                )
 
             sg_descriptor_uri = dict(
                 type="shotgun",
