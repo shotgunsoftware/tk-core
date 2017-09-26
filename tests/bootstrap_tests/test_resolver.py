@@ -606,8 +606,8 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
                 "type": "Attachment",
                 "id": 139,
                 "link_type": "upload"
-                }
-            )
+            }
+        )
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,

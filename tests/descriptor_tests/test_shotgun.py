@@ -12,9 +12,8 @@ import os
 
 import sgtk
 from mock import patch
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule
 
-from tank_test.tank_test_base import TankTestBase, skip_if_git_missing
 
 class TestShotgunIODescriptor(TankTestBase):
     """
@@ -83,7 +82,7 @@ class TestShotgunIODescriptor(TankTestBase):
             "entity_type": "Shot",
             "field": "sg_field",
             "id": 1234
-            })
+        })
         self.assertEquals(id_desc.system_name, "Shot_1234")
         self.assertEquals(id_desc.version, "v123")
         self.assertEquals(id_desc.is_dev(), False)
@@ -100,7 +99,7 @@ class TestShotgunIODescriptor(TankTestBase):
             "entity_type": "Shot",
             "field": "sg_field",
             "name": "aaa111"
-            })
+        })
 
         self.assertEquals(name_desc.system_name, "aaa111")
         self.assertEquals(name_desc.version, "v123")
@@ -112,7 +111,7 @@ class TestShotgunIODescriptor(TankTestBase):
             "field": "sg_field",
             "name": "aaa111",
             "project_id": 22
-            })
+        })
 
         self.assertEquals(name_proj_desc.system_name, "p22_aaa111")
         self.assertEquals(name_proj_desc.version, "v123")
