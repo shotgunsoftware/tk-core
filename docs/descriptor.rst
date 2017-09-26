@@ -74,7 +74,7 @@ Several different descriptor types are supported by Toolkit:
 
 - An **app_store** descriptor represents an item in the Toolkit App Store
 - A **shotgun** descriptor represents an item stored in Shotgun
-- A **git** descriptor represents a tag in a git repo sitory
+- A **git** descriptor represents a tag in a git repository
 - A **git_branch** descriptor represents a commit in a git branch
 - A **path** descriptor represents a location on disk
 - A **dev** descriptor represents a developer sandbox
