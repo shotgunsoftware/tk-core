@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.106 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.110 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.106 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.110 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -137,7 +137,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.106.<br>
+    <b>tk-core</b> v0.18.110.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -659,7 +659,7 @@ to indicate that no changelog exists.</td>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">Raised if one or multiple constraint checks has failed.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.descriptor.CheckVersionConstraintsError" title="sgtk.descriptor.CheckVersionConstraintsError"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -1158,7 +1158,7 @@ to indicate that no changelog exists.</td>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">Raised if one or multiple constraint checks has failed.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.descriptor.CheckVersionConstraintsError" title="sgtk.descriptor.CheckVersionConstraintsError"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -1673,7 +1673,7 @@ to indicate that no changelog exists.</td>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">Raised if one or multiple constraint checks has failed.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.descriptor.CheckVersionConstraintsError" title="sgtk.descriptor.CheckVersionConstraintsError"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -2889,10 +2889,32 @@ If not url has been defined, None is returned.</p>
 <p>Error indicating no credentials for the Toolkit App Store were found in Shotgun.</p>
 </dd></dl>
 
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankInvalidAppStoreCredentialsError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankInvalidAppStoreCredentialsError"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankAppStoreConnectionError</span></code></p>
+<p>Error indicating no credentials for the Toolkit App Store were found in Shotgun.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.descriptor.TankCheckVersionConstraintsError">
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankCheckVersionConstraintsError</code><span class="sig-paren">(</span><em>reasons</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankCheckVersionConstraintsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankCheckVersionConstraintsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankDescriptorError</span></code></p>
+<p>Error throw when one or more version constraints checks failed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>reasons</strong> (<em>list(str)</em>) &#8211; List of reasons why the check failed.</td>
+</tr>
+</tbody>
+</table>
 <dl class="attribute">
-<dt id="sgtk.descriptor.CheckVersionConstraintsError">
-<code class="descclassname">sgtk.descriptor.</code><code class="descname">CheckVersionConstraintsError</code><a class="headerlink" href="#sgtk.descriptor.CheckVersionConstraintsError" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">TankCheckVersionConstraintsError</span></code></p>
+<dt id="sgtk.descriptor.TankCheckVersionConstraintsError.reasons">
+<code class="descname">reasons</code><a class="headerlink" href="#sgtk.descriptor.TankCheckVersionConstraintsError.reasons" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of strings explaining why the constraints check failed.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -2953,7 +2975,7 @@ If not url has been defined, None is returned.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.106',
+            VERSION:'v0.18.110',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

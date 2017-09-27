@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.context &mdash; tk-core v0.18.106 documentation</title>
+  <title>tank.context &mdash; tk-core v0.18.110 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.106 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.110 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.106.<br>
+    <b>tk-core</b> v0.18.110.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -372,16 +372,6 @@
             <span class="k">if</span> <span class="n">types_and_ids</span> <span class="o">!=</span> <span class="n">other_types_and_ids</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">False</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">additional_entities</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">additional_entities</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">False</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_entity</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">source_entity</span><span class="p">:</span>
-            <span class="c1"># If the source entities do not match types and ids, then we&#39;re not equal.</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">source_entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
-                <span class="k">return</span> <span class="bp">False</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">source_entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]:</span>
-                <span class="k">return</span> <span class="bp">False</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_entity</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">source_entity</span><span class="p">:</span>
-            <span class="c1"># If one has a source entity and the other does not, we&#39;re not equal.</span>
             <span class="k">return</span> <span class="bp">False</span>
 
         <span class="c1"># finally compare the user - this may result in a Shotgun look-up </span>
@@ -2034,7 +2024,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.106',
+            VERSION:'v0.18.110',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

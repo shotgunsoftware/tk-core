@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.bootstrap.manager &mdash; tk-core v0.18.106 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.110 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.106 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.110 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.106.<br>
+    <b>tk-core</b> v0.18.110.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -394,12 +394,13 @@
 
     <span class="k">def</span> <span class="nf">_get_pipeline_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The pipeline configuration that is should be operated on.</span>
+<span class="sd">        The pipeline configuration that should be operated on.</span>
 
 <span class="sd">        By default, this value is set to ``None``, indicating to the Manager</span>
-<span class="sd">        that it should attempt to find the most suitable Shotgun pipeline configuration</span>
-<span class="sd">        given the project and plugin id. In this case, it will look for all pipeline</span>
-<span class="sd">        configurations associated with the project who are associated with the current</span>
+<span class="sd">        that it should attempt to automatically find the most suitable pipeline</span>
+<span class="sd">        configuration entry in Shotgun given the project and plugin id.</span>
+<span class="sd">        In this case, it will look at all pipeline configurations stored in Shotgun</span>
+<span class="sd">        associated with the project who are associated with the current</span>
 <span class="sd">        user. If no user-tagged pipeline configuration exists, it will look for</span>
 <span class="sd">        the primary configuration, and in case this is not found, it will fall back on the</span>
 <span class="sd">        :meth:`base_configuration`. If you don&#39;t want this check to be carried out in</span>
@@ -1468,7 +1469,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.106',
+            VERSION:'v0.18.110',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
