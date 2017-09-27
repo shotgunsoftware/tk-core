@@ -883,7 +883,7 @@ class WritableEnvironment(InstalledEnvironment):
         else:
             self._use_ruamel_yaml_parser = val
 
-    def _update_location_data(data, new_location_data):
+    def _update_location_data(self, data, new_location_data):
         """
         Updates the location contents of the given data dictionary
         with that contained in the given new_location_data. If the
