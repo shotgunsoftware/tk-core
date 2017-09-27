@@ -253,7 +253,6 @@ class TestUpdateEnvironment(TankTestBase):
         cfg_after = self.env.get_app_settings("test_engine", "new_app")
         self.assertEqual(cfg_after, {})
 
-
     def test_find_included_engine_location(self):
         # In the case where we use the protected method to access the
         # absolute location of the engine's descriptor, we'll end up
