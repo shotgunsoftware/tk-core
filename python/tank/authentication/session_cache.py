@@ -28,6 +28,8 @@ from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
 from .. import LogManager
+from ..util.shotgun import connection
+from ..util import LocalFileStorageManager
 
 logger = LogManager.get_logger(__name__)
 
@@ -37,6 +39,7 @@ _USERS = "users"
 _LOGIN = "login"
 _SESSION_TOKEN = "session_token"
 _SESSION_CACHE_FILE_NAME = "authentication.yml"
+
 
 def _is_same_user(session_data, login):
     """
@@ -62,8 +65,6 @@ def _get_global_authentication_file_location():
 
     :returns: Path to the login information.
     """
-    # avoid cylic imports
-    from ..util import LocalFileStorageManager
 
     # try current generation path first
     path = os.path.join(
@@ -85,6 +86,7 @@ def _get_global_authentication_file_location():
 
     return path
 
+
 def _get_site_authentication_file_location(base_url):
     """
     Returns the location of the users file on disk for a specific site.
@@ -95,9 +97,6 @@ def _get_site_authentication_file_location(base_url):
     :param base_url: The site we want the login information for.
     :returns: Path to the login information.
     """
-    # avoid cylic imports
-    from ..util import LocalFileStorageManager
-
     path = os.path.join(
         LocalFileStorageManager.get_site_root(
             base_url,
@@ -122,6 +121,7 @@ def _get_site_authentication_file_location(base_url):
             path = old_path
 
     return path
+
 
 def _ensure_folder_for_file(filepath):
     """
@@ -387,6 +387,8 @@ def get_current_host():
     info_path = _get_global_authentication_file_location()
     document = _try_load_global_authentication_file(info_path)
     host = document[_CURRENT_HOST]
+    if host:
+        host = connection.sanitize_url(host)
     logger.debug("Current host is '%s'" % host)
     return host
 
@@ -397,12 +399,16 @@ def set_current_host(host):
 
     :param host: The new current host.
     """
+    if host:
+        host = connection.sanitize_url(host)
+
     file_path = _get_global_authentication_file_location()
     _ensure_folder_for_file(file_path)
 
     current_host_file = _try_load_global_authentication_file(file_path)
     current_host_file[_CURRENT_HOST] = host.strip()
     _write_yaml_file(file_path, current_host_file)
+
 
 @LogManager.log_timing
 def generate_session_token(hostname, login, password, http_proxy, auth_token=None):

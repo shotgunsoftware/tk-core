@@ -224,12 +224,13 @@ class ToolkitManager(object):
 
     def _get_pipeline_configuration(self):
         """
-        The pipeline configuration that is should be operated on.
+        The pipeline configuration that should be operated on.
 
         By default, this value is set to ``None``, indicating to the Manager
-        that it should attempt to find the most suitable Shotgun pipeline configuration
-        given the project and plugin id. In this case, it will look for all pipeline
-        configurations associated with the project who are associated with the current
+        that it should attempt to automatically find the most suitable pipeline
+        configuration entry in Shotgun given the project and plugin id.
+        In this case, it will look at all pipeline configurations stored in Shotgun
+        associated with the project who are associated with the current
         user. If no user-tagged pipeline configuration exists, it will look for
         the primary configuration, and in case this is not found, it will fall back on the
         :meth:`base_configuration`. If you don't want this check to be carried out in

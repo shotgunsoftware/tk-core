@@ -21,6 +21,7 @@ from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_mi
 
 from ..util import filesystem
 from ..util import ShotgunPath
+from ..util.shotgun import connection
 from ..util.move_guard import MoveGuard
 
 from tank_vendor import yaml
@@ -408,7 +409,7 @@ class ConfigurationWriter(object):
             # file that can be distributed with the config has the host set, as it
             # could be used on two different Shotgun servers, for example a production
             # server and a staging server that are both hosted locally.
-            metadata["host"] = self._sg_connection.base_url
+            metadata["host"] = connection.sanitize_url(self._sg_connection.base_url)
             # write yaml
             yaml.safe_dump(metadata, fh)
             fh.write("\n")
