@@ -930,10 +930,10 @@ class WritableEnvironment(InstalledEnvironment):
         # In the former, the new location information is replaced at
         # the top level of the data dictionary. For the latter, the
         # location key's contents is replaced.
-        if new_location and constants.ENVIRONMENT_LOCATION_KEY in data:
-            data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
-        elif new_location:
-            data = new_location
+        if new_location_data and constants.ENVIRONMENT_LOCATION_KEY in data:
+            data[constants.ENVIRONMENT_LOCATION_KEY] = new_location_data
+        elif new_location_data:
+            data = new_location_data
 
         return data
         
