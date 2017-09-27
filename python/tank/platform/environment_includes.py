@@ -267,6 +267,7 @@ def find_framework_location(file_name, framework_name, context):
     
     # return the location of the framework if we can
     return root_fw_lookup.get(framework_name) or None
+
     
 def find_reference(file_name, context, token, absolute_location=False):
     """
@@ -347,10 +348,3 @@ def find_reference(file_name, context, token, absolute_location=False):
                 found_file = include_file
 
     return (found_file, found_token)
-    
-
-
-
-
-
-
