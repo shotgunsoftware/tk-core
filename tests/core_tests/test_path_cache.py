@@ -1128,17 +1128,33 @@ class TestPathCacheBatchDeletion(TankTestBase):
 
             folder_ids.append(cursor.lastrowid)
 
-        paging_limit = path_cache.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT
+        self._pc._connection.commit()
 
-        # first test with a large coefficient to confirm failure
-        path_cache.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT = 1000000
-        self.assertRaises(
-            sqlite3.OperationalError,
-            self._pc._remove_filesystem_location_entities,
-            cursor,
-            folder_ids
-        )
+        # grab a brand new cursor
+        cursor = self._pc._connection.cursor()
 
-        # now make sure it doesn't fail
-        path_cache.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT = paging_limit
+        # note: looks like the test below does not fail on travis
+        # but fails in other test setups, so commenting this out.
+        # the important test is the sync further down where we
+        # validate that the operation does not error.
+        #
+        # # first test with a large coefficient to confirm failure
+        # paging_limit = path_cache.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT
+        # path_cache.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT = 1000000
+        # self.assertRaises(
+        #     sqlite3.OperationalError,
+        #     self._pc._remove_filesystem_location_entities,
+        #     cursor,
+        #     folder_ids
+        # )
+        # # now make sure it doesn't fail
+        # path_cache.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT = paging_limit
+
+
+        record_count = list(cursor.execute("select count(*) from shotgun_status"))[0][0]
+        self.assertEqual(record_count, 3148)
+
         self._pc._remove_filesystem_location_entities(cursor, folder_ids)
+
+        record_count = list(cursor.execute("select count(*) from shotgun_status"))[0][0]
+        self.assertEqual(record_count, 3)
