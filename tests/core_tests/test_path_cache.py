@@ -1150,7 +1150,6 @@ class TestPathCacheBatchDeletion(TankTestBase):
         # # now make sure it doesn't fail
         # path_cache.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT = paging_limit
 
-
         record_count = list(cursor.execute("select count(*) from shotgun_status"))[0][0]
         self.assertEqual(record_count, 3148)
 
