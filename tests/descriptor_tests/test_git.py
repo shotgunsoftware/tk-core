@@ -211,63 +211,63 @@ class TestGitIODescriptor(TankTestBase):
         self.assertTrue(os.path.exists(os.path.join(copy_target, ".git")))
 
     @skip_if_git_missing
-    def test_concurrent_downloads_to_shared_bundle_cache(self):
+    def test_downloads_to_bundle_cache(self):
         """
-        Tests if concurrent downloads to a shared bundle cache can
-        be handled for git descriptors.
+        Tests local downloads to the bundle cache for git descriptors.
         """
-        def _download_bundle(target):
+        def _download_bundles(target=None):
             """
             :param target: The path to which the bundle is to be downloaded.
             """
-            try:
+            location_dict_tag = {
+                "type": "git",
+                "path": self.git_repo_uri,
+                "version": "v0.16.0"
+            }
+            location_dict_short_version = {
+                "type": "git_branch",
+                "path": self.git_repo_uri,
+                "branch": "master",
+                "version": "3e6a681"
+            }
+            location_dict_version = {
+                "type": "git_branch",
+                "path": self.git_repo_uri,
+                "branch": "018_test",
+                "version": "9035355e4e578dd874536ba333fedda0177d97a3"
+            }
+            location_dict_branch = {
+                "type": "git_branch",
+                "path": self.git_repo_uri,
+                "branch": "master"
+            }
+            if target:
                 with temp_env_var(SHOTGUN_BUNDLE_CACHE_PATH=target):
-                    location_dict = {
-                        "type": "git",
-                        "path": self.git_repo_uri,
-                        "version": "v0.16.0"
-                    }
-                    desc_git_tag = self._create_desc(location_dict)
-
-                    location_dict = {
-                        "type": "git_branch",
-                        "path": self.git_repo_uri,
-                        "branch": "master",
-                        "version": "3e6a681"
-                    }
-                    desc_git_short_version = self._create_desc(location_dict)
-
-                    location_dict = {
-                        "type": "git_branch",
-                        "path": self.git_repo_uri,
-                        "branch": "018_test",
-                        "version": "9035355e4e578dd874536ba333fedda0177d97a3"
-                    }
-                    desc_git_version = self._create_desc(location_dict)
-
-                    location_dict = {
-                        "type": "git_branch",
-                        "path": self.git_repo_uri,
-                        "branch": "master"
-                    }
-                    desc_git_branch = self._create_desc(location_dict, True)
-
-                    desc_git_tag.download_local()
-                    desc_git_short_version.download_local()
-                    desc_git_version.download_local()
-                    desc_git_branch.download_local()
-            except Exception as e:
-                raise e
+                    desc_git_tag = self._create_desc(location_dict_tag)
+                    desc_git_short_version = self._create_desc(location_dict_short_version)
+                    desc_git_version = self._create_desc(location_dict_version)
+                    desc_git_branch = self._create_desc(location_dict_branch, True)
+            else:
+                desc_git_tag = self._create_desc(location_dict_tag)
+                desc_git_short_version = self._create_desc(location_dict_short_version)
+                desc_git_version = self._create_desc(location_dict_version)
+                desc_git_branch = self._create_desc(location_dict_branch, True)
+            desc_git_tag.download_local()
+            desc_git_short_version.download_local()
+            desc_git_version.download_local()
+            desc_git_branch.download_local()
 
         processes = []
         errors = []
+
+        # test concurrent downloads to a shared bundle cache by multiple processes.
 
         # the shared bundle cache path to which git data is to be downloaded.
         shared_dir = os.path.join(self.tank_temp, "shared_bundle_cache")
         try:
             # spawn 10 processes that begin downloading data to the shared path.
             for x in range(10):
-                process = multiprocessing.Process(target=_download_bundle, args=(shared_dir,))
+                process = multiprocessing.Process(target=_download_bundles, args=(shared_dir,))
                 process.start()
                 processes.append(process)
         except Exception as e:
@@ -279,10 +279,13 @@ class TestGitIODescriptor(TankTestBase):
             time.sleep(0.1)
             all_processes_finished = all(not (process.is_alive()) for process in processes)
 
+        # Make sure the number of processes forked are as expected.
+        self.assertEqual(len(processes), 10, "Failed to spawn the expected number of processes.")
+
         # bit-wise OR the exit codes of all processes.
         all_processes_exit_code = reduce(
             lambda x, y: x | y,
-            [process.exitcode for process in processes]
+            [proc.exitcode for proc in processes]
         )
 
         # Make sure none of the child processes had non-zero exit statuses.

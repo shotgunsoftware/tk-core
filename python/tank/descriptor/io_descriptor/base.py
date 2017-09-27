@@ -591,8 +591,8 @@ class IODescriptorBase(object):
         """
         Returns true if the given bundle path exists in valid local cached form
 
-        This can be reimplemented in derived classes to have more complex validation, like ensuring
-        that the bundle is fully downloaded.
+        This can be reimplemented in derived classes to have more complex validation,
+        like ensuring that the bundle is fully downloaded.
         """
         if path is None:
             return False
@@ -720,7 +720,7 @@ class IODescriptorBase(object):
             pass
         except Exception as e:
             # Raise any other exceptions that occur while moving the source to destination.
-            raise Exception("An error occurred while moving %s to %s. Error: %s" %(src, dst, e))
+            raise Exception("An error occurred while moving %s to %s. Error: %s" % (src, dst, e))
 
     ###############################################################################################
     # implemented by deriving classes

@@ -231,10 +231,9 @@ class TestIODescriptors(TankTestBase):
         self.assertEqual(d.get_path(), bundle_path)
         self.assertEqual(d.find_latest_cached_version(), d)
 
-    def test_concurrent_downloads_to_shared_bundle_cache(self):
+    def test_downloads_to_bundle_cache(self):
         """
-        Tests if concurrent downloads to a shared bundle cache can be handled
-        for shotgun-related descriptors.
+        Tests downloads to a shared bundle cache for shotgun-related descriptors.
         """
         def _get_attachment_data(file_path):
             """
@@ -296,8 +295,14 @@ class TestIODescriptors(TankTestBase):
                 f.write("\0")
 
             zip_file_path = os.path.join(tempfile.gettempdir(), "%s_tank_source.zip" % uuid.uuid4().hex)
-            with zipfile.ZipFile(zip_file_path, "w") as zf:
+            try:
+                zf = zipfile.ZipFile(zip_file_path, "w")
                 zf.write(text_file_path, arcname="large_binary_file")
+            except Exception as e:
+                print("Failed to create the temporary zip package at %s." % zip_file_path)
+                raise e
+            finally:
+                zf.close()
             return zip_file_path
 
         def _create_desc(location, resolve_latest=False, desc_type=sgtk.descriptor.Descriptor.CONFIG):
@@ -310,61 +315,66 @@ class TestIODescriptors(TankTestBase):
                 location,
                 resolve_latest=resolve_latest)
 
-        def _download_app_store_bundle(target):
+        def _download_app_store_bundle(target=None):
             """
             Creates an app store descriptor and attempts to download it locally.
             :param target: The path to which the bundle is to be downloaded.
             """
-            try:
+            if target:
                 with temp_env_var(SHOTGUN_BUNDLE_CACHE_PATH=target):
                     desc = sgtk.descriptor.create_descriptor(
                         None,
                         sgtk.descriptor.Descriptor.FRAMEWORK,
                         {"name": "tk-test-bundle", "version": "v1.0.0", "type": "app_store"}
                     )
-                    io_descriptor_app_store = "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
-                    with patch(
-                        "%s._IODescriptorAppStore__create_sg_app_store_connection" % io_descriptor_app_store,
-                        return_value=(self.mockgun, None)
-                    ):
-                        with patch(
-                            "%s._IODescriptorAppStore__refresh_metadata" % io_descriptor_app_store,
-                            return_value=metadata
-                        ):
-                            with patch(
-                                "tank.util.shotgun.download_and_unpack_attachment",
-                                side_effect=_download_and_unpack_attachment):
-
-                                desc.download_local()
-            except Exception as e:
-                raise e
-
-        def _download_shotgun_bundle(target):
-            """
-            Creates a shotgun descriptor and attempts to download it locally.
-            :param target: The path to which the bundle is to be downloaded
-            """
-            try:
-                with temp_env_var(SHOTGUN_BUNDLE_CACHE_PATH=target):
-                    location = {
-                        "type": "shotgun",
-                        "entity_type": "PipelineConfiguration",
-                        "name": "primary",
-                        "project_id": 123,
-                        "field": "sg_config",
-                        "version": 456
-                    }
-                    desc = _create_desc(location)
+            else:
+                desc = sgtk.descriptor.create_descriptor(
+                    None,
+                    sgtk.descriptor.Descriptor.FRAMEWORK,
+                    {"name": "tk-test-bundle", "version": "v1.0.0", "type": "app_store"}
+                )
+            io_descriptor_app_store = "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
+            with patch(
+                "%s._IODescriptorAppStore__create_sg_app_store_connection" % io_descriptor_app_store,
+                return_value=(self.mockgun, None)
+            ):
+                with patch(
+                    "%s._IODescriptorAppStore__refresh_metadata" % io_descriptor_app_store,
+                    return_value=metadata
+                ):
                     with patch(
                         "tank.util.shotgun.download_and_unpack_attachment",
-                        side_effect=_download_and_unpack_attachment):
+                        side_effect=_download_and_unpack_attachment
+                    ):
                         desc.download_local()
-            except Exception as e:
-                raise e
+
+        def _download_shotgun_bundle(target=None):
+            """
+            Creates a shotgun entity descriptor and attempts to download it locally.
+            :param target: The path to which the bundle is to be downloaded
+            """
+            location = {
+                "type": "shotgun",
+                "entity_type": "PipelineConfiguration",
+                "name": "primary",
+                "project_id": 123,
+                "field": "sg_config",
+                "version": 456
+            }
+            if target:
+                with temp_env_var(SHOTGUN_BUNDLE_CACHE_PATH=target):
+                    desc = _create_desc(location)
+            else:
+                desc = _create_desc(location)
+            with patch(
+                    "tank.util.shotgun.download_and_unpack_attachment",
+                    side_effect=_download_and_unpack_attachment):
+                desc.download_local()
 
         processes = []
         errors = []
         attachment_zip_path = _generate_zip_file()
+
         metadata = {
             'sg_version_data':
                 {
@@ -380,6 +390,24 @@ class TestIODescriptors(TankTestBase):
             'sg_bundle_data': {},
         }
 
+        # attempt to download the app store entity directly to the bundle cache.
+        _download_app_store_bundle()
+
+        # make sure the expected local path exists.
+        self.assertTrue(os.path.exists(
+            os.path.join(self.tank_temp, "bundle_cache", "app_store", "tk-test-bundle", "v1.0.0", "large_binary_file")
+        ), "Failed to find the default bundle cache directory for the app store descriptor on disk.")
+
+        # attempt to download shotgun entity directly to the bundle cache.
+        _download_shotgun_bundle()
+
+        # make sure the expected local path exists.
+        self.assertTrue(os.path.exists(
+            os.path.join(self.tank_temp, "bundle_cache", "sg", "unit_test_mock_sg", "PipelineConfiguration.sg_config",
+                         "p123_primary", "v456", "large_binary_file")
+        ), "Failed to find the default bundle cache directory for the shotgun entity descriptor on disk.")
+
+        # now test concurrent downloads to a shared bundle cache
         # the shared bundle cache path to which app store data is to be downloaded.
         shared_dir = os.path.join(self.tank_temp, "shared_bundle_cache")
         try:
@@ -406,10 +434,13 @@ class TestIODescriptors(TankTestBase):
             time.sleep(0.1)
             all_processes_finished = all(not (process.is_alive()) for process in processes)
 
+        # Make sure the number of processes forked are as expected.
+        self.assertEqual(len(processes), 20, "Failed to spawn the expected number of processes.")
+
         # bit-wise OR the exit codes of all processes.
         all_processes_exit_code = reduce(
             lambda x, y: x | y,
-            [process.exitcode for process in processes]
+            [proc.exitcode for proc in processes]
         )
 
         # Make sure none of the child processes had non-zero exit statuses.
