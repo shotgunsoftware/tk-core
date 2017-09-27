@@ -1095,7 +1095,7 @@ class TestPathCacheBatchDeletion(TankTestBase):
         # insert dummy data so we can delete it
         folder_ids = []
         entity_type = "Shot"
-        for idx in xrange(3000):
+        for idx in xrange(3147):
             entity_id = idx
             entity_name = "name_%s" % idx
 
