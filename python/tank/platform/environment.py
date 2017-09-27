@@ -371,6 +371,12 @@ class Environment(object):
         """
         # get the raw data:
         root_yml_data = self.__load_environment_data()
+
+        logger.debug(
+            "Finding %s, absolute_location=%s...",
+            engine_name,
+            absolute_location,
+        )
         
         # find the location for the engine:
         tokens, path = self.__find_location_for_bundle(
@@ -385,6 +391,7 @@ class Environment(object):
             raise TankError("Failed to find the location of the '%s' engine in the '%s' environment!"
                             % (engine_name, self._env_path))
 
+        logger.debug("Engine %s found: %s", (tokens, path))
         return tokens, path
 
     def find_framework_instances_from(self, yml_file):
@@ -466,6 +473,11 @@ class Environment(object):
         root_yml_data = self.__load_data(fw_location)
 
         # find the location for the framework:
+        logger.debug(
+            "Finding %s, absolute_location=%s...",
+            framework_name,
+            absolute_location,
+        )
         tokens, path = self.__find_location_for_bundle(
             fw_location,
             root_yml_data,
@@ -478,6 +490,7 @@ class Environment(object):
             raise TankError("Failed to find the location of the '%s' framework in the '%s' environment!"
                             % (framework_name, self._env_path))
 
+        logger.debug("Framework %s found: %s", (tokens, path))
         return tokens, path
 
     def find_location_for_app(self, engine_name, app_name):
@@ -508,6 +521,12 @@ class Environment(object):
         :returns: (list of tokens, file path)
         :rtype: tuple
         """
+        logger.debug(
+            "Finding %s, engine_name=%s, absolute_location=%s...",
+            app_name,
+            engine_name,
+            absolute_location,
+        )
         # first, find the location of the engine:
         (engine_tokens, engine_yml_file) = self.find_location_for_engine(engine_name)
 
@@ -533,7 +552,8 @@ class Environment(object):
         if not path:
             raise TankError("Failed to find the location of the '%s' app under the '%s' engine in the '%s' environment!"
                             % (engine_name, app_name, self._env_path))
-        
+
+        logger.debug("App %s found: %s", (tokens, path))
         return tokens, path
 
     def __find_location_for_bundle(
