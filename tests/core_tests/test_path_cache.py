@@ -901,7 +901,7 @@ class TestPathCacheGetLocationsFullSync(TankTestBase):
         for entity in entities:
             # now re find the entity returned, so that we can get back the project field and check it.
             entity_w_project = self.tk.shotgun.find_one(path_cache.SHOTGUN_ENTITY,
-                                                        [["id","is", entity["id"]]],
+                                                        [["id", "is", entity["id"]]],
                                                         ["project"])
             self.assertEqual(entity_w_project['project']['id'], self.tk.pipeline_configuration.get_project_id())
 
