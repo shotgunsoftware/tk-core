@@ -272,16 +272,40 @@ def find_framework_location(file_name, framework_name, context):
 def find_reference(file_name, context, token, absolute_location=False):
     """
     Non-recursive unless the absolute_location argument is True. Looks at all
-    include files and searches for @token. Returns the file in which
-    it is found when absolute_location is False, and returns a tuple containing
+    include files and searches for @token. Returns a tuple containing
     the file path and the token where the data can be found.
+
+    .. note:: The absolute_location should be True or False depending on
+        what it is the caller intends to do with the resulting location
+        returned. In the situation where the descriptor for the bundle
+        is to be updated to a new version, it is ctitical that the location
+        returned by this method be the yml file and associated tokens
+        housing the concrete descriptor dictionary. The goal is to ensure
+        that the new descriptor contents are written to the same yml file
+        where the old descriptor is defined, rather than what might be
+        an included value from another yml file. A good example is how
+        engines are structured in tk-config-basic, where the engine instance
+        is defined in a project.yml file, but the engine's location setting
+        points to an included value. In the case where absolute_location
+        is True, that include will be followed and the yml file where it
+        is defined will be returned. If absolute_location were False, the
+        yml file where the engine instance itself is defined will be returned,
+        meaning the location setting's include will not be resolved and
+        followed to its source. There is the need for each of these,
+        depending on the situation: when a descriptor is going to be
+        updated, absolute_location should be True, and when settings other
+        than the descriptor are to be queried or updated, absolute_location
+        should be False. In some cases these two will return the same
+        thing, but that is not guaranteed and it is entirely up to how
+        the config is structured as to whether they are consistent.
 
     :param str file_name: The yml file to find the reference in.
     :param context: The context object to use when resolving includes.
     :param str token: The token to search for.
-    :param bool absolute_location: Whether to recurse up the environment stack
-        until absolute data is found. If this is True, a tuple containing
-        the file path and token where the absolute can be found.
+    :param bool absolute_location: Whether to ensure that the file path and tokens
+        returned references where the given bundle's location descriptor is
+        defined in full.
+
 
     :returns: Tuple containing the file path where the data was found
         and the token within the file where the data resides.
@@ -303,7 +327,11 @@ def find_reference(file_name, context, token, absolute_location=False):
             # If we've been asked to ensure an absolute location, we need
             # to do some extra work, which might involve recursing up the
             # config stack until we get to a location descriptor dictionary.
-            if absolute_location:
+            if not absolute_location:
+                # We've not been asked to resolve the absolute location, so we
+                # don't do any additional work.
+                found_file = include_file
+            else:
                 token_data = included_data[token]
                 include_token = None
 
@@ -342,9 +370,5 @@ def find_reference(file_name, context, token, absolute_location=False):
                     # where the data was found.
                     found_file = include_file
                     found_token = token
-            else:
-                # We've not been asked to resolve the absolute location, so we
-                # don't do any additional work.
-                found_file = include_file
 
     return (found_file, found_token)
