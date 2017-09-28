@@ -884,6 +884,10 @@ class TestPathCacheGetLocationsFullSync(TankTestBase):
 
         self._pc = path_cache.PathCache(self.tk)
 
+    def tearDown(self):
+        self._pc.close()
+        super(TestPathCacheGetLocationsFullSync, self).tearDown()
+
     def test_get_entities(self):
         """
         Check that we only get FilesystemLocation entities that belong to our project
