@@ -158,6 +158,16 @@ class TestGetSgConfigData(TankTestBase):
             sanitize_url("127.0.0.1")
         )
 
+        self.assertEquals(
+            "https://test.shotgunstudio.com",
+            sanitize_url("test.shotgunstudio.com/")
+        )
+
+        self.assertEquals(
+            "https://test.shotgunstudio.com",
+            sanitize_url("test.shotgunstudio.com/a")
+        )
+
         # WARNING!!!!!!
 
         # Python 2.6.x has difficulty parsing a URL that doesn't start with a scheme when there is
