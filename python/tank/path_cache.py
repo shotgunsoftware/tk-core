@@ -43,6 +43,9 @@ SG_ENTITY_TYPE_FIELD = "linked_entity_type"
 SG_ENTITY_NAME_FIELD = "code"
 SG_PIPELINE_CONFIG_FIELD = "pipeline_configuration"
 
+# sqlite has a limit for how many items fit into a single in statement
+SQLITE_MAX_ITEMS_FOR_IN_STATEMENT = 200
+
 log = LogManager.get_logger(__name__)
 
 class PathCache(object):
@@ -955,16 +958,30 @@ class PathCache(object):
         :param list folder_ids: List of folder ids to remove from the path cache.
         """
 
-        log.debug("Processing Toolkit_Folders_Delete event for folder ids %s", folder_ids)
+        log.debug("Processing %s Toolkit_Folders_Delete events", len(folder_ids))
+
+        def _chunks(large_list, chunk_size):
+            """
+            Helper operator to split a large list into smaller chunks
+            """
+            for i in range(0, len(large_list), chunk_size):
+                yield large_list[i:i + chunk_size]
 
         # For every folder id, find the associated path cache id.
-        path_cache_ids = cursor.execute(
-            "SELECT path_cache_id FROM shotgun_status WHERE shotgun_id IN (%s)" % self._gen_param_string(folder_ids),
-            folder_ids
-        )
+        all_path_cache_ids = []
 
-        # Flatten the list of one element tuples into a list of ids.
-        path_cache_ids = [path_cache_id[0] for path_cache_id in path_cache_ids]
+        # split sql into batches - sqlite has a max number of terms for its in statement
+        for subset_folder_ids in _chunks(folder_ids, SQLITE_MAX_ITEMS_FOR_IN_STATEMENT):
+            path_cache_ids = cursor.execute(
+                "SELECT path_cache_id FROM shotgun_status WHERE shotgun_id IN (%s)" % self._gen_param_string(subset_folder_ids),
+                subset_folder_ids
+            )
+
+            # Flatten the list of one element tuples into a list of ids.
+            path_cache_ids = [path_cache_id[0] for path_cache_id in path_cache_ids]
+
+            # add to our full list
+            all_path_cache_ids.extend(path_cache_ids)
 
         # Consider the following sequence
         # - Add 1
@@ -979,19 +996,22 @@ class PathCache(object):
         # happens, it means that it also can't be removed from the path cache. As such, shotgun_status
         # will not report any mapping between the path cache and the Shotgun filesystem location
         # entity.
-        if not path_cache_ids:
+        if not all_path_cache_ids:
             return
 
         # Delete all the path cache entries associated with the file system locations.
-        cursor.execute(
-            "DELETE FROM path_cache where rowid IN (%s)" % self._gen_param_string(path_cache_ids), path_cache_ids
-        )
+        for subset_path_cache_ids in _chunks(all_path_cache_ids, SQLITE_MAX_ITEMS_FOR_IN_STATEMENT):
+            cursor.execute(
+                "DELETE FROM path_cache where rowid IN (%s)" % self._gen_param_string(subset_path_cache_ids),
+                subset_path_cache_ids
+            )
 
         # Now delete all the mappings between filesystem location entities and path cache entries.
-        cursor.execute(
-            "DELETE FROM shotgun_status WHERE shotgun_id IN (%s)" % self._gen_param_string(folder_ids),
-            folder_ids
-        )
+        for subset_folder_ids in _chunks(folder_ids, SQLITE_MAX_ITEMS_FOR_IN_STATEMENT):
+            cursor.execute(
+                "DELETE FROM shotgun_status WHERE shotgun_id IN (%s)" % self._gen_param_string(subset_folder_ids),
+                subset_folder_ids
+            )
 
     ############################################################################################
     # pre-insertion validation

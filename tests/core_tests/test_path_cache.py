@@ -16,6 +16,7 @@ import time
 import pprint
 import Queue
 import StringIO
+import sqlite3
 import shutil
 import contextlib
 import logging
@@ -1069,3 +1070,90 @@ class TestPathCacheDelete(TankTestBase):
         pc = pc or self._pc
         path_ids = [pc.get_shotgun_id_from_path(p) for p in paths]
         pc.remove_filesystem_location_entries(self.tk, path_ids)
+
+
+class TestPathCacheBatchDeletion(TankTestBase):
+    """
+    Tests the deletion of 2000+ filesystem locations (#44931)
+    """
+
+    def setUp(self):
+        super(TestPathCacheBatchDeletion, self).setUp()
+        self._pc = path_cache.PathCache(self.tk)
+
+    def tearDown(self):
+        self._pc.close()
+        super(TestPathCacheBatchDeletion, self).tearDown()
+
+    def test_high_volume_batch_deletion(self):
+        """
+        Test that deleting lots of items out of the path cache
+        works as expected.
+        """
+        cursor = self._pc._connection.cursor()
+
+        # insert dummy data so we can delete it
+        folder_ids = []
+        entity_type = "Shot"
+        for idx in xrange(3147):
+            entity_id = idx
+            entity_name = "name_%s" % idx
+
+            cursor.execute(
+                """
+                    INSERT INTO path_cache(entity_type,
+                    entity_id,
+                    entity_name,
+                    root,
+                    path,
+                    primary_entity)
+                    VALUES(?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    entity_type,
+                    entity_id,
+                    entity_name,
+                    None,  # root
+                    None,  # path
+                    1      # primary
+                )
+            )
+
+            path_cache_id = cursor.lastrowid
+
+            cursor.execute(
+                "INSERT INTO shotgun_status(path_cache_id, shotgun_id) VALUES(?, ?)",
+                (path_cache_id, idx)
+            )
+
+            folder_ids.append(cursor.lastrowid)
+
+        self._pc._connection.commit()
+
+        # grab a brand new cursor
+        cursor = self._pc._connection.cursor()
+
+        # note: looks like the test below does not fail on travis
+        # but fails in other test setups, so commenting this out.
+        # the important test is the sync further down where we
+        # validate that the operation does not error.
+        #
+        # # first test with a large coefficient to confirm failure
+        # paging_limit = path_cache.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT
+        # path_cache.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT = 1000000
+        # self.assertRaises(
+        #     sqlite3.OperationalError,
+        #     self._pc._remove_filesystem_location_entities,
+        #     cursor,
+        #     folder_ids
+        # )
+        # # now make sure it doesn't fail
+        # path_cache.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT = paging_limit
+
+        record_count = list(cursor.execute("select count(*) from shotgun_status"))[0][0]
+        self.assertEqual(record_count, 3148)
+
+        self._pc._remove_filesystem_location_entities(cursor, folder_ids)
+
+        record_count = list(cursor.execute("select count(*) from shotgun_status"))[0][0]
+        self.assertEqual(record_count, 3)
