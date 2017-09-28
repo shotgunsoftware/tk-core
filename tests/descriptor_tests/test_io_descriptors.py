@@ -11,7 +11,7 @@
 from __future__ import with_statement
 import os
 from mock import patch
-import multiprocessing
+import sys
 import tempfile
 import time
 import uuid
@@ -313,7 +313,8 @@ class TestIODescriptors(TankTestBase):
                 self.tk.shotgun,
                 desc_type,
                 location,
-                resolve_latest=resolve_latest)
+                resolve_latest=resolve_latest
+            )
 
         def _download_app_store_bundle(target=None):
             """
@@ -325,13 +326,13 @@ class TestIODescriptors(TankTestBase):
                     desc = sgtk.descriptor.create_descriptor(
                         None,
                         sgtk.descriptor.Descriptor.FRAMEWORK,
-                        {"name": "tk-test-bundle", "version": "v1.0.0", "type": "app_store"}
+                        {"name": "tk-test-bundle2", "version": "v1.0.0", "type": "app_store"}
                     )
             else:
                 desc = sgtk.descriptor.create_descriptor(
                     None,
                     sgtk.descriptor.Descriptor.FRAMEWORK,
-                    {"name": "tk-test-bundle", "version": "v1.0.0", "type": "app_store"}
+                    {"name": "tk-test-bundle2", "version": "v1.0.0", "type": "app_store"}
                 )
             io_descriptor_app_store = "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
             with patch(
@@ -395,7 +396,7 @@ class TestIODescriptors(TankTestBase):
 
         # make sure the expected local path exists.
         self.assertTrue(os.path.exists(
-            os.path.join(self.tank_temp, "bundle_cache", "app_store", "tk-test-bundle", "v1.0.0", "large_binary_file")
+            os.path.join(self.tank_temp, "bundle_cache", "app_store", "tk-test-bundle2", "v1.0.0", "large_binary_file")
         ), "Failed to find the default bundle cache directory for the app store descriptor on disk.")
 
         # attempt to download shotgun entity directly to the bundle cache.
@@ -407,7 +408,13 @@ class TestIODescriptors(TankTestBase):
                          "p123_primary", "v456", "large_binary_file")
         ), "Failed to find the default bundle cache directory for the shotgun entity descriptor on disk.")
 
+        # skip this test on windows or py2.5 where multiprocessing isn't available
+        if sys.platform == "win32" or sys.version_info < (2, 6):
+            return
+
         # now test concurrent downloads to a shared bundle cache
+        import multiprocessing
+
         # the shared bundle cache path to which app store data is to be downloaded.
         shared_dir = os.path.join(self.tank_temp, "shared_bundle_cache")
         try:
@@ -432,10 +439,23 @@ class TestIODescriptors(TankTestBase):
         all_processes_finished = False
         while not all_processes_finished:
             time.sleep(0.1)
+            sys.stderr.write(".")
             all_processes_finished = all(not (process.is_alive()) for process in processes)
 
         # Make sure the number of processes forked are as expected.
         self.assertEqual(len(processes), 20, "Failed to spawn the expected number of processes.")
+
+        # make sure the expected local path exists.
+        self.assertTrue(os.path.exists(
+            os.path.join(self.tank_temp, "shared_bundle_cache", "app_store",
+                         "tk-test-bundle2", "v1.0.0", "large_binary_file")
+        ), "Failed to find the shared bundle cache directory for the app store descriptor on disk.")
+
+        # make sure the expected local path exists.
+        self.assertTrue(os.path.exists(
+            os.path.join(self.tank_temp, "shared_bundle_cache", "sg", "unit_test_mock_sg",
+                         "PipelineConfiguration.sg_config", "p123_primary", "v456", "large_binary_file")
+        ), "Failed to find the default bundle cache directory for the shotgun entity descriptor on disk.")
 
         # bit-wise OR the exit codes of all processes.
         all_processes_exit_code = reduce(

@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import multiprocessing
+import sys
 import time
 
 import sgtk
@@ -222,45 +222,33 @@ class TestGitIODescriptor(TankTestBase):
             location_dict_tag = {
                 "type": "git",
                 "path": self.git_repo_uri,
-                "version": "v0.16.0"
-            }
-            location_dict_short_version = {
-                "type": "git_branch",
-                "path": self.git_repo_uri,
-                "branch": "master",
-                "version": "3e6a681"
-            }
-            location_dict_version = {
-                "type": "git_branch",
-                "path": self.git_repo_uri,
-                "branch": "018_test",
-                "version": "9035355e4e578dd874536ba333fedda0177d97a3"
+                "version": "v0.15.0"
             }
             location_dict_branch = {
                 "type": "git_branch",
                 "path": self.git_repo_uri,
-                "branch": "master"
+                "branch": "33014_nuke_studio"
             }
             if target:
                 with temp_env_var(SHOTGUN_BUNDLE_CACHE_PATH=target):
                     desc_git_tag = self._create_desc(location_dict_tag)
-                    desc_git_short_version = self._create_desc(location_dict_short_version)
-                    desc_git_version = self._create_desc(location_dict_version)
                     desc_git_branch = self._create_desc(location_dict_branch, True)
             else:
                 desc_git_tag = self._create_desc(location_dict_tag)
-                desc_git_short_version = self._create_desc(location_dict_short_version)
-                desc_git_version = self._create_desc(location_dict_version)
                 desc_git_branch = self._create_desc(location_dict_branch, True)
             desc_git_tag.download_local()
-            desc_git_short_version.download_local()
-            desc_git_version.download_local()
             desc_git_branch.download_local()
 
         processes = []
         errors = []
 
         # test concurrent downloads to a shared bundle cache by multiple processes.
+
+        # skip this test on windows or py2.5 where multiprocessing isn't available
+        if sys.platform == "win32" or sys.version_info < (2, 6):
+            return
+
+        import multiprocessing
 
         # the shared bundle cache path to which git data is to be downloaded.
         shared_dir = os.path.join(self.tank_temp, "shared_bundle_cache")
@@ -277,10 +265,20 @@ class TestGitIODescriptor(TankTestBase):
         all_processes_finished = False
         while not all_processes_finished:
             time.sleep(0.1)
+            sys.stderr.write(".")
             all_processes_finished = all(not (process.is_alive()) for process in processes)
 
         # Make sure the number of processes forked are as expected.
         self.assertEqual(len(processes), 10, "Failed to spawn the expected number of processes.")
+
+        # Make sure the required files/folders exist on disk
+        self.assertTrue(os.path.exists(
+            os.path.join(self.tank_temp, "shared_bundle_cache", "git", "tk-config-default.git", "v0.15.0")
+        ), "Failed to find the shared bundle cache directory for the git descriptor on disk.")
+
+        self.assertTrue(os.path.exists(
+            os.path.join(self.tank_temp, "shared_bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
+        ), "Failed to find the shared bundle cache directory for the git descriptor on disk.")
 
         # bit-wise OR the exit codes of all processes.
         all_processes_exit_code = reduce(
