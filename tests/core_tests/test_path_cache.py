@@ -903,7 +903,7 @@ class TestPathCacheGetLocationsFullSync(TankTestBase):
             entity_w_project = self.tk.shotgun.find_one(path_cache.SHOTGUN_ENTITY,
                                                         [["id","is", entity["id"]]],
                                                         ["project"])
-            self.assertTrue(entity_w_project['project']['id'] == self.tk.pipeline_configuration.get_project_id())
+            self.assertEqual(entity_w_project['project']['id'], self.tk.pipeline_configuration.get_project_id())
 
 class TestPathCacheDelete(TankTestBase):
     """
