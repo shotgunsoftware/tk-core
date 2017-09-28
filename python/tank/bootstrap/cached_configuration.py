@@ -126,7 +126,7 @@ class CachedConfiguration(Configuration):
             data = yaml.load(fh)
             deploy_generation = data["deploy_generation"]
             descriptor_dict = data["config_descriptor"]
-        except Exception, e:
+        except Exception as e:
             # yaml info not valid.
             log.warning("Cannot parse file '%s' - ignoring. Error: %s" % (config_info_file, e))
             return self.LOCAL_CFG_INVALID
@@ -185,7 +185,7 @@ class CachedConfiguration(Configuration):
             # Move to backup needs to undo changes when failing because we need to put the configuration
             # in a usable state.
             (config_backup_path, core_backup_path) = self._config_writer.move_to_backup(undo_on_error=True)
-        except Exception, e:
+        except Exception as e:
             log.exception(
                 "Unexpected error while making a backup of the configuration. Toolkit will use the "
                 "original configuration."
@@ -217,7 +217,7 @@ class CachedConfiguration(Configuration):
                 self._bundle_cache_fallback_paths
             )
 
-        except Exception, e:
+        except Exception as e:
             log.exception("Failed to update configuration. Attempting Rollback. Error Traceback:")
             # step 1 - clear core and config locations
             log.debug("Cleaning out faulty config location...")
@@ -286,5 +286,5 @@ class CachedConfiguration(Configuration):
                 try:
                     filesystem.safe_delete_folder(path)
                     log.debug("Deleted backup folder: %s", path)
-                except Exception, e:
+                except Exception as e:
                     log.warning("Failed to clean up temporary backup folder '%s': %s" % (path, e))

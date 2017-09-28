@@ -268,7 +268,7 @@ class MetricsDispatchWorkerThread(Thread):
                     self.DISPATCH_BATCH_SIZE)
                 if metrics:
                     self._dispatch(metrics)
-            except Exception, e:
+            except Exception as e:
                 pass
             finally:
                 # wait, checking for halt event before more processing
@@ -310,7 +310,7 @@ class MetricsDispatchWorkerThread(Thread):
         try:
             request = urllib2.Request(url, payload_json, header)
             response = urllib2.urlopen(request)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             # fire and forget, so if there's an error, ignore it.
             pass
 

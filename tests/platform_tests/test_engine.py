@@ -12,7 +12,7 @@
 Engine-related unit tests.
 """
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 
 import os
 import sys
@@ -248,8 +248,8 @@ class TestExecuteInMainThread(TestEngineBase):
                     e = time.time()
                     c_time += (e - st)
                     self.assertEqual(ret_val, arg)
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
                 raise
 
             # print "Cumulative time for thread %d: %0.4fs" % (val, c_time)

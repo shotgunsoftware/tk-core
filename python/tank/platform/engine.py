@@ -1912,7 +1912,7 @@ class Engine(TankBundle):
         )
         try:
             self._apply_stylesheet_file(qss_file, widget)
-        except Exception, e:
+        except Exception as e:
             # catch-all and issue a warning and continue.
             self.log_warning("Could not apply stylesheet '%s': %s" % (qss_file, e))
 
@@ -1922,7 +1922,7 @@ class Engine(TankBundle):
         if os.getenv("SHOTGUN_QSS_FILE_WATCHER", False) == "1":
             try:
                 self._add_stylesheet_file_watcher(qss_file, widget)
-            except Exception, e:
+            except Exception as e:
                 # We don't want the watcher to cause any problem, so we catch
                 # errors but issue a warning so the developer knows that interactive
                 # styling is off.
@@ -2126,7 +2126,7 @@ class Engine(TankBundle):
             # and associate it with the qapplication
             QtGui.QApplication.setPalette(self._dark_palette)
 
-        except Exception, e:
+        except Exception as e:
             self.log_error("The standard toolkit dark palette could not be set up! The look and feel of your "
                            "toolkit apps may be sub standard. Please contact support. Details: %s" % e)
             
@@ -2140,7 +2140,7 @@ class Engine(TankBundle):
             app = QtCore.QCoreApplication.instance()
             
             app.setStyleSheet(css_data)
-        except Exception, e:
+        except Exception as e:
             self.log_error("The standard toolkit dark stylesheet could not be set up! The look and feel of your "
                            "toolkit apps may be sub standard. Please contact support. Details: %s" % e)
 
@@ -2361,7 +2361,7 @@ class Engine(TankBundle):
                     app_settings,
                 )
 
-            except TankError, e:
+            except TankError as e:
                 # validation error - probably some issue with the settings!
                 # report this as an error message.
                 self.log_error("App configuration Error for %s (configured in environment '%s'). "
@@ -2455,7 +2455,7 @@ class Engine(TankBundle):
                 finally:
                     self.__currently_initializing_app = None
             
-            except TankError, e:
+            except TankError as e:
                 self.log_error("App %s failed to initialize. It will not be loaded: %s" % (app_dir, e))
                 
             except Exception:
@@ -2561,7 +2561,7 @@ class Engine(TankBundle):
         for app in self.__applications.values():
             try:
                 app.post_engine_init()
-            except TankError, e:
+            except TankError as e:
                 self.log_error("App %s Failed to run its post_engine_init. It is loaded, but"
                                "may not operate in its desired state! Details: %s" % (app, e))
             except Exception:
@@ -2670,7 +2670,7 @@ def _restart_engine(new_context):
             engine.destroy()
 
             _start_engine(current_engine_name, new_context.tank, old_context, new_context)
-    except TankError, e:
+    except TankError as e:
         engine.log_error("Could not restart the engine: %s" % e)
     except Exception:
         engine.log_exception("Could not restart the engine!")
@@ -2927,7 +2927,7 @@ def get_environment_from_context(tk, context):
     """
     try:
         env_name = tk.execute_core_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not resolve an environment for context '%s'. The pick "
                         "environment hook reported the following error: %s" % (context, e))
     
@@ -3003,7 +3003,7 @@ def __pick_environment(engine_name, tk, context):
 
     try:
         env_name = tk.execute_core_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
-    except Exception, e:
+    except Exception as e:
         raise TankEngineInitError("Engine %s cannot initialize - the pick environment hook "
                                  "reported the following error: %s" % (engine_name, e))
 

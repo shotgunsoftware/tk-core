@@ -98,7 +98,7 @@ class SetupProjectFactoryAction(Action):
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([ str(x) for x in sg.server_info["version"]])
             log.debug("Connected to target Shotgun server! (v%s)" % sg_version)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Could not connect to Shotgun server: %s" % e)
 
         return sg
@@ -333,7 +333,7 @@ class SetupProjectWizard(object):
                     self._log.info("Creating project folder '%s'..." % proj_path)
                     old_umask = os.umask(0)
                     try:
-                        os.makedirs(proj_path, 0777)
+                        os.makedirs(proj_path, 0o777)
                     finally:
                         os.umask(old_umask)
                     self._log.debug("...done!")

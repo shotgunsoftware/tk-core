@@ -12,7 +12,7 @@
 Unit tests for interactive authentication.
 """
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 
 import sys
 
@@ -120,10 +120,10 @@ class InteractiveTests(TankTestBase):
 
     def _print_message(self, text, test_console):
         if test_console:
-            print
-            print "=" * len(text)
-            print text
-            print "=" * len(text)
+            print()
+            print("=" * len(text))
+            print(text)
+            print("=" * len(text))
         else:
             from PySide import QtGui
             mb = QtGui.QMessageBox()
@@ -233,7 +233,7 @@ class InteractiveTests(TankTestBase):
                     if QtGui.QApplication.instance().thread == self:
                         raise Exception("QApplication should be in the main thread, not self.")
                     invoker_obj(thrower)
-                except Exception, e:
+                except Exception as e:
                     self._exception = e
                 finally:
                     QtGui.QApplication.instance().exit()

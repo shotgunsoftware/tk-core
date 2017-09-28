@@ -124,7 +124,7 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
     # load the config file
     try:
         file_data = yaml_cache.g_yaml_cache.get(shotgun_cfg_path, deepcopy_data=False) or {}
-    except Exception, error:
+    except Exception as error:
         raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
 
     return _parse_config_data(file_data, user, shotgun_cfg_path)
@@ -392,7 +392,7 @@ def create_sg_connection(user="default"):
         # try to find the shotgun.yml path
         try:
             config_file_path = __get_sg_config()
-        except TankError, e:
+        except TankError as e:
             log.error(
                 "Trying to create a shotgun connection but this tk session does not have "
                 "an associated authenticated user. Therefore attempted to fall back on "

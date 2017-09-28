@@ -94,7 +94,7 @@ class EntityExpression(object):
             try:            
                 # find all field names ["xx", "yy", "zz.xx"] from "{xx}_{yy}_{zz.xx}"
                 fields = set(re.findall('{([^}^{]*)}', v))
-            except Exception, error:
+            except Exception as error:
                 raise TankError("Could not parse the configuration field '%s' - Error: %s" % (field_name_expr, error) )
 
             # now look for any field which contains a dot - these are all deep links.
@@ -252,7 +252,7 @@ class EntityExpression(object):
         # and produce a more sensible error message.
         try:
             val = adjusted_expr % (str_data)
-        except Exception, error:
+        except Exception as error:
             raise TankError("Could not populate values for the expression '%s' - please "
                             "contact support! Error message: %s. "
                             "Data: %s" % (expression, error, str_data))

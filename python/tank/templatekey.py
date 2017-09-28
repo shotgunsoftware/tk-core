@@ -341,7 +341,7 @@ class StringKey(TemplateKey):
         if subset:
             try:
                 self._subset_regex = re.compile(subset, re.UNICODE)
-            except Exception, e:
+            except Exception as e:
                 raise TankError("Template key %s: Invalid subset regex '%s': %s" % (name, subset, e))
 
         else:
@@ -554,7 +554,7 @@ class StringKey(TemplateKey):
                 try:
                     # perform the formatting in unicode space to cover all cases
                     self._subset_format.decode("utf-8").format(*regex_match.groups())
-                except Exception, e:
+                except Exception as e:
                     self._last_error = "%s Illegal value '%s' does not fit subset '%s' with format '%s': %s" % (
                         self,
                         value,
@@ -676,7 +676,7 @@ class TimestampKey(TemplateKey):
             try:
                 datetime.datetime.strptime(value, self.format_spec)
                 return True
-            except ValueError, e:
+            except ValueError as e:
                 # Bad value, report the error to the client code.
                 self._last_error = "Invalid string: %s" % e.message
                 return False

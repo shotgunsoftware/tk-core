@@ -108,7 +108,7 @@ class TestMetricsFunctions(TankTestBase):
         for metric in good_metrics:
             try:
                 log_metric(metric)
-            except Exception, e:
+            except Exception as e:
                 self.fail(
                     "log_metric() failed unexpectedly on good metric (%s): %s",
                     (metric, e)
@@ -118,7 +118,7 @@ class TestMetricsFunctions(TankTestBase):
         for metric in bad_metrics:
             try:
                 log_metric(metric)
-            except Exception, e:
+            except Exception as e:
                 self.fail(
                     "log_metric() failed unexpectedly on bad metric (%s): %s",
                     (metric, e)
@@ -137,7 +137,7 @@ class TestMetricsFunctions(TankTestBase):
             log_user_activity_metric(None, None)
             log_user_activity_metric({}, {})
             log_user_activity_metric([], [])
-        except Exception, e:
+        except Exception as e:
             self.fail(
                 "log_user_activity_metric() failed unexpectedly: %s" % (e,))
 
@@ -154,7 +154,7 @@ class TestMetricsFunctions(TankTestBase):
             log_user_attribute_metric(None, None)
             log_user_attribute_metric({}, {})
             log_user_attribute_metric([], [])
-        except Exception, e:
+        except Exception as e:
             self.fail(
                 "log_user_attribute_metric() failed unexpectedly: %s" % (e,))
 

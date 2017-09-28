@@ -611,7 +611,7 @@ class WritableEnvironment(InstalledEnvironment):
         """
         try:
             fh = open(path, "r")
-        except Exception, e:
+        except Exception as e:
             raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
         
         try:
@@ -636,7 +636,7 @@ class WritableEnvironment(InstalledEnvironment):
             # instead. This is known to happen when and old version (<= v1.3.20) of
             # tk-framework-desktopstartup is in use.
             yaml_data = yaml.load(fh)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Could not parse file '%s'. Error reported: '%s'" % (path, e))
         finally:
             fh.close()            
@@ -654,13 +654,13 @@ class WritableEnvironment(InstalledEnvironment):
         try:
             g_yaml_cache.invalidate(path)
             fh = open(path, "wt")
-        except Exception, e:
+        except Exception as e:
             raise TankError("Could not open file '%s' for writing. "
                             "Error reported: '%s'" % (path, e))
 
         try:
             self.__write_data_file(fh, data)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Could not write to environment file '%s'. "
                             "Error reported: %s" % (path, e))
         finally:
@@ -1126,7 +1126,7 @@ class WritableEnvironment(InstalledEnvironment):
 
         try:
             self.__write_data_file(file, yml_data)
-        except Exception, e:
+        except Exception as e:
             raise TankError(
                 "Could not write to environment file handle. "
                 "Error reported: %s" % (e,)
