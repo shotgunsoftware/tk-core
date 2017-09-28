@@ -211,6 +211,9 @@ class Context(object):
         
         return True 
 
+    # This item is not hashable. Required to silence -3 flag of the python interpreter.
+    __hash__ = None
+
     def __ne__(self, other):
         """
         Test if this Context instance is not equal to the other Context instance

@@ -713,7 +713,7 @@ class TankTestBase(unittest.TestCase):
         try:
             func(*args, **kws)
         except Error, e:
-            self.assertEquals(message, e.message)
+            self.assertEquals(message, str(e))
 
     def _move_project_data(self):
         """

@@ -17,6 +17,7 @@ import sys
 import datetime
 from . import constants
 from .errors import TankError
+import collections
 
 class TemplateKey(object):
     """
@@ -116,7 +117,7 @@ class TemplateKey(object):
 
         :returns: The default value.
         """
-        if callable(self._default):
+        if isinstance(self._default, collections.Callable):
             return self._default()
         else:
             return self._default
@@ -678,7 +679,7 @@ class TimestampKey(TemplateKey):
                 return True
             except ValueError as e:
                 # Bad value, report the error to the client code.
-                self._last_error = "Invalid string: %s" % e.message
+                self._last_error = "Invalid string: %s" % str(e)
                 return False
         elif isinstance(value, datetime.datetime):
             return True
