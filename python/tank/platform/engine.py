@@ -333,7 +333,7 @@ class Engine(TankBundle):
 
         if sys.version_info < (2,6):
             # older pythons use im_func rather than __func__
-            if running_method.im_func is not base_method.im_func:
+            if running_method.__func__ is not base_method.__func__:
                 subclassed = True
         else:
             # pyton 2.6 and above use __func__
