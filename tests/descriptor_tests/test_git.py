@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from functools import reduce
+import multiprocessing
 import os
 import sys
 import time
@@ -215,6 +217,11 @@ class TestGitIODescriptor(TankTestBase):
         """
         Tests local downloads to the bundle cache for git descriptors.
         """
+
+        # skip this test on windows or py2.5 where multiprocessing isn't available
+        if sys.platform == "win32" or sys.version_info < (2, 6):
+            return
+
         def _download_bundles(target=None):
             """
             :param target: The path to which the bundle is to be downloaded.
@@ -243,12 +250,6 @@ class TestGitIODescriptor(TankTestBase):
         errors = []
 
         # test concurrent downloads to a shared bundle cache by multiple processes.
-
-        # skip this test on windows or py2.5 where multiprocessing isn't available
-        if sys.platform == "win32" or sys.version_info < (2, 6):
-            return
-
-        import multiprocessing
 
         # the shared bundle cache path to which git data is to be downloaded.
         shared_dir = os.path.join(self.tank_temp, "shared_bundle_cache")

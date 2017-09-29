@@ -9,6 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
+from functools import reduce
+import multiprocessing
 import os
 from mock import patch
 import sys
@@ -413,7 +415,6 @@ class TestIODescriptors(TankTestBase):
             return
 
         # now test concurrent downloads to a shared bundle cache
-        import multiprocessing
 
         # the shared bundle cache path to which app store data is to be downloaded.
         shared_dir = os.path.join(self.tank_temp, "shared_bundle_cache")
@@ -455,7 +456,7 @@ class TestIODescriptors(TankTestBase):
         self.assertTrue(os.path.exists(
             os.path.join(self.tank_temp, "shared_bundle_cache", "sg", "unit_test_mock_sg",
                          "PipelineConfiguration.sg_config", "p123_primary", "v456", "large_binary_file")
-        ), "Failed to find the default bundle cache directory for the shotgun entity descriptor on disk.")
+        ), "Failed to find the shared bundle cache directory for the shotgun entity descriptor on disk.")
 
         # bit-wise OR the exit codes of all processes.
         all_processes_exit_code = reduce(
