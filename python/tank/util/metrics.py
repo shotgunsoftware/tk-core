@@ -328,8 +328,8 @@ class MetricsDispatchWorkerThread(Thread):
                 metrics=[m.data for m in metrics]
             )
         except Exception, e:
-            # Catch errors to not kill our thread, log them for debug purpose. 
-            self._engine.log_debug( "%s hook failed with %s" % (
+            # Catch errors to not kill our thread, log them for debug purpose.
+            self._engine.log_debug("%s hook failed with %s" % (
                 constants.TANK_LOG_METRICS_HOOK_NAME,
                 e,
             ))

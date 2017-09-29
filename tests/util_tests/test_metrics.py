@@ -35,6 +35,7 @@ import threading
 import urllib2
 import time
 
+
 class TestEventMetric(TankTestBase):
     """Cases testing tank.util.metrics.EventMetric class"""
 
