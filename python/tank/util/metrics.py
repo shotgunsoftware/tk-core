@@ -23,7 +23,8 @@ are not part of the public Sgtk API.
 from collections import deque
 from threading import Event, Thread, Lock
 import urllib2
- 
+from copy import deepcopy
+
 from . import constants
 
 # use api json to cover py 2.5
@@ -213,14 +214,14 @@ class MetricsDispatcher(object):
 
 
 class MetricsDispatchWorkerThread(Thread):
-    """Worker thread for dispatching metrics to sg logging endpoint.
+    """
+    Worker thread for dispatching metrics to sg logging endpoint.
 
     Once started this worker will dispatch logged metrics to the shotgun api
-    endpoint. The worker retrieves any pending metrics after the
+    endpoint, if available. The worker retrieves any pending metrics after the
     `DISPATCH_INTERVAL` and sends them all in a single request to sg.
 
-    In the case metrics dispatch isn't supported by the shotgun server,
-    the worker thread will exit early.
+    This worker will also fire the `log_metrics` hooks.
     """
 
     API_ENDPOINT = "api3/track_metrics/"
@@ -240,6 +241,12 @@ class MetricsDispatchWorkerThread(Thread):
     NOTE: that current SG server code reject batches larger than 10.
     """
 
+    # List of Event names suported by our backend
+    SUPPORTED_EVENTS = [
+        "Launched Command", "Launched Software", "Published", "Loaded Published File",
+        "Saved Workfile", "Opened Workfile", "Launched Action"
+    ]
+
     def __init__(self, engine):
         """
         Initialize the worker thread.
@@ -250,7 +257,7 @@ class MetricsDispatchWorkerThread(Thread):
         super(MetricsDispatchWorkerThread, self).__init__()
 
         self._engine = engine
-
+        self._endpoint_available = False
         # Make this thread a daemon. This means the process won't wait for this
         # thread to complete before exiting. In most cases, proper engine
         # shutdown should halt the worker correctly. In cases where an engine
@@ -263,19 +270,16 @@ class MetricsDispatchWorkerThread(Thread):
     def run(self):
         """Runs a loop to dispatch metrics that have been logged."""
 
-        # first of all, check if metrics dispatch is supported
+        # First of all, check if metrics dispatch is supported
         # connect to shotgun and probe for server version
         sg_connection = self._engine.shotgun
-        metrics_ok = (
+        self._endpoint_available = (
             hasattr(sg_connection, "server_caps") and
             sg_connection.server_caps.version and
             sg_connection.server_caps.version >= (7, 4, 0)
         )
-        if not metrics_ok:
-            # metrics not supported
-            return
 
-        # run until halted
+        # Run until halted
         while not self._halt_event.isSet():
 
             # get the next available metric and dispatch it
@@ -286,7 +290,8 @@ class MetricsDispatchWorkerThread(Thread):
                 # 'DISPATCH_BATCH_SIZE' items at a time.
                 while True:
                     metrics = MetricsQueueSingleton().get_metrics(
-                        self.DISPATCH_BATCH_SIZE)
+                        self.DISPATCH_BATCH_SIZE
+                    )
                     if metrics:
                         self._dispatch(metrics)
                         self._halt_event.wait(self.DISPATCH_SHORT_INTERVAL)
@@ -300,15 +305,59 @@ class MetricsDispatchWorkerThread(Thread):
                 self._halt_event.wait(self.DISPATCH_INTERVAL)
 
     def halt(self):
-        """Indiate that the worker thread should halt as soon as possible."""
+        """
+        Ask the worker thread to halt as soon as possible.
+        """
         self._halt_event.set()
 
     def _dispatch(self, metrics):
-        """Dispatch the supplied metric to the sg api registration endpoint.
-
-        :param Metric metrics: The Toolkit metric to dispatch.
-
         """
+        Dispatch the supplied metric to the sg api registration endpoint and fire
+        the log_metrics hook.
+
+        :param metrics: A list of :class:`EventMetric` instances.
+        """
+
+        if self._endpoint_available:
+            self._dispatch_to_endpoint(metrics)
+        # Execute the log_metrics core hook
+        try:
+            self._engine.tank.execute_core_hook_method(
+                constants.TANK_LOG_METRICS_HOOK_NAME,
+                "log_metrics",
+                metrics=[m.data for m in metrics]
+            )
+        except Exception, e:
+            # Catch errors to not kill our thread, log them for debug purpose. 
+            self._engine.log_debug( "%s hook failed with %s" % (
+                constants.TANK_LOG_METRICS_HOOK_NAME,
+                e,
+            ))
+
+    def _dispatch_to_endpoint(self, metrics):
+        """
+        Dispatch the supplied metric to the sg api registration endpoint. 
+
+        :param metrics: A list of :class:`EventMetric` instances.
+        """
+
+        # Filter out metrics we don't want to send to the endpoint.
+        filtered_metrics_data = []
+        for metric in metrics:
+            # Only send Toolkit events
+            if metric.is_toolkit_event:
+                data = metric.data
+                if data["event_name"] not in self.SUPPORTED_EVENTS:
+                    # Still log the event but change its name so it's easy to
+                    # spot all unofficial events which are logged.
+                    # Later we might want to simply discard them instead of logging
+                    # them as "Unknown"
+                    data["event_name"] = "Unknown Event"
+                filtered_metrics_data.append(data)
+
+        # Bail out if there is nothing to do
+        if not filtered_metrics_data:
+            return
 
         # get this thread's sg connection via tk api
         sg_connection = self._engine.tank.shotgun
@@ -327,24 +376,17 @@ class MetricsDispatchWorkerThread(Thread):
             "auth_args": {
                 "session_token": sg_connection.get_session_token()
             },
-            "metrics": [m.data for m in metrics]
+            "metrics": filtered_metrics_data
         }
         payload_json = json.dumps(payload)
 
-        header = {'Content-Type': 'application/json'}
+        header = {"Content-Type": "application/json"}
         try:
             request = urllib2.Request(url, payload_json, header)
             urllib2.urlopen(request)
         except urllib2.HTTPError:
             # fire and forget, so if there's an error, ignore it.
             pass
-
-        # execute the log_metrics core hook
-        self._engine.tank.execute_core_hook_method(
-            constants.TANK_LOG_METRICS_HOOK_NAME,
-            "log_metrics",
-            metrics=[m.data for m in metrics]
-        )
 
 
 ###############################################################################
@@ -416,29 +458,40 @@ class EventMetric(object):
         :param dict properties: An optional dictionary of extra properties to be 
                                 attached to the metric event.
         """
-        self._data = {
-            "event_group": str(group),
-            "event_name": str(name),
-            "event_properties": properties
-        }
+        self._group = str(group)
+        self._name = str(name)
+        self._properties = properties
 
     def __repr__(self):
         """Official str representation of the user activity metric."""
-        return "%s:%s" % (self._data["event_group"], self._data["event_name"])
+        return "%s:%s" % (self._group, self._name)
 
     def __str__(self):
         """Readable str representation of the metric."""
-        return "%s: %s" % (self.__class__, self._data)
+        return "%s: %s" % (self.__class__, self.data)
 
     @property
     def data(self):
-        """The underlying data this metric represents."""
-        return self._data
+        """
+        :returns: The underlying data this metric represents, as a dictionary.
+        """
+        return {
+            "event_group": self._group,
+            "event_name": self._name,
+            "event_properties": deepcopy(self._properties)
+        }
+
+    @property
+    def is_toolkit_event(self):
+        """
+        :returns: True if this event belongs to the Toolkit group, False otherwise.
+        """
+        return self._group == self.GROUP_TOOLKIT
 
     @classmethod
     def log(cls, group, name, properties=None, log_once=False):
         """
-        Queue a Toolkit metric event with the given name for the given group on
+        Queue a metric event with the given name for the given group on
         the :class:`MetricsQueueSingleton` dispatch queue.
 
         This method simply adds the metric event to the dispatch queue meaning that 

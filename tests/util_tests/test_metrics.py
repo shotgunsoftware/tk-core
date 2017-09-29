@@ -21,6 +21,7 @@ from tank.util.metrics import (
     log_user_activity_metric,
     log_user_attribute_metric,
 )
+from tank.util.constants import TANK_LOG_METRICS_HOOK_NAME
 
 import tank
 from tank_test.tank_test_base import setUpModule # noqa
@@ -32,7 +33,7 @@ import json
 import time
 import threading
 import urllib2
-
+import time
 
 class TestEventMetric(TankTestBase):
     """Cases testing tank.util.metrics.EventMetric class"""
@@ -316,7 +317,9 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._setup_shotgun(server_capsMock())
 
         # Save a few values for comparing on the other side
-        METRIC_EVENT_NAME = name
+        expected_event_name = name
+        if name not in MetricsDispatchWorkerThread.SUPPORTED_EVENTS:
+            expected_event_name = "Unknown Event"
 
         # Make at least one metric related call!
         EventMetric.log(group, name, properties)
@@ -342,12 +345,15 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                     # Although we've not found our particular metric
                     # We can already verify that the logged metric was made using the right URL
                     url = mocked_request.get_full_url()
-                    self.assertTrue(TestMetricsDispatchWorkerThread.METRIC_ENDPOINT in url,
-                                    "Not using the latest metric '%s' endpoint" % (
-                                        TestMetricsDispatchWorkerThread.METRIC_ENDPOINT))
+                    self.assertTrue(
+                        TestMetricsDispatchWorkerThread.METRIC_ENDPOINT in url,
+                        "Not using the latest metric '%s' endpoint" % (
+                            TestMetricsDispatchWorkerThread.METRIC_ENDPOINT
+                        )
+                    )
 
                     for metric in data["metrics"]:
-                        if ("event_name" in metric) and (METRIC_EVENT_NAME == metric["event_name"]):
+                        if ("event_name" in metric) and (expected_event_name == metric["event_name"]):
                             # Nothing else FOR NOW to test, we can report success by bypassing
                             # timeout failure down below.
 
@@ -408,14 +414,14 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue(isinstance(server_received_metric["event_properties"]["DictProp"], dict))
         self.assertTrue(isinstance(server_received_metric["event_properties"]["ListProp"], list))
 
-    # Not currently supporting usage of non-ascii7 charcaters, request would need to be escaped"
+    # Not currently supporting usage of non-ascii7 characters, request would need to be escaped"
     def _test_end_to_end_with_non_ascii7_chars(self):
         """
         Test a complete cycle of creating, submitting and receiving a server
         response using non-ascii-7 characaters in the request.
         """
         self._helper_test_end_to_end(
-            "App",
+            EventMetric.GROUP_TOOLKIT,
             "Test test_end_to_end",
             properties={
                 "Name with accents": "Éric Hébert",
@@ -546,7 +552,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # For this test, we need to override that to something more specific.
         self._urlopen_mock.stop()
         self._urlopen_mock = None
-        self._urlopen_mock = patch('urllib2.urlopen', side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size)
+        self._urlopen_mock = patch("urllib2.urlopen", side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size)
         self._mocked_method = self._urlopen_mock.start()
 
         # We add 10 time the maximum number of events in the queue.
@@ -607,14 +613,17 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # For this test, we need to override that to something more specific.
         self._urlopen_mock.stop()
         self._urlopen_mock = None
-        self._urlopen_mock = patch('urllib2.urlopen', side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size)
+        self._urlopen_mock = patch(
+            "urllib2.urlopen",
+            side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size
+        )
         self._mocked_method = self._urlopen_mock.start()
 
         # We add 10 time the maximum number of events in the queue + some extra.
         TEST_SIZE = 7 + (10 * MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE)
         for i in range(TEST_SIZE):
             EventMetric.log(
-                "App",
+                EventMetric.GROUP_TOOLKIT,
                 "Testing maximum queue size %d" % (i),
                 properties={"Metric id": i}
             )
@@ -798,8 +807,8 @@ class TestBundleMetrics(TankTestBase):
         # Make sure we have an empty queue
         metrics_queue = MetricsQueueSingleton()
         metrics_queue.get_metrics()
-        context = self.tk.context_from_path(self.shot_step_path)
-        self.engine = tank.platform.start_engine("test_engine", self.tk, context)
+        self.context = self.tk.context_from_path(self.shot_step_path)
+        self._authenticate()
 
     def tearDown(self):
         # engine is held as global, so must be destroyed.
@@ -807,16 +816,26 @@ class TestBundleMetrics(TankTestBase):
         if cur_engine:
             cur_engine.destroy()
         os.remove(self.test_resource)
-
+        self._de_authenticate()
         # important to call base class so it can clean up memory
         super(TestBundleMetrics, self).tearDown()
 
+    def _authenticate(self):
+        # Need to set authenticated user prior to MetricDispatcher.start below
+        user = ShotgunAuthenticator().create_script_user(
+            "script_user", "script_key", "https://abc.shotgunstudio.com"
+        )
+        tank.set_authenticated_user(user)
+
+    def _de_authenticate(self):
+        tank.set_authenticated_user(None)
+
     @patch("tank.util.metrics.MetricsDispatcher.start")
-    def test_bundle_metrics(self, mocked_start):
+    def test_bundle_metrics(self, patched_start):
         """
         Test metrics logged by bundles.
         """
-        engine = self.engine
+        engine = tank.platform.start_engine("test_engine", self.tk, self.context)
         metrics_queue = MetricsQueueSingleton()
         # Make sure we don't have a dispatcher running
         if engine._metrics_dispatcher:
@@ -886,3 +905,40 @@ class TestBundleMetrics(TankTestBase):
                 self.assertFalse(EventMetric.KEY_COMMAND in data["event_properties"])
         # Make sure we tested at least one app with a framework
         self.assertTrue(able_to_test_a_framework)
+
+    @patch("urllib2.open")
+    def test_log_metrics_hook(self, patched):
+        """
+        Test the log_metric hook is fired when logging metrics
+        """
+        engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        self.assertTrue(engine.metrics_dispatch_allowed)
+
+        # Make sure we do have a dispatcher running
+        self.assertTrue(engine._metrics_dispatcher)
+        self.assertTrue(engine._metrics_dispatcher.workers)
+
+        # Check the hook is called with the right arguments
+        exec_core_hook = engine.tank.execute_core_hook_method
+        hook_calls = []
+
+        def log_hook(hook_name, hook_method, **kwargs):
+            if hook_name == TANK_LOG_METRICS_HOOK_NAME:
+                hook_calls.append(kwargs)
+            # Call the original hook
+            return(exec_core_hook(hook_name, hook_method, **kwargs))
+
+        with patch("tank.api.Sgtk.execute_core_hook_method") as mocked:
+            mocked.side_effect = log_hook
+            engine.log_metric("Hook test")
+            # Make sure the dispatcher has some time to wake up
+            time.sleep(MetricsDispatchWorkerThread.DISPATCH_INTERVAL)
+            hook_called = False
+            for hook_call in hook_calls:
+                for metric in hook_call["metrics"]:
+                    if metric["event_name"] == "Hook test":
+                        hook_called = True
+                        break
+            self.assertTrue(hook_called)
+
+
