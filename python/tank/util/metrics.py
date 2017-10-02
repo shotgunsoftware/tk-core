@@ -243,8 +243,13 @@ class MetricsDispatchWorkerThread(Thread):
 
     # List of Event names suported by our backend
     SUPPORTED_EVENTS = [
-        "Launched Command", "Launched Software", "Published", "Loaded Published File",
-        "Saved Workfile", "Opened Workfile", "Launched Action"
+        "Launched Action",
+        "Launched Command",
+        "Launched Software",
+        "Loaded Published File",
+        "Opened Workfile",
+        "Published",
+        "Saved Workfile",
     ]
 
     def __init__(self, engine):
@@ -352,6 +357,20 @@ class MetricsDispatchWorkerThread(Thread):
                     # spot all unofficial events which are logged.
                     # Later we might want to simply discard them instead of logging
                     # them as "Unknown"
+                    # Forge a new properties dict with the original data under the
+                    # "Event Data" key
+                    properties = data["event_properties"]
+                    new_properties = {
+                        "Event Name": data["event_name"],
+                        "Event Data": properties,
+                        EventMetric.KEY_APP: properties.get(EventMetric.KEY_APP),
+                        EventMetric.KEY_APP_VERSION: properties.get(EventMetric.KEY_APP_VERSION),
+                        EventMetric.KEY_ENGINE: properties.get(EventMetric.KEY_ENGINE),
+                        EventMetric.KEY_ENGINE_VERSION: properties.get(EventMetric.KEY_ENGINE_VERSION),
+                        EventMetric.KEY_HOST_APP: properties.get(EventMetric.KEY_HOST_APP),
+                        EventMetric.KEY_HOST_APP_VERSION: properties.get(EventMetric.KEY_HOST_APP_VERSION),
+                    }
+                    data["event_properties"] = new_properties
                     data["event_name"] = "Unknown Event"
                 filtered_metrics_data.append(data)
 
@@ -457,7 +476,7 @@ class EventMetric(object):
         """
         self._group = str(group)
         self._name = str(name)
-        self._properties = properties
+        self._properties = properties or {} # Ensure we always have a valid dict.
 
     def __repr__(self):
         """Official str representation of the user activity metric."""

@@ -369,7 +369,9 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         """
         server_received_metric = self._helper_test_end_to_end(
             EventMetric.GROUP_TOOLKIT,
-            "Testing basic end to end functionality",
+            # We use an un-supported event name here which will be replaced with
+            # "Unknown Event"
+            "Launched Action",
             properties={
                 EventMetric.KEY_HOST_APP: "Maya",
                 EventMetric.KEY_HOST_APP_VERSION: "2017",
@@ -383,8 +385,14 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         )
 
         # Test the metric that was encoded and transmitted to the mock server
-        self.assertTrue("event_group" in server_received_metric)
-        self.assertTrue("event_name" in server_received_metric)
+        self.assertEqual(
+             server_received_metric["event_group"],
+             EventMetric.GROUP_TOOLKIT
+        )
+        self.assertEqual(
+             server_received_metric["event_name"],
+             "Launched Action"
+        )
         self.assertTrue("event_properties" in server_received_metric)
 
         self.assertTrue(EventMetric.KEY_HOST_APP in server_received_metric["event_properties"])
@@ -411,6 +419,74 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue(isinstance(server_received_metric["event_properties"]["BoolProp"], bool))
         self.assertTrue(isinstance(server_received_metric["event_properties"]["DictProp"], dict))
         self.assertTrue(isinstance(server_received_metric["event_properties"]["ListProp"], list))
+
+    def test_end_to_end_unsupported_event(self):
+        """
+        Test a complete cycle using an unsupported event name.
+        """
+        properties={
+            EventMetric.KEY_HOST_APP: "Maya",
+            EventMetric.KEY_HOST_APP_VERSION: "2017",
+            EventMetric.KEY_APP: "tk-multi-publish2",
+            EventMetric.KEY_APP_VERSION: "v0.2.3",
+            "IntProp": 2,
+            "BoolProp": True,
+            "DictProp": {"Key1": "value1", "Key2": "Value2"},
+            "ListProp": [1, 2, 3, 4, 5]
+        }
+        server_received_metric = self._helper_test_end_to_end(
+            EventMetric.GROUP_TOOLKIT,
+            # We use an un-supported event name here which will be replaced with
+            # "Unknown Event"
+            "Testing basic end to end functionality",
+            properties=properties,
+        )
+
+        # Test the metric that was encoded and transmitted to the mock server
+        self.assertTrue("event_group" in server_received_metric)
+        self.assertTrue("event_name" in server_received_metric)
+        # Our un-supported event name should have been changed
+        self.assertEqual(
+             server_received_metric["event_name"],
+             "Unknown Event"
+        )
+        self.assertTrue("event_properties" in server_received_metric)
+        # The original un-supported event name should be available as a property
+        self.assertEqual(
+             server_received_metric["event_properties"]["Event Name"],
+             "Testing basic end to end functionality",
+        )
+        for k in [
+            EventMetric.KEY_HOST_APP,
+            EventMetric.KEY_HOST_APP_VERSION,
+            EventMetric.KEY_APP,
+            EventMetric.KEY_APP_VERSION,
+        ]:
+            self.assertEqual(
+                 server_received_metric["event_properties"][k],
+                 properties[k],
+             )
+
+        preserved_properties = server_received_metric["event_properties"]["Event Data"]
+        self.assertTrue("IntProp" in preserved_properties)
+        self.assertTrue("BoolProp" in preserved_properties)
+        self.assertTrue("DictProp" in preserved_properties)
+        self.assertTrue("ListProp" in preserved_properties)
+
+        self.assertTrue(isinstance(server_received_metric["event_group"], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_name"], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
+
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP_VERSION], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION], unicode))
+
+        self.assertTrue(isinstance(preserved_properties["IntProp"], int))
+        self.assertTrue(isinstance(preserved_properties["IntProp"], int))
+        self.assertTrue(isinstance(preserved_properties["BoolProp"], bool))
+        self.assertTrue(isinstance(preserved_properties["DictProp"], dict))
+        self.assertTrue(isinstance(preserved_properties["ListProp"], list))
 
     # Not currently supporting usage of non-ascii7 characters, request would need to be escaped"
     def _test_end_to_end_with_non_ascii7_chars(self):
