@@ -100,7 +100,9 @@ class TestEventMetric(TankTestBase):
         """ Simply assert usage of the properties parameter is exception free. """
         EventMetric("App", "Test add_event_properties", None)
 
-        EventMetric("App", "Test add_event_properties",
+        EventMetric(
+            "App",
+            "Test add_event_properties",
             properties={
                 "IntProp": 2,
                 "BoolProp": True,
