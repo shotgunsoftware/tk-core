@@ -112,14 +112,9 @@ class TestEventMetric(TankTestBase):
 
     def test_group_definition_exists(self):
         """
-        Simply test that standard group definitions havent't been deleted or renamed.
+        Simply test that standard group definition havent't been deleted or renamed.
         """
-        self.assertTrue(hasattr(EventMetric, "GROUP_APP"))
-        self.assertTrue(hasattr(EventMetric, "GROUP_TASKS"))
-        self.assertTrue(hasattr(EventMetric, "GROUP_MEDIA"))
         self.assertTrue(hasattr(EventMetric, "GROUP_TOOLKIT"))
-        self.assertTrue(hasattr(EventMetric, "GROUP_NAVIGATION"))
-        self.assertTrue(hasattr(EventMetric, "GROUP_PROJECTS"))
 
     def test_key_definition_exist(self):
         """
@@ -804,7 +799,11 @@ class TestBundleMetrics(TankTestBase):
         fh = open(self.test_resource, "wt")
         fh.write("test")
         fh.close()
-        
+
+        # Set the dispatch interval to something not too big so tests will not
+        # wait for a long time.
+        self._metrics_interval = MetricsDispatchWorkerThread.DISPATCH_INTERVAL
+        MetricsDispatchWorkerThread.DISPATCH_INTERVAL = 2
         # Make sure we have an empty queue
         metrics_queue = MetricsQueueSingleton()
         metrics_queue.get_metrics()
@@ -812,6 +811,7 @@ class TestBundleMetrics(TankTestBase):
         self._authenticate()
 
     def tearDown(self):
+        MetricsDispatchWorkerThread.DISPATCH_INTERVAL = self._metrics_interval
         # engine is held as global, so must be destroyed.
         cur_engine = tank.platform.current_engine()
         if cur_engine:
