@@ -386,12 +386,12 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         # Test the metric that was encoded and transmitted to the mock server
         self.assertEqual(
-             server_received_metric["event_group"],
-             EventMetric.GROUP_TOOLKIT
+            server_received_metric["event_group"],
+            EventMetric.GROUP_TOOLKIT
         )
         self.assertEqual(
-             server_received_metric["event_name"],
-             "Launched Action"
+            server_received_metric["event_name"],
+            "Launched Action"
         )
         self.assertTrue("event_properties" in server_received_metric)
 
