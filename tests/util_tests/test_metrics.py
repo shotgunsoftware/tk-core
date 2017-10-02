@@ -424,7 +424,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         """
         Test a complete cycle using an unsupported event name.
         """
-        properties={
+        properties = {
             EventMetric.KEY_HOST_APP: "Maya",
             EventMetric.KEY_HOST_APP_VERSION: "2017",
             EventMetric.KEY_APP: "tk-multi-publish2",
@@ -447,14 +447,14 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("event_name" in server_received_metric)
         # Our un-supported event name should have been changed
         self.assertEqual(
-             server_received_metric["event_name"],
-             "Unknown Event"
+            server_received_metric["event_name"],
+            "Unknown Event"
         )
         self.assertTrue("event_properties" in server_received_metric)
         # The original un-supported event name should be available as a property
         self.assertEqual(
-             server_received_metric["event_properties"]["Event Name"],
-             "Testing basic end to end functionality",
+            server_received_metric["event_properties"]["Event Name"],
+            "Testing basic end to end functionality",
         )
         for k in [
             EventMetric.KEY_HOST_APP,
@@ -463,9 +463,9 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             EventMetric.KEY_APP_VERSION,
         ]:
             self.assertEqual(
-                 server_received_metric["event_properties"][k],
-                 properties[k],
-             )
+                server_received_metric["event_properties"][k],
+                properties[k],
+            )
 
         preserved_properties = server_received_metric["event_properties"]["Event Data"]
         self.assertTrue("IntProp" in preserved_properties)
