@@ -933,7 +933,7 @@ class TestBundleMetrics(TankTestBase):
             mocked.side_effect = log_hook
             engine.log_metric("Hook test")
             # Make sure the dispatcher has some time to wake up
-            time.sleep(MetricsDispatchWorkerThread.DISPATCH_INTERVAL)
+            time.sleep(2 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL)
             hook_called = False
             for hook_call in hook_calls:
                 for metric in hook_call["metrics"]:

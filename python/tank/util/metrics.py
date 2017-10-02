@@ -344,8 +344,8 @@ class MetricsDispatchWorkerThread(Thread):
         # Filter out metrics we don't want to send to the endpoint.
         filtered_metrics_data = []
         for metric in metrics:
-            # Only send Toolkit events
-            if metric.is_toolkit_event:
+            # Only send internal Toolkit events
+            if metric.is_internal_event:
                 data = metric.data
                 if data["event_name"] not in self.SUPPORTED_EVENTS:
                     # Still log the event but change its name so it's easy to
@@ -400,17 +400,19 @@ class EventMetric(object):
     then pass to the `tank.utils.metrics.EventMetric.log` method.
 
     The simplest usage of this class is simply to provide an event group and
-    event name to the constructor:
+    event name to the constructor. The "Toolkit" group is reserved for internal
+    use.
 
     Optionally, you can add your own specific metrics by using the
     `properties` parameter. The latter simply takes a standard
     dictionary.
 
-    The class also define numerous standard definition.
+    The class also defines numerous standard definition.
     We highly recommand usage of them. Below is a complete typical usage:
 
     ```
-    metric = EventMetric.log(EventMetric.GROUP_APP,
+    metric = EventMetric.log(
+        "Custom Event Group",
         "User Logged In",
         properties={
             EventMetric.KEY_ENGINE: "tk-maya",
@@ -426,13 +428,8 @@ class EventMetric(object):
     ```
     """
 
-    # Event groups
-    GROUP_APP = "App"
-    GROUP_TASKS = "Tasks"
-    GROUP_MEDIA = "Media"
+    # Toolkit internal event group
     GROUP_TOOLKIT = "Toolkit"
-    GROUP_NAVIGATION = "Navigation"
-    GROUP_PROJECTS = "Projects"
 
     # Event property keys
     KEY_ACTION_TITLE = "Action Title"
@@ -451,8 +448,8 @@ class EventMetric(object):
         Initialize a metric event with the given name for the given group.
 
         :param str group: A group or category this metric event falls into.
-                          Although any values can be used, we encourage usage of the GROUP_*
-                          definitions above.
+                          Any value can be used to implement your own taxonomy.
+                          The "Toolkit" group name is reserved for internal use.
         :param str name: A short descriptive event name or performed action, 
                          e.g. 'Launched Command', 'Opened Workfile', etc..
         :param dict properties: An optional dictionary of extra properties to be 
@@ -482,9 +479,9 @@ class EventMetric(object):
         }
 
     @property
-    def is_toolkit_event(self):
+    def is_internal_event(self):
         """
-        :returns: True if this event belongs to the Toolkit group, False otherwise.
+        :returns: ``True`` if this event is an internal Toolkit event, ``False`` otherwise.
         """
         return self._group == self.GROUP_TOOLKIT
 
@@ -498,9 +495,9 @@ class EventMetric(object):
         the metric has to be treated by a dispatcher to be posted.
 
         :param str group: A group or category this metric event falls into.
-                          Although any values can be used, we encourage usage of the GROUP_*
-                          definitions above.
-        :param str name: A short descriptive event name or performed action, 
+                          Any values can be used to implement your own taxonomy,
+                          the "Toolkit" group name is reserved for internal use.
+        :param str name: A short descriptive event name or performed action,
                          e.g. 'Launched Command', 'Opened Workfile', etc..
         :param dict properties: An optional dictionary of extra properties to be 
                                 attached to the metric event.
