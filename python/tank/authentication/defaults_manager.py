@@ -30,6 +30,9 @@ class DefaultsManager(object):
     If, however, you want to implement a custom behavior around how defaults
     are managed, simply derive from this class and pass your custom instance
     to the :class:`ShotgunAuthenticator` object when you construct it.
+
+    :param str fixed_host: Allows to specify the host that will be used for authentication.
+        Defaults to ``None``.
     """
 
     def __init__(self, fixed_host=None):
