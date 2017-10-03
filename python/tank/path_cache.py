@@ -1238,9 +1238,7 @@ class PathCache(object):
             # secondary entity
             # in this case, it is okay with more than one record for a path
             # but we don't want to insert the exact same record over and over again
-            paths = self.get_paths(entity["type"], entity["id"], primary_only=False, cursor=cursor)
-
-            if path in paths:
+            if self._is_path_in_db(path, entity["type"], entity["id"], cursor):
                 # we already have the association present in the db.
                 return None
 
@@ -1274,8 +1272,46 @@ class PathCache(object):
 
         return db_entity_id
 
+    def _is_path_in_db(self, path, entity_type, entity_id, cursor):
+        """
+        Given an entity, checks if a path is in the database or not
 
-    
+        :param path: Path to try
+        :param entity_type: A Shotgun entity type
+        :param entity_id: A Shotgun entity id
+        :param cursor: Database cursor to use.
+        :returns: True if path exists, false if not
+        """
+        try:
+            root_name, relative_path = self._separate_root(path)
+        except TankError:
+            # fail gracefully if path is not a valid path
+            # eg. doesn't belong to the project
+            return False
+
+        # now see if we have any records in the db which matches the path
+        res = cursor.execute(
+                """
+                SELECT count(entity_id)
+                FROM   path_cache
+                WHERE  entity_type = ?
+                AND    entity_id = ?
+                AND    root = ?
+                AND    path = ?
+                GROUP BY entity_id
+                """,
+                (entity_type, entity_id, root_name, relative_path)
+        )
+
+        res = list(res)
+
+        # in case there are > 0 records: res = [(4,)]
+        # in case there are no records: res = []
+        if len(res) == 0:
+            return False
+        else:
+            return True
+
     ############################################################################################
     # database accessor methods
 
