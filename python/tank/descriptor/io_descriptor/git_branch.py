@@ -106,7 +106,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         """
         return self._version
 
-    def download_local(self):
+    def _download_local(self, destination_path):
         """
         Retrieves this version to local repo.
         Will exit early if app already exists local.
@@ -119,13 +119,6 @@ class IODescriptorGitBranch(IODescriptorGit):
         The git repo will be cloned into the local cache and
         will then be adjusted to point at the relevant commit.
         """
-        if self.exists_local():
-            # nothing to do!
-            return
-
-        # cache into the temporary location
-        temporary_path = self._get_temporary_cache_path()
-        target = self._get_primary_cache_path()
         try:
             # clone the repo, switch to the given branch
             # then reset to the given commit
@@ -133,13 +126,12 @@ class IODescriptorGitBranch(IODescriptorGit):
                 "checkout -q \"%s\"" % self._branch,
                 "reset --hard -q \"%s\"" % self._version
             ]
-            self._clone_then_execute_git_commands(temporary_path, commands)
+            self._clone_then_execute_git_commands(destination_path, commands)
         except Exception, e:
             raise TankDescriptorError(
                 "Could not download %s, branch %s, "
                 "commit %s: %s" % (self._path, self._branch, self._version, e)
             )
-        self.attempt_move(temporary_path, target)
 
     def get_latest_version(self, constraint_pattern=None):
         """
@@ -217,4 +209,3 @@ class IODescriptorGitBranch(IODescriptorGit):
         else:
             # no cached version exists
             return None
-

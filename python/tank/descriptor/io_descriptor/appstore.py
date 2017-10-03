@@ -20,7 +20,7 @@ import httplib
 from tank_vendor.shotgun_api3.lib import httplib2
 import cPickle as pickle
 
-from ...util import shotgun, filesystem
+from ...util import shotgun
 from ...util import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
 from ...util.user_settings import UserSettings
 
@@ -32,7 +32,7 @@ from ..errors import InvalidAppStoreCredentialsError
 
 from ... import LogManager
 from .. import constants
-from .base import IODescriptorBase
+from .downloadable import IODescriptorDownloadable
 
 from ...constants import SUPPORT_EMAIL
 
@@ -47,7 +47,7 @@ log = LogManager.get_logger(__name__)
 METADATA_FILE = ".cached_metadata.pickle"
 
 
-class IODescriptorAppStore(IODescriptorBase):
+class IODescriptorAppStore(IODescriptorDownloadable):
     """
     Represents a toolkit app store item.
 
@@ -416,27 +416,15 @@ class IODescriptorAppStore(IODescriptorBase):
             return True
         return False
 
-    def download_local(self):
+    def _download_local(self, destination_path):
         """
         Retrieves this version to local repo.
-        Will exit early if app already exists local.
-        Caches app store metadata.
         """
-        if self.exists_local():
-            # nothing to do!
-            return
-
-        # cache into the primary location
-        target = self._get_primary_cache_path()
-
-        # create the parent folder
-        filesystem.ensure_folder_exists(os.path.dirname(target))
-
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
 
         # fetch metadata from sg...
-        metadata = self.__refresh_metadata(target)
+        metadata = self.__refresh_metadata(destination_path)
 
         # now get the attachment info
         version = metadata.get("sg_version_data")
@@ -450,19 +438,26 @@ class IODescriptorAppStore(IODescriptorBase):
         #  'link_type': 'upload'}
         attachment_id = version[constants.TANK_CODE_PAYLOAD_FIELD]["id"]
 
-        # get the temporary directory
-        temporary_path = self._get_temporary_cache_path()
-
         # download and unzip
         try:
-            shotgun.download_and_unpack_attachment(sg, attachment_id, temporary_path)
+            shotgun.download_and_unpack_attachment(sg, attachment_id, destination_path)
         except ShotgunAttachmentDownloadError, e:
             raise TankAppStoreError(
                 "Failed to download %s. Error: %s" % (self, e)
             )
 
-        # attempt to move this directory to the target
-        self.attempt_move(temporary_path, target)
+    def _post_download(self, download_path=None):
+        """
+        code run after the descriptor is successfully downloaded to disk
+        """
+        # connect to the app store
+        (sg, script_user) = self.__create_sg_app_store_connection()
+
+        # fetch metadata from sg...
+        metadata = self.__refresh_metadata(download_path)
+
+        # now get the attachment info
+        version = metadata.get("sg_version_data")
 
         # write a stats record to the tank app store
         try:

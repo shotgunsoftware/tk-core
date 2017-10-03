@@ -11,7 +11,7 @@
 import os
 import urlparse
 
-from .base import IODescriptorBase
+from .downloadable import IODescriptorDownloadable
 from ...util import filesystem, shotgun
 from ...util.errors import ShotgunAttachmentDownloadError
 from ..errors import TankDescriptorError
@@ -19,7 +19,8 @@ from ... import LogManager
 
 log = LogManager.get_logger(__name__)
 
-class IODescriptorShotgunEntity(IODescriptorBase):
+
+class IODescriptorShotgunEntity(IODescriptorDownloadable):
     """
     Represents a shotgun entity to which apps have been attached.
     This can be an attachment field on any entity. Typically it will be
@@ -110,7 +111,6 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         #       we turn the wintermute/PipelineConfiguration.sg_config/p509_Primary part into
         #       a hash.
 
-
         # Firstly, because the bundle cache can be global, make sure we include the sg site name.
         # first, get site only; https://www.FOO.com:8080 -> www.foo.com
         base_url = urlparse.urlparse(self._sg_connection.base_url).netloc.split(":")[0].lower()
@@ -147,32 +147,17 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         """
         return "v%s" % self._version
 
-    def download_local(self):
+    def _download_local(self, destination_path):
         """
         Retrieves this version to local repo.
         Will exit early if app already exists local.
         """
-        if self.exists_local():
-            # nothing to do!
-            return
-
-        # cache into the primary location
-        target = self._get_primary_cache_path()
-
-        # ensure that the parent directory of the target is present.
-        filesystem.ensure_folder_exists(os.path.dirname(target))
-
-        # get the temporary download location
-        temporary_path = self._get_temporary_cache_path()
-
         try:
-            shotgun.download_and_unpack_attachment(self._sg_connection, self._version, temporary_path)
+            shotgun.download_and_unpack_attachment(self._sg_connection, self._version, destination_path)
         except ShotgunAttachmentDownloadError, e:
             raise TankDescriptorError(
                 "Failed to download %s from %s. Error: %s" % (self, self._sg_connection.base_url, e)
             )
-
-        self.attempt_move(temporary_path, target)
 
     def get_latest_version(self, constraint_pattern=None):
         """

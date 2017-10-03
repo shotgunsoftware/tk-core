@@ -11,7 +11,6 @@
 import os
 import re
 import cgi
-import shutil
 import urllib
 import urlparse
 import uuid
@@ -53,7 +52,6 @@ class IODescriptorBase(object):
         self._descriptor_dict = descriptor_dict
         self.__manifest_data = None
         self._is_copiable = True
-        self._download_identifier = uuid.uuid4().hex
 
     def set_cache_roots(self, primary_root, fallback_roots):
         """
@@ -634,7 +632,7 @@ class IODescriptorBase(object):
         """
         Returns the temporary download cache path for this descriptor.
         """
-        return os.path.join(self._bundle_cache_root, "tmp", self._download_identifier)
+        return os.path.join(self._bundle_cache_root, "tmp", uuid.uuid4().hex)
 
     def get_path(self):
         """
@@ -702,26 +700,6 @@ class IODescriptorBase(object):
         filesystem.copy_folder(source_cache_path, new_cache_path, skip_list=[])
         return True
 
-    def attempt_move(self, src, dst):
-        """
-        Attempts to move a file/folder from source to destination.
-        :param src: The source file/folder.
-        :param dst: The destination file/folder.
-        """
-        # Proceed with the move only if the destination is not an existing folder.
-        # If the destination is a folder and exists, the move operation causes the source
-        # to be nested inside the destination folder, which is not the desirable behavior.
-        try:
-            if not os.path.isdir(dst):
-                shutil.move(src, dst)
-        except OSError as e:
-            # We choose to ignore any failed move attempts, as this might stem from
-            # concurrent processes moving a source to the same destination.
-            pass
-        except Exception as e:
-            # Raise any other exceptions that occur while moving the source to destination.
-            raise Exception("An error occurred while moving %s to %s. Error: %s" % (src, dst, e))
-
     ###############################################################################################
     # implemented by deriving classes
 
@@ -752,7 +730,7 @@ class IODescriptorBase(object):
         """
         Retrieves this version to local repo.
         """
-        raise NotImplementedError
+        pass
 
     def get_latest_version(self, constraint_pattern=None):
         """
