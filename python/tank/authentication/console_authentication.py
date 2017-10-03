@@ -22,6 +22,7 @@ from . import session_cache
 from .. import LogManager
 from .errors import AuthenticationError, AuthenticationCancelled
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
+from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
 
@@ -190,4 +191,4 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
             hostname = self._get_keyboard_input("Host", hostname)
         login = self._get_keyboard_input("Login", login)
         password = self._get_password()
-        return hostname, login, password
+        return sanitize_url(hostname), login, password
