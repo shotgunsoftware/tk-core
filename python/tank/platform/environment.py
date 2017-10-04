@@ -953,7 +953,7 @@ class WritableEnvironment(InstalledEnvironment):
         if new_location_data and constants.ENVIRONMENT_LOCATION_KEY in data:
             data[constants.ENVIRONMENT_LOCATION_KEY] = new_location_data
         elif new_location_data:
-            data = new_location_data
+            data.update(new_location_data)
 
         return data
         
