@@ -1319,6 +1319,8 @@ class PathCache(object):
             # eg. doesn't belong to the project
             return False
 
+        db_path = self._path_to_dbpath(relative_path)
+
         # now see if we have any records in the db which matches the path
         res = cursor.execute(
             """
@@ -1330,7 +1332,7 @@ class PathCache(object):
             AND    path = ?
             GROUP BY entity_id
             """,
-            (entity_type, entity_id, root_name, relative_path)
+            (entity_type, entity_id, root_name, db_path)
         )
 
         res = list(res)
