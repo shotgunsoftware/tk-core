@@ -391,7 +391,7 @@ class Environment(object):
             raise TankError("Failed to find the location of the '%s' engine in the '%s' environment!"
                             % (engine_name, self._env_path))
 
-        logger.debug("Engine %s found: %s", (tokens, path))
+        logger.debug("Engine %s found: %s", tokens, path)
         return tokens, path
 
     def find_framework_instances_from(self, yml_file):
@@ -490,7 +490,7 @@ class Environment(object):
             raise TankError("Failed to find the location of the '%s' framework in the '%s' environment!"
                             % (framework_name, self._env_path))
 
-        logger.debug("Framework %s found: %s", (tokens, path))
+        logger.debug("Framework %s found: %s", tokens, path)
         return tokens, path
 
     def find_location_for_app(self, engine_name, app_name):
@@ -553,7 +553,7 @@ class Environment(object):
             raise TankError("Failed to find the location of the '%s' app under the '%s' engine in the '%s' environment!"
                             % (engine_name, app_name, self._env_path))
 
-        logger.debug("App %s found: %s", (tokens, path))
+        logger.debug("App %s found: %s", tokens, path)
         return tokens, path
 
     def __find_location_for_bundle(
