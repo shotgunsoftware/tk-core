@@ -1323,16 +1323,16 @@ class PathCache(object):
 
         # now see if we have any records in the db which matches the path
         res = cursor.execute(
-                """
-                SELECT count(entity_id)
-                FROM   path_cache
-                WHERE  entity_type = ?
-                AND    entity_id = ?
-                AND    root = ?
-                AND    path = ?
-                GROUP BY entity_id
-                """,
-                (entity_type, entity_id, root_name, relative_path)
+            """
+            SELECT count(entity_id)
+            FROM   path_cache
+            WHERE  entity_type = ?
+            AND    entity_id = ?
+            AND    root = ?
+            AND    path = ?
+            GROUP BY entity_id
+            """,
+            (entity_type, entity_id, root_name, relative_path)
         )
 
         res = list(res)
