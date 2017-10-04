@@ -46,6 +46,16 @@ SG_PIPELINE_CONFIG_FIELD = "pipeline_configuration"
 # sqlite has a limit for how many items fit into a single in statement
 SQLITE_MAX_ITEMS_FOR_IN_STATEMENT = 200
 
+# To avoid paging, we batch queries of FilesystemLocation entities
+# in chunks of 500 and combine the results. The performance issues
+# around this have been largely alleviated in Shotgun 7.4.x and the
+# accompanying shotgun_api3 that was released at the same time, but
+# we still want to batch at the old page length of 500 to boost
+# performance when older SG or API versions are used. We should
+# eventually raise this to 5000 (or more) when we feel it is safe
+# to do so.
+SHOTGUN_ENTITY_QUERY_BATCH_SIZE = 500
+
 log = LogManager.get_logger(__name__)
 
 class PathCache(object):
@@ -368,7 +378,7 @@ class PathCache(object):
                     num_deletions += 1
                     
             log.debug("Event log contains %s creations and %s deletions" % (num_creations, num_deletions))
-            
+
             if len(response) == 0:
                 # nothing in event log. Probably a truncated setup.
                 log.debug("No sync information in the event log. Falling back on a full sync.")
@@ -731,34 +741,60 @@ class PathCache(object):
 
         # get the ids that are missing from shotgun
         # need to use this weird special filter syntax
+        batches = []
+
         if folder_ids:
             entity_filter = [["id", "in"]]
-            entity_filter[0].extend(folder_ids)
+            batch_count = 0
+
+            # Note: we batch the queries here. We want to avoid paging
+            # for performance purposes when dealing with huge numbers
+            # of entities (thousands+).
+            for folder_id in folder_ids:
+                if batch_count >= SHOTGUN_ENTITY_QUERY_BATCH_SIZE:
+                    batches.append(entity_filter)
+                    entity_filter = [["id", "in"]]
+                    batch_count = 0
+
+                entity_filter[0].append(folder_id)
+                batch_count += 1
+
+            # Take care of the last batch, which is likely below our
+            # batch size and needs to be tacked onto the end.
+            if batch_count > 0:
+                batches.append(entity_filter)
+
             log.debug(
                 "Getting FilesystemLocation entries for "
-                "the following ids: %s" % folder_ids
+                "the following ids: %s", folder_ids
             )
         else:
             project_entity = self._get_project_link()
             entity_filter = [["project", "is", project_entity]]
+            batches.append(entity_filter)
             log.debug("Getting all the project's FilesystemLocation entries. Project id: %s" % project_entity['id'])
 
-        sg_data = self._tk.shotgun.find(
-            SHOTGUN_ENTITY,
-            entity_filter,
-            [
-                "id",
-                SG_METADATA_FIELD,
-                SG_IS_PRIMARY_FIELD,
-                SG_ENTITY_ID_FIELD,
-                SG_PATH_FIELD,
-                SG_ENTITY_TYPE_FIELD,
-                SG_ENTITY_NAME_FIELD
-            ],
-            [{"field_name": "id", "direction": "asc"}]
-        )
+        sg_data = []
 
-        log.debug("...Retrieved %s records." % len(sg_data))
+        for batched_filter in batches:
+            sg_data.extend(
+                self._tk.shotgun.find(
+                    SHOTGUN_ENTITY,
+                    batched_filter,
+                    [
+                        "id",
+                        SG_METADATA_FIELD,
+                        SG_IS_PRIMARY_FIELD,
+                        SG_ENTITY_ID_FIELD,
+                        SG_PATH_FIELD,
+                        SG_ENTITY_TYPE_FIELD,
+                        SG_ENTITY_NAME_FIELD
+                    ],
+                    [{"field_name": "id", "direction": "asc"}]
+                )
+            )
+
+        log.debug("...Retrieved %s records.", len(sg_data))
 
         return sg_data
 
@@ -838,10 +874,6 @@ class PathCache(object):
             - linked_entity_type
             - code
         """
-
-        # commenting out as it is generating a flood of debug logs
-        # log.debug("Processing Toolkit_Folders_Create event for folder entity %s", pprint.pformat(fsl_entity))
-
         # get entity data from our entry
         entity = {"id": fsl_entity[SG_ENTITY_ID_FIELD],
                   "name": fsl_entity[SG_ENTITY_NAME_FIELD],
