@@ -1248,15 +1248,15 @@ class TestPathCacheBatchOperation(TankTestBase):
         """
         # what shotgun returns when we ask for all filesystem locations for the project
         find_return_payload = [
-                {"id": 1234,
-                 "configuration_metadata": None,
-                 "is_primary": False,
-                 "linked_entity_id": 12345,
-                 "path": {"path": "/foo/bar"},
-                 "linked_entity_type": "Shot",
-                 "code": "name"
-                 }
-            ]
+            {"id": 1234,
+             "configuration_metadata": None,
+             "is_primary": False,
+             "linked_entity_id": 12345,
+             "path": {"path": "/foo/bar"},
+             "linked_entity_type": "Shot",
+             "code": "name"
+             }
+        ]
 
         def our_find_mock(*args, **kwargs):
 
