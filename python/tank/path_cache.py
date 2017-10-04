@@ -18,7 +18,6 @@ import collections
 import sqlite3
 import sys
 import os
-import pprint
 import itertools
 
 # use api json to cover py 2.5
@@ -43,19 +42,6 @@ SG_ENTITY_TYPE_FIELD = "linked_entity_type"
 SG_ENTITY_NAME_FIELD = "code"
 SG_PIPELINE_CONFIG_FIELD = "pipeline_configuration"
 
-# sqlite has a limit for how many items fit into a single in statement
-SQLITE_MAX_ITEMS_FOR_IN_STATEMENT = 200
-
-# To avoid paging, we batch queries of FilesystemLocation entities
-# in chunks of 500 and combine the results. The performance issues
-# around this have been largely alleviated in Shotgun 7.4.x and the
-# accompanying shotgun_api3 that was released at the same time, but
-# we still want to batch at the old page length of 500 to boost
-# performance when older SG or API versions are used. We should
-# eventually raise this to 5000 (or more) when we feel it is safe
-# to do so.
-SHOTGUN_ENTITY_QUERY_BATCH_SIZE = 500
-
 log = LogManager.get_logger(__name__)
 
 class PathCache(object):
@@ -65,7 +51,20 @@ class PathCache(object):
     NOTE! This uses sqlite and the db is typically hosted on an NFS storage.
     Ensure that the code is developed with the constraints that this entails in mind.
     """
-    
+
+    # sqlite has a limit for how many items fit into a single in statement
+    SQLITE_MAX_ITEMS_FOR_IN_STATEMENT = 200
+
+    # To avoid paging, we batch queries of FilesystemLocation entities
+    # in chunks of 500 and combine the results. The performance issues
+    # around this have been largely alleviated in Shotgun 7.4.x and the
+    # accompanying shotgun_api3 that was released at the same time, but
+    # we still want to batch at the old page length of 500 to boost
+    # performance when older SG or API versions are used. We should
+    # eventually raise this to 5000 (or more) when we feel it is safe
+    # to do so.
+    SHOTGUN_ENTITY_QUERY_BATCH_SIZE = 500
+
     def __init__(self, tk):
         """
         Constructor.
@@ -740,7 +739,6 @@ class PathCache(object):
         """
 
         # get the ids that are missing from shotgun
-        # need to use this weird special filter syntax
         batches = []
 
         if folder_ids:
@@ -751,7 +749,7 @@ class PathCache(object):
             # for performance purposes when dealing with huge numbers
             # of entities (thousands+).
             for folder_id in folder_ids:
-                if batch_count >= SHOTGUN_ENTITY_QUERY_BATCH_SIZE:
+                if batch_count >= self.SHOTGUN_ENTITY_QUERY_BATCH_SIZE:
                     batches.append(entity_filter)
                     entity_filter = [["id", "in"]]
                     batch_count = 0
@@ -772,7 +770,8 @@ class PathCache(object):
             project_entity = self._get_project_link()
             entity_filter = [["project", "is", project_entity]]
             batches.append(entity_filter)
-            log.debug("Getting all the project's FilesystemLocation entries. Project id: %s" % project_entity['id'])
+            log.debug("Getting all the project's FilesystemLocation entries. "
+                      "Project id: %s" % project_entity['id'])
 
         sg_data = []
 
@@ -818,8 +817,6 @@ class PathCache(object):
 
         """
         log.debug("Fetching already registered folders from Shotgun...")
-
-        sg_data = []
 
         sg_data = self._get_filesystem_location_entities(folder_ids=None)
 
@@ -1004,9 +1001,10 @@ class PathCache(object):
         all_path_cache_ids = []
 
         # split sql into batches - sqlite has a max number of terms for its in statement
-        for subset_folder_ids in _chunks(folder_ids, SQLITE_MAX_ITEMS_FOR_IN_STATEMENT):
+        for subset_folder_ids in _chunks(folder_ids, self.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT):
             path_cache_ids = cursor.execute(
-                "SELECT path_cache_id FROM shotgun_status WHERE shotgun_id IN (%s)" % self._gen_param_string(subset_folder_ids),
+                "SELECT path_cache_id FROM shotgun_status "
+                "WHERE shotgun_id IN (%s)" % self._gen_param_string(subset_folder_ids),
                 subset_folder_ids
             )
 
@@ -1033,14 +1031,14 @@ class PathCache(object):
             return
 
         # Delete all the path cache entries associated with the file system locations.
-        for subset_path_cache_ids in _chunks(all_path_cache_ids, SQLITE_MAX_ITEMS_FOR_IN_STATEMENT):
+        for subset_path_cache_ids in _chunks(all_path_cache_ids, self.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT):
             cursor.execute(
                 "DELETE FROM path_cache where rowid IN (%s)" % self._gen_param_string(subset_path_cache_ids),
                 subset_path_cache_ids
             )
 
         # Now delete all the mappings between filesystem location entities and path cache entries.
-        for subset_folder_ids in _chunks(folder_ids, SQLITE_MAX_ITEMS_FOR_IN_STATEMENT):
+        for subset_folder_ids in _chunks(folder_ids, self.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT):
             cursor.execute(
                 "DELETE FROM shotgun_status WHERE shotgun_id IN (%s)" % self._gen_param_string(subset_folder_ids),
                 subset_folder_ids
