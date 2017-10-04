@@ -1284,7 +1284,7 @@ class TestPathCacheBatchOperation(TankTestBase):
         self.assertEquals(entities, find_return_payload)
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_batched_shotgun_retrival(self, find_mock):
+    def test_batched_shotgun_retrieval(self, find_mock):
         """
         Tests that _get_filesystem_location_entities creates expected query structures
         when requesting batches of ids.
