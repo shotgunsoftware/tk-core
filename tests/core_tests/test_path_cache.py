@@ -926,6 +926,11 @@ class TestPathCacheGetLocationsFullSync(TankTestBase):
         """
         Check that we only get FilesystemLocation entities that belong to our project
         """
+        # Ensure that if we give no folder_ids, we get back no entities.
+        self.assertEqual(
+            self._pc._get_filesystem_location_entities(folder_ids=[]),
+            [],
+        )
 
         # get the filesystemlocation entities as if it were a full sync.
         entities = self._pc._get_filesystem_location_entities(folder_ids=None)

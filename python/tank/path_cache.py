@@ -741,7 +741,12 @@ class PathCache(object):
         # get the ids that are missing from shotgun
         batches = []
 
-        if folder_ids:
+        # We check specifically for a None here because it is a valid
+        # use case to pass in an empty list of folder ids and get nothing
+        # back in return as a result. Only in the case where we were
+        # specifically given folder_ids=None would we fall back on
+        # collecting all FilesystemLocation entities for the project.
+        if folder_ids is not None:
             entity_filter = [["id", "in"]]
             batch_count = 0
 
