@@ -351,19 +351,47 @@ class Environment(object):
         Returns the filename and a list of dictionary keys where an engine instance resides.
         The dictionary key list (tokens) can be nested, for example [engines, tk-maya] or just flat [tk-maya-ref]
 
-        :param engine_name: The name of the engine to find
-        :returns:           (list of tokens, file path)
+        :param str engine_name: The name of the engine to find
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
+        """
+        return self._find_location_for_engine(engine_name)
+
+    def _find_location_for_engine(self, engine_name, absolute_location=False):
+        """
+        Returns the filename and a list of dictionary keys where an engine instance resides.
+        The dictionary key list (tokens) can be nested, for example [engines, tk-maya] or just flat [tk-maya-ref]
+
+        :param str engine_name: The name of the engine to find
+        :param bool absolute_location: Whether to resolve to the yml file and
+            tokens that point to the concrete location descriptor of the bundle.
+
+        :returns: (list of tokens, file path)
         """
         # get the raw data:
         root_yml_data = self.__load_environment_data()
+
+        logger.debug(
+            "Finding %s, absolute_location=%s...",
+            engine_name,
+            absolute_location,
+        )
         
         # find the location for the engine:
-        tokens, path = self.__find_location_for_bundle(self._env_path, root_yml_data, "engines", engine_name)
+        tokens, path = self.__find_location_for_bundle(
+            self._env_path,
+            root_yml_data,
+            "engines",
+            engine_name,
+            absolute_location=absolute_location,
+        )
     
         if not path:
             raise TankError("Failed to find the location of the '%s' engine in the '%s' environment!"
                             % (engine_name, self._env_path))
 
+        logger.debug("Engine %s found: %s", tokens, path)
         return tokens, path
 
     def find_framework_instances_from(self, yml_file):
@@ -399,6 +427,19 @@ class Environment(object):
         The dictionary key list (tokens) can be nested, for example [frameworks, tk-framework-widget_v0.2.x]
         or just flat [tk-framework-widget_v0.2.x]
 
+        :param framework_name: The name of the framework to find the location of
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
+        """
+        return self._find_location_for_framework(framework_name)
+
+    def _find_location_for_framework(self, framework_name, absolute_location=False):
+        """
+        Returns the filename and a list of dictionary keys where a framework instance resides.
+        The dictionary key list (tokens) can be nested, for example [frameworks, tk-framework-widget_v0.2.x]
+        or just flat [tk-framework-widget_v0.2.x]
+
         Note, this tries a two stage search.  It first looks to see if there is a matching
         framework in a regular 'frameworks' block in this or any included file.  This matches
         the behaviour at run-time to ensure the framework that is found is the same as one
@@ -407,13 +448,22 @@ class Environment(object):
         The second stage is to check for a framework (or frameworks block) that has been
         specified using the @include syntax.
 
-        :param framework_name:  The name of the framework to find the location of
-        :returns:               (list of tokens, file path)
+        :param framework_name: The name of the framework to find the location of
+        :param bool absolute_location: Whether to resolve to the yml file and
+            tokens that point to the concrete location descriptor of the bundle.
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
         """
         # first, try to find the place on disk of the framework definition that will be used at
         # run-time.  This handles the special case where multiple 'frameworks' blocks from
         # different levels of included files have been concatenated together.
-        fw_location = environment_includes.find_framework_location(self._env_path, framework_name, self.__context)
+        fw_location = environment_includes.find_framework_location(
+            self._env_path,
+            framework_name,
+            self.__context,
+        )
+
         if not fw_location:
             # assume the framework is in the environment - this also handles the @include syntax
             # not handled by the previous search method!
@@ -423,12 +473,24 @@ class Environment(object):
         root_yml_data = self.__load_data(fw_location)
 
         # find the location for the framework:
-        tokens, path = self.__find_location_for_bundle(fw_location, root_yml_data, "frameworks", framework_name)
+        logger.debug(
+            "Finding %s, absolute_location=%s...",
+            framework_name,
+            absolute_location,
+        )
+        tokens, path = self.__find_location_for_bundle(
+            fw_location,
+            root_yml_data,
+            "frameworks",
+            framework_name,
+            absolute_location=absolute_location,
+        )
 
         if not path:
             raise TankError("Failed to find the location of the '%s' framework in the '%s' environment!"
                             % (framework_name, self._env_path))
 
+        logger.debug("Framework %s found: %s", tokens, path)
         return tokens, path
 
     def find_location_for_app(self, engine_name, app_name):
@@ -437,10 +499,34 @@ class Environment(object):
         The dictionary key list (tokens) can be nested, for example [engines, tk-maya, apps, tk-multi-about]
         or just flat [tk-mylti-about-def]
 
-        :param engine_name: The name of the engine to look for the app in
-        :param app_name:    The name of the app to find
-        :returns:           (list of tokens, file path)
+        :param str engine_name: The name of the engine to look for the app in
+        :param str app_name: The name of the app to find
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
         """
+        return self._find_location_for_app(engine_name, app_name)
+
+    def _find_location_for_app(self, engine_name, app_name, absolute_location=False):
+        """
+        Returns the filename and the dictionary key where an app instance resides.
+        The dictionary key list (tokens) can be nested, for example [engines, tk-maya, apps, tk-multi-about]
+        or just flat [tk-mylti-about-def]
+
+        :param str engine_name: The name of the engine to look for the app in
+        :param str app_name: The name of the app to find
+        :param bool absolute_location: Whether to resolve to the yml file and
+            tokens that point to the concrete location descriptor of the bundle.
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
+        """
+        logger.debug(
+            "Finding %s, engine_name=%s, absolute_location=%s...",
+            app_name,
+            engine_name,
+            absolute_location,
+        )
         # first, find the location of the engine:
         (engine_tokens, engine_yml_file) = self.find_location_for_engine(engine_name)
 
@@ -454,53 +540,129 @@ class Environment(object):
             engine_data = engine_data.get(x)
 
         # find the location for the app within the engine data:
-        tokens, path = self.__find_location_for_bundle(engine_yml_file, engine_data, "apps", app_name, engine_tokens)
+        tokens, path = self.__find_location_for_bundle(
+            engine_yml_file,
+            engine_data,
+            "apps",
+            app_name,
+            engine_tokens,
+            absolute_location=absolute_location,
+        )
         
         if not path:
             raise TankError("Failed to find the location of the '%s' app under the '%s' engine in the '%s' environment!"
                             % (engine_name, app_name, self._env_path))
-        
+
+        logger.debug("App %s found: %s", tokens, path)
         return tokens, path
 
-    def __find_location_for_bundle(self, yml_file, parent_yml_data, section_name, bundle_name, parent_tokens=None):
+    def __find_location_for_bundle(
+        self, yml_file, parent_yml_data, section_name, bundle_name,
+        parent_tokens=None, absolute_location=False
+    ):
         """
-        Return the location for the specified bundle within the specified section of the parent yml data block.
+        Return the location for the specified bundle within the specified section of the parent yml
+        data block.
 
-        :param yml_file:            The starting environment yml file
-        :param parent_yml_data:     The parent yml data block to start the search from
-        :param section_name:        The name of the section that contains the bundle
-        :param bundle_name:         The name of the bundle to find
-        :param bundle_tokens:       A list of tokens representing the path to the parent data block
-        :returns:                   (list of tokens, file path)
+        .. note:: The absolute_location should be True or False depending on
+            what it is the caller intends to do with the resulting location
+            returned. In the situation where the descriptor for the bundle
+            is to be updated to a new version, it is ctitical that the location
+            returned by this method be the yml file and associated tokens
+            housing the concrete descriptor dictionary. The goal is to ensure
+            that the new descriptor contents are written to the same yml file
+            where the old descriptor is defined, rather than what might be
+            an included value from another yml file. A good example is how
+            engines are structured in tk-config-basic, where the engine instance
+            is defined in a project.yml file, but the engine's location setting
+            points to an included value. In the case where absolute_location
+            is True, that include will be followed and the yml file where it
+            is defined will be returned. If absolute_location were False, the
+            yml file where the engine instance itself is defined will be returned,
+            meaning the location setting's include will not be resolved and
+            followed to its source. There is the need for each of these,
+            depending on the situation: when a descriptor is going to be
+            updated, absolute_location should be True, and when settings other
+            than the descriptor are to be queried or updated, absolute_location
+            should be False. In some cases these two will return the same
+            thing, but that is not guaranteed and it is entirely up to how
+            the config is structured as to whether they are consistent.
+
+        :param str yml_file: The starting environment yml file
+        :param dict parent_yml_data: The parent yml data block to start the search from
+        :param str section_name: The name of the section that contains the bundle
+        :param str bundle_name: The name of the bundle to find
+        :param list bundle_tokens: A list of tokens representing the path to the parent data block
+        :param bool absolute_location: Whether to ensure that the file path and tokens returned
+            references where the given bundle's location descriptor is
+            defined in full.
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
         """
         bundle_tokens = list(parent_tokens or [])
         bundle_yml_file = yml_file
 
-        # check to see if the whole bundle section is a reference or not:
+        # Check to see if the whole bundle section is a reference.
         bundle_section = parent_yml_data[section_name]
         bundle_data = None
-        if isinstance(bundle_section, basestring) and bundle_section.startswith("@"):
-            # whole section is a reference!
+
+        def is_included(item):
+            """
+            Tests whether the given item is an included value or not. This
+            is determined by whether it is a string, and if so, it is an
+            included value if it has an @ at its head.
+            """
+            return isinstance(item, basestring) and item.startswith("@")
+
+        if is_included(bundle_section):
+            # The whole section is a reference! The token is just the include
+            # definition with the @ at the head chopped off.
             bundle_section_token = bundle_section[1:]
-            bundle_yml_file = environment_includes.find_reference(bundle_yml_file, self.__context, bundle_section_token)
+            bundle_yml_file, bundle_section_token = environment_includes.find_reference(
+                bundle_yml_file,
+                self.__context,
+                bundle_section_token,
+                absolute_location,
+            )
             bundle_yml_data = self.__load_data(bundle_yml_file)
             bundle_data = bundle_yml_data[bundle_section_token]
             bundle_tokens = [bundle_section_token]
         else:
-            # found the right section:
-            bundle_tokens.append(section_name)
             bundle_data = bundle_section.get(bundle_name)
+            bundle_tokens.append(section_name)
 
         if not bundle_data:
             # failed to find the data for the specified bundle!
             return ([], None)
 
-        if isinstance(bundle_data, basestring) and bundle_data.startswith("@"):
-            # this is a reference!
-            # now we are at the top of the token stack again because we switched files
+        if is_included(bundle_data):
+            # This is a reference, so we need to flatten it out. The token
+            # is just the include definition with the @ at the head chopped
+            # off.
             bundle_token = bundle_data[1:]
+            bundle_yml_file, bundle_token = environment_includes.find_reference(
+                bundle_yml_file,
+                self.__context,
+                bundle_token,
+                absolute_location,
+            )
             bundle_tokens = [bundle_token]
-            bundle_yml_file = environment_includes.find_reference(bundle_yml_file, self.__context, bundle_token)
+        elif absolute_location:
+            # The bundle data isn't included, but we need to make sure that
+            # the location is concrete if we've been asked to ensure that.
+            location = bundle_data.get(constants.ENVIRONMENT_LOCATION_KEY)
+
+            if is_included(location):
+                bundle_yml_file, bundle_token = environment_includes.find_reference(
+                    bundle_yml_file,
+                    self.__context,
+                    location[1:], # Trim the @ at the head.
+                    absolute_location,
+                )
+                bundle_tokens = [bundle_token]
+            else:
+                bundle_tokens.append(bundle_name)
         else:
             # bundle is defined in the current file
             bundle_tokens.append(bundle_name)
@@ -740,6 +902,60 @@ class WritableEnvironment(InstalledEnvironment):
             self._use_ruamel_yaml_parser = False
         else:
             self._use_ruamel_yaml_parser = val
+
+    def _update_location_data(self, data, new_location_data):
+        """
+        Updates the location contents of the given data dictionary
+        with that contained in the given new_location_data. If the
+        old data contains a location key, that will be replaced with
+        with the contents of new_location_data, otherwise the
+        new location data will be returned as is.
+
+        :param dict data: The data dictionary to update with the new
+            location information.
+        :param dict new_location_data: The new location information to
+            use.
+
+        :returns: An updated dictionary containing the new location
+            information.
+        :rtype: dict
+        """
+        # This is ghetto, but is required given the current design of
+        # this environment API and how the updates work. We might be in
+        # a situation where we're updating a descriptor, but in a bare
+        # data structure in the yml that isn't under a "location" key.
+        # This is possible and probably in configs structured like
+        # tk-config-basic and tk-config-default2, where we have locations
+        # centralized in an include file, and those are then referenced
+        # into location settings for bundled in other yml files. In that
+        # situation we need to drop the new location into the bundle
+        # settings as is, so as not to create a new location key where
+        # it isn't correct to have one.
+        #
+        # It is the difference between the following:
+        #
+        # common.engines.tk-maya.location:
+        #   type: app_store
+        #   name: tk-maya
+        #   version: v0.8.1
+        #
+        # And:
+        #
+        # common.apps.tk-multi-shotgunpanel:
+        #   location:
+        #     type: app_store
+        #     name: tk-multi-shotgunpanel
+        #     version: v1.4.3
+        # 
+        # In the former, the new location information is replaced at
+        # the top level of the data dictionary. For the latter, the
+        # location key's contents is replaced.
+        if new_location_data and constants.ENVIRONMENT_LOCATION_KEY in data:
+            data[constants.ENVIRONMENT_LOCATION_KEY] = new_location_data
+        elif new_location_data:
+            data.update(new_location_data)
+
+        return data
         
     def update_engine_settings(self, engine_name, new_data, new_location):
         """
@@ -749,7 +965,15 @@ class WritableEnvironment(InstalledEnvironment):
         if engine_name not in self._env_data["engines"]:
             raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
 
-        (tokens, yml_file) = self.find_location_for_engine(engine_name)
+        # In this case, we want to make sure that we are getting the
+        # yml file where the engine's location descriptor is defined
+        # in a concrete manner (ie: the actual dict and not an include
+        # to another yml file). The absolute_location argument will allow
+        # us to do that.
+        (tokens, yml_file) = self._find_location_for_engine(
+            engine_name,
+            absolute_location=True,
+        )
 
         # now update the yml file where the engine is defined
         yml_data = self.__load_writable_yaml(yml_file)
@@ -760,8 +984,8 @@ class WritableEnvironment(InstalledEnvironment):
         for x in tokens:
             engine_data = engine_data.get(x)
 
-        if new_location:
-            engine_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        # Update our data with the new location.
+        engine_data = self._update_location_data(engine_data, new_location)
 
         self._update_settings_recursive(engine_data, new_data)
         self.__write_data(yml_file, yml_data)
@@ -780,7 +1004,16 @@ class WritableEnvironment(InstalledEnvironment):
         if app_name not in self._env_data["engines"][engine_name]["apps"]:
             raise TankError("App %s.%s does not exist in environment %s" % (engine_name, app_name, self._env_path) )
 
-        (tokens, yml_file) = self.find_location_for_app(engine_name, app_name)
+        # In this case, we want to make sure that we are getting the
+        # yml file where the app's location descriptor is defined
+        # in a concrete manner (ie: the actual dict and not an include
+        # to another yml file). The absolute_location argument will allow
+        # us to do that.
+        (tokens, yml_file) = self._find_location_for_app(
+            engine_name,
+            app_name,
+            absolute_location=True,
+        )
 
         # now update the yml file where the engine is defined
         yml_data = self.__load_writable_yaml(yml_file)
@@ -791,8 +1024,8 @@ class WritableEnvironment(InstalledEnvironment):
         for x in tokens:
             app_data = app_data.get(x)
 
-        # finally update the file
-        app_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        # Update our data with the new location information.
+        app_data = self._update_location_data(app_data, new_location)
 
         self._update_settings_recursive(app_data, new_data)
         self.__write_data(yml_file, yml_data)
@@ -808,7 +1041,15 @@ class WritableEnvironment(InstalledEnvironment):
         if framework_name not in self._env_data["frameworks"]:
             raise TankError("Framework %s does not exist in environment %s" % (framework_name, self._env_path) )
 
-        (tokens, yml_file) = self.find_location_for_framework(framework_name)
+        # In this case, we want to make sure that we are getting the
+        # yml file where the framework's location descriptor is defined
+        # in a concrete manner (ie: the actual dict and not an include
+        # to another yml file). The absolute_location argument will allow
+        # us to do that.
+        (tokens, yml_file) = self._find_location_for_framework(
+            framework_name,
+            absolute_location=True,
+        )
 
         # now update the yml file where the engine is defined
         yml_data = self.__load_writable_yaml(yml_file)
@@ -819,8 +1060,8 @@ class WritableEnvironment(InstalledEnvironment):
         for x in tokens:
             framework_data = framework_data.get(x)
 
-        if new_location:
-            framework_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        # Update our data with the new location information.
+        framework_data = self._update_location_data(framework_data, new_location)
 
         self._update_settings_recursive(framework_data, new_data)
         self.__write_data(yml_file, yml_data)

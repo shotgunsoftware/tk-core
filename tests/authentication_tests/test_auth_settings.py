@@ -199,3 +199,13 @@ class DefaultsManagerTest(TankTestBase):
             sgtk.authentication.CoreDefaultsManager,
             sgtk.util.CoreDefaultsManager
         )
+
+    @patch(
+        "tank.authentication.session_cache.get_current_host",
+        return_value=_SESSION_CACHE_HOST
+    )
+    def test_fixed_host_on_init_overrides_everything(self, _):
+        fixed_host = "https://my-custom-host.shotgunstudio.com"
+        dm = DefaultsManager(fixed_host)
+        self.assertEqual(dm.is_host_fixed(), True)
+        self.assertEqual(dm.get_host(), fixed_host)

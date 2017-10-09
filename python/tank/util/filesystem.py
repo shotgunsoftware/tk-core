@@ -414,7 +414,7 @@ def get_unused_path(base_path):
     a number at the end of the basename of the path, right before the first ".",
     if any.
     
-    For example, "/tmp/foo_1.bar.blah" would be returned for "/tmp/foo.bar.blah"
+    For example, ``/tmp/foo_1.bar.blah`` would be returned for ``/tmp/foo.bar.blah``
     if it already exists.
 
     If the given path does not exist, the original path is returned.

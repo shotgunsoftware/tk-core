@@ -70,8 +70,9 @@ engines:
           test_str: b
     debug_logging: false
     location: {path: '{PIPELINE_CONFIG}/config/bundles/test_engine', type: dev}
+  test_included_engine: {apps: null, location: '@engine.location'}
 frameworks:
   test_framework_v1.x.x:
     location: {path: '{PIPELINE_CONFIG}/config/bundles/test_framework', type: dev,
       version: v1.0.0}
-include: ./empty_config.yml
+includes: [./empty_config.yml, ./engine_location.yml]

@@ -13,15 +13,13 @@ from __future__ import with_statement
 import os
 import sys
 import time
-import pprint
 import Queue
 import StringIO
-import sqlite3
 import shutil
 import contextlib
 import logging
 
-from mock import Mock
+from mock import Mock, patch, call
 
 from tank_test.tank_test_base import TankTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
@@ -111,6 +109,7 @@ class TestInit(TestPathCache):
 
 
 class TestAddMapping(TestPathCache):
+
     def setUp(self):
         super(TestAddMapping, self).setUp()
 
@@ -130,7 +129,10 @@ class TestAddMapping(TestPathCache):
         full_path = os.path.join(self.project_root, relative_path)
         add_item_to_cache(self.path_cache, self.entity, full_path)
 
-        res = self.db_cursor.execute("SELECT path, root FROM path_cache WHERE entity_type = ? AND entity_id = ?", (self.entity["type"], self.entity["id"]))
+        res = self.db_cursor.execute(
+            "SELECT path, root FROM path_cache "
+            "WHERE entity_type = ? AND entity_id = ?", (self.entity["type"], self.entity["id"])
+        )
         entry = res.fetchall()[0]
         self.assertEquals("/shot", entry[0])
         self.assertEquals("primary", entry[1])
@@ -157,8 +159,45 @@ class TestAddMapping(TestPathCache):
         # finally, make sure that there is exactly a single record in the db representing the path
         res = self.db_cursor.execute("SELECT path, root FROM path_cache WHERE entity_type = ? AND entity_id = ?", (self.entity["type"], self.entity["id"]))
         self.assertEqual( len(res.fetchall()), 1)
-        
 
+    def test_is_path_in_db(self):
+        """
+        Tests the behaviour of the _is_path_in_db method
+        :return:
+        """
+        relative_path = "_is_path_in_db"
+        full_path = os.path.join(self.project_root, relative_path)
+        full_path_2 = os.path.join(self.project_root, relative_path + ".secondary")
+
+        # check that we can add a primary path
+        self.assertEquals(
+            self.path_cache._is_path_in_db(full_path, "Shot", 12345, self.db_cursor),
+            False
+        )
+        add_item_to_cache(
+            self.path_cache,
+            {"type": "Shot", "id": 12345, "name": "_is_path_in_db"},
+            full_path,
+            primary=False)
+        self.assertEquals(
+            self.path_cache._is_path_in_db(full_path, "Shot", 12345, self.db_cursor),
+            True
+        )
+
+        # check that we can add a secondary path
+        self.assertEquals(
+            self.path_cache._is_path_in_db(full_path_2, "Shot", 12345, self.db_cursor),
+            False
+        )
+        add_item_to_cache(
+            self.path_cache,
+            {"type": "Shot", "id": 12345, "name": "_is_path_in_db"},
+            full_path_2,
+            primary=True)
+        self.assertEquals(
+            self.path_cache._is_path_in_db(full_path_2, "Shot", 12345, self.db_cursor),
+            True
+        )
 
     def test_multi_entity_path(self):
         """
@@ -175,7 +214,7 @@ class TestAddMapping(TestPathCache):
         add_item_to_cache(self.path_cache, {"type": et, "id": eid+1, "name": en}, full_path, primary=False)
         add_item_to_cache(self.path_cache, {"type": et, "id": eid+2, "name": en}, full_path, primary=False)
         add_item_to_cache(self.path_cache, {"type": et, "id": eid+3, "name": en}, full_path, primary=False)
-        
+
         # adding the same thing over and over should be fine (but not actually insert anything into the db)
         add_item_to_cache(self.path_cache, {"type": et, "id": eid+3, "name": en}, full_path, primary=False)
         add_item_to_cache(self.path_cache, {"type": et, "id": eid+3, "name": en}, full_path, primary=False)
@@ -209,8 +248,6 @@ class TestAddMapping(TestPathCache):
         # finally, make sure that there no dupe records
         res = self.db_cursor.execute("SELECT path, root FROM path_cache WHERE entity_type = ? AND entity_id = ?", (self.entity["type"], self.entity["id"]+3))
         self.assertEqual( len(res.fetchall()), 1)
-
-
 
     def test_non_primary_path(self):
         """
@@ -496,10 +533,6 @@ class TestShotgunSync(TankTestBase):
 
         folder_events = self.tk.shotgun.find("EventLogEntry", [["event_type", "is", "Toolkit_Folders_Create"]])
         self.assertEqual(len(folder_events), 2)
-        
-
-
-
 
     def test_incremental_sync(self):
         """Tests that the incremental sync kicks in when possible."""
@@ -893,6 +926,11 @@ class TestPathCacheGetLocationsFullSync(TankTestBase):
         """
         Check that we only get FilesystemLocation entities that belong to our project
         """
+        # Ensure that if we give no folder_ids, we get back no entities.
+        self.assertEqual(
+            self._pc._get_filesystem_location_entities(folder_ids=[]),
+            [],
+        )
 
         # get the filesystemlocation entities as if it were a full sync.
         entities = self._pc._get_filesystem_location_entities(folder_ids=None)
@@ -1116,18 +1154,23 @@ class TestPathCacheDelete(TankTestBase):
         pc.remove_filesystem_location_entries(self.tk, path_ids)
 
 
-class TestPathCacheBatchDeletion(TankTestBase):
+class TestPathCacheBatchOperation(TankTestBase):
     """
     Tests the deletion of 2000+ filesystem locations (#44931)
     """
 
     def setUp(self):
-        super(TestPathCacheBatchDeletion, self).setUp()
+        super(TestPathCacheBatchOperation, self).setUp()
         self._pc = path_cache.PathCache(self.tk)
+
+        # dial down batch sizes for these tests
+        self._prev_batch_size = self._pc.SHOTGUN_ENTITY_QUERY_BATCH_SIZE
+        self._pc.SHOTGUN_ENTITY_QUERY_BATCH_SIZE = 11
 
     def tearDown(self):
         self._pc.close()
-        super(TestPathCacheBatchDeletion, self).tearDown()
+        self._pc.SHOTGUN_ENTITY_QUERY_BATCH_SIZE = self._prev_batch_size
+        super(TestPathCacheBatchOperation, self).tearDown()
 
     def test_high_volume_batch_deletion(self):
         """
@@ -1201,3 +1244,105 @@ class TestPathCacheBatchDeletion(TankTestBase):
 
         record_count = list(cursor.execute("select count(*) from shotgun_status"))[0][0]
         self.assertEqual(record_count, 3)
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_full_shotgun_retrieval(self, find_mock):
+        """
+        Tests that _get_filesystem_location_entities creates expected query structures
+        when requesting all entities.
+        """
+        # what shotgun returns when we ask for all filesystem locations for the project
+        find_return_payload = [
+            {"id": 1234,
+             "configuration_metadata": None,
+             "is_primary": False,
+             "linked_entity_id": 12345,
+             "path": {"path": "/foo/bar"},
+             "linked_entity_type": "Shot",
+             "code": "name"
+             }
+        ]
+
+        def our_find_mock(*args, **kwargs):
+
+            # assert the expected request from the method
+            self.assertEquals(
+                args,
+                ('FilesystemLocation', [['project', 'is', {'type': 'Project', 'id': 1}]],
+                 ['id',
+                  'configuration_metadata',
+                  'is_primary',
+                  'linked_entity_id',
+                  'path',
+                  'linked_entity_type',
+                  'code'],
+                 [{'direction': 'asc', 'field_name': 'id'}])
+            )
+            self.assertEquals(kwargs, {})
+
+            return find_return_payload
+
+        find_mock.side_effect = our_find_mock
+
+        entities = self._pc._get_filesystem_location_entities(None)
+
+        self.assertEquals(entities, find_return_payload)
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_batched_shotgun_retrieval(self, find_mock):
+        """
+        Tests that _get_filesystem_location_entities creates expected query structures
+        when requesting batches of ids.
+        """
+
+        def our_find_mock(*args, **kwargs):
+            self.assertEquals(kwargs, {})
+            return ["dummy_data"]
+        find_mock.side_effect = our_find_mock
+
+        # note that the batch size has been dialled down in setup so this will
+        # batch into groups of 11
+        folder_ids = range(111, 199)
+
+        # run the method
+        entities = self._pc._get_filesystem_location_entities(folder_ids)
+
+        # check that we called find 8 times
+        self.assertEquals(find_mock.call_count, 8)
+
+        # assert the batching requests that came in
+        expected_ids = [
+
+            [['id', 'in', 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121]],
+            [['id', 'in', 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132]],
+            [['id', 'in', 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143]],
+            [['id', 'in', 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154]],
+            [['id', 'in', 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165]],
+            [['id', 'in', 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176]],
+            [['id', 'in', 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187]],
+            [['id', 'in', 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198]]
+        ]
+
+        expected_calls = []
+        for x in range(8):
+            expected_calls.append(
+                call(
+                    'FilesystemLocation',
+                    expected_ids[x],
+                    [
+                        'id',
+                        'configuration_metadata',
+                        'is_primary',
+                        'linked_entity_id',
+                        'path',
+                        'linked_entity_type',
+                        'code'
+                    ],
+                    [{'direction': 'asc', 'field_name': 'id'}]
+                ),
+            )
+
+        find_mock.assert_has_calls(expected_calls)
+
+        # we expect eight return values from find()
+        self.assertEquals(entities, ["dummy_data"] * 8)
