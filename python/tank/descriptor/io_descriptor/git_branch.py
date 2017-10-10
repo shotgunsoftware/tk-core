@@ -118,6 +118,9 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         The git repo will be cloned into the local cache and
         will then be adjusted to point at the relevant commit.
+
+        :param destination_path: The destination path on disk to which
+        the git branch descriptor is to be downloaded to.
         """
         try:
             # clone the repo, switch to the given branch

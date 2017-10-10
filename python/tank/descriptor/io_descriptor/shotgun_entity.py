@@ -151,6 +151,9 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         """
         Retrieves this version to local repo.
         Will exit early if app already exists local.
+
+        :param destination_path: The directory path to which the shotgun entity is to be
+        downloaded to.
         """
         try:
             shotgun.download_and_unpack_attachment(self._sg_connection, self._version, destination_path)

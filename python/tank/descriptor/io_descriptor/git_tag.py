@@ -141,6 +141,9 @@ class IODescriptorGitTag(IODescriptorGit):
 
         The git repo will be cloned into the local cache and
         will then be adjusted to point at the relevant tag.
+
+        :param destination_path: The destination path on disk to which
+        the git tag descriptor is to be downloaded to.
         """
         try:
             # clone the repo, checkout the given tag

@@ -401,24 +401,12 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             pass
         return (summary, url)
 
-    def _exists_local(self, path):
-        """
-        Checks if the bundle exists on disk.
-
-        :param str path: Path to the bundle to test.
-
-        :returns: True if the bundle is deemed completed, False otherwise.
-        """
-        if not super(IODescriptorAppStore, self)._exists_local(path):
-            return False
-
-        if os.path.exists(path):
-            return True
-        return False
-
     def _download_local(self, destination_path):
         """
         Retrieves this version to local repo.
+
+        :param destination_path: The directory to which the app store descriptor
+        is to be downloaded to.
         """
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
@@ -448,7 +436,9 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
     def _post_download(self, download_path=None):
         """
-        code run after the descriptor is successfully downloaded to disk
+        Code run after the descriptor is successfully downloaded to disk
+
+        :param download_path: The path to which the descriptor is downloaded to.
         """
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()

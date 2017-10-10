@@ -241,7 +241,7 @@ class TestDownloadableIODescriptors(TankTestBase):
             desc_git_tag = self._create_desc(location_dict_tag)
         desc_git_tag.download_local()
 
-    def _test_multiprocess_download_to_shared_bundle_cache(self, func, expected_path, shared_dir=None):
+    def _test_multiprocess_download_to_shared_bundle_cache(self, func, shared_dir, expected_path):
         """
         Spawns 10 processes and attempts to run the download function simultaneously. It verifies
         that the process completes without errors, and the expected path of download exists.
@@ -251,7 +251,7 @@ class TestDownloadableIODescriptors(TankTestBase):
         :param shared_dir: Optional shared directory to which the descriptor has to be downloaded to.
         """
         # skip this test on windows or py2.5 where multiprocessing isn't available
-        # todo: Test with subprocess instead of multiprocessing.
+        # TODO: Test with subprocess instead of multiprocessing.
         if sys.platform == "win32" or sys.version_info < (2, 6):
             return
 
@@ -364,8 +364,8 @@ class TestDownloadableIODescriptors(TankTestBase):
         self._test_multiprocess_download_to_shared_bundle_cache(
             self._download_git_tag_bundle,
             os.path.join(self.tank_temp, "shared_bundle_cache"),
-            os.path.exists(os.path.join(self.tank_temp, "shared_bundle_cache", "git",
-                                        "tk-config-default.git", "v0.15.0"))
+            os.path.join(self.tank_temp, "shared_bundle_cache", "git",
+                         "tk-config-default.git", "v0.15.0")
         )
 
     @skip_if_git_missing
@@ -387,6 +387,6 @@ class TestDownloadableIODescriptors(TankTestBase):
         self._test_multiprocess_download_to_shared_bundle_cache(
             self._download_git_branch_bundle,
             os.path.join(self.tank_temp, "shared_bundle_cache"),
-            os.path.exists(os.path.join(self.tank_temp, "shared_bundle_cache", "gitbranch",
-                                        "tk-config-default.git", "e1c03fa"))
+            os.path.join(self.tank_temp, "shared_bundle_cache", "gitbranch",
+                         "tk-config-default.git", "e1c03fa")
         )

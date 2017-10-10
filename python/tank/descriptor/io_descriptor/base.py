@@ -13,7 +13,6 @@ import re
 import cgi
 import urllib
 import urlparse
-import uuid
 
 from .. import constants
 from ... import LogManager
@@ -627,12 +626,6 @@ class IODescriptorBase(object):
         paths = [self._get_bundle_cache_path(x) for x in self._fallback_roots]
         paths.append(self._get_primary_cache_path())
         return paths
-
-    def _get_temporary_cache_path(self):
-        """
-        Returns the temporary download cache path for this descriptor.
-        """
-        return os.path.join(self._bundle_cache_root, "tmp", uuid.uuid4().hex)
 
     def get_path(self):
         """
