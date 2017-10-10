@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.authentication.defaults_manager &mdash; tk-core v0.18.111 documentation</title>
+  <title>tank.authentication.defaults_manager &mdash; tk-core v0.18.114 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.111 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.114 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.111.<br>
+    <b>tk-core</b> v0.18.114.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -200,18 +200,24 @@
 <span class="sd">    If, however, you want to implement a custom behavior around how defaults</span>
 <span class="sd">    are managed, simply derive from this class and pass your custom instance</span>
 <span class="sd">    to the :class:`ShotgunAuthenticator` object when you construct it.</span>
+
+<span class="sd">    :param str fixed_host: Allows to specify the host that will be used for authentication.</span>
+<span class="sd">        Defaults to ``None``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fixed_host</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span> <span class="o">=</span> <span class="n">UserSettings</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_system_settings</span> <span class="o">=</span> <span class="n">SystemSettings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_host</span> <span class="o">=</span> <span class="n">fixed_host</span>
 
 <div class="viewcode-block" id="DefaultsManager.is_host_fixed"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.is_host_fixed">[docs]</a>    <span class="k">def</span> <span class="nf">is_host_fixed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When doing an interactive login, this indicates if the user can decide</span>
 <span class="sd">        the host to connect to. In its default implementation, the :class:`DefaultsManager`</span>
 <span class="sd">        will indicate that the host is not fixed, meaning that the user will be</span>
-<span class="sd">        presented with an option to pick a site at login time.</span>
+<span class="sd">        presented with an option to pick a site at login time, unless a default</span>
+<span class="sd">        host was provided during initialization. If that is the case, then this</span>
+<span class="sd">        method will return ``True``.</span>
 
 <span class="sd">        With something like Toolkit, where each project already have a specific</span>
 <span class="sd">        site association, you typically want to override this to return True,</span>
@@ -222,7 +228,7 @@
 <span class="sd">                  to log in to, True if the host is already predetermined and cannot</span>
 <span class="sd">                  be changed by the user.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">False</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_host</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.get_host"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.get_host">[docs]</a>    <span class="k">def</span> <span class="nf">get_host</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -232,16 +238,17 @@
 <span class="sd">        used to implement single sign-on between all Toolkit desktop</span>
 <span class="sd">        applications (at the moment, tank and Shotgun Desktop).</span>
 
-<span class="sd">        The default implementation maintains a concept of a &quot;current host&quot;</span>
-<span class="sd">        which will be presented as a default to users when they are</span>
-<span class="sd">        logging in.</span>
+<span class="sd">        The default implementation will return the fixed host if one was provided</span>
+<span class="sd">        during the initialization. If fixed host was provided, the default</span>
+<span class="sd">        implementation maintains a concept of a &quot;current host&quot; which will be</span>
+<span class="sd">        presented as a default to users when they are logging in.</span>
 
 <span class="sd">        When the host is fixed, this must return a value and this value will</span>
 <span class="sd">        be used as an absolute rather than a default suggested to the user.</span>
 
 <span class="sd">        :returns: A string containing the default host name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">session_cache</span><span class="o">.</span><span class="n">get_current_host</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">default_site</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_host</span> <span class="ow">or</span> <span class="n">session_cache</span><span class="o">.</span><span class="n">get_current_host</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">default_site</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.set_host"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.set_host">[docs]</a>    <span class="k">def</span> <span class="nf">set_host</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -366,7 +373,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.111',
+            VERSION:'v0.18.114',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
