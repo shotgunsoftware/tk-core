@@ -43,7 +43,7 @@ class TestEnvironment(TankTestBase):
     def test_basic_properties(self):
         self.assertEqual(self.env.name, "test")
         # disabled engine should be skipped
-        self.assertEqual(self.env.get_engines(), ["test_engine"])
+        self.assertEqual(self.env.get_engines(), ["test_included_engine", "test_engine"])
         # disabled app should be skipped
         self.assertEqual(self.env.get_apps("test_engine"), ["test_app"])
         
@@ -252,6 +252,24 @@ class TestUpdateEnvironment(TankTestBase):
         # ensure memory was updated
         cfg_after = self.env.get_app_settings("test_engine", "new_app")
         self.assertEqual(cfg_after, {})
+
+    def test_find_included_engine_location(self):
+        # In the case where we use the protected method to access the
+        # absolute location of the engine's descriptor, we'll end up
+        # with the path to the engine_location.yml file, which is being
+        # included into test.yml.
+        tokens, yml_file = self.env._find_location_for_engine(
+            "test_included_engine",
+            absolute_location=True,
+        )
+        self.assertEqual(os.path.basename(yml_file), "engine_location.yml")
+
+        # In the default case, we end up with test.yml, which is where
+        # the test_included_engine instance is defined.
+        tokens, yml_file = self.env.find_location_for_engine(
+            "test_included_engine"
+        )
+        self.assertEqual(os.path.basename(yml_file), "test.yml")
     
         
     def test_update_engine_settings(self):
@@ -413,7 +431,6 @@ class TestRuamelParser(TankTestBase):
         # python, replace the FLOAT_VALUE keyword in the expected fixture
         # with whatever the current version of python is expecting
         expected_env = [l.replace("FLOAT_VALUE", repr(1.1)) for l in expected_env]
-
         self.assertEqual(updated_env, expected_env)
 
 
@@ -451,5 +468,4 @@ class TestPyYamlParser(TankTestBase):
         # python, replace the FLOAT_VALUE keyword in the expected fixture
         # with whatever the current version of python is expecting
         expected_env = [l.replace("FLOAT_VALUE", repr(1.1)) for l in expected_env]
-
         self.assertEqual(updated_env, expected_env)

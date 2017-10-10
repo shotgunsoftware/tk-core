@@ -1,5 +1,7 @@
 # this is a comment at the top of the file
-include: ./empty_config.yml
+includes:
+- ./empty_config.yml
+- ./engine_location.yml
 
 frameworks:
     test_framework_v1.x.x:
@@ -10,6 +12,10 @@ frameworks:
 
 engines:
   # this is a comment after the engines section
+    test_included_engine:
+        apps: 
+        location: '@engine.location'
+
     test_engine:
         location: {'type': 'dev', 'path': '{PIPELINE_CONFIG}/config/bundles/test_engine'}
         debug_logging: false

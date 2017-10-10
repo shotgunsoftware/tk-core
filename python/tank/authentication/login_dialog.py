@@ -18,9 +18,10 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from .ui import resources_rc
+from .ui import resources_rc # noqa
 from .ui import login_dialog
 from . import session_cache
+from ..util.shotgun import connection
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
@@ -126,14 +127,11 @@ class LoginDialog(QtGui.QDialog):
         """
         # Don't use the URL that is set in the link, but the URL set in the
         # text box.
-        site = self.ui.site.text()
+        site = connection.sanitize_url(self.ui.site.text())
 
         # Give visual feedback that we are patching the URL before invoking
-        # the desktop services. Desktop Services requires HTTP or HTTPS to be
-        # present.
-        if len(site.split("://")) == 1:
-            site = "https://%s" % site
-            self.ui.site.setText(site)
+        # the desktop services.
+        self.ui.site.setText(site)
 
         # Launch the browser
         forgot_password = "%s/user/forgot_password" % site
@@ -212,24 +210,28 @@ class LoginDialog(QtGui.QDialog):
         Validate the values, accepting if login is successful and display an error message if not.
         """
         # pull values from the gui
-        site = self.ui.site.text()
-        login = self.ui.login.text()
+        site = self.ui.site.text().strip()
+        login = self.ui.login.text().strip()
         password = self.ui.password.text()
 
         if len(site) == 0:
             self._set_error_message(self.ui.message, "Please enter the address of the site to connect to.")
+            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
             return
+
+        site = connection.sanitize_url(site)
+
+        # Cleanup the URL.
+        self.ui.site.setText(site)
+
         if len(login) == 0:
             self._set_error_message(self.ui.message, "Please enter your login name.")
+            self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
             return
         if len(password) == 0:
             self._set_error_message(self.ui.message, "Please enter your password.")
+            self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
             return
-
-        # if not protocol specified assume https
-        if len(site.split("://")) == 1:
-            site = "https://%s" % site
-            self.ui.site.setText(site)
 
         try:
             self._authenticate(self.ui.message, site, login, password)
@@ -300,7 +302,7 @@ class LoginDialog(QtGui.QDialog):
             self._set_error_message(error_label, "Please enter your code.")
             return
 
-        site = self.ui.site.text()
+        site = self.ui.site.text().strip()
         login = self.ui.login.text()
         password = self.ui.password.text()
 

@@ -1981,7 +1981,7 @@ class Engine(TankBundle):
         # style sheet file watcher is activated is useful when the file is tweaked
         # but no visible changes happen. It can be useful as well to know that watchers
         # were activated by mistake in production.
-        self.log_info("Watching qss file %s for %s..." % (qss_file, widget))
+        self.log_debug("Watching qss file %s for %s..." % (qss_file, widget))
 
     def _on_external_stylesheet_changed(self, qss_file, watcher, widget):
         """

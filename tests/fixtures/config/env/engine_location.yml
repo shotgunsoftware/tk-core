@@ -1,0 +1,4 @@
+
+engine.location:
+  type: dev
+  path: '{PIPELINE_CONFIG}/config/bundles/test_app'
