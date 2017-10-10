@@ -434,23 +434,24 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 "Failed to download %s. Error: %s" % (self, e)
             )
 
-    def _post_download(self, download_path=None):
+    def _post_download(self, download_path):
         """
         Code run after the descriptor is successfully downloaded to disk
 
         :param download_path: The path to which the descriptor is downloaded to.
         """
-        # connect to the app store
-        (sg, script_user) = self.__create_sg_app_store_connection()
-
-        # fetch metadata from sg...
-        metadata = self.__refresh_metadata(download_path)
-
-        # now get the attachment info
-        version = metadata.get("sg_version_data")
-
         # write a stats record to the tank app store
         try:
+            # connect to the app store
+            (sg, script_user) = self.__create_sg_app_store_connection()
+
+            # fetch metadata from sg...
+            metadata = self.__refresh_metadata(download_path)
+
+            # now get the attachment info
+            version = metadata.get("sg_version_data")
+
+            # setup the data entry
             data = {}
             data["description"] = "%s: %s %s was downloaded" % (
                 self._sg_connection.base_url,
@@ -462,6 +463,8 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             data["user"] = script_user
             data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
             data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
+
+            # log the data to shotgun
             sg.create("EventLogEntry", data)
         except Exception, e:
             log.warning("Could not write app store download receipt: %s" % e)

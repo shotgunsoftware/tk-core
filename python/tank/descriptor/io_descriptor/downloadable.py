@@ -83,30 +83,26 @@ class IODescriptorDownloadable(IODescriptorBase):
             filesystem.safe_delete_folder(temporary_path)
             raise TankDescriptorError("Failed to download into path %s: %s" % (temporary_path, e))
 
-        success = False
         log.debug("Attempting to move descriptor %s from temporary path %s to target path %s." % (
             self, temporary_path, target)
         )
-
         try:
             # atomically rename the directory temporary_path to the target.
             os.rename(temporary_path, target)
-            success = True
             log.debug("Successfully moved the downloaded descriptor to target path: %s." % target)
         except Exception as e:
-            # if the target path does not already exist, it something else might have gone wrong.
+            # if the target path does not already exist, something else might have gone wrong.
             if not os.path.exists(target):
                 log.error("Failed to move descriptor from the temporary path %s to " +
                           "the bundle cache %s: %s" % (temporary_path, target, e))
                 raise TankError("Failed to move descriptor from the temporary path %s to " +
                                 "the bundle cache %s: %s" % (temporary_path, target, e))
+        else:
+            self._post_download(target)
         finally:
             if os.path.exists(temporary_path):
                 log.debug("Removing temporary path: %s" % temporary_path)
                 filesystem.safe_delete_folder(temporary_path)
-
-        if success:
-            self._post_download(temporary_path)
 
     def _get_temporary_cache_path(self):
         """
