@@ -238,6 +238,13 @@ if __name__ == "__main__":
 
     _initialize_logging(options.log_to_console)
 
+    # If we have a custom test root, add its python folder, if it exists, so the user doesn't need
+    # to set it up themselves.
+    if options.test_root:
+        python_test_root = os.path.join(options.test_root, "python")
+        if os.path.exists(python_test_root):
+            sys.path.insert(0, python_test_root)
+
     ret_val = _run_tests(options.test_root, test_names)
 
     if options.coverage:
