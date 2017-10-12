@@ -11,12 +11,19 @@
 # travis-ci.org CI unit tests integration configuration file.
 
 language: python
-python:
-  - "2.7"
+
+matrix:
+  include:
+  - python: "2.7"
+    # When set to 1, tests/run_travis.sh will only compile the sources using python -m compileall
+    env: SHOTGUN_COMPILE_ONLY=0
+  - python: "3.6"
+    # We do not support Python 3 for the moment, but we will be compilable at the very least.
+    env: SHOTGUN_COMPILE_ONLY=1
 
 install:
   pip install -r tests/ci_requirements.txt
 
 # command to run tests
-script: PYTHONPATH=tests/python/third_party python tests/python/third_party/coverage run tests/run_tests.py
+script: tests/run_travis.sh
 after_success: coveralls

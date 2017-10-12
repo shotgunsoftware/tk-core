@@ -79,18 +79,18 @@ def run_project_setup(log, sg, setup_params):
     log.info("Installing configuration into '%s'..." % config_location_curr_os )
     if not os.path.exists(config_location_curr_os):
         # note that we have already validated that creation is possible
-        os.makedirs(config_location_curr_os, 0775)
+        os.makedirs(config_location_curr_os, 0o775)
 
     # create pipeline config base folder structure
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "cache"), 0777)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "config"), 0775)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install"), 0775)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "core"), 0777)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "core", "python"), 0777)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "core.backup"), 0777, True)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "engines"), 0777, True)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "apps"), 0777, True)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "frameworks"), 0777, True)
+    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "cache"), 0o777)
+    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "config"), 0o775)
+    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install"), 0o775)
+    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "core"), 0o777)
+    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "core", "python"), 0o777)
+    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "core.backup"), 0o777, True)
+    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "engines"), 0o777, True)
+    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "apps"), 0o777, True)
+    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "frameworks"), 0o777, True)
 
     # copy the configuration into place
     setup_params.report_progress_from_installer("Setting up template configuration...")
@@ -105,7 +105,7 @@ def run_project_setup(log, sg, setup_params):
         src_file = os.path.join(root_binaries_folder, file_name)
         tgt_file = os.path.join(config_location_curr_os, file_name)
         shutil.copy(src_file, tgt_file)
-        os.chmod(tgt_file, 0775)
+        os.chmod(tgt_file, 0o775)
 
     # copy the python stubs
     log.debug("Copying python stubs...")
@@ -142,7 +142,7 @@ def run_project_setup(log, sg, setup_params):
 
     # if we are basing our setup on an existing project setup, make sure we can write to the file.
     if os.path.exists(sg_code_location):
-        os.chmod(sg_code_location, 0666)
+        os.chmod(sg_code_location, 0o666)
 
     fh = open(sg_code_location, "wt")
     fh.write("# Shotgun Pipeline Toolkit configuration file\n")
@@ -189,7 +189,7 @@ def run_project_setup(log, sg, setup_params):
         #
         yaml.safe_dump(roots_data, fh)
         fh.close()
-    except Exception, exp:
+    except Exception as exp:
         raise TankError("Could not write to roots file %s. "
                         "Error reported: %s" % (roots_path, exp))
 
@@ -316,7 +316,7 @@ def run_project_setup(log, sg, setup_params):
         #
         yaml.safe_dump(data, fh)
         fh.close()
-    except Exception, exp:
+    except Exception as exp:
         raise TankError("Could not write to pipeline configuration cache file %s. "
                         "Error reported: %s" % (pipe_config_sg_id_path, exp))
 
@@ -387,7 +387,7 @@ def run_project_setup(log, sg, setup_params):
         try:
             import after_project_create
             after_project_create.create(sg=sg, project_id=project_id, log=log)
-        except Exception, e:
+        except Exception as e:
             if ("API read() invalid/missing string entity" in e.__str__()
                 and "\"type\"=>\"TankType\"" in e.__str__()):
                 # Handle a specific case where an old version of the
@@ -428,7 +428,7 @@ def _get_published_file_entity_type(log, sg):
             and "PublishedFileType" in sg_schema
             and "PublishedFileDependency" in sg_schema):
             pf_entity_type = "PublishedFile"
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not retrieve the Shotgun schema: %s" % e)
 
     log.debug(" > Using %s entity type for published files" % pf_entity_type)

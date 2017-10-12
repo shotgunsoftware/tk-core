@@ -628,7 +628,7 @@ class TankBundle(object):
         """        
         try:
             self.__tk.execute_core_hook("ensure_folder_exists", path=path, bundle_obj=self)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Error creating folder %s: %s" % (path, e))
         
 

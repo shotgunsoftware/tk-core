@@ -571,7 +571,7 @@ class ToolkitManager(object):
 
                 tk = self._bootstrap_sgtk(engine_name, entity)
 
-            except Exception, exception:
+            except Exception as exception:
 
                 # Handle cleanup after failed completion of the toolkit bootstrap.
                 failed_callback(self.TOOLKIT_BOOTSTRAP_PHASE, exception)
@@ -582,7 +582,7 @@ class ToolkitManager(object):
 
                 engine = self._start_engine(tk, engine_name, entity)
 
-            except Exception, exception:
+            except Exception as exception:
 
                 # Handle cleanup after failed completion of the engine startup.
                 failed_callback(self.ENGINE_STARTUP_PHASE, exception)
@@ -615,7 +615,7 @@ class ToolkitManager(object):
 
         try:
             pc = PipelineConfiguration(path)
-        except TankError, e:
+        except TankError as e:
             raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
 
         if not config.has_local_bundle_cache:
@@ -1047,7 +1047,7 @@ class ToolkitManager(object):
                     "start_engine routine..."
                 )
                 engine = tank.platform.start_engine(engine_name, tk, ctx)
-            except Exception, exc:
+            except Exception as exc:
                 log.debug(
                     "Shotgun engine failed to start using start_engine. An "
                     "attempt will now be made to start it using an legacy "
@@ -1057,7 +1057,7 @@ class ToolkitManager(object):
                 try:
                     engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
                     log.debug("Shotgun engine started using a legacy shotgun_xxx.yml environment.")
-                except Exception, exc:
+                except Exception as exc:
                     log.debug(
                         "Shotgun engine failed to start using the legacy "
                         "start_shotgun_engine routine. No more attempts will "
@@ -1176,7 +1176,7 @@ class ToolkitManager(object):
 
                 try:
                     descriptor.download_local()
-                except Exception, e:
+                except Exception as e:
                     log.error("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
                     log.exception(e)
             else:

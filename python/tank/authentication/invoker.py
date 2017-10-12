@@ -100,7 +100,7 @@ def create():
             try:
                 logger.debug("Invoking from main thread.")
                 self._res = self._fn()
-            except Exception, e:
+            except Exception as e:
                 self._exception = e
 
     return MainThreadInvoker()

@@ -136,7 +136,7 @@ class IODescriptorGit(IODescriptorBase):
                     # note: it seems on windows, the result is sometimes wrapped in single quotes.
                     output = output.strip().strip("'")
 
-                except SubprocessCalledProcessError, e:
+                except SubprocessCalledProcessError as e:
                     raise TankGitError(
                         "Error executing git operation '%s': %s (Return code %s)" % (full_command, e.output, e.returncode)
                     )
@@ -192,7 +192,7 @@ class IODescriptorGit(IODescriptorBase):
             # clone repo into temp folder
             self._tmp_clone_then_execute_git_commands([])
             log.debug("...connection established")
-        except Exception, e:
+        except Exception as e:
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect

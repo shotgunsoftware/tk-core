@@ -136,9 +136,9 @@ class TestGetApplication(TestApplication):
         
         try:
             application.get_application(self.engine, bogus_path, "bogus_app", {}, "instance_name", None)
-        except TankError, cm:
+        except TankError as cm:
             expected_msg = "Failed to load plugin"
-            self.assertTrue(cm.message.startswith(expected_msg))
+            self.assertTrue(str(cm).startswith(expected_msg))
         
     def test_good_path(self):
         """

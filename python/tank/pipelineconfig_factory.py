@@ -644,7 +644,7 @@ def _load_lookup_cache():
             cache_data = pickle.load(fh)
         finally:
             fh.close()
-    except Exception, e:
+    except Exception as e:
         # failed to load cache from file. Continue silently.
         log.debug(
             "Failed to load lookup cache %s. Proceeding without cache. Error: %s" % (cache_file, e)
@@ -679,9 +679,9 @@ def _add_to_lookup_cache(key, data):
         finally:
             fh.close()
         # and ensure the cache file has got open permissions
-        os.chmod(cache_file, 0666)
+        os.chmod(cache_file, 0o666)
 
-    except Exception, e:
+    except Exception as e:
         # silently continue in case exceptions are raised
         log.debug(
             "Failed to add to lookup cache %s. Error: %s" % (cache_file, e)

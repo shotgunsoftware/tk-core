@@ -316,7 +316,7 @@ class ConfigurationWriter(object):
             filesystem.safe_delete_file(tgt_file)
             # and copy new one into place
             log.debug("Installing tank command %s -> %s" % (src_file, tgt_file))
-            filesystem.copy_file(src_file, tgt_file, 0775)
+            filesystem.copy_file(src_file, tgt_file, 0o775)
 
     def write_install_location_file(self):
         """

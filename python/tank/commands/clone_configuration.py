@@ -171,8 +171,8 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
     
     # copy files and folders across
     try:
-        os.mkdir(target_folder, 0777)
-        os.mkdir(os.path.join(target_folder, "cache"), 0777)
+        os.mkdir(target_folder, 0o777)
+        os.mkdir(os.path.join(target_folder, "cache"), 0o777)
         filesystem.copy_folder(
             os.path.join(source_folder, "config"),
             os.path.join(target_folder, "config")
@@ -183,12 +183,12 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         )
         shutil.copy(os.path.join(source_folder, "tank"), os.path.join(target_folder, "tank"))
         shutil.copy(os.path.join(source_folder, "tank.bat"), os.path.join(target_folder, "tank.bat"))
-        os.chmod(os.path.join(target_folder, "tank.bat"), 0777)
-        os.chmod(os.path.join(target_folder, "tank"), 0777)
+        os.chmod(os.path.join(target_folder, "tank.bat"), 0o777)
+        os.chmod(os.path.join(target_folder, "tank"), 0o777)
 
         sg_code_location = os.path.join(target_folder, "config", "core", "install_location.yml")
         if os.path.exists(sg_code_location):
-            os.chmod(sg_code_location, 0666)
+            os.chmod(sg_code_location, 0o666)
             os.remove(sg_code_location)
         fh = open(sg_code_location, "wt")
         fh.write("# Shotgun Pipeline Toolkit configuration file\n")
@@ -203,7 +203,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         fh.write("# End of file.\n")
         fh.close()
     
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not create file system structure: %s" % e)
 
     # finally register with shotgun
@@ -237,7 +237,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
 
         # now delete it        
         if os.path.exists(sg_pc_location):
-            os.chmod(sg_pc_location, 0666)
+            os.chmod(sg_pc_location, 0o666)
             os.remove(sg_pc_location)
 
         # now update some fields            
@@ -264,7 +264,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         yaml.safe_dump(data, fh)
         fh.close()
 
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not update pipeline_configuration.yml file: %s" % e)
     
 
