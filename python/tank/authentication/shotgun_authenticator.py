@@ -8,8 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os.path
-
 from . import interactive_authentication
 from . import user
 from . import user_impl
@@ -207,8 +205,8 @@ class ShotgunAuthenticator(object):
         # will take care of it.
         if "api_script" in credentials or "api_key" in credentials:
             return self.create_script_user(
-                api_script=os.path.expandvars(credentials.get("api_script")),
-                api_key=os.path.expandvars(credentials.get("api_key")),
+                api_script=credentials.get("api_script"),
+                api_key=credentials.get("api_key"),
                 host=credentials.get("host"),
                 http_proxy=credentials.get("http_proxy")
             )

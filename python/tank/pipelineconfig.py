@@ -100,20 +100,17 @@ class PipelineConfiguration(object):
         self._pc_id = pipeline_config_metadata.get("pc_id")
         self._plugin_id = pipeline_config_metadata.get("plugin_id")
         self._pc_name = pipeline_config_metadata.get("pc_name")
-
-        # Enable the use of env variables for project and pipeline configuration settings
-        for field in ['_project_name', '_project_id', '_pc_id', '_pc_name']:
-            value = getattr(self, field)
-            if value and isinstance(value, str) and value.startswith('$'):
-                if field.endswith('id') and value:
-                    setattr(self, field, int(os.path.expandvars(value)))
-                else:
-                    setattr(self, field, os.path.expandvars(value))
-
         self._published_file_entity_type = pipeline_config_metadata.get(
             "published_file_entity_type",
             "PublishedFile"
         )
+
+        # Enable the use of env variables for project and pipeline configuration settings
+        self._project_name = os.path.expandvars(self._project_name)
+        self._pc_name = os.path.expandvars(self._pc_name)
+        self._project_id = int(os.path.expandvars(self._project_id)) if isinstance(self._project_id, str) else self._project_id
+        self._pc_id = int(os.path.expandvars(self._pc_id)) if isinstance(self._pc_id, str) else self._pc_id
+
         self._use_shotgun_path_cache = pipeline_config_metadata.get(
             "use_shotgun_path_cache",
             False
