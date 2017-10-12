@@ -93,10 +93,10 @@ class IODescriptorDownloadable(IODescriptorBase):
         except Exception as e:
             # if the target path does not already exist, something else might have gone wrong.
             if not os.path.exists(target):
-                log.error("Failed to move descriptor from the temporary path %s to " +
-                          "the bundle cache %s: %s" % (temporary_path, target, e))
-                raise TankError("Failed to move descriptor from the temporary path %s to " +
-                                "the bundle cache %s: %s" % (temporary_path, target, e))
+                log.error("Failed to move descriptor from the temporary path %s " % temporary_path +
+                          " to the bundle cache %s: %s" % (target, e))
+                raise TankError("Failed to move descriptor from the temporary path %s " % temporary_path +
+                                " to the bundle cache %s: %s" % (target, e))
         else:
             self._post_download(target)
         finally:

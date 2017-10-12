@@ -295,6 +295,16 @@ class TestDownloadableIODescriptors(TankTestBase):
             "Failed to write concurrently to shared bundle cache: %s" % ",".join(errors)
         )
 
+    def _raise_exception(self, placeholder_a="default_a", placeholder_b="default_b"):
+        """
+        Generic mock function to raise an OSError.
+
+        :param placeholder_a: Placeholder first argument
+        :param placeholder_b: Placeholder second argument
+        :raises: OSError
+        """
+        raise OSError("An unknown OSError occurred")
+
     ###############################################################################################
 
     def test_appstore_downloads(self):
@@ -389,3 +399,25 @@ class TestDownloadableIODescriptors(TankTestBase):
             os.path.join(self.tank_temp, "shared_bundle_cache", "gitbranch",
                          "tk-config-default.git", "e1c03fa")
         )
+
+    def test_descriptor_download_error_throws_exception(self):
+        """
+        Tests that a descriptor download throw the required exceptions.
+        """
+        # setup shotgun test data
+        self._setup_git_data()
+        with patch(
+                "tank.descriptor.io_descriptor.git_branch.IODescriptorGitBranch._download_local",
+                side_effect=self._raise_exception
+        ):
+            with self.assertRaises(tank.descriptor.errors.TankDescriptorError):
+                # Ensure that a TankDescriptorError is raised
+                self._download_git_branch_bundle()
+
+        with patch(
+                "os.rename",
+                side_effect=self._raise_exception
+        ):
+            with self.assertRaises(tank.errors.TankError):
+                # Ensure that a TankError is raised
+                self._download_git_branch_bundle()
