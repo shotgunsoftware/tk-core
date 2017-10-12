@@ -118,12 +118,21 @@ class IODescriptorAppStore(IODescriptorBase):
         "sg_deprecation_message"
     ]
 
+    @property
+    def _sg_connection(self):
+        """
+        Returns a thread-safe shotgun connection handle as maintained
+        by the `util.shotgun.get_sg_connection()` method.
+        :return: SG API handle
+        """
+        return shotgun.get_sg_connection()
+
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
-        :param sg_connection: Shotgun connection to associated site
+        :param sg_connection: (ignored, no longer used) Shotgun connection to associated site
         :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK or CONFIG
         :return: Descriptor instance
         """
@@ -135,7 +144,6 @@ class IODescriptorAppStore(IODescriptorBase):
             optional=["label"]
         )
 
-        self._sg_connection = sg_connection
         self._type = bundle_type
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")
