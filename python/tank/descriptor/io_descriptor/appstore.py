@@ -118,15 +118,6 @@ class IODescriptorAppStore(IODescriptorBase):
         "sg_deprecation_message"
     ]
 
-    @property
-    def _sg_connection(self):
-        """
-        Returns a thread-safe shotgun connection handle as maintained
-        by the `util.shotgun.get_sg_connection()` method.
-        :return: SG API handle
-        """
-        return shotgun.get_sg_connection()
-
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
