@@ -402,22 +402,25 @@ class TestDownloadableIODescriptors(TankTestBase):
 
     def test_descriptor_download_error_throws_exception(self):
         """
-        Tests that a descriptor download throw the required exceptions.
+        Tests that an error during a descriptor download throws the required exception.
         """
         # setup shotgun test data
         self._setup_git_data()
+
+        # ensure that an exception raised while downloading the descriptor to a
+        # temporary folder will raise a TankDescriptorError
         with patch(
                 "tank.descriptor.io_descriptor.git_branch.IODescriptorGitBranch._download_local",
                 side_effect=self._raise_exception
         ):
             with self.assertRaises(tank.descriptor.errors.TankDescriptorError):
-                # Ensure that a TankDescriptorError is raised
                 self._download_git_branch_bundle()
 
+        # ensure that an exception raised while renaming the temporary folder
+        # to the target path will raise a TankError if the target does not exist.
         with patch(
                 "os.rename",
                 side_effect=self._raise_exception
         ):
             with self.assertRaises(tank.errors.TankError):
-                # Ensure that a TankError is raised
                 self._download_git_branch_bundle()
