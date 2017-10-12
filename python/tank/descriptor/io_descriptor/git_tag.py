@@ -129,7 +129,7 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         return self._version
 
-    def download_local(self):
+    def _download_local(self, destination_path):
         """
         Retrieves this version to local repo.
         Will exit early if app already exists local.
@@ -141,19 +141,14 @@ class IODescriptorGitTag(IODescriptorGit):
 
         The git repo will be cloned into the local cache and
         will then be adjusted to point at the relevant tag.
+
+        :param destination_path: The destination path on disk to which
+        the git tag descriptor is to be downloaded to.
         """
-        if self.exists_local():
-            # nothing to do!
-            return
-
-        # cache into the primary location
-        target = self._get_primary_cache_path()
-
         try:
             # clone the repo, checkout the given tag
             commands = ["checkout -q \"%s\"" % self._version]
-            self._clone_then_execute_git_commands(target, commands)
-
+            self._clone_then_execute_git_commands(destination_path, commands)
         except Exception, e:
             raise TankDescriptorError(
                 "Could not download %s, "

@@ -588,8 +588,8 @@ class IODescriptorBase(object):
         """
         Returns true if the given bundle path exists in valid local cached form
 
-        This can be reimplemented in derived classes to have more complex validation, like ensuring
-        that the bundle is fully downloaded.
+        This can be reimplemented in derived classes to have more complex validation,
+        like ensuring that the bundle is fully downloaded.
         """
         if path is None:
             return False
@@ -723,7 +723,7 @@ class IODescriptorBase(object):
         """
         Retrieves this version to local repo.
         """
-        raise NotImplementedError
+        pass
 
     def get_latest_version(self, constraint_pattern=None):
         """
