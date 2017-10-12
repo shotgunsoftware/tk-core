@@ -14,6 +14,7 @@ Test hook.
 
 from tank import Hook
 
+
 class TemplateSettingHook(Hook):
     def execute(self, **kwargs):
         return "12345"
