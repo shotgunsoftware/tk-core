@@ -952,8 +952,8 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
                     value=x,
                     schema=value_schema,
                     bundle=bundle,
+                )
             )
-        )
 
     elif settings_type == "dict":
         items = schema.get("items", {})
@@ -999,6 +999,7 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
         processed_val = value
 
     return processed_val
+
 
 def resolve_setting_value(tk, engine_name, schema, settings, key, default, bundle=None):
     """
