@@ -105,7 +105,7 @@ def download_url(sg, url, location, use_url_extension=False):
             f.write(response.read())
         finally:
             f.close()
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
 
     return location
@@ -184,7 +184,7 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
             filesystem.ensure_folder_exists(target)
             unzip_file(zip_tmp, target)
 
-        except Exception, e:
+        except Exception as e:
             log.warning(
                 "Attempt %s: Attachment download of id %s from %s failed: %s" % (attempt, attachment_id, sg.base_url, e)
             )

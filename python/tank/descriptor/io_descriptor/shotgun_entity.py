@@ -157,7 +157,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         """
         try:
             shotgun.download_and_unpack_attachment(self._sg_connection, self._version, destination_path)
-        except ShotgunAttachmentDownloadError, e:
+        except ShotgunAttachmentDownloadError as e:
             raise TankDescriptorError(
                 "Failed to download %s from %s. Error: %s" % (self, self._sg_connection.base_url, e)
             )
@@ -299,7 +299,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
             log.debug("%r: Probing if a connection to Shotgun can be established..." % self)
             self._sg_connection.connect()
             log.debug("...connection established!")
-        except Exception, e:
+        except Exception as e:
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect

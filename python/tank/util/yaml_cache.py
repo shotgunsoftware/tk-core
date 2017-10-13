@@ -51,7 +51,7 @@ class CacheItem(object):
         if stat is None:
             try:
                 self._stat = os.stat(self.path)
-            except Exception, exc:
+            except Exception as exc:
                 raise TankUnreadableFileError(
                     "Unable to stat file '%s': %s" % (self.path, exc)
                 )
@@ -106,6 +106,9 @@ class CacheItem(object):
         if not isinstance(other, CacheItem):
             raise TypeError("Given item must be of type CacheItem.")
         return (other.stat.st_mtime == self.stat.st_mtime and not self.size_differs(other))
+
+    # This item is not hashable. Required to silence -3 flag of the python interpreter.
+    __hash__ = None
 
     def __getitem__(self, key):
         # Backwards compatibility just in case something outside
@@ -261,7 +264,7 @@ class YamlCache(object):
                 raw_data = yaml.load(fh)
         except IOError:
             raise TankFileDoesNotExistError("File does not exist: %s" % path)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
         # Populate the item's data before adding it to the cache.
         item.data = raw_data

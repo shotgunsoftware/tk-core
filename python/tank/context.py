@@ -211,6 +211,9 @@ class Context(object):
         
         return True 
 
+    # This item is not hashable. Required to silence -3 flag of the python interpreter.
+    __hash__ = None
+
     def __ne__(self, other):
         """
         Test if this Context instance is not equal to the other Context instance
@@ -738,7 +741,7 @@ class Context(object):
 
         try:
             data = pickle.loads(context_str)
-        except Exception, e:
+        except Exception as e:
             raise TankContextDeserializationError(str(e))
 
         # first get the pipeline config path out of the dict

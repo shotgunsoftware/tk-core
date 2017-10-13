@@ -119,7 +119,7 @@ class SwitchAppAction(Action):
         try:
             env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
             env.set_yaml_preserve_mode(preserve_yaml)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
     
         # make sure the engine exists in the environment

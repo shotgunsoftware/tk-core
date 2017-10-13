@@ -56,7 +56,7 @@ class Sgtk(object):
             
         try:
             self.templates = read_templates(self.__pipeline_config)
-        except TankError, e:
+        except TankError as e:
             raise TankError("Could not read templates configuration: %s" % e)
 
         # execute a tank_init hook for developers to use.
@@ -310,7 +310,7 @@ class Sgtk(object):
         """
         try:
             self.templates = read_templates(self.__pipeline_config)
-        except TankError, e:
+        except TankError as e:
             raise TankError("Templates could not be reloaded: %s" % e)
 
     def list_commands(self):

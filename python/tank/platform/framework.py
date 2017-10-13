@@ -295,11 +295,11 @@ def load_framework(engine_obj, env, fw_instance_name):
                                      fw_schema, 
                                      fw_settings)
 
-    except TankError, e:
+    except TankError as e:
         # validation error - probably some issue with the settings!
         raise TankError("Framework configuration Error for %s: %s" % (fw_instance_name, e))
 
-    except Exception, e:
+    except Exception as e:
         # code execution error in the validation. 
         raise TankError("Could not validate framework %s: %s" % (fw_instance_name, e))
 

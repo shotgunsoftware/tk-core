@@ -282,7 +282,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 log.debug("Wrote app store metadata cache '%s'" % cache_file)
             finally:
                 fp.close()
-        except Exception, e:
+        except Exception as e:
             log.debug("Did not update app store metadata cache '%s': %s" % (cache_file, e))
 
         return metadata
@@ -429,7 +429,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         # download and unzip
         try:
             shotgun.download_and_unpack_attachment(sg, attachment_id, destination_path)
-        except ShotgunAttachmentDownloadError, e:
+        except ShotgunAttachmentDownloadError as e:
             raise TankAppStoreError(
                 "Failed to download %s. Error: %s" % (self, e)
             )
@@ -466,7 +466,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
             # log the data to shotgun
             sg.create("EventLogEntry", data)
-        except Exception, e:
+        except Exception as e:
             log.warning("Could not write app store download receipt: %s" % e)
 
     #############################################################################
@@ -501,7 +501,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                     tags = [x["name"] for x in metadata["sg_version_data"]["tags"]]
                     if self.__match_label(tags):
                         version_numbers.append(version_str)
-                except Exception, e:
+                except Exception as e:
                     log.debug(
                         "Could not determine label metadata for %s. Ignoring. Details: %s" % (path, e)
                     )
@@ -710,7 +710,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             # connect to the app store site
             try:
                 (script_name, script_key) = self.__get_app_store_key_from_shotgun()
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 if e.code == 403:
                     # edge case alert!
                     # this is likely because our session token in shotgun has expired.
@@ -755,14 +755,14 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 )
             # Connection errors can occur for a variety of reasons. For example, there is no
             # internet access or there is a proxy server blocking access to the Toolkit app store.
-            except (httplib2.HttpLib2Error, httplib2.socks.HTTPError, httplib.HTTPException), e:
+            except (httplib2.HttpLib2Error, httplib2.socks.HTTPError, httplib.HTTPException) as e:
                 raise TankAppStoreConnectionError(e)
             # In cases where there is a firewall/proxy blocking access to the app store, sometimes
             # the firewall will drop the connection instead of rejecting it. The API request will
             # timeout which unfortunately results in a generic SSLError with only the message text
             # to give us a clue why the request failed.
             # The exception raised in this case is "ssl.SSLError: The read operation timed out"
-            except httplib2.ssl.SSLError, e:
+            except httplib2.ssl.SSLError as e:
                 if "timed" in e.message:
                     raise TankAppStoreConnectionError(
                         "Connection to %s timed out: %s" % (app_store_sg.config.server, e)
@@ -770,7 +770,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 else:
                     # other type of ssl error
                     raise TankAppStoreError(e)
-            except Exception, e:
+            except Exception as e:
                 raise TankAppStoreError(e)
 
             if script_user is None:
@@ -860,7 +860,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             # connect to the app store
             (sg, _) = self.__create_sg_app_store_connection()
             log.debug("...connection established: %s" % sg)
-        except Exception, e:
+        except Exception as e:
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect

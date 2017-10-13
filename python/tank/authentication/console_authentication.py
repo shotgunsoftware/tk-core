@@ -18,6 +18,9 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+
+from __future__ import print_function
+
 from . import session_cache
 from .. import LogManager
 from .errors import AuthenticationError, AuthenticationCancelled
@@ -56,7 +59,7 @@ class ConsoleAuthenticationHandlerBase(object):
                 hostname, login, password = self._get_user_credentials(hostname, login)
             except EOFError:
                 # Insert a \n on the current line so the print is displayed on a new time.
-                print
+                print()
                 raise AuthenticationCancelled()
 
             try:
@@ -76,8 +79,8 @@ class ConsoleAuthenticationHandlerBase(object):
             except AuthenticationError:
                 # If any combination of credentials are invalid (user + invalid pass or
                 # user + valid pass + invalid 2da code) we'll end up here.
-                print "Login failed."
-                print
+                print("Login failed.")
+                print()
 
     def _get_user_credentials(self, hostname, login):
         """
@@ -158,8 +161,8 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
         :param login: Current user
         :returns: The (hostname, login, plain text password) tuple.
         """
-        print "%s, your current session has expired." % login
-        print "Please enter your password to renew your session for %s" % hostname
+        print("%s, your current session has expired." % login)
+        print("Please enter your password to renew your session for %s" % hostname)
         return hostname, login, self._get_password()
 
 
@@ -185,9 +188,9 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         :returns: A tuple of (login, password) strings.
         """
         if self._fixed_host:
-            print "Please enter your login credentials for %s" % hostname
+            print("Please enter your login credentials for %s" % hostname)
         else:
-            print "Please enter your login credentials."
+            print("Please enter your login credentials.")
             hostname = self._get_keyboard_input("Host", hostname)
         login = self._get_keyboard_input("Login", login)
         password = self._get_password()

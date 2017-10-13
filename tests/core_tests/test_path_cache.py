@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 
 import os
 import sys
@@ -744,8 +744,8 @@ class TestConcurrentShotgunSync(TankTestBase):
         try:
             for x in range(20):
                 self.tk.synchronize_filesystem_structure(True)
-        except Exception, e:
-            print "Exception from concurrent full sync process: %s" % e
+        except Exception as e:
+            print("Exception from concurrent full sync process: %s" % e)
             self._multiprocess_fail = True
 
     def _test_concurrent_full_sync(self):
@@ -796,8 +796,8 @@ class TestConcurrentShotgunSync(TankTestBase):
                 except Queue.Empty:
                     pass
                 self.tk.synchronize_filesystem_structure()
-        except Exception, e:
-            print "Exception from concurrent sync process: %s" % e
+        except Exception as e:
+            print("Exception from concurrent sync process: %s" % e)
             self._multiprocess_fail = True
 
     def _test_concurrent(self):

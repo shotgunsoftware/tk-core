@@ -130,7 +130,7 @@ class IODescriptorGitBranch(IODescriptorGit):
                 "reset --hard -q \"%s\"" % self._version
             ]
             self._clone_then_execute_git_commands(destination_path, commands)
-        except Exception, e:
+        except Exception as e:
             raise TankDescriptorError(
                 "Could not download %s, branch %s, "
                 "commit %s: %s" % (self._path, self._branch, self._version, e)
@@ -177,7 +177,7 @@ class IODescriptorGitBranch(IODescriptorGit):
             ]
             git_hash = self._tmp_clone_then_execute_git_commands(commands)
 
-        except Exception, e:
+        except Exception as e:
             raise TankDescriptorError(
                 "Could not get latest commit for %s, "
                 "branch %s: %s" % (self._path, self._branch, e)

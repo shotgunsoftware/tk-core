@@ -676,7 +676,7 @@ class TankQDialog(TankDialogBase):
         try:
             # first, reload the template defs
             self._bundle.tank.reload_templates()
-        except TankError, e:
+        except TankError as e:
             self._bundle.log_error(e)
 
         try:
@@ -688,7 +688,7 @@ class TankQDialog(TankDialogBase):
             if engine.current_engine(): 
                 engine.current_engine().destroy()
             engine.start_engine(current_engine_name, current_context.tank, current_context)
-        except TankError, e:
+        except TankError as e:
             self._bundle.log_error("Could not restart the engine: %s" % e)
         except Exception:
             self._bundle.log_exception("Could not restart the engine!")

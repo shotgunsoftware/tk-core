@@ -12,7 +12,7 @@
 Base class for engine and app testing
 """
 
-from __future__ import with_statement 
+from __future__ import with_statement, print_function
 
 import sys
 import os
@@ -63,7 +63,7 @@ def _is_git_missing():
     try:
         output = sgtk.util.process.subprocess_check_output(["git", "--version"])
         git_missing = False
-    except:
+    except Exception:
         # no git!
         pass
     return git_missing
@@ -139,9 +139,9 @@ def setUpModule():
     TANK_TEMP = os.path.join(temp_dir, temp_dir_name)
     # print out the temp data location
     msg = "Toolkit test data location: %s" % TANK_TEMP
-    print "\n" + "="*len(msg)
-    print msg
-    print "=" * len(msg) + "\n"
+    print("\n" + "=" * len(msg))
+    print(msg)
+    print("=" * len(msg) + "\n")
 
     # move tank directory if left by previous tests
     _move_data(TANK_TEMP)
@@ -610,24 +610,24 @@ class TankTestBase(unittest.TestCase):
         """
         Prints out the contents of the mockgun shotgun database and the path cache
         """
-        print ""
-        print "-----------------------------------------------------------------------------"
-        print " Shotgun contents:"
+        print("")
+        print("-----------------------------------------------------------------------------")
+        print(" Shotgun contents:")
 
-        print pprint.pformat(self.tk.shotgun._db)
-        print ""
-        print ""
-        print "Path Cache contents:"
+        print(pprint.pformat(self.tk.shotgun._db))
+        print("")
+        print("")
+        print("Path Cache contents:")
 
         path_cache = tank.path_cache.PathCache(self.tk)
         c = path_cache._connection.cursor()
         for x in list(c.execute("select * from path_cache" )):
-            print x
+            print(x)
         c.close()
         path_cache.close()
 
-        print "-----------------------------------------------------------------------------"
-        print ""
+        print("-----------------------------------------------------------------------------")
+        print("")
 
     def add_to_sg_mock_db(self, entities):
         """
@@ -712,8 +712,8 @@ class TankTestBase(unittest.TestCase):
 
         try:
             func(*args, **kws)
-        except Error, e:
-            self.assertEquals(message, e.message)
+        except Error as e:
+            self.assertEquals(message, str(e))
 
     def _move_project_data(self):
         """
@@ -733,7 +733,7 @@ class TankTestBase(unittest.TestCase):
         files = []
 
         if not os.path.exists(dst):
-            os.mkdir(dst, 0777)
+            os.mkdir(dst, 0o777)
 
         names = os.listdir(src)
         for name in names:
@@ -749,7 +749,7 @@ class TankTestBase(unittest.TestCase):
                 # if the file extension is sh, set executable permissions
                 if dstname.endswith(".sh") or dstname.endswith(".bat"):
                     # make it readable and executable for everybody
-                    os.chmod(dstname, 0777)
+                    os.chmod(dstname, 0o777)
 
         return files
 
@@ -795,7 +795,7 @@ def _move_data(path):
             pc = path_cache.PathCache(tk)
             db_path = pc._get_path_cache_location()
             if os.path.exists(db_path):
-                print 'Removing db %s' % db_path
+                print('Removing db %s' % db_path)
                 # Importing pdb allows the deletion of the sqlite db sometimes...
                 import pdb
                 # try multiple times, waiting longer in between

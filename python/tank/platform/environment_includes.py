@@ -93,7 +93,7 @@ def _resolve_includes(file_name, data, context):
         
                 # Make a template
                 template = TemplatePath(include, template_keys, primary_data_root)
-            except TankError, e:
+            except TankError as e:
                 raise TankError("Syntax error in %s: Could not transform include path '%s' "
                                 "into a template: %s" % (file_name, include, e))
             
@@ -101,7 +101,7 @@ def _resolve_includes(file_name, data, context):
             try:
                 f = context.as_template_fields(template)
                 full_path = template.apply_fields(f)
-            except TankError, e:
+            except TankError as e:
                 # if this path could not be resolved, that's ok! These paths are always optional.
                 continue
             
@@ -233,7 +233,7 @@ def _process_includes_r(file_name, data, context):
     try:
         data = _resolve_refs_r(lookup_dict, data)
         data = _resolve_frameworks(lookup_dict, data)
-    except TankError, e:
+    except TankError as e:
         raise TankError("Include error. Could not resolve references for %s: %s" % (file_name, e))
     
     return data, fw_lookup

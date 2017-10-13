@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import print_function
 
 import sys
 import os
@@ -237,7 +238,7 @@ class TestValidate(TestTemplatePath):
         for frames_value in frames_values:
             candidate_path = base_path % frames_value
             if self.sequence.validate(candidate_path):
-                print "Invalid path marked as valid: \n%s" % candidate_path
+                print("Invalid path marked as valid: \n%s" % candidate_path)
             self.assertFalse(self.sequence.validate(candidate_path))
 
     def test_optional_values(self):

@@ -159,6 +159,9 @@ class Descriptor(object):
         else:
             return False
 
+    # This item is not hashable. Required to silence -3 flag of the python interpreter.
+    __hash__ = None
+
     def __ne__(self, other):
         return not (self == other)
 

@@ -149,7 +149,7 @@ class IODescriptorGitTag(IODescriptorGit):
             # clone the repo, checkout the given tag
             commands = ["checkout -q \"%s\"" % self._version]
             self._clone_then_execute_git_commands(destination_path, commands)
-        except Exception, e:
+        except Exception as e:
             raise TankDescriptorError(
                 "Could not download %s, "
                 "tag %s: %s" % (self._path, self._version, e)
@@ -207,7 +207,7 @@ class IODescriptorGitTag(IODescriptorGit):
             commands = ["tag"]
             git_tags = self._tmp_clone_then_execute_git_commands(commands).split("\n")
 
-        except Exception, e:
+        except Exception as e:
             raise TankDescriptorError(
                 "Could not get list of tags for %s: %s" % (self._path, e)
             )
@@ -239,7 +239,7 @@ class IODescriptorGitTag(IODescriptorGit):
             ]
             latest_tag = self._tmp_clone_then_execute_git_commands(commands)
 
-        except Exception, e:
+        except Exception as e:
             raise TankDescriptorError(
                 "Could not get latest tag for %s: %s" % (self._path, e)
             )

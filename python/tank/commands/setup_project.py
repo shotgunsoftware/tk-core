@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import print_function
+
 import sys
 import os
 from .action_base import Action
@@ -251,7 +253,7 @@ class SetupProjectAction(Action):
             log.info("")
             log.info("README file for template:")
             for line in readme_content:
-                print line
+                print(line)
         
         log.info("")
         log.info("We recommend that you now run 'tank updates' to get the latest")
@@ -276,7 +278,7 @@ class SetupProjectAction(Action):
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([ str(x) for x in sg.server_info["version"]])
             log.debug("Connected to target Shotgun server! (v%s)" % sg_version)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Could not connect to Shotgun server: %s" % e)
     
         return sg
@@ -488,7 +490,7 @@ class SetupProjectAction(Action):
             # validate the project name
             try:
                 params.validate_project_disk_name(proj_name)
-            except TankError, e:
+            except TankError as e:
                 # bad project name!
                 log.error("Invalid project name: %s" % e)
                 # back to beginning
@@ -510,13 +512,13 @@ class SetupProjectAction(Action):
                         
                         old_umask = os.umask(0)
                         try:
-                            os.makedirs(proj_path, 0777)
+                            os.makedirs(proj_path, 0o777)
                         finally:
                             os.umask(old_umask)                        
                         
                         log.info(" - %s: %s [Created]" % (storage_name, proj_path))
                         storages_valid = True
-                    except Exception, e:
+                    except Exception as e:
                         log.error(" - %s: %s [Not created]" % (storage_name, proj_path))
                         log.error("   Please create path manually.")
                         log.error("   Details: %s" % e)
