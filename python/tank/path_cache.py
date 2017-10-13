@@ -113,7 +113,14 @@ class PathCache(object):
             
             if len(table_names) == 0:
                 # we have a brand new database. Create all tables and indices
+
+                # note that because some clients are writing to NFS storage, we
+                # up the default page size somewhat (from 4k -> 8k) to improve
+                # performance. See https://sqlite.org/pragma.html#pragma_page_size
+
                 c.executescript("""
+                    PRAGMA page_size=8192;
+
                     CREATE TABLE path_cache (entity_type text, entity_id integer, entity_name text, root text, path text, primary_entity integer);
                 
                     CREATE INDEX path_cache_entity ON path_cache(entity_type, entity_id);
@@ -127,6 +134,8 @@ class PathCache(object):
                     CREATE TABLE shotgun_status (path_cache_id integer, shotgun_id integer);
                     
                     CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);
+
+                    CREATE INDEX shotgun_status_shotgun_id ON shotgun_status(shotgun_id);
                     """)
                 self._connection.commit()
                 
