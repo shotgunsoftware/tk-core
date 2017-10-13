@@ -898,7 +898,7 @@ class TankBundle(object):
         # config schema so we need to account for that.
         schema = self.__descriptor.configuration_schema.get(key, None)
         return resolve_setting_value(
-            self.__tk, self._get_engine_name(), schema, settings, key, default
+            self.__tk, self._get_engine_name(), schema, settings, key, default, self
         )
 
     def _get_engine_name(self):
@@ -921,7 +921,7 @@ class TankBundle(object):
         return engine_name
 
 
-def _post_process_settings_r(tk, key, value, schema):
+def _post_process_settings_r(tk, key, value, schema, bundle=None):
     """
     Recursive post-processing of settings values
 
@@ -929,22 +929,44 @@ def _post_process_settings_r(tk, key, value, schema):
     :param key: setting name
     :param value: Input value to resolve using specified schema
     :param schema: A schema defining types and defaults for settings.
+    :param bundle: The bundle object. This is only used in the case
+        the value argument is a string starting with "hook:", which
+        then requires the use of a core hook to resolve the setting.
+        If no bundle is given and this situation arises, then the
+        current bundle, as reported by sgtk.platform.current_bundle,
+        will be used.
+
     :returns: Processed value for key setting
     """
+    bundle = bundle or sgtk.platform.current_bundle()
     settings_type = schema.get("type")
 
     if settings_type == "list":
         processed_val = []
         value_schema = schema["values"]
         for x in value:
-            processed_val.append(_post_process_settings_r(tk, key, x, value_schema))
+            processed_val.append(
+                _post_process_settings_r(
+                    tk=tk,
+                    key=key,
+                    value=x,
+                    schema=value_schema,
+                    bundle=bundle,
+                )
+            )
 
     elif settings_type == "dict":
         items = schema.get("items", {})
         # note - we assign the original values here because we
         processed_val = value
         for (key, value_schema) in items.iteritems():
-            processed_val[key] = _post_process_settings_r(tk, key, value[key], value_schema)
+            processed_val[key] = _post_process_settings_r(
+                tk=tk,
+                key=key,
+                value=value[key],
+                schema=value_schema,
+                bundle=bundle,
+            )
 
     elif settings_type == "config_path":
         # this is a config path. Stored on the form
@@ -969,7 +991,7 @@ def _post_process_settings_r(tk, key, value, schema):
         hook_name = chunks[1]
         params = chunks[2:]
         processed_val = tk.execute_core_hook(
-            hook_name, setting=key, bundle_obj=self, extra_params=params
+            hook_name, setting=key, bundle_obj=bundle, extra_params=params
         )
 
     else:
@@ -978,7 +1000,8 @@ def _post_process_settings_r(tk, key, value, schema):
 
     return processed_val
 
-def resolve_setting_value(tk, engine_name, schema, settings, key, default):
+
+def resolve_setting_value(tk, engine_name, schema, settings, key, default, bundle=None):
     """
     Resolve a setting value.  Exposed to allow values to be resolved for
     settings derived outside of the app.
@@ -991,6 +1014,11 @@ def resolve_setting_value(tk, engine_name, schema, settings, key, default):
     :param dict settings: the settings dictionary source
     :param str key: setting name
     :param default: a default value to use for the setting
+    :param bundle: The bundle object. This is only used in situations where
+        a setting's value must be resolved via calling a hook. If None, the
+        current bundle, as provided by sgtk.platform.current_bundle, will
+        be used.
+
     :returns: Resolved value of input setting key
     """
     # Get the value for the supplied key
@@ -1011,7 +1039,7 @@ def resolve_setting_value(tk, engine_name, schema, settings, key, default):
     # We have a value of some kind and a schema. Allow the post
     # processing code to further resolve the value.
     if value and schema:
-        value = _post_process_settings_r(tk, key, value, schema)
+        value = _post_process_settings_r(tk, key, value, schema, bundle)
 
     return value
 
