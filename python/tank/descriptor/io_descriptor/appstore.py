@@ -20,7 +20,7 @@ import httplib
 from tank_vendor.shotgun_api3.lib import httplib2
 import cPickle as pickle
 
-from ...util import shotgun, filesystem
+from ...util import shotgun
 from ...util import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
 from ...util.user_settings import UserSettings
 
@@ -32,7 +32,7 @@ from ..errors import InvalidAppStoreCredentialsError
 
 from ... import LogManager
 from .. import constants
-from .base import IODescriptorBase
+from .downloadable import IODescriptorDownloadable
 
 from ...constants import SUPPORT_EMAIL
 
@@ -47,7 +47,7 @@ log = LogManager.get_logger(__name__)
 METADATA_FILE = ".cached_metadata.pickle"
 
 
-class IODescriptorAppStore(IODescriptorBase):
+class IODescriptorAppStore(IODescriptorDownloadable):
     """
     Represents a toolkit app store item.
 
@@ -55,9 +55,6 @@ class IODescriptorAppStore(IODescriptorBase):
     {type: app_store, name: NAME, version: VERSION}
 
     """
-
-    _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "download_complete"
-
     # cache app store connections for performance
     _app_store_connections = {}
 
@@ -285,7 +282,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 log.debug("Wrote app store metadata cache '%s'" % cache_file)
             finally:
                 fp.close()
-        except Exception, e:
+        except Exception as e:
             log.debug("Did not update app store metadata cache '%s': %s" % (cache_file, e))
 
         return metadata
@@ -404,82 +401,18 @@ class IODescriptorAppStore(IODescriptorBase):
             pass
         return (summary, url)
 
-    def _exists_local(self, path):
-        """
-        Checks is the bundle exists on disk and ensures that it has been completely
-        downloaded if possible.
-
-        :param str path: Path to the bundle to test.
-
-        :returns: True if the bundle is deemed completed, False otherwise.
-        """
-        if not super(IODescriptorAppStore, self)._exists_local(path):
-            return False
-
-        # Now that we are guaranteed there is a folder on disk, we'll attempt to do some integrity
-        # checking.
-
-        # The metadata folder is a folder that lives inside the bundle.
-        metadata_folder = self._get_metadata_folder(path)
-
-        # If the metadata folder does not exist, this is a bundle that was downloaded with an older
-        # core. We will have to assume that it has been unzipped correctly.
-        if not os.path.isdir(metadata_folder):
-            log.debug(
-                "Pre-core-0.18.80 AppStore download found at '%s'. Assuming it is complete.", metadata_folder
-            )
-            return True
-
-        # Great, we're in the presence of a bundle that was downloaded with integrity check logic.
-
-        # The completed file flag is a file that gets written out after the bundle has been
-        # completely unzipped.
-        completed_file_flag = os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
-
-        # If the complete file flag is missing, it means the download operation failed, so we'll
-        # consider it as inexistent.
-        if os.path.exists(completed_file_flag):
-            return True
-        else:
-            log.debug(
-                "Note: Missing download complete ticket file '%s'. "
-                "This suggests a partial download" % completed_file_flag
-            )
-            return False
-
-    def _get_metadata_folder(self, path):
-        """
-        Returns the corresponding metadata folder given a path
-        """
-        # Do not set this as a hidden folder (with a . in front) in case somebody does a
-        # rm -rf * or a manual deletion of the files. This will ensure this is treated just like
-        # any other file.
-        return os.path.join(path, "appstore-metadata")
-
-    def download_local(self):
+    def _download_local(self, destination_path):
         """
         Retrieves this version to local repo.
-        Will exit early if app already exists local.
-        Caches app store metadata.
+
+        :param destination_path: The directory to which the app store descriptor
+        is to be downloaded to.
         """
-        if self.exists_local():
-            # nothing to do!
-            return
-
-        # cache into the primary location
-        target = self._get_primary_cache_path()
-        # create folder
-        filesystem.ensure_folder_exists(target)
-
-        # create settings folder
-        metadata_folder = self._get_metadata_folder(target)
-        filesystem.ensure_folder_exists(metadata_folder)
-
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
 
         # fetch metadata from sg...
-        metadata = self.__refresh_metadata(target)
+        metadata = self.__refresh_metadata(destination_path)
 
         # now get the attachment info
         version = metadata.get("sg_version_data")
@@ -495,19 +428,30 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # download and unzip
         try:
-            shotgun.download_and_unpack_attachment(sg, attachment_id, target)
-        except ShotgunAttachmentDownloadError, e:
+            shotgun.download_and_unpack_attachment(sg, attachment_id, destination_path)
+        except ShotgunAttachmentDownloadError as e:
             raise TankAppStoreError(
                 "Failed to download %s. Error: %s" % (self, e)
             )
 
-        # write end receipt
-        filesystem.touch_file(
-            os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
-        )
+    def _post_download(self, download_path):
+        """
+        Code run after the descriptor is successfully downloaded to disk
 
+        :param download_path: The path to which the descriptor is downloaded to.
+        """
         # write a stats record to the tank app store
         try:
+            # connect to the app store
+            (sg, script_user) = self.__create_sg_app_store_connection()
+
+            # fetch metadata from sg...
+            metadata = self.__refresh_metadata(download_path)
+
+            # now get the attachment info
+            version = metadata.get("sg_version_data")
+
+            # setup the data entry
             data = {}
             data["description"] = "%s: %s %s was downloaded" % (
                 self._sg_connection.base_url,
@@ -519,8 +463,10 @@ class IODescriptorAppStore(IODescriptorBase):
             data["user"] = script_user
             data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
             data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
+
+            # log the data to shotgun
             sg.create("EventLogEntry", data)
-        except Exception, e:
+        except Exception as e:
             log.warning("Could not write app store download receipt: %s" % e)
 
     #############################################################################
@@ -555,7 +501,7 @@ class IODescriptorAppStore(IODescriptorBase):
                     tags = [x["name"] for x in metadata["sg_version_data"]["tags"]]
                     if self.__match_label(tags):
                         version_numbers.append(version_str)
-                except Exception, e:
+                except Exception as e:
                     log.debug(
                         "Could not determine label metadata for %s. Ignoring. Details: %s" % (path, e)
                     )
@@ -764,7 +710,7 @@ class IODescriptorAppStore(IODescriptorBase):
             # connect to the app store site
             try:
                 (script_name, script_key) = self.__get_app_store_key_from_shotgun()
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 if e.code == 403:
                     # edge case alert!
                     # this is likely because our session token in shotgun has expired.
@@ -809,14 +755,14 @@ class IODescriptorAppStore(IODescriptorBase):
                 )
             # Connection errors can occur for a variety of reasons. For example, there is no
             # internet access or there is a proxy server blocking access to the Toolkit app store.
-            except (httplib2.HttpLib2Error, httplib2.socks.HTTPError, httplib.HTTPException), e:
+            except (httplib2.HttpLib2Error, httplib2.socks.HTTPError, httplib.HTTPException) as e:
                 raise TankAppStoreConnectionError(e)
             # In cases where there is a firewall/proxy blocking access to the app store, sometimes
             # the firewall will drop the connection instead of rejecting it. The API request will
             # timeout which unfortunately results in a generic SSLError with only the message text
             # to give us a clue why the request failed.
             # The exception raised in this case is "ssl.SSLError: The read operation timed out"
-            except httplib2.ssl.SSLError, e:
+            except httplib2.ssl.SSLError as e:
                 if "timed" in e.message:
                     raise TankAppStoreConnectionError(
                         "Connection to %s timed out: %s" % (app_store_sg.config.server, e)
@@ -824,7 +770,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 else:
                     # other type of ssl error
                     raise TankAppStoreError(e)
-            except Exception, e:
+            except Exception as e:
                 raise TankAppStoreError(e)
 
             if script_user is None:
@@ -914,7 +860,7 @@ class IODescriptorAppStore(IODescriptorBase):
             # connect to the app store
             (sg, _) = self.__create_sg_app_store_connection()
             log.debug("...connection established: %s" % sg)
-        except Exception, e:
+        except Exception as e:
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect

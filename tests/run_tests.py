@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import print_function
+
 import sys
 import os
 import glob
@@ -15,26 +17,26 @@ from optparse import OptionParser
 
 
 # Let the user know which Python is picked up to run the tests.
-print
-print "Using Python version \"%s\" at \"%s\"" % (".".join(
+print()
+print("Using Python version \"%s\" at \"%s\"" % (".".join(
     str(i) for i in sys.version_info[0:3]
-), sys.executable)
+), sys.executable))
 
 # prepend tank_vendor location to PYTHONPATH to make sure we are running
 # the tests against the vendor libs, not local libs on the machine
 core_python_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "python"))
-print ""
-print "Adding tank location to python_path: %s" % core_python_path
+print("")
+print("Adding tank location to python_path: %s" % core_python_path)
 sys.path = [core_python_path] + sys.path
 
 # prepend tank_vendor location to PYTHONPATH to make sure we are running
 # the tests against the vendor libs, not local libs on the machine
 test_python_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "python"))
-print "Adding tests/python location to python_path: %s" % test_python_path
+print("Adding tests/python location to python_path: %s" % test_python_path)
 sys.path = [test_python_path] + sys.path
 
 test_python_path = os.path.join(test_python_path, "third_party")
-print "Adding tests/python/third_party location to python_path: %s" % test_python_path
+print("Adding tests/python/third_party location to python_path: %s" % test_python_path)
 sys.path = [test_python_path] + sys.path
 
 import unittest2 as unittest
@@ -51,13 +53,13 @@ class TankTestRunner(object):
         else:
             self.test_path = test_root
 
-        print "Tests will be loaded from: %s" % self.test_path
+        print("Tests will be loaded from: %s" % self.test_path)
 
         # the fixtures are always located relative to the test location
         # so store away the fixtures location in an environment vartiable
         # for later use
         os.environ["TK_TEST_FIXTURES"] = os.path.join(self.test_path, "fixtures")
-        print "Fixtures will be loaded from: %s" % os.environ["TK_TEST_FIXTURES"]
+        print("Fixtures will be loaded from: %s" % os.environ["TK_TEST_FIXTURES"])
 
         # set up the path to the core API
         self.packages_path = os.path.join(os.path.dirname(curr_dir), "python")
@@ -154,10 +156,10 @@ def _finalize_coverage(cov):
         # seems to be some CI issues with html coverage so
         # failing gracefully with a warning in case it doesn't work.
         cov.html_report(directory="coverage_html_report")
-    except Exception, e:
-        print "WARNING: Html coverage report could not be written: %s" % e
+    except Exception as e:
+        print("WARNING: Html coverage report could not be written: %s" % e)
     else:
-        print "Note: Full html coverage report can be found in the coverage_html_report folder."
+        print("Note: Full html coverage report can be found in the coverage_html_report folder.")
 
 
 def _initialize_logging(log_to_console):
@@ -237,6 +239,13 @@ if __name__ == "__main__":
         cov = _initialize_coverage(options.test_root)
 
     _initialize_logging(options.log_to_console)
+
+    # If we have a custom test root, add its python folder, if it exists, so the user doesn't need
+    # to set it up themselves.
+    if options.test_root:
+        python_test_root = os.path.join(options.test_root, "python")
+        if os.path.exists(python_test_root):
+            sys.path.insert(0, python_test_root)
 
     ret_val = _run_tests(options.test_root, test_names)
 

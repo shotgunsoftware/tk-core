@@ -163,7 +163,7 @@ class FolderConfiguration(object):
 
             try:
                 metadata = yaml_cache.g_yaml_cache.get(full_path, deepcopy_data=False) or {}
-            except Exception, error:
+            except Exception as error:
                 raise TankError("Cannot load config file '%s'. Error: %s" % (full_path, error))
 
             if "target" not in metadata:
@@ -194,7 +194,7 @@ class FolderConfiguration(object):
             metadata = yaml_cache.g_yaml_cache.get(yml_file, deepcopy_data=False)
         except TankUnreadableFileError:
             pass
-        except Exception, error:
+        except Exception as error:
             raise TankError("Cannot load config file '%s'. Error: %s" % (yml_file, error))
 
         return metadata

@@ -11,6 +11,7 @@
 """
 Various helper methods relating to user interaction via the shell.
 """
+from __future__ import print_function
 
 import textwrap
 
@@ -245,7 +246,7 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
                         # validate value
                         try:
                             obj_value = _validate_parameter(tank_api_instance, new_ver_descriptor, param_name, answer)
-                        except Exception, e:
+                        except Exception as e:
                             log.error("Validation failed: %s" % e)
                         else:
                             input_valid = True
@@ -301,7 +302,7 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         # now make sure all constraints are okay
         try:
             check_constraints_for_item(fw_descriptor, environment)
-        except TankError, e:
+        except TankError as e:
             raise TankError("Cannot install framework: %s" % e)
 
         # okay to install!
@@ -347,7 +348,7 @@ def check_constraints_for_item(descriptor, environment_obj, engine_instance_name
             pipelineconfig_utils.get_currently_running_api_version(),
             parent_engine_descriptor
         )
-    except CheckVersionConstraintsError, e:
+    except CheckVersionConstraintsError as e:
         reasons = e.reasons[:]
         reasons.insert(0, "%s requires an upgrade to one or more "
                           "of your installed components." % descriptor)

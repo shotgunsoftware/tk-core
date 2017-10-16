@@ -179,7 +179,7 @@ class QtImporter(object):
                 wrapper = __import__("PySide2", globals(), locals(), [module_name])
                 if hasattr(wrapper, module_name):
                     modules_dict[module_name] = getattr(wrapper, module_name)
-            except Exception, e:
+            except Exception as e:
                 logger.debug("'%s' was skipped: %s", module_name, e)
                 pass
 
@@ -258,7 +258,7 @@ class QtImporter(object):
                 pyside2 = self._import_pyside2_as_pyside()
                 logger.debug("Imported PySide2 as PySide.")
                 return pyside2
-            except ImportError, e:
+            except ImportError as e:
                 pass
         elif interface_version_requested == self.QT5:
             try:

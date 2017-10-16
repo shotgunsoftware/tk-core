@@ -106,7 +106,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         """
         return self._version
 
-    def download_local(self):
+    def _download_local(self, destination_path):
         """
         Retrieves this version to local repo.
         Will exit early if app already exists local.
@@ -118,14 +118,10 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         The git repo will be cloned into the local cache and
         will then be adjusted to point at the relevant commit.
+
+        :param destination_path: The destination path on disk to which
+        the git branch descriptor is to be downloaded to.
         """
-        if self.exists_local():
-            # nothing to do!
-            return
-
-        # cache into the primary location
-        target = self._get_primary_cache_path()
-
         try:
             # clone the repo, switch to the given branch
             # then reset to the given commit
@@ -133,14 +129,12 @@ class IODescriptorGitBranch(IODescriptorGit):
                 "checkout -q \"%s\"" % self._branch,
                 "reset --hard -q \"%s\"" % self._version
             ]
-            self._clone_then_execute_git_commands(target, commands)
-
-        except Exception, e:
+            self._clone_then_execute_git_commands(destination_path, commands)
+        except Exception as e:
             raise TankDescriptorError(
                 "Could not download %s, branch %s, "
                 "commit %s: %s" % (self._path, self._branch, self._version, e)
             )
-
 
     def get_latest_version(self, constraint_pattern=None):
         """
@@ -183,7 +177,7 @@ class IODescriptorGitBranch(IODescriptorGit):
             ]
             git_hash = self._tmp_clone_then_execute_git_commands(commands)
 
-        except Exception, e:
+        except Exception as e:
             raise TankDescriptorError(
                 "Could not get latest commit for %s, "
                 "branch %s: %s" % (self._path, self._branch, e)
@@ -218,4 +212,3 @@ class IODescriptorGitBranch(IODescriptorGit):
         else:
             # no cached version exists
             return None
-

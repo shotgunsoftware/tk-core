@@ -303,7 +303,7 @@ class MetricsDispatchWorkerThread(Thread):
                     else:
                         break
 
-            except Exception:
+            except Exception as e:
                 pass
             finally:
                 # wait, checking for halt event before more processing
@@ -332,7 +332,7 @@ class MetricsDispatchWorkerThread(Thread):
                 "log_metrics",
                 metrics=[m.data for m in metrics]
             )
-        except Exception, e:
+        except Exception as e:
             # Catch errors to not kill our thread, log them for debug purpose.
             self._engine.log_debug("%s hook failed with %s" % (
                 constants.TANK_LOG_METRICS_HOOK_NAME,
@@ -403,7 +403,7 @@ class MetricsDispatchWorkerThread(Thread):
         try:
             request = urllib2.Request(url, payload_json, header)
             urllib2.urlopen(request)
-        except urllib2.HTTPError:
+        except urllib2.HTTPError as e:
             # fire and forget, so if there's an error, ignore it.
             pass
 

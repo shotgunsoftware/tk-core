@@ -200,7 +200,7 @@ class PipelineConfiguration(object):
         if constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
             try:
                 external_data = pickle.loads(os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA])
-            except Exception, e:
+            except Exception as e:
                 log.warning("Could not load external config data from: %s" % e)
 
             if "project_id" in external_data:
@@ -262,7 +262,7 @@ class PipelineConfiguration(object):
             data = yaml.load(fh)
             if data is None:
                 raise Exception("File contains no data!")
-        except Exception, e:
+        except Exception as e:
             raise TankError("Looks like a config file is corrupt. Please contact "
                             "support! File: '%s' Error: %s" % (cfg_yml, e))
         finally:
@@ -291,7 +291,7 @@ class PipelineConfiguration(object):
         
         old_umask = os.umask(0)
         try:
-            os.chmod(pipe_config_sg_id_path, 0666)
+            os.chmod(pipe_config_sg_id_path, 0o666)
             # and write the new file
             fh = open(pipe_config_sg_id_path, "wt")
             # using safe_dump instead of dump ensures that we
@@ -309,7 +309,7 @@ class PipelineConfiguration(object):
             # '{foo: bar}\n'
             #            
             yaml.safe_dump(curr_settings, fh)
-        except Exception, exp:
+        except Exception as exp:
             raise TankError("Could not write to configuration file '%s'. "
                             "Error reported: %s" % (pipe_config_sg_id_path, exp))
         finally:
@@ -331,14 +331,14 @@ class PipelineConfiguration(object):
 
         try:
             fh = open(cache_file, 'rb')
-        except Exception, e:
+        except Exception as e:
             log.warning("Could not read yaml cache %s: %s" % (cache_file, e))
             return
 
         try:
             cache_items = pickle.load(fh)
             yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
-        except Exception, e:
+        except Exception as e:
             log.warning("Could not merge yaml cache %s: %s" % (cache_file, e))
         finally:
             fh.close()

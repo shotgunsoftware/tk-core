@@ -190,7 +190,7 @@ class InstallAppAction(Action):
         try:
             env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
             env.set_yaml_preserve_mode(preserve_yaml)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
     
         # make sure the engine exists in the environment
@@ -237,7 +237,7 @@ class InstallAppAction(Action):
         # now make sure all constraints are okay
         try:
             console_utils.check_constraints_for_item(app_descriptor, env, engine_instance_name)
-        except TankError, e:
+        except TankError as e:
             raise TankError("Cannot install: %s" % e)
     
         # okay to install!
@@ -437,7 +437,7 @@ class InstallEngineAction(Action):
         try:
             env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
             env.set_yaml_preserve_mode(preserve_yaml)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
     
     
@@ -475,7 +475,7 @@ class InstallEngineAction(Action):
         # now make sure all constraints are okay
         try:
             console_utils.check_constraints_for_item(engine_descriptor, env)
-        except TankError, e:
+        except TankError as e:
             raise TankError("Cannot install: %s" % e)
     
     

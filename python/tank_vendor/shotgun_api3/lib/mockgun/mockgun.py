@@ -462,6 +462,7 @@ class Shotgun(object):
                     python_type = {"number": int,
                                    "float": float,
                                    "checkbox": bool,
+                                   "percent": int,
                                    "text": basestring,
                                    "serializable": dict,
                                    "date": datetime.date,

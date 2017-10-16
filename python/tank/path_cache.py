@@ -18,7 +18,6 @@ import collections
 import sqlite3
 import sys
 import os
-import pprint
 import itertools
 
 # use api json to cover py 2.5
@@ -52,7 +51,20 @@ class PathCache(object):
     NOTE! This uses sqlite and the db is typically hosted on an NFS storage.
     Ensure that the code is developed with the constraints that this entails in mind.
     """
-    
+
+    # sqlite has a limit for how many items fit into a single in statement
+    SQLITE_MAX_ITEMS_FOR_IN_STATEMENT = 200
+
+    # To avoid paging, we batch queries of FilesystemLocation entities
+    # in chunks of 500 and combine the results. The performance issues
+    # around this have been largely alleviated in Shotgun 7.4.x and the
+    # accompanying shotgun_api3 that was released at the same time, but
+    # we still want to batch at the old page length of 500 to boost
+    # performance when older SG or API versions are used. We should
+    # eventually raise this to 5000 (or more) when we feel it is safe
+    # to do so.
+    SHOTGUN_ENTITY_QUERY_BATCH_SIZE = 500
+
     def __init__(self, tk):
         """
         Constructor.
@@ -101,7 +113,14 @@ class PathCache(object):
             
             if len(table_names) == 0:
                 # we have a brand new database. Create all tables and indices
+
+                # note that because some clients are writing to NFS storage, we
+                # up the default page size somewhat (from 4k -> 8k) to improve
+                # performance. See https://sqlite.org/pragma.html#pragma_page_size
+
                 c.executescript("""
+                    PRAGMA page_size=8192;
+
                     CREATE TABLE path_cache (entity_type text, entity_id integer, entity_name text, root text, path text, primary_entity integer);
                 
                     CREATE INDEX path_cache_entity ON path_cache(entity_type, entity_id);
@@ -115,6 +134,8 @@ class PathCache(object):
                     CREATE TABLE shotgun_status (path_cache_id integer, shotgun_id integer);
                     
                     CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);
+
+                    CREATE INDEX shotgun_status_shotgun_id ON shotgun_status(shotgun_id);
                     """)
                 self._connection.commit()
                 
@@ -189,7 +210,7 @@ class PathCache(object):
             if not os.path.exists(cache_folder):
                 old_umask = os.umask(0)
                 try:
-                    os.mkdir(cache_folder, 0777)
+                    os.mkdir(cache_folder, 0o777)
                 finally:
                     os.umask(old_umask)
 
@@ -199,7 +220,7 @@ class PathCache(object):
                 try:
                     fh = open(path, "wb")
                     fh.close()
-                    os.chmod(path, 0666)
+                    os.chmod(path, 0o666)
                 finally:
                     os.umask(old_umask)
 
@@ -365,7 +386,7 @@ class PathCache(object):
                     num_deletions += 1
                     
             log.debug("Event log contains %s creations and %s deletions" % (num_creations, num_deletions))
-            
+
             if len(response) == 0:
                 # nothing in event log. Probably a truncated setup.
                 log.debug("No sync information in the event log. Falling back on a full sync.")
@@ -461,7 +482,7 @@ class PathCache(object):
         
         try:    
             response = self._tk.shotgun.batch(sg_batch_data)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Critical! Could not update Shotgun with folder "
                             "data. Please contact support. Error details: %s" % e)
         
@@ -501,7 +522,7 @@ class PathCache(object):
         try:
             log.debug("Creating event log entry %s" % sg_event_data)
             response = self._tk.shotgun.create("EventLogEntry", sg_event_data)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Critical! Could not update Shotgun with folder data event log "
                             "history marker. Please contact support. Error details: %s" % e)            
         
@@ -583,7 +604,7 @@ class PathCache(object):
 
         try:
             tk.shotgun.batch(sg_batch_data)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Shotgun reported an error while attempting to delete FilesystemLocation entities. "
                             "Please contact support. Details: %s Data: %s" % (e, sg_batch_data))
 
@@ -621,7 +642,7 @@ class PathCache(object):
 
         try:
             tk.shotgun.create("EventLogEntry", sg_event_data)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Shotgun Reported an error while trying to write a Toolkit_Folders_Delete event "
                             "log entry after having successfully removed folders. Please contact support for "
                             "assistance. Error details: %s Data: %s" % (e, sg_event_data))
@@ -727,34 +748,66 @@ class PathCache(object):
         """
 
         # get the ids that are missing from shotgun
-        # need to use this weird special filter syntax
-        if folder_ids:
+        batches = []
+
+        # We check specifically for a None here because it is a valid
+        # use case to pass in an empty list of folder ids and get nothing
+        # back in return as a result. Only in the case where we were
+        # specifically given folder_ids=None would we fall back on
+        # collecting all FilesystemLocation entities for the project.
+        if folder_ids is not None:
             entity_filter = [["id", "in"]]
-            entity_filter[0].extend(folder_ids)
+            batch_count = 0
+
+            # Note: we batch the queries here. We want to avoid paging
+            # for performance purposes when dealing with huge numbers
+            # of entities (thousands+).
+            for folder_id in folder_ids:
+                if batch_count >= self.SHOTGUN_ENTITY_QUERY_BATCH_SIZE:
+                    batches.append(entity_filter)
+                    entity_filter = [["id", "in"]]
+                    batch_count = 0
+
+                entity_filter[0].append(folder_id)
+                batch_count += 1
+
+            # Take care of the last batch, which is likely below our
+            # batch size and needs to be tacked onto the end.
+            if batch_count > 0:
+                batches.append(entity_filter)
+
             log.debug(
                 "Getting FilesystemLocation entries for "
-                "the following ids: %s" % folder_ids
+                "the following ids: %s", folder_ids
             )
         else:
-            entity_filter = []
-            log.debug("Getting all FilesystemLocation entries.")
+            project_entity = self._get_project_link()
+            entity_filter = [["project", "is", project_entity]]
+            batches.append(entity_filter)
+            log.debug("Getting all the project's FilesystemLocation entries. "
+                      "Project id: %s" % project_entity['id'])
 
-        sg_data = self._tk.shotgun.find(
-            SHOTGUN_ENTITY,
-            entity_filter,
-            [
-                "id",
-                SG_METADATA_FIELD,
-                SG_IS_PRIMARY_FIELD,
-                SG_ENTITY_ID_FIELD,
-                SG_PATH_FIELD,
-                SG_ENTITY_TYPE_FIELD,
-                SG_ENTITY_NAME_FIELD
-            ],
-            [{"field_name": "id", "direction": "asc"}]
-        )
+        sg_data = []
 
-        log.debug("...Retrieved %s records." % len(sg_data))
+        for batched_filter in batches:
+            sg_data.extend(
+                self._tk.shotgun.find(
+                    SHOTGUN_ENTITY,
+                    batched_filter,
+                    [
+                        "id",
+                        SG_METADATA_FIELD,
+                        SG_IS_PRIMARY_FIELD,
+                        SG_ENTITY_ID_FIELD,
+                        SG_PATH_FIELD,
+                        SG_ENTITY_TYPE_FIELD,
+                        SG_ENTITY_NAME_FIELD
+                    ],
+                    [{"field_name": "id", "direction": "asc"}]
+                )
+            )
+
+        log.debug("...Retrieved %s records.", len(sg_data))
 
         return sg_data
 
@@ -778,8 +831,6 @@ class PathCache(object):
 
         """
         log.debug("Fetching already registered folders from Shotgun...")
-
-        sg_data = []
 
         sg_data = self._get_filesystem_location_entities(folder_ids=None)
 
@@ -834,10 +885,6 @@ class PathCache(object):
             - linked_entity_type
             - code
         """
-
-        # commenting out as it is generating a flood of debug logs
-        # log.debug("Processing Toolkit_Folders_Create event for folder entity %s", pprint.pformat(fsl_entity))
-
         # get entity data from our entry
         entity = {"id": fsl_entity[SG_ENTITY_ID_FIELD],
                   "name": fsl_entity[SG_ENTITY_NAME_FIELD],
@@ -906,7 +953,7 @@ class PathCache(object):
         # an exception which will stop execution entirely.
         try:
             root_name, relative_path = self._separate_root(local_os_path)
-        except TankError, e:
+        except TankError as e:
             log.debug("Could not resolve storages - skipping: %s" % e)
             return None
 
@@ -955,16 +1002,31 @@ class PathCache(object):
         :param list folder_ids: List of folder ids to remove from the path cache.
         """
 
-        log.debug("Processing Toolkit_Folders_Delete event for folder ids %s", folder_ids)
+        log.debug("Processing %s Toolkit_Folders_Delete events", len(folder_ids))
+
+        def _chunks(large_list, chunk_size):
+            """
+            Helper operator to split a large list into smaller chunks
+            """
+            for i in range(0, len(large_list), chunk_size):
+                yield large_list[i:i + chunk_size]
 
         # For every folder id, find the associated path cache id.
-        path_cache_ids = cursor.execute(
-            "SELECT path_cache_id FROM shotgun_status WHERE shotgun_id IN (%s)" % self._gen_param_string(folder_ids),
-            folder_ids
-        )
+        all_path_cache_ids = []
 
-        # Flatten the list of one element tuples into a list of ids.
-        path_cache_ids = [path_cache_id[0] for path_cache_id in path_cache_ids]
+        # split sql into batches - sqlite has a max number of terms for its in statement
+        for subset_folder_ids in _chunks(folder_ids, self.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT):
+            path_cache_ids = cursor.execute(
+                "SELECT path_cache_id FROM shotgun_status "
+                "WHERE shotgun_id IN (%s)" % self._gen_param_string(subset_folder_ids),
+                subset_folder_ids
+            )
+
+            # Flatten the list of one element tuples into a list of ids.
+            path_cache_ids = [path_cache_id[0] for path_cache_id in path_cache_ids]
+
+            # add to our full list
+            all_path_cache_ids.extend(path_cache_ids)
 
         # Consider the following sequence
         # - Add 1
@@ -979,19 +1041,22 @@ class PathCache(object):
         # happens, it means that it also can't be removed from the path cache. As such, shotgun_status
         # will not report any mapping between the path cache and the Shotgun filesystem location
         # entity.
-        if not path_cache_ids:
+        if not all_path_cache_ids:
             return
 
         # Delete all the path cache entries associated with the file system locations.
-        cursor.execute(
-            "DELETE FROM path_cache where rowid IN (%s)" % self._gen_param_string(path_cache_ids), path_cache_ids
-        )
+        for subset_path_cache_ids in _chunks(all_path_cache_ids, self.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT):
+            cursor.execute(
+                "DELETE FROM path_cache where rowid IN (%s)" % self._gen_param_string(subset_path_cache_ids),
+                subset_path_cache_ids
+            )
 
         # Now delete all the mappings between filesystem location entities and path cache entries.
-        cursor.execute(
-            "DELETE FROM shotgun_status WHERE shotgun_id IN (%s)" % self._gen_param_string(folder_ids),
-            folder_ids
-        )
+        for subset_folder_ids in _chunks(folder_ids, self.SQLITE_MAX_ITEMS_FOR_IN_STATEMENT):
+            cursor.execute(
+                "DELETE FROM shotgun_status WHERE shotgun_id IN (%s)" % self._gen_param_string(subset_folder_ids),
+                subset_folder_ids
+            )
 
     ############################################################################################
     # pre-insertion validation
@@ -1217,9 +1282,7 @@ class PathCache(object):
             # secondary entity
             # in this case, it is okay with more than one record for a path
             # but we don't want to insert the exact same record over and over again
-            paths = self.get_paths(entity["type"], entity["id"], primary_only=False, cursor=cursor)
-
-            if path in paths:
+            if self._is_path_in_db(path, entity["type"], entity["id"], cursor):
                 # we already have the association present in the db.
                 return None
 
@@ -1253,8 +1316,48 @@ class PathCache(object):
 
         return db_entity_id
 
+    def _is_path_in_db(self, path, entity_type, entity_id, cursor):
+        """
+        Given an entity, checks if a path is in the database or not
 
-    
+        :param path: Path to try
+        :param entity_type: A Shotgun entity type
+        :param entity_id: A Shotgun entity id
+        :param cursor: Database cursor to use.
+        :returns: True if path exists, false if not
+        """
+        try:
+            root_name, relative_path = self._separate_root(path)
+        except TankError:
+            # fail gracefully if path is not a valid path
+            # eg. doesn't belong to the project
+            return False
+
+        db_path = self._path_to_dbpath(relative_path)
+
+        # now see if we have any records in the db which matches the path
+        res = cursor.execute(
+            """
+            SELECT count(entity_id)
+            FROM   path_cache
+            WHERE  entity_type = ?
+            AND    entity_id = ?
+            AND    root = ?
+            AND    path = ?
+            GROUP BY entity_id
+            """,
+            (entity_type, entity_id, root_name, db_path)
+        )
+
+        res = list(res)
+
+        # in case there are > 0 records: res = [(4,)]
+        # in case there are no records: res = []
+        if len(res) == 0:
+            return False
+        else:
+            return True
+
     ############################################################################################
     # database accessor methods
 

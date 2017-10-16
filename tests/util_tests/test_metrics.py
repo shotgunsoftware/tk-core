@@ -67,7 +67,7 @@ class TestEventMetric(TankTestBase):
             EventMetric(None, None),
             EventMetric({}, {}),
             EventMetric([], []),
-        except Exception, e:
+        except Exception as e:
             self.fail(
                 "Creating an instance of 'EventMetric' failed unexpectedly: %s", (e)
             )
@@ -91,7 +91,7 @@ class TestEventMetric(TankTestBase):
                 }
             )
 
-        except Exception, e:
+        except Exception as e:
             self.fail(
                 "Creating an instance of 'EventMetric' failed unexpectedly: %s" % (e)
             )
@@ -829,7 +829,7 @@ class TestMetricsFunctions(TankTestBase):
             EventMetric.log(None, None),
             EventMetric.log({}, {}),
             EventMetric.log([], []),
-        except Exception, e:
+        except Exception as e:
             self.fail("log_metric() failed unexpectedly on bad metric: %s", (e))
 
     def test_log_event_metric_with_good_metrics(self):
@@ -845,8 +845,7 @@ class TestMetricsFunctions(TankTestBase):
                      "DictProp": {"Key1": "value1", "Key2": "Value2"}
                  }
             )
-
-        except Exception, e:
+        except Exception as e:
             self.fail("EventMetric.log() failed unexpectedly on good metric: %s", (e))
 
 
@@ -1019,5 +1018,3 @@ class TestBundleMetrics(TankTestBase):
                         hook_called = True
                         break
             self.assertTrue(hook_called)
-
-

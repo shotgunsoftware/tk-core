@@ -141,10 +141,12 @@ sgtk.util.filesystem
 .. autofunction:: ensure_folder_exists(path, permissions=0775, create_placeholder_file=False)
 .. autofunction:: copy_file(src, dst, permissions=0666)
 .. autofunction:: safe_delete_file
+.. autofunction:: safe_delete_folder
 .. autofunction:: copy_folder(src, dst, folder_permissions=0775, skip_list=None)
 .. autofunction:: move_folder(src, dst, folder_permissions=0775)
 .. autofunction:: backup_folder
 .. autofunction:: create_valid_filename
+.. autofunction:: get_unused_path
 
 ShotgunPath
 -----------------------------------

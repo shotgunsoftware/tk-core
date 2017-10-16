@@ -638,7 +638,7 @@ def _check_item_update_status(environment_obj, engine_name=None, app_name=None, 
                 pipelineconfig_utils.get_currently_running_api_version(),
                 parent_engine_desc
             )
-        except CheckVersionConstraintsError, e:
+        except CheckVersionConstraintsError as e:
             reasons = e.reasons
             reasons.insert(0, "The latest version (%s) of the item requires an upgrade to one "
                            "or more of your installed components." % latest_desc.version)

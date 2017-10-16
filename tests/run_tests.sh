@@ -10,4 +10,4 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 find . -name "*.pyc" -delete
-python  `dirname $0`/run_tests.py $*
+python -3 `dirname $0`/run_tests.py $*

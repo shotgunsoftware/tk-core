@@ -78,3 +78,6 @@ LOWEST_SHOTGUN_VERSION = "5.0.0"
 
 # name of the app store specific proxy setting
 APP_STORE_HTTP_PROXY = "app_store_http_proxy"
+
+# environment variable used to indicate the primary bundle cache path to be used.
+BUNDLE_CACHE_PATH_ENV_VAR = "SHOTGUN_BUNDLE_CACHE_PATH"

@@ -80,7 +80,7 @@ class Template(object):
 
         variations = self._definition_variations(definition)
         # We want them most inclusive(longest) version first
-        variations.sort(cmp=lambda x, y: cmp(len(x), len(y)), reverse=True)
+        variations.sort(key=lambda x: len(x), reverse=True)
 
         # get format keys and types
         self._keys = []
