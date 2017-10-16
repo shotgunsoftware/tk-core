@@ -36,8 +36,7 @@ from .errors import (
     TankMissingEngineError
 )
 
-from ..util import log_user_activity_metric as util_log_user_activity_metric
-from ..util import log_user_attribute_metric as util_log_user_attribute_metric
+from ..util.metrics import EventMetric
 from ..util.metrics import MetricsDispatcher
 from ..log import LogManager
 
@@ -53,6 +52,7 @@ from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
+
 
 class Engine(TankBundle):
     """
@@ -259,19 +259,14 @@ class Engine(TankBundle):
         # emit an engine started event
         tk.execute_core_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
 
-        self.log_debug("Init complete: %s" % self)
-        self.log_metric("Init")
-
-        # log the core and engine versions being used by the current user
-        util_log_user_attribute_metric("tk-core version", tk.version)
-        util_log_user_attribute_metric("%s version" % (self.name,), self.version)
-
         # if the engine supports logging metrics, begin dispatching logged metrics
         if self.metrics_dispatch_allowed:
             self._metrics_dispatcher = MetricsDispatcher(self)
             self.log_debug("Starting metrics dispatcher...")
             self._metrics_dispatcher.start()
             self.log_debug("Metrics dispatcher started.")
+
+        self.log_debug("Init complete: %s" % self)
 
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
@@ -467,45 +462,37 @@ class Engine(TankBundle):
             self.__global_progress_widget.close()
             self.__global_progress_widget = None
 
-    def log_metric(self, action, log_once=False):
-        """Log an engine metric.
-
-        :param action: Action string to log, e.g. 'Init'
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-
-        Logs a user activity metric as performed within an engine. This is
-        a convenience method that auto-populates the module portion of
-        ``tank.util.log_user_activity_metric()``
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
-
-        """
-
-        # the action contains the engine and app name, e.g.
-        # module: tk-maya
-        # action: tk-maya - Init
-        full_action = "%s %s" % (self.name, action)
-        util_log_user_activity_metric(self.name, full_action, log_once=log_once)
-
     def log_user_attribute_metric(self, attr_name, attr_value, log_once=False):
-        """Convenience class. Logs a user attribute metric.
+        """
+        This method is deprecated and shouldn't be used anymore.
+        """
+        pass
 
-        :param attr_name: The name of the attribute to set for the user.
-        :param attr_value: The value of the attribute to set for the user.
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
+    def _get_metrics_properties(self):
+        """
+        Return a dictionary with properties to use when emitting a metric event for
+        this engine.
 
-        This is a convenience wrapper around
-        `tank.util.log_user_activity_metric()` that prevents engine subclasses
-        from having to import from `tank.util`.
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
+        The dictionary contains informations about this engine: its name and version,
+        and informations about the application hosting the engine: its name and
+        version. 
+        
+        E.g.::
+        {
+            'Host App': 'Maya',
+            'Host App Version': '2017',
+            'Engine': 'tk-maya',
+            'Engine Version': 'v0.4.1',
+        }
 
         """
-        util_log_user_attribute_metric(attr_name, attr_value, log_once=log_once)
+        # Always create a new dictionary so the caller can safely modify it.
+        return {
+            EventMetric.KEY_ENGINE: self.name,
+            EventMetric.KEY_ENGINE_VERSION: self.version,
+            EventMetric.KEY_HOST_APP: self.host_info.get("name", "unknown"),
+            EventMetric.KEY_HOST_APP_VERSION: self.host_info.get("version", "unknown"),
+        }
 
     def get_child_logger(self, name):
         """
@@ -660,6 +647,25 @@ class Engine(TankBundle):
         :returns:   A list of TankQDialog objects.
         """
         return self.__created_qt_dialogs
+
+    @property
+    def host_info(self):
+        """
+        Returns information about the application hosting this engine.
+        
+        This should be re-implemented in deriving classes to handle the logic 
+        specific to the application the engine is designed for.
+        
+        A dictionary with at least a "name" and a "version" key should be returned
+        by derived implementations, with respectively the host application name 
+        and its release string as values, e.g. { "name": "Maya", "version": "2017.3"}.
+        
+        :returns: A {"name": "unknown", "version" : "unknown"} dictionary.
+        """
+        return {
+            "name": "unknown",
+            "version": "unknown",
+        }
 
     ##########################################################################################
     # init and destroy
@@ -1048,8 +1054,12 @@ class Engine(TankBundle):
         def callback_wrapper(*args, **kwargs):
 
             if properties.get("app"):
-                # track which app command is being launched
-                properties["app"].log_metric("'%s'" % name, log_version=True)
+                # Track which app command is being launched
+                command_name = properties.get("short_name") or name
+                properties["app"].log_metric(
+                    "Launched Command",
+                    command_name=command_name,
+                )
 
             # run the actual payload callback
             return callback(*args, **kwargs)

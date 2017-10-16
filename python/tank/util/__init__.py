@@ -23,9 +23,11 @@ from .environment import prepend_path_to_env_var
 from .login import get_shotgun_user
 from .login import get_current_user
 
+# DO keep the following two log_user_*_metric to preserve retro
+# compatibility and prevent exception in legacy engine code.
 from .metrics import log_user_activity_metric
 from .metrics import log_user_attribute_metric
-
+from .metrics import EventMetric
 from .shotgun_path import ShotgunPath
 
 from . import filesystem
