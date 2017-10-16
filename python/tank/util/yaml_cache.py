@@ -107,9 +107,6 @@ class CacheItem(object):
             raise TypeError("Given item must be of type CacheItem.")
         return (other.stat.st_mtime == self.stat.st_mtime and not self.size_differs(other))
 
-    # This item is not hashable. Required to silence -3 flag of the python interpreter.
-    __hash__ = None
-
     def __getitem__(self, key):
         # Backwards compatibility just in case something outside
         # of this module is expecting the old dict structure.
