@@ -58,6 +58,8 @@ class Sgtk(object):
         except TankError as e:
             raise TankError("Could not read templates configuration: %s" % e)
 
+        print "this is a line of non-py3 compliant code!"
+
         # execute a tank_init hook for developers to use.
         self.execute_core_hook(constants.TANK_INIT_HOOK_NAME)
 
