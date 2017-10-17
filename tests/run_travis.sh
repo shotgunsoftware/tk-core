@@ -9,6 +9,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+#
+# This file is run by the travis builds. It will ensure all sources can be compiled and all tests
+# pass. If the SHOTGUN_COMPILE_ONLY environment variable is set, tests will not be run.
+#
+
 set -e
 
 python -m compileall python/tank
