@@ -34,6 +34,12 @@ To run tests without using run_tests script:
 
     `$ unit2 discover core/tests`
 
+
+Compile sources with Python 3
+-----------------------------
+To make sure the tank source code can be compiled with Python 3, run the compile_python3.* scripts. Note that the unit tests cannot
+be executed right now with Python 3.
+
 Test suite layout
 -----------------
 The tests directory follows the package layout of the tank code, with tests for top level tank modules being at the top
