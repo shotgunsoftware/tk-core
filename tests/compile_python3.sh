@@ -1,3 +1,14 @@
 #!/usr/bin/env bash
+# Copyright (c) 2017 Shotgun Software Inc.
+# 
+# CONFIDENTIAL AND PROPRIETARY
+# 
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your 
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# not expressly granted therein are reserved by Shotgun Software Inc.
 
-python -m compileall ../python/tank ../python/sgtk *.py *_tests python/tank_test
+python3 -m compileall ../python/tank
+python3 -m compileall *.py
+python3 -m compileall */*.py

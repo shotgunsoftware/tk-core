@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2017 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -10,4 +10,4 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 find . -name "*.pyc" -delete
-python -3 `dirname $0`/run_tests.py $*
+python `dirname $0`/run_tests.py $*
