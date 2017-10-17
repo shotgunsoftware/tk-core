@@ -73,5 +73,5 @@ Setting up a test
 * Create a test module in the appropriate section of the tests area. If the module you wish to test is `tank.platform.foo`, the test module should be `tests.platform.test_foo`.
 * In this module, import the base class and module setup method: `from tank_test.tank_test_base import setUpModule, TankTestBase`
 * Create a test class inheriting from the `TankTestBase` class.
-* If a setUp other than the base one is needed, be sure to call `super(TestClassName, self).setUp() in order to allow the base class to setup the fixtures.
+* If a setUp other than the base one is needed, be sure to call `super(TestClassName, self).setUp()` in order to allow the base class to setup the fixtures.
 
