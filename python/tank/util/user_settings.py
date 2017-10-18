@@ -20,6 +20,7 @@ from .local_file_storage import LocalFileStorageManager
 from .errors import EnvironmentVariableFileLookupError, TankError
 from .. import LogManager
 from .singleton import Singleton
+from .system_settings import SystemSettings
 
 
 logger = LogManager.get_logger(__name__)
@@ -56,6 +57,14 @@ class UserSettings(Singleton):
 
         proxy = self._get_filtered_proxy(self.app_store_proxy)
         logger.debug("App Store proxy: %s", self._to_display_value(proxy))
+
+        # A small hack here, but we also want to log the system http
+        # proxy. We don't use the SystemSettings in this module, but
+        # it is a convenient and safe place to log the proxy given that
+        # we know it will only happen once, and we have access to the
+        # sanitization logic here.
+        system_proxy = self._get_filtered_proxy(SystemSettings().http_proxy)
+        logger.debug("System proxy: %s", self._to_display_value(system_proxy))
 
     @property
     def shotgun_proxy(self):
