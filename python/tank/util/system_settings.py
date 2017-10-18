@@ -15,11 +15,22 @@ System settings management.
 
 import urllib
 
+from .singleton import Singleton
+from .. import LogManager
 
-class SystemSettings(object):
+logger = LogManager.get_logger(__name__)
+
+
+class SystemSettings(Singleton):
     """
     Handles loading the system settings.
     """
+
+    def _init_singleton(self):
+        """
+        Singleton initialization.
+        """
+        logger.debug("OS http proxy: %s", self.http_proxy)
 
     @property
     def http_proxy(self):
