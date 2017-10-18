@@ -81,8 +81,13 @@ Several different descriptor types are supported by Toolkit:
 - A **manual** descriptor gives raw access to the bundle caching structure
 
 The descriptor API knows how to access and locally cache each of the types above.
+Descriptors that are downloaded (cached) to the local disk are called **downloadable** descriptors.
 You can control the location where the API caches items and supply additional lookup
 locations if you want to pre-bake your own collection of caches.
+
+Alternatively, you can set the ``SHOTGUN_BUNDLE_CACHE_PATH`` environment variable to
+a cache path on disk. This override could help facilitate workflows that require a
+centralized disk location to which the descriptors are cached.
 
 App store
 ============
