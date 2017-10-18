@@ -66,6 +66,10 @@ pre-cache an environment for your studio or distribute a set of app and engine
 versions as an installable package that require no further retrieval in order
 to function.
 
+Alternatively, you can set the ``SHOTGUN_BUNDLE_CACHE_PATH`` environment variable to
+a cache path on disk. This override helps facilitate workflows that require a
+centralized disk location to which the descriptors are cached.
+
 Descriptor types
 ----------------------------------------
 
@@ -83,6 +87,9 @@ Several different descriptor types are supported by Toolkit:
 The descriptor API knows how to access and locally cache each of the types above.
 You can control the location where the API caches items and supply additional lookup
 locations if you want to pre-bake your own collection of caches.
+Descriptors that are downloaded (cached) to the local disk are called **downloadable** descriptors.
+The **app_store**, **shotgun**, **git** and **git_branch** descriptors are downloadable descriptors,
+while the **path**, **dev** and **manual** descriptors are accessed directly from the specified path.
 
 App store
 ============
