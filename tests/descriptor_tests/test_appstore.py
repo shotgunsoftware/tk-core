@@ -14,12 +14,16 @@ Unit tests tank updates.
 
 from __future__ import with_statement
 
+import os
+import json
 
 from mock import patch
 
 from tank_test.tank_test_base import TankTestBase, setUpModule
 
 import sgtk
+import tank
+import urllib2
 from sgtk.descriptor import Descriptor
 from sgtk.descriptor.io_descriptor.base import IODescriptorBase
 from sgtk.descriptor.descriptor import create_descriptor
@@ -239,3 +243,117 @@ class TestAppStoreLabels(TankTestBase):
             desc2.get_uri(),
             "sgtk:descriptor:app_store?label=2018.3.45&name=tk-framework-main&version=v3.0.1"
         )
+
+
+class TestAppStoreConnectivity(TankTestBase):
+    """
+    Tests the app store io descriptor
+    """
+
+    def setUp(self):
+        super(TestAppStoreConnectivity, self).setUp()
+        self._urlopen_mock = None
+        self._mocked_method = None
+        self._urlopen_mock = patch("urllib2.urlopen", side_effect=TestAppStoreConnectivity._mocked_urlopen)
+        self._mocked_method = self._urlopen_mock.start()
+        self.setup_fixtures()
+
+    def tearDown(self):
+
+        # Unpatch the `urlopen` method
+        if self._mocked_method:
+            self._urlopen_mock.stop()
+            self._urlopen_mock = None
+            self._mocked_method = None
+
+        # important to call base class so it can clean up memory
+        super(TestAppStoreConnectivity, self).tearDown()
+
+    def _touch_info_yaml(self, path):
+        """
+        Helper method that creates an info.yml dummy
+        file in the given location
+        """
+        sgtk.util.filesystem.ensure_folder_exists(path)
+        fh = open(os.path.join(path, "info.yml"), "wt")
+        fh.write("# unit test placeholder file\n\n")
+        fh.close()
+
+    @classmethod
+    def _mocked_urlopen(*args, **kwargs):
+        """
+        Helper method checking that batch size are limited to N elements.
+        :param kwargs:
+        """
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json.JSONEncoder().encode(json_data)
+                self.status_code = status_code
+
+            def json(self):
+                return self.json_data
+
+            def read(self):
+                return str(self.json_data)
+
+        uri = args[1]
+
+        """
+        if uri == 'http://unsit_test_mock_sg/api3/sgtk_install_script':
+            return MockResponse({"script_name": "api2_cmd",
+                                 "script_key": "97973d21b7375d9823daf2d6f2ef089baca8f02c"}, 200)
+
+        if uri == 'http://units_test_mock_sg/api3/sgtk_install_script':
+            return MockResponse({"script_name": "qa",
+                                 "script_key": "66df56927f5ac74712f71ae892cc2f552c3b6b69fd416243c63ee621e287d9ab"}, 200)
+        """
+        if uri == 'http://unit_test_mock_sg/api3/sgtk_install_script':
+            return MockResponse({"script_name": "com_shotgunstudio_tk_amplitude_test",
+                                 "script_key": "3a218197b9ef9275cfa32cb43bc87f32de58f09f930ba2d7fcb8b7da51359095"}, 200)
+
+        return MockResponse(None, 404)
+
+    def _create_test_descriptor(self):
+        sg = self.tk.shotgun
+        root = os.path.join(self.project_root, "cache_root")
+
+        return sgtk.descriptor.create_descriptor(
+            sg,
+            sgtk.descriptor.Descriptor.APP,
+            {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"},
+            bundle_cache_root_override=root
+        )
+
+    def test_disabling_access_to_app_store(self):
+        """
+        Tests that we can prevent connection to the app store based on usage
+        of the `SHOTGUN_DISABLE_APPSTORE_ACCESS` environment variable.
+        """
+        env_var_name = "SHOTGUN_DISABLE_APPSTORE_ACCESS"
+
+        # Test without the environment variable being present
+        # First we delete it from environ
+        if env_var_name in os.environ:
+            del os.environ[env_var_name]
+
+        d = self._create_test_descriptor()
+        self.assertIsNotNone(d)
+        self.assertTrue(d.has_remote_access())
+
+        # Test present inactive
+        os.environ[env_var_name] = "0"
+        d = self._create_test_descriptor()
+        self.assertIsNotNone(d)
+        self.assertTrue(d.has_remote_access())
+
+        # Test present active
+        os.environ[env_var_name] = "1"
+        d = self._create_test_descriptor()
+        self.assertIsNotNone(d)
+        self.assertFalse(d.has_remote_access())
+
+
+
+
+
+

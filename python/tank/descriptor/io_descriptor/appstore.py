@@ -853,6 +853,10 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
         :return: True if a remote is accessible, false if not.
         """
+        # check whether we're asked to bypass app store connection
+        if os.environ.get(constants.DISABLE_APPSTORE_ACCESS_ENV_VAR, "0") == "1":
+            return False
+
         # check if we can connect to Shotgun
         can_connect = True
         try:
