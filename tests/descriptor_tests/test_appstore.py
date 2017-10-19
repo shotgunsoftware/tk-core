@@ -252,66 +252,11 @@ class TestAppStoreConnectivity(TankTestBase):
 
     def setUp(self):
         super(TestAppStoreConnectivity, self).setUp()
-        self._urlopen_mock = None
-        self._mocked_method = None
-        self._urlopen_mock = patch("urllib2.urlopen", side_effect=TestAppStoreConnectivity._mocked_urlopen)
-        self._mocked_method = self._urlopen_mock.start()
         self.setup_fixtures()
 
     def tearDown(self):
-
-        # Unpatch the `urlopen` method
-        if self._mocked_method:
-            self._urlopen_mock.stop()
-            self._urlopen_mock = None
-            self._mocked_method = None
-
         # important to call base class so it can clean up memory
         super(TestAppStoreConnectivity, self).tearDown()
-
-    def _touch_info_yaml(self, path):
-        """
-        Helper method that creates an info.yml dummy
-        file in the given location
-        """
-        sgtk.util.filesystem.ensure_folder_exists(path)
-        fh = open(os.path.join(path, "info.yml"), "wt")
-        fh.write("# unit test placeholder file\n\n")
-        fh.close()
-
-    @classmethod
-    def _mocked_urlopen(*args, **kwargs):
-        """
-        Helper method checking that batch size are limited to N elements.
-        :param kwargs:
-        """
-        class MockResponse:
-            def __init__(self, json_data, status_code):
-                self.json_data = json.JSONEncoder().encode(json_data)
-                self.status_code = status_code
-
-            def json(self):
-                return self.json_data
-
-            def read(self):
-                return str(self.json_data)
-
-        uri = args[1]
-
-        """
-        if uri == 'http://unsit_test_mock_sg/api3/sgtk_install_script':
-            return MockResponse({"script_name": "api2_cmd",
-                                 "script_key": "97973d21b7375d9823daf2d6f2ef089baca8f02c"}, 200)
-
-        if uri == 'http://units_test_mock_sg/api3/sgtk_install_script':
-            return MockResponse({"script_name": "qa",
-                                 "script_key": "66df56927f5ac74712f71ae892cc2f552c3b6b69fd416243c63ee621e287d9ab"}, 200)
-        """
-        if uri == 'http://unit_test_mock_sg/api3/sgtk_install_script':
-            return MockResponse({"script_name": "com_shotgunstudio_tk_amplitude_test",
-                                 "script_key": "3a218197b9ef9275cfa32cb43bc87f32de58f09f930ba2d7fcb8b7da51359095"}, 200)
-
-        return MockResponse(None, 404)
 
     def _create_test_descriptor(self):
         sg = self.tk.shotgun
@@ -324,35 +269,92 @@ class TestAppStoreConnectivity(TankTestBase):
             bundle_cache_root_override=root
         )
 
-    def test_disabling_access_to_app_store(self):
+    def _helper_test_disabling_access_to_app_store(self, mock, expect_call):
+
+        # Validate initial state
+        self.assertEqual(mock.call_count, 0)
+
+        # Create descriptor and check for remote access
+        # which creates an app store connection
+        d = self._create_test_descriptor()
+        self.assertIsNotNone(d)
+        d.has_remote_access()
+
+        if expect_call:
+            mock.assert_called()
+        else:
+            mock.assert_not_called()
+
+        mock.reset_mock()
+        self.assertEqual(mock.call_count, 0)
+
+    #@patch("tank_vendor.shotgun_api3.Shotgun._http_request")
+    @patch("urllib2.urlopen")
+    @patch("tank_vendor.shotgun_api3.Shotgun")
+    def test_disabling_access_to_app_store(self, urlopen_mock, shotgun_mock):
         """
         Tests that we can prevent connection to the app store based on usage
         of the `SHOTGUN_DISABLE_APPSTORE_ACCESS` environment variable.
         """
+        def urlopen_mock_impl(*args, **kwargs):
+            """
+            Necessary mock so we can pass beyond:
+            - appstore.IODescriptorAppStore.has_remote_access()`
+                - appstore.IODescriptorAppStore.__create_sg_app_store_connection()
+                    - appstore.IODescriptorAppStore.__get_app_store_key_from_shotgun()
+            """
+
+            class MockResponse:
+                """
+                Custom mocked reponse to allow successful execution of the
+                `appstore.IODescriptorAppStore.__get_app_store_key_from_shotgun()` method.
+                """
+                def __init__(self, json_data, status_code):
+                    self.json_data = json.JSONEncoder().encode(json_data)
+                    self.status_code = status_code
+
+                def read(self):
+                    return str(self.json_data)
+
+            uri = args[0]
+            if uri == 'http://unit_test_mock_sg/api3/sgtk_install_script':
+                return MockResponse({"script_name": "bogus_script_name",
+                                     "script_key": "bogus_script_key"}, 200)
+
+            return MockResponse(None, 404)
+
+
+        def shotgun_mock_impl(*args, **kwargs):
+            """
+            Mocking up shotgun_api3.Shotgun() constructor.
+            We're not really interrested in mocking what it does but really just verify
+            whether it gets called as an instance of the class is created in the process
+            of creating an app store connection in from the `has_remote_access` method.
+            """
+            pass
+
+        shotgun_mock.side_effect = shotgun_mock_impl
+        urlopen_mock.side_effect = urlopen_mock_impl
+
         env_var_name = "SHOTGUN_DISABLE_APPSTORE_ACCESS"
 
         # Test without the environment variable being present
         # First we delete it from environ
         if env_var_name in os.environ:
             del os.environ[env_var_name]
-
-        d = self._create_test_descriptor()
-        self.assertIsNotNone(d)
-        self.assertTrue(d.has_remote_access())
+        self._helper_test_disabling_access_to_app_store(shotgun_mock, True)
 
         # Test present inactive
         os.environ[env_var_name] = "0"
-        d = self._create_test_descriptor()
-        self.assertIsNotNone(d)
-        self.assertTrue(d.has_remote_access())
+        self._helper_test_disabling_access_to_app_store(shotgun_mock, True)
 
         # Test present active
         os.environ[env_var_name] = "1"
-        d = self._create_test_descriptor()
-        self.assertIsNotNone(d)
-        self.assertFalse(d.has_remote_access())
+        self._helper_test_disabling_access_to_app_store(shotgun_mock, False)
 
-
+        # Test present inactive (again)
+        os.environ[env_var_name] = "0"
+        self._helper_test_disabling_access_to_app_store(shotgun_mock, True)
 
 
 
