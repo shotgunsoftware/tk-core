@@ -1400,7 +1400,7 @@ class Engine(TankBundle):
     def get_debug_tracked_qt_widgets(self):
         """
         Returns a dictionary of debug info about created Qt dialogs and widgets.
-        
+
         The keys of the dictionary are the string representation of a widget and the 
         corresponding value is a reference to that widget.
         """
@@ -1412,7 +1412,29 @@ class Engine(TankBundle):
         """
         if widget:
             self.__qt_debug_info[widget.__repr__()] = weakref.ref(widget)
-        
+
+    ##########################################################################################
+    # scene management methods
+
+    def get_session_path(self, session=None):
+        """
+        Returns the path to the file associated with the currently open session
+        if it resides on disk. If unsaved, it returns None.
+
+        :param session: An object to the active document (for MDI applications).
+        :return: A path to the current file if it resides on disk, else None.
+        """
+        raise NotImplementedError
+
+    def get_session_dependencies(self, session=None):
+        """
+        Returns a list of file or folder paths constituting the session's dependencies.
+
+        :param session: An object to the active document (for MDI applications).
+        :return: A list of file or folder paths constituting the session's dependencies.
+        """
+        raise NotImplementedError
+
     ##########################################################################################
     # private and protected methods
 
@@ -1646,7 +1668,7 @@ class Engine(TankBundle):
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         :type widget_class: :class:`PySide.QtGui.QWidget`
-            
+
         Additional parameters specified will be passed through to the widget_class constructor.
         """
 
