@@ -288,7 +288,6 @@ class TestAppStoreConnectivity(TankTestBase):
         mock.reset_mock()
         self.assertEqual(mock.call_count, 0)
 
-    #@patch("tank_vendor.shotgun_api3.Shotgun._http_request")
     @patch("tank_vendor.shotgun_api3.Shotgun")
     @patch("urllib2.urlopen")
     def test_disabling_access_to_app_store(self, urlopen_mock, shotgun_mock):
@@ -299,7 +298,7 @@ class TestAppStoreConnectivity(TankTestBase):
         def urlopen_mock_impl(*args, **kwargs):
             """
             Necessary mock so we can pass beyond:
-            - appstore.IODescriptorAppStore.has_remote_access()`
+            - appstore.IODescriptorAppStore.has_remote_access()
                 - appstore.IODescriptorAppStore.__create_sg_app_store_connection()
                     - appstore.IODescriptorAppStore.__get_app_store_key_from_shotgun()
             """
@@ -336,6 +335,9 @@ class TestAppStoreConnectivity(TankTestBase):
         shotgun_mock.side_effect = shotgun_mock_impl
         urlopen_mock.side_effect = urlopen_mock_impl
 
+        # NOTE: We're not using the tank.descriptor.constants.DISABLE_APPSTORE_ACCESS_ENV_VAR
+        # constant so we can independently tests that the name of the used environment
+        # variable did not change.
         env_var_name = "SHOTGUN_DISABLE_APPSTORE_ACCESS"
 
         # Test without the environment variable being present
