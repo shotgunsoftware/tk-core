@@ -702,6 +702,12 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         # this assumes that there is a strict
         # 1:1 relationship between app store accounts
         # and shotgun sites.
+
+        if os.environ.get(constants.DISABLE_APPSTORE_ACCESS_ENV_VAR, "0") == "1":
+            message = "NICOLAS: %s is active, preventing connection to app store." % constants.DISABLE_APPSTORE_ACCESS_ENV_VAR
+            log.info(message)
+            raise TankAppStoreConnectionError(message)
+
         sg_url = self._sg_connection.base_url
 
         if sg_url not in self._app_store_connections:
