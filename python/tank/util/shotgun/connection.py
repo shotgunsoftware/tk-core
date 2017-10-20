@@ -201,9 +201,6 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
     for key in config_data:
         if isinstance(config_data.get(key, None), str):
             config_data[key] = os.path.expandvars(config_data[key])
-            # Id keys should be integers
-            if key.endswith('id'):
-                config_data[key] = int(config_data[key])
 
     # If the appstore proxy is set, but the value is falsy.
     if "app_store_http_proxy" in config_data and not config_data["app_store_http_proxy"]:
@@ -419,9 +416,9 @@ def create_sg_connection(user="default"):
         # Credentials were passed in, so let's run the legacy authentication
         # mechanism for script user.
         api_handle = shotgun_api3.Shotgun(
-            os.path.expandvars(config_data["host"]),
-            script_name=os.path.expandvars(config_data["api_script"]),
-            api_key=os.path.expandvars(config_data["api_key"]),
+            config_data["host"],
+            script_name=config_data["api_script"],
+            api_key=config_data["api_key"],
             http_proxy=config_data.get("http_proxy"),
             connect=False
         )
