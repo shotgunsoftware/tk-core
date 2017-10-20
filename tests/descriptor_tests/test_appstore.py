@@ -298,14 +298,19 @@ class TestAppStoreConnectivity(TankTestBase):
         def urlopen_mock_impl(*args, **kwargs):
             """
             Necessary mock so we can pass beyond:
-            - appstore.IODescriptorAppStore.has_remote_access()
-                - appstore.IODescriptorAppStore.__create_sg_app_store_connection()
-                    - appstore.IODescriptorAppStore.__get_app_store_key_from_shotgun()
+            - `
+                - `appstore.IODescriptorAppStore.__create_sg_app_store_connection()`
+                    - appstore.IODescriptorAppStore.__get_app_store_key_from_shotgun()`
+
+            Otherwise the code would always cause an exception that is caught by the
+            the `appstore.IODescriptorAppStore.has_remote_access()` except statement
+            which causes the method to return False all of the time which then
+            prevents execution of the code of interest.
             """
 
             class MockResponse:
                 """
-                Custom mocked reponse to allow successful execution of the
+                Custom mocked response to allow successful execution of the
                 `appstore.IODescriptorAppStore.__get_app_store_key_from_shotgun()` method.
                 """
                 def __init__(self, json_data, status_code):
@@ -326,9 +331,9 @@ class TestAppStoreConnectivity(TankTestBase):
         def shotgun_mock_impl(*args, **kwargs):
             """
             Mocking up shotgun_api3.Shotgun() constructor.
-            We're not really interrested in mocking what it does but really just verify
-            whether it gets called as an instance of the class is created in the process
-            of creating an app store connection in from the `has_remote_access` method.
+            We're not really interested in mocking what it does as much as
+            verifying whether or not an instance is created from calling the
+            `appstore.IODescriptorAppStore.has_remote_access()` method.
             """
             pass
 
