@@ -19,7 +19,6 @@ import sys
 import imp
 import uuid
 
-import sgtk
 from .. import hook
 from ..util.metrics import EventMetric
 from ..errors import TankError, TankNoDefaultValueError
