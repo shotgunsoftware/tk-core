@@ -19,7 +19,6 @@ import sys
 import imp
 import uuid
 
-import sgtk
 from .. import hook
 from ..util.metrics import EventMetric
 from ..errors import TankError, TankNoDefaultValueError
@@ -970,13 +969,9 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
     :param bundle: The bundle object. This is only used in the case
         the value argument is a string starting with "hook:", which
         then requires the use of a core hook to resolve the setting.
-        If no bundle is given and this situation arises, then the
-        current bundle, as reported by sgtk.platform.current_bundle,
-        will be used.
 
     :returns: Processed value for key setting
     """
-    bundle = bundle or sgtk.platform.current_bundle()
     settings_type = schema.get("type")
 
     if settings_type == "list":
@@ -1053,9 +1048,7 @@ def resolve_setting_value(tk, engine_name, schema, settings, key, default, bundl
     :param str key: setting name
     :param default: a default value to use for the setting
     :param bundle: The bundle object. This is only used in situations where
-        a setting's value must be resolved via calling a hook. If None, the
-        current bundle, as provided by sgtk.platform.current_bundle, will
-        be used.
+        a setting's value must be resolved via calling a hook.
 
     :returns: Resolved value of input setting key
     """
