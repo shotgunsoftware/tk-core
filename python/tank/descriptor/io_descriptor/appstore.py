@@ -726,7 +726,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 else:
                     raise
 
-            log.debug("Connecting to %s..." % constants.SGTK_APP_STORE)
+            log.info("NICOLAS: Connecting to %s..." % constants.SGTK_APP_STORE)
             # Connect to the app store and resolve the script user id we are connecting with.
             # Set the timeout explicitly so we ensure the connection won't hang in cases where
             # a response is not returned in a reasonable amount of time.
@@ -855,6 +855,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         """
         # check whether we're asked to bypass app store connection
         if os.environ.get(constants.DISABLE_APPSTORE_ACCESS_ENV_VAR, "0") == "1":
+            log.info("NICOLAS: %s is set active, preventing connection to app store." % constants.DISABLE_APPSTORE_ACCESS_ENV_VAR)
             return False
 
         # check if we can connect to Shotgun
