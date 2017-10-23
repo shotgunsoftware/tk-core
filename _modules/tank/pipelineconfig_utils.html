@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.pipelineconfig_utils &mdash; tk-core v0.18.114 documentation</title>
+  <title>tank.pipelineconfig_utils &mdash; tk-core v0.18.116 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.114 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.116 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.114.<br>
+    <b>tk-core</b> v0.18.116.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -248,7 +248,7 @@
         <span class="n">data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cfg_yml</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;File contains no data!&quot;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Looks like a config file is corrupt. Please contact &quot;</span>
                         <span class="s2">&quot;support! File: &#39;</span><span class="si">%s</span><span class="s2">&#39; Error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfg_yml</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">data</span>
@@ -288,7 +288,7 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># if file is empty, initialize with empty dict...</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">roots_yml</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Looks like the roots file is corrupt. Please contact &quot;</span>
                         <span class="s2">&quot;support! File: &#39;</span><span class="si">%s</span><span class="s2">&#39; Error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">roots_yml</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
 
@@ -513,7 +513,7 @@
     <span class="c1"># load the config file</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">location_data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">location_file</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot load core config file &#39;</span><span class="si">%s</span><span class="s2">&#39;. Error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_file</span><span class="p">,</span> <span class="n">error</span><span class="p">))</span>
 
     <span class="c1"># do some cleanup on this file - sometimes there are entries that say &quot;undefined&quot;</span>
@@ -622,7 +622,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.114',
+            VERSION:'v0.18.116',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

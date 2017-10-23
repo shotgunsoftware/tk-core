@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.114 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.116 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.114 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.116 documentation" href="index.html"/>
         <link rel="next" title="Descriptor API" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -147,7 +147,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.114.<br>
+    <b>tk-core</b> v0.18.116.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1000,6 +1000,27 @@ be skipped over.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="sgtk.util.filesystem.safe_delete_folder">
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">safe_delete_folder</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#safe_delete_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.safe_delete_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes a folder and all of its contents recursively, even if it has read-only
+items.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Problems deleting any items will be reported as warnings in the log 
+output but otherwise ignored and skipped; meaning the function will continue
+deleting as much as it can.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; File system path to location to the folder to be deleted</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="sgtk.util.filesystem.copy_folder">
 <code class="descclassname">sgtk.util.filesystem.</code><code class="descname">copy_folder</code><span class="sig-paren">(</span><em>src</em>, <em>dst</em>, <em>folder_permissions=0775</em>, <em>skip_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#copy_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.copy_folder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alternative implementation to <code class="docutils literal"><span class="pre">shutil.copytree</span></code></p>
@@ -1092,6 +1113,32 @@ Replaces spaces and other characters with underscores</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; String value to sanitize</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">sanitized string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.filesystem.get_unused_path">
+<code class="descclassname">sgtk.util.filesystem.</code><code class="descname">get_unused_path</code><span class="sig-paren">(</span><em>base_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#get_unused_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.get_unused_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an unused file path from the given base path by appending if needed
+a number at the end of the basename of the path, right before the first &#8221;.&#8221;,
+if any.</p>
+<p>For example, <code class="docutils literal"><span class="pre">/tmp/foo_1.bar.blah</span></code> would be returned for <code class="docutils literal"><span class="pre">/tmp/foo.bar.blah</span></code>
+if it already exists.</p>
+<p>If the given path does not exist, the original path is returned.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The returned path is not _reserved_, so it is possible that other processes
+could create the returned path before it is used by the caller.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>base_path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Target path.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A string.</td>
 </tr>
 </tbody>
 </table>
@@ -2143,7 +2190,7 @@ example unsupported url schemes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.114',
+            VERSION:'v0.18.116',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

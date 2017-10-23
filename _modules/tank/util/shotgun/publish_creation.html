@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.18.114 documentation</title>
+  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.18.116 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.114 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.116 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.114.<br>
+    <b>tk-core</b> v0.18.116.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -483,7 +483,7 @@
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Publish: Complete&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">entity</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="c1"># Log the exception so the original traceback is available</span>
         <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
         <span class="c1"># Raise our own exception with the original message and the created entity,</span>
@@ -981,7 +981,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.114',
+            VERSION:'v0.18.116',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

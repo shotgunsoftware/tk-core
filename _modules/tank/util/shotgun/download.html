@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.download &mdash; tk-core v0.18.114 documentation</title>
+  <title>tank.util.shotgun.download &mdash; tk-core v0.18.116 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.114 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.116 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.114.<br>
+    <b>tk-core</b> v0.18.116.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -196,7 +196,6 @@
 <span class="kn">from</span> <span class="nn">...log</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span> <span class="nn">..zip</span> <span class="kn">import</span> <span class="n">unzip_file</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">filesystem</span>
-<span class="kn">from</span> <span class="nn">..metrics</span> <span class="kn">import</span> <span class="n">log_user_attribute_metric</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -275,7 +274,7 @@
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Could not download contents of url &#39;</span><span class="si">%s</span><span class="s2">&#39;. Error reported: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">location</span></div>
@@ -347,14 +346,12 @@
             <span class="n">broadband_speed_bps</span> <span class="o">=</span> <span class="n">file_size</span> <span class="o">*</span> <span class="mf">8.0</span> <span class="o">/</span> <span class="n">time_to_download</span>
             <span class="n">broadband_speed_mibps</span> <span class="o">=</span> <span class="n">broadband_speed_bps</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Download speed: </span><span class="si">%4f</span><span class="s2"> Mbit/s&quot;</span> <span class="o">%</span> <span class="n">broadband_speed_mibps</span><span class="p">)</span>
-            <span class="n">log_user_attribute_metric</span><span class="p">(</span><span class="s2">&quot;Tk attachment download speed&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%4f</span><span class="s2"> Mbit/s&quot;</span> <span class="o">%</span> <span class="n">broadband_speed_mibps</span><span class="p">)</span>
-
 
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Unpacking </span><span class="si">%s</span><span class="s2"> bytes to </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">file_size</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
             <span class="n">filesystem</span><span class="o">.</span><span class="n">ensure_folder_exists</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
             <span class="n">unzip_file</span><span class="p">(</span><span class="n">zip_tmp</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
 
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;Attempt </span><span class="si">%s</span><span class="s2">: Attachment download of id </span><span class="si">%s</span><span class="s2"> from </span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attempt</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">sg</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
             <span class="p">)</span>
@@ -408,7 +405,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.114',
+            VERSION:'v0.18.116',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

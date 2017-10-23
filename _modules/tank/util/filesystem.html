@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.filesystem &mdash; tk-core v0.18.114 documentation</title>
+  <title>tank.util.filesystem &mdash; tk-core v0.18.116 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.114 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.116 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.114.<br>
+    <b>tk-core</b> v0.18.116.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -257,7 +257,7 @@
 
 
 <span class="nd">@with_cleared_umask</span>
-<div class="viewcode-block" id="touch_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.touch_file">[docs]</a><span class="k">def</span> <span class="nf">touch_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mo">0666</span><span class="p">):</span>
+<div class="viewcode-block" id="touch_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.touch_file">[docs]</a><span class="k">def</span> <span class="nf">touch_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mi">0</span><span class="n">o666</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Touch a file and optionally set its permissions.</span>
 
@@ -272,7 +272,7 @@
             <span class="n">fh</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
             <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">OSError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c1"># Race conditions are perfectly possible on some network storage</span>
             <span class="c1"># setups so make sure that we ignore any file already exists errors,</span>
             <span class="c1"># as they are not really errors!</span>
@@ -281,7 +281,7 @@
 
 
 <span class="nd">@with_cleared_umask</span>
-<div class="viewcode-block" id="ensure_folder_exists"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.ensure_folder_exists">[docs]</a><span class="k">def</span> <span class="nf">ensure_folder_exists</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mo">0775</span><span class="p">,</span> <span class="n">create_placeholder_file</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="ensure_folder_exists"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.ensure_folder_exists">[docs]</a><span class="k">def</span> <span class="nf">ensure_folder_exists</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mi">0</span><span class="n">o775</span><span class="p">,</span> <span class="n">create_placeholder_file</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper method - creates a folder and parent folders if such do not already exist.</span>
 
@@ -306,7 +306,7 @@
                     <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;folder to be tracked and managed properly.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
                     <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-        <span class="k">except</span> <span class="ne">OSError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c1"># Race conditions are perfectly possible on some network storage setups</span>
             <span class="c1"># so make sure that we ignore any file already exists errors, as they</span>
             <span class="c1"># are not really errors!</span>
@@ -316,7 +316,7 @@
 
 
 <span class="nd">@with_cleared_umask</span>
-<div class="viewcode-block" id="copy_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_file">[docs]</a><span class="k">def</span> <span class="nf">copy_file</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mo">0666</span><span class="p">):</span>
+<div class="viewcode-block" id="copy_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_file">[docs]</a><span class="k">def</span> <span class="nf">copy_file</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mi">0</span><span class="n">o666</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Copy file and sets its permissions.</span>
 
@@ -349,12 +349,12 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">attr</span> <span class="o">&amp;</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IWRITE</span><span class="p">:</span>
                     <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IWRITE</span><span class="p">)</span>
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;File &#39;</span><span class="si">%s</span><span class="s2">&#39; could not be deleted, skipping: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span></div>
 
 
 <span class="nd">@with_cleared_umask</span>
-<div class="viewcode-block" id="copy_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_folder">[docs]</a><span class="k">def</span> <span class="nf">copy_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="o">=</span><span class="mo">0775</span><span class="p">,</span> <span class="n">skip_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="copy_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_folder">[docs]</a><span class="k">def</span> <span class="nf">copy_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="o">=</span><span class="mi">0</span><span class="n">o775</span><span class="p">,</span> <span class="n">skip_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Alternative implementation to ``shutil.copytree``</span>
 
@@ -417,18 +417,18 @@
                 <span class="k">if</span> <span class="n">dstname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.sh&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">dstname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.bat&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">dstname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.exe&quot;</span><span class="p">):</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="c1"># make it readable and executable for everybody</span>
-                        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">dstname</span><span class="p">,</span> <span class="mo">0775</span><span class="p">)</span>
-                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">dstname</span><span class="p">,</span> <span class="mi">0</span><span class="n">o775</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                         <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Can&#39;t set executable permissions on </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dstname</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
 
-        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">error</span><span class="p">),</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">error</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t copy </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">srcname</span><span class="p">,</span> <span class="n">dstname</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">files</span></div>
 
 
 <span class="nd">@with_cleared_umask</span>
-<div class="viewcode-block" id="move_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.move_folder">[docs]</a><span class="k">def</span> <span class="nf">move_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="o">=</span><span class="mo">0775</span><span class="p">):</span>
+<div class="viewcode-block" id="move_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.move_folder">[docs]</a><span class="k">def</span> <span class="nf">move_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="o">=</span><span class="mi">0</span><span class="n">o775</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Moves a directory.</span>
 
@@ -459,7 +459,7 @@
                         <span class="c1"># file is readonly! - turn off this attribute</span>
                         <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IWRITE</span><span class="p">)</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Could not delete file </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span></div>
 
 
@@ -527,7 +527,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IMODE</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="n">stat</span><span class="o">.</span><span class="n">ST_MODE</span><span class="p">])</span>
 
-<span class="k">def</span> <span class="nf">safe_delete_folder</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<div class="viewcode-block" id="safe_delete_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.safe_delete_folder">[docs]</a><span class="k">def</span> <span class="nf">safe_delete_folder</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deletes a folder and all of its contents recursively, even if it has read-only</span>
 <span class="sd">    items. </span>
@@ -557,11 +557,11 @@
                     <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IWRITE</span> <span class="o">|</span> <span class="n">attr</span><span class="p">)</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">func</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not delete </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">. Skipping&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not delete </span><span class="si">%s</span><span class="s2">: Skipping&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not delete </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">. Skipping&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not delete </span><span class="si">%s</span><span class="s2">. Skipping.&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
@@ -572,19 +572,19 @@
             <span class="c1"># remove the flag.</span>
             <span class="c1"># Inspired by http://stackoverflow.com/a/4829285/1074536</span>
             <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">onerror</span><span class="o">=</span><span class="n">_on_rm_error</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not delete </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not delete: </span><span class="si">%s</span><span class="s2">. Folder does not exist&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not delete: </span><span class="si">%s</span><span class="s2">. Folder does not exist&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">get_unused_path</span><span class="p">(</span><span class="n">base_path</span><span class="p">):</span>
+<div class="viewcode-block" id="get_unused_path"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.get_unused_path">[docs]</a><span class="k">def</span> <span class="nf">get_unused_path</span><span class="p">(</span><span class="n">base_path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return an unused file path from the given base path by appending if needed</span>
 <span class="sd">    a number at the end of the basename of the path, right before the first &quot;.&quot;,</span>
 <span class="sd">    if any.</span>
 <span class="sd">    </span>
-<span class="sd">    For example, &quot;/tmp/foo_1.bar.blah&quot; would be returned for &quot;/tmp/foo.bar.blah&quot;</span>
+<span class="sd">    For example, ``/tmp/foo_1.bar.blah`` would be returned for ``/tmp/foo.bar.blah``</span>
 <span class="sd">    if it already exists.</span>
 
 <span class="sd">    If the given path does not exist, the original path is returned.</span>
@@ -615,7 +615,7 @@
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Checking if </span><span class="si">%s</span><span class="s2"> exists...&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
             <span class="k">break</span>
-    <span class="k">return</span> <span class="n">path</span>
+    <span class="k">return</span> <span class="n">path</span></div>
 </pre></div>
 
            </div>
@@ -648,7 +648,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.114',
+            VERSION:'v0.18.116',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

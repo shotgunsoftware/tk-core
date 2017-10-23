@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.114 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.116 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.114 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.116 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -137,7 +137,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.114.<br>
+    <b>tk-core</b> v0.18.116.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -252,6 +252,9 @@ descriptor API will go and look for cached items. This is useful if you want to
 pre-cache an environment for your studio or distribute a set of app and engine
 versions as an installable package that require no further retrieval in order
 to function.</p>
+<p>Alternatively, you can set the <code class="docutils literal"><span class="pre">SHOTGUN_BUNDLE_CACHE_PATH</span></code> environment variable to
+a cache path on disk. This override helps facilitate workflows that require a
+centralized disk location to which the descriptors are cached.</p>
 <div class="section" id="descriptor-types">
 <h2>Descriptor types<a class="headerlink" href="#descriptor-types" title="Permalink to this headline">¶</a></h2>
 <p>Several different descriptor types are supported by Toolkit:</p>
@@ -266,7 +269,10 @@ to function.</p>
 </ul>
 <p>The descriptor API knows how to access and locally cache each of the types above.
 You can control the location where the API caches items and supply additional lookup
-locations if you want to pre-bake your own collection of caches.</p>
+locations if you want to pre-bake your own collection of caches.
+Descriptors that are downloaded (cached) to the local disk are called <strong>downloadable</strong> descriptors.
+The <strong>app_store</strong>, <strong>shotgun</strong>, <strong>git</strong> and <strong>git_branch</strong> descriptors are downloadable descriptors,
+while the <strong>path</strong>, <strong>dev</strong> and <strong>manual</strong> descriptors are accessed directly from the specified path.</p>
 <div class="section" id="app-store">
 <h3>App store<a class="headerlink" href="#app-store" title="Permalink to this headline">¶</a></h3>
 <p>The Toolkit app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
@@ -2975,7 +2981,7 @@ If not url has been defined, None is returned.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.114',
+            VERSION:'v0.18.116',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

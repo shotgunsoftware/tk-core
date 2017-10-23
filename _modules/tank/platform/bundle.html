@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.bundle &mdash; tk-core v0.18.114 documentation</title>
+  <title>tank.platform.bundle &mdash; tk-core v0.18.116 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.114 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.116 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.114.<br>
+    <b>tk-core</b> v0.18.116.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -188,7 +188,9 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">imp</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
+
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">hook</span>
+<span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="kn">import</span> <span class="n">EventMetric</span>
 <span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">TankNoDefaultValueError</span>
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankContextChangeNotSupportedError</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
@@ -224,7 +226,34 @@
 
         <span class="c1"># emit an engine started event</span>
         <span class="n">tk</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">TANK_BUNDLE_INIT_HOOK_NAME</span><span class="p">,</span> <span class="n">bundle</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-        
+
+    <span class="c1">##########################################################################################</span>
+    <span class="c1"># internal API</span>
+
+    <span class="k">def</span> <span class="nf">log_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">log_version</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">command_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log metrics for this bundle and the given action.</span>
+
+<span class="sd">        :param str action: Action string to log, e.g. &#39;Opened Workfile&#39;.</span>
+<span class="sd">        :param log_version: Deprecated and ignored, but kept for backward compatibility.</span>
+<span class="sd">        :param bool log_once: ``True`` if this metric should be ignored if it</span>
+<span class="sd">            has already been logged. Defaults to ``False``.</span>
+<span class="sd">        :param str command_name: A Toolkit command name to add to the metric properties.</span>
+
+<span class="sd">        Internal Use Only - We provide no guarantees that this method</span>
+<span class="sd">        will be backwards compatible.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_metrics_properties</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">command_name</span><span class="p">:</span>
+            <span class="n">properties</span><span class="p">[</span><span class="n">EventMetric</span><span class="o">.</span><span class="n">KEY_COMMAND</span><span class="p">]</span> <span class="o">=</span> <span class="n">command_name</span>
+
+        <span class="n">EventMetric</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+            <span class="n">EventMetric</span><span class="o">.</span><span class="n">GROUP_TOOLKIT</span><span class="p">,</span>
+            <span class="n">action</span><span class="p">,</span>
+            <span class="n">properties</span><span class="o">=</span><span class="n">properties</span><span class="p">,</span>
+            <span class="n">log_once</span><span class="o">=</span><span class="n">log_once</span><span class="p">,</span>
+        <span class="p">)</span>
+
     <span class="c1">##########################################################################################</span>
     <span class="c1"># properties used by internal classes, not part of the public interface</span>
     
@@ -798,7 +827,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>        
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span><span class="s2">&quot;ensure_folder_exists&quot;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">bundle_obj</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Error creating folder </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
         
 
@@ -1068,7 +1097,7 @@
         <span class="c1"># config schema so we need to account for that.</span>
         <span class="n">schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__descriptor</span><span class="o">.</span><span class="n">configuration_schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">resolve_setting_value</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_engine_name</span><span class="p">(),</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_engine_name</span><span class="p">(),</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="bp">self</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_engine_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1090,8 +1119,16 @@
 
         <span class="k">return</span> <span class="n">engine_name</span>
 
+    <span class="k">def</span> <span class="nf">_get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Should be re-implemented in deriving classes and return a dictionary with</span>
+<span class="sd">        the properties needed to log a metric event for this bundle.</span>
 
-<span class="k">def</span> <span class="nf">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">):</span>
+<span class="sd">        :raises: NotImplementedError</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+<span class="k">def</span> <span class="nf">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">bundle</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Recursive post-processing of settings values</span>
 
@@ -1099,6 +1136,10 @@
 <span class="sd">    :param key: setting name</span>
 <span class="sd">    :param value: Input value to resolve using specified schema</span>
 <span class="sd">    :param schema: A schema defining types and defaults for settings.</span>
+<span class="sd">    :param bundle: The bundle object. This is only used in the case</span>
+<span class="sd">        the value argument is a string starting with &quot;hook:&quot;, which</span>
+<span class="sd">        then requires the use of a core hook to resolve the setting.</span>
+
 <span class="sd">    :returns: Processed value for key setting</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">settings_type</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
@@ -1107,14 +1148,28 @@
         <span class="n">processed_val</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">value_schema</span> <span class="o">=</span> <span class="n">schema</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-            <span class="n">processed_val</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">value_schema</span><span class="p">))</span>
+            <span class="n">processed_val</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">_post_process_settings_r</span><span class="p">(</span>
+                    <span class="n">tk</span><span class="o">=</span><span class="n">tk</span><span class="p">,</span>
+                    <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                    <span class="n">value</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                    <span class="n">schema</span><span class="o">=</span><span class="n">value_schema</span><span class="p">,</span>
+                    <span class="n">bundle</span><span class="o">=</span><span class="n">bundle</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">settings_type</span> <span class="o">==</span> <span class="s2">&quot;dict&quot;</span><span class="p">:</span>
         <span class="n">items</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;items&quot;</span><span class="p">,</span> <span class="p">{})</span>
         <span class="c1"># note - we assign the original values here because we</span>
         <span class="n">processed_val</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value_schema</span><span class="p">)</span> <span class="ow">in</span> <span class="n">items</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
-            <span class="n">processed_val</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value_schema</span><span class="p">)</span>
+            <span class="n">processed_val</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_post_process_settings_r</span><span class="p">(</span>
+                <span class="n">tk</span><span class="o">=</span><span class="n">tk</span><span class="p">,</span>
+                <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
+                <span class="n">schema</span><span class="o">=</span><span class="n">value_schema</span><span class="p">,</span>
+                <span class="n">bundle</span><span class="o">=</span><span class="n">bundle</span><span class="p">,</span>
+            <span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">settings_type</span> <span class="o">==</span> <span class="s2">&quot;config_path&quot;</span><span class="p">:</span>
         <span class="c1"># this is a config path. Stored on the form</span>
@@ -1139,7 +1194,7 @@
         <span class="n">hook_name</span> <span class="o">=</span> <span class="n">chunks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">chunks</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
         <span class="n">processed_val</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span>
-            <span class="n">hook_name</span><span class="p">,</span> <span class="n">setting</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">bundle_obj</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">extra_params</span><span class="o">=</span><span class="n">params</span>
+            <span class="n">hook_name</span><span class="p">,</span> <span class="n">setting</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">bundle_obj</span><span class="o">=</span><span class="n">bundle</span><span class="p">,</span> <span class="n">extra_params</span><span class="o">=</span><span class="n">params</span>
         <span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
@@ -1148,7 +1203,8 @@
 
     <span class="k">return</span> <span class="n">processed_val</span>
 
-<span class="k">def</span> <span class="nf">resolve_setting_value</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+
+<span class="k">def</span> <span class="nf">resolve_setting_value</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">bundle</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Resolve a setting value.  Exposed to allow values to be resolved for</span>
 <span class="sd">    settings derived outside of the app.</span>
@@ -1161,6 +1217,9 @@
 <span class="sd">    :param dict settings: the settings dictionary source</span>
 <span class="sd">    :param str key: setting name</span>
 <span class="sd">    :param default: a default value to use for the setting</span>
+<span class="sd">    :param bundle: The bundle object. This is only used in situations where</span>
+<span class="sd">        a setting&#39;s value must be resolved via calling a hook.</span>
+
 <span class="sd">    :returns: Resolved value of input setting key</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Get the value for the supplied key</span>
@@ -1181,7 +1240,7 @@
     <span class="c1"># We have a value of some kind and a schema. Allow the post</span>
     <span class="c1"># processing code to further resolve the value.</span>
     <span class="k">if</span> <span class="n">value</span> <span class="ow">and</span> <span class="n">schema</span><span class="p">:</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="n">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">bundle</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">value</span>
 
@@ -1320,7 +1379,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.114',
+            VERSION:'v0.18.116',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

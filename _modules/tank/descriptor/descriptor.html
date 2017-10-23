@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.114 documentation</title>
+  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.116 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.114 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.116 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.114.<br>
+    <b>tk-core</b> v0.18.116.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -237,13 +237,17 @@
     <span class="kn">from</span> <span class="nn">.descriptor_installed_config</span> <span class="kn">import</span> <span class="n">InstalledConfigDescriptor</span>
     <span class="kn">from</span> <span class="nn">.descriptor_core</span> <span class="kn">import</span> <span class="n">CoreDescriptor</span>
 
-    <span class="c1"># if bundle root is not set, fall back on default location</span>
-    <span class="k">if</span> <span class="n">bundle_cache_root_override</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="c1"># use the environment variable if set - if not, fall back on the override or default locations</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">BUNDLE_CACHE_PATH_ENV_VAR</span><span class="p">):</span>
+        <span class="n">bundle_cache_root_override</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">BUNDLE_CACHE_PATH_ENV_VAR</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">bundle_cache_root_override</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">bundle_cache_root_override</span> <span class="o">=</span> <span class="n">_get_default_bundle_cache_root</span><span class="p">()</span>
         <span class="n">filesystem</span><span class="o">.</span><span class="n">ensure_folder_exists</span><span class="p">(</span><span class="n">bundle_cache_root_override</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># expand environment variables</span>
-        <span class="n">bundle_cache_root_override</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">bundle_cache_root_override</span><span class="p">))</span>
+        <span class="n">bundle_cache_root_override</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">bundle_cache_root_override</span><span class="p">))</span>
 
     <span class="n">fallback_roots</span> <span class="o">=</span> <span class="n">fallback_roots</span> <span class="ow">or</span> <span class="p">[]</span>
 
@@ -674,7 +678,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.114',
+            VERSION:'v0.18.116',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

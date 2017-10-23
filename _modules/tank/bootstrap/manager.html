@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.bootstrap.manager &mdash; tk-core v0.18.114 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.116 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.114 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.116 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.114.<br>
+    <b>tk-core</b> v0.18.116.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -741,7 +741,7 @@
 
                 <span class="n">tk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bootstrap_sgtk</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
 
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">exception</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exception</span><span class="p">:</span>
 
                 <span class="c1"># Handle cleanup after failed completion of the toolkit bootstrap.</span>
                 <span class="n">failed_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TOOLKIT_BOOTSTRAP_PHASE</span><span class="p">,</span> <span class="n">exception</span><span class="p">)</span>
@@ -752,7 +752,7 @@
 
                 <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
 
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">exception</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exception</span><span class="p">:</span>
 
                 <span class="c1"># Handle cleanup after failed completion of the engine startup.</span>
                 <span class="n">failed_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ENGINE_STARTUP_PHASE</span><span class="p">,</span> <span class="n">exception</span><span class="p">)</span>
@@ -785,7 +785,7 @@
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">pc</span> <span class="o">=</span> <span class="n">PipelineConfiguration</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">TankError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankBootstrapError</span><span class="p">(</span><span class="s2">&quot;Unexpected error while caching configuration: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">has_local_bundle_cache</span><span class="p">:</span>
@@ -1177,10 +1177,6 @@
 <span class="sd">        :returns: Started :class:`~sgtk.platform.Engine` instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="c1"># Log a user activity metric saying which engine and entity are bootstrapping</span>
-        <span class="c1"># since we can now log into the logging queue of the new swapped core.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log_bootstrap_metric</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
-
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Begin starting up engine </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">engine_name</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -1217,7 +1213,7 @@
                     <span class="s2">&quot;start_engine routine...&quot;</span>
                 <span class="p">)</span>
                 <span class="n">engine</span> <span class="o">=</span> <span class="n">tank</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                     <span class="s2">&quot;Shotgun engine failed to start using start_engine. An &quot;</span>
                     <span class="s2">&quot;attempt will now be made to start it using an legacy &quot;</span>
@@ -1227,7 +1223,7 @@
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_legacy_start_shotgun_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Shotgun engine started using a legacy shotgun_xxx.yml environment.&quot;</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                         <span class="s2">&quot;Shotgun engine failed to start using the legacy &quot;</span>
                         <span class="s2">&quot;start_shotgun_engine routine. No more attempts will &quot;</span>
@@ -1346,7 +1342,7 @@
 
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">descriptor</span><span class="o">.</span><span class="n">download_local</span><span class="p">()</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Downloading </span><span class="si">%r</span><span class="s2"> failed to complete successfully. This bundle will be skipped.&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1385,34 +1381,6 @@
         <span class="n">phase_name</span> <span class="o">=</span> <span class="s2">&quot;TOOLKIT_BOOTSTRAP_PHASE&quot;</span> <span class="k">if</span> <span class="n">phase</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">TOOLKIT_BOOTSTRAP_PHASE</span> <span class="k">else</span> <span class="s2">&quot;ENGINE_STARTUP_PHASE&quot;</span>
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Default failed callback (</span><span class="si">%s</span><span class="s2">): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">exception</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">_log_bootstrap_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Logs a user activity metric when an engine is bootstrapped.</span>
-
-<span class="sd">        Module: ``tk-core``</span>
-<span class="sd">        Action: ``bootstrap &lt;bootstrap_type&gt; &lt;engine_name&gt; &lt;context_name&gt;``</span>
-
-<span class="sd">        :param engine_name: Name of the engine being bootstrapped.</span>
-<span class="sd">        :param entity: Shotgun entity to bootstrap into, or ``None`` for the site.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c1"># Perform an absolute import to ensure we get the new swapped core.</span>
-        <span class="c1"># This is required to make sure we log into the logging queue of this swapped core.</span>
-        <span class="kn">from</span> <span class="nn">tank</span> <span class="kn">import</span> <span class="n">util</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">util</span><span class="p">,</span> <span class="s2">&quot;log_user_activity_metric&quot;</span><span class="p">):</span>
-            <span class="k">return</span>
-
-        <span class="n">module</span> <span class="o">=</span> <span class="s2">&quot;tk-core&quot;</span>
-
-        <span class="n">bootstrap_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span> <span class="k">else</span> <span class="s2">&quot;classic&quot;</span>
-        <span class="n">context_name</span> <span class="o">=</span> <span class="s2">&quot;project&quot;</span> <span class="k">if</span> <span class="n">entity</span> <span class="k">else</span> <span class="s2">&quot;site&quot;</span>
-
-        <span class="n">action</span> <span class="o">=</span> <span class="s2">&quot;bootstrap </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bootstrap_type</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">context_name</span><span class="p">)</span>
-
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Logging user activity metric: module &#39;</span><span class="si">%s</span><span class="s2">&#39;, action &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">action</span><span class="p">))</span>
-
-        <span class="n">util</span><span class="o">.</span><span class="n">log_user_activity_metric</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="ToolkitManager.get_core_python_path"><a class="viewcode-back" href="../../../bootstrap.html#sgtk.bootstrap.ToolkitManager.get_core_python_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_core_python_path</span><span class="p">():</span>
@@ -1469,7 +1437,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.114',
+            VERSION:'v0.18.116',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

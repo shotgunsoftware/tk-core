@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun_path &mdash; tk-core v0.18.114 documentation</title>
+  <title>tank.util.shotgun_path &mdash; tk-core v0.18.116 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.114 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.116 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.114.<br>
+    <b>tk-core</b> v0.18.116.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -402,6 +402,12 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">macosx</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">macosx</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">windows</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">linux</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">linux</span>
 
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates an hash from this ShotgunPath.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">macosx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">linux</span><span class="p">))</span>
+
     <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if this path is not equal to the given path</span>
@@ -641,7 +647,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.114',
+            VERSION:'v0.18.116',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
