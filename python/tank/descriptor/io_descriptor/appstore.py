@@ -704,8 +704,8 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         # and shotgun sites.
 
         if os.environ.get(constants.DISABLE_APPSTORE_ACCESS_ENV_VAR, "0") == "1":
-            message = "NICOLAS: %s is active, preventing connection to app store." % constants.DISABLE_APPSTORE_ACCESS_ENV_VAR
-            log.info(message)
+            message = "The '%s' environment variable is active, preventing connection to app store." % constants.DISABLE_APPSTORE_ACCESS_ENV_VAR
+            log.debug(message)
             raise TankAppStoreConnectionError(message)
 
         sg_url = self._sg_connection.base_url
@@ -732,7 +732,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 else:
                     raise
 
-            log.info("NICOLAS: Connecting to %s..." % constants.SGTK_APP_STORE)
+            log.debug("Connecting to %s..." % constants.SGTK_APP_STORE)
             # Connect to the app store and resolve the script user id we are connecting with.
             # Set the timeout explicitly so we ensure the connection won't hang in cases where
             # a response is not returned in a reasonable amount of time.
@@ -861,7 +861,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         """
         # check whether we're asked to bypass app store connection
         if os.environ.get(constants.DISABLE_APPSTORE_ACCESS_ENV_VAR, "0") == "1":
-            log.info("NICOLAS: %s is set active, preventing connection to app store." % constants.DISABLE_APPSTORE_ACCESS_ENV_VAR)
+            log.info("The '%s' environment variable %s is set active, preventing connection to app store." % constants.DISABLE_APPSTORE_ACCESS_ENV_VAR)
             return False
 
         # check if we can connect to Shotgun
