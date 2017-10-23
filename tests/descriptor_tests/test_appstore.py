@@ -22,8 +22,6 @@ from mock import patch
 from tank_test.tank_test_base import TankTestBase, setUpModule
 
 import sgtk
-import tank
-import urllib2
 from sgtk.descriptor import Descriptor
 from sgtk.descriptor.io_descriptor.base import IODescriptorBase
 from sgtk.descriptor.descriptor import create_descriptor
@@ -327,7 +325,6 @@ class TestAppStoreConnectivity(TankTestBase):
 
             return MockResponse(None, 404)
 
-
         def shotgun_mock_impl(*args, **kwargs):
             """
             Mocking up shotgun_api3.Shotgun() constructor.
@@ -362,7 +359,3 @@ class TestAppStoreConnectivity(TankTestBase):
         # Test present inactive (again)
         os.environ[env_var_name] = "0"
         self._helper_test_disabling_access_to_app_store(shotgun_mock, True)
-
-
-
-
