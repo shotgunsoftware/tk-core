@@ -1421,7 +1421,8 @@ class Engine(TankBundle):
         Returns the path to the file associated with the currently open session
         if it resides on disk. If unsaved, it returns None.
 
-        :param session: An object to the active document (for MDI applications).
+        :param session: An object representing the active document.
+                        (for MDI applications).
         :return: A path to the current file if it resides on disk, else None.
         """
         raise NotImplementedError
@@ -1430,7 +1431,8 @@ class Engine(TankBundle):
         """
         Returns a list of file or folder paths constituting the session's dependencies.
 
-        :param session: An object to the active document (for MDI applications).
+        :param session: An object representing the active document.
+                        (for MDI applications).
         :return: A list of file or folder paths constituting the session's dependencies.
         """
         raise NotImplementedError
