@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import TankTestBase, temp_env_var
@@ -22,12 +23,39 @@ class TestPipelineConfig(TankTestBase):
     Tests for the pipeline configuration.
     """
 
-    def test_read_env_var_in_pipeline_configuration_yml(self):
+    def test_read_env_var_in_pipeline_configuration_yaml(self):
         """
         Ensures environment variables are properly translated.
         """
+        self._test_read_env_var_in_pipeline_configuration_yml(
+            "env_var_pipeline",
+            {
+                "project_name": "$SGTK_TEST_PROJECT_NAME",
+                "project_id": "$SGTK_TEST_PROJECT_ID",
+                "pc_id": "$SGTK_TEST_PC_ID",
+                "pc_name": "$SGTK_TEST_PC_NAME"
+            }
+        )
+        if sys.platform == "win32":
+            self._test_read_env_var_in_pipeline_configuration_yml(
+                "env_var_pipeline_windows",
+                {
+                    "project_name": "%SGTK_TEST_PROJECT_NAME%",
+                    "project_id": "%SGTK_TEST_PROJECT_ID%",
+                    "pc_id": "%SGTK_TEST_PC_ID%",
+                    "pc_name": "%SGTK_TEST_PC_NAME%"
+                }
+            )
+
+    def _test_read_env_var_in_pipeline_configuration_yml(self, folder_name, pipeline_config_data):
+        """
+        Ensures environment variables are properly translated for a given file format.
+
+        :param folder_name: Name of the configuration to create on disk.
+        :param pipeline_config_data: Data to insert into shotgun.yml
+        """
         env_var_pipeline = os.path.join(
-            self.tank_temp, "env_var_pipeline"
+            self.tank_temp, folder_name
         )
         core_folder = os.path.join(env_var_pipeline, "config", "core")
         pipeline_configuration_yml_path = os.path.join(
@@ -37,12 +65,7 @@ class TestPipelineConfig(TankTestBase):
         os.makedirs(core_folder)
 
         with open(pipeline_configuration_yml_path, "w") as fh:
-            yaml.safe_dump({
-                "project_name": "$SGTK_TEST_PROJECT_NAME",
-                "project_id": "$SGTK_TEST_PROJECT_ID",
-                "pc_id": "$SGTK_TEST_PC_ID",
-                "pc_name": "$SGTK_TEST_PC_NAME"
-            }, fh)
+            yaml.safe_dump(pipeline_config_data, fh)
 
         with open(os.path.join(core_folder, "roots.yml"), "w") as fh:
             fh.write("{}")

@@ -59,6 +59,7 @@ class TestGetSgConfigData(TankTestBase):
         test_key = "env_var_key"
         test_script = "env_var_script"
         test_proxy = "env_var_proxy"
+
         with temp_env_var(
             SGTK_TEST_HOST=test_host,
             SGTK_TEST_KEY=test_key,
