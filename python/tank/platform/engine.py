@@ -207,9 +207,23 @@ class Engine(TankBundle):
         # point we want to try and have all app initialization complete.
         self.__run_post_engine_inits()
 
-        if self.name not in [constants.SHELL_ENGINE_NAME, constants.SHOTGUN_ENGINE_NAME] \
-                and self.__has_018_logging_support():
+        # The Desktop engine provides its own advanced menu toggle for
+        # debug logging. For the Shotgun engine, we don't want to provide
+        # a debug logging toggle for browser integration. Instead, that
+        # will follow the global debug state, or that managed by the Desktop
+        # engine. For the shell engine, it doesn't make sense to have an
+        # engine command registered for something like toggling debug
+        # logging. If the user wants to control that in the shell, they
+        # either do that with the TK_DEBUG environment variable, or by
+        # setting the state in the LogManager directly if they're running
+        # in tank shell.
+        no_debug_toggle_engines = [
+            constants.DESKTOP_ENGINE_NAME,
+            constants.SHELL_ENGINE_NAME,
+            constants.SHOTGUN_ENGINE_NAME,
+        ]
 
+        if self.name not in no_debug_toggle_engines and self.__has_018_logging_support():
             # if engine supports new logging implementation,
             #
             # we cannot add the 'toggle debug logging' for

@@ -542,6 +542,33 @@ class LogManager(object):
                 "Debug logging enabled. To permanently enable it, "
                 "set the %s environment variable." % constants.DEBUG_LOGGING_ENV_VAR
             )
+            # Setting the environment variable for this session will
+            # mean that any subprocesses spawned will inherit debug
+            # logging from this process. A good example of where this
+            # is advantageous is in tk-desktop, where we provide a
+            # menu action to toggle debug logging. When it is toggled
+            # on, we set the env var here, which then means that when
+            # a user navigates to a project in SG Desktop, the Python
+            # subprocess spawned will also have debug logging active.
+            log.debug(
+                "Setting %s in the environment for this session. This "
+                "ensures that subprocesses spawned from this process will "
+                "inherit the global debug logging setting from this process.",
+                constants.DEBUG_LOGGING_ENV_VAR
+            )
+            os.environ[constants.DEBUG_LOGGING_ENV_VAR] = "1"
+        else:
+            # We don't want subprocesses of this process to spawn with
+            # logging on. An example of where this is useful is in the
+            # comment above, where the case of tk-desktop is outlined.
+            if constants.DEBUG_LOGGING_ENV_VAR in os.environ:
+                log.debug(
+                    "Removing %s from the environment for this session. This "
+                    "ensures that subprocesses spawned from this process will "
+                    "inherit the global debug logging setting from this process.",
+                    constants.DEBUG_LOGGING_ENV_VAR
+                )
+                del os.environ[constants.DEBUG_LOGGING_ENV_VAR]
 
     def _get_global_debug(self):
         """
