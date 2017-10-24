@@ -142,6 +142,8 @@ class TestPipelineConfigUtils(TankTestBase):
         # Create interpreter file for good config.
         self._create_interpreter_file(config_root, "$SGTK_TEST_INTERPRETER")
 
+        # Patch os.path.exists since /i/wish/this/was/python3 is obviously not a real
+        # file name.
         with patch("os.path.exists", return_value=True):
             with temp_env_var(SGTK_TEST_INTERPRETER="/i/wish/this/was/python3"):
                 self.assertEqual(
