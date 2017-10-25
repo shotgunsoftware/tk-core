@@ -31,7 +31,8 @@ IF NOT EXIST "%INTERPRETER_CONFIG_FILE%" GOTO NO_INTERPRETER_CONFIG
 rem -- now get path to python interpreter by reading config file
 rem -- 'usebackq' is used to allow quoting of the path which could potentially contain spaces
 rem -- 'tokens=*' is used to ensure each line of the file doesn't get split on whitespace
-for /f "usebackq tokens=*" %%G in ("%INTERPRETER_CONFIG_FILE%") do (SET PYTHON_INTERPRETER=%%G)
+rem -- CALL SET tells set to evaluate the enviroment variables found inside %%G.
+for /f "usebackq tokens=*" %%G in ("%INTERPRETER_CONFIG_FILE%") do (CALL SET PYTHON_INTERPRETER=%%G)
 IF NOT EXIST "%PYTHON_INTERPRETER%" GOTO NO_INTERPRETER
 
 rem -- execute the python script which does the actual work.
