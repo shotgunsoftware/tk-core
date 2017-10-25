@@ -525,7 +525,7 @@ class LogManager(object):
             #
             # We don't want subprocesses of this process to spawn with
             # logging on. An example of where this is useful is in the
-            # comment above, where the case of tk-desktop is outlined.
+            # comment below, where the case of tk-desktop is outlined.
             if constants.DEBUG_LOGGING_ENV_VAR in os.environ:
                 log.debug(
                     "Removing %s from the environment for this session. This "
