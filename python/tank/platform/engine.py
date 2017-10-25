@@ -1414,26 +1414,32 @@ class Engine(TankBundle):
             self.__qt_debug_info[widget.__repr__()] = weakref.ref(widget)
 
     ##########################################################################################
-    # scene management methods
+    # session management methods
 
     def get_session_path(self, session=None):
         """
-        Returns the path to the file associated with the currently open session
-        if it resides on disk. If unsaved, it returns None.
+        Returns an absolute path to the file associated with the active session
+        if it resides on disk, else returns an empty string.
 
-        :param session: An object representing the active document.
+        :param session: An object representing the active document
                         (for MDI applications).
-        :return: A path to the current file if it resides on disk, else None.
+        :returns: A path to the current file if it resides on disk, else an empty
+                  string.
+        :raises NotImplementedError: If not overridden in the derived class,
+                                     this method will raise a NotImplementedError.
         """
         raise NotImplementedError
 
     def get_session_dependencies(self, session=None):
         """
-        Returns a list of file or folder paths constituting the session's dependencies.
+        Returns a list of file or folder paths constituting the active
+        session's dependencies.
 
-        :param session: An object representing the active document.
+        :param session: An object representing the active document
                         (for MDI applications).
-        :return: A list of file or folder paths constituting the session's dependencies.
+        :returns: A list of file or folder paths constituting the session's dependencies.
+        :raises NotImplementedError: If not overridden in the derived class,
+                                     this method will raise a NotImplementedError.
         """
         raise NotImplementedError
 
