@@ -207,23 +207,18 @@ class Engine(TankBundle):
         # point we want to try and have all app initialization complete.
         self.__run_post_engine_inits()
 
-        # The Desktop engine provides its own advanced menu toggle for
-        # debug logging. For the Shotgun engine, we don't want to provide
-        # a debug logging toggle for browser integration. Instead, that
-        # will follow the global debug state, or that managed by the Desktop
-        # engine. For the shell engine, it doesn't make sense to have an
-        # engine command registered for something like toggling debug
-        # logging. If the user wants to control that in the shell, they
-        # either do that with the TK_DEBUG environment variable, or by
-        # setting the state in the LogManager directly if they're running
-        # in tank shell.
-        no_debug_toggle_engines = [
-            constants.DESKTOP_ENGINE_NAME,
+        # The new way to handle this situation is via the register_toggle_debug_command
+        # property on the engine. We also explicitly skip the shell and shotgun engines
+        # here for the sake of backwards compatibility, as these engines have always
+        # skipped registering the command by name.
+        is_skipped_engine = self.name in [
             constants.SHELL_ENGINE_NAME,
             constants.SHOTGUN_ENGINE_NAME,
         ]
+        supports_018_logging = self.__has_018_logging_support()
+        wants_toggle_debug = self.register_toggle_debug_command
 
-        if self.name not in no_debug_toggle_engines and self.__has_018_logging_support():
+        if not is_skipped_engine and supports_018_logging and wants_toggle_debug:
             # if engine supports new logging implementation,
             #
             # we cannot add the 'toggle debug logging' for
@@ -680,6 +675,16 @@ class Engine(TankBundle):
             "name": "unknown",
             "version": "unknown",
         }
+
+    @property
+    def register_toggle_debug_command(self):
+        """
+        Indicates whether the engine should have a toggle debug logging
+        command registered during engine initialization.
+
+        :rtype: bool
+        """
+        return True
 
     ##########################################################################################
     # init and destroy
