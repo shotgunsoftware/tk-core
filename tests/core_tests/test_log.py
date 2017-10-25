@@ -12,7 +12,7 @@ import os
 import copy
 
 import sgtk
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import *
 
 
 class TestLogManager(TankTestBase):
@@ -32,10 +32,10 @@ class TestLogManager(TankTestBase):
                 del os.environ[debug_name]
 
             manager.global_debug = True
-            self.assertTrue((debug_name in os.environ))
+            self.assertIn(debug_name, os.environ)
 
             manager.global_debug = False
-            self.assertTrue((debug_name not in os.environ))
+            self.assertNotIn(debug_name, os.environ)
         finally:
             manager.global_debug = original_debug
             os.environ = original_env
