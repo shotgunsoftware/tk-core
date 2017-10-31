@@ -241,17 +241,6 @@ class MetricsDispatchWorkerThread(Thread):
     NOTE: that current SG server code reject batches larger than 10.
     """
 
-    # List of Event names suported by our backend
-    SUPPORTED_EVENTS = [
-        "Launched Action",
-        "Launched Command",
-        "Launched Software",
-        "Loaded Published File",
-        "Opened Workfile",
-        "Published",
-        "Saved Workfile",
-    ]
-
     def __init__(self, engine):
         """
         Initialize the worker thread.
@@ -349,10 +338,12 @@ class MetricsDispatchWorkerThread(Thread):
         # Filter out metrics we don't want to send to the endpoint.
         filtered_metrics_data = []
         for metric in metrics:
-            # Only send internal Toolkit events
-            if metric.is_internal_event:
+            # As first pass, discard events from unsupported event groups
+            if metric.is_supported_event_group:
                 data = metric.data
-                if data["event_name"] not in self.SUPPORTED_EVENTS:
+                # As second pass re-structure unsupported events from supported groups
+                # (see more complete comment below)
+                if not metric.is_supported_event:
                     # Still log the event but change its name so it's easy to
                     # spot all unofficial events which are logged.
                     # Later we might want to simply discard them instead of logging
@@ -450,6 +441,32 @@ class EventMetric(object):
     # Toolkit internal event group
     GROUP_TOOLKIT = "Toolkit"
 
+    # Other non-Toolkit supported event groups
+    GROUP_MEDIA = "Media"
+    GROUP_TOOLKIT = "Toolkit"
+    GROUP_NAVIGATION = "Navigation"
+    GROUP_PROJECTS = "Projects"
+
+    SUPPORTED_GROUPS = [
+        GROUP_TOOLKIT,
+        GROUP_NAVIGATION,
+        GROUP_PROJECTS
+    ]
+
+    # List of Event names suported by our backend
+    SUPPORTED_EVENTS = [
+        "Launched Action",
+        "Launched Command",
+        "Launched Software",
+        "Loaded Published File",
+        "New Workfile",
+        "Opened Workfile",
+        "Published",
+        "Saved Workfile",
+        "Viewed Projects",
+        "Viewed Project Commands"
+    ]
+
     # Event property keys
     KEY_ACTION_TITLE = "Action Title"
     KEY_APP = "App"
@@ -498,11 +515,22 @@ class EventMetric(object):
         }
 
     @property
-    def is_internal_event(self):
+    def is_supported_event_group(self):
         """
-        :returns: ``True`` if this event is an internal Toolkit event, ``False`` otherwise.
+        :returns: ``True`` if this event group is supported by Toolkit, ``False`` otherwise.
         """
-        return self._group == self.GROUP_TOOLKIT
+        return self._group in self.SUPPORTED_GROUPS
+
+    @property
+    def is_supported_event(self):
+        """
+        Determine whether the metric is supported by Toolkit by checking both
+        the event name and group. We want some minimal filtering to prevent
+        an overly large number of 3rd party events being sent to the endpoint.
+
+        :return: ``True`` if this event is supported and handled by ToolKit, ``False`` otherwise.
+        """
+        return self.is_supported_event_group and self._name in self.SUPPORTED_EVENTS
 
     @classmethod
     def log(cls, group, name, properties=None, log_once=False):
