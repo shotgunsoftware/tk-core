@@ -12,7 +12,9 @@ import os
 import copy
 
 import sgtk
-from tank_test.tank_test_base import *
+
+from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase
 
 
 class TestLogManager(TankTestBase):
