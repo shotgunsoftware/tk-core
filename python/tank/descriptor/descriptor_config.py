@@ -135,7 +135,7 @@ class ConfigDescriptor(Descriptor):
 
         if os.path.exists(interpreter_config_file):
             with open(interpreter_config_file, "r") as f:
-                path_to_python = f.read().strip()
+                path_to_python = os.path.expandvars(f.read().strip())
 
             if not path_to_python or not os.path.exists(path_to_python):
                 raise TankInvalidInterpreterLocationError(
