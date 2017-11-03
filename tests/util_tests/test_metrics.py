@@ -316,7 +316,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         # Save a few values for comparing on the other side
         expected_event_name = name
-        if name not in MetricsDispatchWorkerThread.SUPPORTED_EVENTS:
+        if name not in EventMetric.SUPPORTED_EVENTS:
             expected_event_name = "Unknown Event"
 
         # Make at least one metric related call!
