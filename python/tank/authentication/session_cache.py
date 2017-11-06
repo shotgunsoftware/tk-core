@@ -39,6 +39,7 @@ _COOKIES = "cookies"
 _SESSION_TOKEN = "session_token"
 _SESSION_CACHE_FILE_NAME = "authentication.yml"
 
+
 def _is_same_user(session_data, login):
     """
     Compares the session data's login with a given login name. The comparison
@@ -86,6 +87,7 @@ def _get_global_authentication_file_location():
 
     return path
 
+
 def _get_site_authentication_file_location(base_url):
     """
     Returns the location of the users file on disk for a specific site.
@@ -123,6 +125,7 @@ def _get_site_authentication_file_location(base_url):
             path = old_path
 
     return path
+
 
 def _ensure_folder_for_file(filepath):
     """
@@ -250,11 +253,15 @@ def _insert_or_update_user(users_file, login, session_token, cookies):
                 result = True
             return result
     # This is a new user, add it to the list.
-    users_file[_USERS].append({
+    user = {
         _LOGIN: login,
-        _SESSION_TOKEN: session_token,
-        _COOKIES: cookies
-    })
+        _SESSION_TOKEN: session_token
+    }
+    # We purposely do not save unset cookies to avoid de-serialization issues
+    # when the data is read by older versions of the tk-core.
+    if cookies is not None:
+        user[_COOKIES] = cookies
+    users_file[_USERS].append(user)
     return True
 
 
@@ -315,13 +322,18 @@ def get_session_data(base_url, login):
         for user in users_file[_USERS]:
             # Search for the user in the users dictionary.
             if _is_same_user(user, login):
-                return {
+                session_data = {
                     # There used to be a time where we didn't strip whitepsaces
                     # before writing the file, so do it now just in case.
                     _LOGIN: user[_LOGIN].strip(),
-                    _SESSION_TOKEN: user[_SESSION_TOKEN],
-                    _COOKIES: user[_COOKIES]
+                    _SESSION_TOKEN: user[_SESSION_TOKEN]
                 }
+                # We want to keep cookies out of the session data if there
+                # is none. This is to ensure backward compatibility for older
+                # version of tk-core reading the authentication.yml
+                if _COOKIES in user and user[_COOKIES] is not None:
+                    session_data[_COOKIES] = user[_COOKIES]
+                return session_data
         logger.debug("No cached user found for %s" % login)
     except Exception:
         logger.exception("Exception thrown while loading cached session info.")
@@ -414,6 +426,7 @@ def set_current_host(host):
     current_host_file = _try_load_global_authentication_file(file_path)
     current_host_file[_CURRENT_HOST] = host.strip()
     _write_yaml_file(file_path, current_host_file)
+
 
 @LogManager.log_timing
 def generate_session_token(hostname, login, password, http_proxy, auth_token=None):
