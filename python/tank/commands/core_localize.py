@@ -211,9 +211,9 @@ def do_localize(log, pc_root_path, suppress_prompts):
             # credentials can be retrieved using a session token and therefore we don't need the
             # AppStore credentials to be saved on disk.
             if fn != "app_store.yml" or os.path.exists(src):
-                filesystem.copy_file(src, tgt, permissions=0666)
+                filesystem.copy_file(src, tgt, permissions=0o666)
 
-    except Exception, e:
+    except Exception as e:
         log.exception("Could not localize Toolkit API.")
         raise TankError("Could not localize Toolkit API: %s" % e)
 
@@ -527,7 +527,7 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
         if copy_core:
             # first make the basic structure
             log.info("Setting up base structure...")
-            os.mkdir(new_core_path_local, 0775)
+            os.mkdir(new_core_path_local, 0o775)
 
             # copy across the tank commands
             shutil.copy(os.path.join(pc_root, "tank"), os.path.join(new_core_path_local, "tank"))
@@ -535,8 +535,8 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
 
             # make the config folder
             log.info("Copying configuration files...")
-            os.mkdir(os.path.join(new_core_path_local, "config"), 0775)
-            os.mkdir(os.path.join(new_core_path_local, "config", "core"), 0775)
+            os.mkdir(os.path.join(new_core_path_local, "config"), 0o775)
+            os.mkdir(os.path.join(new_core_path_local, "config", "core"), 0o775)
 
             for fn in core_config_file_names:
                 log.debug("Copy %s..." % fn)
@@ -577,15 +577,15 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
             path = os.path.join(pc_root, "config", "core", core_file)
             try:
                 log.debug("Removing system file '%s'" % path )
-                os.chmod(path, 0666)
+                os.chmod(path, 0o666)
                 os.remove(path)
-            except Exception, e:
+            except Exception as e:
                 log.warning("Could not delete file '%s' - please delete by hand! "
                             "Error reported: %s" % (path, e))
 
         # create blank core install
         log.info("Creating core proxy...")
-        os.mkdir(current_core, 0775)
+        os.mkdir(current_core, 0o775)
 
         # copy python API proxy
         tank_proxy = os.path.join(new_core_path_local, "install", "core", "setup", "tank_api_proxy")
@@ -619,7 +619,7 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
             fh.write("undefined")
         fh.close()
 
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not share the core! Error reported: %s" % e)
     finally:
         os.umask(old_umask)

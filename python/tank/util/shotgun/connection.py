@@ -16,6 +16,7 @@ from __future__ import with_statement
 
 import os
 import threading
+import urlparse
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -123,10 +124,11 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
     # load the config file
     try:
         file_data = yaml_cache.g_yaml_cache.get(shotgun_cfg_path, deepcopy_data=False) or {}
-    except Exception, error:
+    except Exception as error:
         raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
 
-    return __parse_config_data(file_data, user, shotgun_cfg_path)
+    return _parse_config_data(file_data, user, shotgun_cfg_path)
+
 
 def __get_sg_config_data_with_script_user(shotgun_cfg_path, user="default"):
     """
@@ -149,7 +151,7 @@ def __get_sg_config_data_with_script_user(shotgun_cfg_path, user="default"):
         raise TankError("Missing required script user in config '%s'" % shotgun_cfg_path)
 
 
-def __parse_config_data(file_data, user, shotgun_cfg_path):
+def _parse_config_data(file_data, user, shotgun_cfg_path):
     """
     Parses configuration data and overrides it with the studio level hook's result if available.
     :param file_data: Dictionary with all the values from the configuration data.
@@ -200,11 +202,77 @@ def __parse_config_data(file_data, user, shotgun_cfg_path):
         # Make sure it is None.
         config_data["app_store_http_proxy"] = None
 
+    config_data["host"] = sanitize_url(config_data["host"])
+
     return config_data
 
 
+def __sanitize_url(server_url):
+    """
+    Parses a URL and makes sure it has a scheme and no extra / and path.
 
-    
+    ..note:: Calling this method only once might yield incorrect result. Always call
+        the sanitize_url function instead.
+
+    :param str server_url: URL to clean up.
+
+    :returns: The cleaned up URL.
+    """
+
+    # The given url https://192.168.1.250:30/path?a=b is parsed such that
+    # scheme => https
+    # netloc => 192.168.1.250:30
+    # path = /path
+    # query = a=b
+
+    # As such, when sanitizing a url, we want to keep only the scheme and
+    # network location
+
+    # Then break up the url into chunks
+    tokens_parsed = urlparse.urlparse(server_url)
+
+    # Then extract the good parts from the url
+    clean_url_tokens = urlparse.ParseResult(
+        # We want https when there is no specified scheme.
+        scheme=tokens_parsed.scheme or "https",
+        # If only a host has been provided, path will be set.
+        # If a scheme was set, then use the netloc
+        netloc=tokens_parsed.netloc or tokens_parsed.path,
+        path="", params="", query="", fragment=""
+    )
+
+    return urlparse.urlunparse(clean_url_tokens)
+
+
+def sanitize_url(server_url):
+    """
+    Cleans up a url to that only scheme, host and optional port number remains.
+
+    For example::
+        host.com => https://host.com
+        host.com:8080 => https://host.com:8080
+        https://host.com => https://host.com
+        http://host.com => http://host.com
+        https://host.com/ => https://host.com
+        https://host.com/path => https://host.com
+
+    :returns: The cleaned up URL.
+    """
+
+    # FIXME: Python 2.6.x has difficulty parsing a URL that doesn't start with a scheme when there
+    # is already a port number. Python 2.7 doesn't have this issue. Ignore this bug for now since it
+    # is very unlikely Shotgun will be running off a custom port.
+    first_pass = __sanitize_url(server_url.strip())
+    # We have to do two passes here. The reason is that if you use a slash in your URL but provide
+    # no scheme, the urlparse/unparse calls will recreate the URL as is. Fortunately, when the
+    # scheme is missing we're adding in https://. At that point the url is not ambiguous anymore for
+    # urlparse/urlparse and it can split the url correctly into
+    # - https (scheme)
+    # - test.shogunstudio.com (network location)
+    # - /... (path)
+    return __sanitize_url(first_pass)
+
+
 def get_associated_sg_base_url():
     """
     Returns the shotgun url which is associated with this Toolkit setup.
@@ -324,7 +392,7 @@ def create_sg_connection(user="default"):
         # try to find the shotgun.yml path
         try:
             config_file_path = __get_sg_config()
-        except TankError, e:
+        except TankError as e:
             log.error(
                 "Trying to create a shotgun connection but this tk session does not have "
                 "an associated authenticated user. Therefore attempted to fall back on "

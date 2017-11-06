@@ -255,3 +255,17 @@ class TestShotgunPath(TankTestBase):
             "Cannot resolve file name - unsupported os platform 'potato'"
         ):
             ShotgunPath.get_file_name_from_template("/%s.yml", "potato")
+
+    def test_hashing(self):
+        """
+        Ensures two ShotgunPath with the same path generate the same hash.
+        """
+        first = ShotgunPath("/a/b/c", None, None)
+        second = ShotgunPath("/a/b/c", None, None)
+        self.assertEqual(first, second)
+        self.assertEqual(hash(first), hash(second))
+
+        first = ShotgunPath("/a/b/c", None, None)
+        second = ShotgunPath("/a/b/d", None, None)
+        self.assertNotEqual(first, second)
+        self.assertNotEqual(hash(first), hash(second))

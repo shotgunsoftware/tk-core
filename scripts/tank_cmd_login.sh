@@ -65,7 +65,7 @@ then
 fi
 
 # and check that it exists...
-if [ ! -f "$interpreter" ] && [[ ! `type "$interpreter"` ]];
+if [ ! -f "$interpreter" ];
 then
     echo "Cannot find interpreter $interpreter defined in config file $interpreter_config_file!"
     exit 1

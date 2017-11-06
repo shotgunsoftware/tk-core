@@ -12,9 +12,9 @@ import os
 
 import sgtk
 from sgtk.descriptor import Descriptor
-from tank_test.tank_test_base import *
-
+from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import TankTestBase, skip_if_git_missing
+
 
 class TestGitIODescriptor(TankTestBase):
     """
@@ -117,7 +117,6 @@ class TestGitIODescriptor(TankTestBase):
         latest_desc.copy(copy_target)
         self.assertTrue(os.path.exists(os.path.join(copy_target, ".git")))
 
-
     @skip_if_git_missing
     def test_branch_shorthash(self):
 
@@ -138,7 +137,6 @@ class TestGitIODescriptor(TankTestBase):
             desc.get_path(),
             os.path.join(self.bundle_cache, "gitbranch", "tk-config-default.git", "3e6a681")
         )
-
 
     @skip_if_git_missing
     def test_branch(self):
@@ -207,4 +205,3 @@ class TestGitIODescriptor(TankTestBase):
         copy_target = os.path.join(self.project_root, "test_copy_target")
         latest_desc.copy(copy_target)
         self.assertTrue(os.path.exists(os.path.join(copy_target, ".git")))
-

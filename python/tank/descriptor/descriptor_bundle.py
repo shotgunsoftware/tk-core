@@ -75,7 +75,7 @@ class BundleDescriptor(Descriptor):
         """
         try:
             version_tuple = connection.server_info["version"]
-        except Exception, e:
+        except Exception as e:
             raise TankDescriptorError("Could not extract version number for site: %s" % e)
 
         return ".".join([str(x) for x in version_tuple])
@@ -381,7 +381,7 @@ class BundleDescriptor(Descriptor):
 
         try:
             tk.pipeline_configuration.execute_post_install_bundle_hook(self.get_path())
-        except Exception, e:
+        except Exception as e:
             log.error(
                 "Could not run post-install hook for %s. Error reported: %s" % (self, e)
             )

@@ -17,6 +17,7 @@ import tank
 from tank_test.tank_test_base import TankTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 
+import tank
 
 class TestApi(TankTestBase):
     """
@@ -193,3 +194,22 @@ class TestApi(TankTestBase):
         uri = "sgtk:descriptor:git?path=git%40github.com%3Ashotgunsoftware/tk-core.git&version=v0.1.2"
         dict = {"type": "git", "version": "v0.1.2", "path": "git@github.com:shotgunsoftware/tk-core.git"}
         self._test_uri(uri, dict)
+
+    def test_backwards_compatible(self):
+        """
+        Ensures the API is backwards compatible as we've moved and renamed some exception classes.
+        """
+        # Descriptor backwards compatibility
+        self.assertEqual(
+            sgtk.descriptor.TankInvalidAppStoreCredentialsError,
+            sgtk.descriptor.InvalidAppStoreCredentialsError
+        )
+        self.assertEqual(
+            sgtk.descriptor.TankCheckVersionConstraintsError,
+            sgtk.descriptor.CheckVersionConstraintsError
+        )
+        # Core api compatibility
+        self.assertEqual(
+            sgtk.descriptor.TankInvalidInterpreterLocationError,
+            sgtk.TankInvalidInterpreterLocationError
+        )

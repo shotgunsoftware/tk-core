@@ -204,16 +204,6 @@ class Context(object):
         elif self.additional_entities or other.additional_entities:
             return False
 
-        if self.source_entity and other.source_entity:
-            # If the source entities do not match types and ids, then we're not equal.
-            if self.source_entity["type"] != other.source_entity["type"]:
-                return False
-            if self.source_entity["id"] != other.source_entity["id"]:
-                return False
-        elif self.source_entity or other.source_entity:
-            # If one has a source entity and the other does not, we're not equal.
-            return False
-
         # finally compare the user - this may result in a Shotgun look-up 
         # so do this last!
         if not _entity_dicts_eq(self.user, other.user):
@@ -748,7 +738,7 @@ class Context(object):
 
         try:
             data = pickle.loads(context_str)
-        except Exception, e:
+        except Exception as e:
             raise TankContextDeserializationError(str(e))
 
         # first get the pipeline config path out of the dict

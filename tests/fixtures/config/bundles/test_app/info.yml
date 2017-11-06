@@ -35,6 +35,10 @@ configuration:
     test_template:
         type: template
         required_fields: [name,version]
+
+    test_template_hook:
+        type: template
+        default_value: "hook:template_setting_resolution"
     
     test_hook_std:
         type: hook

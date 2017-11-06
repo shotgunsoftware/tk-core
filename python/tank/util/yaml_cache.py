@@ -51,7 +51,7 @@ class CacheItem(object):
         if stat is None:
             try:
                 self._stat = os.stat(self.path)
-            except Exception, exc:
+            except Exception as exc:
                 raise TankUnreadableFileError(
                     "Unable to stat file '%s': %s" % (self.path, exc)
                 )
@@ -261,7 +261,7 @@ class YamlCache(object):
                 raw_data = yaml.load(fh)
         except IOError:
             raise TankFileDoesNotExistError("File does not exist: %s" % path)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
         # Populate the item's data before adding it to the cache.
         item.data = raw_data

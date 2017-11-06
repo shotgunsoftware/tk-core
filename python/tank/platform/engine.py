@@ -36,8 +36,7 @@ from .errors import (
     TankMissingEngineError
 )
 
-from ..util import log_user_activity_metric as util_log_user_activity_metric
-from ..util import log_user_attribute_metric as util_log_user_attribute_metric
+from ..util.metrics import EventMetric
 from ..util.metrics import MetricsDispatcher
 from ..log import LogManager
 
@@ -53,6 +52,7 @@ from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
+
 
 class Engine(TankBundle):
     """
@@ -259,19 +259,14 @@ class Engine(TankBundle):
         # emit an engine started event
         tk.execute_core_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
 
-        self.log_debug("Init complete: %s" % self)
-        self.log_metric("Init")
-
-        # log the core and engine versions being used by the current user
-        util_log_user_attribute_metric("tk-core version", tk.version)
-        util_log_user_attribute_metric("%s version" % (self.name,), self.version)
-
         # if the engine supports logging metrics, begin dispatching logged metrics
         if self.metrics_dispatch_allowed:
             self._metrics_dispatcher = MetricsDispatcher(self)
             self.log_debug("Starting metrics dispatcher...")
             self._metrics_dispatcher.start()
             self.log_debug("Metrics dispatcher started.")
+
+        self.log_debug("Init complete: %s" % self)
 
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
@@ -333,7 +328,7 @@ class Engine(TankBundle):
 
         if sys.version_info < (2,6):
             # older pythons use im_func rather than __func__
-            if running_method.im_func is not base_method.im_func:
+            if running_method.__func__ is not base_method.__func__:
                 subclassed = True
         else:
             # pyton 2.6 and above use __func__
@@ -467,45 +462,37 @@ class Engine(TankBundle):
             self.__global_progress_widget.close()
             self.__global_progress_widget = None
 
-    def log_metric(self, action, log_once=False):
-        """Log an engine metric.
-
-        :param action: Action string to log, e.g. 'Init'
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-
-        Logs a user activity metric as performed within an engine. This is
-        a convenience method that auto-populates the module portion of
-        ``tank.util.log_user_activity_metric()``
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
-
-        """
-
-        # the action contains the engine and app name, e.g.
-        # module: tk-maya
-        # action: tk-maya - Init
-        full_action = "%s %s" % (self.name, action)
-        util_log_user_activity_metric(self.name, full_action, log_once=log_once)
-
     def log_user_attribute_metric(self, attr_name, attr_value, log_once=False):
-        """Convenience class. Logs a user attribute metric.
+        """
+        This method is deprecated and shouldn't be used anymore.
+        """
+        pass
 
-        :param attr_name: The name of the attribute to set for the user.
-        :param attr_value: The value of the attribute to set for the user.
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
+    def _get_metrics_properties(self):
+        """
+        Return a dictionary with properties to use when emitting a metric event for
+        this engine.
 
-        This is a convenience wrapper around
-        `tank.util.log_user_activity_metric()` that prevents engine subclasses
-        from having to import from `tank.util`.
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
+        The dictionary contains informations about this engine: its name and version,
+        and informations about the application hosting the engine: its name and
+        version. 
+        
+        E.g.::
+        {
+            'Host App': 'Maya',
+            'Host App Version': '2017',
+            'Engine': 'tk-maya',
+            'Engine Version': 'v0.4.1',
+        }
 
         """
-        util_log_user_attribute_metric(attr_name, attr_value, log_once=log_once)
+        # Always create a new dictionary so the caller can safely modify it.
+        return {
+            EventMetric.KEY_ENGINE: self.name,
+            EventMetric.KEY_ENGINE_VERSION: self.version,
+            EventMetric.KEY_HOST_APP: self.host_info.get("name", "unknown"),
+            EventMetric.KEY_HOST_APP_VERSION: self.host_info.get("version", "unknown"),
+        }
 
     def get_child_logger(self, name):
         """
@@ -660,6 +647,25 @@ class Engine(TankBundle):
         :returns:   A list of TankQDialog objects.
         """
         return self.__created_qt_dialogs
+
+    @property
+    def host_info(self):
+        """
+        Returns information about the application hosting this engine.
+        
+        This should be re-implemented in deriving classes to handle the logic 
+        specific to the application the engine is designed for.
+        
+        A dictionary with at least a "name" and a "version" key should be returned
+        by derived implementations, with respectively the host application name 
+        and its release string as values, e.g. { "name": "Maya", "version": "2017.3"}.
+        
+        :returns: A {"name": "unknown", "version" : "unknown"} dictionary.
+        """
+        return {
+            "name": "unknown",
+            "version": "unknown",
+        }
 
     ##########################################################################################
     # init and destroy
@@ -1048,8 +1054,12 @@ class Engine(TankBundle):
         def callback_wrapper(*args, **kwargs):
 
             if properties.get("app"):
-                # track which app command is being launched
-                properties["app"].log_metric("'%s'" % name, log_version=True)
+                # Track which app command is being launched
+                command_name = properties.get("short_name") or name
+                properties["app"].log_metric(
+                    "Launched Command",
+                    command_name=command_name,
+                )
 
             # run the actual payload callback
             return callback(*args, **kwargs)
@@ -1912,7 +1922,7 @@ class Engine(TankBundle):
         )
         try:
             self._apply_stylesheet_file(qss_file, widget)
-        except Exception, e:
+        except Exception as e:
             # catch-all and issue a warning and continue.
             self.log_warning("Could not apply stylesheet '%s': %s" % (qss_file, e))
 
@@ -1922,7 +1932,7 @@ class Engine(TankBundle):
         if os.getenv("SHOTGUN_QSS_FILE_WATCHER", False) == "1":
             try:
                 self._add_stylesheet_file_watcher(qss_file, widget)
-            except Exception, e:
+            except Exception as e:
                 # We don't want the watcher to cause any problem, so we catch
                 # errors but issue a warning so the developer knows that interactive
                 # styling is off.
@@ -1981,7 +1991,7 @@ class Engine(TankBundle):
         # style sheet file watcher is activated is useful when the file is tweaked
         # but no visible changes happen. It can be useful as well to know that watchers
         # were activated by mistake in production.
-        self.log_info("Watching qss file %s for %s..." % (qss_file, widget))
+        self.log_debug("Watching qss file %s for %s..." % (qss_file, widget))
 
     def _on_external_stylesheet_changed(self, qss_file, watcher, widget):
         """
@@ -2126,7 +2136,7 @@ class Engine(TankBundle):
             # and associate it with the qapplication
             QtGui.QApplication.setPalette(self._dark_palette)
 
-        except Exception, e:
+        except Exception as e:
             self.log_error("The standard toolkit dark palette could not be set up! The look and feel of your "
                            "toolkit apps may be sub standard. Please contact support. Details: %s" % e)
             
@@ -2140,7 +2150,7 @@ class Engine(TankBundle):
             app = QtCore.QCoreApplication.instance()
             
             app.setStyleSheet(css_data)
-        except Exception, e:
+        except Exception as e:
             self.log_error("The standard toolkit dark stylesheet could not be set up! The look and feel of your "
                            "toolkit apps may be sub standard. Please contact support. Details: %s" % e)
 
@@ -2361,7 +2371,7 @@ class Engine(TankBundle):
                     app_settings,
                 )
 
-            except TankError, e:
+            except TankError as e:
                 # validation error - probably some issue with the settings!
                 # report this as an error message.
                 self.log_error("App configuration Error for %s (configured in environment '%s'). "
@@ -2455,7 +2465,7 @@ class Engine(TankBundle):
                 finally:
                     self.__currently_initializing_app = None
             
-            except TankError, e:
+            except TankError as e:
                 self.log_error("App %s failed to initialize. It will not be loaded: %s" % (app_dir, e))
                 
             except Exception:
@@ -2561,7 +2571,7 @@ class Engine(TankBundle):
         for app in self.__applications.values():
             try:
                 app.post_engine_init()
-            except TankError, e:
+            except TankError as e:
                 self.log_error("App %s Failed to run its post_engine_init. It is loaded, but"
                                "may not operate in its desired state! Details: %s" % (app, e))
             except Exception:
@@ -2670,7 +2680,7 @@ def _restart_engine(new_context):
             engine.destroy()
 
             _start_engine(current_engine_name, new_context.tank, old_context, new_context)
-    except TankError, e:
+    except TankError as e:
         engine.log_error("Could not restart the engine: %s" % e)
     except Exception:
         engine.log_exception("Could not restart the engine!")
@@ -2927,7 +2937,7 @@ def get_environment_from_context(tk, context):
     """
     try:
         env_name = tk.execute_core_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not resolve an environment for context '%s'. The pick "
                         "environment hook reported the following error: %s" % (context, e))
     
@@ -3003,7 +3013,7 @@ def __pick_environment(engine_name, tk, context):
 
     try:
         env_name = tk.execute_core_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
-    except Exception, e:
+    except Exception as e:
         raise TankEngineInitError("Engine %s cannot initialize - the pick environment hook "
                                  "reported the following error: %s" % (engine_name, e))
 

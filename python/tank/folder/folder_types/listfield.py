@@ -159,7 +159,7 @@ class ListField(Folder):
             
                 # validate that the data type is of type list
                 field_type = resp[field_name]["data_type"]["value"]
-            except Exception, e:
+            except Exception as e:
                 msg = "Folder creation error: Cannot retrieve values for Shotgun list field "
                 msg += "%s.%s. Error reported: %s" % (entity_type, field_name, e)
                 raise TankError(msg)

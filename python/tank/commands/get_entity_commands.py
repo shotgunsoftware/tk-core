@@ -159,7 +159,7 @@ class GetEntityCommandsAction(Action):
                 # that type
                 for entity in entities_of_type:
                     commands_per_entity[entity] = commands
-            except TankError, e:
+            except TankError as e:
                 log.error("Failed to fetch the commands from the Pipeline "
                           "Configuration at '%s' for the entity type %s.\n"
                           "Details: %s"
@@ -224,7 +224,7 @@ class GetEntityCommandsAction(Action):
             return execute_tank_command(pipeline_config_path,
                                         ["shotgun_get_actions", cache_name,
                                          env_name])
-        except SubprocessCalledProcessError, e:
+        except SubprocessCalledProcessError as e:
             # failed to load from cache - only OK if cache is missing or out
             # of date
             if e.returncode not in [self._ERROR_CODE_CACHE_OUT_OF_DATE,
@@ -238,7 +238,7 @@ class GetEntityCommandsAction(Action):
             execute_tank_command(pipeline_config_path,
                                  ["shotgun_cache_actions", entity_type,
                                   cache_name])
-        except SubprocessCalledProcessError, e:
+        except SubprocessCalledProcessError as e:
             # failed to update the cache
             raise TankError("Failed to update the cache.\n"
                             "Details: %s\nOutput: %s" % (e, e.output))
@@ -248,7 +248,7 @@ class GetEntityCommandsAction(Action):
             return execute_tank_command(pipeline_config_path,
                                         ["shotgun_get_actions", cache_name,
                                          env_name])
-        except SubprocessCalledProcessError, e:
+        except SubprocessCalledProcessError as e:
             raise TankError("Failed to get the content of the updated cache.\n"
                             "Details: %s\nOutput: %s" % (e, e.output))
 
