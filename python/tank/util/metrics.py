@@ -443,14 +443,17 @@ class EventMetric(object):
 
     # Other non-Toolkit supported event groups
     GROUP_MEDIA = "Media"
-    GROUP_TOOLKIT = "Toolkit"
     GROUP_NAVIGATION = "Navigation"
     GROUP_PROJECTS = "Projects"
+    GROUP_TASKS = "Tasks"
+    GROUP_APP = "App"
 
     SUPPORTED_GROUPS = [
         GROUP_TOOLKIT,
         GROUP_NAVIGATION,
-        GROUP_PROJECTS
+        GROUP_PROJECTS,
+        GROUP_TASKS,
+        GROUP_APP,
     ]
 
     # List of Event names suported by our backend
@@ -464,7 +467,9 @@ class EventMetric(object):
         "Published",
         "Saved Workfile",
         "Viewed Projects",
-        "Viewed Project Commands"
+        "Viewed Project Commands",
+        "Created Task",
+        "Viewed Panel"
     ]
 
     # Event property keys
