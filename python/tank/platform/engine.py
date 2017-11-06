@@ -1435,44 +1435,40 @@ class Engine(TankBundle):
     ##########################################################################################
     # session management methods
 
-    def get_session_path(self, session=None):
+    def get_session_path(self):
         """
-        Returns the absolute path of the current file if it resides
+        Returns the absolute path of the current session if it resides
         on disk. If the session has never been saved and isn't
         associated with a file on disk yet, an empty string is returned.
 
-        :param session: An object representing the active document
-                        (for MDI applications).
-        :returns: The absolute path to the current file if it resides on
-                  disk, else returns an empty string.
+        :returns: The absolute path to the current session if it resides on
+                  disk, else returns None.
         :raises TankError: If the session being referred to is invalid or
                            cannot be determined, this method will raise a
                            TankError.
         :raises NotImplementedError: If not overridden in the derived class,
-                             this method will raise a NotImplementedError.
+                                     this method raises a NotImplementedError.
         """
         raise NotImplementedError
 
-    def get_session_dependencies(self, session=None):
+    def get_session_dependencies(self):
         """
         Returns a list of file dependencies for the current session.
 
-        :param session: An object representing the active document
-                        (for MDI applications).
         :returns: A list of file dependencies required to load
                   the session. The data returned is of the form:
                   [
-                    {"path": "/foo/bar/hello.%04d.jpeg",
-                     "engine": "tk-engine",
-                     "type": "type1"
+                    {"path": "/foo/bar/hello.jpeg",
+                     "engine": "tk-maya",
+                     "type": "reference"
                      },
                     {"path": "/foo/bar/hello.obj",
-                     "engine": "tk-engine",
-                     "type": "type2"
+                     "engine": "tk-maya",
+                     "type": "file"
                      },
                   ]
         :raises NotImplementedError: If not overridden in the derived class,
-                                     this method will raise a NotImplementedError.
+                                     this method raises a NotImplementedError.
         """
         raise NotImplementedError
 
