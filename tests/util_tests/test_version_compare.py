@@ -16,7 +16,8 @@ from mock import Mock, patch
 import tank
 from tank import context
 from tank import TankError
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
 
@@ -81,4 +82,3 @@ class TestVersionCompare(TankTestBase):
         self.assertTrue( is_version_older("v0.12.3", "0.12.4") )
         
         self.assertFalse( is_version_older("1.0.0", "1.0.0") )
-        

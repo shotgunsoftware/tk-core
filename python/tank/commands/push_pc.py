@@ -308,7 +308,7 @@ class PushPCAction(Action):
                 for core_file in core_files_to_remove:
                     path = os.path.join(target_tmp_path, "core", core_file)
                     if os.path.exists(path):
-                        os.chmod(path, 0666)
+                        os.chmod(path, 0o666)
                         log.debug("Removing system file %s" % path )
                         os.remove(path)
                 
@@ -320,7 +320,7 @@ class PushPCAction(Action):
                     log.debug("Copying PC system file %s -> %s" % (curr_config_path, new_config_path) )
                     shutil.copy(curr_config_path, new_config_path)
                 
-            except Exception, e:
+            except Exception as e:
                 raise TankError(
                     "Could not copy into temporary target folder '%s'. The target config "
                     "has not been altered. Check permissions and try again! "
@@ -349,7 +349,7 @@ class PushPCAction(Action):
                     try:
                         os.rename(target_path, target_backup_path)
                         created_backup_path = target_backup_path
-                    except OSError, e:
+                    except OSError as e:
                         log.debug("Falling back on copying folder...:%s" % e)
                         # Didn't work fall back to copying files
                         shutil.copytree(target_path, target_backup_path)
@@ -357,7 +357,7 @@ class PushPCAction(Action):
                         # it now.
                         created_backup_path = target_backup_path
                         filesystem.safe_delete_folder(target_path)
-            except Exception, e:
+            except Exception as e:
                 raise TankError(
                     "Could not move target folder from '%s' to '%s'. "
                     "Error reported: %s" % (target_path, target_backup_path, e)
@@ -377,7 +377,7 @@ class PushPCAction(Action):
                     # link, symlink creates the link in the target directory, so
                     # this works without having to change the current directory?
                     os.symlink(os.path.basename(symlink_path), target_path)
-                except Exception, e:
+                except Exception as e:
                     raise TankError(
                         "Could not move new config folder from '%s' to '%s' or create symlink."
                         "Error reported: %s" % (target_tmp_path, symlink_path, e)
@@ -391,7 +391,7 @@ class PushPCAction(Action):
                     if os.path.exists(target_path):
                         raise RuntimeError("Target %s folder already exists..." % target_path)
                     shutil.move(target_tmp_path, target_path)
-                except Exception, e:
+                except Exception as e:
                     raise TankError(
                         "Could not move new config folder from '%s' to '%s'. "
                         "Error reported: %s" % (target_tmp_path, target_path, e)

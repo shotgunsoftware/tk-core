@@ -12,6 +12,8 @@
 Qt version abstraction layer.
 """
 
+import os
+
 from ..log import LogManager
 logger = LogManager.get_logger(__name__)
 
@@ -129,7 +131,7 @@ class QtImporter(object):
         try:
             module = __import__(parent_module_name, globals(), locals(), [module_name])
             module = getattr(module, module_name)
-        except Exception, e:
+        except Exception as e:
             logger.debug("Unable to import module '%s': %s", module_name, e)
             pass
         return module
@@ -180,10 +182,16 @@ class QtImporter(object):
         # List of all Qt 5 modules.
         sub_modules = [
             "QtGui", "QtHelp", "QtNetwork", "QtPrintSupport", "QtQml", "QtQuick", "QtQuickWidgets",
-            "QtScript", "QtSvg", "QtTest", "QtUiTools", "QtWebChannel", "QtWebEngineWidgets",
+            "QtScript", "QtSvg", "QtTest", "QtUiTools", "QtWebChannel",
             "QtWebKit", "QtWebKitWidgets", "QtWidgets", "QtWebSockets", "QtXml", "QtXmlPatterns",
             "QtScriptSql", "QtScriptTools", "QtOpenGL", "QtMultimedia"
         ]
+
+        # We have the potential for a deadlock in Maya 2018 on Windows if this
+        # is imported. We set the env var from the tk-maya engine when we
+        # detect that we are in this situation.
+        if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" not in os.environ:
+            sub_modules.append("QtWebEngineWidgets")
 
         modules_dict = {
             "QtCore": QtCore
@@ -205,7 +213,7 @@ class QtImporter(object):
                 wrapper = __import__("PySide2", globals(), locals(), [module_name])
                 if hasattr(wrapper, module_name):
                     modules_dict[module_name] = getattr(wrapper, module_name)
-            except Exception, e:
+            except Exception as e:
                 logger.debug("'%s' was skipped: %s", module_name, e)
                 pass
 
@@ -294,7 +302,7 @@ class QtImporter(object):
                 pyside2 = self._import_pyside2_as_pyside()
                 logger.debug("Imported PySide2 as PySide.")
                 return pyside2
-            except ImportError:
+            except ImportError as e:
                 pass
         elif interface_version_requested == self.QT5:
             try:

@@ -136,9 +136,9 @@ class TestGetApplication(TestApplication):
         
         try:
             application.get_application(self.engine, bogus_path, "bogus_app", {}, "instance_name", None)
-        except TankError, cm:
+        except TankError as cm:
             expected_msg = "Failed to load plugin"
-            self.assertTrue(cm.message.startswith(expected_msg))
+            self.assertTrue(str(cm).startswith(expected_msg))
         
     def test_good_path(self):
         """
@@ -168,6 +168,9 @@ class TestGetSetting(TestApplication):
         tmpl = self.app.get_template("test_template")
         self.assertEqual("maya_publish_name", tmpl.name)
         self.assertIsInstance(tmpl, Template)
+
+        # Also ensure that we can define a template via core hook.
+        self.assertEqual("12345", self.app.get_setting("test_template_hook"))
         
         # test resource
         self.assertEqual(self.test_resource, self.app.get_setting("test_icon"))

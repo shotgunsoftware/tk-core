@@ -430,7 +430,7 @@ class EntityMigrator(object):
             try:
                 res = self._sg.schema_field_create(self._src_type, "entity", name, 
                                              properties={"valid_types":[self._dst_type]})
-            except Exception, e:
+            except Exception as e:
                 raise TankError("Failed to create migration tracking field: %s" % e)
             self._log.debug("Successfully created migration tracking field '%s'/'%s'" % (name, res))
             return res
@@ -549,7 +549,7 @@ class EntityMigrator(object):
                                                  order=order, 
                                                  limit=block_size, 
                                                  fields=fields)
-            except Exception, e:
+            except Exception as e:
                 self._migration_errors.append("Failed to retrieve details for %d %s entities from Shotgun! - %s"
                                               % (block_size, entity_type, e))
                 continue
@@ -672,7 +672,7 @@ class EntityMigrator(object):
                     # add value to be migrated:
                     dst_entity[dst_field] = value
             
-            except TankError, e:
+            except TankError as e:
                 msg = ""
                 if dst_entity_id is not None:
                     msg = ("Unable to update migrated %s entity %d (%s:%d) - %s" 
@@ -730,7 +730,7 @@ class EntityMigrator(object):
                 existing_entities = self._sg.find(self._dst_type, 
                                           filters = [["id", "between", range_start, range_end]], 
                                           fields=list(dst_fields))
-            except Exception, e:
+            except Exception as e:
                 self._migration_errors.append("Failed to query existing data for %d %s entities from Shotgun. These entities will no be updated! - %s"
                                               % (len(entities_to_update, self._dst_type, e)))
             else:
@@ -771,7 +771,7 @@ class EntityMigrator(object):
             self._pre_entity_migration()
             try:
                 created_entities = self._sg.batch(requests=requests)
-            except Exception, e:
+            except Exception as e:
                 self._migration_errors.append("Failed to create/update %d %s entities in Shotgun - %s"
                                               % (len(requests), self._dst_type, e))
             else:
@@ -803,7 +803,7 @@ class EntityMigrator(object):
 
             try:
                 self._sg.batch(requests=requests)
-            except Exception, e:
+            except Exception as e:
                 self._migration_errors.append("Failed to update migration tracking field for %d %s entities in Shotgun - %s"
                                               % (len(requests), self._src_type, e))
         
@@ -821,7 +821,7 @@ class EntityMigrator(object):
                 dst_entity = {"id":dst_id, "type":self._dst_type}
                 try:
                     self._sg.share_thumbnail(entities=[dst_entity], source_entity=src_entity)
-                except Exception, e:
+                except Exception as e:
                     self._migration_errors.append("Failed to share thumbnail with %s entity %d in Shotgun - %s"
                                                   % (self._dst_type, dst_id, e))
                 
@@ -884,7 +884,7 @@ class EntityMigrator(object):
         if requests:
             try:
                 self._sg.batch(requests=requests)
-            except Exception, e:
+            except Exception as e:
                 self._migration_errors.append("Failed to update inter-entity links for %d %s entities in Shotgun - %s"
                                               % (len(requests), self._dst_type, e))
                 
@@ -987,7 +987,7 @@ class EntityMigrator(object):
         if requests:
             try:
                 self._sg.batch(requests=requests)
-            except Exception, e:
+            except Exception as e:
                 self._migration_errors.append("Failed to update external entity links for %d %s entities in Shotgun - %s"
                                               % (len(requests), self._dst_type, e))            
                 
@@ -1507,7 +1507,7 @@ class MigratePublishedFileEntitiesAction(Action):
                         app_instance_name=None
                     )
                     log.info("App update completed successfully.")
-                except TankError, e:
+                except TankError as e:
                     raise TankError("App update failed with the following error: %s" % e)
         else:
             response = raw_input("Would you like to exit now so that you can run app updates "
@@ -1548,7 +1548,7 @@ class MigratePublishedFileEntitiesAction(Action):
         log.info("---------------------------------------------")
         try:
             pft_migrator.migrate_entities(update_existing_entities)
-        except TankError, e:
+        except TankError as e:
             raise TankError("Migration of 'TankType' entities failed with the following error: %s" % e)
         migration_warnings.extend(pft_migrator.get_migration_errors())
         
@@ -1559,7 +1559,7 @@ class MigratePublishedFileEntitiesAction(Action):
         log.info("")
         try:
             pf_migrator.migrate_entities(update_existing_entities)
-        except TankError, e:
+        except TankError as e:
             raise TankError("Migration of 'TankPublishedFile' entities failed with the following error: %s" % e)
         migration_warnings.extend(pf_migrator.get_migration_errors())
         
@@ -1786,7 +1786,7 @@ class MigratePublishedFileEntitiesAction(Action):
                 pc_data["published_file_entity_type"] = pf_entity_type
 
                 # and write back to the file:
-                os.chmod(pc_path, 0666)
+                os.chmod(pc_path, 0o666)
                 try:
                     # and write the new file
                     fh = open(pc_path, "wt")
@@ -1810,7 +1810,7 @@ class MigratePublishedFileEntitiesAction(Action):
         
                 log.debug("Successfully updated pipeline configuration '%s'" % pc_name)
         
-            except Exception, e:
+            except Exception as e:
                 all_updated = False
                 warnings.append("Failed to update the settings file '%s' for pipeline configuration '%s', project '%s': %s" 
                                 % (pc_path, pc_name, project_name, e))
@@ -1834,7 +1834,7 @@ class MigratePublishedFileEntitiesAction(Action):
                     log.debug("Copying environment configuration from '%s' to '%s'" % (env_path, dst_env_path))
                     try:
                         shutil.copyfile(env_path, dst_env_path)
-                    except IOError, e:
+                    except IOError as e:
                         warnings.append("Failed to copy environment file '%s' to '%s': %s" % (env_path, dst_env_path, e))
                 
             

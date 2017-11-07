@@ -28,6 +28,8 @@ from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
 from .errors import AuthenticationError
 from .. import LogManager
+from ..util.shotgun import connection
+from ..util import LocalFileStorageManager
 
 logger = LogManager.get_logger(__name__)
 
@@ -64,8 +66,6 @@ def _get_global_authentication_file_location():
 
     :returns: Path to the login information.
     """
-    # avoid cylic imports
-    from ..util import LocalFileStorageManager
 
     # try current generation path first
     path = os.path.join(
@@ -98,9 +98,6 @@ def _get_site_authentication_file_location(base_url):
     :param base_url: The site we want the login information for.
     :returns: Path to the login information.
     """
-    # avoid cylic imports
-    from ..util import LocalFileStorageManager
-
     path = os.path.join(
         LocalFileStorageManager.get_site_root(
             base_url,
@@ -138,9 +135,9 @@ def _ensure_folder_for_file(filepath):
     """
     folder, _ = os.path.split(filepath)
     if not os.path.exists(folder):
-        old_umask = os.umask(0077)
+        old_umask = os.umask(0o077)
         try:
-            os.makedirs(folder, 0700)
+            os.makedirs(folder, 0o700)
         finally:
             os.umask(old_umask)
     return filepath
@@ -272,7 +269,7 @@ def _write_yaml_file(file_path, users_data):
     :param file_path: Where to write the users data
     :param users_data: Dictionary to write to disk.
     """
-    old_umask = os.umask(0077)
+    old_umask = os.umask(0o077)
     try:
         with open(file_path, "w") as users_file:
             yaml.safe_dump(users_data, users_file)
@@ -410,6 +407,8 @@ def get_current_host():
     info_path = _get_global_authentication_file_location()
     document = _try_load_global_authentication_file(info_path)
     host = document[_CURRENT_HOST]
+    if host:
+        host = connection.sanitize_url(host)
     logger.debug("Current host is '%s'" % host)
     return host
 
@@ -420,6 +419,9 @@ def set_current_host(host):
 
     :param host: The new current host.
     """
+    if host:
+        host = connection.sanitize_url(host)
+
     file_path = _get_global_authentication_file_location()
     _ensure_folder_for_file(file_path)
 
@@ -469,7 +471,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     # recoverable error, problems with proxy settings or network errors are much
     # more severe errors which can't be fixed by reprompting. Therefore, they have
     # nothing to do with authentication and shouldn't be reported as such.
-    except socket.error, e:
+    except socket.error as e:
         logger.exception("Unexpected connection error.")
         # e.message is always an empty string, so look at the exception's arguments.
         # The arguments are always a string or a number and a string.
@@ -484,7 +486,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
             # of this exception type is pretty bad so let's reformat it ourselves. By default, it
             # turns a tuple into a string.
             raise Exception("%s (%d)" % (e.args[1], e.args[0]))
-    except httplib2.socks.ProxyError, e:
+    except httplib2.socks.ProxyError as e:
         logger.exception("Unexpected connection error.")
         # Same comment applies here around formatting.
         # Note that e.message is always a tuple in this
@@ -492,7 +494,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     except MissingTwoFactorAuthenticationFault:
         # Silently catch and rethrow to avoid logging.
         raise
-    except Exception, e:
+    except Exception as e:
         logger.exception("There was a problem logging in.")
         # If the error message is empty, like httplib.HTTPException, convert
         # the class name to a string

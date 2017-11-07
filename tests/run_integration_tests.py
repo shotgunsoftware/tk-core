@@ -12,6 +12,8 @@
 Integration tests for core.
 """
 
+from __future__ import print_function
+
 import sys
 import os
 import subprocess
@@ -43,17 +45,17 @@ def _test_return_value(expected_result, args):
     :raises AssertError: If the error codes differ, this exception is raised.
     """
     args = [tank_path] + args.split(" ")
-    print "Running %s" % " ".join(args)
+    print("Running %s" % " ".join(args))
     try:
         output = subprocess.check_output(args, stdin=None)
         result = 0
-    except subprocess.CalledProcessError, e:
+    except subprocess.CalledProcessError as e:
         result = e.returncode
         output = e.output
 
     if result != expected_result:
-        print "Expecting %s, got %s" % (expected_result, result)
-        print output
+        print("Expecting %s, got %s" % (expected_result, result))
+        print(output)
         assert(result == expected_result)
 
 
@@ -97,7 +99,7 @@ def main():
     Runs all the integration tests.
     """
     if len(sys.argv) != 2:
-        print "Usage: python run_tank_tests.py /path/to/your/tank.executable"
+        print("Usage: python run_tank_tests.py /path/to/your/tank.executable")
         return
 
     global tank_path

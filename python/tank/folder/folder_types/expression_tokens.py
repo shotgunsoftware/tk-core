@@ -51,7 +51,7 @@ class SymlinkToken(object):
             # check that the referenced token is matching one of the tokens which
             # has a computed name part to represent the dynamically created folder name
             # this computed_name field exists for all entity folders for example.
-            valid_tokens = [x for x in sg_data if (isinstance(sg_data[x], dict) and sg_data[x].has_key("computed_name"))]
+            valid_tokens = [x for x in sg_data if (isinstance(sg_data[x], dict) and "computed_name" in sg_data[x])]
 
             if token not in valid_tokens:
                 raise TankError("Cannot compute symlink target for %s: The reference token '%s' cannot be resolved. "

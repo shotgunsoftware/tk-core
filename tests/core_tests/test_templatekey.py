@@ -12,7 +12,7 @@
 Tests for templatefield module.
 """
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 
 from tank import TankError
 import copy
@@ -354,7 +354,7 @@ class TestStringKey(TankTestBase):
 
         for test in tests:
 
-            print test
+            print(test)
 
             short = test["short"]
             full = test["full"]

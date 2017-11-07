@@ -657,7 +657,7 @@ def _decode_cookies(encoded_cookies):
         try:
             decoded_cookies = base64.b64decode(encoded_cookies)
             cookies.load(decoded_cookies)
-        except TypeError, e:
+        except TypeError as e:
             log.error("Unable to decode the cookies: %s" % e.message)
     return cookies
 
@@ -739,7 +739,7 @@ def is_sso_enabled_on_site(url):
         log.debug("User authentication method for %s: %s" % (url, info["user_authentication_method"]))
         if "user_authentication_method" in info:
             return info["user_authentication_method"] == "saml2"
-    except Exception, e:
+    except Exception as e:
         # Silently ignore exceptions
         log.debug("Unable to connect with %s, got exception '%s' assuming SSO is not enabled" % (url, e))
 

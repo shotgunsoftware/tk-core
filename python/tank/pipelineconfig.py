@@ -200,7 +200,7 @@ class PipelineConfiguration(object):
         if constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
             try:
                 external_data = pickle.loads(os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA])
-            except Exception, e:
+            except Exception as e:
                 log.warning("Could not load external config data from: %s" % e)
 
             if "project_id" in external_data:
@@ -262,7 +262,7 @@ class PipelineConfiguration(object):
             data = yaml.load(fh)
             if data is None:
                 raise Exception("File contains no data!")
-        except Exception, e:
+        except Exception as e:
             raise TankError("Looks like a config file is corrupt. Please contact "
                             "support! File: '%s' Error: %s" % (cfg_yml, e))
         finally:
@@ -291,7 +291,7 @@ class PipelineConfiguration(object):
         
         old_umask = os.umask(0)
         try:
-            os.chmod(pipe_config_sg_id_path, 0666)
+            os.chmod(pipe_config_sg_id_path, 0o666)
             # and write the new file
             fh = open(pipe_config_sg_id_path, "wt")
             # using safe_dump instead of dump ensures that we
@@ -309,7 +309,7 @@ class PipelineConfiguration(object):
             # '{foo: bar}\n'
             #            
             yaml.safe_dump(curr_settings, fh)
-        except Exception, exp:
+        except Exception as exp:
             raise TankError("Could not write to configuration file '%s'. "
                             "Error reported: %s" % (pipe_config_sg_id_path, exp))
         finally:
@@ -331,14 +331,14 @@ class PipelineConfiguration(object):
 
         try:
             fh = open(cache_file, 'rb')
-        except Exception, e:
+        except Exception as e:
             log.warning("Could not read yaml cache %s: %s" % (cache_file, e))
             return
 
         try:
             cache_items = pickle.load(fh)
             yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
-        except Exception, e:
+        except Exception as e:
             log.warning("Could not merge yaml cache %s: %s" % (cache_file, e))
         finally:
             fh.close()
@@ -981,14 +981,6 @@ class PipelineConfiguration(object):
             # of the core API.
             hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
             hook_path = os.path.join(hooks_path, file_name)
-        else:
-            # some hooks are always custom. ignore those and log the rest.
-            if (hasattr(parent, "log_metric") and
-               hook_name not in constants.TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST):
-
-                # only log once since some custom hooks can be called many times
-                action = "custom hook %s" % (hook_name,)
-                parent.log_metric(action, log_once=True)
 
         try:
             return_value = hook.execute_hook(hook_path, parent, **kwargs)
@@ -1030,13 +1022,6 @@ class PipelineConfiguration(object):
         hook_path = os.path.join(hook_folder, file_name)
         if os.path.exists(hook_path):
             hook_paths.append(hook_path)
-            if (hasattr(parent, 'log_metric') and
-               hook_name not in constants.TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST):
-
-                # only log once since some custom hooks can be called many
-                # times like cache_location.get_path_cache_path
-                action = "custom hook method %s" % (hook_method_display,)
-                parent.log_metric(action, log_once=True)
 
         try:
             return_value = hook.execute_hook_method(hook_paths, parent, method_name, **kwargs)

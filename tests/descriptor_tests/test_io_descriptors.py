@@ -11,7 +11,8 @@
 from __future__ import with_statement
 import os
 
-from tank_test.tank_test_base import TankTestBase
+
+from tank_test.tank_test_base import TankTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
 
 import sgtk
@@ -144,7 +145,8 @@ class TestIODescriptors(TankTestBase):
 
     def test_cache_locations(self):
         """
-        Tests locations of caches when using fallback paths.
+        Tests locations of caches when using fallback paths and
+        the bundle cache path environment variable.
         """
         sg = self.tk.shotgun
 
@@ -152,6 +154,7 @@ class TestIODescriptors(TankTestBase):
         root_b = os.path.join(self.project_root, "cache_root_b")
         root_c = os.path.join(self.project_root, "cache_root_c")
         root_d = os.path.join(self.project_root, "cache_root_d")
+        root_env = os.path.join(self.project_root, "cache_root_env")
 
         location = {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"}
 
@@ -167,6 +170,22 @@ class TestIODescriptors(TankTestBase):
             d._io_descriptor._get_primary_cache_path(),
             os.path.join(root_a, "app_store", "tk-bundle", "v1.1.1")
         )
+
+        # the bundle cache path set in the environment should
+        # take precedence other cache paths.
+        with temp_env_var(SHOTGUN_BUNDLE_CACHE_PATH=root_env):
+            desc_env = sgtk.descriptor.create_descriptor(
+                sg,
+                sgtk.descriptor.Descriptor.APP,
+                location,
+                bundle_cache_root_override=root_a,
+                fallback_roots=[root_b, root_c, root_d]
+            )
+
+            self.assertEqual(
+                desc_env._io_descriptor._get_primary_cache_path(),
+                os.path.join(root_env, "app_store", "tk-bundle", "v1.1.1")
+            )
 
         self.assertEqual(
             d._io_descriptor._get_cache_paths(),
@@ -201,22 +220,6 @@ class TestIODescriptors(TankTestBase):
 
         os.makedirs(bundle_path)
         with open(info_path, "wt") as fh:
-            fh.write("test data\n")
-
-        self.assertEqual(d.get_path(), bundle_path)
-        self.assertEqual(d.find_latest_cached_version(), d)
-
-        # create metadata folder
-        metadata_dir = os.path.join(bundle_path, "appstore-metadata")
-        os.makedirs(metadata_dir)
-
-        # because download receipt is missing, nothing is detected
-        self.assertEqual(d.get_path(), None)
-        self.assertEqual(d.find_latest_cached_version(), None)
-
-        # add download receipt and re-check
-        path = os.path.join(metadata_dir, "download_complete")
-        with open(path, "wt") as fh:
             fh.write("test data\n")
 
         self.assertEqual(d.get_path(), bundle_path)

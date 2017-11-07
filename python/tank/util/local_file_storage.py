@@ -84,12 +84,18 @@ class LocalFileStorageManager(object):
                            which is the current generation of paths.
         :return: Path as string
         """
-        if generation == cls.CORE_V18:
 
-            # If the environment variable is available and set to an actual value.
-            shotgun_home_override = os.environ.get("SHOTGUN_HOME")
+        # If SHOTGUN_HOME is set, the intent is to not use any of official locations and instead use
+        # a sandbox.
+        #
+        # If we still allowed the LocalFileStorageManager to return paths outside of SHOTGUN_HOME,
+        # it would mean that data from outside SHOTGUN_HOME could leak into it and that a user
+        # couldn't be confident that the sandbox was self-contained.
+
+        # If the environment variable is available and set to an actual value.
+        shotgun_home_override = os.environ.get("SHOTGUN_HOME")
+        if generation == cls.CORE_V18 or shotgun_home_override:
             if shotgun_home_override:
-
                 # Make sure environment variables and ~ are evaluated.
                 shotgun_home_override = os.path.expanduser(
                     os.path.expandvars(shotgun_home_override)

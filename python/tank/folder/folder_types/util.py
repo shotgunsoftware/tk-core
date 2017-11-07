@@ -76,7 +76,7 @@ def translate_filter_tokens(filter_list, parent, yml_path):
                 # this is a filter expression!
                 try:
                     expr_token = FilterExpressionToken(filter_value, parent)
-                except TankError, e:
+                except TankError as e:
                     # specialized message
                     raise TankError("Error resolving filter expression "
                                     "%s in %s.yml: %s" % (filter_list, yml_path, e))

@@ -143,7 +143,7 @@ def restart(new_context=None):
         # first, reload the template defs
         engine.tank.reload_templates()
         engine.log_debug("Template definitions were reloaded.")
-    except TankError, e:
+    except TankError as e:
         engine.log_error(e)
 
     _restart_engine(new_context or engine.context)

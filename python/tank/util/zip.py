@@ -93,12 +93,12 @@ def _process_item(zip_obj, item_path, target_path):
     # Create all upper directories if necessary.
     upperdirs = os.path.dirname(target_path)
     if upperdirs and not os.path.exists(upperdirs):
-        os.makedirs(upperdirs, 0777)
+        os.makedirs(upperdirs, 0o777)
 
     if item_path[-1] == '/':
         # this is a directory!
         if not os.path.isdir(target_path):
-            os.mkdir(target_path, 0777)
+            os.mkdir(target_path, 0o777)
 
     else:
         # this is a file! - write it in a way which is compatible
@@ -118,6 +118,6 @@ def _process_item(zip_obj, item_path, target_path):
         # If one execution bit is set, give execution rights to everyone
         mode = zip_info.external_attr >> 16 & 0x49
         if mode:
-            os.chmod(target_path, 0777)
+            os.chmod(target_path, 0o777)
 
     return target_path
