@@ -453,6 +453,7 @@ class EventMetric(object):
         GROUP_NAVIGATION,
         GROUP_PROJECTS,
         GROUP_TASKS,
+        GROUP_MEDIA,
         GROUP_APP,
     ]
 
@@ -469,7 +470,9 @@ class EventMetric(object):
         "Viewed Projects",
         "Viewed Project Commands",
         "Created Task",
-        "Viewed Panel"
+        "Viewed Panel",
+        "Created Note",
+        "Created Reply"
     ]
 
     # Event property keys
