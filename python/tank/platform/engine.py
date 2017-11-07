@@ -1419,7 +1419,7 @@ class Engine(TankBundle):
     def get_debug_tracked_qt_widgets(self):
         """
         Returns a dictionary of debug info about created Qt dialogs and widgets.
-
+        
         The keys of the dictionary are the string representation of a widget and the 
         corresponding value is a reference to that widget.
         """
@@ -1431,47 +1431,7 @@ class Engine(TankBundle):
         """
         if widget:
             self.__qt_debug_info[widget.__repr__()] = weakref.ref(widget)
-
-    ##########################################################################################
-    # session management methods
-
-    def get_session_path(self):
-        """
-        Returns the absolute path of the current session if it resides
-        on disk. If the session has never been saved and isn't associated
-        with a file on disk yet, None is returned.
-
-        :returns: The absolute path to the current session if it resides on
-                  disk, else returns None.
-        :raises TankError: If the session being referred to is invalid or
-                           cannot be determined, this method will raise a
-                           TankError.
-        :raises NotImplementedError: If not overridden in the derived class,
-                                     this method raises a NotImplementedError.
-        """
-        raise NotImplementedError
-
-    def get_session_dependencies(self):
-        """
-        Returns a list of file dependencies for the current session.
-
-        :returns: A list of file dependencies required to load
-                  the session. The data returned is of the form:
-                  [
-                    {"path": "/foo/bar/hello.jpeg",
-                     "engine": "tk-maya",
-                     "type": "reference"
-                     },
-                    {"path": "/foo/bar/hello.obj",
-                     "engine": "tk-maya",
-                     "type": "file"
-                     },
-                  ]
-        :raises NotImplementedError: If not overridden in the derived class,
-                                     this method raises a NotImplementedError.
-        """
-        raise NotImplementedError
-
+        
     ##########################################################################################
     # private and protected methods
 
@@ -1705,7 +1665,7 @@ class Engine(TankBundle):
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         :type widget_class: :class:`PySide.QtGui.QWidget`
-
+            
         Additional parameters specified will be passed through to the widget_class constructor.
         """
 
