@@ -66,7 +66,6 @@ def _get_global_authentication_file_location():
 
     :returns: Path to the login information.
     """
-
     # try current generation path first
     path = os.path.join(
         LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
@@ -328,7 +327,7 @@ def get_session_data(base_url, login):
                 # We want to keep cookies out of the session data if there
                 # is none. This is to ensure backward compatibility for older
                 # version of tk-core reading the authentication.yml
-                if _COOKIES in user and user[_COOKIES] is not None:
+                if user.get(_COOKIES):
                     session_data[_COOKIES] = user[_COOKIES]
                 return session_data
         logger.debug("No cached user found for %s" % login)
