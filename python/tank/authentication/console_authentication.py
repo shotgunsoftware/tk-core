@@ -62,7 +62,7 @@ class ConsoleAuthenticationHandlerBase(object):
                 # Insert a \n on the current line so the print is displayed on a new time.
                 print()
                 raise AuthenticationCancelled()
-            except ConsoleLoginWithSSONotSupportedError, e:
+            except ConsoleLoginWithSSONotSupportedError as e:
                 # SSO login requires a QtApplication environment at this time.
                 print("%s" % e)
                 print()

@@ -131,7 +131,7 @@ class QtImporter(object):
         try:
             module = __import__(parent_module_name, globals(), locals(), [module_name])
             module = getattr(module, module_name)
-        except Exception, e:
+        except Exception as e:
             logger.debug("Unable to import module '%s': %s", module_name, e)
             pass
         return module
