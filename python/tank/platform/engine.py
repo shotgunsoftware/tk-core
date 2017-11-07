@@ -1438,8 +1438,8 @@ class Engine(TankBundle):
     def get_session_path(self):
         """
         Returns the absolute path of the current session if it resides
-        on disk. If the session has never been saved and isn't
-        associated with a file on disk yet, an empty string is returned.
+        on disk. If the session has never been saved and isn't associated
+        with a file on disk yet, None is returned.
 
         :returns: The absolute path to the current session if it resides on
                   disk, else returns None.
