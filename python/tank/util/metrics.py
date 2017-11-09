@@ -338,32 +338,32 @@ class MetricsDispatchWorkerThread(Thread):
         # Filter out metrics we don't want to send to the endpoint.
         filtered_metrics_data = []
         for metric in metrics:
-            # As first pass, discard events from unsupported event groups
-            if metric.is_supported_event_group:
-                data = metric.data
-                # As second pass re-structure unsupported events from supported groups
-                # (see more complete comment below)
-                if not metric.is_supported_event:
-                    # Still log the event but change its name so it's easy to
-                    # spot all unofficial events which are logged.
-                    # Later we might want to simply discard them instead of logging
-                    # them as "Unknown"
-                    # Forge a new properties dict with the original data under the
-                    # "Event Data" key
-                    properties = data["event_properties"]
-                    new_properties = {
-                        "Event Name": data["event_name"],
-                        "Event Data": properties,
-                        EventMetric.KEY_APP: properties.get(EventMetric.KEY_APP),
-                        EventMetric.KEY_APP_VERSION: properties.get(EventMetric.KEY_APP_VERSION),
-                        EventMetric.KEY_ENGINE: properties.get(EventMetric.KEY_ENGINE),
-                        EventMetric.KEY_ENGINE_VERSION: properties.get(EventMetric.KEY_ENGINE_VERSION),
-                        EventMetric.KEY_HOST_APP: properties.get(EventMetric.KEY_HOST_APP),
-                        EventMetric.KEY_HOST_APP_VERSION: properties.get(EventMetric.KEY_HOST_APP_VERSION),
-                    }
-                    data["event_properties"] = new_properties
-                    data["event_name"] = "Unknown Event"
-                filtered_metrics_data.append(data)
+            data = metric.data
+            # As second pass re-structure unsupported events from supported groups
+            # (see more complete comment below)
+            if not metric.is_supported_event:
+                # Still log the event but change its name so it's easy to
+                # spot all unofficial events which are logged.
+                # Later we might want to simply discard them instead of logging
+                # them as "Unknown"
+                # Forge a new properties dict with the original data under the
+                # "Event Data" key
+                properties = data["event_properties"]
+                new_properties = {
+                    "Event Name": data["event_name"],
+                    "Event Data": properties,
+                    EventMetric.KEY_APP: properties.get(EventMetric.KEY_APP),
+                    EventMetric.KEY_APP_VERSION: properties.get(EventMetric.KEY_APP_VERSION),
+                    EventMetric.KEY_ENGINE: properties.get(EventMetric.KEY_ENGINE),
+                    EventMetric.KEY_ENGINE_VERSION: properties.get(EventMetric.KEY_ENGINE_VERSION),
+                    EventMetric.KEY_HOST_APP: properties.get(EventMetric.KEY_HOST_APP),
+                    EventMetric.KEY_HOST_APP_VERSION: properties.get(EventMetric.KEY_HOST_APP_VERSION),
+                }
+                data["event_properties"] = new_properties
+                data["event_name"] = "Unknown Event"
+                data["event_group"] = EventMetric.GROUP_TOOLKIT
+
+            filtered_metrics_data.append(data)
 
         # Bail out if there is nothing to do
         if not filtered_metrics_data:
@@ -438,41 +438,40 @@ class EventMetric(object):
     ```
     """
 
-    # Toolkit internal event group
-    GROUP_TOOLKIT = "Toolkit"
-
-    # Other non-Toolkit supported event groups
+    # Supported event groups
+    GROUP_APP = "App"
     GROUP_MEDIA = "Media"
     GROUP_NAVIGATION = "Navigation"
     GROUP_PROJECTS = "Projects"
     GROUP_TASKS = "Tasks"
-    GROUP_APP = "App"
+    GROUP_TOOLKIT = "Toolkit"
 
-    SUPPORTED_GROUPS = [
-        GROUP_TOOLKIT,
-        GROUP_NAVIGATION,
-        GROUP_PROJECTS,
-        GROUP_TASKS,
-        GROUP_MEDIA,
-        GROUP_APP,
-    ]
+    EVENT_NAME_FORMAT = "%s: %s"
 
-    # List of Event names suported by our backend
+    # List of events suported by our backend
     SUPPORTED_EVENTS = [
-        "Launched Action",
-        "Launched Command",
-        "Launched Software",
-        "Loaded Published File",
-        "New Workfile",
-        "Opened Workfile",
-        "Published",
-        "Saved Workfile",
-        "Viewed Projects",
-        "Viewed Project Commands",
-        "Created Task",
-        "Viewed Panel",
-        "Created Note",
-        "Created Reply"
+        EVENT_NAME_FORMAT % (GROUP_APP, "Logged In"),
+        EVENT_NAME_FORMAT % (GROUP_APP, "Logged Out"),
+        EVENT_NAME_FORMAT % (GROUP_APP, "Viewed Login Page"),
+
+        EVENT_NAME_FORMAT % (GROUP_MEDIA, "Created Note"),
+        EVENT_NAME_FORMAT % (GROUP_MEDIA, "Created Reply"),
+
+        EVENT_NAME_FORMAT % (GROUP_NAVIGATION, "Viewed Projects"),
+        EVENT_NAME_FORMAT % (GROUP_NAVIGATION, "Viewed Panel"),
+
+        EVENT_NAME_FORMAT % (GROUP_PROJECTS, "Viewed Project Commands"),
+
+        EVENT_NAME_FORMAT % (GROUP_TASKS, "Created Task"),
+
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Action"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Command"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Software"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Loaded Published File"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Published"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "New Workfile"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Opened Workfile"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Saved Workfile")
     ]
 
     # Event property keys
@@ -505,11 +504,11 @@ class EventMetric(object):
 
     def __repr__(self):
         """Official str representation of the user activity metric."""
-        return "%s:%s" % (self._group, self._name)
+        return EventMetric.EVENT_NAME_FORMAT % (self._group, self._name)
 
     def __str__(self):
         """Readable str representation of the metric."""
-        return "%s: %s" % (self.__class__, self.data)
+        return EventMetric.EVENT_NAME_FORMAT % (self.__class__, self.data)
 
     @property
     def data(self):
@@ -523,13 +522,6 @@ class EventMetric(object):
         }
 
     @property
-    def is_supported_event_group(self):
-        """
-        :returns: ``True`` if this event group is supported by Toolkit, ``False`` otherwise.
-        """
-        return self._group in self.SUPPORTED_GROUPS
-
-    @property
     def is_supported_event(self):
         """
         Determine whether the metric is supported by Toolkit by checking both
@@ -538,7 +530,7 @@ class EventMetric(object):
 
         :return: ``True`` if this event is supported and handled by ToolKit, ``False`` otherwise.
         """
-        return self.is_supported_event_group and self._name in self.SUPPORTED_EVENTS
+        return repr(self) in EventMetric.SUPPORTED_EVENTS
 
     @classmethod
     def log(cls, group, name, properties=None, log_once=False):
