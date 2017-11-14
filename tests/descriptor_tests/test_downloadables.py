@@ -123,12 +123,15 @@ class TestDownloadableIODescriptors(TankTestBase):
         :return: The path of the zip file
         """
         text_file_path = os.path.join(tempfile.gettempdir(), "%s_tank_content" % uuid.uuid4().hex)
+        self.addCleanup(os.remove, text_file_path)
+
         # write 10 MB of data into the text file
         with open(text_file_path, "wb") as f:
             f.seek((1024 * 1024 * size) - 1)
             f.write("\0")
 
         zip_file_path = os.path.join(tempfile.gettempdir(), "%s_tank_source.zip" % uuid.uuid4().hex)
+        self.addCleanup(os.remove, zip_file_path)
         try:
             zf = zipfile.ZipFile(zip_file_path, "w")
             zf.write(text_file_path, arcname="large_binary_file")
