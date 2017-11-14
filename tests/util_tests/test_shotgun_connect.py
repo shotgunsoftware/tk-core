@@ -407,6 +407,10 @@ class AuthConnectionSettings(ConnectionSettingsTestCases.Impl):
     Tests proxy connection for site and appstore connections.
     """
 
+    def tearDown(self):
+        # Allows deletion of context tmp folder created by TankTestBase.setUpModule (global scope)
+        super(ConnectionSettingsTestCases.Impl, self).tearDown()
+
     def _run_test(
         self,
         site,
@@ -446,3 +450,8 @@ class AuthConnectionSettings(ConnectionSettingsTestCases.Impl):
                 source_store_proxy=source_store_proxy,
                 expected_store_proxy=expected_store_proxy
             )
+
+def tearDownModule():
+    from tank_test.tank_test_base import tearDownModule as baseTearDownModule
+    # Forwards necessary cleanup to parent module to avoid directly dealing with base module resources
+    baseTearDownModule()

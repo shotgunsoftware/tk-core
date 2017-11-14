@@ -10,6 +10,7 @@
 
 import os
 import tempfile
+import shutil
 import uuid
 import sgtk
 import tank
@@ -144,6 +145,7 @@ class TestApi(TankTestBase):
         bundle_root = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
 
         os.makedirs(bundle_root)
+        self.addCleanup(shutil.rmtree, bundle_root)
 
         d = sgtk.descriptor.create_descriptor(
             sg,
@@ -161,6 +163,7 @@ class TestApi(TankTestBase):
             "app_store",
             "tk-testaltcacheroot2",
             "v0.4.3")
+        self.addCleanup(shutil.rmtree, app_root_path)
         self._touch_info_yaml(app_root_path)
         self.assertEqual(d.get_path(), app_root_path)
 

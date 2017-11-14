@@ -36,6 +36,10 @@ class InteractiveTests(TankTestBase):
             self._app = QtGui.QApplication(sys.argv)
         super(InteractiveTests, self).setUp()
 
+    def tearDown(self):
+        # Allows deletion of context tmp folder created by TankTestBase.setUpModule (global scope)
+        super(TankTestBase.TestCase, self).tearDown()
+
     def test_site_and_user_disabled_on_session_renewal(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
@@ -302,3 +306,8 @@ class InteractiveTests(TankTestBase):
 
 # Class decorators don't exist on Python2.5
 InteractiveTests = skip_if_pyside_missing(InteractiveTests)
+
+def tearDownModule():
+    from tank_test.tank_test_base import tearDownModule as baseTearDownModule
+    # Forwards necessary cleanup to parent module to avoid directly dealing with base module resources
+    baseTearDownModule()

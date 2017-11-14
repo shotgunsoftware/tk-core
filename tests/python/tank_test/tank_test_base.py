@@ -138,6 +138,7 @@ def setUpModule():
 
     TANK_TEMP = os.path.join(temp_dir, temp_dir_name)
     # print out the temp data location
+
     msg = "Toolkit test data location: %s" % TANK_TEMP
     print("\n" + "=" * len(msg))
     print(msg)
@@ -157,6 +158,12 @@ def setUpModule():
     # copy tank engine code into place
     os.makedirs(os.path.join(install_dir, "engines"))
 
+def tearDownModule():
+    # Last chance to delete what was created in `TANK_TEMP`
+    if TANK_TEMP:
+        if os.path.exists(TANK_TEMP):
+            if os.path.isdir(TANK_TEMP):
+                shutil.rmtree(TANK_TEMP)
 
 class TankTestBase(unittest.TestCase):
     """
@@ -279,6 +286,7 @@ class TankTestBase(unittest.TestCase):
         mockgun.Shotgun.set_schema_paths(mockgun_schema_path, mockgun_schema_entity_path)
 
         self.tank_temp = TANK_TEMP
+        self.addCleanup(shutil.rmtree, self.tank_temp)
 
         self.cache_root = os.path.join(self.tank_temp, "cache_root")
 
@@ -395,6 +403,10 @@ class TankTestBase(unittest.TestCase):
 
         # back up the authenticated user in case a unit test doesn't clean up correctly.
         self._authenticated_user = sgtk.get_authenticated_user()
+
+    def tearDown(self):
+        # Add `TankTestBase` cleanup here
+        super(unittest.TestCase, self).tearDown()
 
     def _mock_return_value(self, to_mock, return_value):
         """
