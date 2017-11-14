@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.log &mdash; tk-core v0.18.116 documentation</title>
+  <title>tank.log &mdash; tk-core v0.18.117 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.116 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.117 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.116.<br>
+    <b>tk-core</b> v0.18.117.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -689,6 +689,22 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the state of the global debug in toolkit.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">state</span><span class="p">:</span>
+            <span class="c1"># This needs to be logged before we turn off the global</span>
+            <span class="c1"># debug logging.</span>
+            <span class="c1">#</span>
+            <span class="c1"># We don&#39;t want subprocesses of this process to spawn with</span>
+            <span class="c1"># logging on. An example of where this is useful is in the</span>
+            <span class="c1"># comment below, where the case of tk-desktop is outlined.</span>
+            <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;Removing </span><span class="si">%s</span><span class="s2"> from the environment for this session. This &quot;</span>
+                    <span class="s2">&quot;ensures that subprocesses spawned from this process will &quot;</span>
+                    <span class="s2">&quot;inherit the global debug logging setting from this process.&quot;</span><span class="p">,</span>
+                    <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span>
+                <span class="p">)</span>
+                <span class="k">del</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span><span class="p">]</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_global_debug</span> <span class="o">=</span> <span class="n">state</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_debug</span><span class="p">:</span>
             <span class="n">new_log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
@@ -712,6 +728,24 @@
                 <span class="s2">&quot;Debug logging enabled. To permanently enable it, &quot;</span>
                 <span class="s2">&quot;set the </span><span class="si">%s</span><span class="s2"> environment variable.&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span>
             <span class="p">)</span>
+            <span class="c1"># This needs to be logged after the global debug has been</span>
+            <span class="c1"># turned on, which is why it is happening last.</span>
+            <span class="c1">#</span>
+            <span class="c1"># Setting the environment variable for this session will</span>
+            <span class="c1"># mean that any subprocesses spawned will inherit debug</span>
+            <span class="c1"># logging from this process. A good example of where this</span>
+            <span class="c1"># is advantageous is in tk-desktop, where we provide a</span>
+            <span class="c1"># menu action to toggle debug logging. When it is toggled</span>
+            <span class="c1"># on, we set the env var here, which then means that when</span>
+            <span class="c1"># a user navigates to a project in SG Desktop, the Python</span>
+            <span class="c1"># subprocess spawned will also have debug logging active.</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Setting </span><span class="si">%s</span><span class="s2"> in the environment for this session. This &quot;</span>
+                <span class="s2">&quot;ensures that subprocesses spawned from this process will &quot;</span>
+                <span class="s2">&quot;inherit the global debug logging setting from this process.&quot;</span><span class="p">,</span>
+                <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span>
+            <span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
 
     <span class="k">def</span> <span class="nf">_get_global_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1004,7 +1038,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.116',
+            VERSION:'v0.18.117',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

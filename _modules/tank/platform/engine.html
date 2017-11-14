@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.116 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.117 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.116 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.117 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.116.<br>
+    <b>tk-core</b> v0.18.117.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -377,9 +377,18 @@
         <span class="c1"># point we want to try and have all app initialization complete.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__run_post_engine_inits</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">SHELL_ENGINE_NAME</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span><span class="p">]</span> \
-                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__has_018_logging_support</span><span class="p">():</span>
+        <span class="c1"># The new way to handle this situation is via the register_toggle_debug_command</span>
+        <span class="c1"># property on the engine. We also explicitly skip the shell and shotgun engines</span>
+        <span class="c1"># here for the sake of backwards compatibility, as these engines have always</span>
+        <span class="c1"># skipped registering the command by name.</span>
+        <span class="n">is_skipped_engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="n">constants</span><span class="o">.</span><span class="n">SHELL_ENGINE_NAME</span><span class="p">,</span>
+            <span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">supports_018_logging</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__has_018_logging_support</span><span class="p">()</span>
+        <span class="n">wants_toggle_debug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">register_toggle_debug_command</span>
 
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_skipped_engine</span> <span class="ow">and</span> <span class="n">supports_018_logging</span> <span class="ow">and</span> <span class="n">wants_toggle_debug</span><span class="p">:</span>
             <span class="c1"># if engine supports new logging implementation,</span>
             <span class="c1">#</span>
             <span class="c1"># we cannot add the &#39;toggle debug logging&#39; for</span>
@@ -836,6 +845,16 @@
             <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;unknown&quot;</span><span class="p">,</span>
             <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;unknown&quot;</span><span class="p">,</span>
         <span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">register_toggle_debug_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Indicates whether the engine should have a toggle debug logging</span>
+<span class="sd">        command registered during engine initialization.</span>
+
+<span class="sd">        :rtype: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">True</span>
 
     <span class="c1">##########################################################################################</span>
     <span class="c1"># init and destroy</span>
@@ -3249,7 +3268,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.116',
+            VERSION:'v0.18.117',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

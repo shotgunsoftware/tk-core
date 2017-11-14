@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.api &mdash; tk-core v0.18.116 documentation</title>
+  <title>tank.api &mdash; tk-core v0.18.117 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.116 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.117 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -116,7 +116,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.116.<br>
+    <b>tk-core</b> v0.18.117.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -822,6 +822,11 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Factory method that constructs a context object from a path on disk.</span>
 
+<span class="sd">        .. note:: If you&#39;re running this method on a render farm or on a machine where the</span>
+<span class="sd">                  path cache may not have already been generated then you will need to run</span>
+<span class="sd">                  :meth:`synchronize_filesystem_structure` beforehand, otherwise you will</span>
+<span class="sd">                  get back a context only containing the shotgun site URL.</span>
+
 <span class="sd">        :param path: a file system path</span>
 <span class="sd">        :param previous_context: A context object to use to try to automatically extend the generated</span>
 <span class="sd">                                 context if it is incomplete when extracted from the path. For example,</span>
@@ -862,7 +867,7 @@
 <span class="sd">             &quot;project&quot;: {&quot;type&quot;: &quot;Project&quot;, &quot;id&quot;: 123, &quot;name&quot;: &quot;My Project&quot;}</span>
 <span class="sd">            }</span>
 
-<span class="sd">            {&quot;type&quot;: &quot;Task&quot;, &quot;id&quot;: 789, &quot;name&quot;: &quot;Animation&quot;,</span>
+<span class="sd">            {&quot;type&quot;: &quot;Task&quot;, &quot;id&quot;: 789, &quot;content&quot;: &quot;Animation&quot;,</span>
 <span class="sd">             &quot;project&quot;: {&quot;type&quot;: &quot;Project&quot;, &quot;id&quot;: 123, &quot;name&quot;: &quot;My Project&quot;}</span>
 <span class="sd">             &quot;entity&quot;: {&quot;type&quot;: &quot;Shot&quot;, &quot;id&quot;: 456, &quot;name&quot;: &quot;Shot 001&quot;}</span>
 <span class="sd">             &quot;step&quot;: {&quot;type&quot;: &quot;Step&quot;, &quot;id&quot;: 101112, &quot;name&quot;: &quot;Anm&quot;}</span>
@@ -879,7 +884,7 @@
 <span class="sd">            {&quot;type&quot;: &quot;Shot&quot;, &quot;id&quot;: 456, &quot;code&quot;: &quot;Shot 001&quot;}</span>
 
 <span class="sd">            # missing linked project name and linked step</span>
-<span class="sd">            {&quot;type&quot;: &quot;Task&quot;, &quot;id&quot;: 789, &quot;name&quot;: &quot;Animation&quot;,</span>
+<span class="sd">            {&quot;type&quot;: &quot;Task&quot;, &quot;id&quot;: 789, &quot;content&quot;: &quot;Animation&quot;,</span>
 <span class="sd">             &quot;project&quot;: {&quot;type&quot;: &quot;Project&quot;, &quot;id&quot;: 123}}</span>
 <span class="sd">             &quot;entity&quot;: {&quot;type&quot;: &quot;Shot&quot;, &quot;id&quot;: 456, &quot;name&quot;: &quot;Shot 001&quot;}</span>
 <span class="sd">            }</span>
@@ -1069,7 +1074,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.116',
+            VERSION:'v0.18.117',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
