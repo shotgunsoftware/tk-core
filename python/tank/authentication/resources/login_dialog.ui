@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>364</width>
-    <height>321</height>
+    <height>304</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -221,19 +221,6 @@ QLineEdit:Disabled {
          </property>
          <item>
           <layout class="QVBoxLayout" name="links">
-           <item>
-            <widget class="QLabel" name="use_sso_link">
-             <property name="text">
-              <string>&lt;a href=&quot;about:blank&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;Use Single Sign-On (SSO)&lt;/span&gt;&lt;/a&gt;</string>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::RichText</enum>
-             </property>
-             <property name="margin">
-              <number>4</number>
-             </property>
-            </widget>
-           </item>
            <item>
             <widget class="QLabel" name="forgot_password_link">
              <property name="cursor">

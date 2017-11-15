@@ -33,6 +33,11 @@ logger = LogManager.get_logger(__name__)
 # Name used to identify the client application when connecting via SSO to Shotugn.
 PRODUCT_IDENTIFIER = "toolkit"
 
+# Checking for SSO support on a site takes a few moments. When the user enters
+# a Shotgun site URL, we check for SSO support (and update the GUI) only after
+# the user has stopped for longer than the delay (in ms).
+USER_INPUT_DELAY_BEFORE_SSO_CHECK = 300
+
 
 class LoginDialog(QtGui.QDialog):
     """
@@ -66,6 +71,13 @@ class LoginDialog(QtGui.QDialog):
         self._cookies = cookies
         self._use_sso = False
 
+        # Timer to update the GUI according to the URL, if SSO is supported or not.
+        # This is to make the UX smoother, as we do not check after each character
+        # typed, but instead wait for a period of inactivity from the user.
+        self._url_changed_timer = QtCore.QTimer(self)
+        self._url_changed_timer.setSingleShot(True)
+        self._url_changed_timer.timeout.connect(self._update_ui_according_to_sso)
+
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
         self.ui.setupUi(self)
@@ -95,10 +107,8 @@ class LoginDialog(QtGui.QDialog):
                 "You are renewing your session: you can't change your login."
             )
             self._set_login_message("Your session has expired. Please enter your password.")
-            self.ui.use_sso_link.setVisible(False)
         else:
             self._set_login_message("Please enter your credentials.")
-            self.ui.use_sso_link.linkActivated.connect(self._toggle_sso)
 
         # Set the focus appropriately on the topmost line edit that is empty.
         if self.ui.site.text():
@@ -123,13 +133,27 @@ class LoginDialog(QtGui.QDialog):
         self.ui.forgot_password_link.linkActivated.connect(self._link_activated)
 
         self.ui.site.editingFinished.connect(self._strip_whitespaces)
+        self.ui.site.textEdited.connect(self._site_url_changed)
         self.ui.login.editingFinished.connect(self._strip_whitespaces)
         self.ui._2fa_code.editingFinished.connect(self._strip_whitespaces)
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
 
-        url = self.ui.site.text().encode("utf-8")
-        if is_sso_enabled_on_site(url):
+        self._update_ui_according_to_sso()
+
+    def _update_ui_according_to_sso(self):
+        """
+        Updates the GUI if SSO is supported or not, hiding or showing the username/password fields.
+        """
+        url_to_test = self.ui.site.text().encode("utf-8").strip()
+        sso_enabled = is_sso_enabled_on_site(url_to_test)
+        if self._use_sso != sso_enabled:
             self._toggle_sso()
+
+    def _site_url_changed(self, text):
+        """
+        Starts a timer to wait until the user stops entering the URL .
+        """
+        self._url_changed_timer.start(USER_INPUT_DELAY_BEFORE_SSO_CHECK)
 
     def _strip_whitespaces(self):
         """
@@ -163,10 +187,8 @@ class LoginDialog(QtGui.QDialog):
         self._use_sso = not self._use_sso
         if self._use_sso:
             self.ui.message.setText("Sign in using your Single Sign-On (SSO) Account.")
-            self.ui.use_sso_link.setText("<a href=\"about:blank\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Use Shotgun Account</span></a>")
         else:
             self.ui.message.setText("Please enter your credentials.")
-            self.ui.use_sso_link.setText("<a href=\"about:blank\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Use Single Sign-On (SSO)</span></a>")
         self.ui.login.setVisible(not self._use_sso)
         self.ui.password.setVisible(not self._use_sso)
 
