@@ -33,6 +33,11 @@ logger = LogManager.get_logger(__name__)
 # Name used to identify the client application when connecting via SSO to Shotugn.
 PRODUCT_IDENTIFIER = "toolkit"
 
+# Checking for SSO support on a site takes a few moments. When the user enters
+# a Shotgun site URL, we check for SSO support (and update the GUI) only after
+# the user has stopped for longer than the delay (in ms).
+USER_INPUT_DELAY_BEFORE_SSO_CHECK = 300
+
 
 class LoginDialog(QtGui.QDialog):
     """
@@ -71,7 +76,7 @@ class LoginDialog(QtGui.QDialog):
         # typed, but instead wait for a period of inactivity from the user.
         self._url_changed_timer = QtCore.QTimer(self)
         self._url_changed_timer.setSingleShot(True)
-        self._url_changed_timer.timeout.connect(self._update_ui_accorging_to_sso)
+        self._url_changed_timer.timeout.connect(self._update_ui_according_to_sso)
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
@@ -134,9 +139,9 @@ class LoginDialog(QtGui.QDialog):
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
 
         self._url_to_test = self.ui.site.text().encode("utf-8").strip()
-        self._update_ui_accorging_to_sso()
+        self._update_ui_according_to_sso()
 
-    def _update_ui_accorging_to_sso(self):
+    def _update_ui_according_to_sso(self):
         """
         Updates the GUI if SSO is supported or not, hiding or showing the username/password fields.
 
@@ -150,7 +155,7 @@ class LoginDialog(QtGui.QDialog):
         Starts a timer to wait until the user stops entering the URL .
         """
         self._url_to_test = text.strip()
-        self._url_changed_timer.start(200)
+        self._url_changed_timer.start(USER_INPUT_DELAY_BEFORE_SSO_CHECK)
 
     def _strip_whitespaces(self):
         """
