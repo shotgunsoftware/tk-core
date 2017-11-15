@@ -143,7 +143,6 @@ class LoginDialog(QtGui.QDialog):
     def _update_ui_according_to_sso(self):
         """
         Updates the GUI if SSO is supported or not, hiding or showing the username/password fields.
-
         """
         url_to_test = self.ui.site.text().encode("utf-8").strip()
         sso_enabled = is_sso_enabled_on_site(url_to_test)
