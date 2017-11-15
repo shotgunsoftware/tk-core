@@ -13,7 +13,6 @@ from __future__ import print_function
 import sys
 import os
 import glob
-import platform
 import tempfile
 import time
 

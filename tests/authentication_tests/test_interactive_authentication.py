@@ -36,10 +36,6 @@ class InteractiveTests(TankTestBase):
             self._app = QtGui.QApplication(sys.argv)
         super(InteractiveTests, self).setUp()
 
-    def tearDown(self):
-        # Allows deletion of context tmp folder created by TankTestBase.setUpModule (global scope)
-        super(TankTestBase.TestCase, self).tearDown()
-
     def test_site_and_user_disabled_on_session_renewal(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
@@ -304,10 +300,29 @@ class InteractiveTests(TankTestBase):
             # Text should be cleaned of spaces now.
             self.assertEqual(widget.text(), "text")
 
-# Class decorators don't exist on Python2.5
-InteractiveTests = skip_if_pyside_missing(InteractiveTests)
 
 def tearDownModule():
-    from tank_test.tank_test_base import tearDownModule as baseTearDownModule
+    """
+    Enforce tank_test.tank_test_base import tearDownModule in special cases
+
+    On a system not provisioned with PySide, combined with the non-usage
+    of the --interactive test option, all tests of the 'InteractiveTests'
+    class would be skipped.
+
+    The tant_test_base.setUpModule() would still have created a context test folder.
+    Because the entire class would be skipped, no tearDown() call would be made and
+    we end up with a resource leak.
+
+    In a scenario having PySide OR making use of the --interactive test option,
+    at least one test would be run, the base tearDown() method would be called
+    and the usual test folder be deleted. Having this extra code is not
+    causing any harm, the cleanup would simply be a no-op in such a case.
+    """
+    import tank_test.tank_test_base
+
     # Forwards necessary cleanup to parent module to avoid directly dealing with base module resources
-    baseTearDownModule()
+    tank_test.tank_test_base.tearDownModule()
+
+
+# Class decorators don't exist on Python2.5
+InteractiveTests = skip_if_pyside_missing(InteractiveTests)
