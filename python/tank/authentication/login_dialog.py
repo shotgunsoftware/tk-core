@@ -138,7 +138,6 @@ class LoginDialog(QtGui.QDialog):
         self.ui._2fa_code.editingFinished.connect(self._strip_whitespaces)
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
 
-        self._url_to_test = self.ui.site.text().encode("utf-8").strip()
         self._update_ui_according_to_sso()
 
     def _update_ui_according_to_sso(self):
@@ -146,7 +145,8 @@ class LoginDialog(QtGui.QDialog):
         Updates the GUI if SSO is supported or not, hiding or showing the username/password fields.
 
         """
-        sso_enabled = is_sso_enabled_on_site(self._url_to_test)
+        url_to_test = self.ui.site.text().encode("utf-8").strip()
+        sso_enabled = is_sso_enabled_on_site(url_to_test)
         if self._use_sso != sso_enabled:
             self._toggle_sso()
 
@@ -154,7 +154,6 @@ class LoginDialog(QtGui.QDialog):
         """
         Starts a timer to wait until the user stops entering the URL .
         """
-        self._url_to_test = text.strip()
         self._url_changed_timer.start(USER_INPUT_DELAY_BEFORE_SSO_CHECK)
 
     def _strip_whitespaces(self):
