@@ -13,6 +13,7 @@ import tempfile
 import uuid
 import sgtk
 import tank
+import shutil
 
 from tank_test.tank_test_base import TankTestBase
 from tank_test.tank_test_base import setUpModule # noqa
@@ -163,6 +164,9 @@ class TestApi(TankTestBase):
             "v0.4.3")
         self._touch_info_yaml(app_root_path)
         self.assertEqual(d.get_path(), app_root_path)
+
+        # Cleanup the 'bundleroot' created above
+        shutil.rmtree(bundle_root)
 
     def _test_uri(self, uri, location_dict):
 

@@ -13,6 +13,9 @@ from __future__ import print_function
 import sys
 import os
 import glob
+import tempfile
+import time
+
 from optparse import OptionParser
 
 
@@ -40,6 +43,9 @@ print("Adding tests/python/third_party location to python_path: %s" % test_pytho
 sys.path = [test_python_path] + sys.path
 
 import unittest2 as unittest
+
+# Requires the extra sys paths added above
+import tank_test.misc_test_utils as utils
 
 
 class TankTestRunner(object):
@@ -223,9 +229,70 @@ def _parse_command_line():
     return options, test_names
 
 
+def test_leaked_files_after_date(test_start_time):
+    """
+    Heuristically try to determine whether any of the tests leaked some resource files
+    :param test_start_time: double unix timestamp
+    :return: integer 1 on failure else returns 0
+    """
+
+    know_tank_filemasks = [
+        "tankTemporaryTestData",
+        "_tank_source",
+        "_tank_content"
+    ]
+
+    temp_dir = tempfile.gettempdir()
+    all_files_and_folders = os.listdir(temp_dir)
+
+    possibly_leaking_resources = []
+    leaking_resources = []
+    for f in all_files_and_folders:
+        try:
+            full_path = os.path.join(temp_dir, f)
+            d = utils.creation_date(full_path)
+            if d >= test_start_time:
+                basename = os.path.basename(full_path)
+                if any(fm in basename for fm in know_tank_filemasks):
+                    leaking_resources.append(full_path)
+                else:
+                    possibly_leaking_resources.append(full_path)
+
+        except Exception as e:
+            print("Exception: %s" % (str(e)))
+
+    #
+    # Prints out 'possible' resource leaks
+    #
+    print("")
+    for f in possibly_leaking_resources:
+        print("WARNING: Possible resource leak: %s" % str(f))
+
+    #
+    # Prints out known resource leaks
+    #
+    if not leaking_resources:
+        return 0
+
+    print("")
+    total_leaked_bytes = 0
+    for f in leaking_resources:
+        entry_size = utils.get_size(f)
+        total_leaked_bytes = total_leaked_bytes + entry_size
+        print("ERROR: %s leaked, Test resource leak: %s" % (utils.format_value(entry_size), str(f)))
+
+    if total_leaked_bytes:
+        print("ERROR: %s total leaked" % utils.format_value(total_leaked_bytes))
+
+    return 1
+
+
 if __name__ == "__main__":
 
     options, test_names = _parse_command_line()
+
+    # Create a time marker
+    test_start_time = time.time()
 
     # Do not import Toolkit before coverage or it will tank (pun intended) our coverage
     # score. We'll do this test even when we're not running code coverage to make sure
@@ -253,7 +320,8 @@ if __name__ == "__main__":
         _finalize_coverage(cov)
 
     # Exit value determined by failures and errors
-    exit_val = 0
+    exit_val = test_leaked_files_after_date(test_start_time)
+
     if ret_val.errors or ret_val.failures:
         exit_val = 1
     sys.exit(exit_val)

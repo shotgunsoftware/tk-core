@@ -138,6 +138,7 @@ def setUpModule():
 
     TANK_TEMP = os.path.join(temp_dir, temp_dir_name)
     # print out the temp data location
+
     msg = "Toolkit test data location: %s" % TANK_TEMP
     print("\n" + "=" * len(msg))
     print(msg)
@@ -156,6 +157,15 @@ def setUpModule():
 
     # copy tank engine code into place
     os.makedirs(os.path.join(install_dir, "engines"))
+
+def tearDownModule():
+    """
+    Cleanup what was created in 'setUpModule'
+    """
+    if TANK_TEMP:
+        if os.path.exists(TANK_TEMP):
+            if os.path.isdir(TANK_TEMP):
+                shutil.rmtree(TANK_TEMP)
 
 
 class TankTestBase(unittest.TestCase):
@@ -438,6 +448,10 @@ class TankTestBase(unittest.TestCase):
 
             # move project scaffold out of the way
             self._move_project_data()
+
+            # Force cleanup
+            tearDownModule()
+
             # important to delete this to free memory
             self.tk = None
         finally:
