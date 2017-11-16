@@ -13,6 +13,10 @@ from __future__ import print_function
 import sys
 import os
 import glob
+import datetime
+import tempfile
+import uuid
+import shutil
 from optparse import OptionParser
 
 
@@ -200,6 +204,11 @@ def _parse_command_line():
     :returns: The options and the name of the unit test specified on the command line, if any.
     """
     parser = OptionParser()
+    # TODO: ask aout the 'action' params below
+    parser.add_option("--clean-temp-data",
+                      action="store_true",
+                      dest="clean_temp_data",
+                      help="delete all temporary test data on test run completion")
     parser.add_option("--with-coverage",
                       action="store_true",
                       dest="coverage",
@@ -224,6 +233,27 @@ def _parse_command_line():
 
 
 if __name__ == "__main__":
+
+    #
+    # Figure out and create our own base temporary storage into which
+    # everything else will be created. It will be easy then to cleanup
+    # everything we create.
+    #
+    current_base_tmpdir = tempfile.gettempdir()
+    timestamp_str = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    hex128bit_str = uuid.uuid4()
+    current_test_run_subdir = "tk-core-tests-%s-%s" % (timestamp_str,hex128bit_str)
+    new_base_tempdir = os.path.join(current_base_tmpdir, current_test_run_subdir)
+    os.makedirs(new_base_tempdir)
+
+    # Now that we have our global test run subdir created, let's
+    # re-assign tempfile.temdir() value to be used a new base directory
+    #
+    # NOTE: There is no need to save the current value of 'tempfile.tempdir'
+    #       for later restoring. This is not changing value of default
+    #       temporary directory for anything else than this instance of
+    #       the 'tempfile' module. Overall system is not affected.
+    tempfile.tempdir = new_base_tempdir
 
     options, test_names = _parse_command_line()
 
@@ -256,4 +286,10 @@ if __name__ == "__main__":
     exit_val = 0
     if ret_val.errors or ret_val.failures:
         exit_val = 1
+
+    if options.clean_temp_data:
+        # Note: relying on own value rather than tempfile.tempdir
+        print("\nCleaning up '%s'" % (new_base_tempdir))
+        shutil.rmtree(new_base_tempdir)
+
     sys.exit(exit_val)
