@@ -278,7 +278,6 @@ def test_leaked_files_after_date(test_start_time):
     total_leaked_bytes = 0
     for f in leaking_resources:
         entry_size = utils.get_size(f)
-        #entry_size = get_total_size(f)
         total_leaked_bytes = total_leaked_bytes + entry_size
         print("ERROR: %s leaked, Test resource leak: %s" % (utils.format_value(entry_size), str(f)))
 
