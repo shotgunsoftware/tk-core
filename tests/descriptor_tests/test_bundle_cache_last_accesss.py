@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import TankTestBase, setUpModule
 
 import sgtk
 from sgtk.descriptor.bundle_cache_last_access import BundleCacheLastAccess

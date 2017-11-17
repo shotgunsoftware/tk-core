@@ -14,23 +14,9 @@ all Tank items in the file system are kept.
 
 """
 
-import collections
 import sqlite3
-import sys
 import os
-import itertools
-
-# use api json to cover py 2.5
-# todo - replace with proper external library
-from tank_vendor import shotgun_api3
-
-json = shotgun_api3.shotgun.json
-
-from .platform.engine import show_global_busy, clear_global_busy
-from . import constants
-from .errors import TankError
-from . import LogManager
-from .util.login import get_current_user
+from .. import LogManager
 
 # Shotgun field definitions to store the path cache data
 SHOTGUN_ENTITY = "FilesystemLocation"
@@ -51,7 +37,7 @@ class BundleCacheLastAccess(object):
     A local flat file SQLite-based database tracking bundle cache accesses.
     """
 
-    def __init__(self, tk):
+    def __init__(self):
         """
         Constructor.
         """
