@@ -247,6 +247,27 @@ class LogManager(object):
     # keeps track of the single instance of the class
     __instance = None
 
+    class _Rerouter(logging.Handler):
+        """
+        Reroutes logs from a given logger to the Toolkit logger.
+        """
+        def __init__(self, logger):
+            super(LogManager._Rerouter, self).__init__()
+            self._redirect = LogManager.get_logger(logger.name)
+
+        def filter(self, record):
+            # If the record was emitted at a lower level that ours, we want to
+            # drop it.
+            sgtk_log_level = logging.DEBUG if LogManager().global_debug else logging.INFO
+            if record.levelno < sgtk_log_level:
+                return 0
+            else:
+                return 1
+
+        def emit(self, log_record):
+            log_record.name = self._redirect.name
+            self._redirect.handle(log_record)
+
     class _SafeRotatingFileHandler(RotatingFileHandler):
         """
         Provides all the functionality provided by Python's built-in RotatingFileHandler, but with a
@@ -257,7 +278,9 @@ class LogManager(object):
         appending to the current log file.
         """
 
-        def __init__(self, filename, mode="a", maxBytes=0, backupCount=0, encoding=None):
+        # We need to keep maxBytes with the mixed case because that's the signature of that
+        # parameter on the rotating file handler.
+        def __init__(self, filename, mode="a", maxBytes=0, backupCount=0, encoding=None): # noqa
             """
             :param str filename: Name of of the log file.
             :param str mode: Mode to open the file, should be  "w" or "a". Defaults to "a"
@@ -513,8 +536,6 @@ class LogManager(object):
             return response
         return wrapper
 
-
-
     def _set_global_debug(self, state):
         """
         Sets the state of the global debug in toolkit.
@@ -707,6 +728,39 @@ class LogManager(object):
             )
         )
 
+    def attach_external_logger(self, logger):
+        """
+        Attaches a non-sgtk based logger to the Toolkit logger. The messages
+        will be forwarded to the Toolkit logs as if they were emitted from
+        sgtk.ext.<logger.name>. Note that attaching your logger to Toolkit's
+        will set your logging level to DEBUG so every messages gets forwarded to
+        Toolkit so that Toolkit can make the decision to write out a message or
+        not.
+
+        :param logger: Python logger that we want to attach to our logs.
+        """
+        # If we're already attached, do not attach a second time.
+        for handler in logger.handlers:
+            if isinstance(handler, self._Rerouter):
+                return
+
+        logger.setLevel(logging.DEBUG)
+
+        rerouter = self._Rerouter(logger)
+        # We want to forward everything to our logger and our logger will make
+        # the decision of what to actually log.
+        rerouter.setLevel(logging.DEBUG)
+        logger.addHandler(rerouter)
+
+    def detach_external_logger(self, logger):
+        """
+        Detaches an external logger so it is no redirected to our logs anymore.
+        """
+        for handler in logger.handlers:
+            if isinstance(handler, self._Rerouter):
+                logger.removeHandler(handler)
+                return
+
     def initialize_base_file_handler_from_path(self, log_file):
         """
         Create a file handler and attach it to the sgtk base logger.
@@ -773,13 +827,17 @@ class LogManager(object):
         # return previous log name
         return previous_log_file
 
+
 # the logger for logging messages from this file :)
 log = LogManager.get_logger(__name__)
+
 
 # initialize toolkit logging
 #
 # retrieve top most logger in the sgtk hierarchy
 sgtk_root_logger = logging.getLogger(constants.ROOT_LOGGER_NAME)
+
+
 # 'cap it' so that log messages don't propagate
 # further upwards in the hierarchy. This is to avoid
 # log message spilling over into other loggers; if you
@@ -787,11 +845,15 @@ sgtk_root_logger = logging.getLogger(constants.ROOT_LOGGER_NAME)
 # explicitly attach a log handler to the sgtk top level
 # logger (or any of its child loggers).
 sgtk_root_logger.propagate = False
+
+
 # The top level logger object has its message throughput
 # level set to DEBUG by default.
 # this should not be changed, but any filtering
 # should happen via log handlers
 sgtk_root_logger.setLevel(logging.DEBUG)
+
+
 #
 # create a 'nop' log handler to be attached.
 # this is to avoid warnings being reported that
@@ -800,5 +862,7 @@ sgtk_root_logger.setLevel(logging.DEBUG)
 class NullHandler(logging.Handler):
     def emit(self, record):
         pass
+
+
 # and add it to the logger
 sgtk_root_logger.addHandler(NullHandler())
