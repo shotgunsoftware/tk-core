@@ -235,17 +235,16 @@ def _parse_command_line():
 if __name__ == "__main__":
 
     #
-    # Figure out and create our own base temporary storage into which
-    # everything else will be created. It will be easy then to cleanup
-    # everything we create.
+    # Create our own temporary base storage into which everything
+    # will be created. Having a single top-level folder will make
+    # complete deletion very easy.
     #
-    current_base_tmpdir = tempfile.gettempdir()
     timestamp_str = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    hex128bit_str = uuid.uuid4()
-    current_test_run_subdir = "tk-core-tests-%s-%s" % (timestamp_str,hex128bit_str)
-    new_base_tempdir = os.path.join(current_base_tmpdir, current_test_run_subdir)
+    current_test_run_subdir = "tk-core-tests-%s-%s" % (timestamp_str, uuid.uuid4())
+    new_base_tempdir = os.path.join(tempfile.gettempdir(), current_test_run_subdir)
     os.makedirs(new_base_tempdir)
 
+    #
     # Now that we have our global test run subdir created, let's
     # re-assign tempfile.temdir() value to be used a new base directory
     #
@@ -253,6 +252,7 @@ if __name__ == "__main__":
     #       for later restoring. This is not changing value of default
     #       temporary directory for anything else than this instance of
     #       the 'tempfile' module. Overall system is not affected.
+    #
     tempfile.tempdir = new_base_tempdir
 
     options, test_names = _parse_command_line()
