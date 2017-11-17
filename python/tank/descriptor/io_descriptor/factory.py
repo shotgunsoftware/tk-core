@@ -23,7 +23,8 @@ def create_io_descriptor(
         bundle_cache_root,
         fallback_roots,
         resolve_latest,
-        constraint_pattern=None):
+        constraint_pattern=None,
+        use_non_default_bundle_cache=False):  # TODO: DO find a better to propagate the special condition
     """
     Factory method. Use this method to construct all DescriptorIO instances.
 
@@ -109,6 +110,10 @@ def create_io_descriptor(
 
     # specify where to go look for caches
     descriptor.set_cache_roots(bundle_cache_root, fallback_roots)
+    # also specify whether this is using a non-default bundle cache
+    # this will be used further down the path to determine whether or not
+    # the content is purgeable.
+    descriptor.set_use_non_default_bundle_cache_root(use_non_default_bundle_cache)
 
     if resolve_latest:
         # attempt to get "remote" latest first

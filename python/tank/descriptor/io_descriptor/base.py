@@ -19,11 +19,12 @@ from ... import LogManager
 from ...util import filesystem
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
+from ..bundle_cache_usage import bundle_cache_usage_mgr
+from ..bundle_cache_usage import LOG_GET_PATH, LOG_DESCRIPTOR_TYPE # TODO: temporary
 
 from tank_vendor import yaml
 
 log = LogManager.get_logger(__name__)
-
 
 class IODescriptorBase(object):
     """
@@ -51,6 +52,7 @@ class IODescriptorBase(object):
         self._descriptor_dict = descriptor_dict
         self.__manifest_data = None
         self._is_copiable = True
+        self._use_non_default_bundle_cache_root = False
 
     def set_cache_roots(self, primary_root, fallback_roots):
         """
@@ -74,6 +76,9 @@ class IODescriptorBase(object):
         """
         self._bundle_cache_root = primary_root
         self._fallback_roots = fallback_roots
+
+    def set_use_non_default_bundle_cache_root(self, use_non_default_bundle_cache_root):
+        self._use_non_default_bundle_cache_root = use_non_default_bundle_cache_root
 
     def __str__(self):
         """
@@ -570,6 +575,16 @@ class IODescriptorBase(object):
         """
         return True
 
+    def is_purgeable(self):
+        """
+        Returns whether or not the descriptor content can deleted by bundle cache manager code.
+
+        This base class defaults the behavior to False, but sub-classes might override this as required.
+
+        :returns: False (for base class), the description content cannot be deleted.
+        """
+        return False
+
     def ensure_local(self):
         """
         Convenience method. Ensures that the descriptor exists locally.
@@ -632,10 +647,44 @@ class IODescriptorBase(object):
         Returns the path to the folder where this item resides. If no
         cache exists for this path, None is returned.
         """
-        for path in self._get_cache_paths():
+
+        all_locations = self._get_cache_paths()
+        # last entry is always the active bundle cache
+        active_bundle_cache = all_locations[-1]
+
+        if LOG_DESCRIPTOR_TYPE:
+            log.debug("NICOLAS: get_path() --- type: '%s', %s" % (self._descriptor_dict["type"], self.__class__))
+
+        if LOG_GET_PATH:
+            index = 0
+            for path in all_locations:
+                log.debug("NICOLAS: get_path() --- all_locations[%d]='%s'" % (index, path))
+                index+=1
+
+        for path in all_locations:
             # we determine local existence based on the existence of the
             # bundle's directory on disk.
             if self._exists_local(path):
+
+                # NOTE.1: The purgeability is linked to usage of non default bundle cache
+                # NOTE.2: The condition below is almost never true when using zeroconfig
+                #         as the loop exits most of the time from the first entry of
+                #         the 'all_locations' array
+                #
+                #if path == active_bundle_cache and self.is_purgeable():
+                #    # Minimum checks here, additional checks and
+                #    # path manipulation will be done on the
+                #    # service worker thread.
+                #    bundle_cache_usage_srv.log_usage(path)
+                #
+                if self.is_purgeable():
+                    # Minimum checks here, additional checks and
+                    # path manipulation will be done on the
+                    # service worker thread.
+                    bundle_cache_usage_mgr.log_usage(path)
+
+                if LOG_GET_PATH:
+                    log.debug("NICOLAS: get_path() return: '%s'\n" % (path))
                 return path
 
         return None

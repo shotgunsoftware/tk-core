@@ -269,3 +269,13 @@ class IODescriptorDownloadable(IODescriptorBase):
         # rm -rf * or a manual deletion of the files. This will ensure this is treated just like
         # any other file.
         return os.path.join(path, "tk-metadata")
+    
+	def is_purgeable(self):
+        """
+        Typycally returns true when used with default bundle cache location.
+
+        An AppStore type descriptor is typically purgeable as long as the
+        bundle cache root location is the default one thus we're checking
+        the 'self._use_non_default_bundle_cache_root' value.
+        """
+        return not self._use_non_default_bundle_cache_root

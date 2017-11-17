@@ -67,6 +67,11 @@ def create_descriptor(
     from .descriptor_installed_config import InstalledConfigDescriptor
     from .descriptor_core import CoreDescriptor
 
+    # Remember that caller did specified a bundle cache override through usage
+    # of the 'bundle_cache_root_override' parameter before potentially
+    # modifying it's value below.
+    use_non_default_bundle_cache = True if bundle_cache_root_override else False
+
     # use the environment variable if set - if not, fall back on the override or default locations
     if os.environ.get(constants.BUNDLE_CACHE_PATH_ENV_VAR):
         bundle_cache_root_override = os.path.expanduser(
@@ -92,7 +97,8 @@ def create_descriptor(
         bundle_cache_root_override,
         fallback_roots,
         resolve_latest,
-        constraint_pattern
+        constraint_pattern,
+        use_non_default_bundle_cache
     )
 
     # now create a high level descriptor and bind that with the low level descriptor
