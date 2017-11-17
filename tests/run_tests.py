@@ -202,11 +202,6 @@ def _parse_command_line():
     :returns: The options and the name of the unit test specified on the command line, if any.
     """
     parser = OptionParser()
-    # TODO: ask aout the 'action' params below
-    parser.add_option("--clean-temp-data",
-                      action="store_true",
-                      dest="clean_temp_data",
-                      help="delete all temporary test data on test run completion")
     parser.add_option("--with-coverage",
                       action="store_true",
                       dest="coverage",
@@ -282,9 +277,8 @@ if __name__ == "__main__":
     if ret_val.errors or ret_val.failures:
         exit_val = 1
 
-    if options.clean_temp_data:
-        # Note: relying on own value rather than tempfile.tempdir
-        print("\nCleaning up '%s'" % (new_base_tempdir))
-        shutil.rmtree(new_base_tempdir)
+    # Note: relying on own value rather than tempfile.tempdir
+    print("\nCleaning up '%s'" % (new_base_tempdir))
+    shutil.rmtree(new_base_tempdir)
 
     sys.exit(exit_val)
