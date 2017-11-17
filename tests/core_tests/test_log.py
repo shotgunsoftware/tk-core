@@ -8,16 +8,44 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import os
+import copy
 import logging
+
+import sgtk
 from sgtk import LogManager
 
-from unittest2 import TestCase
+from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase
 
 
-class LoggingTests(TestCase):
+class TestLogManager(TankTestBase):
     """
-    Tests around the logging.
+    Tests the LogManager interface.
     """
+
+    def test_global_debug_environment(self):
+        """
+        Ensures that the debug logging environment variable is set/unset when
+        the global debug logging property is toggled.
+        """
+        manager = LogManager()
+        original_env = copy.copy(os.environ)
+        original_debug = manager.global_debug
+        debug_name = sgtk.constants.DEBUG_LOGGING_ENV_VAR
+
+        try:
+            if debug_name in os.environ:
+                del os.environ[debug_name]
+
+            manager.global_debug = True
+            self.assertIn(debug_name, os.environ)
+
+            manager.global_debug = False
+            self.assertNotIn(debug_name, os.environ)
+        finally:
+            manager.global_debug = original_debug
+            os.environ = original_env
 
     def test_attach_detach(self):
         """
@@ -43,7 +71,7 @@ class LoggingTests(TestCase):
 
     class CountingFilter(logging.Filterer):
         def __init__(self):
-            super(LoggingTests.CountingFilter, self).__init__()
+            super(TestLogManager.CountingFilter, self).__init__()
             self.count = 0
 
         def filter(self, record):
