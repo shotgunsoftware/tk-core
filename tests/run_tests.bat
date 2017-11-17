@@ -15,4 +15,10 @@
 
 @echo off
 
+python -c "from __future__ import print_function; import sys; print('.'.join(str(token) for token in sys.version_info[:3]))" > version_str.txt
+for /f "usebackq tokens=*" %%G in (version_str.txt) do (CALL SET VERSION_STR=%%G)
+del version_str.txt
+CALL SET VENV_FOLDER=..\venvs\windows\venv_%VERSION_STR%
+%VENV_FOLDER%/Scripts/activate.bat
+
 python %~dp0\run_tests.py %*
