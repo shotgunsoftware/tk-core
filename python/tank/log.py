@@ -771,7 +771,7 @@ class LogManager(object):
         Toolkit so that Toolkit can make the decision to write out a message or
         not.
 
-        :param logger: Python logger that we want to attach to our logs.
+        :param logger: Python logger to send to the Toolkit logs.
         """
         # If we're already attached, do not attach a second time.
         for handler in logger.handlers:
