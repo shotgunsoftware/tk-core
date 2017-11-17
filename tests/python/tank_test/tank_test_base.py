@@ -21,7 +21,6 @@ import shutil
 import pprint
 import threading
 import tempfile
-import uuid
 import contextlib
 
 from tank_vendor.shotgun_api3.lib import mockgun
@@ -128,17 +127,12 @@ def setUpModule():
     """
     global TANK_TEMP
 
-    # determine tests root location
-    temp_dir = tempfile.gettempdir()
-    # make a unique test dir for each file
-    temp_dir_name = "tankTemporaryTestData"
-    # Append a random string to the temp directory name to make it unique. time.time
-    # doesn't have enough resolution!!!
-    temp_dir_name += "_%s" % (uuid.uuid4(),)
+    # determine tests root location, the mkdtemp() method does handle uniqueness
+    TANK_TEMP = tempfile.mkdtemp(prefix="TestData_")
 
-    TANK_TEMP = os.path.join(temp_dir, temp_dir_name)
     # print out the temp data location
     msg = "Toolkit test data location: %s" % TANK_TEMP
+    # prints a visual text divider
     print("\n" + "=" * len(msg))
     print(msg)
     print("=" * len(msg) + "\n")

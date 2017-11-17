@@ -13,9 +13,7 @@ from __future__ import print_function
 import sys
 import os
 import glob
-import datetime
 import tempfile
-import uuid
 import shutil
 from optparse import OptionParser
 
@@ -239,10 +237,7 @@ if __name__ == "__main__":
     # will be created. Having a single top-level folder will make
     # complete deletion very easy.
     #
-    timestamp_str = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    current_test_run_subdir = "tk-core-tests-%s-%s" % (timestamp_str, uuid.uuid4())
-    new_base_tempdir = os.path.join(tempfile.gettempdir(), current_test_run_subdir)
-    os.makedirs(new_base_tempdir)
+    new_base_tempdir = tempfile.mkdtemp(prefix="tankTemporary_")
 
     #
     # Now that we have our global test run subdir created, let's
