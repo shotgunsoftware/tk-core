@@ -26,14 +26,9 @@ import urllib
 from tank_vendor.shotgun_api3 import Shotgun
 
 from .authentication_session_data import AuthenticationSessionData
-from ..ui.qt_abstraction import QtCore, QtNetwork, QtGui, QtWebKit
-from ... import LogManager
-
-log = LogManager.get_logger(__name__)
 
 
-# Error messages for events. . Also defined in slmodule/slutils.mu
-# @FIXME: Should import these from slmodule
+# Error messages for events.
 HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To Shotgun site."
 HTTP_AUTHENTICATE_REQUIRED = "Valid credentials are required."
 HTTP_AUTHENTICATE_SSO_NOT_UPPORTED = "SSO not supported or enabled on that site."
@@ -54,6 +49,13 @@ PREEMPTIVE_RENEWAL_THRESHOLD = 0.9
 SHOTGUN_SSO_RENEWAL_INTERVAL = 5000
 
 
+def get_logger():
+    """
+    Return the logger for this module.
+    """
+    return logging.getLogger(__name__)
+
+
 class Saml2SsoError(Exception):
     """
     Top level exception for all saml2_sso level runtime errors
@@ -66,19 +68,31 @@ class Saml2SsoMultiSessionNotSupportedError(Saml2SsoError):
     """
 
 
-class Saml2SsoMissingQtModule(Saml2SsoError):
+class Saml2SsoMissingQtModuleError(Saml2SsoError):
     """
     Exception that indicates that a required Qt component is missing.
     """
 
 
-class Saml2SsoMissingQtNetwork(Saml2SsoMissingQtModule):
+class Saml2SsoMissingQtCore(Saml2SsoMissingQtModuleError):
+    """
+    Exception that indicates that the QtCore component is missing.
+    """
+
+
+class Saml2SsoMissingQtGui(Saml2SsoMissingQtModuleError):
+    """
+    Exception that indicates that the QtGui component is missing.
+    """
+
+
+class Saml2SsoMissingQtNetwork(Saml2SsoMissingQtModuleError):
     """
     Exception that indicates that the QtNetwork component is missing.
     """
 
 
-class Saml2SsoMissingQtWebKit(Saml2SsoMissingQtModule):
+class Saml2SsoMissingQtWebKit(Saml2SsoMissingQtModuleError):
     """
     Exception that indicates that the QtWebKit component is missing.
     """
@@ -87,9 +101,29 @@ class Saml2SsoMissingQtWebKit(Saml2SsoMissingQtModule):
 class Saml2Sso(object):
     """Performs Shotgun SSO login and pre-emptive renewal."""
 
-    def __init__(self, window_title="SSO"):
-        """Initialize the RV mode."""
-        log.debug("==- __init__")
+    def __init__(self, window_title="SSO", qt_modules={}):
+        """
+        Create a SSO login dialog, using a Web-browser like environment.
+
+        :param window_title: Title to use for the window.
+        :param qt_modules: a dictionnary of required Qt modules.
+                           For Qt4/PySide, we require modules QtCore, QtGui, QtNetwork and QtWebKit
+
+        :returns: The Saml2Sso oject.
+        """
+        self._logger = get_logger()
+        self._logger.debug("Constructing SSO dialog: %s" % window_title)
+
+        QtCore = self._QtCore = qt_modules.get('QtCore')  # noqa
+        QtGui = self._QtGui = qt_modules.get('QtGui')  # noqa
+        QtNetwork = self._QtNetwork = qt_modules.get('QtNetwork')  # noqa
+        QtWebKit = self._QtWebKit = qt_modules.get('QtWebKit')  # noqa
+
+        if QtCore is None:
+            raise Saml2SsoMissingQtCore("The QtCore module is unavailable")
+
+        if QtGui is None:
+            raise Saml2SsoMissingQtGui("The QtGui module is unavailable")
 
         if QtNetwork is None:
             raise Saml2SsoMissingQtNetwork("The QtNetwork module is unavailable")
@@ -181,8 +215,8 @@ class Saml2Sso(object):
 
         # For debugging purposes
         # @TODO: Find a better way than to use the log level
-        if log.level == logging.DEBUG or "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ:
-            log.debug("==- Using developer mode. Disabling strict SSL mode, enabling developer tools and local storage.")
+        if self._logger.level == logging.DEBUG or "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ:
+            self._logger.debug("Using developer mode. Disabling strict SSL mode, enabling developer tools and local storage.")
             # Disable SSL validation, useful when using a VM or a test site.
             config = QtNetwork.QSslConfiguration.defaultConfiguration()
             config.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
@@ -200,7 +234,7 @@ class Saml2Sso(object):
 
     def __del__(self):
         """Destructor."""
-        log.debug("==- __del__")
+        self._logger.debug("Destroying SSO dialog")
 
     @property
     def _session(self):
@@ -216,7 +250,7 @@ class Saml2Sso(object):
         """
         Create a new session, based on the data provided.
         """
-        log.debug("==- start_new_session")
+        self._logger.debug("Starting a new session")
         self._sessions_stack.append(AuthenticationSessionData(session_data))
         self.update_browser_from_session()
 
@@ -224,7 +258,7 @@ class Saml2Sso(object):
         """
         Destroy the current session, and resume the previous one, if any.
         """
-        log.debug("==- end_current_session")
+        self._logger.debug("Ending current session")
         if len(self._sessions_stack) > 0:
             self._sessions_stack.pop()
         self.update_browser_from_session()
@@ -237,7 +271,7 @@ class Saml2Sso(object):
         in the browser may differ from how the value is named on our session
         representation, which is loosely based on that of RV itself.
         """
-        log.debug("==- update_session_from_browser")
+        self._logger.debug("Updating session cookies from browser")
 
         cookie_jar = self._view.page().networkAccessManager().cookieJar()
 
@@ -275,7 +309,8 @@ class Saml2Sso(object):
         be used when originally setting the browser for login using a saved
         session or when opening a connection to a new server.
         """
-        log.debug("==- update_browser_from_session")
+        self._logger.debug("Updating browser cookies from session")
+        QtNetwork = self._QtNetwork  # noqa
 
         qt_cookies = []
         if self._session is not None:
@@ -292,7 +327,7 @@ class Saml2Sso(object):
         We want to avoid confusion as to where the session is created and
         renewed.
         """
-        log.debug("==- stop_session_renewal")
+        self._logger.debug("Stopping automatic session renewal")
 
         self._session_renewal_active = False
         self._sso_renew_watchdog_timer.stop()
@@ -306,7 +341,7 @@ class Saml2Sso(object):
         This will be done in the background, hopefully not impacting any
         ongoing process such as playback.
         """
-        log.debug("==- start_sso_renewal")
+        self._logger.debug("Starting automatic session renewal")
 
         self._sso_renew_watchdog_timer.stop()
 
@@ -321,7 +356,7 @@ class Saml2Sso(object):
             # @TODO: Find a better way than to use this EV
             if "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ:
                 interval = SHOTGUN_SSO_RENEWAL_INTERVAL
-        log.debug("==- start_sso_renewal: interval: %s" % interval)
+        self._logger.debug("Setting session renewal interval to: %s seconds" % interval)
 
         self._sso_countdown_timer.setInterval(interval)
         self._sso_countdown_timer.start()
@@ -331,11 +366,10 @@ class Saml2Sso(object):
         """
         This callbaback is triggered after every page load in the QWebView.
         """
-        # log.debug("==- on_http_response_finished")
-
         error = reply.error()
         url = reply.url().toString().encode("utf-8")
         session = AuthenticationSessionData() if self._session is None else self._session
+        QtNetwork = self._QtNetwork  # noqa
 
         if (
             error is not QtNetwork.QNetworkReply.NetworkError.NoError and
@@ -379,22 +413,19 @@ class Saml2Sso(object):
 
         if session.error:
             # If there are any errors, we exit by force-closing the dialog.
-            log.error("==- on_http_response_finished: %s - %s - %s" % (url, error, session.error))
+            self._logger.error("Closing SSO dialog on Error (%s - %s) from loading page: %s" % (error, session.error, url))
             self._dialog.reject()
 
     def is_handling_event(self):
         """
         Called to know if an event is currently being handled.
         """
-        # log.debug("==- is_handling_event")
         return self._event_data is not None
 
     def handle_event(self, event_data):
         """
         Called to start the handling of an event.
         """
-        log.debug("==- handle_event")
-
         if not self.is_handling_event():
             self._event_data = event_data
 
@@ -404,21 +435,18 @@ class Saml2Sso(object):
 
             self.start_new_session(event_data)
         else:
-            log.error("Calling handle_event while event %s is currently being handled" % self._event_data["event"])
+            self._logger.error("Calling handle_event while event %s is currently being handled" % self._event_data["event"])
 
     def resolve_event(self, end_session=False):
         """
         Called to return the results of the event.
         """
-        log.debug("==- resolve_event")
-
         if self.is_handling_event():
-            # rvc.sendInternalEvent(self._event_data["event"], self._session.assembleSession())
             if end_session:
                 self.end_current_session()
             self._event_data = None
         else:
-            log.error("Called resolve_event when no event is being handled.")
+            self._logger.warn("Called resolve_event when no event is being handled.")
 
     def get_session_data(self):
         """Returns the relevant session data for the toolkit."""
@@ -449,8 +477,7 @@ class Saml2Sso(object):
         The session renewal, via the off-screen QWebView, will be done at the
         next time the application event loop does not have any pending events.
         """
-        log.debug("==- on_schedule_sso_session_renewal")
-
+        self._logger.debug("Schedule SSO session renewal")
         self._sso_renew_timer.start()
 
     def on_renew_sso_session(self):
@@ -461,8 +488,7 @@ class Saml2Sso(object):
         benefit from the saved session cookies to automatically trigger the
         renewal without having the user having to enter any inputs.
         """
-        log.debug("==- on_renew_sso_session")
-
+        self._logger.debug("Renew SSO session")
         self._sso_renew_watchdog_timer.start()
 
         # We do not update the page cookies, assuming that they have already
@@ -475,9 +501,7 @@ class Saml2Sso(object):
 
         The purpose of this callback is to stop the page loading.
         """
-        log.debug("==- on_renew_sso_session_timeout")
-        # @FIXME: Not sure this is the proper thing to do
-        # self._view.page().triggerAction(QtWebKit.QWebPage.Stop)
+        self._logger.debug("Timeout awaiting session renewal")
         self._dialog.reject()
 
     ############################################################################
@@ -499,8 +523,6 @@ class Saml2Sso(object):
         (_sso_renew_watchdog_timer) which will trigger and attempt to cleanup
         the process.
         """
-        # log.debug("==- on_load_finished")
-
         url = self._view.page().mainFrame().url().toString().encode("utf-8")
         if (
                 self._session is not None and
@@ -513,7 +535,7 @@ class Saml2Sso(object):
             self._dialog.accept()
 
         if not succeeded and url != "":
-            log.error("Loading of page \"%s\" generated an error." % url)
+            self._logger.error("Loading of page \"%s\" generated an error." % url)
             # @FIXME: Figure out proper way of handling error.
 
     ############################################################################
@@ -529,18 +551,20 @@ class Saml2Sso(object):
         The user will be presented with the appropriate web pages from their
         IdP in order to log on to Shotgun.
         """
-        log.debug("==- on_sso_login_attempt")
+        self._logger.debug("SSO login attempt")
+        QtCore = self._QtCore  # noqa
 
         if event_data is not None:
             self.handle_event(event_data)
 
         if use_watchdog:
-            log.debug("==- on_sso_login_attempt: Starting watchdog")
+            self._logger.debug("Starting watchdog")
             self._sso_renew_watchdog_timer.start()
 
         # If we do have session cookies, let's attempt a session renewal
         # without presenting any GUI.
         if self._session.cookies:
+            self._logger.debug("Attempting a GUI-less renewal")
             loop = QtCore.QEventLoop(self._dialog)
             self._dialog.finished.connect(loop.exit)
             self.on_renew_sso_session()
@@ -566,7 +590,7 @@ class Saml2Sso(object):
         """
         Called to cancel an ongoing login attempt.
         """
-        log.debug("==- on_sso_login_cancel")
+        self._logger.debug("Cancel SSO login attempt")
 
         # We only need to cancel if there is login attempt currently being made.
         if self.is_handling_event():
@@ -580,7 +604,8 @@ class Saml2Sso(object):
 
         This can be the result of a callback, a timeout or user interaction.
         """
-        log.debug("==- on_dialog_closed")
+        self._logger.debug("SSO dialog closed")
+        QtGui = self._QtGui  # noqa
 
         if self.is_handling_event():
             if result == QtGui.QDialog.Rejected and self._session.cookies != "":
@@ -589,19 +614,16 @@ class Saml2Sso(object):
                 self._session.cookies = ""
                 # Let's have another go, without any cookies this time !
                 # This will force the GUI to be shown to the user.
-                log.debug("==- Unable to login/renew claims automaticall, presenting GUI to user")
+                self._logger.debug("Unable to login/renew claims automaticall, presenting GUI to user")
                 status = self.on_sso_login_attempt()
                 self._login_status = self._login_status or status
             else:
-                # end_session = result == QtGui.QDialog.Rejected
-                # self.resolve_event(end_session=end_session)
-                log.debug("==- Resolving event")
                 self.resolve_event()
         else:
             # Should we get a rejected dialog, then we have had a timeout.
             if result == QtGui.QDialog.Rejected:
                 # @FIXME: Figure out exactly what to do when we have a timeout.
-                log.warn("Our QDialog got canceled outside of an event handling...")
+                self._logger.warn("Our QDialog got canceled outside of an event handling")
 
         # Clear the web page
         self._view.page().mainFrame().load("about:blank")
@@ -615,7 +637,7 @@ class Saml2Sso(object):
         authentication at the startup of the application.
 
         """
-        log.debug("==- on_sso_enable_renewal")
+        self._logger.debug("SSO automatic renewal enabled")
 
         contents = json.loads(event.contents())
 
@@ -633,8 +655,7 @@ class Saml2Sso(object):
         This will be required when switching to a new connection (where the new
         site may not using SSO) or at the close of the application.
         """
-        log.debug("==- on_sso_disable_renewal")
-
+        self._logger.debug("SSO automatic renewal disabled")
         self.stop_session_renewal()
 
 ################################################################################
@@ -658,7 +679,7 @@ def _decode_cookies(encoded_cookies):
             decoded_cookies = base64.b64decode(encoded_cookies)
             cookies.load(decoded_cookies)
         except TypeError as e:
-            log.error("Unable to decode the cookies: %s" % e.message)
+            get_logger().error("Unable to decode the cookies: %s" % e.message)
     return cookies
 
 
@@ -736,12 +757,12 @@ def is_sso_enabled_on_site(url):
         # calls which need to be authenticated. The 'info' call does not
         # require authentication.
         info = Shotgun(url, session_token="dummy", connect=False).info()
-        log.debug("User authentication method for %s: %s" % (url, info["user_authentication_method"]))
+        get_logger().debug("User authentication method for %s: %s" % (url, info["user_authentication_method"]))
         if "user_authentication_method" in info:
             return info["user_authentication_method"] == "saml2"
     except Exception as e:
         # Silently ignore exceptions
-        log.debug("Unable to connect with %s, got exception '%s' assuming SSO is not enabled" % (url, e))
+        get_logger().debug("Unable to connect with %s, got exception '%s' assuming SSO is not enabled" % (url, e))
 
     return False
 

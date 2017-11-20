@@ -14,12 +14,17 @@ import time
 
 from . import interactive_authentication
 from . import user_impl
+from . import shotgun_shared
 from .. import LogManager
 from .errors import AuthenticationCancelled
-from .shotgun_shared import get_saml_claims_expiration
 
 
 logger = LogManager.get_logger(__name__)
+
+# Import the logger from sso_shared, re-parent it and rename it.
+shotgun_shared_logger = shotgun_shared.get_logger()
+shotgun_shared_logger.parent = logger
+shotgun_shared_logger.name = shotgun_shared_logger.name.replace('tank.', 'sgtk.core.')
 
 
 class ShotgunUser(object):
@@ -163,7 +168,7 @@ class ShotgunSamlUser(ShotgunUser):
 
         :returns: The expiration in seconds since January 1st 1970 UTC.
         """
-        return get_saml_claims_expiration(self._impl.get_cookies())
+        return shotgun_shared.get_saml_claims_expiration(self._impl.get_cookies())
 
     def _do_automatic_claims_renewal(self, preemtive_renewal_threshold=0.9):
         """

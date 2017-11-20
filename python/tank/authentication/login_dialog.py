@@ -22,7 +22,7 @@ from .ui import resources_rc # noqa
 from .ui import login_dialog
 from . import session_cache
 from ..util.shotgun import connection
-from .shotgun_shared import Saml2Sso, is_sso_enabled_on_site
+from .shotgun_shared import Saml2Sso, is_sso_enabled_on_site, Saml2SsoMissingQtModuleError
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
@@ -62,7 +62,19 @@ class LoginDialog(QtGui.QDialog):
         """
         QtGui.QDialog.__init__(self, parent)
 
-        self._saml2_sso = Saml2Sso("SSO Login")
+        from .ui.qt_abstraction import QtNetwork
+        from .ui.qt_abstraction import QtWebKit
+        qt_modules = {
+            "QtCore": QtCore,
+            "QtGui": QtGui,
+            "QtNetwork": QtNetwork,
+            "QtWebKit": QtWebKit,
+        }
+        try:
+            self._saml2_sso = Saml2Sso("SSO Login", qt_modules=qt_modules)
+        except Saml2SsoMissingQtModuleError as e:
+            logger.error("SSO login not supported due to missing Qt module: %s" % e)
+            self._saml2_sso = None
 
         hostname = hostname or ""
         login = login or ""
@@ -144,10 +156,12 @@ class LoginDialog(QtGui.QDialog):
         """
         Updates the GUI if SSO is supported or not, hiding or showing the username/password fields.
         """
-        url_to_test = self.ui.site.text().encode("utf-8").strip()
-        sso_enabled = is_sso_enabled_on_site(url_to_test)
-        if self._use_sso != sso_enabled:
-            self._toggle_sso()
+        # Only update the GUI if we were able to initialize the sam2sso module.
+        if self._saml2_sso:
+            url_to_test = self.ui.site.text().encode("utf-8").strip()
+            sso_enabled = is_sso_enabled_on_site(url_to_test)
+            if self._use_sso != sso_enabled:
+                self._toggle_sso()
 
     def _site_url_changed(self, text):
         """
@@ -241,7 +255,7 @@ class LoginDialog(QtGui.QDialog):
         :returns: A tuple of (hostname, username and session token) string if the user authenticated
                   None if the user cancelled.
         """
-        if self._cookies:
+        if self._cookies and self._saml2_sso:
             res = self._saml2_sso.on_sso_login_attempt({
                 "host": self.ui.site.text().encode("utf-8"),
                 "cookies": self._cookies,
@@ -256,7 +270,7 @@ class LoginDialog(QtGui.QDialog):
         res = self.exec_()
 
         if res == QtGui.QDialog.Accepted:
-            if self._cookies:
+            if self._cookies and self._saml2_sso:
                 return self._saml2_sso.get_session_data()
             return (self.ui.site.text().encode("utf-8"),
                     self.ui.login.text().encode("utf-8"),
@@ -326,7 +340,7 @@ class LoginDialog(QtGui.QDialog):
         """
         success = False
         try:
-            if self._use_sso:
+            if self._use_sso and self._saml2_sso:
                 res = self._saml2_sso.on_sso_login_attempt({
                     "host": site,
                     "cookies": self._cookies,
