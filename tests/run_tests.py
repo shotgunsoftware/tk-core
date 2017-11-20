@@ -14,7 +14,6 @@ import sys
 import os
 import glob
 import tempfile
-import shutil
 from optparse import OptionParser
 
 
@@ -285,10 +284,12 @@ if __name__ == "__main__":
         exit_val = 1
 
     finally:
+        from tank.util.filesystem import safe_delete_folder
+
         # Note: Relying on own value rather than tempfile.tempdir
         #       being global it MIGHT be changed by anyone test
         if new_base_tempdir and os.path.isdir(new_base_tempdir):
             print("\nCleaning up '%s'" % (new_base_tempdir))
-            shutil.rmtree(new_base_tempdir)
+            safe_delete_folder(new_base_tempdir)
 
     sys.exit(exit_val)
