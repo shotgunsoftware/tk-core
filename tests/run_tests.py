@@ -13,6 +13,7 @@ from __future__ import print_function
 import sys
 import os
 import glob
+import tempfile
 from optparse import OptionParser
 
 
@@ -225,35 +226,70 @@ def _parse_command_line():
 
 if __name__ == "__main__":
 
-    options, test_names = _parse_command_line()
-
-    # Do not import Toolkit before coverage or it will tank (pun intended) our coverage
-    # score. We'll do this test even when we're not running code coverage to make sure
-    # we don't introduce unintended regressions.
-    if "tank" in sys.modules or "sgtk" in sys.modules:
-        raise RuntimeError(
-            "tank or sgtk was imported before the coverage module. Please fix run_tests.py."
-        )
-
-    if options.coverage:
-        cov = _initialize_coverage(options.test_root)
-
-    _initialize_logging(options.log_to_console)
-
-    # If we have a custom test root, add its python folder, if it exists, so the user doesn't need
-    # to set it up themselves.
-    if options.test_root:
-        python_test_root = os.path.join(options.test_root, "python")
-        if os.path.exists(python_test_root):
-            sys.path.insert(0, python_test_root)
-
-    ret_val = _run_tests(options.test_root, test_names)
-
-    if options.coverage:
-        _finalize_coverage(cov)
-
-    # Exit value determined by failures and errors
     exit_val = 0
-    if ret_val.errors or ret_val.failures:
+
+    #
+    # Create our own temporary base storage into which everything
+    # will be created. Having a single top-level folder will make
+    # complete deletion very easy.
+    #
+    new_base_tempdir = tempfile.mkdtemp(prefix="tankTemporary_")
+
+    try:
+        #
+        # Now that we have our global test run subdir created, let's
+        # re-assign tempfile.temdir() value to be used a new base directory
+        #
+        # NOTE: There is no need to save the current value of 'tempfile.tempdir'
+        #       for later restoring. This is not changing value of default
+        #       temporary directory for anything else than this instance of
+        #       the 'tempfile' module. Overall system is not affected.
+        #
+        tempfile.tempdir = new_base_tempdir
+
+        options, test_names = _parse_command_line()
+
+        # Do not import Toolkit before coverage or it will tank (pun intended) our coverage
+        # score. We'll do this test even when we're not running code coverage to make sure
+        # we don't introduce unintended regressions.
+        if "tank" in sys.modules or "sgtk" in sys.modules:
+            raise RuntimeError(
+                "tank or sgtk was imported before the coverage module. Please fix run_tests.py."
+            )
+
+        if options.coverage:
+            cov = _initialize_coverage(options.test_root)
+
+        _initialize_logging(options.log_to_console)
+
+        # If we have a custom test root, add its python folder, if it exists, so the user doesn't need
+        # to set it up themselves.
+        if options.test_root:
+            python_test_root = os.path.join(options.test_root, "python")
+            if os.path.exists(python_test_root):
+                sys.path.insert(0, python_test_root)
+
+        ret_val = _run_tests(options.test_root, test_names)
+
+        if options.coverage:
+            _finalize_coverage(cov)
+
+        # Exit value determined by failures and errors
+        if ret_val.errors or ret_val.failures:
+            exit_val = 1
+
+    except Exception as e:
+        print("Unexpected exception: %s" % e)
+        # signal failure
         exit_val = 1
+
+    finally:
+        from tank.util.filesystem import safe_delete_folder
+
+        # Note: Relying on own value rather than tempfile.tempdir
+        #       being global it MIGHT be changed by anyone test
+        if new_base_tempdir and os.path.isdir(new_base_tempdir):
+            print("\nCleaning up '%s'" % (new_base_tempdir))
+            safe_delete_folder(new_base_tempdir)
+
     sys.exit(exit_val)

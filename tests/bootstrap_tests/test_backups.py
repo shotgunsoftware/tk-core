@@ -178,5 +178,13 @@ class TestBackups(TankTestBase):
             config._cleanup_backup_folders(config_backup_folder_path, core_backup_folder_path)
 
             # Verify that backup folders were cleaned up
+            # Only the 'placeholder' file should remain
             self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
             self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
+
+            # Try deleting the 'config_install_backup_path' parent folder
+            # which was deliberately set to READ_ONLY on Windows
+            # and verify it no longer exists afterward.
+            parent_folder = os.path.join(config_install_backup_path, os.pardir)
+            sgtk.util.filesystem.safe_delete_folder(parent_folder)
+            self.assertFalse(os.path.exists(parent_folder))
