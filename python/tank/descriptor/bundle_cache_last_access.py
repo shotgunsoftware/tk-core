@@ -17,6 +17,7 @@ all Tank items in the file system are kept.
 import sqlite3
 import os
 from .. import LogManager
+from ..util import LocalFileStorageManager
 
 # Shotgun field definitions to store the path cache data
 SHOTGUN_ENTITY = "FilesystemLocation"
@@ -28,6 +29,7 @@ SG_ENTITY_ID_FIELD = "linked_entity_id"
 SG_ENTITY_TYPE_FIELD = "linked_entity_type"
 SG_ENTITY_NAME_FIELD = "code"
 SG_PIPELINE_CONFIG_FIELD = "pipeline_configuration"
+SG_BUNDLE_CACHE_USAGE_DB_FILENAME = "usage.db"
 
 log = LogManager.get_logger(__name__)
 
@@ -41,10 +43,13 @@ class BundleCacheLastAccess(object):
         """
         Constructor.
         """
-        self._bundle_cache_root = None
+        self._bundle_cache_root = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
+        self._bundle_cache_usage_db_filename = os.path.join(self._bundle_cache_root, SG_BUNDLE_CACHE_USAGE_DB_FILENAME)
         self._connection = None
         self._database_location = None
         self._init_db()
+
+    def _create_usage_table(self):
 
     def _init_db(self):
         """
@@ -53,9 +58,9 @@ class BundleCacheLastAccess(object):
         # first, make way for the path cache file. This call
         # will ensure that there is a valid folder and file on
         # disk, created with all the right permissions etc.
-        path_cache_file = self._get_path_cache_location()
+        #path_cache_file = self._get_path_cache_location()
 
-        self._connection = sqlite3.connect(path_cache_file)
+        self._connection = sqlite3.connect(self._bundle_cache_usage_db_filename)
 
         # this is to handle unicode properly - make sure that sqlite returns
         # str objects for TEXT fields rather than unicode. Note that any unicode
@@ -136,6 +141,56 @@ class BundleCacheLastAccess(object):
 
         finally:
             c.close()
+
+    def _get_path_cache_location(self):
+        """
+        Creates the path cache file and returns its location on disk.
+
+        :returns: The path to the path cache file
+        """
+        if self._tk.pipeline_configuration.get_shotgun_path_cache_enabled():
+
+            # 0.15+ path cache setup - call out to a core hook to determine
+            # where the path cache should be located.
+            path = self._tk.execute_core_hook_method(
+                constants.CACHE_LOCATION_HOOK_NAME,
+                "get_path_cache_path",
+                project_id=self._tk.pipeline_configuration.get_project_id(),
+                plugin_id=self._tk.pipeline_configuration.get_plugin_id(),
+                pipeline_configuration_id=self._tk.pipeline_configuration.get_shotgun_id()
+            )
+
+        else:
+            # old (v0.14) style path cache
+            # fall back on the 0.14 setting, where the path cache
+            # is located in a tank folder in the project root
+            path = os.path.join(self._tk.pipeline_configuration.get_primary_data_root(),
+                                "tank",
+                                "cache",
+                                "path_cache.db")
+
+            # first check that the cache folder exists
+            # note that the cache folder is inside of the tank folder
+            # so no need to attempt a recursive creation here.
+            cache_folder = os.path.dirname(path)
+            if not os.path.exists(cache_folder):
+                old_umask = os.umask(0)
+                try:
+                    os.mkdir(cache_folder, 0o777)
+                finally:
+                    os.umask(old_umask)
+
+            # now try to write a placeholder file with open permissions
+            if not os.path.exists(path):
+                old_umask = os.umask(0)
+                try:
+                    fh = open(path, "wb")
+                    fh.close()
+                    os.chmod(path, 0o666)
+                finally:
+                    os.umask(old_umask)
+
+        return path
 
     def _path_to_dbpath(self, relative_path):
         """
