@@ -188,5 +188,3 @@ class TestBackups(TankTestBase):
             parent_folder = os.path.join(config_install_backup_path, os.pardir)
             sgtk.util.filesystem.safe_delete_folder(parent_folder)
             self.assertFalse(os.path.exists(parent_folder))
-
-
