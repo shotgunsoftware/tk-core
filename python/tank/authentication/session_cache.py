@@ -244,7 +244,7 @@ def _insert_or_update_user(users_file, login, session_token, cookies):
             if user[_SESSION_TOKEN] != session_token:
                 user[_SESSION_TOKEN] = session_token
                 result = True
-            if user[_COOKIES] != cookies:
+            if user.get(_COOKIES) and user[_COOKIES] != cookies:
                 user[_COOKIES] = cookies
                 result = True
             return result
