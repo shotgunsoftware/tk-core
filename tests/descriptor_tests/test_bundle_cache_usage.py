@@ -55,24 +55,16 @@ class Utils(object):
                 pass
 
 
-class TestBundleCacheUsageBasicOperations(unittest2.TestCase):
+class TestBundleCacheUsageBase(unittest2.TestCase):
     """
-    Tests the basic database operations in a non-pipeline context:
-        eg.: create table, an entry, update entry
-
-    NOTE: we don't need to inherit from 'tanTestBase' for testing basic DB operations
-    Actually
+    BundleCacheUsage test base class
     """
 
     TMP_FOLDER_PREFIX = "TestBundleCacheUsageBasicOperations_"
-    MAIN_TABLE_NAME = "bundles"
-    TEST_BUNDLE_PATH1 = "some-bundle-path1"
-    EXPECTED_DEFAULT_DB_FILENAME = "usage.db"
-    PERF_TEST_ITERATION_COUNT = 100
 
     def setUp(self):
         # Actually we don't want to inherit from tanTestBase
-        super(TestBundleCacheUsageBasicOperations, self).setUp()
+        super(TestBundleCacheUsageBase, self).setUp()
 
         # TODO: cleanup when completed
         #self._temp_folder = tempfile.mkdtemp(prefix="TestBundleCacheUsageBasicOperations_")
@@ -82,6 +74,28 @@ class TestBundleCacheUsageBasicOperations(unittest2.TestCase):
             os.mkdir(self._temp_folder)
 
         #self._temp_folder = os.path.join("/", "Users", "nicolas-autodesk", "Library", "Caches", "Shotgun", "bundle_cache")
+
+    def tearDown(self):
+        super(TestBundleCacheUsageBase, self).tearDown()
+        Utils.safe_delete(self._temp_folder)
+
+
+class TestBundleCacheUsageBasicOperations(TestBundleCacheUsageBase):
+    """
+    Tests the basic database operations in a non-pipeline context:
+        eg.: create table, an entry, update entry
+
+    NOTE: we don't need to inherit from 'tanTestBase' for testing basic DB operations
+    Actually
+    """
+
+    MAIN_TABLE_NAME = "bundles"
+    TEST_BUNDLE_PATH1 = "some-bundle-path1"
+    EXPECTED_DEFAULT_DB_FILENAME = "usage.db"
+    PERF_TEST_ITERATION_COUNT = 100
+
+    def setUp(self):
+        super(TestBundleCacheUsageBasicOperations, self).setUp()
 
         self._expected_db_path = os.path.join(self._temp_folder,
                                               TestBundleCacheUsageBasicOperations.EXPECTED_DEFAULT_DB_FILENAME)
@@ -95,63 +109,14 @@ class TestBundleCacheUsageBasicOperations(unittest2.TestCase):
             self._expected_db_path
 
     def tearDown(self):
-        super(TestBundleCacheUsageBasicOperations, self).tearDown()
         self.delete_db()
+        super(TestBundleCacheUsageBasicOperations, self).tearDown()
 
     ###################################################################################################################
     #
     # Misc. Helper Methods
     #
     ###################################################################################################################
-
-    @classmethod
-    def _create_test_bundle_cache_structure(cls, root_folder):
-        """
-        Creates a bundle cache test struture containing 18 fake bundles.
-        The structure also includes additional file for the purpose of verifying
-        that the method walking down the path is able to limit it's search to
-        bundle level folders.
-
-        Additional `info.yml` might be found in the structure, they're from bundle plugins
-        the tested code is expected to limit it's search to the bundle level.
-
-        NOTE: The structure is generated dynamically rather than adding a yet a
-
-        :param root_folder: A string path of the destination root folder
-        """
-
-        bundle_cache_root = os.path.join(root_folder, "bundle_cache")
-        app_store_root = os.path.join(bundle_cache_root, "app_store")
-
-        test_bundle_cache_structure = [
-            os.path.join(app_store_root, "tk-multi-pythonconsole", "v1.1.1", "info.yml"),
-            os.path.join(app_store_root, "tk-multi-launchapp", "v0.9.10", "info.yml"),
-            os.path.join(app_store_root, "tk-multi-publish2", "v1.1.9", "info.yml"),
-            os.path.join(app_store_root, "tk-shell", "v0.5.4", "info.yml"),
-            os.path.join(app_store_root, "tk-framework-shotgunutils", "v5.2.3", "info.yml"),
-            os.path.join(app_store_root, "tk-photoshopcc", "v1.1.7", "info.yml"),
-            os.path.join(app_store_root, "tk-photoshopcc", "v1.1.7", "plugins", "basic", "info.yml"),
-            os.path.join(app_store_root, "tk-framework-desktopserver", "v1.2.4", "info.yml"),
-            os.path.join(app_store_root, "tk-framework-widget", "v0.2.6", "info.yml"),
-            os.path.join(app_store_root, "tk-nuke", "v0.8.5", "info.yml"),
-            os.path.join(app_store_root, "tk-nuke", "v0.8.5", "plugins", "basic", "info.yml"),
-            os.path.join(app_store_root, "tk-multi-setframerange", "v0.3.0", "info.yml"),
-            os.path.join(app_store_root, "tk-3dsmaxplus", "v0.4.1", "info.yml"),
-            os.path.join(app_store_root, "tk-3dsmaxplus", "v0.4.1", "plugins", "basic", "info.yml"),
-            os.path.join(app_store_root, "tk-multi-shotgunpanel", "v1.4.8", "info.yml"),
-            os.path.join(app_store_root, "tk-maya", "v0.8.3", "info.yml"),
-            os.path.join(app_store_root, "tk-maya", "v0.8.3", "plugins", "basic", "info.yml"),
-            os.path.join(app_store_root, "tk-houdini", "v1.2.7", "info.yml"),
-            os.path.join(app_store_root, "tk-houdini", "v1.2.7", "plugins", "test", "info.yml"),
-            os.path.join(app_store_root, "tk-houdini", "v1.2.7", "plugins", "basic", "info.yml"),
-            os.path.join(app_store_root, "tk-flame", "v1.9.6", "info.yml"),
-            os.path.join(app_store_root, "tk-shotgun", "v0.6.0", "info.yml"),
-            os.path.join(app_store_root, "tk-framework-qtwidgets", "v2.6.5", "info.yml"),
-            os.path.join(app_store_root, "tk-multi-loader2", "v1.18.0", "info.yml")
-        ]
-
-        for item in test_bundle_cache_structure:
-            Utils.touch(item)
 
     @property
     def db_exists(self):
@@ -173,25 +138,8 @@ class TestBundleCacheUsageBasicOperations(unittest2.TestCase):
         raise Exception("The test database is null, was it created?")
 
     @property
-    def bundle_cache_root(self):
-        return self._temp_folder
-
-    @property
     def expected_db_path(self):
         return self._expected_db_path
-
-    def _get_row_count(self, db, table_name=MAIN_TABLE_NAME):
-        """
-        Helper method returning the number of row in the specified table
-        :param table_name: An optional string of the table name (default to main table)
-        :return: An integer or -1 if cursor was not initialized
-        """
-        result = db._execute("SELECT * FROM %s" % (table_name))
-        if result:
-            rows = result.fetchall()
-            return len(rows)
-        else:
-            return 0
 
     ###################################################################################################################
     #
@@ -262,7 +210,7 @@ class TestBundleCacheUsageBasicOperations(unittest2.TestCase):
         BUNDLE_NAME = TestBundleCacheUsageBasicOperations.TEST_BUNDLE_PATH1
 
         # Low level test for record count
-        self.assertEquals(self._get_row_count(self.db), 0, "Was not expecting any rows in main table just yet.")
+        self.assertEquals(self.db.bundle_count, 0, "Was not expecting any rows in main table just yet.")
 
         # Test before logging any usage
         self.assertEquals(self.db.get_usage_count(BUNDLE_NAME), 0,
@@ -273,7 +221,7 @@ class TestBundleCacheUsageBasicOperations(unittest2.TestCase):
         self.db.log_usage(BUNDLE_NAME)
 
         # Low level test for record count
-        self.assertEquals(self._get_row_count(self.db), 1, "Was now expecting one row since we've just logged an entry.")
+        self.assertEquals(self.db.bundle_count, 1, "Was now expecting one row since we've just logged an entry.")
 
         # Test after logging usage
         #self.db.get_last_usage_date(BUNDLE_NAME)
@@ -299,7 +247,7 @@ class TestBundleCacheUsageBasicOperations(unittest2.TestCase):
 
         # Low level test for record count, we're logging the same bundle name twice
         # We expect a single record still
-        self.assertEquals(self._get_row_count(self.db), 1, "Was expecting a single row since we've logged the same entry.")
+        self.assertEquals(self.db.bundle_count, 1, "Was expecting a single row since we've logged the same entry.")
 
         # Test after logging usage
         self.assertEquals(self.db.get_usage_count(BUNDLE_NAME), 3,
@@ -321,7 +269,7 @@ class TestBundleCacheUsageBasicOperations(unittest2.TestCase):
 
         # Low level test for record count, we're logging the same bundle name twice
         # We expect a single record still
-        self.assertEquals(self._get_row_count(self.db), 5, "Was expecting a single row since we've logged the same entry.")
+        self.assertEquals(self.db.bundle_count, 5, "Was expecting a single row since we've logged the same entry.")
 
     def _helper_test_db_read_and_update_performance(self, path, iteration_count = PERF_TEST_ITERATION_COUNT):
         """
@@ -389,7 +337,7 @@ class TestBundleCacheUsageBasicOperations(unittest2.TestCase):
             bundle_test_name = "bundle-test-%03d" % (random.randint(0, 100))
             #bundle_test_name = "bundle-test-%04d" % (iteration_count)
             db.log_usage(bundle_test_name)
-            row_count = self._get_row_count(db)
+            #row_count = db.bundle_count
             iteration_count += 1
 
         db.commit()
@@ -398,6 +346,91 @@ class TestBundleCacheUsageBasicOperations(unittest2.TestCase):
         elapsed = time.time() - start_time
         print("elapsed: %s" % (str(elapsed)))
         print("time per iteration: %s" % (str(elapsed/ITERATION_COUNT)))
+
+class TestBundleCacheUsageWalkCache(TestBundleCacheUsageBase):
+    """
+    Test walking the bundle cache searching or discovering bundles in the app_store
+    """
+
+    # The number of bundles in the test bundle cache
+    EXPECTED_BUNDLE_COUNT = 18
+
+    def setUp(self):
+        super(TestBundleCacheUsageWalkCache, self).setUp()
+        self._db = None
+        TestBundleCacheUsageWalkCache._create_test_bundle_cache(self.bundle_cache_root)
+
+       # TODO: How do you get bundle_cache test path as opposed to what is returned by
+        # LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
+        os.environ["SHOTGUN_HOME"] = self.bundle_cache_root
+
+    def tearDown(self):
+        Utils.safe_delete(self.bundle_cache_root)
+        if self._db:
+            Utils.safe_delete(self._db.path)
+        super(TestBundleCacheUsageWalkCache, self).tearDown()
+
+    @property
+    def bundle_cache_root(self):
+        return self._temp_folder
+
+    @classmethod
+    def _create_test_bundle_cache(cls, root_folder):
+        """
+        Creates a bundle cache test struture containing 18 fake bundles.
+        The structure also includes additional file for the purpose of verifying
+        that the method walking down the path is able to limit it's search to
+        bundle level folders.
+
+        Additional `info.yml` might be found in the structure, they're from bundle plugins
+        the tested code is expected to limit it's search to the bundle level.
+
+        NOTE: The structure is generated dynamically rather than adding a yet a
+
+        :param root_folder: A string path of the destination root folder
+        """
+
+        bundle_cache_root = os.path.join(root_folder, "bundle_cache")
+        app_store_root = os.path.join(bundle_cache_root, "app_store")
+
+        test_bundle_cache_structure = [
+            os.path.join(app_store_root, "tk-multi-pythonconsole", "v1.1.1", "info.yml"),
+            os.path.join(app_store_root, "tk-multi-launchapp", "v0.9.10", "info.yml"),
+            os.path.join(app_store_root, "tk-multi-publish2", "v1.1.9", "info.yml"),
+            os.path.join(app_store_root, "tk-shell", "v0.5.4", "info.yml"),
+            os.path.join(app_store_root, "tk-framework-shotgunutils", "v5.2.3", "info.yml"),
+            os.path.join(app_store_root, "tk-photoshopcc", "v1.1.7", "info.yml"),
+            os.path.join(app_store_root, "tk-photoshopcc", "v1.1.7", "plugins", "basic", "info.yml"),
+            os.path.join(app_store_root, "tk-framework-desktopserver", "v1.2.4", "info.yml"),
+            os.path.join(app_store_root, "tk-framework-widget", "v0.2.6", "info.yml"),
+            os.path.join(app_store_root, "tk-nuke", "v0.8.5", "info.yml"),
+            os.path.join(app_store_root, "tk-nuke", "v0.8.5", "plugins", "basic", "info.yml"),
+            os.path.join(app_store_root, "tk-multi-setframerange", "v0.3.0", "info.yml"),
+            os.path.join(app_store_root, "tk-3dsmaxplus", "v0.4.1", "info.yml"),
+            os.path.join(app_store_root, "tk-3dsmaxplus", "v0.4.1", "plugins", "basic", "info.yml"),
+            os.path.join(app_store_root, "tk-multi-shotgunpanel", "v1.4.8", "info.yml"),
+            os.path.join(app_store_root, "tk-maya", "v0.8.3", "info.yml"),
+            os.path.join(app_store_root, "tk-maya", "v0.8.3", "plugins", "basic", "info.yml"),
+            os.path.join(app_store_root, "tk-houdini", "v1.2.7", "info.yml"),
+            os.path.join(app_store_root, "tk-houdini", "v1.2.7", "plugins", "test", "info.yml"),
+            os.path.join(app_store_root, "tk-houdini", "v1.2.7", "plugins", "basic", "info.yml"),
+            os.path.join(app_store_root, "tk-flame", "v1.9.6", "info.yml"),
+            os.path.join(app_store_root, "tk-shotgun", "v0.6.0", "info.yml"),
+            os.path.join(app_store_root, "tk-framework-qtwidgets", "v2.6.5", "info.yml"),
+            os.path.join(app_store_root, "tk-multi-loader2", "v1.18.0", "info.yml")
+        ]
+
+        for item in test_bundle_cache_structure:
+            Utils.touch(item)
+
+    def test_bundle_cache_root_folder(self):
+        self._db = BundleCacheUsage(self.bundle_cache_root)
+        self.assertEquals(self.bundle_cache_root, self._db.bundle_cache_root)
+
+    def test_bundle_cache_root_folder(self):
+        # Test auto-assignation based on usage of LocalFileStorageManager
+        self._db = BundleCacheUsage()
+        self.assertEquals(self.bundle_cache_root, self._db.bundle_cache_root)
 
     def test_walk_bundle_cache(self):
         """
@@ -408,13 +441,9 @@ class TestBundleCacheUsageBasicOperations(unittest2.TestCase):
         # See `_create_test_bundle_cache_structure`  documentation.
 
         """
-
-        # Setup
-        TestBundleCacheUsageBasicOperations._create_test_bundle_cache_structure(self.bundle_cache_root)
-
         # Tests using our test bundle cache test structure
         files = BundleCacheUsage._walk_bundle_cache(self.bundle_cache_root)
-        self.assertEquals(len(files), 18)
+        self.assertEquals(len(files), TestBundleCacheUsageWalkCache.EXPECTED_BUNDLE_COUNT)
 
         # Test with a non existing folder
         test_path = os.path.join(self.bundle_cache_root, "non-existing-folder")
@@ -438,15 +467,15 @@ class TestBundleCacheUsageBasicOperations(unittest2.TestCase):
         # folder and start from there.
         test_path = os.path.join(self.bundle_cache_root, os.pardir)
         files = BundleCacheUsage._walk_bundle_cache(test_path)
-        self.assertEquals(len(files), 18)
+        self.assertEquals(len(files), TestBundleCacheUsageWalkCache.EXPECTED_BUNDLE_COUNT)
 
-        # Cleanup
-        shutil.rmtree(self.bundle_cache_root)
+    def test_find_bundles(self):
+        """
+        Test the `find_bundles` method against the known test bundle cache created by this test class setup.
+        """
+        self._db = BundleCacheUsage(self.bundle_cache_root)
+        bundle_path_list = self._db.find_bundles()
 
-    def test_scan_for_bundles(self):
+        self.assertEquals( self._db.bundle_count, TestBundleCacheUsageWalkCache.EXPECTED_BUNDLE_COUNT )
 
-        # Setup
-        TestBundleCacheUsageBasicOperations._create_test_bundle_cache_structure(self.bundle_cache_root)
 
-        # Cleanup
-        shutil.rmtree(self.bundle_cache_root)
