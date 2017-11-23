@@ -389,6 +389,6 @@ class BundleCacheUsage(object):
         for bundle_path in bundle_path_list:
             self.log_usage(bundle_path)
 
-        log.info("find_bundles: populating done, %s, found %d entries" % (t.elapsed_msg, len(bundle_path)))
+        log.info("find_bundles: populating done, %s, found %d entries" % (t.elapsed_msg, len(bundle_path_list)))
 
 
