@@ -164,7 +164,7 @@ class InteractiveTests(TankTestBase):
 
     @patch("tank.authentication.interactive_authentication._get_ui_state")
     @interactive
-    def test_session_renewal_console(self,_get_ui_state_mock):
+    def test_session_renewal_console(self, _get_ui_state_mock):
         # Doing this forces the prompting code to use the console.
         _get_ui_state_mock.return_value = False
         self._test_session_renewal(test_console=True)
