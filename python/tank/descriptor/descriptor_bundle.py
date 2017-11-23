@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from .bundle_cache_usage import BundleCacheUsage
 from .descriptor import Descriptor
 from .errors import TankDescriptorError, CheckVersionConstraintsError
 from . import constants
@@ -34,6 +35,9 @@ class BundleDescriptor(Descriptor):
         """
         super(BundleDescriptor, self).__init__(io_descriptor)
         self._sg_connection = sg_connection
+        self._bundle_cache_usage = BundleCacheUsage(io_descriptor._bundle_cache_root)
+        self._bundle_cache_usage.log_usage(io_descriptor.get_path())
+        self._bundle_cache_usage.close()
 
     @property
     def version_constraints(self):
