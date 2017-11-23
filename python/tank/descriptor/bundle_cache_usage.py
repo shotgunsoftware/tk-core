@@ -67,7 +67,7 @@ class BundleCacheUsage(object):
     SG_PIPELINE_CONFIG_FIELD = "pipeline_configuration"
 
     DB_MAIN_TABLE_NAME = "bundles"
-    DB_FILENAME = "usage.db"
+    DB_FILENAME = "bundle_usage.db"
     DB_COL_ID = "id"
     DB_COL_ID_INDEX = 0
     DB_COL_PATH = "bundle_path"
