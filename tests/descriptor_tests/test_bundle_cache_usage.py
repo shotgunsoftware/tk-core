@@ -91,7 +91,7 @@ class TestBundleCacheUsageBasicOperations(TestBundleCacheUsageBase):
 
     MAIN_TABLE_NAME = "bundles"
     TEST_BUNDLE_PATH1 = "some-bundle-path1"
-    EXPECTED_DEFAULT_DB_FILENAME = "usage.db"
+    EXPECTED_DEFAULT_DB_FILENAME = "bundle_usage.db"
     PERF_TEST_ITERATION_COUNT = 100
 
     def setUp(self):
