@@ -199,7 +199,7 @@ class BundleCacheUsage(object):
 
         return rows[0]
 
-    def _create_bundle_entry(self, bundle_path, timestamp):
+    def _create_bundle_entry(self, bundle_path, timestamp, initial_access_count):
         sql_statement = """INSERT INTO %s(%s, %s, %s, %s) VALUES(?,?,?,?)""" % (
             BundleCacheUsage.DB_MAIN_TABLE_NAME,
             BundleCacheUsage.DB_COL_PATH,
@@ -210,12 +210,37 @@ class BundleCacheUsage(object):
 
         """ Connects and execute some SQL statement"""
         try:
-            bundle_entry_tuple = (bundle_path, timestamp, timestamp, 0)
+            bundle_entry_tuple = (bundle_path, timestamp, timestamp, initial_access_count)
             result = self._execute(sql_statement, bundle_entry_tuple)
 
         except Exception as e:
             print(e)
             raise e
+
+    def _log_usage(self, bundle_path, initial_access_count=1):
+        """
+
+        :param bundle_path:
+        :param initial_access_count: An optional integer, typically set to 1 from log_usage and zero from initial db polating.
+        """
+        if bundle_path:
+            now_unix_timestamp = int(time.time())
+            bundle_entry = self._find_bundle(bundle_path)
+            if bundle_entry:
+                #print("UPDATING: %s" % (bundle_path))
+                # Update
+                log.info("_update_bundle_entry('%s')" % bundle_path)
+                access_count = bundle_entry[BundleCacheUsage.DB_COL_ACCESS_COUNT_INDEX]
+                self._update_bundle_entry(bundle_entry[BundleCacheUsage.DB_COL_ID_INDEX],
+                                          now_unix_timestamp,
+                                          bundle_entry[BundleCacheUsage.DB_COL_ACCESS_COUNT_INDEX]
+                                          )
+            else:
+                # Insert
+                log.info("_create_bundle_entry('%s')" % bundle_path)
+                self._create_bundle_entry(bundle_path, now_unix_timestamp, initial_access_count)
+
+            self._db_connection.commit()
 
     def _update_bundle_entry(self, entry_id, timestamp, last_access_count):
         try:
@@ -306,24 +331,13 @@ class BundleCacheUsage(object):
             self._db_connection.commit()
 
     def log_usage(self, bundle_path):
-        if bundle_path:
-            now_unix_timestamp = int(time.time())
-            bundle_entry = self._find_bundle(bundle_path)
-            if bundle_entry:
-                #print("UPDATING: %s" % (bundle_path))
-                # Update
-                log.info("_update_bundle_entry('%s')" % bundle_path)
-                access_count = bundle_entry[BundleCacheUsage.DB_COL_ACCESS_COUNT_INDEX]
-                self._update_bundle_entry(bundle_entry[BundleCacheUsage.DB_COL_ID_INDEX],
-                                          now_unix_timestamp,
-                                          bundle_entry[BundleCacheUsage.DB_COL_ACCESS_COUNT_INDEX]
-                                          )
-            else:
-                # Insert
-                log.info("_create_bundle_entry('%s')" % bundle_path)
-                self._create_bundle_entry(bundle_path, now_unix_timestamp)
+        """
 
-            self._db_connection.commit()
+        :param bundle_path:
+
+        NOTE: Distinguish with 'find_bundles' which add entries initialised to usage count of zero.
+        """
+        self._log_usage(bundle_path, 1)
 
     def get_usage_count(self, bundle_path):
         bundle_entry = self._find_bundle(bundle_path)
@@ -387,7 +401,7 @@ class BundleCacheUsage(object):
         # https://stackoverflow.com/a/2922878/710183
         bundle_path_list = self._walk_bundle_cache(self.bundle_cache_root)
         for bundle_path in bundle_path_list:
-            self.log_usage(bundle_path)
+            self._log_usage(bundle_path, 0)
 
         log.info("find_bundles: populating done, %s, found %d entries" % (t.elapsed_msg, len(bundle_path_list)))
 
