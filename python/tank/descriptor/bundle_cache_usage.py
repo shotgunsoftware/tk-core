@@ -210,7 +210,7 @@ class BundleCacheUsage(object):
 
         """ Connects and execute some SQL statement"""
         try:
-            bundle_entry_tuple = (bundle_path, timestamp, timestamp, 1)
+            bundle_entry_tuple = (bundle_path, timestamp, timestamp, 0)
             result = self._execute(sql_statement, bundle_entry_tuple)
 
         except Exception as e:
