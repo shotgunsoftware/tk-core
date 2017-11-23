@@ -200,6 +200,18 @@ class TestBundleCacheUsageBasicOperations(TestBundleCacheUsageBase):
         # Test after DB close
         self.assertEquals(self.db.path, self.expected_db_path)
 
+    def test_db_log_usage_for_None_entry(self):
+        """
+        Tests that log_usage method can handle a None parameter
+        NOTE: Database connection and initials setup is done in the setUp method
+        """
+
+        # Log some usage
+        self.db.log_usage(None)
+
+        # Low level test for record count
+        self.assertEquals(self.db.bundle_count, 0, "Was not expecting an enrty since it was None.")
+
     def test_db_log_usage_for_new_entry(self):
         """
         Tests the basic of logging an entry not already existing in the database
