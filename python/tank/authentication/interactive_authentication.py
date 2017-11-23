@@ -36,6 +36,13 @@ import threading
 import sys
 import os
 
+try:
+    from .ui.qt_abstraction import QtCore, QtGui, QtNetwork, QtWebKit
+except Exception:
+    QtCore = None
+    QtGui = None
+    QtNetwork = None
+    QtWebKit = None
 
 logger = LogManager.get_logger(__name__)
 
@@ -61,28 +68,15 @@ def _get_current_os_user():
             return None
 
 
-def _get_qt_state():
+def _get_ui_state():
     """
-    Returns the state of Qt: the libraries available and if we have a ui or not.
-    :returns: If Qt is available, a tuple of (QtCore, QtGui, QtNetwork, QtWebkit, has_ui_boolean_flag).
-              Otherwise, (None, None, None, None, False)
+    Returns the state of UI: do we have a ui or not.
+    :returns: True or False)
     """
-    qt_core = None
-    qt_gui = None
-    qt_network = None
-    qt_webkit = None
-    qapp_instance_active = False
-    try:
-        from .ui.qt_abstraction import QtCore, QtGui, QtNetwork, QtWebKit
-        qt_core = QtCore
-        qt_gui = QtGui
-        qt_network = QtNetwork
-        qt_webkit = QtWebKit
-        qapp_instance_active = (QtGui.QApplication.instance() is not None)
-    except:
-        pass
-
-    return (qt_core, qt_gui, qt_network, qt_webkit, qapp_instance_active)
+    if QtGui and QtGui.QApplication.instance() is not None:
+        return True
+    else:
+        return False
 
 
 class SessionRenewal(object):
@@ -214,7 +208,7 @@ def renew_session(user):
                                      this exception is raised.
     """
     logger.debug("Credentials were out of date, renewing them.")
-    QtCore, QtGui, QtNetwork, QtWebKit, has_ui = _get_qt_state()
+    has_ui = _get_ui_state()
     # If we have a gui, we need gui based authentication
     if has_ui:
         authenticator = UiAuthenticationHandler(is_session_renewal=True, cookies=user.get_cookies())
@@ -244,7 +238,7 @@ def authenticate(default_host, default_login, http_proxy, fixed_host):
     # If there is no default login, let's provide the os user's instead.
     default_login = default_login or _get_current_os_user()
 
-    QtCore, QtGui, QtNetwork, QtWebKit, has_ui = _get_qt_state()
+    has_ui = _get_ui_state()
 
     # @TODO: refactor the authenticator functions to return a struct-like
     #        object instead of 5 element tuple.

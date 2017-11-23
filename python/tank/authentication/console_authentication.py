@@ -27,6 +27,7 @@ from .. import LogManager
 from .errors import AuthenticationError, AuthenticationCancelled, ConsoleLoginWithSSONotSupportedError
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 from ..util.shotgun.connection import sanitize_url
+from .shotgun_shared import is_sso_enabled_on_site
 
 from getpass import getpass
 
@@ -172,9 +173,6 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
         """
         print("%s, your current session has expired." % login)
 
-        # Import at top-level causes an import error on DefaultsManager
-        from shotgun_shared import is_sso_enabled_on_site
-
         if is_sso_enabled_on_site(hostname):
             raise ConsoleLoginWithSSONotSupportedError(hostname)
 
@@ -203,9 +201,6 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         :param login: Default value for the login.
         :returns: A tuple of (login, password) strings.
         """
-        # Import at top-level causes an import error on DefaultsManager
-        from shotgun_shared import is_sso_enabled_on_site
-
         if self._fixed_host:
             if is_sso_enabled_on_site(hostname):
                 raise ConsoleLoginWithSSONotSupportedError(hostname)

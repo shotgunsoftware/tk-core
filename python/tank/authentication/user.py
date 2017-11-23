@@ -16,6 +16,7 @@ from . import interactive_authentication
 from . import user_impl
 from .. import LogManager
 from .errors import AuthenticationCancelled
+from .shotgun_shared import get_saml_claims_expiration
 
 
 logger = LogManager.get_logger(__name__)
@@ -162,10 +163,6 @@ class ShotgunSamlUser(ShotgunUser):
 
         :returns: The expiration in seconds since January 1st 1970 UTC.
         """
-        # The import must be located here. If it is at global scope, there
-        # is an import error.
-        from .shotgun_shared import get_saml_claims_expiration
-
         return get_saml_claims_expiration(self._impl.get_cookies())
 
     def _do_automatic_claims_renewal(self, preemtive_renewal_threshold=0.9):

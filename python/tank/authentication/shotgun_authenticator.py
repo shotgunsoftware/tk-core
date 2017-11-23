@@ -17,6 +17,7 @@ from . import session_cache
 from .errors import IncompleteCredentials
 from .defaults_manager import DefaultsManager
 from .. import LogManager
+from .shotgun_shared import has_sso_info_in_cookies
 
 logger = LogManager.get_logger(__name__)
 
@@ -149,9 +150,6 @@ class ShotgunAuthenticator(object):
         # Get the defaults is arguments were None.
         host = host or self._defaults_manager.get_host()
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
-
-        # @FIXME: if imported at file scope, we get a ImportError
-        from .shotgun_shared import has_sso_info_in_cookies
 
         # Create a session user
         impl = user_impl.SessionUser(host, login, session_token, http_proxy, password=password, cookies=cookies)
