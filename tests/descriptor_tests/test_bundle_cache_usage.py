@@ -79,6 +79,10 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
         super(TestBundleCacheUsageBase, self).tearDown()
         Utils.safe_delete(self._temp_folder)
 
+    @property
+    def bundle_cache_root(self):
+        return self._temp_folder
+
 
 class TestBundleCacheUsageBasicOperations(TestBundleCacheUsageBase):
     """
@@ -380,10 +384,6 @@ class TestBundleCacheUsageWalkCache(TestBundleCacheUsageBase):
         if self._db:
             Utils.safe_delete(self._db.path)
         super(TestBundleCacheUsageWalkCache, self).tearDown()
-
-    @property
-    def bundle_cache_root(self):
-        return self._temp_folder
 
     @classmethod
     def _create_test_bundle_cache(cls, root_folder):
