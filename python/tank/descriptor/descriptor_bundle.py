@@ -37,10 +37,8 @@ class BundleDescriptor(Descriptor):
         super(BundleDescriptor, self).__init__(io_descriptor)
         self._sg_connection = sg_connection
 
-        if int(os.environ.get('TK_DISABLE_BUNDLE_TRACKING', 0)):
-            #log.info("TK_DISABLE_BUNDLE_TRACKING true, disabling bundle tracking")
-            pass
-        else:
+        disable_bundle_tracking = int(os.environ.get('TK_DISABLE_BUNDLE_TRACKING', 0))==1
+        if not disable_bundle_tracking:
             #log.info("TK_DISABLE_BUNDLE_TRACKING false, enabling bundle tracking")
             self._bundle_cache_usage = BundleCacheUsage(io_descriptor._bundle_cache_root)
             self._bundle_cache_usage.log_usage(io_descriptor.get_path())

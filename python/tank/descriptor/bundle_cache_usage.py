@@ -172,32 +172,22 @@ class BundleCacheUsage(object):
                                                BundleCacheUsage.DB_COL_ACCESS_COUNT)
         self._execute(sql_create_main_table)
 
-    def _find_bundle(self, bundle_path):
+    def _commit(self):
         """
-
-        0 = {int} 1
-        1 = {str} 'some-bundle-path1'
-        2 = {int} 1511302427
-        3 = {int} 1511302427
-        4 = {int} 1
-
-        :param bundle_path:
-        :return: A bundle entry tuple or None if an entry was not found
+        Commit data uncommited yet.
         """
-        result = self._execute("SELECT * FROM %s "
-                               "WHERE %s = ?" % (
-            BundleCacheUsage.DB_MAIN_TABLE_NAME,
-            BundleCacheUsage.DB_COL_PATH
-        ), (bundle_path, ))
+        if self.connected:
+            log.info("commit")
+            self._db_connection.commit()
 
-        if result is None:
-            return None
+    def _connect(self):
+        if self._db_connection is None:
 
-        rows = result.fetchall()
-        if len(rows) == 0:
-            return None
+            log.info("connect")
+            self._db_connection = sqlite3.connect(self.path)
+            self._stat_connect_count += 1
 
-        return rows[0]
+        return self._db_connection
 
     def _create_bundle_entry(self, bundle_path, timestamp, initial_access_count):
         sql_statement = """INSERT INTO %s(%s, %s, %s, %s) VALUES(?,?,?,?)""" % (
@@ -216,6 +206,33 @@ class BundleCacheUsage(object):
         except Exception as e:
             print(e)
             raise e
+
+    def _find_bundle(self, bundle_path):
+        """
+
+        0 = {int} 1
+        1 = {str} 'some-bundle-path1'
+        2 = {int} 1511302427
+        3 = {int} 1511302427
+        4 = {int} 1
+
+        :param bundle_path:
+        :return: A bundle entry tuple or None if an entry was not found
+        """
+        result = self._execute("SELECT * FROM %s "
+                               "WHERE %s = ?" % (
+                                   BundleCacheUsage.DB_MAIN_TABLE_NAME,
+                                   BundleCacheUsage.DB_COL_PATH
+                               ), (bundle_path,))
+
+        if result is None:
+            return None
+
+        rows = result.fetchall()
+        if len(rows) == 0:
+            return None
+
+        return rows[0]
 
     def _log_usage(self, bundle_path, initial_access_count=1):
         """
@@ -259,7 +276,7 @@ class BundleCacheUsage(object):
             raise e
 
     def _get_cursor(self):
-        return self.connect().cursor()
+        return self._connect().cursor()
 
     @classmethod
     def _find_app_store_path(cls, base_folder):
@@ -299,66 +316,9 @@ class BundleCacheUsage(object):
 
     ###################################################################################################################
     #
-    # PUBLIC API
+    # PUBLIC API - properties
     #
     ###################################################################################################################
-
-    def connect(self):
-        if self._db_connection is None:
-
-            log.info("connect")
-            self._db_connection = sqlite3.connect(self.path)
-            self._stat_connect_count += 1
-
-        return self._db_connection
-
-    def close(self):
-        """
-        Close the last access database connection.
-        """
-        if self._db_connection is not None:
-            log.info("close")
-            self._stat_close_count += 1
-            self._db_connection.close()
-            self._db_connection = None
-
-    def commit(self):
-        """
-        Commit data uncommited yet.
-        """
-        if self.connected:
-            log.info("commit")
-            self._db_connection.commit()
-
-    def log_usage(self, bundle_path):
-        """
-
-        :param bundle_path:
-
-        NOTE: Distinguish with 'find_bundles' which add entries initialised to usage count of zero.
-        """
-        self._log_usage(bundle_path, 1)
-
-    def get_usage_count(self, bundle_path):
-        bundle_entry = self._find_bundle(bundle_path)
-        if bundle_entry is None:
-            return 0
-
-        return bundle_entry[BundleCacheUsage.DB_COL_ACCESS_COUNT_INDEX]
-
-    def get_last_usage_date(self, bundle_path):
-        bundle_entry = self._find_bundle(bundle_path)
-        if bundle_entry is None:
-            return None
-
-        return bundle_entry[BundleCacheUsage.DB_COL_LAST_ACCESS_DATE]
-
-    def get_last_usage_timestamp(self, bundle_path):
-        bundle_entry = self._find_bundle(bundle_path)
-        if bundle_entry is None:
-            return None
-
-        return bundle_entry[BundleCacheUsage.DB_COL_LAST_ACCESS_DATE]
 
     @property
     def bundle_cache_root(self):
@@ -389,6 +349,52 @@ class BundleCacheUsage(object):
         :return: A string of the path & filename to the database file.
         """
         return self._bundle_cache_usage_db_filename
+
+    ###################################################################################################################
+    #
+    # PUBLIC API - methods
+    #
+    ###################################################################################################################
+
+    def close(self):
+        """
+        Close the last access database connection.
+        """
+        if self._db_connection is not None:
+            log.info("close")
+            self._stat_close_count += 1
+            self._db_connection.close()
+            self._db_connection = None
+
+    def log_usage(self, bundle_path):
+        """
+
+        :param bundle_path:
+
+        NOTE: Distinguish with 'find_bundles' which add entries initialised to usage count of zero.
+        """
+        self._log_usage(bundle_path, 1)
+
+    def get_usage_count(self, bundle_path):
+        bundle_entry = self._find_bundle(bundle_path)
+        if bundle_entry is None:
+            return 0
+
+        return bundle_entry[BundleCacheUsage.DB_COL_ACCESS_COUNT_INDEX]
+
+    def get_last_usage_date(self, bundle_path):
+        bundle_entry = self._find_bundle(bundle_path)
+        if bundle_entry is None:
+            return None
+
+        return bundle_entry[BundleCacheUsage.DB_COL_LAST_ACCESS_DATE]
+
+    def get_last_usage_timestamp(self, bundle_path):
+        bundle_entry = self._find_bundle(bundle_path)
+        if bundle_entry is None:
+            return None
+
+        return bundle_entry[BundleCacheUsage.DB_COL_LAST_ACCESS_DATE]
 
     def find_bundles(self):
         """

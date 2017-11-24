@@ -280,7 +280,6 @@ class TestBundleCacheUsageBasicOperations(TestBundleCacheUsageBase):
         self.db.log_usage("/Users/Marie-Héléne Hébert/databse.db")
         self.db.log_usage("~/Library/Cache/Shotgun/some-packahe/2.22.2")
         self.db.log_usage("~/Library/Cache/Shotgun/some-packahe/2.11.1")
-        self.db.commit()
 
         # Low level test for record count, we're logging the same bundle name twice
         # We expect a single record still
@@ -307,13 +306,13 @@ class TestBundleCacheUsageBasicOperations(TestBundleCacheUsageBase):
         print("\nelapsed: %s" % (str(elapsed)))
         print("time per iteration: %s" % (str(elapsed/iteration_count)))
 
-    def test_db_read_and_update_performance_file(self):
+    def _test_db_read_and_update_performance_file(self):
         self._helper_test_db_read_and_update_performance(self._temp_folder)
 
-    def test_db_read_and_update_performance_memory(self):
+    def _test_db_read_and_update_performance_memory(self):
         self._helper_test_db_read_and_update_performance(":memory:")
 
-    def test_db_read_and_update_performance(self):
+    def _test_db_read_and_update_performance(self):
         """
 
         :return:
@@ -359,8 +358,8 @@ class TestBundleCacheUsageBasicOperations(TestBundleCacheUsageBase):
         db.close()
 
         elapsed = time.time() - start_time
-        print("elapsed: %s" % (str(elapsed)))
-        print("time per iteration: %s" % (str(elapsed/ITERATION_COUNT)))
+        #print("elapsed: %s" % (str(elapsed)))
+        #print("time per iteration: %s" % (str(elapsed/ITERATION_COUNT)))
 
 class TestBundleCacheUsageWalkCache(TestBundleCacheUsageBase):
     """
@@ -492,5 +491,25 @@ class TestBundleCacheUsageWalkCache(TestBundleCacheUsageBase):
         # TODO: Test that all entries are initially added with a usage count of zero
         # TODO: Add an API method for retreiving entries
 
+
+class TestBundleCacheUsageSingleton(TestBundleCacheUsageBase):
+    """
+    Test that the class is really a singleton
+    """
+
+    def setUp(self):
+        super(TestBundleCacheUsageSingleton, self).setUp()
+        pass
+
+    def tearDown(self):
+        pass
+        super(TestBundleCacheUsageSingleton, self).tearDown()
+
+    def test_singleton(self):
+        """ Tests that multile instantiations return the same object."""
+        db1 = BundleCacheUsage(self.bundle_cache_root)
+        db2 = BundleCacheUsage(self.bundle_cache_root)
+        db3 = BundleCacheUsage(self.bundle_cache_root)
+        self.assertTrue(db1 == db2 == db3)
 
 
