@@ -56,6 +56,14 @@ def get_logger():
     return logging.getLogger(__name__)
 
 
+def set_logger_parent(logger_parent):
+    """
+    Set the logger parent to this module's logger.
+    """
+    logger = get_logger()
+    logger.parent = logger_parent
+
+
 class Saml2SsoError(Exception):
     """
     Top level exception for all saml2_sso level runtime errors

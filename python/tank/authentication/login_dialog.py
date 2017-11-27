@@ -24,7 +24,7 @@ from . import session_cache
 from ..util.shotgun import connection
 from .shotgun_shared import Saml2Sso, is_sso_enabled_on_site, Saml2SsoMissingQtModuleError
 from .errors import AuthenticationError
-from .ui.qt_abstraction import QtGui, QtCore
+from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 from .. import LogManager
 
@@ -62,8 +62,6 @@ class LoginDialog(QtGui.QDialog):
         """
         QtGui.QDialog.__init__(self, parent)
 
-        from .ui.qt_abstraction import QtNetwork
-        from .ui.qt_abstraction import QtWebKit
         qt_modules = {
             "QtCore": QtCore,
             "QtGui": QtGui,

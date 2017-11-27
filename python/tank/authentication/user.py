@@ -21,10 +21,8 @@ from .errors import AuthenticationCancelled
 
 logger = LogManager.get_logger(__name__)
 
-# Import the logger from sso_shared, re-parent it and rename it.
-shotgun_shared_logger = shotgun_shared.get_logger()
-shotgun_shared_logger.parent = logger
-shotgun_shared_logger.name = shotgun_shared_logger.name.replace('tank.', 'sgtk.core.')
+# Ensure that the SSO-related logging will be merged in our loggin.
+shotgun_shared.set_logger_parent(logger)
 
 
 class ShotgunUser(object):
