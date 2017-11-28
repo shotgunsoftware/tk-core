@@ -149,6 +149,7 @@ class Saml2Sso(object):
 
         self._view = QtWebKit.QWebView(self._dialog)
         self._view.page().networkAccessManager().finished.connect(self.on_http_response_finished)
+        self._view.page().networkAccessManager().authenticationRequired.connect(self._on_authentication_required)
         self._view.loadFinished.connect(self.on_load_finished)
 
         # Purposely disable the 'Reload' contextual menu, as it should not be
@@ -423,6 +424,17 @@ class Saml2Sso(object):
             # If there are any errors, we exit by force-closing the dialog.
             self._logger.error("Closing SSO dialog on Error (%s - %s) from loading page: %s" % (error, session.error, url))
             self._dialog.reject()
+
+    def _on_authentication_required(self, reply, authenticator):
+        """
+        Called when authentication is required to get to a web page.
+
+        This method is required to support NTLM/Kerberos on a Windows machine,
+        of if there is a SSO Desktop integration plugin.
+        """
+        # Setting the user to an empty string tells the QAuthenticator to
+        # negociate the authentication with the user's credentials.
+        authenticator.setUser('')
 
     def is_handling_event(self):
         """
