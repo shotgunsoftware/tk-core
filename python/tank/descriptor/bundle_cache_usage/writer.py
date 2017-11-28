@@ -18,53 +18,21 @@ import sqlite3
 import os
 import time
 
-from .. import LogManager
-from ..util import LocalFileStorageManager
+#from collections import deque
+from threading import Event, Thread, Lock
+
+from ... import LogManager
+from ...util import LocalFileStorageManager
+from scanner import BundleCacheScanner
 
 log = LogManager.get_logger(__name__)
-DEBUG = True
+DEBUG = False
 
 
-class Timer(object):
-    def __init__(self):
-        self._start_time = time.time()
-        self._stop_time = None
-
-    @property
-    def elapsed(self):
-        if self.stopped:
-            return self._stop_time - self._start_time
-        else:
-            now = time.time()
-            return now - self._start_time
-
-    @property
-    def elapsed_msg(self):
-        return "Elapsed: %s seconds" % ( str(self.elapsed))
-
-    def stop(self):
-        self._stop_time = time.time()
-
-    @property
-    def stopped(self):
-        return self._stop_time is not None
-
-
-class BundleCacheUsage(object):
+class BundleCacheUsageWriter(object):
     """
     A local flat file SQLite-based database tracking bundle cache accesses.
     """
-
-    # Shotgun field definitions to store the path cache data
-    SHOTGUN_ENTITY = "FilesystemLocation"
-    SG_ENTITY_FIELD = "entity"
-    SG_PATH_FIELD = "path"
-    SG_METADATA_FIELD = "configuration_metadata"
-    SG_IS_PRIMARY_FIELD = "is_primary"
-    SG_ENTITY_ID_FIELD = "linked_entity_id"
-    SG_ENTITY_TYPE_FIELD = "linked_entity_type"
-    SG_ENTITY_NAME_FIELD = "code"
-    SG_PIPELINE_CONFIG_FIELD = "pipeline_configuration"
 
     DB_MAIN_TABLE_NAME = "bundles"
     DB_FILENAME = "bundle_usage.db"
@@ -79,18 +47,56 @@ class BundleCacheUsage(object):
     DB_COL_ACCESS_COUNT = "bundle_access_count"
     DB_COL_ACCESS_COUNT_INDEX = 4
 
+    # keeps track of the single instance of the class
+    __instance = None
+
+    def __new__(cls, *args, **kwargs):
+        """Ensures only one instance of the metrics queue exists."""
+
+        # create the queue instance if it hasn't been created already
+        if not cls.__instance:
+
+            log.info("__new__")
+
+            # remember the instance so that no more are created
+            singleton = super(BundleCacheUsageWriter, cls).__new__(cls, *args, **kwargs)
+            singleton._lock = Lock()
+
+            # The underlying collections.deque instance
+            # singleton._queue = deque(maxlen=cls.MAXIMUM_QUEUE_SIZE)
+            bundle_cache_root = args[0] if len(args)>0 else None
+            singleton.__init_bundle_cache_root__(bundle_cache_root)
+            singleton.__init_stats__()
+            singleton.__init_db__()
+
+            cls.__instance = singleton
+
+        return cls.__instance
+
     def __init__(self, bundle_cache_root=None):
-        """
-        Constructor.Sets up the database
-        """
         log.info("__init__")
+
+    # TODO: find a better way
+    @classmethod
+    def delete_instance(cls):
+        cls.__instance = None
+
+    #
+    #def __del__(self):
+    #    log.info("__del__")
+    #    # Remove instance from _instances
+    #    self.close()
+    #    BundleCacheUsageWriter.__instance = None
+    #
+
+    def __init_bundle_cache_root__(self, bundle_cache_root):
 
         if bundle_cache_root is None:
             self._bundle_cache_root = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
             check_app_root = False
             self._bundle_cache_usage_db_filename = os.path.join(
                 self.bundle_cache_root,
-                BundleCacheUsage.DB_FILENAME
+                BundleCacheUsageWriter.DB_FILENAME
             )
         elif bundle_cache_root == ":memory:":
             self._bundle_cache_root = bundle_cache_root
@@ -101,31 +107,35 @@ class BundleCacheUsage(object):
             check_app_root = False
             self._bundle_cache_usage_db_filename = os.path.join(
                 self.bundle_cache_root,
-                BundleCacheUsage.DB_FILENAME
+                BundleCacheUsageWriter.DB_FILENAME
             )
 
-        self._app_store_root = os.path.join(self._bundle_cache_root, "app_store")
+            self._app_store_root = os.path.join(self._bundle_cache_root, "app_store")
 
         if check_app_root:
             if not os.path.exists(self._app_store_root) or not os.path.isdir(self._app_store_root):
-                raise Exception("BundleCacheUsage initialisation failure, cannot find the 'app_store' folder.")
+                raise Exception("BundleCacheUsageWriter initialisation failure, cannot find the 'app_store' folder.")
 
+    def __init_stats__(self):
         # A few statistic metrics for tracking overall usage
         self._stat_connect_count = 0
         self._stat_close_count = 0
         self._stat_exec_count = 0
 
+    def __init_db__(self):
         self._db_connection = None
-        #self._db_location = None
 
         # If the database didn't existed before we'll trigger
         db_exists = os.path.exists(self.path) and os.path.isfile(self.path)
 
+        self._connect()
         self._create_main_table()
 
         if not db_exists:
             log.info("No database, creating one, populating ...")
-            self.find_bundles()
+            bundle_list_path = BundleCacheScanner.find_bundles(self.bundle_cache_root)
+            for bundle_path in bundle_list_path:
+                self.log_usage(bundle_path)
 
         # this is to handle unicode properly - make sure that sqlite returns
         # str objects for TEXT fields rather than unicode. Note that any unicode
@@ -164,12 +174,12 @@ class BundleCacheUsage(object):
                                           %s integer,
                                           %s integer,
                                           %s integer
-                                      );""" % (BundleCacheUsage.DB_MAIN_TABLE_NAME,
-                                               BundleCacheUsage.DB_COL_ID,
-                                               BundleCacheUsage.DB_COL_PATH,
-                                               BundleCacheUsage.DB_COL_ADD_DATE,
-                                               BundleCacheUsage.DB_COL_LAST_ACCESS_DATE,
-                                               BundleCacheUsage.DB_COL_ACCESS_COUNT)
+                                      );""" % (BundleCacheUsageWriter.DB_MAIN_TABLE_NAME,
+                                               BundleCacheUsageWriter.DB_COL_ID,
+                                               BundleCacheUsageWriter.DB_COL_PATH,
+                                               BundleCacheUsageWriter.DB_COL_ADD_DATE,
+                                               BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE,
+                                               BundleCacheUsageWriter.DB_COL_ACCESS_COUNT)
         self._execute(sql_create_main_table)
 
     def _commit(self):
@@ -191,11 +201,11 @@ class BundleCacheUsage(object):
 
     def _create_bundle_entry(self, bundle_path, timestamp, initial_access_count):
         sql_statement = """INSERT INTO %s(%s, %s, %s, %s) VALUES(?,?,?,?)""" % (
-            BundleCacheUsage.DB_MAIN_TABLE_NAME,
-            BundleCacheUsage.DB_COL_PATH,
-            BundleCacheUsage.DB_COL_ADD_DATE,
-            BundleCacheUsage.DB_COL_LAST_ACCESS_DATE,
-            BundleCacheUsage.DB_COL_ACCESS_COUNT
+            BundleCacheUsageWriter.DB_MAIN_TABLE_NAME,
+            BundleCacheUsageWriter.DB_COL_PATH,
+            BundleCacheUsageWriter.DB_COL_ADD_DATE,
+            BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE,
+            BundleCacheUsageWriter.DB_COL_ACCESS_COUNT
         )
 
         """ Connects and execute some SQL statement"""
@@ -221,8 +231,8 @@ class BundleCacheUsage(object):
         """
         result = self._execute("SELECT * FROM %s "
                                "WHERE %s = ?" % (
-                                   BundleCacheUsage.DB_MAIN_TABLE_NAME,
-                                   BundleCacheUsage.DB_COL_PATH
+                                   BundleCacheUsageWriter.DB_MAIN_TABLE_NAME,
+                                   BundleCacheUsageWriter.DB_COL_PATH
                                ), (bundle_path,))
 
         if result is None:
@@ -247,10 +257,10 @@ class BundleCacheUsage(object):
                 #print("UPDATING: %s" % (bundle_path))
                 # Update
                 log.info("_update_bundle_entry('%s')" % bundle_path)
-                access_count = bundle_entry[BundleCacheUsage.DB_COL_ACCESS_COUNT_INDEX]
-                self._update_bundle_entry(bundle_entry[BundleCacheUsage.DB_COL_ID_INDEX],
+                access_count = bundle_entry[BundleCacheUsageWriter.DB_COL_ACCESS_COUNT_INDEX]
+                self._update_bundle_entry(bundle_entry[BundleCacheUsageWriter.DB_COL_ID_INDEX],
                                           now_unix_timestamp,
-                                          bundle_entry[BundleCacheUsage.DB_COL_ACCESS_COUNT_INDEX]
+                                          bundle_entry[BundleCacheUsageWriter.DB_COL_ACCESS_COUNT_INDEX]
                                           )
             else:
                 # Insert
@@ -263,10 +273,10 @@ class BundleCacheUsage(object):
         try:
             sql_statement = "UPDATE %s SET %s = ?, %s = ? " \
                             "WHERE %s = ?" % (
-                BundleCacheUsage.DB_MAIN_TABLE_NAME,
-                BundleCacheUsage.DB_COL_LAST_ACCESS_DATE,
-                BundleCacheUsage.DB_COL_ACCESS_COUNT,
-                BundleCacheUsage.DB_COL_ID
+                BundleCacheUsageWriter.DB_MAIN_TABLE_NAME,
+                BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE,
+                BundleCacheUsageWriter.DB_COL_ACCESS_COUNT,
+                BundleCacheUsageWriter.DB_COL_ID
             )
             update_tuple = (timestamp, last_access_count + 1, entry_id)
             result = self._execute(sql_statement, update_tuple)
@@ -277,42 +287,6 @@ class BundleCacheUsage(object):
 
     def _get_cursor(self):
         return self._connect().cursor()
-
-    @classmethod
-    def _find_app_store_path(cls, base_folder):
-        for (dirpath, dirnames, filenames) in os.walk(base_folder):
-            if dirpath.endswith('app_store'):
-                return dirpath
-
-        return None
-
-    @classmethod
-    def _walk_bundle_cache(cls, bundle_cache_root, MAX_DEPTH_WALK=2):
-        """
-        Scan the bundle cache (specified at object creation) for bundles and add them to the database
-
-        TODO: Find a tk-core reference about why MAX_DEPTH_WALK should be set to 2
-        """
-
-        # Initial version, although I know already this is not exactly what
-        # I want since we do want to leave a folder upon finding a info.yml file.
-        # https://stackoverflow.com/a/2922878/710183
-
-        #
-        # Walk up to a certain level
-        # https://stackoverflow.com/questions/42720627/python-os-walk-to-certain-level
-
-        bundle_list = []
-        bundle_cache_app_store = cls._find_app_store_path(bundle_cache_root)
-
-        if bundle_cache_app_store:
-            for (dirpath, dirnames, filenames) in os.walk(bundle_cache_app_store):
-                if dirpath[len(bundle_cache_app_store) + 1:].count(os.sep) <= MAX_DEPTH_WALK:
-                    for filename in filenames:
-                        if filename.endswith('info.yml'):
-                            bundle_list.append(dirpath)
-
-        return bundle_list
 
     ###################################################################################################################
     #
@@ -330,7 +304,7 @@ class BundleCacheUsage(object):
         Returns the number of tracked bundles in the database.
         :return: An integer of a tracked bundle count
         """
-        result = self._execute("SELECT * FROM %s" % (BundleCacheUsage.DB_MAIN_TABLE_NAME))
+        result = self._execute("SELECT * FROM %s" % (BundleCacheUsageWriter.DB_MAIN_TABLE_NAME))
         if result:
             rows = result.fetchall()
             return len(rows)
@@ -380,35 +354,18 @@ class BundleCacheUsage(object):
         if bundle_entry is None:
             return 0
 
-        return bundle_entry[BundleCacheUsage.DB_COL_ACCESS_COUNT_INDEX]
+        return bundle_entry[BundleCacheUsageWriter.DB_COL_ACCESS_COUNT_INDEX]
 
     def get_last_usage_date(self, bundle_path):
         bundle_entry = self._find_bundle(bundle_path)
         if bundle_entry is None:
             return None
 
-        return bundle_entry[BundleCacheUsage.DB_COL_LAST_ACCESS_DATE]
+        return bundle_entry[BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE]
 
     def get_last_usage_timestamp(self, bundle_path):
         bundle_entry = self._find_bundle(bundle_path)
         if bundle_entry is None:
             return None
 
-        return bundle_entry[BundleCacheUsage.DB_COL_LAST_ACCESS_DATE]
-
-    def find_bundles(self):
-        """
-        Scan the bundle cache (specified at object creation) for bundles and add them to the database
-        """
-        log.info("find_bundles: populating ...")
-        t = Timer()
-        # Initial version, although I know already this is not exactly what
-        # I want since we do want to leave a folder upon finding a info.yml file.
-        # https://stackoverflow.com/a/2922878/710183
-        bundle_path_list = self._walk_bundle_cache(self.bundle_cache_root)
-        for bundle_path in bundle_path_list:
-            self._log_usage(bundle_path, 0)
-
-        log.info("find_bundles: populating done, %s, found %d entries" % (t.elapsed_msg, len(bundle_path_list)))
-
-
+        return bundle_entry[BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE]
