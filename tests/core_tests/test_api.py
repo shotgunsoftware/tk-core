@@ -641,7 +641,7 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         super(TestTankFromPathWindowsNoSlash, self).setUp(parameters = {"project_tank_name": self.PROJECT_NAME})
         
         # set up std fixtures
-        self.setup_fixtures()
+        self.setup_fixtures({"descriptor_based": False})
 
         # patch primary local storage def
         self.primary_storage["windows_path"] = self.STORAGE_ROOT
@@ -732,7 +732,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         self.add_to_sg_mock_db(self.project_2_pc)
 
         # set up std fixtures
-        self.setup_multi_root_fixtures()
+        self.setup_multi_root_fixtures({"descriptor_based": False})
 
         # patch storages
         self.alt_storage_1["windows_path"] = "C:\\temp"

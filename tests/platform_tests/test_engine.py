@@ -42,7 +42,7 @@ class TestEngineBase(TankTestBase):
         """
         super(TestEngineBase, self).setUp()
 
-        self.setup_fixtures()
+        self.setup_fixtures({"descriptor_based": False})
 
         # setup shot
         seq = {"type": "Sequence", "name": "seq_name", "id": 3}

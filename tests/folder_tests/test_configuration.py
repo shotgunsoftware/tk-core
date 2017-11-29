@@ -36,7 +36,7 @@ class TestFolderConfiguration(TankTestBase):
         Case that root name specified in projects yml file does not exist in roots file.
         """
         # remove root name from the roots file
-        self.setup_multi_root_fixtures()
+        self.setup_multi_root_fixtures({"descriptor_based": False})
         
         # should be fine
         folder.configuration.FolderConfiguration(self.tk, self.schema_location)

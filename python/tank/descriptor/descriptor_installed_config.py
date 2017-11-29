@@ -94,7 +94,7 @@ class InstalledConfigDescriptor(ConfigDescriptor):
         except TankMissingManifestError:
             return {}
 
-    def _get_config_folder(self):
+    def get_config_folder(self):
         """
         Returns the path to the ``config`` folder inside the pipeline configuration.
 

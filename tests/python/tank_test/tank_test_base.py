@@ -484,12 +484,25 @@ class TankTestBase(unittest.TestCase):
         core_target = os.path.join(self.project_config, "core")
         self._copy_folder(core_source, core_target)
 
-        # now copy the rest of the config fixtures
-        for config_folder in ["env", "hooks", "bundles"]:
-            config_source = os.path.join(config_root, config_folder)
-            if os.path.exists(config_source):
-                config_target = os.path.join(self.project_config, config_folder)
-                self._copy_folder(config_source, config_target)
+        if parameters.get("descriptor_based", True):
+            pc_yml = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
+            pc_yml_data = (
+                "{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
+                "project_id: %d, pc_name: %s, source_descriptor: '%s'}\n\n" % (
+                    self.project["tank_name"],
+                    self.sg_pc_entity["id"],
+                    self.project["id"],
+                    self.sg_pc_entity["code"],
+                    "sgtk:descriptor:path?path=%s" % config_root)
+            )
+            self.create_file(pc_yml, pc_yml_data)
+        else:
+            # now copy the rest of the config fixtures
+            for config_folder in ["env", "hooks", "bundles"]:
+                config_source = os.path.join(config_root, config_folder)
+                if os.path.exists(config_source):
+                    config_target = os.path.join(self.project_config, config_folder)
+                    self._copy_folder(config_source, config_target)
 
         # need to reload the pipeline config to respect the config data from
         # the fixtures
@@ -499,12 +512,13 @@ class TankTestBase(unittest.TestCase):
             # no skip_template_reload flag set to true. So go ahead and reload
             self.tk.reload_templates()
 
-    def setup_multi_root_fixtures(self):
+    def setup_multi_root_fixtures(self, parameters=None):
         """
         Helper method which sets up a standard multi-root set of fixtures
         """
-        self.setup_fixtures(parameters = {"core": "core.override/multi_root_core",
-                                          "skip_template_reload": True})
+        parameters = parameters or {}
+        parameters.update({"core": "core.override/multi_root_core", "skip_template_reload": True})
+        self.setup_fixtures(parameters=parameters)
 
         # Add multiple project roots
         project_name = os.path.basename(self.project_root)
