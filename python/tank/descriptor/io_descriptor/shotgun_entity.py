@@ -67,7 +67,6 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
             optional=["project_id"]
         )
 
-        self._sg_connection = sg_connection
         self._entity_type = descriptor_dict.get("entity_type")
         self._name = descriptor_dict.get("name")
         self._field = descriptor_dict.get("field")

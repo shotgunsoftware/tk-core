@@ -120,7 +120,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
-        :param sg_connection: Shotgun connection to associated site
+        :param sg_connection: (ignored, no longer used) Shotgun connection to associated site
         :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK or CONFIG
         :return: Descriptor instance
         """
@@ -132,7 +132,6 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             optional=["label"]
         )
 
-        self._sg_connection = sg_connection
         self._type = bundle_type
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")

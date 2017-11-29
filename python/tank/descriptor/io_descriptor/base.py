@@ -16,7 +16,7 @@ import urlparse
 
 from .. import constants
 from ... import LogManager
-from ...util import filesystem
+from ...util import shotgun, filesystem
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
 
@@ -38,6 +38,15 @@ class IODescriptorBase(object):
     systems: There may be an app descriptor which knows how to communicate with the
     Tank App store and one which knows how to handle the local file system.
     """
+
+    @property
+    def _sg_connection(self):
+        """
+        Returns a thread-safe shotgun connection handle as maintained
+        by the `util.shotgun.get_sg_connection()` method.
+        :return: SG API handle
+        """
+        return shotgun.get_sg_connection()
 
     def __init__(self, descriptor_dict):
         """
