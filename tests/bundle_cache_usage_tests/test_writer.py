@@ -251,6 +251,38 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         print("elapsed: %s" % (str(elapsed)))
         print("time per iteration: %s" % (str(elapsed/ITERATION_COUNT)))
 
+    def test_purge_bundle(self):
+        """
+        Tests the `purge_bundle` method
+        """
+
+        # Create a folder structure on disk but no entries are added to DB
+        TestBundleCacheUsageBase._create_test_bundle_cache(self.bundle_cache_root)
+        # See the `_create_test_bundle_cache` for available created test bundles
+        bundle_path = os.path.join(self.bundle_cache_root,
+                                   "bundle_cache",
+                                   "app_store",
+                                   "tk-shell",
+                                   "v0.5.4")
+
+        # Verify initial DB properties and actual folder
+        self.assertEquals(self.db.get_usage_count(bundle_path), 0)
+        self.assertEquals(self.db.bundle_count, 0)
+        self.assertTrue(os.path.exists(bundle_path))
+        self.assertTrue(os.path.isdir(bundle_path))
+
+        # Log some usage / add bundle
+        self.db.log_usage(bundle_path)
+        self.assertEquals(self.db.get_usage_count(bundle_path), 1)
+        self.assertEquals(self.db.bundle_count, 1)
+
+        # Purge bundle and verify final DB properties and actual folder
+        self.db.purge_bundle(bundle_path)
+        self.assertEquals(self.db.get_usage_count(bundle_path), 0)
+        self.assertEquals(self.db.bundle_count, 0)
+        self.assertFalse(os.path.exists(bundle_path))
+        self.assertFalse(os.path.isdir(bundle_path))
+
     def _test_db_read_and_update_performance2(self):
         """
 

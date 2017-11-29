@@ -23,6 +23,7 @@ from threading import Event, Thread, Lock
 
 from ... import LogManager
 from ...util import LocalFileStorageManager
+from ...util.filesystem import safe_delete_folder
 from scanner import BundleCacheScanner
 
 log = LogManager.get_logger(__name__)
@@ -217,6 +218,18 @@ class BundleCacheUsageWriter(object):
             print(e)
             raise e
 
+    def _delete_bundle_entry(self, bundle_path):
+        'DELETE FROM tasks WHERE id=?'
+        sql_statement = "DELETE FROM %s WHERE %s=?" % (
+            BundleCacheUsageWriter.DB_MAIN_TABLE_NAME,
+            BundleCacheUsageWriter.DB_COL_PATH,
+        )
+        try:
+            result = self._execute(sql_statement, (bundle_path,))
+        except Exception as e:
+            #log.error(print(e)
+            raise e
+
     def _find_bundle(self, bundle_path):
         """
 
@@ -369,3 +382,31 @@ class BundleCacheUsageWriter(object):
         NOTE: Distinguish with 'find_bundles' which add entries initialised to usage count of zero.
         """
         self._log_usage(bundle_path, 1)
+
+    def purge_bundle(self, bundle_path):
+        """
+        Delete the specified bundle from both the bundle cache
+        and the bundle cache usage database.
+        :param bundle_path:
+        """
+        bundle_entry = self._find_bundle(bundle_path)
+        if bundle_entry:
+            try:
+                # try deleting actual folder
+                if os.path.exists(bundle_path) \
+                    and os.path.isdir(bundle_path):
+                    # TODO: WARNING!!!!
+                    # last chance, add some extra checks!!!!!!!!!!!!!!!
+                    # To make sure we never delete anything below a certain base folder
+                    #
+                    safe_delete_folder(bundle_path)
+                    log.debug("Deleted bundle '%s'" % str(bundle_path))
+
+                # Delete DB entry
+                self._delete_bundle_entry(bundle_path)
+                log.debug("Purged bundle '%s'" % str(bundle_path))
+
+            except Exception as e:
+                log.error("Error deleting bundle package: '%s'" % (bundle_path))
+                log.exception(e)
+
