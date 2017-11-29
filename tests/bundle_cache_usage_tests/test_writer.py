@@ -41,15 +41,23 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
     def setUp(self):
         super(TestBundleCacheUsageWriterBasicOperations, self).setUp()
 
-        self._db = BundleCacheUsageWriter(self._temp_folder)
+        if self._expected_db_path:
+            if os.path.exists(self._expected_db_path):
+                os.remove(self._expected_db_path)
+
+        self._db = BundleCacheUsageWriter(self.bundle_cache_root)
         if os.path.exists(self._expected_db_path):
             self._expected_db_path
 
     def tearDown(self):
         # Necessary to force creation of another instance
         # being a singleton the class would not create a new database
-        # if we are deleting it.
+        # if we are deleting it
         BundleCacheUsageWriter.delete_instance()
+        if self._expected_db_path:
+            if os.path.exists(self._expected_db_path):
+                os.remove(self._expected_db_path)
+
         super(TestBundleCacheUsageWriterBasicOperations, self).tearDown()
 
     ###################################################################################################################
@@ -125,7 +133,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.db.log_usage(None)
 
         # Low level test for record count
-        self.assertEquals(self.db.bundle_count, 0, "Was not expecting an enrty since it was None.")
+        self.assertEquals(self.db.bundle_count, 0, "Was not expecting a new entry from None")
 
     def test_db_log_usage_for_new_entry(self):
         """
@@ -255,7 +263,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         TestBundleCacheUsageBase._create_test_bundle_cache(self.bundle_cache_root)
         # See the `_create_test_bundle_cache` for available created test bundles
         bundle_path = os.path.join(self.bundle_cache_root,
-                                   "bundle_cache",
                                    "app_store",
                                    "tk-shell",
                                    "v0.5.4")

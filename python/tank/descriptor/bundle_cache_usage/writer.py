@@ -111,17 +111,8 @@ class BundleCacheUsageWriter(object):
     def __init_db__(self):
         self._db_connection = None
 
-        # If the database didn't existed before we'll trigger
-        db_exists = os.path.exists(self.path) and os.path.isfile(self.path)
-
         self._connect()
         self._create_main_table()
-
-        if not db_exists:
-            log.info("No database, creating one, populating ...")
-            bundle_list_path = BundleCacheScanner.find_bundles(self.bundle_cache_root)
-            for bundle_path in bundle_list_path:
-                self.log_usage(bundle_path)
 
         # this is to handle unicode properly - make sure that sqlite returns
         # str objects for TEXT fields rather than unicode. Note that any unicode

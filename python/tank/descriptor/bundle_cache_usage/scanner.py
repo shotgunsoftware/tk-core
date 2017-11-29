@@ -22,35 +22,23 @@ from ... import LogManager
 log = LogManager.get_logger(__name__)
 
 
-class Timer(object):
-    def __init__(self):
-        self._start_time = time.time()
-        self._stop_time = None
-
-    @property
-    def elapsed(self):
-        if self.stopped:
-            return self._stop_time - self._start_time
-        else:
-            now = time.time()
-            return now - self._start_time
-
-    @property
-    def elapsed_msg(self):
-        return "Elapsed: %s seconds" % ( str(self.elapsed))
-
-    def stop(self):
-        self._stop_time = time.time()
-
-    @property
-    def stopped(self):
-        return self._stop_time is not None
-
-
 class BundleCacheScanner(object):
     """
     A simple utility class for scanning bundle packages in the bundle cache
     """
+    @classmethod
+    def _find_descriptors(cls, base_folder, max_walk_depth):
+        path_list = []
+        base_folder_len = len(base_folder)
+        for (dirpath, dirnames, filenames) in os.walk(base_folder):
+            shopped_base_path = dirpath[base_folder_len + 1:]
+            level_down_count = shopped_base_path.count(os.sep)
+            if level_down_count <= max_walk_depth:
+                for filename in filenames:
+                    if filename.endswith('info.yml'):
+                        path_list.append(dirpath)
+
+        return path_list
 
     @classmethod
     def find_app_store_path(cls, base_folder):
@@ -61,7 +49,7 @@ class BundleCacheScanner(object):
         return None
 
     @classmethod
-    def find_bundles(cls, bundle_cache_root, MAX_DEPTH_WALK=2):
+    def find_bundles(cls, bundle_cache_root):
         """
         Scan the bundle cache (specified at object creation) for bundles and add them to the database
         Scan the bundle cache (specified at object creation) for bundles and add them to the database
@@ -77,18 +65,23 @@ class BundleCacheScanner(object):
         # Walk up to a certain level
         # https://stackoverflow.com/questions/42720627/python-os-walk-to-certain-level
 
+        MAX_DEPTH_WALK = 2
+
         log.debug("find_bundles: populating ...")
-        t = Timer()
-
+        start_time = time.time()
         bundle_path_list = []
-        bundle_cache_app_store = cls.find_app_store_path(bundle_cache_root)
 
-        if bundle_cache_app_store:
-            for (dirpath, dirnames, filenames) in os.walk(bundle_cache_app_store):
-                if dirpath[len(bundle_cache_app_store) + 1:].count(os.sep) <= MAX_DEPTH_WALK:
-                    for filename in filenames:
-                        if filename.endswith('info.yml'):
-                            bundle_path_list.append(dirpath)
+        if bundle_cache_root and \
+                os.path.exists(bundle_cache_root) and \
+                os.path.isdir(bundle_cache_root):
+                    bundle_cache_dirs = os.listdir(bundle_cache_root)
+                    for sub_dir in bundle_cache_dirs:
+                        path = os.path.join(bundle_cache_root, sub_dir)
+                        if os.path.isdir(path):
+                            bundle_path_list += cls._find_descriptors(path, MAX_DEPTH_WALK)
 
-        log.info("find_bundles: populating done, %s, found %d entries" % (t.elapsed_msg, len(bundle_path_list)))
+        elapsed_time = time.time() - start_time
+        log.info("find_bundles: populating done in %ss, found %d entries" % (
+            elapsed_time, len(bundle_path_list)
+        ))
         return bundle_path_list

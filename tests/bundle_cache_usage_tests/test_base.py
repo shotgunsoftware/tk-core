@@ -72,13 +72,16 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
         if use_fix_folder:
             self._temp_folder = use_fix_folder
         else:
-            self._temp_folder = os.path.join(tempfile.tempdir, TestBundleCacheUsageBase.TMP_FOLDER_PREFIX)
+            self._temp_folder = os.path.join(tempfile.tempdir,
+                                             TestBundleCacheUsageBase.TMP_FOLDER_PREFIX)
 
         if not os.path.exists(self._temp_folder):
-            os.mkdir(self._temp_folder)
+            os.makedirs(self._temp_folder)
 
-        self._expected_db_path = os.path.join(self._temp_folder,
+        self._expected_db_path = os.path.join(self.bundle_cache_root,
                                               TestBundleCacheUsageBase.EXPECTED_DEFAULT_DB_FILENAME)
+
+        TestBundleCacheUsageBase._create_test_bundle_cache(self._temp_folder)
 
         # Preventively delete leftovers
         self.delete_db()
@@ -89,7 +92,7 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
 
     @property
     def bundle_cache_root(self):
-        return self._temp_folder
+        return os.path.join(self._temp_folder, "bundle_cache")
 
     @classmethod
     def _create_test_bundle_cache(cls, root_folder):
@@ -108,6 +111,27 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
         """
 
         bundle_cache_root = os.path.join(root_folder, "bundle_cache")
+        if not os.path.exists(bundle_cache_root):
+            os.makedirs(bundle_cache_root)
+
+        cls._create_test_app_store_cache(bundle_cache_root)
+
+
+    @classmethod
+    def _create_test_app_store_cache(cls, bundle_cache_root):
+        """
+        Creates a bundle cache test struture containing 18 fake bundles.
+        The structure also includes additional file for the purpose of verifying
+        that the method walking down the path is able to limit it's search to
+        bundle level folders.
+
+        Additional `info.yml` might be found in the structure, they're from bundle plugins
+        the tested code is expected to limit it's search to the bundle level.
+
+        NOTE: The structure is generated dynamically rather than adding a yet a
+
+        :param root_folder: A string path of the destination root folder
+        """
         app_store_root = os.path.join(bundle_cache_root, "app_store")
 
         test_bundle_cache_structure = [

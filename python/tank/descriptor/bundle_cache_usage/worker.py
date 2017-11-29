@@ -79,9 +79,6 @@ class BundleCacheUsageWorker(threading.Thread):
 
         while not self._terminate_requested.is_set() or self.pending_count > 0:
 
-            with self._member_lock:
-                self._main_loop_count += 1
-
             # Wait and consume an item
             self._queued_signal.wait()
             while self.pending_count > 0:
@@ -94,6 +91,9 @@ class BundleCacheUsageWorker(threading.Thread):
             self._queued_signal.clear()
 
             self._log_debug("worker thread looping")
+
+            with self._member_lock:
+                self._main_loop_count += 1
 
         self._log_debug("worker thread terminated")
 
