@@ -263,7 +263,7 @@ class PipelineConfiguration(object):
     
         # now read in the pipeline_configuration.yml file
         cfg_yml = os.path.join(
-            self._get_config_core_folder(),
+            self._pc_root, "config", "core",
             constants.PIPELINECONFIG_FILE
         )
     
@@ -298,7 +298,7 @@ class PipelineConfiguration(object):
         
         # write the record to disk
         pipe_config_sg_id_path = os.path.join(
-            self._get_config_core_folder(),
+            self._pc_root, "config", "core",
             constants.PIPELINECONFIG_FILE
         )
         
