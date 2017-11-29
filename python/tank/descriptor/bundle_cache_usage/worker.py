@@ -8,18 +8,17 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Methods relating to the Path cache, a central repository where metadata about
-all Tank items in the file system are kept.
-
-"""
-
 import os
-
 import time
 import threading
 import Queue
+from threading import Event, Thread, Lock
+
 from .writer import BundleCacheUsageWriter
+from ... import LogManager
+
+log = LogManager.get_logger(__name__)
+DEBUG = False
 
 class BundleCacheUsageWorker(threading.Thread):
 
@@ -31,9 +30,39 @@ class BundleCacheUsageWorker(threading.Thread):
 
     MAXIMUM_QUEUE_SIZE = 1024
 
+    # keeps track of the single instance of the class
+    __instance = None
+
+    def __new__(cls, *args, **kwargs):
+        """Ensures only one instance of the metrics queue exists."""
+
+        # create the queue instance if it hasn't been created already
+        if not cls.__instance:
+
+            log.info("__new__")
+
+            # remember the instance so that no more are created
+            singleton = super(BundleCacheUsageWorker, cls).__new__(cls, *args, **kwargs)
+            singleton._lock = Lock()
+
+            # The underlying collections.deque instance
+            # singleton._queue = deque(maxlen=cls.MAXIMUM_QUEUE_SIZE)
+            bundle_cache_root = args[0] if len(args)>0 else None
+            cls.__instance = singleton
+            cls.__instance.__initialized = False
+            singleton.__init__(bundle_cache_root)
+
+        return cls.__instance
+
+    # TODO: find a better way
+    @classmethod
+    def delete_instance(cls):
+        cls.__instance = None
 
     def __init__(self, bundle_cache_root):
         super(BundleCacheUsageWorker, self).__init__()
+        #TODO: returning would cause a silent non-usage of specified parameter
+        if (self.__initialized): return
         self._terminate_requested = threading.Event()
         self._queued_signal = threading.Event()
         self._tasks = Queue.Queue()
@@ -45,6 +74,7 @@ class BundleCacheUsageWorker(threading.Thread):
         self._debug = False
         self._bundle_cache_usage = None
         self._bundle_cache_root = bundle_cache_root
+        self.__initialized = True
 
     #
     # Private methods
@@ -112,6 +142,10 @@ class BundleCacheUsageWorker(threading.Thread):
     # Can run from either threading contextes
     #
     ###########################################################################
+
+    @property
+    def bundle_cache_root(self):
+        return self._bundle_cache_root
 
     @property
     def completed_count(self):

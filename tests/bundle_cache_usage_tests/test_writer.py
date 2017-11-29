@@ -53,7 +53,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         # Necessary to force creation of another instance
         # being a singleton the class would not create a new database
         # if we are deleting it
-        BundleCacheUsageWriter.delete_instance()
         if self._expected_db_path:
             if os.path.exists(self._expected_db_path):
                 os.remove(self._expected_db_path)
@@ -310,29 +309,3 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         elapsed = time.time() - start_time
         #print("elapsed: %s" % (str(elapsed)))
         #print("time per iteration: %s" % (str(elapsed/ITERATION_COUNT)))
-
-
-class TestBundleCacheUsageWriterSingleton(TestBundleCacheUsageBase):
-    """
-    Test that the class is really a singleton
-    """
-    def test_singleton(self):
-        """ Tests that multile instantiations return the same object."""
-        db1 = BundleCacheUsageWriter(self.bundle_cache_root)
-        db2 = BundleCacheUsageWriter(self.bundle_cache_root)
-        db3 = BundleCacheUsageWriter(self.bundle_cache_root)
-        self.assertTrue(db1 == db2 == db3)
-
-    def test_singleton_params(self):
-        """ Tests multiple instantiations with different parameter values."""
-        db1 = BundleCacheUsageWriter(self.bundle_cache_root)
-        path1 = db1.path
-
-        new_bundle_cache_root = os.path.join(self.bundle_cache_root, "another-level")
-        os.makedirs(new_bundle_cache_root)
-        db2 = BundleCacheUsageWriter(new_bundle_cache_root)
-
-        # The second 'instantiation' should have no effect.
-        # The parameter used in the first 'instantiation'
-        # should still be the same
-        self.assertTrue(path1 == db2.path)

@@ -18,9 +18,6 @@ import sqlite3
 import os
 import time
 
-#from collections import deque
-from threading import Event, Thread, Lock
-
 from ... import LogManager
 from ...util.filesystem import safe_delete_folder
 from scanner import BundleCacheScanner
@@ -47,39 +44,11 @@ class BundleCacheUsageWriter(object):
     DB_COL_ACCESS_COUNT = "bundle_access_count"
     DB_COL_ACCESS_COUNT_INDEX = 4
 
-    # keeps track of the single instance of the class
-    __instance = None
-
-    def __new__(cls, *args, **kwargs):
-        """Ensures only one instance of the metrics queue exists."""
-
-        # create the queue instance if it hasn't been created already
-        if not cls.__instance:
-
-            log.info("__new__")
-
-            # remember the instance so that no more are created
-            singleton = super(BundleCacheUsageWriter, cls).__new__(cls, *args, **kwargs)
-            singleton._lock = Lock()
-
-            # The underlying collections.deque instance
-            # singleton._queue = deque(maxlen=cls.MAXIMUM_QUEUE_SIZE)
-            bundle_cache_root = args[0] if len(args)>0 else None
-            singleton.__init_bundle_cache_root__(bundle_cache_root)
-            singleton.__init_stats__()
-            singleton.__init_db__()
-
-            cls.__instance = singleton
-
-        return cls.__instance
-
-    # TODO: find a better way
-    @classmethod
-    def delete_instance(cls):
-        cls.__instance = None
-
     def __init__(self, bundle_cache_root):
         log.info("__init__")
+        self.__init_bundle_cache_root__(bundle_cache_root)
+        self.__init_stats__()
+        self.__init_db__()
 
     def __init_bundle_cache_root__(self, bundle_cache_root):
 
