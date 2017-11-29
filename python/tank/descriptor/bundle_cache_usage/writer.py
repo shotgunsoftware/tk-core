@@ -340,15 +340,6 @@ class BundleCacheUsageWriter(object):
             self._db_connection.close()
             self._db_connection = None
 
-    def log_usage(self, bundle_path):
-        """
-
-        :param bundle_path:
-
-        NOTE: Distinguish with 'find_bundles' which add entries initialised to usage count of zero.
-        """
-        self._log_usage(bundle_path, 1)
-
     def get_usage_count(self, bundle_path):
         bundle_entry = self._find_bundle(bundle_path)
         if bundle_entry is None:
@@ -369,3 +360,12 @@ class BundleCacheUsageWriter(object):
             return None
 
         return bundle_entry[BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE]
+
+    def log_usage(self, bundle_path):
+        """
+
+        :param bundle_path:
+
+        NOTE: Distinguish with 'find_bundles' which add entries initialised to usage count of zero.
+        """
+        self._log_usage(bundle_path, 1)
