@@ -652,6 +652,11 @@ class Sgtk(object):
         """
         Factory method that constructs a context object from a path on disk.
 
+        .. note:: If you're running this method on a render farm or on a machine where the
+                  path cache may not have already been generated then you will need to run
+                  :meth:`synchronize_filesystem_structure` beforehand, otherwise you will
+                  get back a context only containing the shotgun site URL.
+
         :param path: a file system path
         :param previous_context: A context object to use to try to automatically extend the generated
                                  context if it is incomplete when extracted from the path. For example,
@@ -692,7 +697,7 @@ class Sgtk(object):
              "project": {"type": "Project", "id": 123, "name": "My Project"}
             }
 
-            {"type": "Task", "id": 789, "name": "Animation",
+            {"type": "Task", "id": 789, "content": "Animation",
              "project": {"type": "Project", "id": 123, "name": "My Project"}
              "entity": {"type": "Shot", "id": 456, "name": "Shot 001"}
              "step": {"type": "Step", "id": 101112, "name": "Anm"}
@@ -709,7 +714,7 @@ class Sgtk(object):
             {"type": "Shot", "id": 456, "code": "Shot 001"}
 
             # missing linked project name and linked step
-            {"type": "Task", "id": 789, "name": "Animation",
+            {"type": "Task", "id": 789, "content": "Animation",
              "project": {"type": "Project", "id": 123}}
              "entity": {"type": "Shot", "id": 456, "name": "Shot 001"}
             }

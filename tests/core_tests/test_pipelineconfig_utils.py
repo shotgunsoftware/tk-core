@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2017 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -8,11 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 import os
 import inspect
 import sys
+
+from mock import patch
 
 import sgtk
 
@@ -25,7 +25,7 @@ from tank import (
 )
 from tank.util import ShotgunPath
 
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import TankTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
 
 
@@ -131,6 +131,25 @@ class TestPipelineConfigUtils(TankTestBase):
         """
         with self.assertRaises(TankNotPipelineConfigurationError):
             sgtk.get_python_interpreter_for_config("/this/path/does/not/exist")
+
+    def test_localize_config_with_interpreter_as_env_var(self):
+        """
+        Test for interpreter file in a localized config.
+        """
+        config_root = self._create_pipeline_configuration(
+            "localized_core_with_interpreter_as_env_var"
+        )
+        # Create interpreter file for good config.
+        self._create_interpreter_file(config_root, "$SGTK_TEST_INTERPRETER")
+
+        # Patch os.path.exists since /i/wish/this/was/python3 is obviously not a real
+        # file name.
+        with patch("os.path.exists", return_value=True):
+            with temp_env_var(SGTK_TEST_INTERPRETER="/i/wish/this/was/python3"):
+                self.assertEqual(
+                    pipelineconfig_utils.get_python_interpreter_for_config(config_root),
+                    "/i/wish/this/was/python3"
+                )
 
     def test_localized_config_interpreter_file(self):
         """

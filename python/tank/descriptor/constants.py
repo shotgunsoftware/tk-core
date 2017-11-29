@@ -81,3 +81,6 @@ APP_STORE_HTTP_PROXY = "app_store_http_proxy"
 
 # environment variable used to indicate the primary bundle cache path to be used.
 BUNDLE_CACHE_PATH_ENV_VAR = "SHOTGUN_BUNDLE_CACHE_PATH"
+
+# environment variable used to disable connection to the app store
+DISABLE_APPSTORE_ACCESS_ENV_VAR = "SHOTGUN_DISABLE_APPSTORE_ACCESS"

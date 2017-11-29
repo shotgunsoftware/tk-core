@@ -64,6 +64,9 @@ then
     interpreter=$( cygpath -u $interpreter )
 fi
 
+# Expand environment variables
+interpreter=`eval echo $interpreter`
+
 # and check that it exists...
 if [ ! -f "$interpreter" ];
 then

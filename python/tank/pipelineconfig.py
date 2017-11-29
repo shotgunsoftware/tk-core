@@ -104,6 +104,13 @@ class PipelineConfiguration(object):
             "published_file_entity_type",
             "PublishedFile"
         )
+
+        # Enable the use of env variables for project and pipeline configuration settings
+        self._project_name = os.path.expandvars(self._project_name)
+        self._pc_name = os.path.expandvars(self._pc_name)
+        self._project_id = int(os.path.expandvars(self._project_id)) if isinstance(self._project_id, str) else self._project_id
+        self._pc_id = int(os.path.expandvars(self._pc_id)) if isinstance(self._pc_id, str) else self._pc_id
+
         self._use_shotgun_path_cache = pipeline_config_metadata.get(
             "use_shotgun_path_cache",
             False

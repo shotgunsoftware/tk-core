@@ -14,6 +14,8 @@ Unit tests tank updates.
 
 from __future__ import with_statement
 
+import os
+import json
 
 from mock import patch
 
@@ -239,3 +241,121 @@ class TestAppStoreLabels(TankTestBase):
             desc2.get_uri(),
             "sgtk:descriptor:app_store?label=2018.3.45&name=tk-framework-main&version=v3.0.1"
         )
+
+
+class TestAppStoreConnectivity(TankTestBase):
+    """
+    Tests the app store io descriptor
+    """
+
+    def setUp(self):
+        super(TestAppStoreConnectivity, self).setUp()
+        self.setup_fixtures()
+
+    def tearDown(self):
+        # important to call base class so it can clean up memory
+        super(TestAppStoreConnectivity, self).tearDown()
+
+    def _create_test_descriptor(self):
+        sg = self.tk.shotgun
+        root = os.path.join(self.project_root, "cache_root")
+
+        return sgtk.descriptor.create_descriptor(
+            sg,
+            sgtk.descriptor.Descriptor.APP,
+            {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"},
+            bundle_cache_root_override=root
+        )
+
+    def _helper_test_disabling_access_to_app_store(self, mock, expect_call):
+
+        # Validate initial state
+        self.assertEqual(mock.call_count, 0)
+
+        # Create descriptor and check for remote access
+        # which creates an app store connection
+        d = self._create_test_descriptor()
+        self.assertIsNotNone(d)
+        d.has_remote_access()
+
+        if expect_call:
+            mock.assert_called()
+        else:
+            mock.assert_not_called()
+
+        mock.reset_mock()
+        self.assertEqual(mock.call_count, 0)
+
+    @patch("tank_vendor.shotgun_api3.Shotgun")
+    @patch("urllib2.urlopen")
+    def test_disabling_access_to_app_store(self, urlopen_mock, shotgun_mock):
+        """
+        Tests that we can prevent connection to the app store based on usage
+        of the `SHOTGUN_DISABLE_APPSTORE_ACCESS` environment variable.
+        """
+        def urlopen_mock_impl(*args, **kwargs):
+            """
+            Necessary mock so we can pass beyond:
+            - `
+                - `appstore.IODescriptorAppStore.__create_sg_app_store_connection()`
+                    - appstore.IODescriptorAppStore.__get_app_store_key_from_shotgun()`
+
+            Otherwise the code would always cause an exception that is caught by the
+            the `appstore.IODescriptorAppStore.has_remote_access()` except statement
+            which causes the method to return False all of the time which then
+            prevents execution of the code of interest.
+            """
+
+            class MockResponse:
+                """
+                Custom mocked response to allow successful execution of the
+                `appstore.IODescriptorAppStore.__get_app_store_key_from_shotgun()` method.
+                """
+                def __init__(self, json_data, status_code):
+                    self.json_data = json.JSONEncoder().encode(json_data)
+                    self.status_code = status_code
+
+                def read(self):
+                    return str(self.json_data)
+
+            uri = args[0]
+            if uri == 'http://unit_test_mock_sg/api3/sgtk_install_script':
+                return MockResponse({"script_name": "bogus_script_name",
+                                     "script_key": "bogus_script_key"}, 200)
+
+            return MockResponse(None, 404)
+
+        def shotgun_mock_impl(*args, **kwargs):
+            """
+            Mocking up shotgun_api3.Shotgun() constructor.
+            We're not really interested in mocking what it does as much as
+            verifying whether or not an instance is created from calling the
+            `appstore.IODescriptorAppStore.has_remote_access()` method.
+            """
+            pass
+
+        shotgun_mock.side_effect = shotgun_mock_impl
+        urlopen_mock.side_effect = urlopen_mock_impl
+
+        # NOTE: We're not using the tank.descriptor.constants.DISABLE_APPSTORE_ACCESS_ENV_VAR
+        # constant so we can independently tests that the name of the used environment
+        # variable did not change.
+        env_var_name = "SHOTGUN_DISABLE_APPSTORE_ACCESS"
+
+        # Test without the environment variable being present
+        # First we delete it from environ
+        if env_var_name in os.environ:
+            del os.environ[env_var_name]
+        self._helper_test_disabling_access_to_app_store(shotgun_mock, True)
+
+        # Test present inactive
+        os.environ[env_var_name] = "0"
+        self._helper_test_disabling_access_to_app_store(shotgun_mock, True)
+
+        # Test present active
+        os.environ[env_var_name] = "1"
+        self._helper_test_disabling_access_to_app_store(shotgun_mock, False)
+
+        # Test present inactive (again)
+        os.environ[env_var_name] = "0"
+        self._helper_test_disabling_access_to_app_store(shotgun_mock, True)
