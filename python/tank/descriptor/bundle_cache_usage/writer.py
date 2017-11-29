@@ -22,7 +22,6 @@ import time
 from threading import Event, Thread, Lock
 
 from ... import LogManager
-from ...util import LocalFileStorageManager
 from ...util.filesystem import safe_delete_folder
 from scanner import BundleCacheScanner
 
@@ -74,48 +73,34 @@ class BundleCacheUsageWriter(object):
 
         return cls.__instance
 
-    def __init__(self, bundle_cache_root=None):
-        log.info("__init__")
-
     # TODO: find a better way
     @classmethod
     def delete_instance(cls):
         cls.__instance = None
 
-    #
-    #def __del__(self):
-    #    log.info("__del__")
-    #    # Remove instance from _instances
-    #    self.close()
-    #    BundleCacheUsageWriter.__instance = None
-    #
+    def __init__(self, bundle_cache_root):
+        log.info("__init__")
 
     def __init_bundle_cache_root__(self, bundle_cache_root):
 
         if bundle_cache_root is None:
-            self._bundle_cache_root = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
-            check_app_root = False
-            self._bundle_cache_usage_db_filename = os.path.join(
-                self.bundle_cache_root,
-                BundleCacheUsageWriter.DB_FILENAME
-            )
-        elif bundle_cache_root == ":memory:":
-            self._bundle_cache_root = bundle_cache_root
-            self._bundle_cache_usage_db_filename = bundle_cache_root
-            check_app_root = False
-        else:
-            self._bundle_cache_root = bundle_cache_root
-            check_app_root = False
-            self._bundle_cache_usage_db_filename = os.path.join(
-                self.bundle_cache_root,
-                BundleCacheUsageWriter.DB_FILENAME
-            )
+            raise Exception("Class initialization error: "\
+                            "the 'bundle_cache_root' parameter is None .")
 
-            self._app_store_root = os.path.join(self._bundle_cache_root, "app_store")
+        if not os.path.exists(bundle_cache_root):
+            raise Exception("Class initialization error: "\
+                            "the specified 'bundle_cache_root' parameter folder does not exists.")
 
-        if check_app_root:
-            if not os.path.exists(self._app_store_root) or not os.path.isdir(self._app_store_root):
-                raise Exception("BundleCacheUsageWriter initialisation failure, cannot find the 'app_store' folder.")
+        if not os.path.isdir(bundle_cache_root):
+            raise Exception("Class initialization error: " \
+                            "the specified 'bundle_cache_root' parameter is not a directory.")
+
+        self._bundle_cache_root = bundle_cache_root
+
+        self._bundle_cache_usage_db_filename = os.path.join(
+            self.bundle_cache_root,
+            BundleCacheUsageWriter.DB_FILENAME
+        )
 
     def __init_stats__(self):
         # A few statistic metrics for tracking overall usage

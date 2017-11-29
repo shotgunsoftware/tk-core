@@ -93,11 +93,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self._db = BundleCacheUsageWriter(self.bundle_cache_root)
         self.assertEquals(self.bundle_cache_root, self._db.bundle_cache_root)
 
-    def test_bundle_cache_root_folder(self):
-        # Test auto-assignation based on usage of LocalFileStorageManager
-        self._db = BundleCacheUsageWriter()
-        self.assertEquals(self.bundle_cache_root, self._db.bundle_cache_root)
-
     def test_db_log_usage_basic(self):
         """
         Tests the logging basic usage is exception free
@@ -323,7 +318,7 @@ class TestBundleCacheUsageWriterSingleton(TestBundleCacheUsageBase):
 
     def test_singleton_params(self):
         """ Tests multiple instantiations with different parameter values."""
-        db1 = BundleCacheUsageWriter()
+        db1 = BundleCacheUsageWriter(self.bundle_cache_root)
         path1 = db1.path
 
         new_bundle_cache_root = os.path.join(self.bundle_cache_root, "another-level")
