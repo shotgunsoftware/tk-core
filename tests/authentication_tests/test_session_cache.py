@@ -23,6 +23,50 @@ from tank_vendor import yaml
 
 class SessionCacheTests(TankTestBase):
 
+    def setUp(self):
+        super(SessionCacheTests, self).setUp()
+        # Wipe the global session file that has been edited by previous tests.
+        session_cache._write_yaml_file(
+            session_cache._get_global_authentication_file_location(),
+            {}
+        )
+
+    def test_recent_hosts(self):
+        """
+        Makes sure the recent hosts list is keep up to date.
+        """
+        HOST_A = "https://host-a.shotgunstudio.com"
+        HOST_B = "https://host-b.shotgunstudio.com"
+
+        # Make sure the recent hosts is initially empty.
+        self.assertEqual(session_cache.get_recent_hosts(), [])
+
+        # Set HOST_A as the current host.
+        session_cache.set_current_host(HOST_A)
+        self.assertEqual(session_cache.get_recent_hosts(), [HOST_A])
+        self.assertEqual(session_cache.get_current_host(), HOST_A)
+
+        # Then set HOST_B as the new current host.
+        session_cache.set_current_host(HOST_B)
+        self.assertEqual(session_cache.get_recent_hosts(), [HOST_B, HOST_A])
+        self.assertEqual(session_cache.get_current_host(), HOST_B)
+
+        # Now set back HOST_A as the current host. It should now be the most recent.
+        session_cache.set_current_host(HOST_A)
+        self.assertEqual(session_cache.get_recent_hosts(), [HOST_A, HOST_B])
+        self.assertEqual(session_cache.get_current_host(), HOST_A)
+
+        # Now remove HOST_A from the recent list. It should be gone from
+        # the list and B should be the new current site.
+        session_cache.remove_recent_host(HOST_A)
+        self.assertEqual(session_cache.get_recent_hosts(), [HOST_B])
+        self.assertEqual(session_cache.get_current_host(), HOST_B)
+
+        # Now remove HOST_B form the recent list.
+        session_cache.remove_recent_host(HOST_B)
+        self.assertEqual(session_cache.get_recent_hosts(), [])
+        self.assertEqual(session_cache.get_current_host(), None)
+
     def test_current_host(self):
         """
         Makes sure current host is saved appropriately.
@@ -63,7 +107,10 @@ class SessionCacheTests(TankTestBase):
         ) as fh:
             # Let's read the file directly to see if the data was cleaned up.
             data = yaml.load(fh)
-            self.assertEqual(data, {"current_host": "https://host.cleaned.up.on.write"})
+            self.assertEqual(
+                data["current_host"],
+                "https://host.cleaned.up.on.write"
+            )
 
     def test_current_user(self):
         """

@@ -34,6 +34,7 @@ from ..util import LocalFileStorageManager
 logger = LogManager.get_logger(__name__)
 
 _CURRENT_HOST = "current_host"
+_RECENT_HOSTS = "recent_hosts"
 _CURRENT_USER = "current_user"
 _USERS = "users"
 _LOGIN = "login"
@@ -178,7 +179,7 @@ def _try_load_yaml_file(file_path):
             logger.debug(line.rstrip())
         # Create an empty document
         return {}
-    except:
+    except Exception:
         logger.exception("Unexpected error while opening %s" % file_path)
         return {}
     finally:
@@ -220,6 +221,7 @@ def _try_load_global_authentication_file(file_path):
     content = _try_load_yaml_file(file_path)
     # Make sure any mandatody entry is present.
     content.setdefault(_CURRENT_HOST, None)
+    content.setdefault(_RECENT_HOSTS, [])
     return content
 
 
@@ -285,7 +287,7 @@ def delete_session_data(host, login):
         # Write back the file.
         _write_yaml_file(info_path, users_file)
         logger.debug("Session cleared.")
-    except:
+    except Exception:
         logger.exception("Couldn't update the session cache file!")
         raise
 
@@ -393,6 +395,45 @@ def get_current_host():
     return host
 
 
+def get_recent_hosts():
+    """
+    Retrieves the list of recently visited hosts.
+
+    :returns: List of recently visited hosts.
+    """
+    info_path = _get_global_authentication_file_location()
+    document = _try_load_global_authentication_file(info_path)
+    logger.debug("Recent hosts are: ", document[_RECENT_HOSTS])
+    return document[_RECENT_HOSTS]
+
+
+def remove_recent_host(host):
+    """
+    Removes the host from the recent list.
+
+    If the host was the current host, then the next most recent host
+    becomes the current one. If there is no other hosts, than the
+    current host becomes non.
+    """
+    file_path = _get_global_authentication_file_location()
+    document = _try_load_global_authentication_file(file_path)
+
+    # Remove the host from the recent list.
+    document[_RECENT_HOSTS].remove(host)
+
+    # If the removed host is also the current host, do some extra cleanup.
+    if document[_CURRENT_HOST] == host:
+        # If the are still recent hosts, take the most recent host and promote
+        # it as the current host.
+        if document[_RECENT_HOSTS]:
+            document[_CURRENT_HOST] = document[_RECENT_HOSTS][0]
+        else:
+            # If there are no more hosts, just remove the current one.
+            document[_CURRENT_HOST] = None
+
+    _write_yaml_file(file_path, document)
+
+
 def set_current_host(host):
     """
     Saves the current host.
@@ -406,7 +447,13 @@ def set_current_host(host):
     _ensure_folder_for_file(file_path)
 
     current_host_file = _try_load_global_authentication_file(file_path)
-    current_host_file[_CURRENT_HOST] = host.strip()
+    current_host_file[_CURRENT_HOST] = host
+
+    # Make sure this host is now the most recent one.
+    if host in current_host_file[_RECENT_HOSTS]:
+        current_host_file[_RECENT_HOSTS].remove(host)
+    current_host_file[_RECENT_HOSTS].insert(0, host)
+
     _write_yaml_file(file_path, current_host_file)
 
 
