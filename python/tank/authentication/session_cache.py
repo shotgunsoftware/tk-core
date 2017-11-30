@@ -36,6 +36,7 @@ logger = LogManager.get_logger(__name__)
 _CURRENT_HOST = "current_host"
 _RECENT_HOSTS = "recent_hosts"
 _CURRENT_USER = "current_user"
+_RECENT_USERS = "recent_users"
 _USERS = "users"
 _LOGIN = "login"
 _SESSION_TOKEN = "session_token"
@@ -197,9 +198,9 @@ def _try_load_site_authentication_file(file_path):
     The users file has the following format:
         current_user: "login1"
         users:
-           {name: "login1", session_token: "session_token"}
-           {name: "login2", session_token: "session_token"}
-           {name: "login3", session_token: "session_token"}
+           {login: "login1", session_token: "session_token"}
+           {login: "login2", session_token: "session_token"}
+           {login: "login3", session_token: "session_token"}
 
     :returns: site authentication style dictionary
     """
@@ -207,6 +208,14 @@ def _try_load_site_authentication_file(file_path):
     # Make sure any mandatory entry is present.
     content.setdefault(_USERS, [])
     content.setdefault(_CURRENT_USER, None)
+    content.setdefault(_RECENT_USERS, [])
+
+    for user in content[_USERS]:
+        user[_LOGIN] = user[_LOGIN].strip()
+
+    if content[_CURRENT_USER]:
+        content[_CURRENT_USER] = content[_CURRENT_USER].strip()
+
     return content
 
 
@@ -309,9 +318,7 @@ def get_session_data(base_url, login):
             # Search for the user in the users dictionary.
             if _is_same_user(user, login):
                 return {
-                    # There used to be a time where we didn't strip whitepsaces
-                    # before writing the file, so do it now just in case.
-                    _LOGIN: user[_LOGIN].strip(),
+                    _LOGIN: user[_LOGIN],
                     _SESSION_TOKEN: user[_SESSION_TOKEN]
                 }
         logger.debug("No cached user found for %s" % login)
@@ -376,6 +383,12 @@ def set_current_user(host, login):
 
     current_user_file = _try_load_site_authentication_file(file_path)
     current_user_file[_CURRENT_USER] = login
+
+    # Make sure this user is now the most recent one.
+    if login in current_user_file[_RECENT_USERS]:
+        current_user_file[_RECENT_USERS].remove(login)
+    current_user_file[_RECENT_USERS].insert(0, login)
+
     _write_yaml_file(file_path, current_user_file)
 
 
@@ -407,7 +420,7 @@ def get_recent_hosts():
     return document[_RECENT_HOSTS]
 
 
-def remove_recent_host(host):
+def remove_recent_host(site):
     """
     Removes the host from the recent list.
 
@@ -417,21 +430,51 @@ def remove_recent_host(host):
     """
     file_path = _get_global_authentication_file_location()
     document = _try_load_global_authentication_file(file_path)
+    _remove_recent(document, file_path, _CURRENT_HOST, _RECENT_HOSTS, site)
+
+
+def remove_recent_user(site, user):
+    """
+    Removes the host from the recent list.
+
+    If the host was the current host, then the next most recent host
+    becomes the current one. If there is no other hosts, than the
+    current host becomes non.
+    """
+    file_path = _get_site_authentication_file_location(site)
+    document = _try_load_site_authentication_file(file_path)
+    _remove_recent(document, file_path, _CURRENT_USER, _RECENT_USERS, user)
+
+
+def get_recent_users(site):
+    """
+    Retrieves the list of recently visited hosts.
+
+    :returns: List of recently visited hosts.
+    """
+    info_path = _get_site_authentication_file_location(site)
+    document = _try_load_site_authentication_file(info_path)
+    # FIXME: We potential want to keep the users sorted in a list... or not.
+    logger.debug("Recent users are: %s", document[_RECENT_USERS])
+    return document[_RECENT_USERS]
+
+
+def _remove_recent(document, file_location, current_token, recent_token, value):
 
     # Remove the host from the recent list.
-    document[_RECENT_HOSTS].remove(host)
+    document[recent_token].remove(value)
 
     # If the removed host is also the current host, do some extra cleanup.
-    if document[_CURRENT_HOST] == host:
+    if document[current_token] == value:
         # If the are still recent hosts, take the most recent host and promote
         # it as the current host.
-        if document[_RECENT_HOSTS]:
-            document[_CURRENT_HOST] = document[_RECENT_HOSTS][0]
+        if document[recent_token]:
+            document[current_token] = document[recent_token][0]
         else:
             # If there are no more hosts, just remove the current one.
-            document[_CURRENT_HOST] = None
+            document[current_token] = None
 
-    _write_yaml_file(file_path, document)
+    _write_yaml_file(file_location, document)
 
 
 def set_current_host(host):

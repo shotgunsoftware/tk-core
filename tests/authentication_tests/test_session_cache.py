@@ -31,6 +31,12 @@ class SessionCacheTests(TankTestBase):
             {}
         )
 
+    def _clear_site_yml(self, site):
+        session_cache._write_yaml_file(
+            session_cache._get_site_authentication_file_location(site),
+            {}
+        )
+
     def test_recent_hosts(self):
         """
         Makes sure the recent hosts list is keep up to date.
@@ -66,6 +72,45 @@ class SessionCacheTests(TankTestBase):
         session_cache.remove_recent_host(HOST_B)
         self.assertEqual(session_cache.get_recent_hosts(), [])
         self.assertEqual(session_cache.get_current_host(), None)
+
+    def test_recent_users(self):
+        """
+        Makes sure the recent hosts list is keep up to date.
+        """
+        HOST = "https://host.shotgunstudio.com"
+        LOGIN_A = "login_a"
+        LOGIN_B = "login_b"
+
+        self._clear_site_yml(HOST)
+
+        # Make sure the recent hosts is initially empty.
+        self.assertEqual(session_cache.get_recent_users(HOST), [])
+
+        # Set HOST_A as the current host.
+        session_cache.set_current_user(HOST, LOGIN_A)
+        self.assertEqual(session_cache.get_recent_users(HOST), [LOGIN_A])
+        self.assertEqual(session_cache.get_current_user(HOST), LOGIN_A)
+
+        # Then set HOST_B as the new current host.
+        session_cache.set_current_user(HOST, LOGIN_B)
+        self.assertEqual(session_cache.get_recent_users(HOST), [LOGIN_B, LOGIN_A])
+        self.assertEqual(session_cache.get_current_user(HOST), LOGIN_B)
+
+        # Now set back HOST_A as the current host. It should now be the most recent.
+        session_cache.set_current_user(HOST, LOGIN_A)
+        self.assertEqual(session_cache.get_recent_users(HOST), [LOGIN_A, LOGIN_B])
+        self.assertEqual(session_cache.get_current_user(HOST), LOGIN_A)
+
+        # Now remove HOST_A from the recent list. It should be gone from
+        # the list and B should be the new current site.
+        session_cache.remove_recent_user(HOST, LOGIN_A)
+        self.assertEqual(session_cache.get_recent_users(HOST), [LOGIN_B])
+        self.assertEqual(session_cache.get_current_user(HOST), LOGIN_B)
+
+        # Now remove HOST_B form the recent list.
+        session_cache.remove_recent_user(HOST, LOGIN_B)
+        self.assertEqual(session_cache.get_recent_users(HOST), [])
+        self.assertEqual(session_cache.get_current_user(HOST), None)
 
     def test_current_host(self):
         """
