@@ -73,7 +73,7 @@ class TankBundle(object):
         Internal Use Only - We provide no guarantees that this method
         will be backwards compatible.
         """
-        properties = self._get_metrics_properties()
+        properties = {}
         if command_name:
             properties[EventMetric.KEY_COMMAND] = command_name
 
@@ -82,6 +82,7 @@ class TankBundle(object):
             action,
             properties=properties,
             log_once=log_once,
+            context=self
         )
 
     ##########################################################################################
@@ -955,7 +956,7 @@ class TankBundle(object):
             engine_name = None
 
         return engine_name
-    
+
 
 def _post_process_settings_r(tk, key, value, schema, bundle=None):
     """

@@ -533,12 +533,12 @@ class EventMetric(object):
         return repr(self) in EventMetric.SUPPORTED_EVENTS
 
     @classmethod
-    def log(cls, group, name, properties=None, log_once=False):
+    def log(cls, group, name, properties=None, log_once=False, context=None):
         """
         Queue a metric event with the given name for the given group on
         the :class:`MetricsQueueSingleton` dispatch queue.
 
-        This method simply adds the metric event to the dispatch queue meaning that 
+        This method simply adds the metric event to the dispatch queue meaning that
         the metric has to be treated by a dispatcher to be posted.
 
         :param str group: A group or category this metric event falls into.
@@ -546,12 +546,46 @@ class EventMetric(object):
                           the "Toolkit" group name is reserved for internal use.
         :param str name: A short descriptive event name or performed action,
                          e.g. 'Launched Command', 'Opened Workfile', etc..
-        :param dict properties: An optional dictionary of extra properties to be 
+        :param dict properties: An optional dictionary of extra properties to be
                                 attached to the metric event.
         :param bool log_once: ``True`` if this metric should be ignored if it has
                               already been logged. Defaults to ``False``.
-
+        :param <TankBundle> context: A `TankBundle` based class e.g.:app, engine or framework
         """
+
+        base_properties = None
+
+        if not context:
+            # No context specified, try guessing one
+            try:
+                # import here to prevent circular dependency
+                from ..platform.util import current_bundle
+                context = current_bundle()
+            except Exception as e:
+                try:
+                    # Bundle failed, fallback to engine
+                    # import here to prevent circular dependency
+                    from ..platform.engine import current_engine
+                    context = current_engine()
+                except Exception as e:
+                    # Bailing out trying to guess context
+                    pass
+
+        if context:
+            # Either a context was specified or we managed to guess one
+
+            if hasattr(context, 'get_metrics_properties'):
+                base_properties = context.get_metrics_properties()
+
+        # else Bailing out trying to get base properties
+
+        # If we did get some base properties, update the received parameter
+        if base_properties:
+            if properties:
+                properties.update(base_properties)
+            else:
+                properties = base_properties
+
         MetricsQueueSingleton().log(
             cls(group, name, properties),
             log_once=log_once
