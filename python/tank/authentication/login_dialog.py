@@ -71,10 +71,22 @@ class LoginDialog(QtGui.QDialog):
         if hostname and hostname not in recent_hosts:
             recent_hosts.insert(0, hostname)
 
+        self._strings_model = QtGui.QStringListModel(self)
+        self._strings_model.setStringList(recent_hosts)
+
+        self._proxy_model = QtGui.QSortFilterProxyModel(self)
+        self._proxy_model.setSourceModel(self._strings_model)
+
+        # Tell the model to sort itself... lame.
+        self._proxy_model.sort(0)
+
         # Add everything and pick the first item
-        self.ui.site.addItems(recent_hosts)
+        self.ui.site.setModel(self._proxy_model)
         if recent_hosts:
-            self.ui.site.setCurrentIndex(0)
+            for idx in range(self._proxy_model.rowCount()):
+                if self._proxy_model.data(self._proxy_model.index(idx, 0)) == recent_hosts[0]:
+                    self.ui.site.setCurrentIndex(idx)
+                    break
 
         self._populate_user_dropdown(recent_hosts[0] if recent_hosts else None)
 
