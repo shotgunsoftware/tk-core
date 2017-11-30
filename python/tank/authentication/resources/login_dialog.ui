@@ -53,6 +53,20 @@ QLineEdit:focus
 	border: 1px solid rgb(48, 167, 227);
 }
 
+QComboBox
+{
+	background-color: rgb(29, 31, 34);
+	border: 1px solid rgb(54, 60, 66);
+	border-radius: 2px;
+	padding: 5px;
+    font-size: 12px;
+}
+
+QComboBox:focus
+{
+	border: 1px solid rgb(48, 167, 227);
+}
+
 QLineEdit:Disabled {
     background-color: rgb(60, 60, 60);
     color: rgb(160, 160, 160);
@@ -132,15 +146,21 @@ QLineEdit:Disabled {
            <number>0</number>
           </property>
           <item>
-           <widget class="Qt5LikeLineEdit" name="site">
+           <widget class="QComboBox" name="site">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="minimumSize">
              <size>
               <width>308</width>
               <height>0</height>
              </size>
             </property>
-            <property name="placeholderText">
-             <string>example.shotgunstudio.com</string>
+            <property name="editable">
+             <bool>true</bool>
             </property>
            </widget>
           </item>

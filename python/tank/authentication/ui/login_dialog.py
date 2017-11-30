@@ -47,6 +47,20 @@ class Ui_LoginDialog(object):
 "    border: 1px solid rgb(48, 167, 227);\n"
 "}\n"
 "\n"
+"QComboBox\n"
+"{\n"
+"    background-color: rgb(29, 31, 34);\n"
+"    border: 1px solid rgb(54, 60, 66);\n"
+"    border-radius: 2px;\n"
+"    padding: 5px;\n"
+"    font-size: 12px;\n"
+"}\n"
+"\n"
+"QComboBox:focus\n"
+"{\n"
+"    border: 1px solid rgb(48, 167, 227);\n"
+"}\n"
+"\n"
 "QLineEdit:Disabled {\n"
 "    background-color: rgb(60, 60, 60);\n"
 "    color: rgb(160, 160, 160);\n"
@@ -88,8 +102,14 @@ class Ui_LoginDialog(object):
         self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.site = Qt5LikeLineEdit(self.credentials)
+        self.site = QtGui.QComboBox(self.credentials)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.site.sizePolicy().hasHeightForWidth())
+        self.site.setSizePolicy(sizePolicy)
         self.site.setMinimumSize(QtCore.QSize(308, 0))
+        self.site.setEditable(True)
         self.site.setObjectName("site")
         self.verticalLayout_7.addWidget(self.site)
         self.login = Qt5LikeLineEdit(self.credentials)
@@ -316,7 +336,6 @@ class Ui_LoginDialog(object):
         QtCore.QMetaObject.connectSlotsByName(LoginDialog)
 
     def retranslateUi(self, LoginDialog):
-        self.site.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "example.shotgunstudio.com", None, QtGui.QApplication.UnicodeUTF8))
         self.login.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "login", None, QtGui.QApplication.UnicodeUTF8))
         self.password.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))
         self.message.setText(QtGui.QApplication.translate("LoginDialog", "Please enter your credentials.", None, QtGui.QApplication.UnicodeUTF8))
