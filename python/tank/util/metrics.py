@@ -533,7 +533,7 @@ class EventMetric(object):
         return repr(self) in EventMetric.SUPPORTED_EVENTS
 
     @classmethod
-    def log(cls, group, name, properties=None, log_once=False, context=None):
+    def log(cls, group, name, properties=None, log_once=False, bundle=None):
         """
         Queue a metric event with the given name for the given group on
         the :class:`MetricsQueueSingleton` dispatch queue.
@@ -550,41 +550,46 @@ class EventMetric(object):
                                 attached to the metric event.
         :param bool log_once: ``True`` if this metric should be ignored if it has
                               already been logged. Defaults to ``False``.
-        :param <TankBundle> context: A `TankBundle` based class e.g.:app, engine or framework
+        :param <TankBundle> bundle: A `TankBundle` based class e.g.:app, engine or framework.
+                            This argument represents the current bundle where metrics are being logged.
+                            If not supplied, this method will attempt to guess the current bundle.
+
+                            Bundles provide additional metrics properties and this method will attempt
+                            to gather those automatically to pass to the analytics service.
+
+                            This saves the calling code from having to extract metrics properties
+                            and supply them manually. Instead, the calling code can supply only
+                            additional, non-standard properties that should be logged.
         """
 
-        base_properties = None
-
-        if not context:
-            # No context specified, try guessing one
+        if not bundle:
+            # No bundle specified, try guessing one
             try:
                 # import here to prevent circular dependency
-                from ..platform.util import current_bundle
-                context = current_bundle()
-            except Exception as e:
-                try:
-                    # Bundle failed, fallback to engine
-                    # import here to prevent circular dependency
-                    from ..platform.engine import current_engine
-                    context = current_engine()
-                except Exception as e:
-                    # Bailing out trying to guess context
-                    pass
+                from sgtk.platform.util import current_bundle
+                bundle = current_bundle()
+            except:
+                pass
 
-        if context:
-            # Either a context was specified or we managed to guess one
+        if not bundle:
+            # Still no bundle? Fallback to engine
+            try:
+                # import here to prevent circular dependency
+                from ..platform.engine import current_engine
+                bundle = current_engine()
+            except:
+                # Bailing out trying to guess bundle
+                pass
 
-            if hasattr(context, 'get_metrics_properties'):
-                base_properties = context.get_metrics_properties()
+        if bundle:
+            base_properties = bundle.get_metrics_properties()
 
-        # else Bailing out trying to get base properties
-
-        # If we did get some base properties, update the received parameter
-        if base_properties:
+            # Add base properties to specified properties (if any)
             if properties:
                 properties.update(base_properties)
             else:
                 properties = base_properties
+        # else we won't get base properties
 
         MetricsQueueSingleton().log(
             cls(group, name, properties),

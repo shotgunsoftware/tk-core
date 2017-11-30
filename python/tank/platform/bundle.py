@@ -82,7 +82,7 @@ class TankBundle(object):
             action,
             properties=properties,
             log_once=log_once,
-            context=self
+            bundle=self
         )
 
     ##########################################################################################
