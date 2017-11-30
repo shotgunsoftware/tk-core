@@ -69,7 +69,7 @@ class TestEventMetric(TankTestBase):
             EventMetric([], []),
         except Exception as e:
             self.fail(
-                "Creating an instance of 'EventMetric' failed unexpectedly: %s", (e)
+                "Creating an instance of 'EventMetric' failed unexpectedly: %s" % (e)
             )
 
     def test_init_with_valid_parameters(self):
@@ -882,7 +882,7 @@ class TestMetricsFunctions(TankTestBase):
             EventMetric.log({}, {}),
             EventMetric.log([], []),
         except Exception as e:
-            self.fail("log_metric() failed unexpectedly on bad metric: %s", (e))
+            self.fail("log_metric() failed unexpectedly on bad metric: %s" % (e))
 
     def test_log_event_metric_with_good_metrics(self):
 
@@ -898,7 +898,7 @@ class TestMetricsFunctions(TankTestBase):
                  }
             )
         except Exception as e:
-            self.fail("EventMetric.log() failed unexpectedly on good metric: %s", (e))
+            self.fail("EventMetric.log() failed unexpectedly on good metric: %s" % (e))
 
 
 class TestBundleMetrics(TankTestBase):
