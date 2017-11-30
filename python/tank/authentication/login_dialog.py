@@ -22,6 +22,7 @@ from .ui import resources_rc # noqa
 from .ui import login_dialog
 from . import session_cache
 from ..util.shotgun import connection
+from ..util import login
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
@@ -63,8 +64,19 @@ class LoginDialog(QtGui.QDialog):
 
         # Assign credentials
         self._http_proxy = http_proxy
-        self.ui.site.setText(hostname)
-        self.ui.login.setText(login)
+
+        recent_hosts = session_cache.get_recent_hosts()
+        # If we have a recent host and it's not in the list, add it. This can happen if a user logs
+        # on and while the process is running the host is removed from the host list.
+        if hostname and hostname not in recent_hosts:
+            recent_hosts.insert(0, hostname)
+
+        # Add everything and pick the first item
+        self.ui.site.addItems(recent_hosts)
+        if recent_hosts:
+            self.ui.site.setCurrentIndex(0)
+
+        self._populate_user_dropdown(recent_hosts[0] if recent_hosts else None)
 
         if fixed_host:
             self._disable_text_widget(
@@ -84,8 +96,8 @@ class LoginDialog(QtGui.QDialog):
             )
 
         # Set the focus appropriately on the topmost line edit that is empty.
-        if self.ui.site.text():
-            if self.ui.login.text():
+        if self._get_current_site():
+            if self._get_current_user():
                 self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
             else:
                 self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
@@ -110,10 +122,13 @@ class LoginDialog(QtGui.QDialog):
 
         self.ui.forgot_password_link.linkActivated.connect(self._link_activated)
 
-        self.ui.site.editingFinished.connect(self._strip_whitespaces)
-        self.ui.login.editingFinished.connect(self._strip_whitespaces)
+        self.ui.site.lineEdit().editingFinished.connect(self._strip_whitespaces)
+        self.ui.login.lineEdit().editingFinished.connect(self._strip_whitespaces)
         self.ui._2fa_code.editingFinished.connect(self._strip_whitespaces)
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
+
+        self.ui.site.activated.connect(lambda x: self._on_site_changed())
+        self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
     def _strip_whitespaces(self):
         """
@@ -121,17 +136,34 @@ class LoginDialog(QtGui.QDialog):
         """
         self.sender().setText(self.sender().text().strip())
 
+    def _on_site_changed(self):
+        self.ui.login.clear()
+        self._populate_user_dropdown(self._get_current_site())
+
+    def _populate_user_dropdown(self, site):
+
+        if site:
+            users = session_cache.get_recent_users(site)
+            self.ui.login.addItems(users)
+        else:
+            users = []
+
+        if users:
+            self.ui.login.setCurrentIndex(0)
+        else:
+            self.ui.login.setEditText(login.get_login_name())
+
     def _link_activated(self, site):
         """
         Clicked when the user presses on the "Forgot your password?" link.
         """
         # Don't use the URL that is set in the link, but the URL set in the
         # text box.
-        site = connection.sanitize_url(self.ui.site.text())
+        site = self._get_current_site()
 
         # Give visual feedback that we are patching the URL before invoking
         # the desktop services.
-        self.ui.site.setText(site)
+        self.ui.site.setEditText(site)
 
         # Launch the browser
         forgot_password = "%s/user/forgot_password" % site
@@ -156,7 +188,10 @@ class LoginDialog(QtGui.QDialog):
         :param widget: Text editing widget to disable.
         :param toolkit_text: Tooltip text that explains why the widget is disabled.
         """
-        widget.setReadOnly(True)
+        if isinstance(widget, QtGui.QLineEdit):
+            widget.setReadOnly(True)
+        else:
+            widget.setEditable(False)
         widget.setEnabled(False)
         widget.setToolTip(tooltip_text)
 
@@ -190,8 +225,8 @@ class LoginDialog(QtGui.QDialog):
                   None if the user cancelled.
         """
         if self.exec_() == QtGui.QDialog.Accepted:
-            return (self.ui.site.text().encode("utf-8"),
-                    self.ui.login.text().encode("utf-8"),
+            return (self._get_current_site(),
+                    self._get_current_user(),
                     self._new_session_token)
         else:
             return None
@@ -210,8 +245,8 @@ class LoginDialog(QtGui.QDialog):
         Validate the values, accepting if login is successful and display an error message if not.
         """
         # pull values from the gui
-        site = self.ui.site.text().strip()
-        login = self.ui.login.text().strip()
+        site = self._get_current_site()
+        login = self._get_current_user()
         password = self.ui.password.text()
 
         if len(site) == 0:
@@ -219,10 +254,8 @@ class LoginDialog(QtGui.QDialog):
             self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
             return
 
-        site = connection.sanitize_url(site)
-
         # Cleanup the URL.
-        self.ui.site.setText(site)
+        self.ui.site.setEditText(site)
 
         if len(login) == 0:
             self._set_error_message(self.ui.message, "Please enter your login name.")
@@ -302,14 +335,22 @@ class LoginDialog(QtGui.QDialog):
             self._set_error_message(error_label, "Please enter your code.")
             return
 
-        site = self.ui.site.text().strip()
-        login = self.ui.login.text()
+        site = self._get_current_site()
+        login = self._get_current_user()
         password = self.ui.password.text()
 
         try:
             self._authenticate(error_label, site, login, password, code)
         except Exception as e:
             self._set_error_message(self.ui.message, e)
+
+    def _get_current_site(self):
+        return connection.sanitize_url(
+            self.ui.site.currentText().strip()
+        ).encode("utf-8")
+
+    def _get_current_user(self):
+        return self.ui.login.currentText().strip().encode("utf-8")
 
     def _use_backup_pressed(self):
         """

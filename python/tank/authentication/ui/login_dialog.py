@@ -61,6 +61,15 @@ class Ui_LoginDialog(object):
 "    border: 1px solid rgb(48, 167, 227);\n"
 "}\n"
 "\n"
+"QComboBox:drop-down:button {\n"
+"    border: 1px solid rgb(54, 60, 66);\n"
+"}\n"
+"\n"
+"QComboBox:down-arrow {\n"
+"    image: url(:/shotgun_authentication/down-arrow.png);\n"
+"\n"
+"}\n"
+"\n"
 "QLineEdit:Disabled {\n"
 "    background-color: rgb(60, 60, 60);\n"
 "    color: rgb(160, 160, 160);\n"
@@ -112,11 +121,22 @@ class Ui_LoginDialog(object):
         self.site.setEditable(True)
         self.site.setObjectName("site")
         self.verticalLayout_7.addWidget(self.site)
-        self.login = Qt5LikeLineEdit(self.credentials)
+        self.login = QtGui.QComboBox(self.credentials)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.login.sizePolicy().hasHeightForWidth())
+        self.login.setSizePolicy(sizePolicy)
         self.login.setMinimumSize(QtCore.QSize(308, 0))
+        self.login.setEditable(True)
         self.login.setObjectName("login")
         self.verticalLayout_7.addWidget(self.login)
         self.password = Qt5LikeLineEdit(self.credentials)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.password.sizePolicy().hasHeightForWidth())
+        self.password.setSizePolicy(sizePolicy)
         self.password.setMinimumSize(QtCore.QSize(308, 0))
         self.password.setEchoMode(QtGui.QLineEdit.Password)
         self.password.setObjectName("password")
@@ -336,7 +356,6 @@ class Ui_LoginDialog(object):
         QtCore.QMetaObject.connectSlotsByName(LoginDialog)
 
     def retranslateUi(self, LoginDialog):
-        self.login.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "login", None, QtGui.QApplication.UnicodeUTF8))
         self.password.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))
         self.message.setText(QtGui.QApplication.translate("LoginDialog", "Please enter your credentials.", None, QtGui.QApplication.UnicodeUTF8))
         self.forgot_password_link.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"http://mystudio.shotgunstudio.com/user/forgot_password\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Forgot your password?</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))

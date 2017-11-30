@@ -67,6 +67,15 @@ QComboBox:focus
 	border: 1px solid rgb(48, 167, 227);
 }
 
+QComboBox:drop-down:button {
+	border: 1px solid rgb(54, 60, 66);
+}
+
+QComboBox:down-arrow {
+    image: url(:/shotgun_authentication/down-arrow.png);
+
+}
+
 QLineEdit:Disabled {
     background-color: rgb(60, 60, 60);
     color: rgb(160, 160, 160);
@@ -165,20 +174,32 @@ QLineEdit:Disabled {
            </widget>
           </item>
           <item>
-           <widget class="Qt5LikeLineEdit" name="login">
+           <widget class="QComboBox" name="login">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="minimumSize">
              <size>
               <width>308</width>
               <height>0</height>
              </size>
             </property>
-            <property name="placeholderText">
-             <string>login</string>
+            <property name="editable">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
           <item>
            <widget class="Qt5LikeLineEdit" name="password">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="minimumSize">
              <size>
               <width>308</width>
