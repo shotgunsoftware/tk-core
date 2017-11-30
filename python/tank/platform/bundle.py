@@ -659,8 +659,15 @@ class TankBundle(object):
             self.__tk.execute_core_hook("ensure_folder_exists", path=path, bundle_obj=self)
         except Exception as e:
             raise TankError("Error creating folder %s: %s" % (path, e))
-        
 
+    def get_metrics_properties(self):
+        """
+        Should be re-implemented in deriving classes and return a dictionary with
+        the properties needed to log a metric event for this bundle.
+
+        :raises: NotImplementedError
+        """
+        raise NotImplementedError
 
     ##########################################################################################
     # internal helpers
@@ -948,15 +955,7 @@ class TankBundle(object):
             engine_name = None
 
         return engine_name
-
-    def _get_metrics_properties(self):
-        """
-        Should be re-implemented in deriving classes and return a dictionary with
-        the properties needed to log a metric event for this bundle.
-
-        :raises: NotImplementedError
-        """
-        raise NotImplementedError
+    
 
 def _post_process_settings_r(tk, key, value, schema, bundle=None):
     """

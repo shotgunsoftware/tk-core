@@ -121,6 +121,33 @@ class Application(TankBundle):
         """
         return self.__engine
 
+    def get_metrics_properties(self):
+        """
+        Return a dictionary with properties to use when emitting a metric event
+        for this application in the current engine.
+
+        The dictionary contains informations about this application, about the
+        current engine, and about the application hosting the engine. For each of
+        them a name and a version string are available.
+
+        E.g.::
+        {
+            'Host App': 'Maya',
+            'Host App Version': '2017',
+            'Engine': 'tk-maya',
+            'Engine Version': 'v0.4.1',
+            'App': 'tk-multi-about',
+            'App Version': '1.2.3'
+        }
+
+        """
+        properties = self.engine.get_metrics_properties()
+        properties.update({
+            EventMetric.KEY_APP: self.name,
+            EventMetric.KEY_APP_VERSION: self.version
+        })
+        return properties
+
     ##########################################################################################
     # init, destroy, and context changing
         
@@ -261,36 +288,6 @@ class Application(TankBundle):
         """
         self.logger.exception(msg)
 
-
-    ##########################################################################################
-    # internal API
-
-    def _get_metrics_properties(self):
-        """
-        Return a dictionary with properties to use when emitting a metric event
-        for this application in the current engine.
-
-        The dictionary contains informations about this application, about the 
-        current engine, and about the application hosting the engine. For each of
-        them a name and a version string are available.
-
-        E.g.::
-        {
-            'Host App': 'Maya',
-            'Host App Version': '2017',
-            'Engine': 'tk-maya',
-            'Engine Version': 'v0.4.1',
-            'App': 'tk-multi-about',
-            'App Version': '1.2.3'
-        }
-
-        """
-        properties = self.engine._get_metrics_properties()
-        properties.update({
-            EventMetric.KEY_APP: self.name,
-            EventMetric.KEY_APP_VERSION: self.version
-        })
-        return properties
 
 def get_application(engine, app_folder, descriptor, settings, instance_name, env):
     """
