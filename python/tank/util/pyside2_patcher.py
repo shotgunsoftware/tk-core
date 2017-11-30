@@ -320,7 +320,7 @@ class PySide2Patcher(object):
             def __not_implemented_error(cls, method):
                 raise NotImplementedError(
                     "PySide2 and Toolkit don't support 'QDesktopServices.%s' yet. Please contact %s" %
-                    (method.im_func, constants.SUPPORT_EMAIL)
+                    (method.__func__, constants.SUPPORT_EMAIL)
                 )
 
         QtGui.QDesktopServices = QDesktopServices

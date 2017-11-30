@@ -1,5 +1,4 @@
-#!/bin/bash
-# Copyright (c) 2014 Shotgun Software Inc.
+# Copyright (c) 2016 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -9,4 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-python  `dirname $0`/run_integration_tests.py $*
+"""
+Test hook.
+"""
+
+from tank import Hook
+
+
+class TemplateSettingHook(Hook):
+    def execute(self, **kwargs):
+        return "12345"

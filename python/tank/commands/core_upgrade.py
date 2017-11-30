@@ -275,7 +275,7 @@ class TankCoreUpdater(object):
         # now also extract the version of shotgun currently running
         try:
             self._sg_studio_version = ".".join([ str(x) for x in self._local_sg.server_info["version"]])
-        except Exception, e:
+        except Exception as e:
             raise TankError("Could not extract version number for shotgun: %s" % e)
 
     def get_update_version_number(self):
@@ -362,7 +362,7 @@ class TankCoreUpdater(object):
         try:
             import _core_upgrader
             _core_upgrader.upgrade_tank(self._install_root, self._log)
-        except Exception, e:
+        except Exception as e:
             self._log.exception(e)
             raise Exception("Could not run update script! Error reported: %s" % e)
 

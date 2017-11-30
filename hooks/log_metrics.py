@@ -11,12 +11,18 @@
 """Hook that gets executed every time Toolkit logs user metrics."""
 
 from tank import Hook
- 
+
 
 class LogMetrics(Hook):
-    
+
     def execute(self, metrics):
-        """Called when Toolkit logs user metrics.
+        """
+        .. warning::
+            This method is deprecated and is not executed anymore.
+
+            Please check :meth:`LogMetrics.log_metrics`.
+
+        Called when Toolkit logs user metrics.
         
         :param list metrics: list of dictionaries with logged data.
 
@@ -41,10 +47,22 @@ class LogMetrics(Hook):
             "action": <action name>
         }
 
-        Please note that this hook will be executed within one or more
-        dedicated metrics logging worker threads and not in the main thread.
-        Overriding this hook may require additional care to avoid issues
-        related to accessing shared resources across multiple threads.
+        """
+        pass
+
+    def log_metrics(self, metrics):
+        """
+        Called when Toolkit logs metrics.
+        
+        :param list metrics: list of :attr:`~tank.util.EventMetric.data` dictionaries
+        with logged data.
+
+
+        .. note:: 
+            This hook will be executed within one or more
+            dedicated metrics logging worker threads and not in the main thread.
+            Overriding this hook may require additional care to avoid issues
+            related to accessing shared resources across multiple threads.
 
         """
         pass

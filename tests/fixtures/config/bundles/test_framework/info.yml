@@ -23,5 +23,5 @@ description: "A bogus test framework."
 # Required minimum versions for this item to run
 requires_shotgun_version:
 
-# the frameworks required to run this app
+# the frameworks required to run this framework
 frameworks:

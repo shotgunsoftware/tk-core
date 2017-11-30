@@ -11,9 +11,8 @@ import os
 import uuid
 import shutil
 import tempfile
-import subprocess
 
-from .base import IODescriptorBase
+from .downloadable import IODescriptorDownloadable
 from ... import LogManager
 from ...util.process import subprocess_check_output, SubprocessCalledProcessError
 
@@ -22,6 +21,7 @@ from ...util import filesystem
 
 log = LogManager.get_logger(__name__)
 
+
 class TankGitError(TankError):
     """
     Errors related to git communication
@@ -29,7 +29,7 @@ class TankGitError(TankError):
     pass
 
 
-class IODescriptorGit(IODescriptorBase):
+class IODescriptorGit(IODescriptorDownloadable):
     """
     Base class for git descriptors.
 
@@ -87,6 +87,7 @@ class IODescriptorGit(IODescriptorBase):
         """
         # ensure *parent* folder exists
         parent_folder = os.path.dirname(target_path)
+
         filesystem.ensure_folder_exists(parent_folder)
 
         # first probe to check that git exists in our PATH
@@ -136,7 +137,7 @@ class IODescriptorGit(IODescriptorBase):
                     # note: it seems on windows, the result is sometimes wrapped in single quotes.
                     output = output.strip().strip("'")
 
-                except SubprocessCalledProcessError, e:
+                except SubprocessCalledProcessError as e:
                     raise TankGitError(
                         "Error executing git operation '%s': %s (Return code %s)" % (full_command, e.output, e.returncode)
                     )
@@ -192,7 +193,7 @@ class IODescriptorGit(IODescriptorBase):
             # clone repo into temp folder
             self._tmp_clone_then_execute_git_commands([])
             log.debug("...connection established")
-        except Exception, e:
+        except Exception as e:
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect

@@ -124,7 +124,7 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
     # load the config file
     try:
         file_data = yaml_cache.g_yaml_cache.get(shotgun_cfg_path, deepcopy_data=False) or {}
-    except Exception, error:
+    except Exception as error:
         raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
 
     return _parse_config_data(file_data, user, shotgun_cfg_path)
@@ -196,6 +196,11 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
         _raise_missing_key("api_key")
     if not config_data.get("api_script") and config_data.get("api_key"):
         _raise_missing_key("api_script")
+
+    # Manage configurations containing environment variables
+    for key in config_data:
+        if isinstance(config_data.get(key, None), str):
+            config_data[key] = os.path.expandvars(config_data[key])
 
     # If the appstore proxy is set, but the value is falsy.
     if "app_store_http_proxy" in config_data and not config_data["app_store_http_proxy"]:
@@ -279,11 +284,11 @@ def get_associated_sg_base_url():
     This is an optimization, allowing code to get the Shotgun site URL
     without having to create a shotgun connection and then inspecting
     the base_url property.
-    
+
     This method is equivalent to calling:
-    
+
     create_sg_connection().base_url
-    
+
     :returns: The base url for the associated Shotgun site
     """
     # Avoids cyclic imports.
@@ -344,7 +349,7 @@ def get_sg_connection():
         .. note:: Because Shotgun API instances are not safe to share across
                   threads, this method caches SG Instances per-thread.
 
-    :return: SG API handle    
+    :return: SG API handle
     """
     global _g_sg_cached_connections
     sg = getattr(_g_sg_cached_connections, "sg", None)
@@ -360,15 +365,15 @@ def get_sg_connection():
 def create_sg_connection(user="default"):
     """
     Creates a standard tank shotgun connection.
-    
+
     Note! This method returns *a brand new sg API instance*. It is slow.
     Always consider using tk.shotgun and if you don't have a tk instance,
-    consider using get_sg_connection(). 
-    
-    Whenever a Shotgun API instance is created, it pings the server to check that 
+    consider using get_sg_connection().
+
+    Whenever a Shotgun API instance is created, it pings the server to check that
     it is running the right versions etc. This is slow and inefficient and means that
     there will be a delay every time create_sg_connection is called.
-    
+
     :param user: Optional shotgun config user to use when connecting to shotgun,
                  as defined in shotgun.yml. This is a deprecated flag and should not
                  be used.
@@ -392,7 +397,7 @@ def create_sg_connection(user="default"):
         # try to find the shotgun.yml path
         try:
             config_file_path = __get_sg_config()
-        except TankError, e:
+        except TankError as e:
             log.error(
                 "Trying to create a shotgun connection but this tk session does not have "
                 "an associated authenticated user. Therefore attempted to fall back on "

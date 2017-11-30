@@ -842,7 +842,7 @@ class TemplateConfiguration(object):
                     self._manifest = yaml.load(file_data)
                 finally:
                     file_data.close()
-            except Exception, e:
+            except Exception as e:
                 raise TankError("Cannot load configuration manifest '%s'. Error: %s" % (info_yml, e))
 
             # perform checks

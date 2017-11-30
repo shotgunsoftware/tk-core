@@ -95,7 +95,7 @@ def execute_folder_creation_proxy(self):
         # to properly cover some edge cases        
         try:
             path_cache.validate_mappings(db_entries)
-        except TankError, e:                
+        except TankError as e:                
             # ok folders created for synced stuff. Now re-raise validation error
             raise TankError("Folder creation aborted: %s" % e) 
         

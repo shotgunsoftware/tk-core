@@ -106,7 +106,7 @@ class CoreImportHandler(object):
         try:
             if prev_log_file:
                 tank.LogManager().initialize_base_file_handler_from_path(prev_log_file)
-        except AttributeError, e:
+        except AttributeError as e:
             # older versions of the API may not have this defined.
             log.debug(
                 "Switching to a version of the core API that doesn't "

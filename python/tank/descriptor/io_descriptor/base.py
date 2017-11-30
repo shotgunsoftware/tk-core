@@ -401,7 +401,7 @@ class IODescriptorBase(object):
                     metadata = yaml.load(file_data)
                 finally:
                     file_data.close()
-            except Exception, exp:
+            except Exception as exp:
                 raise TankDescriptorError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
 
             # cache it
@@ -588,8 +588,8 @@ class IODescriptorBase(object):
         """
         Returns true if the given bundle path exists in valid local cached form
 
-        This can be reimplemented in derived classes to have more complex validation, like ensuring
-        that the bundle is fully downloaded.
+        This can be reimplemented in derived classes to have more complex validation,
+        like ensuring that the bundle is fully downloaded.
         """
         if path is None:
             return False
@@ -689,7 +689,7 @@ class IODescriptorBase(object):
 
         # and to the actual I/O
         # pass an empty skip list to ensure we copy things like the .git folder
-        filesystem.ensure_folder_exists(new_cache_path, permissions=0777)
+        filesystem.ensure_folder_exists(new_cache_path, permissions=0o777)
         filesystem.copy_folder(source_cache_path, new_cache_path, skip_list=[])
         return True
 
@@ -723,7 +723,7 @@ class IODescriptorBase(object):
         """
         Retrieves this version to local repo.
         """
-        raise NotImplementedError
+        pass
 
     def get_latest_version(self, constraint_pattern=None):
         """

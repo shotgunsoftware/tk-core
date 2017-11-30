@@ -153,7 +153,7 @@ class FolderIOReceiver(object):
             # to properly cover some edge cases        
             try:
                 path_cache.validate_mappings(db_entries)
-            except TankError, e:
+            except TankError as e:
                 # validation problems!
                 # before we bubble up these errors to the caller, we need to 
                 # take care of any folders that were possibly created during

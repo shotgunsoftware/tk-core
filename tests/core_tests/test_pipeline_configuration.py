@@ -8,16 +8,104 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import os
+import sys
 
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase, temp_env_var
 
 import tank
+from tank_vendor import yaml
 
 
 class TestPipelineConfig(TankTestBase):
     """
     Tests for the pipeline configuration.
     """
+
+    def test_read_env_var_in_pipeline_configuration_yaml(self):
+        """
+        Ensures environment variables are properly translated.
+        """
+        self._test_read_env_var_in_pipeline_configuration_yml(
+            "env_var_pipeline",
+            {
+                "project_name": "$SGTK_TEST_PROJECT_NAME",
+                "project_id": "$SGTK_TEST_PROJECT_ID",
+                "pc_id": "$SGTK_TEST_PC_ID",
+                "pc_name": "$SGTK_TEST_PC_NAME"
+            }
+        )
+        if sys.platform == "win32":
+            self._test_read_env_var_in_pipeline_configuration_yml(
+                "env_var_pipeline_windows",
+                {
+                    "project_name": "%SGTK_TEST_PROJECT_NAME%",
+                    "project_id": "%SGTK_TEST_PROJECT_ID%",
+                    "pc_id": "%SGTK_TEST_PC_ID%",
+                    "pc_name": "%SGTK_TEST_PC_NAME%"
+                }
+            )
+
+    def _test_read_env_var_in_pipeline_configuration_yml(self, folder_name, pipeline_config_data):
+        """
+        Ensures environment variables are properly translated for a given file format.
+
+        :param folder_name: Name of the configuration to create on disk.
+        :param pipeline_config_data: Data to insert into shotgun.yml
+        """
+        env_var_pipeline = os.path.join(
+            self.tank_temp, folder_name
+        )
+        core_folder = os.path.join(env_var_pipeline, "config", "core")
+        pipeline_configuration_yml_path = os.path.join(
+            core_folder, "pipeline_configuration.yml"
+        )
+
+        os.makedirs(core_folder)
+
+        with open(pipeline_configuration_yml_path, "w") as fh:
+            yaml.safe_dump(pipeline_config_data, fh)
+
+        with open(os.path.join(core_folder, "roots.yml"), "w") as fh:
+            fh.write("{}")
+
+        test_project_name = "test_project_name"
+        test_project_id = 12345
+        test_pc_id = 67890
+        test_pc_name = "test_pc_name"
+        # tank.pipeline_config is actually a local variable inside tank/__init__.py,
+        # so get the class from somewhere else...
+
+        with temp_env_var(
+            SGTK_TEST_PROJECT_NAME=test_project_name,
+            SGTK_TEST_PROJECT_ID=str(test_project_id),
+            SGTK_TEST_PC_ID=str(test_pc_id),
+            SGTK_TEST_PC_NAME=test_pc_name
+        ):
+            pc = tank.pipelineconfig_factory.PipelineConfiguration(
+                env_var_pipeline
+            )
+
+        self.assertEqual(
+            pc.get_name(),
+            test_pc_name
+        )
+
+        self.assertEqual(
+            pc.get_shotgun_id(),
+            test_pc_id
+        )
+
+        self.assertEqual(
+            pc.get_project_id(),
+            test_project_id
+        )
+
+        self.assertEqual(
+            pc.get_project_disk_name(),
+            test_project_name
+        )
 
     def test_update_metadata(self):
         """

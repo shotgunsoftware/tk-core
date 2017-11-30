@@ -571,7 +571,7 @@ class ToolkitManager(object):
 
                 tk = self._bootstrap_sgtk(engine_name, entity)
 
-            except Exception, exception:
+            except Exception as exception:
 
                 # Handle cleanup after failed completion of the toolkit bootstrap.
                 failed_callback(self.TOOLKIT_BOOTSTRAP_PHASE, exception)
@@ -582,7 +582,7 @@ class ToolkitManager(object):
 
                 engine = self._start_engine(tk, engine_name, entity)
 
-            except Exception, exception:
+            except Exception as exception:
 
                 # Handle cleanup after failed completion of the engine startup.
                 failed_callback(self.ENGINE_STARTUP_PHASE, exception)
@@ -615,7 +615,7 @@ class ToolkitManager(object):
 
         try:
             pc = PipelineConfiguration(path)
-        except TankError, e:
+        except TankError as e:
             raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
 
         if not config.has_local_bundle_cache:
@@ -1007,10 +1007,6 @@ class ToolkitManager(object):
         :returns: Started :class:`~sgtk.platform.Engine` instance.
         """
 
-        # Log a user activity metric saying which engine and entity are bootstrapping
-        # since we can now log into the logging queue of the new swapped core.
-        self._log_bootstrap_metric(engine_name, entity)
-
         log.debug("Begin starting up engine %s." % engine_name)
 
         if progress_callback is None:
@@ -1047,7 +1043,7 @@ class ToolkitManager(object):
                     "start_engine routine..."
                 )
                 engine = tank.platform.start_engine(engine_name, tk, ctx)
-            except Exception, exc:
+            except Exception as exc:
                 log.debug(
                     "Shotgun engine failed to start using start_engine. An "
                     "attempt will now be made to start it using an legacy "
@@ -1057,7 +1053,7 @@ class ToolkitManager(object):
                 try:
                     engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
                     log.debug("Shotgun engine started using a legacy shotgun_xxx.yml environment.")
-                except Exception, exc:
+                except Exception as exc:
                     log.debug(
                         "Shotgun engine failed to start using the legacy "
                         "start_shotgun_engine routine. No more attempts will "
@@ -1176,7 +1172,7 @@ class ToolkitManager(object):
 
                 try:
                     descriptor.download_local()
-                except Exception, e:
+                except Exception as e:
                     log.error("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
                     log.exception(e)
             else:
@@ -1215,34 +1211,6 @@ class ToolkitManager(object):
         phase_name = "TOOLKIT_BOOTSTRAP_PHASE" if phase == self.TOOLKIT_BOOTSTRAP_PHASE else "ENGINE_STARTUP_PHASE"
 
         log.debug("Default failed callback (%s): %s" % (phase_name, exception))
-
-    def _log_bootstrap_metric(self, engine_name, entity):
-        """
-        Logs a user activity metric when an engine is bootstrapped.
-
-        Module: ``tk-core``
-        Action: ``bootstrap <bootstrap_type> <engine_name> <context_name>``
-
-        :param engine_name: Name of the engine being bootstrapped.
-        :param entity: Shotgun entity to bootstrap into, or ``None`` for the site.
-        """
-
-        # Perform an absolute import to ensure we get the new swapped core.
-        # This is required to make sure we log into the logging queue of this swapped core.
-        from tank import util
-        if not hasattr(util, "log_user_activity_metric"):
-            return
-
-        module = "tk-core"
-
-        bootstrap_type = self._plugin_id if self._plugin_id else "classic"
-        context_name = "project" if entity else "site"
-
-        action = "bootstrap %s %s %s" % (bootstrap_type, engine_name, context_name)
-
-        log.debug("Logging user activity metric: module '%s', action '%s'" % (module, action))
-
-        util.log_user_activity_metric(module, action)
 
     @staticmethod
     def get_core_python_path():

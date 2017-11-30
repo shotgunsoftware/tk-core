@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import print_function
+
 import os
 from .action_base import Action
 from ..errors import TankError
@@ -164,7 +166,7 @@ class ValidateConfigAction(Action):
         # bail if any bad env names
         if bad_env_names:
             if self._is_interactive:
-                print "\nUsage: %s\n" % (self._usage(),)
+                print("\nUsage: %s\n" % (self._usage(),))
             raise TankError(
                 "Error retrieving environments mathing supplied arguments: %s"
                 % (", ".join(bad_env_names),)
@@ -226,7 +228,7 @@ def _validate_bundle(log, tk, name, settings, descriptor, engine_name=None):
 
         try:
             validation.validate_single_setting(name, tk, manifest, s, value)
-        except TankError, e:
+        except TankError as e:
             log.info("  ERROR - Parameter %s - Invalid value: %s" % (s,e))
         else:
             # validation is ok

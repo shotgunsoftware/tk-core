@@ -17,11 +17,6 @@ TANK_INIT_HOOK_NAME = "tank_init"
 # hook to be executed after bundle install
 BUNDLE_POST_INSTALL_HOOK = "post_install.py"
 
-# metrics logging custom hooks blacklist
-TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST = [
-    "pick_environment",
-]
-
 # hook that is executed whenever a PipelineConfiguration instance initializes.
 PIPELINE_CONFIGURATION_INIT_HOOK_NAME = "pipeline_configuration_init"
 

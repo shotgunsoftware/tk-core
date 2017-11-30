@@ -18,7 +18,9 @@ import re
 import sys
 import imp
 import uuid
+
 from .. import hook
+from ..util.metrics import EventMetric
 from ..errors import TankError, TankNoDefaultValueError
 from .errors import TankContextChangeNotSupportedError
 from . import constants
@@ -54,7 +56,34 @@ class TankBundle(object):
 
         # emit an engine started event
         tk.execute_core_hook(constants.TANK_BUNDLE_INIT_HOOK_NAME, bundle=self)
-        
+
+    ##########################################################################################
+    # internal API
+
+    def log_metric(self, action, log_version=False, log_once=False, command_name=None):
+        """
+        Log metrics for this bundle and the given action.
+
+        :param str action: Action string to log, e.g. 'Opened Workfile'.
+        :param log_version: Deprecated and ignored, but kept for backward compatibility.
+        :param bool log_once: ``True`` if this metric should be ignored if it
+            has already been logged. Defaults to ``False``.
+        :param str command_name: A Toolkit command name to add to the metric properties.
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
+        """
+        properties = self._get_metrics_properties()
+        if command_name:
+            properties[EventMetric.KEY_COMMAND] = command_name
+
+        EventMetric.log(
+            EventMetric.GROUP_TOOLKIT,
+            action,
+            properties=properties,
+            log_once=log_once,
+        )
+
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
     
@@ -628,7 +657,7 @@ class TankBundle(object):
         """        
         try:
             self.__tk.execute_core_hook("ensure_folder_exists", path=path, bundle_obj=self)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Error creating folder %s: %s" % (path, e))
         
 
@@ -898,7 +927,7 @@ class TankBundle(object):
         # config schema so we need to account for that.
         schema = self.__descriptor.configuration_schema.get(key, None)
         return resolve_setting_value(
-            self.__tk, self._get_engine_name(), schema, settings, key, default
+            self.__tk, self._get_engine_name(), schema, settings, key, default, self
         )
 
     def _get_engine_name(self):
@@ -920,8 +949,16 @@ class TankBundle(object):
 
         return engine_name
 
+    def _get_metrics_properties(self):
+        """
+        Should be re-implemented in deriving classes and return a dictionary with
+        the properties needed to log a metric event for this bundle.
 
-def _post_process_settings_r(tk, key, value, schema):
+        :raises: NotImplementedError
+        """
+        raise NotImplementedError
+
+def _post_process_settings_r(tk, key, value, schema, bundle=None):
     """
     Recursive post-processing of settings values
 
@@ -929,6 +966,10 @@ def _post_process_settings_r(tk, key, value, schema):
     :param key: setting name
     :param value: Input value to resolve using specified schema
     :param schema: A schema defining types and defaults for settings.
+    :param bundle: The bundle object. This is only used in the case
+        the value argument is a string starting with "hook:", which
+        then requires the use of a core hook to resolve the setting.
+
     :returns: Processed value for key setting
     """
     settings_type = schema.get("type")
@@ -937,14 +978,28 @@ def _post_process_settings_r(tk, key, value, schema):
         processed_val = []
         value_schema = schema["values"]
         for x in value:
-            processed_val.append(_post_process_settings_r(tk, key, x, value_schema))
+            processed_val.append(
+                _post_process_settings_r(
+                    tk=tk,
+                    key=key,
+                    value=x,
+                    schema=value_schema,
+                    bundle=bundle,
+                )
+            )
 
     elif settings_type == "dict":
         items = schema.get("items", {})
         # note - we assign the original values here because we
         processed_val = value
         for (key, value_schema) in items.iteritems():
-            processed_val[key] = _post_process_settings_r(tk, key, value[key], value_schema)
+            processed_val[key] = _post_process_settings_r(
+                tk=tk,
+                key=key,
+                value=value[key],
+                schema=value_schema,
+                bundle=bundle,
+            )
 
     elif settings_type == "config_path":
         # this is a config path. Stored on the form
@@ -969,7 +1024,7 @@ def _post_process_settings_r(tk, key, value, schema):
         hook_name = chunks[1]
         params = chunks[2:]
         processed_val = tk.execute_core_hook(
-            hook_name, setting=key, bundle_obj=self, extra_params=params
+            hook_name, setting=key, bundle_obj=bundle, extra_params=params
         )
 
     else:
@@ -978,7 +1033,8 @@ def _post_process_settings_r(tk, key, value, schema):
 
     return processed_val
 
-def resolve_setting_value(tk, engine_name, schema, settings, key, default):
+
+def resolve_setting_value(tk, engine_name, schema, settings, key, default, bundle=None):
     """
     Resolve a setting value.  Exposed to allow values to be resolved for
     settings derived outside of the app.
@@ -991,6 +1047,9 @@ def resolve_setting_value(tk, engine_name, schema, settings, key, default):
     :param dict settings: the settings dictionary source
     :param str key: setting name
     :param default: a default value to use for the setting
+    :param bundle: The bundle object. This is only used in situations where
+        a setting's value must be resolved via calling a hook.
+
     :returns: Resolved value of input setting key
     """
     # Get the value for the supplied key
@@ -1011,7 +1070,7 @@ def resolve_setting_value(tk, engine_name, schema, settings, key, default):
     # We have a value of some kind and a schema. Allow the post
     # processing code to further resolve the value.
     if value and schema:
-        value = _post_process_settings_r(tk, key, value, schema)
+        value = _post_process_settings_r(tk, key, value, schema, bundle)
 
     return value
 

@@ -16,13 +16,11 @@ Defines the base class for all Tank Frameworks.
 import os
 
 from ..util.loader import load_plugin
-from . import constants 
+from . import constants
 
 from ..errors import TankError
 from .bundle import TankBundle
 from . import validation
-from ..util import log_user_activity_metric
-
 
 class Framework(TankBundle):
     """
@@ -48,9 +46,8 @@ class Framework(TankBundle):
 
         # init base class
         TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env, logger)
-        
 
-    def __repr__(self):        
+    def __repr__(self):
         return "<Sgtk Framework 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
 
     def _destroy_framework(self):
@@ -202,27 +199,18 @@ class Framework(TankBundle):
     ##########################################################################################
     # internal API
 
-    def log_metric(self, action, log_once=False):
-        """Logs a framework metric.
-
-        :param action: Action string to log, e.g. 'Execute Action'
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-
-        Logs a user activity metric as performed within framework code. This is
-        a convenience method that auto-populates the module portion of
-        `tank.util.log_user_activity_metric()`.
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
-
+    def _get_metrics_properties(self):
         """
-        # the action contains the engine and framework name, e.g.
-        # module: tk-framework-perforce
-        # action: (tk-maya) tk-framework-perforce - Connected
-        full_action = "(%s) %s %s" % (self.engine.name, self.name, action)
-        log_user_activity_metric(self.name, full_action, log_once=log_once)
+        Return a dictionary with properties to use when emitting a metric event 
+        for this framework in the current engine.
 
+        Frameworks don't have any particular properties and just return the result
+        of :meth:`Engine._get_metrics_properties`.
+        """
+        # Please note that before we used to log some framework information as well
+        # Now we just add the engine information.
+        properties = self.engine._get_metrics_properties()
+        return properties
 
 ###################################################################################################
 #
@@ -295,11 +283,11 @@ def load_framework(engine_obj, env, fw_instance_name):
                                      fw_schema, 
                                      fw_settings)
 
-    except TankError, e:
+    except TankError as e:
         # validation error - probably some issue with the settings!
         raise TankError("Framework configuration Error for %s: %s" % (fw_instance_name, e))
 
-    except Exception, e:
+    except Exception as e:
         # code execution error in the validation. 
         raise TankError("Could not validate framework %s: %s" % (fw_instance_name, e))
 

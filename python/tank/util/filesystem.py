@@ -87,7 +87,7 @@ def compute_folder_size(path):
 
 
 @with_cleared_umask
-def touch_file(path, permissions=0666):
+def touch_file(path, permissions=0o666):
     """
     Touch a file and optionally set its permissions.
 
@@ -102,7 +102,7 @@ def touch_file(path, permissions=0666):
             fh = open(path, "wb")
             fh.close()
             os.chmod(path, permissions)
-        except OSError, e:
+        except OSError as e:
             # Race conditions are perfectly possible on some network storage
             # setups so make sure that we ignore any file already exists errors,
             # as they are not really errors!
@@ -111,7 +111,7 @@ def touch_file(path, permissions=0666):
 
 
 @with_cleared_umask
-def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
+def ensure_folder_exists(path, permissions=0o775, create_placeholder_file=False):
     """
     Helper method - creates a folder and parent folders if such do not already exist.
 
@@ -136,7 +136,7 @@ def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
                     fh.write("folder to be tracked and managed properly.\n")
                     fh.close()
 
-        except OSError, e:
+        except OSError as e:
             # Race conditions are perfectly possible on some network storage setups
             # so make sure that we ignore any file already exists errors, as they
             # are not really errors!
@@ -146,7 +146,7 @@ def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
 
 
 @with_cleared_umask
-def copy_file(src, dst, permissions=0666):
+def copy_file(src, dst, permissions=0o666):
     """
     Copy file and sets its permissions.
 
@@ -179,12 +179,12 @@ def safe_delete_file(path):
                 if not attr & stat.S_IWRITE:
                     os.chmod(path, stat.S_IWRITE)
             os.remove(path)
-    except Exception, e:
+    except Exception as e:
         log.warning("File '%s' could not be deleted, skipping: %s" % (path, e))
 
 
 @with_cleared_umask
-def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
+def copy_folder(src, dst, folder_permissions=0o775, skip_list=None):
     """
     Alternative implementation to ``shutil.copytree``
 
@@ -247,18 +247,18 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
                 if dstname.endswith(".sh") or dstname.endswith(".bat") or dstname.endswith(".exe"):
                     try:
                         # make it readable and executable for everybody
-                        os.chmod(dstname, 0775)
-                    except Exception, e:
+                        os.chmod(dstname, 0o775)
+                    except Exception as e:
                         log.error("Can't set executable permissions on %s: %s" % (dstname, e))
 
-        except (IOError, os.error), e:
+        except (IOError, os.error) as e:
             raise IOError("Can't copy %s to %s: %s" % (srcname, dstname, e))
 
     return files
 
 
 @with_cleared_umask
-def move_folder(src, dst, folder_permissions=0775):
+def move_folder(src, dst, folder_permissions=0o775):
     """
     Moves a directory.
 
@@ -289,7 +289,7 @@ def move_folder(src, dst, folder_permissions=0775):
                         # file is readonly! - turn off this attribute
                         os.chmod(f, stat.S_IWRITE)
                 os.remove(f)
-            except Exception, e:
+            except Exception as e:
                 log.error("Could not delete file %s: %s" % (f, e))
 
 
@@ -387,11 +387,11 @@ def safe_delete_folder(path):
                     os.chmod(path, stat.S_IWRITE | attr)
                     try:
                         func(path)
-                    except Exception, e:
+                    except Exception as e:
                         log.warning("Could not delete %s: %s. Skipping" % (path, e))
                 else:
                     log.warning("Could not delete %s: Skipping" % path)
-            except Exception, e:
+            except Exception as e:
                 log.warning("Could not delete %s: %s. Skipping" % (path, e))
         else:
             log.warning("Could not delete %s. Skipping." % path)
@@ -402,7 +402,7 @@ def safe_delete_folder(path):
             # remove the flag.
             # Inspired by http://stackoverflow.com/a/4829285/1074536
             shutil.rmtree(path, onerror=_on_rm_error)
-        except Exception, e:
+        except Exception as e:
             log.warning("Could not delete %s: %s" % (path, e))
     else:
         log.warning("Could not delete: %s. Folder does not exist" % path)
@@ -414,7 +414,7 @@ def get_unused_path(base_path):
     a number at the end of the basename of the path, right before the first ".",
     if any.
     
-    For example, "/tmp/foo_1.bar.blah" would be returned for "/tmp/foo.bar.blah"
+    For example, ``/tmp/foo_1.bar.blah`` would be returned for ``/tmp/foo.bar.blah``
     if it already exists.
 
     If the given path does not exist, the original path is returned.

@@ -356,16 +356,9 @@ class SgtkSystemCommand(object):
         :returns: Whatever the command returns. Data type and description for the return
                   value can be introspected via the :meth:`parameters` property.
         """
-        if self.__internal_action_obj.tk:
-            self.__internal_action_obj.tk.log_metric(self.name)
 
         return self.__internal_action_obj.run_noninteractive(self.__log, params)
-        
-        
-        
-    
-    
-    
+
 ###############################################################################################
 # Main entry points for accessing tank commands from the tank command / shell engine
 
@@ -515,9 +508,4 @@ def run_action(log, tk, ctx, command, args):
         log.info("-" * 70)
         log.info("")
 
-        if found_action.tk and not isinstance(found_action, ShellEngineAction):
-            found_action.tk.log_metric(found_action.name)
-
         return found_action.run_interactive(log, args)
-
-

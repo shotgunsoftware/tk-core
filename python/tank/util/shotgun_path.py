@@ -232,6 +232,12 @@ class ShotgunPath(object):
 
         return self.macosx == other.macosx and self.windows == other.windows and self.linux == other.linux
 
+    def __hash__(self):
+        """
+        Creates an hash from this ShotgunPath.
+        """
+        return hash((self.macosx, self.windows, self.linux))
+
     def __ne__(self, other):
         """
         Test if this path is not equal to the given path

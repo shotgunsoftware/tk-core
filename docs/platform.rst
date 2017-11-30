@@ -1214,6 +1214,16 @@ especially when the contained widget is quite small. To hide the title bar, just
         def __init__(self):
             ...
 
+Styling your Toolkit App
+========================================
+
+If a `standard Qt style sheet <http://doc.qt.io/qt-5/stylesheet.html>`_  ``style.qss`` file resides in the root of your app, Toolkit will automatically load it and apply it to your app.
+
+When developping your app, you can enable interactive styling by setting the ``SHOTGUN_QSS_FILE_WATCHER`` environment variable to ``1``. Toolkit will automatically reload and re-apply the styling when the file is changed.
+
+.. note:: The style sheet file watching can be helpful when developping apps, but shouldn't be used in production.
+
+
 Software launching
 ==================
 

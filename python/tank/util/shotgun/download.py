@@ -27,7 +27,6 @@ from ...errors import TankError
 from ...log import LogManager
 from ..zip import unzip_file
 from .. import filesystem
-from ..metrics import log_user_attribute_metric
 
 log = LogManager.get_logger(__name__)
 
@@ -106,7 +105,7 @@ def download_url(sg, url, location, use_url_extension=False):
             f.write(response.read())
         finally:
             f.close()
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
 
     return location
@@ -179,8 +178,6 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
             broadband_speed_bps = file_size * 8.0 / time_to_download
             broadband_speed_mibps = broadband_speed_bps / (1024 * 1024)
             log.debug("Download speed: %4f Mbit/s" % broadband_speed_mibps)
-            log_user_attribute_metric("Tk attachment download speed", "%4f Mbit/s" % broadband_speed_mibps)
-
 
             log.debug("Unpacking %s bytes to %s..." % (file_size, target))
             filesystem.ensure_folder_exists(target)
@@ -189,7 +186,7 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
             except zipfile.BadZipfile:
                 invalid_zip_file = True
 
-        except Exception, e:
+        except Exception as e:
             log.warning(
                 "Attempt %s: Attachment download of id %s from %s failed: %s" % (attempt, attachment_id, sg.base_url, e)
             )

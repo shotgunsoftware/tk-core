@@ -75,7 +75,7 @@ class CachedConfigDescriptor(ConfigDescriptor):
             try:
                 data = yaml.load(fh)
                 core_descriptor_dict = data["location"]
-            except Exception, e:
+            except Exception as e:
                 raise TankDescriptorError(
                     "Cannot read invalid core descriptor file '%s': %s" % (core_descriptor_path, e)
                 )

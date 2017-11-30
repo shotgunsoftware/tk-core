@@ -134,9 +134,9 @@ def _ensure_folder_for_file(filepath):
     """
     folder, _ = os.path.split(filepath)
     if not os.path.exists(folder):
-        old_umask = os.umask(0077)
+        old_umask = os.umask(0o077)
         try:
-            os.makedirs(folder, 0700)
+            os.makedirs(folder, 0o700)
         finally:
             os.umask(old_umask)
     return filepath
@@ -256,7 +256,7 @@ def _write_yaml_file(file_path, users_data):
     :param file_path: Where to write the users data
     :param users_data: Dictionary to write to disk.
     """
-    old_umask = os.umask(0077)
+    old_umask = os.umask(0o077)
     try:
         with open(file_path, "w") as users_file:
             yaml.safe_dump(users_data, users_file)
@@ -451,7 +451,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     # recoverable error, problems with proxy settings or network errors are much
     # more severe errors which can't be fixed by reprompting. Therefore, they have
     # nothing to do with authentication and shouldn't be reported as such.
-    except socket.error, e:
+    except socket.error as e:
         logger.exception("Unexpected connection error.")
         # e.message is always an empty string, so look at the exception's arguments.
         # The arguments are always a string or a number and a string.
@@ -466,7 +466,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
             # of this exception type is pretty bad so let's reformat it ourselves. By default, it
             # turns a tuple into a string.
             raise Exception("%s (%d)" % (e.args[1], e.args[0]))
-    except httplib2.socks.ProxyError, e:
+    except httplib2.socks.ProxyError as e:
         logger.exception("Unexpected connection error.")
         # Same comment applies here around formatting.
         # Note that e.message is always a tuple in this
@@ -474,7 +474,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     except MissingTwoFactorAuthenticationFault:
         # Silently catch and rethrow to avoid logging.
         raise
-    except Exception, e:
+    except Exception as e:
         logger.exception("There was a problem logging in.")
         # If the error message is empty, like httplib.HTTPException, convert
         # the class name to a string

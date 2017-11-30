@@ -569,7 +569,7 @@ def wrap_commands(kwargs):
                 cmdclass = ep.resolve()
             else:
                 # Old setuptools does not have ep.resolve, and load with
-                # arguments is depricated in 11+.  Use resolve, 12+, if we
+                # arguments is deprecated in 11+.  Use resolve, 12+, if we
                 # can, otherwise fall back to load.
                 # Setuptools 11 will throw a deprication warning, as it
                 # uses _load instead of resolve.

@@ -30,18 +30,24 @@ class DefaultsManager(object):
     If, however, you want to implement a custom behavior around how defaults
     are managed, simply derive from this class and pass your custom instance
     to the :class:`ShotgunAuthenticator` object when you construct it.
+
+    :param str fixed_host: Allows to specify the host that will be used for authentication.
+        Defaults to ``None``.
     """
 
-    def __init__(self):
+    def __init__(self, fixed_host=None):
         self._user_settings = UserSettings()
         self._system_settings = SystemSettings()
+        self._fixed_host = fixed_host
 
     def is_host_fixed(self):
         """
         When doing an interactive login, this indicates if the user can decide
         the host to connect to. In its default implementation, the :class:`DefaultsManager`
         will indicate that the host is not fixed, meaning that the user will be
-        presented with an option to pick a site at login time.
+        presented with an option to pick a site at login time, unless a default
+        host was provided during initialization. If that is the case, then this
+        method will return ``True``.
 
         With something like Toolkit, where each project already have a specific
         site association, you typically want to override this to return True,
@@ -52,7 +58,7 @@ class DefaultsManager(object):
                   to log in to, True if the host is already predetermined and cannot
                   be changed by the user.
         """
-        return False
+        return self._fixed_host is not None
 
     def get_host(self):
         """
@@ -62,16 +68,17 @@ class DefaultsManager(object):
         used to implement single sign-on between all Toolkit desktop
         applications (at the moment, tank and Shotgun Desktop).
 
-        The default implementation maintains a concept of a "current host"
-        which will be presented as a default to users when they are
-        logging in.
+        The default implementation will return the fixed host if one was provided
+        during the initialization. If fixed host was provided, the default
+        implementation maintains a concept of a "current host" which will be
+        presented as a default to users when they are logging in.
 
         When the host is fixed, this must return a value and this value will
         be used as an absolute rather than a default suggested to the user.
 
         :returns: A string containing the default host name.
         """
-        return session_cache.get_current_host() or self._user_settings.default_site
+        return self._fixed_host or session_cache.get_current_host() or self._user_settings.default_site
 
     def set_host(self, host):
         """

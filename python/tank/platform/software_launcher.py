@@ -156,21 +156,10 @@ class SoftwareLauncher(object):
         # make sure the current operating system platform is supported
         validation.validate_platform(descriptor)
 
-        # Get the settings for the engine and then validate them
-        engine_schema = descriptor.configuration_schema
-        validation.validate_settings(
-            engine_name,
-            tk,
-            context,
-            engine_schema,
-            settings
-        )
-
-        # Once the engine settings and descriptor have been validated,
-        # initialize members of this class. Since this code only runs
-        # during the pre-launch phase of an engine, there are no
-        # opportunities to change the Context or environment. Safe
-        # to cache these values.
+        # Once validated, initialize members of this class. Since this code only
+        # runs during the pre-launch phase of an engine, there are no
+        # opportunities to change the Context or environment. Safe to cache
+        # these values.
         self.__tk = tk
         self.__context = context
         self.__environment = env

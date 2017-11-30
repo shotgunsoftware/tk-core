@@ -1,5 +1,5 @@
-#!/bin/bash
-# Copyright (c) 2013 Shotgun Software Inc.
+#!/usr/bin/env bash
+# Copyright (c) 2017 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -9,5 +9,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-find . -name "*.pyc" -delete
-python2.5  `dirname $0`/run_tests.py $*
+#
+# Allows to compile all the Toolkit source code with a Python 3 executable.
+#
+
+python3 -m compileall ../python/tank
+python3 -m compileall *.py
+python3 -m compileall */*.py

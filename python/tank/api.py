@@ -22,7 +22,6 @@ from .errors import TankError, TankMultipleMatchingTemplatesError
 from .path_cache import PathCache
 from .template import read_templates
 from . import constants
-from .util import log_user_activity_metric
 from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
@@ -56,7 +55,7 @@ class Sgtk(object):
             
         try:
             self.templates = read_templates(self.__pipeline_config)
-        except TankError, e:
+        except TankError as e:
             raise TankError("Could not read templates configuration: %s" % e)
 
         # execute a tank_init hook for developers to use.
@@ -123,21 +122,10 @@ class Sgtk(object):
 
     def log_metric(self, action, log_once=False):
         """
-        Log a core metric.
-
-        :param action: Action string to log, e.g. 'Init'
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-
-        Logs a user activity metric as performed within core. This is
-        a convenience method that auto-populates the module portion of
-        `tank.util.log_user_activity_metric()`
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
+        This method is now deprecated and shouldn't be used anymore.
+        Use the `tank.util.metrics.EventMetrics.log` method instead.
         """
-        full_action = "%s %s" % ("tk-core", action)
-        log_user_activity_metric("tk-core", full_action, log_once=log_once)
+        pass
 
     def get_cache_item(self, cache_key):
         """
@@ -310,7 +298,7 @@ class Sgtk(object):
         """
         try:
             self.templates = read_templates(self.__pipeline_config)
-        except TankError, e:
+        except TankError as e:
             raise TankError("Templates could not be reloaded: %s" % e)
 
     def list_commands(self):
@@ -664,6 +652,11 @@ class Sgtk(object):
         """
         Factory method that constructs a context object from a path on disk.
 
+        .. note:: If you're running this method on a render farm or on a machine where the
+                  path cache may not have already been generated then you will need to run
+                  :meth:`synchronize_filesystem_structure` beforehand, otherwise you will
+                  get back a context only containing the shotgun site URL.
+
         :param path: a file system path
         :param previous_context: A context object to use to try to automatically extend the generated
                                  context if it is incomplete when extracted from the path. For example,
@@ -704,7 +697,7 @@ class Sgtk(object):
              "project": {"type": "Project", "id": 123, "name": "My Project"}
             }
 
-            {"type": "Task", "id": 789, "name": "Animation",
+            {"type": "Task", "id": 789, "content": "Animation",
              "project": {"type": "Project", "id": 123, "name": "My Project"}
              "entity": {"type": "Shot", "id": 456, "name": "Shot 001"}
              "step": {"type": "Step", "id": 101112, "name": "Anm"}
@@ -721,7 +714,7 @@ class Sgtk(object):
             {"type": "Shot", "id": 456, "code": "Shot 001"}
 
             # missing linked project name and linked step
-            {"type": "Task", "id": 789, "name": "Animation",
+            {"type": "Task", "id": 789, "content": "Animation",
              "project": {"type": "Project", "id": 123}}
              "entity": {"type": "Shot", "id": 456, "name": "Shot 001"}
             }

@@ -78,7 +78,7 @@ def get_metadata(pipeline_config_path):
         data = yaml_cache.g_yaml_cache.get(cfg_yml, deepcopy_data=False)
         if data is None:
             raise Exception("File contains no data!")
-    except Exception, e:
+    except Exception as e:
         raise TankError("Looks like a config file is corrupt. Please contact "
                         "support! File: '%s' Error: %s" % (cfg_yml, e))
     return data
@@ -118,7 +118,7 @@ def get_roots_metadata(pipeline_config_path):
     try:
         # if file is empty, initialize with empty dict...
         data = yaml_cache.g_yaml_cache.get(roots_yml, deepcopy_data=False) or {}
-    except Exception, e:
+    except Exception as e:
         raise TankError("Looks like the roots file is corrupt. Please contact "
                         "support! File: '%s' Error: %s" % (roots_yml, e))
 
@@ -343,7 +343,7 @@ def _get_install_locations(path):
     # load the config file
     try:
         location_data = yaml_cache.g_yaml_cache.get(location_file, deepcopy_data=False) or {}
-    except Exception, error:
+    except Exception as error:
         raise TankError("Cannot load core config file '%s'. Error: %s" % (location_file, error))
 
     # do some cleanup on this file - sometimes there are entries that say "undefined"

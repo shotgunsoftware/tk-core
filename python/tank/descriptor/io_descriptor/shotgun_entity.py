@@ -11,7 +11,7 @@
 import os
 import urlparse
 
-from .base import IODescriptorBase
+from .downloadable import IODescriptorDownloadable
 from ...util import filesystem, shotgun
 from ...util.errors import ShotgunAttachmentDownloadError
 from ..errors import TankDescriptorError
@@ -20,7 +20,7 @@ from ... import LogManager
 log = LogManager.get_logger(__name__)
 
 
-class IODescriptorShotgunEntity(IODescriptorBase):
+class IODescriptorShotgunEntity(IODescriptorDownloadable):
     """
     Represents a shotgun entity to which apps have been attached.
     This can be an attachment field on any entity. Typically it will be
@@ -200,21 +200,17 @@ class IODescriptorShotgunEntity(IODescriptorBase):
         """
         return "v%s" % self._version
 
-    def download_local(self):
+    def _download_local(self, destination_path):
         """
         Retrieves this version to local repo.
         Will exit early if app already exists local.
+
+        :param destination_path: The directory path to which the shotgun entity is to be
+        downloaded to.
         """
-        if self.exists_local():
-            # nothing to do!
-            return
-
-        # cache into the primary location
-        target = self._get_primary_cache_path()
-
         try:
-            shotgun.download_and_unpack_attachment(self._sg_connection, self._version, target)
-        except ShotgunAttachmentDownloadError, e:
+            shotgun.download_and_unpack_attachment(self._sg_connection, self._version, destination_path)
+        except ShotgunAttachmentDownloadError as e:
             raise TankDescriptorError(
                 "Failed to download %s from %s. Error: %s" % (self, self._sg_connection.base_url, e)
             )
@@ -387,7 +383,7 @@ class IODescriptorShotgunEntity(IODescriptorBase):
             log.debug("%r: Probing if a connection to Shotgun can be established..." % self)
             self._sg_connection.connect()
             log.debug("...connection established!")
-        except Exception, e:
+        except Exception as e:
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect
