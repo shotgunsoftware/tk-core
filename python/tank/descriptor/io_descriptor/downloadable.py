@@ -12,7 +12,7 @@ import os
 import uuid
 
 from .base import IODescriptorBase
-from ..errors import TankDescriptorError, TankError
+from ..errors import TankDescriptorError, TankError, TankDescriptorIOError
 from ...util import filesystem
 
 from ... import LogManager
@@ -57,52 +57,95 @@ class IODescriptorDownloadable(IODescriptorBase):
         if self.exists_local():
             return
 
-        # cache into a temporary location
+        # download it into a unique temporary location
         temporary_path = self._get_temporary_cache_path()
 
-        # move into primary location
+        # compute the location where we eventually want to move into
         target = self._get_primary_cache_path()
 
         # ensure that the parent directory of the target is present.
         # make sure we guard against multiple processes attempting to create it simultaneously.
+        target_parent = os.path.dirname(target)
         try:
-            filesystem.ensure_folder_exists(os.path.dirname(target))
+            filesystem.ensure_folder_exists(target_parent)
         except Exception as e:
-            if not os.path.exists(os.path.dirname(target)):
-                log.error("Failed to create parent directory %s: %s" % (os.path.dirname(target), e))
-                raise TankDescriptorError("Failed to create parent directory %s: %s" % (os.path.dirname(target), e))
+            if not os.path.exists(target_parent):
+                log.error("Failed to create directory %s: %s" % (target_parent, e))
+                raise TankDescriptorIOError("Failed to create directory %s: %s" % (target_parent, e))
 
         try:
             # attempt to download the descriptor to the temporary path.
-            log.debug("Downloading %s to the temporary download path %s." % (self, temporary_path))
+            log.debug("Downloading %s to temporary download path %s." % (self, temporary_path))
             self._download_local(temporary_path)
         except Exception as e:
             # something went wrong during the download, remove the temporary files.
             log.error("Failed to download into path %s: %s. Attempting to remove it."
                       % (temporary_path, e))
+            # note - safe_delete_folder will not raise if something goes wrong, it will just log.
             filesystem.safe_delete_folder(temporary_path)
-            raise TankDescriptorError("Failed to download into path %s: %s" % (temporary_path, e))
+            raise TankDescriptorIOError("Failed to download into path %s: %s" % (temporary_path, e))
 
         log.debug("Attempting to move descriptor %s from temporary path %s to target path %s." % (
             self, temporary_path, target)
         )
+
+        move_succeeded = False
+
         try:
             # atomically rename the directory temporary_path to the target.
+            # note: this is so that we don't end up with a partial payload in the target
+            # location. All or nothing.
             os.rename(temporary_path, target)
+            move_succeeded = True
             log.debug("Successfully moved the downloaded descriptor to target path: %s." % target)
+
         except Exception as e:
-            # if the target path does not already exist, something else might have gone wrong.
+
+            # if the target path already exists, this means someone else is either
+            # moving things right now or have moved it already, so we are ok.
             if not os.path.exists(target):
-                log.error("Failed to move descriptor from the temporary path %s " % temporary_path +
-                          " to the bundle cache %s: %s" % (target, e))
-                raise TankError("Failed to move descriptor from the temporary path %s " % temporary_path +
-                                " to the bundle cache %s: %s" % (target, e))
-        else:
+                # the target path does not exist. so the rename failed for other reasons.
+
+                # if the rename did not work, it may be because the files are locked and
+                # cannot be deleted. This can for example happen if an antivirus software
+                # (on windows) has been triggered because of the download and has locked on
+                # to the files. In this case, we try to copy the files and then remove the
+                # temp payload - this is slower, but safer, and we can gracefully fail and
+                # continue in case the deletion fails.
+                log.warning(
+                    "Failed to move descriptor %s from the temporary path %s "
+                    "to the bundle cache %s. Error: %s. "
+                    "Will attempt to copy it instead." % (self, temporary_path, target, e)
+                )
+
+                try:
+                    # copy first then delete all files in target.
+                    # if deletion fails this will log and gracefully continue.
+                    log.debug(
+                        "Performing 'copy then delete' style move on %s -> %s" % (
+                            temporary_path,
+                            target
+                        )
+                    )
+                    filesystem.move_folder(temporary_path, target)
+                    move_succeeded = True
+
+                except Exception as e:
+                    # something during the copy went wrong. Attempt to roll back the target
+                    # so we aren't left with any corrupt bundle cache items.
+                    if os.path.exists(target):
+                        log.debug("Move failed. Attempting to clear out target path '%s'" % target)
+                        filesystem.safe_delete_folder(target)
+
+                    # and raise an error.
+                    raise TankDescriptorIOError(
+                        "Failed to move descriptor %s from the temporary path %s "
+                        "to the bundle cache %s. Error: %s" % (self, temporary_path, target, e)
+                    )
+
+        if move_succeeded:
+            # download completed ok! Run post processing
             self._post_download(target)
-        finally:
-            if os.path.exists(temporary_path):
-                log.debug("Removing temporary path: %s" % temporary_path)
-                filesystem.safe_delete_folder(temporary_path)
 
     def _get_temporary_cache_path(self):
         """
