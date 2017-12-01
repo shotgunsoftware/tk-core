@@ -316,7 +316,8 @@ class LocalFileStorageManager(object):
             elif plugin_id and pipeline_config_id:
                 pc_suffix = "c%d.%s" % (pipeline_config_id, filesystem.create_valid_filename(plugin_id))
             else:
-                # this is a possible, however not recommended state
+                # No pipeline config id nor plugin id which is possible for caching
+                # at the site level.
                 pc_suffix = ""
 
             if project_id is None:

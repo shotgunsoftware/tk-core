@@ -259,9 +259,31 @@ class TankBundle(object):
 
             stored_query_data_path = os.path.join(self.cache_location, "query.dat")
 
+        :returns: A string, full path to a cache location.
         """
         project_id = self.__tk.pipeline_configuration.get_project_id()
         return self.get_project_cache_location(project_id)
+
+    @property
+    def site_cache_location(self):
+        """
+        A site location on disk where the app or engine can store
+        random cache data. This location is guaranteed to exist on disk.
+
+        This location is configurable via the ``cache_location`` hook.
+        It is typically points at a path in the local filesystem, e.g
+        on for example on the mac::
+
+            ~/Library/Caches/Shotgun/SITENAME/BUNDLE_NAME
+
+        This can be used to store cache data that the app wants to reuse across
+        sessions and can be shared across a site::
+
+            stored_query_data_path = os.path.join(self.cache_location, "query.dat")
+
+        :returns: A string, full path to a cache location.
+        """
+        return self.get_site_cache_location()
 
     @property
     def context(self):
@@ -460,6 +482,27 @@ class TankBundle(object):
             )
 
         return self.__cache_location[project_id]
+
+    def get_site_cache_location(self):
+        """
+        Gets the bundle's site cache-location path.
+
+        :returns: Cache location directory path.
+        :rtype str:
+        """
+        # this method is memoized for performance since it is being called a lot!
+        if self.__cache_location.get("site") is None:
+
+            self.__cache_location["site"] = self.__tk.execute_core_hook_method(
+                constants.CACHE_LOCATION_HOOK_NAME,
+                "get_bundle_data_cache_path",
+                project_id=None,
+                plugin_id=None,
+                pipeline_configuration_id=None,
+                bundle=self
+            )
+
+        return self.__cache_location["site"]
 
     def get_setting(self, key, default=None):
         """
