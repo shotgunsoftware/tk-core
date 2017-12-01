@@ -12,7 +12,7 @@ import os
 import uuid
 
 from .base import IODescriptorBase
-from ..errors import TankDescriptorError, TankError, TankDescriptorIOError
+from ..errors import TankDescriptorIOError
 from ...util import filesystem
 
 from ... import LogManager
