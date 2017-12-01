@@ -16,6 +16,7 @@ import sys
 import tempfile
 import time
 import uuid
+import shutil
 import zipfile
 
 from tank_test.tank_test_base import TankTestBase, skip_if_git_missing, temp_env_var
@@ -23,6 +24,17 @@ from tank_test.tank_test_base import setUpModule # noqa
 
 import sgtk
 import tank
+
+
+def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
+    """
+    Generic mock function to raise an OSError.
+
+    :param placeholder_a: Placeholder first argument
+    :param placeholder_b: Placeholder second argument
+    :raises: OSError
+    """
+    raise OSError("An unknown OSError occurred")
 
 
 class TestDownloadableIODescriptors(TankTestBase):
@@ -295,15 +307,6 @@ class TestDownloadableIODescriptors(TankTestBase):
             "Failed to write concurrently to shared bundle cache: %s" % ",".join(errors)
         )
 
-    def _raise_exception(self, placeholder_a="default_a", placeholder_b="default_b"):
-        """
-        Generic mock function to raise an OSError.
-
-        :param placeholder_a: Placeholder first argument
-        :param placeholder_b: Placeholder second argument
-        :raises: OSError
-        """
-        raise OSError("An unknown OSError occurred")
 
     ###############################################################################################
 
@@ -382,15 +385,24 @@ class TestDownloadableIODescriptors(TankTestBase):
         """
         Tests git branch descriptor downloads to the bundle cache.
         """
+        # make sure there is nothing in the bundle cache
+        git_location = os.path.join(self.tank_temp, "bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
+        if os.path.exists(git_location):
+            os.rename(git_location, "%s.%s" % (git_location, uuid.uuid4().hex))
+
+        # make sure nothing exists
+        self.assertFalse(os.path.exists(git_location))
+
         # setup git test data
         self._setup_git_data()
 
         self._download_git_branch_bundle()
 
         # make sure the expected local path exists.
-        self.assertTrue(os.path.exists(
-            os.path.join(self.tank_temp, "bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
-        ), "Failed to find the default bundle cache directory for the app store descriptor on disk.")
+        self.assertTrue(
+            os.path.exists(git_location),
+            "Failed to find the default bundle cache directory for the app store descriptor on disk."
+        )
 
         # now test concurrent downloads to a shared bundle cache
         self._test_multiprocess_download_to_shared_bundle_cache(
@@ -410,17 +422,84 @@ class TestDownloadableIODescriptors(TankTestBase):
         # ensure that an exception raised while downloading the descriptor to a
         # temporary folder will raise a TankDescriptorError
         with patch(
-                "tank.descriptor.io_descriptor.git_branch.IODescriptorGitBranch._download_local",
-                side_effect=self._raise_exception
+            "tank.descriptor.io_descriptor.git_branch.IODescriptorGitBranch._download_local",
+            side_effect=_raise_exception
         ):
-            with self.assertRaises(tank.descriptor.errors.TankDescriptorError):
+            with self.assertRaises(tank.descriptor.errors.TankDescriptorIOError):
                 self._download_git_branch_bundle()
 
-        # ensure that an exception raised while renaming the temporary folder
-        # to the target path will raise a TankError if the target does not exist.
-        with patch(
-                "os.rename",
-                side_effect=self._raise_exception
-        ):
-            with self.assertRaises(tank.errors.TankError):
-                self._download_git_branch_bundle()
+    @patch("os.rename", side_effect=_raise_exception)
+    def test_descriptor_rename_error_fallbacks(self, *_):
+        """
+        Tests that an error during the rename operation kicks in various fallbacks.
+        """
+        # make sure there is nothing in the bundle cache
+        git_location = os.path.join(self.tank_temp, "bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
+        if os.path.exists(git_location):
+            shutil.move(git_location, "%s.%s" % (git_location, uuid.uuid4().hex))
+
+        # make sure nothing exists
+        self.assertFalse(os.path.exists(git_location))
+
+        # make sure we cleaned up the temp location
+        tmp_location = os.path.join(self.tank_temp, "bundle_cache", "tmp")
+        tmp_files_before = os.listdir(tmp_location)
+
+        # setup shotgun test data
+        self._setup_git_data()
+
+        self._download_git_branch_bundle()
+
+        # make sure the expected local path exists despite the rename failing
+        self.assertTrue(
+            os.path.exists(git_location),
+            "Failed to find the default bundle cache directory for the app store descriptor on disk."
+        )
+
+        # make sure we cleaned up the temp location
+        tmp_files_after = os.listdir(tmp_location)
+        self.assertEqual(tmp_files_after, tmp_files_before)
+
+    @patch("tank.util.filesystem.move_folder")
+    @patch("os.rename", side_effect=_raise_exception)
+    def test_descriptor_rename_fallback_failure(self, rename_mock, move_mock):
+        """
+        Tests the expected behaviour when a rename fails and then 'plan B' fallback also fails.
+        """
+
+        def our_move_mock(src, dst):
+            """
+            Mock of tank.util.filesystem.move_folder which will write one dummy
+            file and then raise an OSError
+            """
+            os.mkdir(dst)
+            with open(os.path.join(dst, "some_file.foo"), "wt") as fh:
+                fh.write("file contents")
+            raise OSError("Something went wrong half way")
+        move_mock.side_effect = our_move_mock
+
+        # make sure there is nothing in the bundle cache
+        git_location = os.path.join(self.tank_temp, "bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
+        if os.path.exists(git_location):
+            shutil.move(git_location, "%s.%s" % (git_location, uuid.uuid4().hex))
+
+        # make sure nothing exists
+        self.assertFalse(os.path.exists(git_location))
+
+        # make sure we clean up the temp location as part of the code
+        tmp_location = os.path.join(self.tank_temp, "bundle_cache", "tmp")
+        tmp_files_before = os.listdir(tmp_location)
+
+        # setup shotgun test data
+        self._setup_git_data()
+
+        # check that it raises when the fallback copy fails
+        with self.assertRaises(tank.descriptor.errors.TankDescriptorIOError):
+            self._download_git_branch_bundle()
+
+        # make sure the bundle cache path is clean afterwards - no half way stuff stored.
+        self.assertFalse(os.path.exists(git_location))
+
+        # make sure we did not cleanup the temp location - it's left for support forensics
+        tmp_files_after = os.listdir(tmp_location)
+        self.assertNotEqual(tmp_files_after, tmp_files_before)

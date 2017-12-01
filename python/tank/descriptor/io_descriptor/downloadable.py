@@ -114,8 +114,8 @@ class IODescriptorDownloadable(IODescriptorBase):
                 # continue in case the deletion fails.
                 log.warning(
                     "Failed to move descriptor %s from the temporary path %s "
-                    "to the bundle cache %s. Error: %s. "
-                    "Will attempt to copy it instead." % (self, temporary_path, target, e)
+                    "to the bundle cache %s. Will attempt to copy it instead. "
+                    "Error: %s" % (self, temporary_path, target, e)
                 )
 
                 try:
@@ -128,6 +128,9 @@ class IODescriptorDownloadable(IODescriptorBase):
                         )
                     )
                     filesystem.move_folder(temporary_path, target)
+                    # move_folder leaves all folders in the filesystem
+                    # clean out these as well in a graceful way.
+                    filesystem.safe_delete_folder(temporary_path)
                     move_succeeded = True
 
                 except Exception as e:
@@ -138,10 +141,19 @@ class IODescriptorDownloadable(IODescriptorBase):
                         filesystem.safe_delete_folder(target)
 
                     # and raise an error.
-                    raise TankDescriptorIOError(
-                        "Failed to move descriptor %s from the temporary path %s "
+                    log.error(
+                        "Failed to copy descriptor %s from the temporary path %s "
                         "to the bundle cache %s. Error: %s" % (self, temporary_path, target, e)
                     )
+                    raise TankDescriptorIOError(
+                        "Failed to copy descriptor %s from the temporary path %s "
+                        "to the bundle cache %s. Error: %s" % (self, temporary_path, target, e)
+                    )
+            else:
+                # note - safe_delete_folder will not raise if something goes wrong, it will just log.
+                log.debug("Target location %s already exists." % target)
+                log.debug("Removing temporary download %s" % temporary_path)
+                filesystem.safe_delete_folder(temporary_path)
 
         if move_succeeded:
             # download completed ok! Run post processing
