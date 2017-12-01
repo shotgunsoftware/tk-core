@@ -352,7 +352,10 @@ class SessionUser(ShotgunUserImpl):
         data = super(SessionUser, self).to_dict()
         data["login"] = self.get_login()
         data["session_token"] = self.get_session_token()
-        data["cookies"] = self.get_cookies()
+        # To preserve backward compatibility with older cores, we avoid
+        # serializing the cookies if therer are not any.
+        if self.get_cookies() is not None:
+            data["cookies"] = self.get_cookies()
         return data
 
     def _try_save(self):
