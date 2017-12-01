@@ -39,30 +39,22 @@ QPushButton
 	padding-right: 15px;
 }
 
-QLineEdit
+QLineEdit, QComboBox
 {
 	background-color: rgb(29, 31, 34);
 	border: 1px solid rgb(54, 60, 66);
 	border-radius: 2px;
 	padding: 5px;
-    font-size: 12px;
-}
-
-QLineEdit:focus
-{
-	border: 1px solid rgb(48, 167, 227);
+     font-size: 12px;
 }
 
 QComboBox
 {
-	background-color: rgb(29, 31, 34);
-	border: 1px solid rgb(54, 60, 66);
-	border-radius: 2px;
-	padding: 5px;
-    font-size: 12px;
+    margin-left: 3;
+	margin-right: 3
 }
 
-QComboBox:focus
+QComboBox:focus, QLineEdit:focus
 {
 	border: 1px solid rgb(48, 167, 227);
 }
