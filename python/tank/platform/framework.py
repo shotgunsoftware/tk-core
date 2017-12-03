@@ -63,7 +63,7 @@ class Framework(TankBundle):
         self.destroy_framework()
 
     ##########################################################################################
-    # properties
+    # Public methods and properties
         
     @property
     def shotgun(self):
@@ -118,6 +118,19 @@ class Framework(TankBundle):
         framework code.
         """
         return self.descriptor.is_shared_framework()
+
+    def get_metrics_properties(self):
+        """
+        Return a dictionary with properties to use when emitting a metric event
+        for this framework in the current engine.
+
+        Frameworks don't have any particular properties and just return the result
+        of :meth:`Engine._get_metrics_properties`.
+        """
+        # Please note that before we used to log some framework information as well
+        # Now we just add the engine information.
+        properties = self.engine.get_metrics_properties()
+        return properties
         
     ##########################################################################################
     # init and destroy
@@ -194,23 +207,6 @@ class Framework(TankBundle):
         :param msg: Message to log.
         """
         self.logger.exception(msg)
-
-
-    ##########################################################################################
-    # internal API
-
-    def _get_metrics_properties(self):
-        """
-        Return a dictionary with properties to use when emitting a metric event 
-        for this framework in the current engine.
-
-        Frameworks don't have any particular properties and just return the result
-        of :meth:`Engine._get_metrics_properties`.
-        """
-        # Please note that before we used to log some framework information as well
-        # Now we just add the engine information.
-        properties = self.engine._get_metrics_properties()
-        return properties
 
 ###################################################################################################
 #
