@@ -16,12 +16,13 @@ are not part of the public Sgtk API.
 
 """
 
-
 ###############################################################################
 # imports
 
 from collections import deque
 from threading import Event, Thread, Lock
+import re
+import platform
 import urllib2
 from copy import deepcopy
 
@@ -30,6 +31,124 @@ from . import constants
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
 json = shotgun_api3.shotgun.json
+
+
+###############################################################################
+
+class PlatformInfo(object):
+    """
+    Metric utility class providing basic platform information
+    to individual emitted metric
+
+    Platform Official Documentation
+    https://docs.python.org/2/library/platform.html
+    """
+
+    __cached_platform_info = None
+
+    @classmethod
+    def get_darwin_version(cls):
+        """
+        Returns a macOS / OSX friendly version string such as:
+            10.7, 10.11, 10.12, etc
+
+        :return: A simply os version identification string.
+        """
+
+        os_version = "Unknown"
+
+        # Now that we have 'raw' output secured, try limiting the version
+        try:
+            raw_version_str = platform.mac_ver()[0]
+            os_version = raw_version_str
+
+            # Now that we have 'raw' output secured, we generalize the actual version.
+            # We do want to limit the number of possible OS version variant we get metrics for.
+            #
+            # For macOS / OSX we keep only the Major.minor
+            os_version = re.findall(r"\d*\.\d*", raw_version_str)[0]
+
+        except:
+            pass
+
+        return os_version
+
+    @classmethod
+    def get_linux_version(cls):
+        """
+        Returns a Linux friendly version string such as:
+            "Ubuntu 12", "Fedora 24", "Red Hat 7", "Debian 8" etc
+
+        :return: A simply os version identification string.
+        """
+        os_version = "Unknown"
+
+        try:
+            # Get the distributon name and capitalize word(s) (e.g.: Ubuntu, Red Hat)
+            distro = platform.linux_distribution()[0].title()
+            raw_version_str = platform.linux_distribution()[1]
+
+            # For Linux we really just want the 'major' version component
+            major_version_str = re.findall(r"\d*", raw_version_str)[0]
+            os_version = "%s %s" % (distro, major_version_str)
+
+        except:
+            pass
+
+        return os_version
+
+    @classmethod
+    def get_windows_version(cls):
+        """
+        Returns a Windows friendly version string such as:
+            2000, XP, 7, 10 etc.
+
+        :return: A simply os version identification string.
+        """
+        os_version = "Unknown"
+
+        try:
+            # On Windows, we can simply use the 'Release()' method
+            # as it returns a friendly name e.g: XP, 7, 10 etc.
+            os_version = platform.release()
+
+        except:
+            pass
+
+        return os_version
+
+    @classmethod
+    def get_platform_info(cls):
+
+        if cls.__cached_platform_info:
+            return cls.__cached_platform_info
+
+        os_info = {"OS": "Unknown", "OS Version": "Unknown"}
+
+        try:
+            system = platform.system()
+            if system == "Darwin":
+                os_info["OS"] = "Mac"
+                os_info["OS Version"] = cls.get_darwin_version()
+
+            elif system == "Linux":
+                os_info["OS"] = system
+                os_info["OS Version"] = cls.get_linux_version()
+
+            elif system == "Windows":
+                os_info["OS"] = system
+                os_info["OS Version"] = cls.get_windows_version()
+
+            else:
+                os_info["OS"] = "Unsupported system: (%s)" % (system)
+
+        except:
+            # On any exception we fallback to defaukt value
+            pass
+
+        # Saved as cached version
+        cls.__cached_platform_info = os_info
+        return os_info
 
 
 ###############################################################################
@@ -590,6 +709,12 @@ class EventMetric(object):
             else:
                 properties = base_properties
         # else we won't get base properties
+
+        # Now add basic platform information to the metric properties
+        if properties:
+            properties.update(PlatformInfo.get_platform_info())
+        else:
+            properties = PlatformInfo.get_platform_info()
 
         MetricsQueueSingleton().log(
             cls(group, name, properties),
