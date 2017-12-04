@@ -75,9 +75,14 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.set_recent_items(recent_hosts)
         self.ui.site.set_selection(hostname)
 
-        self.ui.site.set_style_sheet(self.styleSheet())
+        COMPLETER_STYLE = self.styleSheet() + (
+            "\n\nQWidget {"
+            "font-size: 12px;"
+            "}"
+        )
+        self.ui.site.set_style_sheet(COMPLETER_STYLE)
         self.ui.site.set_placeholder_text("example.shotgunstudio.com")
-        self.ui.login.set_style_sheet(self.styleSheet())
+        self.ui.login.set_style_sheet(COMPLETER_STYLE)
         self.ui.login.set_placeholder_text("login")
 
         self._populate_user_dropdown(recent_hosts[0] if recent_hosts else None)

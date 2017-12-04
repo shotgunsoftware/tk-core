@@ -24,50 +24,79 @@ from .qt5_like_line_edit import Qt5LikeLineEdit
 
 
 class RecentBox(QtGui.QComboBox):
-
-    _COMPLETER_STYLE = "font: 12px"
+    """
+    Combo box speciailisation that handles all the filtering, sorting and auto-completion
+    for a list of recent items. Items are sorted alphabetically so they can be found easily
+    in the UI.
+    """
 
     def __init__(self, parent):
         super(RecentBox, self).__init__(parent)
 
         self.setEditable(True)
 
+        # Using Qt5LikeLineEdit so we have a placeholder even when the line edit is selected.
         self.setLineEdit(Qt5LikeLineEdit(self))
 
+        # Create a model sorted alphabetically for the recent items.
         self._recent_items_model = QtGui.QStringListModel(self)
-
         self._drop_down_model = QtGui.QSortFilterProxyModel(self)
         self._drop_down_model.setSourceModel(self._recent_items_model)
         self.setModel(self._drop_down_model)
 
-        self._filter_model = QtGui.QSortFilterProxyModel(self)
-        self._filter_model.setSourceModel(self._drop_down_model)
-
+        # We'll use a completer that shows all results and we'll do the matching ourselves, as the completion
+        # engine can only work from the beginning of a string...
         self._completer = QtGui.QCompleter()
         self._completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
-        self._completer.setModel(self._filter_model)
 
+        # We'll do our own filtering.
+        self._filter_model = QtGui.QSortFilterProxyModel(self)
+        self._filter_model.setSourceModel(self._drop_down_model)
+        self._completer.setModel(self._filter_model)
         self.setCompleter(self._completer)
 
+        # Each time the user types something, we'll update the filter.
         self.lineEdit().textEdited.connect(self._current_text_changed)
 
     def set_style_sheet(self, style_sheet):
-        self.completer().popup().setStyleSheet(style_sheet + self._COMPLETER_STYLE)
+        """
+        Allows to the the completer's pop-up widget style sheet.
+
+        :param str style_sheet: Style sheet for the completer's pop-up widget.
+        """
+        self.completer().popup().setStyleSheet(style_sheet)
 
     def set_recent_items(self, items):
+        """
+        Sets the list of recent items.
+
+        :param list(str): List of strings to display.
+        """
         self._recent_items_model.setStringList(items)
 
     def set_selection(self, item):
+        """
+        Sets the currently selected item in the drop down.
+
+        :param str item: String to select in the recent box.
+        """
         for idx in range(self._drop_down_model.rowCount()):
             if self._drop_down_model.data(self._drop_down_model.index(idx, 0)) == item:
                 self.setCurrentIndex(idx)
                 break
 
     def _current_text_changed(self, text):
+        """
+        Updates the filter each time the user types something.
+
+        :param str text: Text the user has just typed in.
+        """
         self._filter_model.setFilterFixedString(text)
-        self._filter_model.invalidate()
 
     def set_placeholder_text(self, text):
+        """
+        Sets the placeholder text to display in the combo box's line edit.
+        """
         # Older versions of Qt don't support this method.
         if hasattr(self.lineEdit(), "setPlaceholderText"):
             self.lineEdit().setPlaceholderText(text)
