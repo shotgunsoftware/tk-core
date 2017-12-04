@@ -34,6 +34,7 @@ import time
 import threading
 import urllib2
 import time
+import unittest2
 
 
 class TestEventMetric(TankTestBase):
@@ -1070,3 +1071,119 @@ class TestBundleMetrics(TankTestBase):
                         hook_called = True
                         break
             self.assertTrue(hook_called)
+
+
+from tank.util.metrics import PlatformInfo
+
+
+class TestPlatformInfo(unittest2.TestCase):
+
+    def setUp(self):
+        super(TestPlatformInfo, self).setUp()
+        # reset un-cache PlatformInfo cached value
+        PlatformInfo._PlatformInfo__cached_platform_info = None
+
+    @patch("platform.system", return_value="Windows")
+    @patch("platform.release", return_value="XP")
+    def test_as_windows(self, mocked_release, mocked_system):
+        """
+        Tests as a Windows XP system
+        """
+        platform_info = PlatformInfo.get_platform_info()
+        self.assertIsNotNone(platform_info)
+        self.assertEquals("Windows", platform_info["OS"])
+        self.assertEquals("XP", platform_info["OS Version"])
+        self.assertTrue(mocked_system.called)
+        self.assertTrue(mocked_release.called)
+
+    @patch("platform.system", return_value="Darwin")
+    @patch("platform.mac_ver", return_value=("10.7.5", ("", "", ""), "i386"))
+    def test_as_osx(self, mocked_mac_ver, mocked_system):
+        """
+        Tests as some OSX Lion system
+        """
+        platform_info = PlatformInfo.get_platform_info()
+        self.assertIsNotNone(platform_info)
+        self.assertEquals("Mac", platform_info["OS"])
+        self.assertEquals("10.7", platform_info["OS Version"])
+        self.assertTrue(mocked_system.called)
+        self.assertTrue(mocked_mac_ver.called)
+
+    @patch("platform.system", return_value="Linux")
+    @patch("platform.linux_distribution", return_value=("debian", "7.7", ""))
+    def test_as_linux(self, mocked_system, mocked_linux_distribution):
+        """
+        Tests as a Linux Debian system
+        """
+        platform_info = PlatformInfo.get_platform_info()
+        self.assertIsNotNone(platform_info)
+        self.assertEquals("Linux", platform_info["OS"])
+        self.assertEquals("Debian 7", platform_info["OS Version"])
+        self.assertTrue(mocked_system.called)
+        self.assertTrue(mocked_linux_distribution.called)
+
+    @patch("platform.system", return_value="BSD")
+    @patch("platform.linux_distribution", side_effect=Exception)
+    def test_as_unsupported_system(self, mocked_linux_distribution, mocked_system):
+        """
+        Tests a fake unsupported system
+        """
+        mocked_linux_distribution.reset_mock()
+        platform_info = PlatformInfo.get_platform_info()
+        self.assertIsNotNone(platform_info)
+        self.assertEquals("Unsupported system: (BSD)", platform_info["OS"])
+        self.assertEquals("Unknown", platform_info["OS Version"])
+        self.assertTrue(mocked_system.called)
+        self.assertFalse(mocked_linux_distribution.called)
+
+    @patch("platform.system", return_value="Linux")
+    @patch("platform.linux_distribution", side_effect=Exception)
+    def test_as_linux_without_distribution(self, mocked_linux_distribution, mocked_system):
+        """
+        Tests handling of an exception caused by the 'linux_distribution' method.
+        """
+        platform_info = PlatformInfo.get_platform_info()
+        self.assertIsNotNone(platform_info)
+        self.assertEquals("Linux", platform_info["OS"])
+        self.assertEquals("Unknown", platform_info["OS Version"])
+        self.assertTrue(mocked_system.called)
+        self.assertTrue(mocked_linux_distribution.called)
+
+    @patch("platform.system", return_value="Darwin")
+    @patch("platform.mac_ver", side_effect=Exception)
+    def test_as_mac_without_mac_version(self, mocked_mac_ver, mocked_system):
+        """
+        Tests handling of an exception caused by the 'mac_ver' method.
+        """
+        platform_info = PlatformInfo.get_platform_info()
+        self.assertIsNotNone(platform_info)
+        self.assertEquals("Mac", platform_info["OS"])
+        self.assertEquals("Unknown", platform_info["OS Version"])
+        self.assertTrue(mocked_system.called)
+        self.assertTrue(mocked_mac_ver.called)
+
+    @patch("platform.system", return_value="Windows")
+    @patch("platform.release", side_effect=Exception)
+    def test_as_mac_without_release(self, mocked_release, mocked_system):
+        """
+        Tests handling of an exception caused by the 'release' method.
+        """
+        platform_info = PlatformInfo.get_platform_info()
+        self.assertIsNotNone(platform_info)
+        self.assertEquals("Windows", platform_info["OS"])
+        self.assertEquals("Unknown", platform_info["OS Version"])
+        self.assertTrue(mocked_system.called)
+        self.assertTrue(mocked_release.called)
+
+    @patch("platform.system", side_effect=Exception)
+    @patch("platform.release", side_effect=Exception)
+    def test_system(self, mocked_release, mocked_system):
+        """
+        Tests handling of an exception caused by the 'system' method.
+        """
+        platform_info = PlatformInfo.get_platform_info()
+        self.assertIsNotNone(platform_info)
+        self.assertEquals("Unknown", platform_info["OS"])
+        self.assertEquals("Unknown", platform_info["OS Version"])
+        self.assertTrue(mocked_system.called)
+        self.assertFalse(mocked_release.called)
