@@ -78,7 +78,9 @@ class LoginDialog(QtGui.QDialog):
         # Style sheet doesn't get applied automatically to some parts of the widget, so set it
         # ourselves.
         self.ui.site.set_style_sheet(self.styleSheet())
+        self.ui.site.set_placeholder_text("example.shotgunstudio.com")
         self.ui.login.set_style_sheet(self.styleSheet())
+        self.ui.login.set_placeholder_text("Login")
 
         self._populate_user_dropdown(recent_hosts[0] if recent_hosts else None)
 

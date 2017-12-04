@@ -20,6 +20,7 @@ at any point.
 
 
 from .qt_abstraction import QtGui
+from .qt5_like_line_edit import Qt5LikeLineEdit
 
 
 class RecentBox(QtGui.QComboBox):
@@ -28,6 +29,8 @@ class RecentBox(QtGui.QComboBox):
         super(RecentBox, self).__init__(parent)
 
         self.setEditable(True)
+
+        self.setLineEdit(Qt5LikeLineEdit(self))
 
         self._recent_items_model = QtGui.QStringListModel(self)
 
@@ -45,6 +48,7 @@ class RecentBox(QtGui.QComboBox):
         self.setCompleter(self._completer)
 
         self.lineEdit().textEdited.connect(self._current_text_changed)
+        print self.lineEdit()
 
     def set_style_sheet(self, style_sheet):
         self.completer().popup().setStyleSheet(style_sheet)
@@ -61,3 +65,8 @@ class RecentBox(QtGui.QComboBox):
     def _current_text_changed(self, text):
         self._filter_model.setFilterFixedString(text)
         self._filter_model.invalidate()
+
+    def set_placeholder_text(self, text):
+        # Older versions of Qt don't support this method.
+        if hasattr(self.lineEdit(), "setPlaceholderText"):
+            self.lineEdit().setPlaceholderText(text)
