@@ -69,7 +69,7 @@ class TestEventMetric(TankTestBase):
             EventMetric([], []),
         except Exception as e:
             self.fail(
-                "Creating an instance of 'EventMetric' failed unexpectedly: %s", (e)
+                "Creating an instance of 'EventMetric' failed unexpectedly: %s" % (e)
             )
 
     def test_init_with_valid_parameters(self):
@@ -297,26 +297,27 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         return metrics
 
-    def _helper_test_end_to_end(self, group, name, properties):
+    def _helper_test_end_to_end(self, group, name, properties, setup_shogun=True):
         """
         Helper method for the test_end_to_end_* tests. Allows a deeper and
         more complete test cycle of creating, submitting and receiving
         a mocked-server response.
         """
 
-        # Setup test fixture, engine and context with newer server caps
-        #
-        # Define a local server caps mock locally since it only
-        # applies to this particular test
-        class server_capsMock:
-            def __init__(self):
-                self.version = (7, 4, 0)
+        if setup_shogun:
+            # Setup test fixture, engine and context with newer server caps
+            #
+            # Define a local server caps mock locally since it only
+            # applies to this particular test
+            class server_capsMock:
+                def __init__(self):
+                    self.version = (7, 4, 0)
 
-        self._setup_shotgun(server_capsMock())
+            self._setup_shotgun(server_capsMock())
 
         # Save a few values for comparing on the other side
         expected_event_name = name
-        if name not in MetricsDispatchWorkerThread.SUPPORTED_EVENTS:
+        if EventMetric.EVENT_NAME_FORMAT % (group, name) not in EventMetric.SUPPORTED_EVENTS:
             expected_event_name = "Unknown Event"
 
         # Make at least one metric related call!
@@ -419,6 +420,57 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue(isinstance(server_received_metric["event_properties"]["BoolProp"], bool))
         self.assertTrue(isinstance(server_received_metric["event_properties"]["DictProp"], dict))
         self.assertTrue(isinstance(server_received_metric["event_properties"]["ListProp"], list))
+
+    def helper_test_event_whitelist(self, event_group, event_name, expecting_unknown=False, setup_shotgun=False):
+        """
+        Helper method for the 'test_event_whitelist' test
+        """
+        server_received_metric = self._helper_test_end_to_end(
+            event_group,
+            event_name,
+            {},
+            setup_shotgun
+        )
+
+        # Test the metric that was encoded and transmitted to the mock server
+        self.assertTrue("event_group" in server_received_metric)
+        self.assertTrue("event_name" in server_received_metric)
+
+        if expecting_unknown:
+            self.assertEqual(server_received_metric["event_name"], "Unknown Event")
+            self.assertEqual(server_received_metric["event_group"], "Toolkit")
+        else:
+            self.assertEqual(server_received_metric["event_name"], event_name)
+
+    def test_event_whitelist(self):
+        """
+        Test existence and support for the entire current metric event whitelist
+
+        NOTE: Deliberately not using EventMetric defined GROUP_xxxx constants
+        """
+
+        # We need to init shotgun on first call
+        self.helper_test_event_whitelist("App", "Logged In", setup_shotgun=True)
+        self.helper_test_event_whitelist("App", "Logged Out")
+        self.helper_test_event_whitelist("App", "Viewed Login Page")
+        self.helper_test_event_whitelist("Media", "Created Note")
+        self.helper_test_event_whitelist("Media", "Created Reply")
+        self.helper_test_event_whitelist("Navigation", "Viewed Projects")
+        self.helper_test_event_whitelist("Navigation", "Viewed Panel")
+        self.helper_test_event_whitelist("Projects", "Viewed Project Commands")
+        self.helper_test_event_whitelist("Tasks", "Created Task")
+        self.helper_test_event_whitelist("Toolkit", "Launched Action")
+        self.helper_test_event_whitelist("Toolkit", "Launched Command")
+        self.helper_test_event_whitelist("Toolkit", "Launched Software")
+        self.helper_test_event_whitelist("Toolkit", "Loaded Published File")
+        self.helper_test_event_whitelist("Toolkit", "Published")
+        self.helper_test_event_whitelist("Toolkit", "New Workfile")
+        self.helper_test_event_whitelist("Toolkit", "Opened Workfile")
+        self.helper_test_event_whitelist("Toolkit", "Saved Workfile")
+
+        # Testing out unknown events
+        self.helper_test_event_whitelist("CarAndDriver", "Reviewed New Car", True)
+        self.helper_test_event_whitelist("Firmwares", "Updated Router Firmware", True)
 
     def test_end_to_end_unsupported_event(self):
         """
@@ -830,7 +882,7 @@ class TestMetricsFunctions(TankTestBase):
             EventMetric.log({}, {}),
             EventMetric.log([], []),
         except Exception as e:
-            self.fail("log_metric() failed unexpectedly on bad metric: %s", (e))
+            self.fail("log_metric() failed unexpectedly on bad metric: %s" % (e))
 
     def test_log_event_metric_with_good_metrics(self):
 
@@ -846,7 +898,7 @@ class TestMetricsFunctions(TankTestBase):
                  }
             )
         except Exception as e:
-            self.fail("EventMetric.log() failed unexpectedly on good metric: %s", (e))
+            self.fail("EventMetric.log() failed unexpectedly on good metric: %s" % (e))
 
 
 class TestBundleMetrics(TankTestBase):
