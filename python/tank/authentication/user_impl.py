@@ -293,7 +293,12 @@ class SessionUser(ShotgunUserImpl):
 
         :returns: A SessionUser instance.
         """
-        return SessionUser(**payload)
+        return SessionUser(
+            host=payload.get("host"),
+            login=payload.get("login"),
+            session_token=payload.get("session_token"),
+            http_proxy=payload.get("http_proxy")
+        )
 
     def to_dict(self):
         """
@@ -317,7 +322,7 @@ class SessionUser(ShotgunUserImpl):
                 self.get_login(),
                 self.get_session_token()
             )
-        except:
+        except Exception:
             # Do not break execution because somehow we couldn't
             # cache the credentials. We'll simply be asking them again
             # next time.
@@ -438,7 +443,12 @@ class ScriptUser(ShotgunUserImpl):
 
         :returns: A ScriptUser instance.
         """
-        return ScriptUser(**payload)
+        return ScriptUser(
+            host=payload.get("host"),
+            api_script=payload.get("api_script"),
+            api_key=payload.get("api_key"),
+            http_proxy=payload.get("http_proxy")
+        )
 
 
 __factories = {
