@@ -249,8 +249,7 @@ class TankBundle(object):
         random cache data. This location is guaranteed to exist on disk.
 
         This location is configurable via the ``cache_location`` hook.
-        It is typically points at a path in the local filesystem, e.g
-        on for example on the mac::
+        It typically points at a path in the local filesystem, e.g on a mac::
 
             ~/Library/Caches/Shotgun/SITENAME/PROJECT_ID/BUNDLE_NAME
 
@@ -271,15 +270,14 @@ class TankBundle(object):
         random cache data. This location is guaranteed to exist on disk.
 
         This location is configurable via the ``cache_location`` hook.
-        It is typically points at a path in the local filesystem, e.g
-        on for example on the mac::
+        It typically points at a path in the local filesystem, e.g on a mac::
 
             ~/Library/Caches/Shotgun/SITENAME/BUNDLE_NAME
 
         This can be used to store cache data that the app wants to reuse across
         sessions and can be shared across a site::
 
-            stored_query_data_path = os.path.join(self.cache_location, "query.dat")
+            stored_query_data_path = os.path.join(self.site_cache_location, "query.dat")
 
         :returns: A string, full path to a cache location.
         """

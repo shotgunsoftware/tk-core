@@ -304,7 +304,7 @@ class LocalFileStorageManager(object):
             # new paths are on the form
             # project 123, config 33:       root/mysite/p123c33
             # project 123 with plugin id:   root/mysite/p123.review.rv
-            # site project:                 root/mysite/p0
+            # site project:                 root/mysite/site
 
             pc_suffix = ""
             if pipeline_config_id and not plugin_id:

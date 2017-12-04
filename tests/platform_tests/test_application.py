@@ -548,7 +548,6 @@ class TestProperties(TestApplication):
         self.assertEqual(app.display_name, "Test App")
         self.assertEqual(app.version, "Undefined")
         self.assertEqual(app.documentation_url, expected_doc_url)
-        
 
 
 class TestBundleDataCache(TestApplication):
@@ -556,7 +555,10 @@ class TestBundleDataCache(TestApplication):
     Test bundle data cache paths
     """
 
-    def test_project_data_path(self):
+    def test_data_path(self):
+        """
+        Test project/site data paths.
+        """
         app = self.engine.apps["test_app"]
         project_data_cache_path = app.cache_location
         # We should have the project id in the path
@@ -592,4 +594,3 @@ class TestBundleDataCache(TestApplication):
                     os.path.sep, os.path.sep, name,
                 ))
             )
-
