@@ -55,11 +55,12 @@ def unzip_file(src_zip_file, target_folder, auto_detect_bundle=False):
         # compute number of unique root filename items
         # note: zip module uses forward slash on all operating systems
         root_items = set([item.split("/")[0] for item in zip_obj.namelist()])
-
         # remove certain system items
         root_items -= SYSTEM_FILE_ITEMS
 
-        if len(root_items) == 1:
+        # if there is a single root item and it is a folder, then kick in the
+        # special logic.
+        if len(root_items) == 1 and "/" in root_items:
             root_to_omit = root_items.pop()
 
             log.debug(
