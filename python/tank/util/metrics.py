@@ -120,19 +120,19 @@ class PlatformInfo(object):
     @classmethod
     def get_platform_info(cls):
         """
-        Returns a simple OS and OS version information of the underlying host.
-        The information is cached to to saves on subsequent calls.
+        Returns a simple OS and OS version information about the underlying host.
+        The information is cached to saves on subsequent calls.
 
-        :return: A dict of basic platform information such as:
-            {'OS Version': 'Debian 7', 'OS': 'Linux'}
-            {'OS Version': 'Ubuntu 12', 'OS': 'Linux'}
-            {'OS Version': '10.7', 'OS': 'Mac'}
-            {'OS Version': '10.13', 'OS': 'Mac'}
-            {'OS Version': '2000', 'OS': 'Windows'}
-            {'OS Version': 'XP', 'OS': 'Windows'}
-            {'OS Version': '7', 'OS': 'Windows'}
-            {'OS Version': '8', 'OS': 'Windows'}
-            {'OS Version': '10', 'OS': 'Windows'}
+        Below are a some different output value examples:
+        - {'OS Version': 'Debian 8', 'OS': 'Linux'}
+        - {'OS Version': 'Ubuntu 14', 'OS': 'Linux'}
+        - {'OS Version': '10.7', 'OS': 'Mac'}
+        - {'OS Version': '10.13', 'OS': 'Mac'}
+        - {'OS Version': '7', 'OS': 'Windows'}
+        - {'OS Version': '10', 'OS': 'Windows'}
+
+        :return: A dict of basic OS and OS version.
+
         """
 
         if cls.__cached_platform_info:
@@ -696,6 +696,9 @@ class EventMetric(object):
                             additional, non-standard properties that should be logged.
         """
 
+        if not properties:
+            properties = {}
+
         if not bundle:
             # No bundle specified, try guessing one
             try:
@@ -716,20 +719,12 @@ class EventMetric(object):
                 pass
 
         if bundle:
-            base_properties = bundle.get_metrics_properties()
-
             # Add base properties to specified properties (if any)
-            if properties:
-                properties.update(base_properties)
-            else:
-                properties = base_properties
+            properties.update(bundle.get_metrics_properties())
         # else we won't get base properties
 
         # Now add basic platform information to the metric properties
-        if properties:
-            properties.update(PlatformInfo.get_platform_info())
-        else:
-            properties = PlatformInfo.get_platform_info()
+        properties.update(PlatformInfo.get_platform_info())
 
         MetricsQueueSingleton().log(
             cls(group, name, properties),
