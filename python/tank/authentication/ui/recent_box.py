@@ -48,7 +48,6 @@ class RecentBox(QtGui.QComboBox):
         self.setCompleter(self._completer)
 
         self.lineEdit().textEdited.connect(self._current_text_changed)
-        print self.lineEdit()
 
     def set_style_sheet(self, style_sheet):
         self.completer().popup().setStyleSheet(style_sheet)

@@ -416,7 +416,7 @@ def get_recent_hosts():
     """
     info_path = _get_global_authentication_file_location()
     document = _try_load_global_authentication_file(info_path)
-    logger.debug("Recent hosts are: ", document[_RECENT_HOSTS])
+    logger.debug("Recent hosts are: %s", document[_RECENT_HOSTS])
     return document[_RECENT_HOSTS]
 
 
