@@ -119,6 +119,21 @@ class PlatformInfo(object):
 
     @classmethod
     def get_platform_info(cls):
+        """
+        Returns a simple OS and OS version information of the underlying host.
+        The information is cached to to saves on subsequent calls.
+
+        :return: A dict of basic platform information such as:
+            {'OS Version': 'Debian 7', 'OS': 'Linux'}
+            {'OS Version': 'Ubuntu 12', 'OS': 'Linux'}
+            {'OS Version': '10.7', 'OS': 'Mac'}
+            {'OS Version': '10.13', 'OS': 'Mac'}
+            {'OS Version': '2000', 'OS': 'Windows'}
+            {'OS Version': 'XP', 'OS': 'Windows'}
+            {'OS Version': '7', 'OS': 'Windows'}
+            {'OS Version': '8', 'OS': 'Windows'}
+            {'OS Version': '10', 'OS': 'Windows'}
+        """
 
         if cls.__cached_platform_info:
             return cls.__cached_platform_info
@@ -143,10 +158,10 @@ class PlatformInfo(object):
                 os_info["OS"] = "Unsupported system: (%s)" % (system)
 
         except:
-            # On any exception we fallback to defaukt value
+            # On any exception we fallback to default value
             pass
 
-        # Saved as cached version
+        # Cache information to save on subsequent calls
         cls.__cached_platform_info = os_info
         return os_info
 
