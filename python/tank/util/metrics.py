@@ -52,7 +52,7 @@ class PlatformInfo(object):
         Returns a macOS / OSX friendly version string such as:
             10.7, 10.11, 10.12, etc
 
-        :return: A simply os version identification string.
+        :return: A str of a simple OS version string.
         """
 
         os_version = "Unknown"
@@ -79,7 +79,7 @@ class PlatformInfo(object):
         Returns a Linux friendly version string such as:
             "Ubuntu 12", "Fedora 24", "Red Hat 7", "Debian 8" etc
 
-        :return: A simply os version identification string.
+        :return: A str of a simple OS version string.
         """
         os_version = "Unknown"
 
@@ -103,7 +103,7 @@ class PlatformInfo(object):
         Returns a Windows friendly version string such as:
             2000, XP, 7, 10 etc.
 
-        :return: A simply os version identification string.
+        :return: A str of a simple OS version string.
         """
         os_version = "Unknown"
 
