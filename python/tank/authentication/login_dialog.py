@@ -18,7 +18,7 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-import re
+
 from .ui import resources_rc # noqa
 from .ui import login_dialog
 from . import session_cache
@@ -72,30 +72,13 @@ class LoginDialog(QtGui.QDialog):
         if hostname and hostname not in recent_hosts:
             recent_hosts.insert(0, hostname)
 
-        self._strings_model = QtGui.QStringListModel(self)
-        self._strings_model.setStringList(recent_hosts)
+        self.ui.site.set_recent_items(recent_hosts)
+        self.ui.site.set_selection(hostname)
 
-        self._proxy_model = QtGui.QSortFilterProxyModel(self)
-        self._proxy_model.setSourceModel(self._strings_model)
-
-        # Add everything and pick the first item
-        self.ui.site.setModel(self._proxy_model)
-
-        self._filter_model = QtGui.QSortFilterProxyModel(self)
-        self._filter_model.setSourceModel(self._strings_model)
-
-        self._completer = QtGui.QCompleter()
-        self._completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
-        self._completer.setModel(self._filter_model)
-        self.ui.site.setCompleter(self._completer)
-
-        if recent_hosts:
-            for idx in range(self._proxy_model.rowCount()):
-                if self._proxy_model.data(self._proxy_model.index(idx, 0)) == recent_hosts[0]:
-                    self.ui.site.setCurrentIndex(idx)
-                    break
-
-        print self.ui.site.completer().model(), self._proxy_model, self._strings_model
+        # Style sheet doesn't get applied automatically to some parts of the widget, so set it
+        # ourselves.
+        self.ui.site.set_style_sheet(self.styleSheet())
+        self.ui.login.set_style_sheet(self.styleSheet())
 
         self._populate_user_dropdown(recent_hosts[0] if recent_hosts else None)
 
@@ -145,16 +128,11 @@ class LoginDialog(QtGui.QDialog):
 
         self.ui.site.lineEdit().editingFinished.connect(self._strip_whitespaces)
         self.ui.login.lineEdit().editingFinished.connect(self._strip_whitespaces)
-        self.ui.site.lineEdit().textEdited.connect(self._current_text_changed)
         self.ui._2fa_code.editingFinished.connect(self._strip_whitespaces)
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
 
         self.ui.site.activated.connect(lambda x: self._on_site_changed())
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
-
-    def _current_text_changed(self, text):
-        self._filter_model.setFilterFixedString(text)
-        self._filter_model.invalidate()
 
     def _strip_whitespaces(self):
         """

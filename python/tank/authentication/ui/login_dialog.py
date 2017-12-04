@@ -103,11 +103,11 @@ class Ui_LoginDialog(object):
         self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.site = QtGui.QComboBox(self.credentials)
+        self.site = RecentBox(self.credentials)
         self.site.setEditable(True)
         self.site.setObjectName("site")
         self.verticalLayout_7.addWidget(self.site)
-        self.login = QtGui.QComboBox(self.credentials)
+        self.login = RecentBox(self.credentials)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -359,5 +359,6 @@ class Ui_LoginDialog(object):
         self.verify_backup.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
 
 from .aspect_preserving_label import AspectPreservingLabel
+from .recent_box import RecentBox
 from .qt5_like_line_edit import Qt5LikeLineEdit
 from . import resources_rc
