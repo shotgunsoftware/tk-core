@@ -148,18 +148,6 @@ QLineEdit:Disabled {
           </property>
           <item>
            <widget class="QComboBox" name="site">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>308</width>
-              <height>0</height>
-             </size>
-            </property>
             <property name="editable">
              <bool>true</bool>
             </property>
