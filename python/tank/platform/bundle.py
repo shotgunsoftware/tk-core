@@ -257,8 +257,6 @@ class TankBundle(object):
         sessions::
 
             stored_query_data_path = os.path.join(self.cache_location, "query.dat")
-
-        :returns: A string, full path to a cache location.
         """
         project_id = self.__tk.pipeline_configuration.get_project_id()
         return self.get_project_cache_location(project_id)
@@ -278,10 +276,20 @@ class TankBundle(object):
         sessions and can be shared across a site::
 
             stored_query_data_path = os.path.join(self.site_cache_location, "query.dat")
-
-        :returns: A string, full path to a cache location.
         """
-        return self.get_site_cache_location()
+        # this method is memoized for performance since it is being called a lot!
+        if self.__cache_location.get("site") is None:
+
+            self.__cache_location["site"] = self.__tk.execute_core_hook_method(
+                constants.CACHE_LOCATION_HOOK_NAME,
+                "get_bundle_data_cache_path",
+                project_id=None,
+                plugin_id=None,
+                pipeline_configuration_id=None,
+                bundle=self
+            )
+
+        return self.__cache_location["site"]
 
     @property
     def context(self):
@@ -480,27 +488,6 @@ class TankBundle(object):
             )
 
         return self.__cache_location[project_id]
-
-    def get_site_cache_location(self):
-        """
-        Gets the bundle's site cache-location path.
-
-        :returns: Cache location directory path.
-        :rtype str:
-        """
-        # this method is memoized for performance since it is being called a lot!
-        if self.__cache_location.get("site") is None:
-
-            self.__cache_location["site"] = self.__tk.execute_core_hook_method(
-                constants.CACHE_LOCATION_HOOK_NAME,
-                "get_bundle_data_cache_path",
-                project_id=None,
-                plugin_id=None,
-                pipeline_configuration_id=None,
-                bundle=self
-            )
-
-        return self.__cache_location["site"]
 
     def get_setting(self, key, default=None):
         """
