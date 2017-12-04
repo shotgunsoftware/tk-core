@@ -25,6 +25,8 @@ from .qt5_like_line_edit import Qt5LikeLineEdit
 
 class RecentBox(QtGui.QComboBox):
 
+    _COMPLETER_STYLE = "font: 12px"
+
     def __init__(self, parent):
         super(RecentBox, self).__init__(parent)
 
@@ -50,7 +52,7 @@ class RecentBox(QtGui.QComboBox):
         self.lineEdit().textEdited.connect(self._current_text_changed)
 
     def set_style_sheet(self, style_sheet):
-        self.completer().popup().setStyleSheet(style_sheet)
+        self.completer().popup().setStyleSheet(style_sheet + self._COMPLETER_STYLE)
 
     def set_recent_items(self, items):
         self._recent_items_model.setStringList(items)
