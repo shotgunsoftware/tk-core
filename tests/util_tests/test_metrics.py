@@ -1073,7 +1073,6 @@ class TestBundleMetrics(TankTestBase):
             self.assertTrue(hook_called)
 
 
-
 from tank.util.metrics import PlatformInfo
 
 
@@ -1165,7 +1164,7 @@ class TestPlatformInfo(unittest2.TestCase):
 
     @patch("platform.system", return_value="Windows")
     @patch("platform.release", side_effect=Exception)
-    def test_as_mac_without_mac_version(self, mocked_release, mocked_system):
+    def test_as_mac_without_release(self, mocked_release, mocked_system):
         """
         Tests handling of an exception caused by the 'release' method.
         """
@@ -1188,7 +1187,3 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertEquals("Unknown", platform_info["OS Version"])
         self.assertTrue(mocked_system.called)
         self.assertFalse(mocked_release.called)
-
-
-
-
