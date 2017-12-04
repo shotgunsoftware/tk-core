@@ -679,7 +679,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             {
                 "entity_type": "PipelineConfiguration",
                 "field": "uploaded_config",
-                "name": "Primary",
+                "id": 124,
                 "project_id": 2,
                 "type": "shotgun",
                 "version": 139
