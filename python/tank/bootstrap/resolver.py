@@ -440,7 +440,7 @@ class ConfigurationResolver(object):
             sg_descriptor_uri = dict(
                 type="shotgun",
                 entity_type="PipelineConfiguration",
-                name=shotgun_pc_data["code"],
+                id=shotgun_pc_data["id"],
                 version=sg_uploaded_config["id"],  # Attachment id changes for each upload, so
                                                    # this is a good way to detect changes in the zip file.
                 field=uploaded_config_field_name,

@@ -78,8 +78,8 @@ class IODescriptorDownloadable(IODescriptorBase):
             self._download_local(temporary_path)
         except Exception as e:
             # something went wrong during the download, remove the temporary files.
-            log.error("Failed to download into path %s: %s. Attempting to remove it."
-                      % (temporary_path, e))
+            log.error("Failed to download into path %s: %s." % (temporary_path, e))
+            log.debug("Removing downloaded temp descriptor data.")
             filesystem.safe_delete_folder(temporary_path)
             raise TankDescriptorError("Failed to download into path %s: %s" % (temporary_path, e))
 
