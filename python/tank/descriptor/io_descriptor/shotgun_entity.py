@@ -209,7 +209,15 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         downloaded to.
         """
         try:
-            shotgun.download_and_unpack_attachment(self._sg_connection, self._version, destination_path)
+            # while downloading, enable the auto detect flag. This provides
+            # some additional structural flexibility, allowing for multiple
+            # ways to zip up a bundle attachment.
+            shotgun.download_and_unpack_attachment(
+                self._sg_connection,
+                self._version,
+                destination_path,
+                auto_detect_bundle=True
+            )
         except ShotgunAttachmentDownloadError as e:
             raise TankDescriptorError(
                 "Failed to download %s from %s. Error: %s" % (self, self._sg_connection.base_url, e)

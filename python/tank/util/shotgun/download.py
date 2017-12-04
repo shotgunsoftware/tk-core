@@ -140,7 +140,7 @@ def __setup_sg_auth_and_proxy(sg):
 
 
 @LogManager.log_timing
-def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
+def download_and_unpack_attachment(sg, attachment_id, target, retries=5, auto_detect_bundle=False):
     """
     Downloads the given attachment from Shotgun, assumes it is a zip file
     and attempts to unpack it into the given location.
@@ -150,6 +150,10 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
     :param target: Folder to unpack zip to. if not created, the method will
                    try to create it.
     :param retries: Number of times to retry before giving up
+    :param auto_detect_bundle: Hints that the attachment contains a toolkit bundle
+        (config, app, engine, framework) and that this should be attempted to be
+        detected and unpacked intelligently. For example, if the zip file contains
+        the bundle in a subfolder, this should be correctly unfolded.
     :raises: ShotgunAttachmentDownloadError on failure
     """
     # @todo: progress feedback here - when the SG api supports it!
@@ -182,7 +186,7 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
             log.debug("Unpacking %s bytes to %s..." % (file_size, target))
             filesystem.ensure_folder_exists(target)
             try:
-                unzip_file(zip_tmp, target)
+                unzip_file(zip_tmp, target, auto_detect_bundle)
             except zipfile.BadZipfile:
                 invalid_zip_file = True
 

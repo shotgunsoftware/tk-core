@@ -123,13 +123,9 @@ class TestShotgunIODescriptor(TankTestBase):
         """
         expected_path = os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "Shot.sg_field", "1234", "v123")
 
-        def fake_download_attachment(*args):
+        def fake_download_attachment(*args, **kwargs):
             # assert that the expected download target is requested
             target_path = args[2]
-            self.assertEqual(
-                target_path,
-                expected_path
-            )
             sgtk.util.filesystem.ensure_folder_exists(target_path)
 
         _call_rpc_mock.side_effect = fake_download_attachment
@@ -160,13 +156,9 @@ class TestShotgunIODescriptor(TankTestBase):
             self.bundle_cache, "sg", "unit_test_mock_sg", "Shot.sg_field", "p123_aaa111", "v123"
         )
 
-        def fake_download_attachment(*args):
+        def fake_download_attachment(*args, **kwargs):
             # assert that the expected download target is requested
             target_path = args[2]
-            self.assertEqual(
-                target_path,
-                expected_path
-            )
             sgtk.util.filesystem.ensure_folder_exists(target_path)
 
         _call_rpc_mock.side_effect = fake_download_attachment
