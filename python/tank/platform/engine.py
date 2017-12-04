@@ -477,7 +477,7 @@ class Engine(TankBundle):
         """
         pass
 
-    def _get_metrics_properties(self):
+    def get_metrics_properties(self):
         """
         Return a dictionary with properties to use when emitting a metric event for
         this engine.
