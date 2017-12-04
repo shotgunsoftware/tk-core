@@ -12,6 +12,7 @@ import os
 from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 import tank
 
+
 def get_file_list(folder, prefix):
     """
     Return a relative listing of files in a folder.
@@ -97,4 +98,27 @@ class TestUnzipping(TankTestBase):
         self.assertEqual(
             set(get_file_list(output_path_2, output_path_2)),
             set(expected_output_auto)
+        )
+
+    def test_single_file_unzip(self):
+        """
+        Tests unzipping an archive with a single file (edge case)
+        """
+        zip = os.path.join(self.zip_file_location, "single_file.zip")
+
+        output_path_1 = os.path.join(self.project_root, "single_zip_test_1")
+        tank.util.zip.unzip_file(zip, output_path_1)
+
+        output_path_2 = os.path.join(self.project_root, "single_zip_test_2")
+        tank.util.zip.unzip_file(zip, output_path_2, auto_detect_bundle=True)
+
+        self.assertEqual(
+            set(get_file_list(output_path_1, output_path_1)),
+            set(get_file_list(output_path_2, output_path_2))
+        )
+
+        # if we enable auto_detect we should get the same result
+        self.assertEqual(
+            set(get_file_list(output_path_2, output_path_2)),
+            set(["/info.yml"])
         )

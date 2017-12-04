@@ -329,7 +329,7 @@ class ConfigurationResolver(object):
                     )
                     yield pipeline_config
 
-                except TankBootstrapInvalidPipelineConfigurationError, e:
+                except TankBootstrapInvalidPipelineConfigurationError as e:
                     log.warning(
                         "Pipeline configuration %s does not define a valid "
                         "access location. Details: %s" % (pipeline_config, e)

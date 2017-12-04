@@ -52,15 +52,13 @@ def unzip_file(src_zip_file, target_folder, auto_detect_bundle=False):
         #   a common scenario if a user has created a zip by right clicking on it
         #   and selected 'create archive' or 'send to zip'.
 
-        # compute number of unique root filename items
+        # compute number of unique root folders
         # note: zip module uses forward slash on all operating systems
-        root_items = set([item.split("/")[0] for item in zip_obj.namelist()])
+        root_items = set([item.split("/")[0] for item in zip_obj.namelist() if "/" in item])
         # remove certain system items
         root_items -= SYSTEM_FILE_ITEMS
 
-        # if there is a single root item and it is a folder, then kick in the
-        # special logic.
-        if len(root_items) == 1 and "/" in root_items:
+        if len(root_items) == 1:
             root_to_omit = root_items.pop()
 
             log.debug(
@@ -78,7 +76,7 @@ def unzip_file(src_zip_file, target_folder, auto_detect_bundle=False):
     # http://forums.devshed.com/python-programming-11/unzipping-a-zip-file-having-folders-and-subfolders-534487.html
     #
     # make sure we are using consistent permissions
-    # get list of file names contained in archinve
+    # get list of file names contained in archive
     if not extraction_done:
         for x in zip_obj.namelist():
             # process them one by one
@@ -130,7 +128,7 @@ def _process_item(zip_obj, item_path, target_path, root_to_omit=None):
     # /tmp/foo/bar.png
     #
     if root_to_omit and item_path.startswith(root_to_omit):
-        processed_item_path = item_path[len(root_to_omit)+1:]
+        processed_item_path = item_path[len(root_to_omit) + 1:]
     else:
         processed_item_path = item_path
 
