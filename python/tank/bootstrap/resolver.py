@@ -437,6 +437,12 @@ class ConfigurationResolver(object):
                     "Only uploaded attachments are currently supported" % shotgun_pc_data["id"]
                 )
 
+            #
+            # NOTE! The format where we can pass id/version/entity_type/field to the shotgun
+            #       descriptor was added as part of core 18.120 - older cores will not recognize it
+            #       this means that the config we are bootstrapping into here needs to use a core
+            #       more recent than 120 in order to understand this form.
+            #
             sg_descriptor_uri = dict(
                 type="shotgun",
                 entity_type="PipelineConfiguration",
@@ -445,9 +451,6 @@ class ConfigurationResolver(object):
                                                    # this is a good way to detect changes in the zip file.
                 field=uploaded_config_field_name,
             )
-
-            if shotgun_pc_data.get("project"):
-                sg_descriptor_uri["project_id"] = shotgun_pc_data["project"]["id"]
 
             cfg_descriptor = create_descriptor(
                 sg_connection,
