@@ -38,6 +38,9 @@ PRODUCT_IDENTIFIER = "toolkit"
 # the user has stopped for longer than the delay (in ms).
 USER_INPUT_DELAY_BEFORE_SSO_CHECK = 300
 
+# Let's put at 5 seconds the maximum time we might wait for a SSO check thread.
+THREAD_WAIT_TIMEOUT_MS = 5000
+
 
 class QuerySiteAndUpdateUITask(QtCore.QThread):
     """
@@ -195,7 +198,8 @@ class LoginDialog(QtGui.QDialog):
 
         # We want to wait until we know if the site uses SSO or not, to avoid
         # flickering GUI.
-        self._query_task.wait()
+        if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
+            logger.warning("Timed out awaiting check for SSO support on the site: %s" % self._get_site())
 
     def _get_site(self):
         """
@@ -349,7 +353,10 @@ class LoginDialog(QtGui.QDialog):
         Validate the values, accepting if login is successful and display an error message if not.
         """
         # Wait for any ongoing SSO check thread.
-        self._query_task.wait()
+        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
+            logger.warning("Timed out awaiting check for SSO support on the site: %s" % self._get_site())
+        QtGui.QApplication.restoreOverrideCursor()
 
         # pull values from the gui
         site = self._get_site()
