@@ -75,6 +75,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.set_recent_items(recent_hosts)
         self.ui.site.set_selection(hostname)
 
+        # Apply the stylesheet manually, Qt doesn't see it otherwise...
         COMPLETER_STYLE = self.styleSheet() + (
             "\n\nQWidget {"
             "font-size: 12px;"
