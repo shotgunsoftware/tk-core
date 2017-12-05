@@ -18,14 +18,159 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
+import re
 
+from PySide import QtCore
 from .qt_abstraction import QtGui
 from .qt5_like_line_edit import Qt5LikeLineEdit
 
 
+class FuzzyMatcher():
+    """
+    Implement an algorithm to rank strings via fuzzy matching.
+
+    Based on the analysis at
+    http://crossplatform.net/sublime-text-ctrl-p-fuzzy-matching-in-python
+    """
+    def __init__(self, pattern, case_sensitive=False):
+        # construct a pattern that matches the letters in order
+        # for example "aad" turns into "(a).*?(a).*?(d)".
+        self.pattern = ".*?".join("(%s)" % re.escape(char) for char in pattern)
+        if case_sensitive:
+            self.re = re.compile(self.pattern)
+        else:
+            self.re = re.compile(self.pattern, re.IGNORECASE)
+
+    def score(self, string, highlighter=None):
+        match = self.re.search(string)
+        if match is None:
+            # letters did not appear in order
+            return (0, string)
+        else:
+            # have a match, scores are higher for matches near the beginning
+            # or that are clustered together
+            score = 100.0 / ((1 + match.start()) * (match.end() - match.start() + 1))
+
+            if highlighter is not None:
+                highlighted = string[0:match.start(1)]
+                for group in xrange(1, match.lastindex + 1):
+                    if group == match.lastindex:
+                        remainder = string[match.end(group):]
+                    else:
+                        remainder = string[match.end(group):match.start(group + 1)]
+                    highlighted += highlighter(match.group(group)) + remainder
+            else:
+                highlighted = string
+            return (score, highlighted)
+
+
+COMPLETER_PROXY_DISPLAY_ROLE = 2048
+
+
+# Credit for the HTMLDelegate goes to
+# https://stackoverflow.com/a/5443112
+class HTMLDelegate(QtGui.QStyledItemDelegate):
+    def paint(self, painter, option, index):
+        options = QtGui.QStyleOptionViewItemV4(option)
+        self.initStyleOption(options, index)
+
+        style = QtGui.QApplication.style() if options.widget is None else options.widget.style()
+
+        doc = QtGui.QTextDocument()
+        doc.setHtml(options.text)
+        doc.setTextWidth(option.rect.width())
+
+        options.text = ""
+        style.drawControl(QtGui.QStyle.CE_ItemViewItem, options, painter)
+
+        ctx = QtGui.QAbstractTextDocumentLayout.PaintContext()
+
+        # Highlighting text if item is selected
+        ctx.palette.setColor(
+            QtGui.QPalette.Text,
+            options.palette.color(QtGui.QPalette.Active, QtGui.QPalette.Text)
+        )
+
+        textRect = style.subElementRect(QtGui.QStyle.SE_ItemViewItemText, options)
+        painter.save()
+        painter.translate(textRect.topLeft())
+        painter.setClipRect(textRect.translated(-textRect.topLeft()))
+        doc.documentLayout().draw(painter, ctx)
+
+        painter.restore()
+
+    def sizeHint(self, option, index):
+        options = QtGui.QStyleOptionViewItemV4(option)
+        self.initStyleOption(options, index)
+
+        # Sometimes the code gets invoked with a size of zero, which messes up the rendering size,
+        # so return 0. Otherwise, some items will not be rendered with the right amount of spacing
+        # under them.
+        doc = QtGui.QTextDocument()
+        doc.setHtml(options.text)
+        doc.setTextWidth(options.rect.width())
+
+        print options.text, options.rect, doc.size()
+        return QtCore.QSize(doc.idealWidth(), doc.size().height())
+
+
+class CompletionFilterProxy(QtGui.QSortFilterProxyModel):
+
+    def __init__(self, parent):
+        super(CompletionFilterProxy, self).__init__(parent)
+        self.set_filter("")
+
+    def set_filter(self, text):
+        self._fuzzy_matcher = FuzzyMatcher(text, case_sensitive=False) if len(text) > 0 else None
+        self.invalidateFilter()
+        self.sort(0)
+        self.layoutChanged.emit()
+
+    def _highlighter(self, char):
+        return "<b><u>" + char + "</u></b>"
+
+    def filterAcceptsRow(self, row, source_parent):
+        if not self._fuzzy_matcher:
+            return True
+        else:
+            index = self.sourceModel().index(row, 0, source_parent)
+            result = self._fuzzy_matcher.score(self.sourceModel().data(index))
+            return result[0]
+
+    def data(self, index, role):
+        """
+        """
+        # Retrieve the data, but filter it if we want to display it so search results have some
+        # highlighting.
+        text = super(CompletionFilterProxy, self).data(index, role)
+        if role == QtCore.Qt.DisplayRole and self._fuzzy_matcher:
+            return self._fuzzy_matcher.score(text, highlighter=self._highlighter)[1]
+        else:
+            return text
+
+    def lessThan(self, left, right):
+        """
+        Sorts items based on their fuzzy-matching score. Higher scores show up first.
+        """
+        # If there is no filter, consider both entries to be of the same score.
+        if self._fuzzy_matcher:
+            left_score = self._fuzzy_matcher.score(left.data())
+            right_score = self._fuzzy_matcher.score(right.data())
+        else:
+            left_score = 0
+            right_score = 0
+
+        if left_score != right_score:
+            # The higher the score, the earlier the result should be in the list.
+            return left_score > right_score
+        else:
+            # Score is the same, so sort alphabetically
+            return left.data() < right.data()
+
+
 class RecentBox(QtGui.QComboBox):
     """
-    Combo box speciailisation that handles all the filtering, sorting and auto-completion
+    Combo box specialisation that handles all the filtering, sorting and auto-completion
     for a list of recent items. Items are sorted alphabetically so they can be found easily
     in the UI.
     """
@@ -50,10 +195,13 @@ class RecentBox(QtGui.QComboBox):
         self._completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
 
         # We'll do our own filtering.
-        self._filter_model = QtGui.QSortFilterProxyModel(self)
+        self._filter_model = CompletionFilterProxy(self)
         self._filter_model.setSourceModel(self._drop_down_model)
         self._completer.setModel(self._filter_model)
         self.setCompleter(self._completer)
+
+        self._item_delegate = HTMLDelegate(self)
+        self.completer().popup().setItemDelegate(self._item_delegate)
 
         # Each time the user types something, we'll update the filter.
         self.lineEdit().textEdited.connect(self._current_text_changed)
@@ -91,7 +239,7 @@ class RecentBox(QtGui.QComboBox):
 
         :param str text: Text the user has just typed in.
         """
-        self._filter_model.setFilterFixedString(text)
+        self._filter_model.set_filter(text)
 
     def set_placeholder_text(self, text):
         """
