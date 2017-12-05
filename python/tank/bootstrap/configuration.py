@@ -101,6 +101,10 @@ class Configuration(object):
         # configuration does support the get_configuration_descriptor method however, we can
         # pass the descriptor in.
         if hasattr(pipelineconfig.PipelineConfiguration, "get_configuration_descriptor"):
+            # Toolkit nowadays will actually read the descriptor from the pipeline_configuration.yml
+            # file, so passing it as an argument is not necessary anymore. But because there was a
+            # window where the PipelineConfiguration object did expect the parameter to be passed
+            # in, from v0.18.72 to 0.18.94, we have to pass it in...
             pc = pipelineconfig.PipelineConfiguration(path, self.descriptor)
         else:
             pc = pipelineconfig.PipelineConfiguration(path)

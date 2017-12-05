@@ -62,16 +62,15 @@ class SessionCacheTests(TankTestBase):
         self.assertEqual(session_cache.get_recent_hosts(), [HOST_A, HOST_B])
         self.assertEqual(session_cache.get_current_host(), HOST_A)
 
-        # Now remove HOST_A from the recent list. It should be gone from
-        # the list and B should be the new current site.
-        session_cache.remove_recent_host(HOST_A)
-        self.assertEqual(session_cache.get_recent_hosts(), [HOST_B])
-        self.assertEqual(session_cache.get_current_host(), HOST_B)
+        # Update the cache 10 times.
+        n_hosts = ["https://host-%d.shotgunstudio.com" % i for i in range(10)]
+        for host in n_hosts:
+            session_cache.set_current_host(host)
 
-        # Now remove HOST_B form the recent list.
-        session_cache.remove_recent_host(HOST_B)
-        self.assertEqual(session_cache.get_recent_hosts(), [])
-        self.assertEqual(session_cache.get_current_host(), None)
+        # We should now have hosts 9 down to 2 in the most recent list.
+        most_recents = ["https://host-%d.shotgunstudio.com" % i for i in range(9, 1, -1)]
+
+        self.assertEqual(session_cache.get_recent_hosts(), most_recents)
 
     def test_recent_users(self):
         """
@@ -101,16 +100,15 @@ class SessionCacheTests(TankTestBase):
         self.assertEqual(session_cache.get_recent_users(HOST), [LOGIN_A, LOGIN_B])
         self.assertEqual(session_cache.get_current_user(HOST), LOGIN_A)
 
-        # Now remove HOST_A from the recent list. It should be gone from
-        # the list and B should be the new current site.
-        session_cache.remove_recent_user(HOST, LOGIN_A)
-        self.assertEqual(session_cache.get_recent_users(HOST), [LOGIN_B])
-        self.assertEqual(session_cache.get_current_user(HOST), LOGIN_B)
+        # Update the cache 10 times.
+        n_users = ["login-%d" % i for i in range(10)]
+        for user in n_users:
+            session_cache.set_current_user(HOST, user)
 
-        # Now remove HOST_B form the recent list.
-        session_cache.remove_recent_user(HOST, LOGIN_B)
-        self.assertEqual(session_cache.get_recent_users(HOST), [])
-        self.assertEqual(session_cache.get_current_user(HOST), None)
+        # We should now have users 9 down to 2 in the most recent list.
+        most_recents = ["login-%d" % i for i in range(9, 1, -1)]
+
+        self.assertEqual(session_cache.get_recent_users(HOST), most_recents)
 
     def test_current_host(self):
         """

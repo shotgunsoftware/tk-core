@@ -146,19 +146,28 @@ class LoginDialog(QtGui.QDialog):
         self.sender().setText(self.sender().text().strip())
 
     def _on_site_changed(self):
+        """
+        Called when the user is done editing the site. It will refresh the
+        list of recent users.
+        """
         self.ui.login.clear()
         self._populate_user_dropdown(self._get_current_site())
 
     def _populate_user_dropdown(self, site):
+        """
+        Populate the combo box of users based on a given site.
 
+        :param str site: Site to populate the user list for.
+        """
         if site:
             users = session_cache.get_recent_users(site)
-            self.ui.login.addItems(users)
+            self.ui.login.set_recent_items(users)
         else:
             users = []
 
         if users:
-            self.ui.login.setCurrentIndex(0)
+            # The first user in the list is the most recent, so pick it.
+            self.ui.login.set_selection(users[0])
         else:
             self.ui.login.setEditText(login.get_login_name())
 
@@ -354,11 +363,21 @@ class LoginDialog(QtGui.QDialog):
             self._set_error_message(self.ui.message, e)
 
     def _get_current_site(self):
+        """
+        Retrieves the properly filtered site name from the site combo box.
+
+        :returns: The site to connect to.
+        """
         return connection.sanitize_url(
             self.ui.site.currentText().strip()
         ).encode("utf-8")
 
     def _get_current_user(self):
+        """
+        Retrieves the properly filtered login from the login combo box.
+
+        :returns: The login to use for authentication.
+        """
         return self.ui.login.currentText().strip().encode("utf-8")
 
     def _use_backup_pressed(self):

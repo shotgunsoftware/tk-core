@@ -370,7 +370,8 @@ def get_current_user(host):
 
 def set_current_user(host, login):
     """
-    Saves the current user for a given host.
+    Saves the current user for a given host and updates the recent user list. Only the last 8
+    entries are kept.
 
     :param host: Host to save the current user for.
     :param login: The current user login for specified host.
@@ -382,14 +383,48 @@ def set_current_user(host, login):
     _ensure_folder_for_file(file_path)
 
     current_user_file = _try_load_site_authentication_file(file_path)
-    current_user_file[_CURRENT_USER] = login
 
-    # Make sure this user is now the most recent one.
-    if login in current_user_file[_RECENT_USERS]:
-        current_user_file[_RECENT_USERS].remove(login)
-    current_user_file[_RECENT_USERS].insert(0, login)
+    _update_recent_list(
+        current_user_file, _CURRENT_USER, _RECENT_USERS, login
+    )
 
     _write_yaml_file(file_path, current_user_file)
+
+
+def set_current_host(host):
+    """
+    Saves the current host and updates the most recent host list. Only the last 8 entries are kept.
+
+    :param host: The new current host.
+    """
+    if host:
+        host = connection.sanitize_url(host)
+
+    file_path = _get_global_authentication_file_location()
+    _ensure_folder_for_file(file_path)
+
+    current_host_file = _try_load_global_authentication_file(file_path)
+
+    _update_recent_list(current_host_file, _CURRENT_HOST, _RECENT_HOSTS, host)
+    _write_yaml_file(file_path, current_host_file)
+
+
+def _update_recent_list(document, current_key, recent_key, value):
+    """
+    Updates document's current key with the desired value and it's recent key by inserting the value
+    at the front. Only the most recent 8 entries are kept.
+
+    For example, if a document has the current_host (current_key) and recent_hosts (recent_key) key,
+    the current_host would be set to the host (value) passed in and the host would be inserted
+    at the front of recent_key's array.
+    """
+    document[current_key] = value
+    # Make sure this user is now the most recent one.
+    if value in document[recent_key]:
+        document[recent_key].remove(value)
+    document[recent_key].insert(0, value)
+    # Only keep the 8 most recent entries
+    document[recent_key] = document[recent_key][:8]
 
 
 def get_current_host():
@@ -420,32 +455,6 @@ def get_recent_hosts():
     return document[_RECENT_HOSTS]
 
 
-def remove_recent_host(site):
-    """
-    Removes the host from the recent list.
-
-    If the host was the current host, then the next most recent host
-    becomes the current one. If there is no other hosts, than the
-    current host becomes non.
-    """
-    file_path = _get_global_authentication_file_location()
-    document = _try_load_global_authentication_file(file_path)
-    _remove_recent(document, file_path, _CURRENT_HOST, _RECENT_HOSTS, site)
-
-
-def remove_recent_user(site, user):
-    """
-    Removes the host from the recent list.
-
-    If the host was the current host, then the next most recent host
-    becomes the current one. If there is no other hosts, than the
-    current host becomes non.
-    """
-    file_path = _get_site_authentication_file_location(site)
-    document = _try_load_site_authentication_file(file_path)
-    _remove_recent(document, file_path, _CURRENT_USER, _RECENT_USERS, user)
-
-
 def get_recent_users(site):
     """
     Retrieves the list of recently visited hosts.
@@ -454,50 +463,8 @@ def get_recent_users(site):
     """
     info_path = _get_site_authentication_file_location(site)
     document = _try_load_site_authentication_file(info_path)
-    # FIXME: We potential want to keep the users sorted in a list... or not.
     logger.debug("Recent users are: %s", document[_RECENT_USERS])
     return document[_RECENT_USERS]
-
-
-def _remove_recent(document, file_location, current_token, recent_token, value):
-
-    # Remove the host from the recent list.
-    document[recent_token].remove(value)
-
-    # If the removed host is also the current host, do some extra cleanup.
-    if document[current_token] == value:
-        # If the are still recent hosts, take the most recent host and promote
-        # it as the current host.
-        if document[recent_token]:
-            document[current_token] = document[recent_token][0]
-        else:
-            # If there are no more hosts, just remove the current one.
-            document[current_token] = None
-
-    _write_yaml_file(file_location, document)
-
-
-def set_current_host(host):
-    """
-    Saves the current host.
-
-    :param host: The new current host.
-    """
-    if host:
-        host = connection.sanitize_url(host)
-
-    file_path = _get_global_authentication_file_location()
-    _ensure_folder_for_file(file_path)
-
-    current_host_file = _try_load_global_authentication_file(file_path)
-    current_host_file[_CURRENT_HOST] = host
-
-    # Make sure this host is now the most recent one.
-    if host in current_host_file[_RECENT_HOSTS]:
-        current_host_file[_RECENT_HOSTS].remove(host)
-    current_host_file[_RECENT_HOSTS].insert(0, host)
-
-    _write_yaml_file(file_path, current_host_file)
 
 
 @LogManager.log_timing
