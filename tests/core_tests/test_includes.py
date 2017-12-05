@@ -19,7 +19,7 @@ from tank.platform.environment_includes import _resolve_includes as get_environm
 from mock import patch
 
 
-class Includes(object):
+class TestIncludes(object):
     """
     Allows to nest the Imp class so that the unit test runner doesn't try to run it.
     """
@@ -154,7 +154,7 @@ class Includes(object):
 # refactoring of the include system, I suspect most of these tests will move to the refactored
 # framework location and this messiness will go away.
 
-class TemplateIncludes(Includes.Imp):
+class TestTemplateIncludes(TestIncludes.Imp):
     """
     Tests template includes.
     """
@@ -168,7 +168,7 @@ class TemplateIncludes(Includes.Imp):
         return get_template_includes(self._file_name, {"includes": includes})
 
 
-class TestEnvironmentIncludes(Includes.Imp):
+class TestEnvironmentIncludes(TestIncludes.Imp):
     """
     Tests environment includes.
     """

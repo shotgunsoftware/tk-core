@@ -21,23 +21,21 @@ class TestEnvironment(TankTestBase):
 
         # create env object
         self.env = self.tk.pipeline_configuration.get_environment(self.test_env)
-
-        self.config_location = self.tk.pipeline_configuration.get_config_location()
-
+        
         # get raw environment
-        env_file = os.path.join(self.config_location, "env", "test.yml")
+        env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
         self.raw_env_data = yaml.load(fh)
         fh.close()
         
         # get raw app metadata
-        app_md = os.path.join(self.config_location, "bundles", "test_app", "info.yml")
+        app_md = os.path.join(self.project_config, "bundles", "test_app", "info.yml")
         fh = open(app_md)
         self.raw_app_metadata = yaml.load(fh)
         fh.close()
 
         # get raw engine metadata
-        eng_md = os.path.join(self.config_location, "bundles", "test_engine", "info.yml")
+        eng_md = os.path.join(self.project_config, "bundles", "test_engine", "info.yml")
         fh = open(eng_md)
         self.raw_engine_metadata = yaml.load(fh)
         fh.close()
@@ -85,9 +83,7 @@ class TestDumpEnvironment(TankTestBase):
 
     def setUp(self):
         super(TestDumpEnvironment, self).setUp()
-        self.setup_fixtures(parameters={"descriptor_based": False})
-
-        self.config_location = self.tk.pipeline_configuration.get_config_location()
+        self.setup_fixtures()
 
         # create env object
         self.env = self.tk.pipeline_configuration.get_environment("test_dump",
@@ -98,7 +94,7 @@ class TestDumpEnvironment(TankTestBase):
         env_name = "test_dump_unmodified"
 
         # dump to a temp file
-        temp_path = os.path.join(self.config_location, "env", env_name + ".yml")
+        temp_path = os.path.join(self.project_config, "env", env_name + ".yml")
         fh = open(temp_path, "w")
         self.env.dump(fh, self.env.NONE)  # no transform
         fh.close()
@@ -406,7 +402,6 @@ class TestRuamelParser(TankTestBase):
     def setUp(self):
         super(TestRuamelParser, self).setUp()
         self.setup_fixtures()
-        self.config_location = self.tk.pipeline_configuration.get_config_location()
 
     def test_yaml(self):
 
@@ -416,17 +411,17 @@ class TestRuamelParser(TankTestBase):
         env.create_engine_settings("new_engine")
 
         # get environment content before
-        env_file = os.path.join(self.config_location, "env", "test.yml")
+        env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
         updated_env = fh.readlines()
         fh.close()
 
         # get raw environment after
         # ruamel parser only used in py2.6+
-        if sys.version_info < (2, 6):
-            env_file = os.path.join(self.config_location, "env", "test_post_update_old_parser.yml")
+        if sys.version_info < (2,6):
+            env_file = os.path.join(self.project_config, "env", "test_post_update_old_parser.yml")
         else:
-            env_file = os.path.join(self.config_location, "env", "test_post_update_new_parser.yml")
+            env_file = os.path.join(self.project_config, "env", "test_post_update_new_parser.yml")
 
         fh = open(env_file)
         expected_env = fh.readlines()
@@ -448,8 +443,6 @@ class TestPyYamlParser(TankTestBase):
     def setUp(self):
         super(TestPyYamlParser, self).setUp()
         self.setup_fixtures()
-        self.config_location = self.tk.pipeline_configuration.get_config_location()
-        
 
     def test_yaml(self):
 
@@ -460,13 +453,13 @@ class TestPyYamlParser(TankTestBase):
         env.create_engine_settings("new_engine")
 
         # get environment content before
-        env_file = os.path.join(self.config_location, "env", "test.yml")
+        env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
         updated_env = fh.readlines()
         fh.close()
 
         # get raw environment after
-        env_file = os.path.join(self.config_location, "env", "test_post_update_old_parser.yml")
+        env_file = os.path.join(self.project_config, "env", "test_post_update_old_parser.yml")
         fh = open(env_file)
         expected_env = fh.readlines()
         fh.close()

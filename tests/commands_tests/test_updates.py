@@ -39,7 +39,7 @@ class TestSimpleUpdates(TankTestBase):
         self._mock_store = patcher.start()
         self.addCleanup(patcher.stop)
 
-        self.setup_fixtures("app_store_tests", {"descriptor_based": False})
+        self.setup_fixtures("app_store_tests")
 
         self._mock_store.add_engine("tk-test", "v1.0.0")
         self._mock_store.add_application("tk-multi-nodep", "v1.0.0")
